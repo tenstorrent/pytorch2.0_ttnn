@@ -18,7 +18,7 @@ def main():
     print('Before conversion', type(m))
     print(m.forward(input))
 
-    m = torch_ttnn.transform_ttnn(m)
+    m = torch.compile(m, backend=torch_ttnn.backend)
     print('After conversion', type(m))
     print(m.forward(input))
     

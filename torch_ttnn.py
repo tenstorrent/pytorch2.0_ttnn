@@ -29,3 +29,18 @@ def transform_ttnn(module : nn.Module) -> nn.Module:
             
     result_module = torch.fx.GraphModule(module, graph)
     return result_module
+
+def backend(gm: torch.fx.GraphModule, args) -> torch.fx.GraphModule:
+    print("backend is called.")
+    for node in gm.graph.nodes:
+        if node.op == 'call_function' and node.target == operator.add:
+            node.target = ttnn.add
+        elif node.op == 'call_function' and node.target == torch._C._nn.linear:
+            node.target = linear
+
+    # Recompile this GraphModule from its ``graph`` attribute. This should be
+    # called after editing the contained ``graph``, otherwise the generated
+    # code of this ``GraphModule`` will be out of date.
+    gm.recompile()
+
+    return gm
