@@ -5,42 +5,44 @@ import torch.nn as nn
 import torch
 from torch.fx import symbolic_trace
 import operator
+from typing import List
 
 
 def linear(i, weight, bias):
     return ttnn.add(ttnn.matmul(i, weight), bias)
 
 
-class NestedTracer(torch.fx.Tracer):
-    def is_leaf_module(self, m: torch.nn.Module, qualname: str):
-        if isinstance(m, nn.Linear):
-            return False
-        return super().is_leaf_module(m, qualname)
+def replace_with_ttnn(node, func, device):
+    """
+    Replace a node with a new node that calls the given function with the same arguments.
+    """
+    graph = node.graph
+    with graph.inserting_after(node):
+        from_torch = graph.call_function(ttnn.from_torch, node.args, node.kwargs)
+        to_device = graph.call_function(ttnn.to_device, from_torch, device)
+        ttnn_op = graph.call_function(func, to_device)
+        from_device = graph.call_function(ttnn.from_device, ttnn_op, device)
+        to_torch = graph.call_function(ttnn.to_torch, from_device)
+        node.replace_all_uses_with(to_torch)
+        graph.erase_node(node)
 
 
-def transform_ttnn(module : nn.Module) -> nn.Module:
-    graph : torch.fx.Graph = NestedTracer().trace(module)
-    symbolic_traced : torch.fx.GraphModule = torch.fx.GraphModule(module, graph)
-    for node in graph.nodes:
-        if node.op == 'call_function' and node.target == operator.add:
-            node.target = ttnn.add
-        elif node.op == 'call_function' and node.target == torch._C._nn.linear:
-            node.target = linear
-            
-    result_module = torch.fx.GraphModule(module, graph)
-    return result_module
-
-def backend(gm: torch.fx.GraphModule, args) -> torch.fx.GraphModule:
-    print("backend is called.")
+def aten_backend(gm: torch.fx.GraphModule, sexample_inputs: List[torch.Tensor]) -> torch.fx.GraphModule:
+    """
+    The backend for torch.compile that converts a graph to use ttnn.
+    The graph is wrapped in torch._dynamo.backends.common.aot_autograd, which
+    trace into low level ATen ops not only high level torch ops.
+    """
+    gm.graph.print_tabular()
     for node in gm.graph.nodes:
-        if node.op == 'call_function' and node.target == operator.add:
+        if node.op == 'call_function' and node.target == torch.ops.aten.add.Tensor:
             node.target = ttnn.add
-        elif node.op == 'call_function' and node.target == torch._C._nn.linear:
-            node.target = linear
+        elif node.op == 'call_function' and node.target == torch.ops.aten.mul.Tensor:
+            node.target = ttnn.matmul
 
-    # Recompile this GraphModule from its ``graph`` attribute. This should be
-    # called after editing the contained ``graph``, otherwise the generated
-    # code of this ``GraphModule`` will be out of date.
     gm.recompile()
-
+    gm.graph.print_tabular()
     return gm
+
+from torch._dynamo.backends.common import aot_autograd
+backend = aot_autograd(fw_compiler=aten_backend)
