@@ -16,16 +16,20 @@ def replace_with_ttnn(node, func, device):
     """
     Replace a node with a new node that calls the given function with the same arguments.
     """
-    graph = node.graph
-    with graph.inserting_after(node):
-        from_torch = graph.call_function(ttnn.from_torch, node.args, node.kwargs)
-        to_device = graph.call_function(ttnn.to_device, from_torch, device)
+    graph: torch.fx.Graph = node.graph
+    with graph.inserting_before(node):
+        from_torch = tuple(graph.call_function(ttnn.from_torch, (i,)) for i in node.args)
+        to_device = tuple(graph.call_function(ttnn.to_device, (i, device)) for i in from_torch)
         ttnn_op = graph.call_function(func, to_device)
-        from_device = graph.call_function(ttnn.from_device, ttnn_op, device)
-        to_torch = graph.call_function(ttnn.to_torch, from_device)
+        from_device = graph.call_function(ttnn.from_device, (ttnn_op, device))
+        to_torch = graph.call_function(ttnn.to_torch, (from_device,))
         node.replace_all_uses_with(to_torch)
         graph.erase_node(node)
 
+
+
+class Foo:
+    pass
 
 def aten_backend(gm: torch.fx.GraphModule, sexample_inputs: List[torch.Tensor]) -> torch.fx.GraphModule:
     """
@@ -33,12 +37,17 @@ def aten_backend(gm: torch.fx.GraphModule, sexample_inputs: List[torch.Tensor]) 
     The graph is wrapped in torch._dynamo.backends.common.aot_autograd, which
     trace into low level ATen ops not only high level torch ops.
     """
-    gm.graph.print_tabular()
+    # TOFIX(yoco): Currently, we assume the device can only be a torch.Tensor
+    # I am stil trying to figure out how to handle the device as a ttnn.Device
+    #  device = ttnn.open(7)
+    device = 3.1416
+    #  gm.graph.print_tabular()
+    graph: torch.fx.Graph = gm.graph
     for node in gm.graph.nodes:
         if node.op == 'call_function' and node.target == torch.ops.aten.add.Tensor:
-            node.target = ttnn.add
+            replace_with_ttnn(node, ttnn.add, device)
         elif node.op == 'call_function' and node.target == torch.ops.aten.mul.Tensor:
-            node.target = ttnn.matmul
+            replace_with_ttnn(node, ttnn.matmul, device)
 
     gm.recompile()
     gm.graph.print_tabular()

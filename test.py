@@ -38,7 +38,10 @@ def main():
     # Verify the results are the same
     print(result_before)
     print(result_after)
-    assert torch.allclose(result_before, result_after)
+    allclose = torch.allclose(result_before, result_after)
+    assert allclose
+    if allclose:
+        print('All close!')
     
 if __name__ == '__main__':
     main()
