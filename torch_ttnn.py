@@ -8,6 +8,8 @@ from typing import List
 
 torch.fx.graph._register_custom_builtin('Device', 'from ttnn import Device', ttnn.Device)
 
+device_id: int = 0
+
 def linear(i, weight, bias):
     return ttnn.add(ttnn.matmul(i, weight), bias)
 
@@ -27,13 +29,13 @@ def replace_with_ttnn(node, func, device):
         graph.erase_node(node)
 
 
-def aten_backend(gm: torch.fx.GraphModule, sexample_inputs: List[torch.Tensor]) -> torch.fx.GraphModule:
+def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
     The graph is wrapped in torch._dynamo.backends.common.aot_autograd, which
     trace into low level ATen ops not only high level torch ops.
     """
-    device = ttnn.Device(7)
+    device = ttnn.Device(device_id)
     graph: torch.fx.Graph = gm.graph
     for node in gm.graph.nodes:
         if node.op == 'call_function' and node.target == torch.ops.aten.add.Tensor:
