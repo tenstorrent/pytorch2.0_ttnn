@@ -1,5 +1,4 @@
 import torch.linalg
-import torch._C._nn
 import ttnn
 import torch.nn as nn
 import torch
@@ -7,6 +6,7 @@ from torch.fx import symbolic_trace
 import operator
 from typing import List
 
+torch.fx.graph._register_custom_builtin('Device', 'from ttnn import Device', ttnn.Device)
 
 def linear(i, weight, bias):
     return ttnn.add(ttnn.matmul(i, weight), bias)
@@ -27,21 +27,13 @@ def replace_with_ttnn(node, func, device):
         graph.erase_node(node)
 
 
-
-class Foo:
-    pass
-
 def aten_backend(gm: torch.fx.GraphModule, sexample_inputs: List[torch.Tensor]) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
     The graph is wrapped in torch._dynamo.backends.common.aot_autograd, which
     trace into low level ATen ops not only high level torch ops.
     """
-    # TOFIX(yoco): Currently, we assume the device can only be a torch.Tensor
-    # I am stil trying to figure out how to handle the device as a ttnn.Device
-    #  device = ttnn.open(7)
-    device = 3.1416
-    #  gm.graph.print_tabular()
+    device = ttnn.Device(7)
     graph: torch.fx.Graph = gm.graph
     for node in gm.graph.nodes:
         if node.op == 'call_function' and node.target == torch.ops.aten.add.Tensor:
