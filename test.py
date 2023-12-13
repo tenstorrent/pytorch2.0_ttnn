@@ -20,7 +20,7 @@ class MyModule(torch.nn.Module):
         self.inner = InnerModule()
 
     def forward(self, x):
-        return self.inner(x + self.param).clamp(min=-3.0, max=3.0)
+        return self.inner(x + x + self.param).clamp(min=-3.0, max=3.0)
 
 
 def main():

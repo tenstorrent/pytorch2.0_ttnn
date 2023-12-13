@@ -28,6 +28,36 @@ def replace_with_ttnn(node, func, device):
         node.replace_all_uses_with(to_torch)
         graph.erase_node(node)
 
+def eliminate_paired_data_movement(node, func, pre_func, check_device = False):
+    """
+    Eliminate redudent pattern of paired data movement, such as from_device => to_device.
+    """
+    changed = False
+    available_func_list = [ttnn.from_device, ttnn.to_device, ttnn.from_torch, ttnn.to_torch]
+    if func not in available_func_list or pre_func not in available_func_list:
+        return changed
+    if len(node.users) == 0:
+        return changed
+    if node.op == 'call_function' and node.target == func:
+        pre_node = node.args[0]
+        if type(pre_node) == torch.fx.node.Node and \
+            pre_node.op == 'call_function' and pre_node.target == pre_func:
+            if not check_device or node.args[1] == pre_node.args[1]:
+                node.replace_all_uses_with(pre_node.args[0])
+                changed = True
+    return changed
+
+def eliminate_paired_data_movement_pass(gm: torch.fx.GraphModule):
+    changed = False
+    for node in gm.graph.nodes:
+        changed |= eliminate_paired_data_movement(node, ttnn.to_device, ttnn.from_device, check_device=True)
+        changed |= eliminate_paired_data_movement(node, ttnn.from_device, ttnn.to_device, check_device=True)
+        changed |= eliminate_paired_data_movement(node, ttnn.to_torch, ttnn.from_torch)
+        changed |= eliminate_paired_data_movement(node, ttnn.from_torch, ttnn.to_torch)
+    if changed:
+        gm.graph.eliminate_dead_code()
+        gm.recompile()
+    return changed
 
 def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}) -> torch.fx.GraphModule:
     """
@@ -44,6 +74,11 @@ def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], o
             replace_with_ttnn(node, ttnn.matmul, device)
 
     gm.recompile()
+
+    while True:
+        if not eliminate_paired_data_movement_pass(gm):
+            break
+
     gm.graph.print_tabular()
     return gm
 
