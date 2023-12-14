@@ -97,6 +97,7 @@ def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], o
 
     gm.graph.print_tabular()
     gm.recompile()
+    fx_graphviz.to_svg(gm.graph)
     print(gm.code)
     return gm
 
