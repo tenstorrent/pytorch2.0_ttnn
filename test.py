@@ -6,7 +6,7 @@ import torch_ttnn
 class InnerModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear = torch.nn.Linear(4, 4)
+        self.linear = torch.nn.Linear(4, 4,dtype=torch.bfloat16)
 
     def forward(self, x):
         return self.linear(x) * x
@@ -16,17 +16,23 @@ class InnerModule(torch.nn.Module):
 class MyModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.param = torch.nn.Parameter(torch.rand(3, 4))
+        self.param = torch.nn.Parameter(torch.rand((3, 4), dtype=torch.bfloat16))
         self.inner = InnerModule()
 
     def forward(self, x):
         return self.inner(x + x + self.param).clamp(min=-3.0, max=3.0)
 
+class SimpleModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+    def forward(self, x):
+        return x+x
 
 def main():
     # Create a sample module
-    m = MyModule()
-    input = torch.rand(4)
+    #m = MyModule()
+    m = SimpleModule()
+    input = torch.rand((4), dtype=torch.bfloat16)
     # Run it
     print('Before conversion', type(m))
     result_before = m.forward(input)
