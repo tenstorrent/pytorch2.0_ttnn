@@ -9,11 +9,11 @@ import fx_graphviz
 try:
     import ttnn
 except ImportError:
+    print("ttnn is not installed, use mock_ttnn instead")
     import mock_ttnn as ttnn
 
-global_device: ttnn.Device = ttnn.open(0)
+global_device: ttnn.Device = None
 
-torch.fx.graph._register_custom_builtin('global_device', 'from . import global_device', global_device)
 
 def replace_with_ttnn(node, func, device):
     """
@@ -82,6 +82,11 @@ def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
             replace_with_ttnn(node, ttnn.matmul, device)
 
 
+def set_device(device):
+    global global_device
+    global_device = device
+
+
 def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -89,6 +94,7 @@ def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], o
     trace into low level ATen ops not only high level torch ops.
     """
     
+    torch.fx.graph._register_custom_builtin('global_device', 'from . import global_device', global_device)
     # Rewrite with ttnn ops, will insert redundant data movement
     rewrite_tt_op_pass(gm)
     

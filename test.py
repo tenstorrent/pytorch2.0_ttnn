@@ -1,10 +1,6 @@
 import torch
 import torch_ttnn
-MOCK = True
-if MOCK:
-    import mock_ttnn as ttnn
-else:
-    import ttnn
+from torch_ttnn import ttnn
 
 
 # Inner module for demonstration, verify nested modules work
@@ -40,6 +36,9 @@ class MatmulModule(torch.nn.Module):
         return torch.matmul(x, x)
 
 def main():
+    # Open device 0 and set it as torch_ttnn global variable
+    device: ttnn.Device = ttnn.open(0)
+    torch_ttnn.set_device(device)
     # Create a sample module
     m = MatmulModule()
     input = torch.rand((4, 4), dtype=torch.bfloat16)
@@ -48,6 +47,7 @@ def main():
     result_before = m.forward(input)
     # Convert it
     m = torch.compile(m, backend=torch_ttnn.backend)
+    # TODO(yoco) Check the graph has be rewritten and contain ttnn ops
     # Run it again
     print('After conversion', type(m))
     result_after = m.forward(input)
@@ -58,7 +58,9 @@ def main():
     assert allclose
     if allclose:
         print('All close!')
-    ttnn.close(torch_ttnn.global_device)
+    # Close the device
+    ttnn.close(device)
     
+
 if __name__ == '__main__':
     main()
