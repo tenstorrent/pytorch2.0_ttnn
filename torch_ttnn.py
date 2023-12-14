@@ -1,4 +1,7 @@
 import torch.linalg
+import site
+site.addsitedir("/home/ubuntu/tt-metal-user")
+site.addsitedir("/home/ubuntu/project/torch-ttnn")
 import ttnn
 import torch.nn as nn
 import torch
@@ -6,13 +9,10 @@ from torch.fx import symbolic_trace
 import operator
 from typing import List
 
-torch.fx.graph._register_custom_builtin('Device', 'from ttnn import Device', ttnn.Device)
 
-device_id: int = 0
+global_device: ttnn.Device = ttnn.open(0)
 
-def linear(i, weight, bias):
-    return ttnn.add(ttnn.matmul(i, weight), bias)
-
+torch.fx.graph._register_custom_builtin('global_device', 'from . import global_device', global_device)
 
 def replace_with_ttnn(node, func, device):
     """
@@ -28,7 +28,8 @@ def replace_with_ttnn(node, func, device):
         from_torch = tuple(graph.call_function(ttnn.from_torch, (i,)) for i in node.args)
         to_device = tuple(graph.call_function(ttnn.to_device, (i, device)) for i in from_torch)
         ttnn_op = graph.call_function(func, to_device)
-        from_device = graph.call_function(ttnn.from_device, (ttnn_op, device))
+        #from_device = graph.call_function(ttnn.from_device, (ttnn_op, device))
+        from_device = graph.call_function(ttnn.from_device, (ttnn_op,))
         to_torch = graph.call_function(ttnn.to_torch, (from_device,))
         node.replace_all_uses_with(to_torch)
         graph.erase_node(node)
@@ -64,9 +65,13 @@ def eliminate_redundant_data_movement_conversion_pass(gm: torch.fx.GraphModule):
         gm.recompile()
     return changed
 
+class WrapperDevice():
+    def __repr__(self):
+        return f"global_device"
 
 def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
-    device = ttnn.Device(device_id)
+    #device = ttnn.DeviceWrapper(device_id)
+    device = WrapperDevice()
     graph: torch.fx.Graph = gm.graph
     for node in gm.graph.nodes:
         if node.op == 'call_function' and node.target == torch.ops.aten.add.Tensor:
@@ -86,12 +91,13 @@ def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], o
     rewrite_tt_op_pass(gm)
     
     # After rewrite, remove redundant data movement
-    while True:
-        if not eliminate_redundant_data_movement_conversion_pass(gm):
-            break
+#    while True:
+#        if not eliminate_redundant_data_movement_conversion_pass(gm):
+#            break
 
     gm.graph.print_tabular()
     gm.recompile()
+    print(gm.code)
     return gm
 
 from torch._dynamo.backends.common import aot_autograd

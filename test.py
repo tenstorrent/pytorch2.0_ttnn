@@ -1,4 +1,5 @@
 import torch
+import ttnn
 import torch_ttnn
 
 
@@ -13,7 +14,7 @@ class InnerModule(torch.nn.Module):
 
 
 # Simple module for demonstration
-class MyModule(torch.nn.Module):
+class ComplexModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.param = torch.nn.Parameter(torch.rand((3, 4), dtype=torch.bfloat16))
@@ -22,17 +23,22 @@ class MyModule(torch.nn.Module):
     def forward(self, x):
         return self.inner(x + x + self.param).clamp(min=-3.0, max=3.0)
 
-class SimpleModule(torch.nn.Module):
+class AddModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
     def forward(self, x):
         return x+x
 
+class MatmulModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+    def forward(self, x):
+        return torch.matmul(x, x)
+
 def main():
     # Create a sample module
-    #m = MyModule()
-    m = SimpleModule()
-    input = torch.rand((4), dtype=torch.bfloat16)
+    m = MatmulModule()
+    input = torch.rand((4, 4), dtype=torch.bfloat16)
     # Run it
     print('Before conversion', type(m))
     result_before = m.forward(input)
@@ -48,6 +54,7 @@ def main():
     assert allclose
     if allclose:
         print('All close!')
+    ttnn.close(torch_ttnn.global_device)
     
 if __name__ == '__main__':
     main()
