@@ -1,6 +1,10 @@
 import torch
-import ttnn
 import torch_ttnn
+MOCK = True
+if MOCK:
+    import mock_ttnn as ttnn
+else:
+    import ttnn
 
 
 # Inner module for demonstration, verify nested modules work
@@ -14,7 +18,7 @@ class InnerModule(torch.nn.Module):
 
 
 # Simple module for demonstration
-class ComplexModule(torch.nn.Module):
+class ComplicatedModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.param = torch.nn.Parameter(torch.rand((3, 4), dtype=torch.bfloat16))

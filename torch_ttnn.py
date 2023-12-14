@@ -1,8 +1,4 @@
 import torch.linalg
-import site
-site.addsitedir("/home/ubuntu/tt-metal-user")
-site.addsitedir("/home/ubuntu/project/torch-ttnn")
-import ttnn
 import torch.nn as nn
 import torch
 from torch.fx import symbolic_trace
@@ -10,6 +6,10 @@ import operator
 from typing import List
 import fx_graphviz
 
+try:
+    import ttnn
+except ImportError:
+    import mock_ttnn as ttnn
 
 global_device: ttnn.Device = ttnn.open(0)
 
@@ -29,7 +29,6 @@ def replace_with_ttnn(node, func, device):
         from_torch = tuple(graph.call_function(ttnn.from_torch, (i,)) for i in node.args)
         to_device = tuple(graph.call_function(ttnn.to_device, (i, device)) for i in from_torch)
         ttnn_op = graph.call_function(func, to_device)
-        #from_device = graph.call_function(ttnn.from_device, (ttnn_op, device))
         from_device = graph.call_function(ttnn.from_device, (ttnn_op,))
         to_torch = graph.call_function(ttnn.to_torch, (from_device,))
         node.replace_all_uses_with(to_torch)
@@ -77,6 +76,8 @@ def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
     for node in gm.graph.nodes:
         if node.op == 'call_function' and node.target == torch.ops.aten.add.Tensor:
             replace_with_ttnn(node, ttnn.add, device)
+        elif node.op == 'call_function' and node.target == torch.ops.aten.mm.default:
+            replace_with_ttnn(node, ttnn.matmul, device)
         elif node.op == 'call_function' and node.target == torch.ops.aten.mul.Tensor:
             replace_with_ttnn(node, ttnn.matmul, device)
 
@@ -92,12 +93,13 @@ def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], o
     rewrite_tt_op_pass(gm)
     
     # After rewrite, remove redundant data movement
-#    while True:
-#        if not eliminate_redundant_data_movement_conversion_pass(gm):
-#            break
+    while True:
+        if not eliminate_redundant_data_movement_conversion_pass(gm):
+            break
 
     gm.graph.print_tabular()
     gm.recompile()
+    fx_graphviz.to_svg(gm.graph)
     print(gm.code)
     return gm
 
