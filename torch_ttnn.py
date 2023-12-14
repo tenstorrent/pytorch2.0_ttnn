@@ -8,6 +8,7 @@ import torch
 from torch.fx import symbolic_trace
 import operator
 from typing import List
+import fx_graphviz
 
 
 global_device: ttnn.Device = ttnn.open(0)
