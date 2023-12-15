@@ -26,61 +26,82 @@ def replace_with_ttnn(node, func, device):
     """
     graph: torch.fx.Graph = node.graph
     with graph.inserting_before(node):
-        from_torch = tuple(graph.call_function(ttnn.from_torch, (i,)) for i in node.args)
-        to_device = tuple(graph.call_function(ttnn.to_device, (i, device)) for i in from_torch)
+        from_torch = tuple(
+            graph.call_function(ttnn.from_torch, (i,)) for i in node.args
+        )
+        to_device = tuple(
+            graph.call_function(ttnn.to_device, (i, device)) for i in from_torch
+        )
         ttnn_op = graph.call_function(func, to_device)
         from_device = graph.call_function(ttnn.from_device, (ttnn_op,))
         to_torch = graph.call_function(ttnn.to_torch, (from_device,))
         node.replace_all_uses_with(to_torch)
         graph.erase_node(node)
 
+
 def eliminate_redundant_data_movement_conversion(node, func, pre_func):
     """
     Eliminate redundant pattern of paired data movement, such as from_device => to_device.
     """
     changed = False
-    available_func_list = [ttnn.from_device, ttnn.to_device, ttnn.from_torch, ttnn.to_torch]
+    available_func_list = [
+        ttnn.from_device,
+        ttnn.to_device,
+        ttnn.from_torch,
+        ttnn.to_torch,
+    ]
     if func not in available_func_list or pre_func not in available_func_list:
         return changed
     if len(node.users) == 0:
         return changed
-    if node.op != 'call_function' or node.target != func:
+    if node.op != "call_function" or node.target != func:
         return changed
     pre_node = node.args[0]
     if type(pre_node) != torch.fx.node.Node:
         return changed
-    if pre_node.op != 'call_function' or pre_node.target != pre_func:
+    if pre_node.op != "call_function" or pre_node.target != pre_func:
         return changed
     node.replace_all_uses_with(pre_node.args[0])
     changed = True
     return changed
 
+
 def eliminate_redundant_data_movement_conversion_pass(gm: torch.fx.GraphModule):
     changed = False
     for node in gm.graph.nodes:
-        changed |= eliminate_redundant_data_movement_conversion(node, ttnn.to_device, ttnn.from_device)
-        changed |= eliminate_redundant_data_movement_conversion(node, ttnn.from_device, ttnn.to_device)
-        changed |= eliminate_redundant_data_movement_conversion(node, ttnn.to_torch, ttnn.from_torch)
-        changed |= eliminate_redundant_data_movement_conversion(node, ttnn.from_torch, ttnn.to_torch)
+        changed |= eliminate_redundant_data_movement_conversion(
+            node, ttnn.to_device, ttnn.from_device
+        )
+        changed |= eliminate_redundant_data_movement_conversion(
+            node, ttnn.from_device, ttnn.to_device
+        )
+        changed |= eliminate_redundant_data_movement_conversion(
+            node, ttnn.to_torch, ttnn.from_torch
+        )
+        changed |= eliminate_redundant_data_movement_conversion(
+            node, ttnn.from_torch, ttnn.to_torch
+        )
     if changed:
         gm.graph.eliminate_dead_code()
         gm.recompile()
     return changed
 
-class WrapperDevice():
+
+class WrapperDevice:
     def __repr__(self):
         return f"global_device"
 
+
 def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
-    #device = ttnn.DeviceWrapper(device_id)
+    # device = ttnn.DeviceWrapper(device_id)
     device = WrapperDevice()
     graph: torch.fx.Graph = gm.graph
     for node in gm.graph.nodes:
-        if node.op == 'call_function' and node.target == torch.ops.aten.add.Tensor:
+        if node.op == "call_function" and node.target == torch.ops.aten.add.Tensor:
             replace_with_ttnn(node, ttnn.add, device)
-        elif node.op == 'call_function' and node.target == torch.ops.aten.mm.default:
+        elif node.op == "call_function" and node.target == torch.ops.aten.mm.default:
             replace_with_ttnn(node, ttnn.matmul, device)
-        elif node.op == 'call_function' and node.target == torch.ops.aten.mul.Tensor:
+        elif node.op == "call_function" and node.target == torch.ops.aten.mul.Tensor:
             replace_with_ttnn(node, ttnn.matmul, device)
 
 
@@ -93,15 +114,19 @@ def graphviz_pass(gm: torch.fx.GraphModule, filename: str):
     fx_graphviz.to_svg(gm.graph, filename)
 
 
-def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}) -> torch.fx.GraphModule:
+def aten_backend(
+    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}
+) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
     The graph is wrapped in torch._dynamo.backends.common.aot_autograd, which
     trace into low level ATen ops not only high level torch ops.
     """
-    
+
     graphviz_pass(gm, "00-before")
-    torch.fx.graph._register_custom_builtin('global_device', 'from . import global_device', global_device)
+    torch.fx.graph._register_custom_builtin(
+        "global_device", "from . import global_device", global_device
+    )
 
     # Rewrite with ttnn ops, will insert redundant data movement
     rewrite_tt_op_pass(gm)
@@ -117,5 +142,7 @@ def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], o
     print(gm.code)
     return gm
 
+
 from torch._dynamo.backends.common import aot_autograd
+
 backend = aot_autograd(fw_compiler=aten_backend)

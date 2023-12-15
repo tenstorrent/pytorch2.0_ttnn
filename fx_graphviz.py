@@ -42,9 +42,10 @@ def node_name(node):
 def node_text_const(op):
     return op.kind()
 
+
 def node_label(node):
     if isinstance(node, torch.fx.node.Node):
-        return str(node.op + '\n' + node.name)
+        return str(node.op + "\n" + node.name)
     else:
         return str(node)
 
@@ -52,37 +53,39 @@ def node_label(node):
 def from_port(from_op, it):
     port_table = [
         [],
-        [''],
-        [':sw', ':se'],
-        [':sw', ':s', ':se'],
-        [':w', ':sw', ':s', ':se'],
-        [':w', ':sw', ':s', ':se', ':e'],
-        [':sw', ':sw', ':s', ':s', ':se', ':se'],
+        [""],
+        [":sw", ":se"],
+        [":sw", ":s", ":se"],
+        [":w", ":sw", ":s", ":se"],
+        [":w", ":sw", ":s", ":se", ":e"],
+        [":sw", ":sw", ":s", ":s", ":se", ":se"],
     ]
     idx = list(from_op.outputs()).index(it)
     result = port_table[len(list(from_op.outputs()))][idx]
     return result
 
+
 def to_port(to_op, it_idx):
     port_table = [
         [],
-        [''],
-        [':nw', ':ne'],
-        [':nw', ':n', ':ne'],
-        [':w', ':nw', ':n', ':ne'],
-        [':w', ':nw', ':n', ':ne', ':e'],
-        [':nw', ':nw', ':n', ':n', ':ne', ':ne'],
+        [""],
+        [":nw", ":ne"],
+        [":nw", ":n", ":ne"],
+        [":w", ":nw", ":n", ":ne"],
+        [":w", ":nw", ":n", ":ne", ":e"],
+        [":nw", ":nw", ":n", ":n", ":ne", ":ne"],
     ]
     result = port_table[len(list(to_op.args))][it_idx]
     return result
 
+
 def to_svg(g: torch.fx.Graph, filename: str):
     # Setup dot
     dot = graphviz.Digraph()
-    dot.node_attr['style'] = 'rounded,filled'
-    dot.node_attr['shape'] = 'box'
-    dot.node_attr['fillcolor'] = '#eeeeee'
-    dot.edge_attr['color'] = '#77777777'
+    dot.node_attr["style"] = "rounded,filled"
+    dot.node_attr["shape"] = "box"
+    dot.node_attr["fillcolor"] = "#eeeeee"
+    dot.edge_attr["color"] = "#77777777"
 
     # setup nodes
     map_node_idx = dict()
@@ -90,22 +93,19 @@ def to_svg(g: torch.fx.Graph, filename: str):
     for op_idx, node in enumerate(g.nodes):
         map_node_idx[node] = op_idx
         map_idx_node[op_idx] = node
-        dot.node(
-            node_name(node),
-            label = node_label(node)
-        )
+        dot.node(node_name(node), label=node_label(node))
 
     # setup edges
     edge_color_table = [
-        '#77ffff77',
-        '#ff77ff77',
-        '#7777ff77',
-        '#ff777777',
-        '#77ff7777',
+        "#77ffff77",
+        "#ff77ff77",
+        "#7777ff77",
+        "#ff777777",
+        "#77ff7777",
     ]
 
     for node in g.nodes:
-        if node.op == 'output':
+        if node.op == "output":
             in_nodes = node.args[0]
         else:
             in_nodes = node.args
@@ -115,11 +115,10 @@ def to_svg(g: torch.fx.Graph, filename: str):
             dot.edge(
                 node_name(in_node),
                 node_name(node) + to_port(node, idx),
-                color = edge_color,
-                penwidth = str(4)
+                color=edge_color,
+                penwidth=str(4),
             )
 
     # Write .dot & .svg
-    dot.save(f'{filename}.dot')
-    os.system(f'dot -T svg -O {filename}.dot')
-
+    dot.save(f"{filename}.dot")
+    os.system(f"dot -T svg -O {filename}.dot")

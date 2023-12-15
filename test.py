@@ -7,7 +7,7 @@ from torch_ttnn import ttnn
 class InnerModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.linear = torch.nn.Linear(4, 4,dtype=torch.bfloat16)
+        self.linear = torch.nn.Linear(4, 4, dtype=torch.bfloat16)
 
     def forward(self, x):
         return self.linear(x) * x
@@ -23,17 +23,22 @@ class ComplicatedModule(torch.nn.Module):
     def forward(self, x):
         return self.inner(x + x + self.param).clamp(min=-3.0, max=3.0)
 
+
 class AddModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
+
     def forward(self, x):
-        return x+x
+        return x + x
+
 
 class MatmulModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
+
     def forward(self, x):
         return torch.matmul(x, x)
+
 
 def main():
     # Open device 0 and set it as torch_ttnn global variable
@@ -43,13 +48,13 @@ def main():
     m = MatmulModule()
     input = torch.rand((4, 4), dtype=torch.bfloat16)
     # Run it
-    print('Before conversion', type(m))
+    print("Before conversion", type(m))
     result_before = m.forward(input)
     # Convert it
     m = torch.compile(m, backend=torch_ttnn.backend)
     # TODO(yoco) Check the graph has be rewritten and contain ttnn ops
     # Run it again
-    print('After conversion', type(m))
+    print("After conversion", type(m))
     result_after = m.forward(input)
     # Verify the results are the same
     print(result_before)
@@ -57,10 +62,10 @@ def main():
     allclose = torch.allclose(result_before, result_after)
     assert allclose
     if allclose:
-        print('All close!')
+        print("All close!")
     # Close the device
     ttnn.close(device)
-    
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
