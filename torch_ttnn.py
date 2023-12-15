@@ -39,9 +39,7 @@ def replace_with_ttnn(node, func, device):
         graph.erase_node(node)
 
 
-def eliminate_redundant_data_movement_conversion(
-    node, func, pre_func, check_device=False
-):
+def eliminate_redundant_data_movement_conversion(node, func, pre_func):
     """
     Eliminate redundant pattern of paired data movement, such as from_device => to_device.
     """
@@ -56,16 +54,15 @@ def eliminate_redundant_data_movement_conversion(
         return changed
     if len(node.users) == 0:
         return changed
-    if node.op == "call_function" and node.target == func:
-        pre_node = node.args[0]
-        if (
-            type(pre_node) == torch.fx.node.Node
-            and pre_node.op == "call_function"
-            and pre_node.target == pre_func
-        ):
-            if not check_device or node.args[1] == pre_node.args[1]:
-                node.replace_all_uses_with(pre_node.args[0])
-                changed = True
+    if node.op != "call_function" or node.target != func:
+        return changed
+    pre_node = node.args[0]
+    if type(pre_node) != torch.fx.node.Node:
+        return changed
+    if pre_node.op != "call_function" or pre_node.target != pre_func:
+        return changed
+    node.replace_all_uses_with(pre_node.args[0])
+    changed = True
     return changed
 
 
@@ -73,10 +70,10 @@ def eliminate_redundant_data_movement_conversion_pass(gm: torch.fx.GraphModule):
     changed = False
     for node in gm.graph.nodes:
         changed |= eliminate_redundant_data_movement_conversion(
-            node, ttnn.to_device, ttnn.from_device, check_device=True
+            node, ttnn.to_device, ttnn.from_device
         )
         changed |= eliminate_redundant_data_movement_conversion(
-            node, ttnn.from_device, ttnn.to_device, check_device=True
+            node, ttnn.from_device, ttnn.to_device
         )
         changed |= eliminate_redundant_data_movement_conversion(
             node, ttnn.to_torch, ttnn.from_torch
