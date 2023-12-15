@@ -8,22 +8,22 @@ class AddModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, x):
-        return x + x
+    def forward(self, x, y):
+        return x + y
 
     def input_shapes(self):
-        return [(4, 4)]
+        return [(4, 4), (4, 4)]
 
 
 class MatmulModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, x):
-        return torch.matmul(x, x)
+    def forward(self, x, y):
+        return torch.matmul(x, y)
 
     def input_shapes(self):
-        return [(4, 4)]
+        return [(3, 4), (4, 5)]
 
 
 class TestModules(unittest.TestCase):
