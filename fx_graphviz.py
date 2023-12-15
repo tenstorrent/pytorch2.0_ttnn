@@ -44,7 +44,7 @@ def node_text_const(op):
 
 def node_label(node):
     if isinstance(node, torch.fx.node.Node):
-        return str(node.name)
+        return str(node.op + '\n' + node.name)
     else:
         return str(node)
 
@@ -76,7 +76,7 @@ def to_port(to_op, it_idx):
     result = port_table[len(list(to_op.args))][it_idx]
     return result
 
-def to_svg(g: torch.fx.Graph):
+def to_svg(g: torch.fx.Graph, filename: str):
     # Setup dot
     dot = graphviz.Digraph()
     dot.node_attr['style'] = 'rounded,filled'
@@ -92,8 +92,7 @@ def to_svg(g: torch.fx.Graph):
         map_idx_node[op_idx] = node
         dot.node(
             node_name(node),
-            label = node_label(node),
-            color = '#aaffaa'
+            label = node_label(node)
         )
 
     # setup edges
@@ -116,15 +115,11 @@ def to_svg(g: torch.fx.Graph):
             dot.edge(
                 node_name(in_node),
                 node_name(node) + to_port(node, idx),
-                #  xlabel = _tensor_label(in_node),
                 color = edge_color,
                 penwidth = str(4)
             )
 
     # Write .dot & .svg
-    print('Write .dot file')
-    dot.save('graph.dot')
-    print('Converting to SVG ...')
-    os.system('dot -T svg -O graph.dot')
-    print('Convert done')
+    dot.save(f'{filename}.dot')
+    os.system(f'dot -T svg -O {filename}.dot')
 

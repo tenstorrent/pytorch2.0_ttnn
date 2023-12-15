@@ -87,6 +87,10 @@ def set_device(device):
     global_device = device
 
 
+def graphviz_pass(gm: torch.fx.GraphModule, filename: str):
+    fx_graphviz.to_svg(gm.graph, filename)
+
+
 def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -94,18 +98,20 @@ def aten_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], o
     trace into low level ATen ops not only high level torch ops.
     """
     
+    graphviz_pass(gm, "00-before")
     torch.fx.graph._register_custom_builtin('global_device', 'from . import global_device', global_device)
+
     # Rewrite with ttnn ops, will insert redundant data movement
     rewrite_tt_op_pass(gm)
-    
+    graphviz_pass(gm, "01-rewrite")
     # After rewrite, remove redundant data movement
     while True:
         if not eliminate_redundant_data_movement_conversion_pass(gm):
             break
+    graphviz_pass(gm, "02-eliminate")
 
     gm.graph.print_tabular()
     gm.recompile()
-    fx_graphviz.to_svg(gm.graph)
     print(gm.code)
     return gm
 
