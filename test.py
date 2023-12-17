@@ -54,11 +54,11 @@ def main():
     option = torch_ttnn.TorchTtnnOption(device=device)
     # Convert it
     m = torch.compile(m, backend=torch_ttnn.backend(option))
-    # TODO(yoco) Check the graph has be rewritten and contain ttnn ops
     # Run it again
     print("After conversion", type(m))
     result_after = m.forward(input)
     # Verify the results are the same
+    option.out_fx_graph.print_tabular()
     print(result_before)
     print(result_after)
     allclose = torch.allclose(result_before, result_after)

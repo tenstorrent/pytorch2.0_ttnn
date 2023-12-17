@@ -111,6 +111,10 @@ def graphviz_pass(gm: torch.fx.GraphModule, filename: str):
     fx_graphviz.to_svg(gm.graph, filename)
 
 
+# The backend for torch.compile that converts a graph to use ttnn.
+# The "option" parameter is a dict that contains one key "torch_ttnn_option".
+# The value of "torch_ttnn_option" is a TorchTtnnOption object.
+# See document for detail.
 def aten_backend(
     gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options: dict
 ) -> torch.fx.GraphModule:
@@ -120,9 +124,10 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
+    option : TorchTtnnOption = options['torch_ttnn_option']
     graphviz_pass(gm, "00-before")
     torch.fx.graph._register_custom_builtin(
-        "device", "", options['device']
+        "device", "", option.device
     )
 
     # Rewrite with ttnn ops, will insert redundant data movement
@@ -134,6 +139,7 @@ def aten_backend(
             break
     graphviz_pass(gm, "02-eliminate")
 
+    option.out_fx_graph = gm.graph
     gm.graph.print_tabular()
     gm.recompile()
     print(gm.code)
@@ -143,15 +149,15 @@ def aten_backend(
 from torch._dynamo.backends.common import aot_autograd
 from functools import partial
 
-def aot_autograd_with_options(option: dict):
-    return partial(aot_autograd, options=option)
 
-
+# The option for torch_ttnn.backend
 class TorchTtnnOption:
     def __init__(self, device: ttnn.Device):
         self.device = device
+        self.out_fx_graph = None
 
 
+# The wrapper of aot_autograd that takes a TorchTtnnOption as options.
 def backend(torch_ttnn_option: TorchTtnnOption):
-    options = {'device': torch_ttnn_option.device}
+    options = {'torch_ttnn_option': torch_ttnn_option}
     return aot_autograd(fw_compiler=partial(aten_backend, options=options))
