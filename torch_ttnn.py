@@ -12,6 +12,12 @@ except ImportError:
     print("ttnn is not installed, use mock_ttnn instead")
     import mock_ttnn as ttnn
 
+
+def is_mocking():
+    print(f"ttnn.__name__ = {ttnn.__name__}")
+    return ttnn.__name__ == "mock_ttnn"
+
+
 global_device: ttnn.Device = None
 
 
