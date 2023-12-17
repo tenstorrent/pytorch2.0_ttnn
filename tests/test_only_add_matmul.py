@@ -28,9 +28,8 @@ class MatmulModule(torch.nn.Module):
 
 class TestModules(unittest.TestCase):
     def setUp(self):
-        # Open device 0 and set it as torch_ttnn global variable
+        # Open device 0
         self.device: ttnn.Device = ttnn.open(0)
-        torch_ttnn.set_device(self.device)
 
     def tearDown(self):
         # Close the device
@@ -41,7 +40,8 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         result_before = m.forward(*inputs)
-        m = torch.compile(m, backend=torch_ttnn.backend)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        m = torch.compile(m, backend=torch_ttnn.backend(option))
         # TODO(yoco) Check the graph has be rewritten and contain ttnn ops
         result_after = m.forward(*inputs)
         self.assertTrue(torch.allclose(result_before, result_after))
@@ -51,7 +51,8 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         result_before = m.forward(*inputs)
-        m = torch.compile(m, backend=torch_ttnn.backend)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        m = torch.compile(m, backend=torch_ttnn.backend(option))
         # TODO(yoco) Check the graph has be rewritten and contain ttnn ops
         result_after = m.forward(*inputs)
         self.assertTrue(torch.allclose(result_before, result_after))

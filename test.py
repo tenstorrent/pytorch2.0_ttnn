@@ -42,16 +42,18 @@ class MatmulModule(torch.nn.Module):
 
 def main():
     # Open device 0 and set it as torch_ttnn global variable
-    device: ttnn.Device = ttnn.open(0)
-    torch_ttnn.set_device(device)
+    device: ttnn.Device = ttnn.open(7)
+    #  torch_ttnn.set_device(device)
     # Create a sample module
     m = MatmulModule()
     input = torch.rand((4, 4), dtype=torch.bfloat16)
     # Run it
     print("Before conversion", type(m))
     result_before = m.forward(input)
+    # Create a Torch2TNN option
+    option = torch_ttnn.TorchTtnnOption(device=device)
     # Convert it
-    m = torch.compile(m, backend=torch_ttnn.backend)
+    m = torch.compile(m, backend=torch_ttnn.backend(option))
     # TODO(yoco) Check the graph has be rewritten and contain ttnn ops
     # Run it again
     print("After conversion", type(m))

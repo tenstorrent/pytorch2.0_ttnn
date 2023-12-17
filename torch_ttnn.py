@@ -18,9 +18,6 @@ def is_mocking():
     return ttnn.__name__ == "mock_ttnn"
 
 
-global_device: ttnn.Device = None
-
-
 def replace_with_ttnn(node, func, device):
     """
     Replace a node with a new node that calls the given function with the same arguments.
@@ -95,11 +92,10 @@ def eliminate_redundant_data_movement_conversion_pass(gm: torch.fx.GraphModule):
 
 class WrapperDevice:
     def __repr__(self):
-        return f"global_device"
+        return f"device"
 
 
 def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
-    # device = ttnn.DeviceWrapper(device_id)
     device = WrapperDevice()
     graph: torch.fx.Graph = gm.graph
     for node in gm.graph.nodes:
@@ -111,17 +107,12 @@ def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
             replace_with_ttnn(node, ttnn.matmul, device)
 
 
-def set_device(device):
-    global global_device
-    global_device = device
-
-
 def graphviz_pass(gm: torch.fx.GraphModule, filename: str):
     fx_graphviz.to_svg(gm.graph, filename)
 
 
 def aten_backend(
-    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}
+    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options: dict
 ) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -131,7 +122,7 @@ def aten_backend(
 
     graphviz_pass(gm, "00-before")
     torch.fx.graph._register_custom_builtin(
-        "global_device", "from . import global_device", global_device
+        "device", "", options['device']
     )
 
     # Rewrite with ttnn ops, will insert redundant data movement
@@ -150,5 +141,17 @@ def aten_backend(
 
 
 from torch._dynamo.backends.common import aot_autograd
+from functools import partial
 
-backend = aot_autograd(fw_compiler=aten_backend)
+def aot_autograd_with_options(option: dict):
+    return partial(aot_autograd, options=option)
+
+
+class TorchTtnnOption:
+    def __init__(self, device: ttnn.Device):
+        self.device = device
+
+
+def backend(torch_ttnn_option: TorchTtnnOption):
+    options = {'device': torch_ttnn_option.device}
+    return aot_autograd(fw_compiler=partial(aten_backend, options=options))

@@ -45,6 +45,7 @@ def from_device(tensor):
 
 
 def to_device(tensor, device):
+    print(f"Tensor {tensor} is moved to device {device.device_id}")
     return tensor
 
 
