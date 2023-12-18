@@ -139,10 +139,16 @@ def aten_backend(
             break
     graphviz_pass(gm, "02-eliminate")
 
-    option.out_fx_graph = gm.graph
     gm.graph.print_tabular()
     gm.recompile()
+    
+    # Common subexpression elimination
+    from torch.fx.passes.dialect.common.cse_pass import CSEPass
+    gm = CSEPass().call(gm)[0]
+    graphviz_pass(gm, "03-cse")
+
     print(gm.code)
+    option.out_fx_graph = gm.graph
     return gm
 
 
