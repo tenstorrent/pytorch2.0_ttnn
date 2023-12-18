@@ -1,14 +1,6 @@
 import torch
 
 
-def func_logger(func):
-    def wrapper(*args, **kwargs):
-        print(f"'ttnn.{func.__name__}' is called")
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
 ############################################################
 # Device related functions
 ############################################################
@@ -40,23 +32,20 @@ def close(device):
     pass
 
 
-@func_logger
 def from_torch(tensor):
     return tensor
 
 
-@func_logger
 def to_torch(tensor):
     return tensor
 
 
-@func_logger
 def from_device(tensor):
     return tensor
 
 
-@func_logger
 def to_device(tensor, device):
+    print(f"Tensor {tensor} is moved to device {device.device_id}")
     return tensor
 
 
@@ -65,12 +54,11 @@ def to_device(tensor, device):
 ############################################################
 
 
-@func_logger
 def add(x, y):
-    z = torch.ops.aten.add.Tensor(x, y)
-    return x + y
+    z = x + y
+    return z
 
 
-@func_logger
 def matmul(x, y):
-    return torch.ops.aten.mm(x, y)
+    mm = torch.ops.aten.mm(x, y)
+    return mm

@@ -111,7 +111,6 @@ def to_svg(g: torch.fx.Graph, filename: str):
             in_nodes = node.args
         for idx, in_node in enumerate(in_nodes):
             edge_color = edge_color_table[(id(node) + idx) % 5]
-            print(type(in_node), in_node)
             dot.edge(
                 node_name(in_node),
                 node_name(node) + to_port(node, idx),

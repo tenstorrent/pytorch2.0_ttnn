@@ -12,7 +12,10 @@ except ImportError:
     print("ttnn is not installed, use mock_ttnn instead")
     import mock_ttnn as ttnn
 
-global_device: ttnn.Device = None
+
+def is_mocking():
+    print(f"ttnn.__name__ = {ttnn.__name__}")
+    return ttnn.__name__ == "mock_ttnn"
 
 
 def replace_with_ttnn(node, func, device):
@@ -89,11 +92,10 @@ def eliminate_redundant_data_movement_conversion_pass(gm: torch.fx.GraphModule):
 
 class WrapperDevice:
     def __repr__(self):
-        return f"global_device"
+        return f"device"
 
 
 def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
-    # device = ttnn.DeviceWrapper(device_id)
     device = WrapperDevice()
     graph: torch.fx.Graph = gm.graph
     for node in gm.graph.nodes:
@@ -105,17 +107,16 @@ def rewrite_tt_op_pass(gm: torch.fx.GraphModule):
             replace_with_ttnn(node, ttnn.matmul, device)
 
 
-def set_device(device):
-    global global_device
-    global_device = device
-
-
 def graphviz_pass(gm: torch.fx.GraphModule, filename: str):
     fx_graphviz.to_svg(gm.graph, filename)
 
 
+# The backend for torch.compile that converts a graph to use ttnn.
+# The "option" parameter is a dict that contains one key "torch_ttnn_option".
+# The value of "torch_ttnn_option" is a TorchTtnnOption object.
+# See document for detail.
 def aten_backend(
-    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options={}
+    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options: dict
 ) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -123,9 +124,10 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
+    option : TorchTtnnOption = options['torch_ttnn_option']
     graphviz_pass(gm, "00-before")
     torch.fx.graph._register_custom_builtin(
-        "global_device", "from . import global_device", global_device
+        "device", "", option.device
     )
 
     # Rewrite with ttnn ops, will insert redundant data movement
@@ -137,6 +139,7 @@ def aten_backend(
             break
     graphviz_pass(gm, "02-eliminate")
 
+    option.out_fx_graph = gm.graph
     gm.graph.print_tabular()
     gm.recompile()
     print(gm.code)
@@ -144,5 +147,17 @@ def aten_backend(
 
 
 from torch._dynamo.backends.common import aot_autograd
+from functools import partial
 
-backend = aot_autograd(fw_compiler=aten_backend)
+
+# The option for torch_ttnn.backend
+class TorchTtnnOption:
+    def __init__(self, device: ttnn.Device):
+        self.device = device
+        self.out_fx_graph = None
+
+
+# The wrapper of aot_autograd that takes a TorchTtnnOption as options.
+def backend(torch_ttnn_option: TorchTtnnOption):
+    options = {'torch_ttnn_option': torch_ttnn_option}
+    return aot_autograd(fw_compiler=partial(aten_backend, options=options))
