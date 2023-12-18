@@ -1,4 +1,5 @@
 import torch
+
 try:
     import ttnn
 except ImportError:
@@ -7,9 +8,11 @@ except ImportError:
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
+
 class DummyDevice:
     def __repr__(self):
         return f"device"
+
 
 def replace_with_ttnn(node, func, device):
     """
@@ -44,7 +47,9 @@ class ToTtPass(PassBase):
             if node.op == "call_function" and node.target == torch.ops.aten.add.Tensor:
                 replace_with_ttnn(node, ttnn.add, device)
                 modified = True
-            elif node.op == "call_function" and node.target == torch.ops.aten.mm.default:
+            elif (
+                node.op == "call_function" and node.target == torch.ops.aten.mm.default
+            ):
                 replace_with_ttnn(node, ttnn.matmul, device)
                 modified = True
 

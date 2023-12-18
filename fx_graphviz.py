@@ -3,6 +3,12 @@ import torch
 import os
 import math
 
+try:
+    import ttnn
+except ImportError:
+    print("ttnn is not installed, use mock_ttnn instead")
+    import mock_ttnn as ttnn
+
 
 def _tensor_weight(t):
     s = t.shape
@@ -50,6 +56,17 @@ def node_label(node):
         return str(node)
 
 
+def node_fillcolor(node):
+    if node.target in [ttnn.from_torch, ttnn.to_torch]:
+        return "#ffffaa"
+    elif node.target in [ttnn.to_device, ttnn.from_device]:
+        return "#ffddaa"
+    elif node.target in [ttnn.add, ttnn.matmul]:
+        return "#ffaaaa"
+    else:
+        return "#eeeeee"
+
+
 def from_port(from_op, it):
     port_table = [
         [],
@@ -93,7 +110,9 @@ def to_svg(g: torch.fx.Graph, filename: str):
     for op_idx, node in enumerate(g.nodes):
         map_node_idx[node] = op_idx
         map_idx_node[op_idx] = node
-        dot.node(node_name(node), label=node_label(node))
+        dot.node(
+            node_name(node), label=node_label(node), fillcolor=node_fillcolor(node)
+        )
 
     # setup edges
     edge_color_table = [

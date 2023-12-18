@@ -2,8 +2,9 @@ import torch.linalg
 import torch
 from typing import List
 import torch._dynamo
+
 torch._dynamo.config.suppress_errors = False
-torch._dynamo.config.verbose = False
+torch._dynamo.config.verbose = True
 
 try:
     import ttnn
@@ -25,10 +26,8 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
-    option : TorchTtnnOption = options['torch_ttnn_option']
-    torch.fx.graph._register_custom_builtin(
-        "device", "", option.device
-    )
+    option: TorchTtnnOption = options["torch_ttnn_option"]
+    torch.fx.graph._register_custom_builtin("device", "", option.device)
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
@@ -37,15 +36,17 @@ def aten_backend(
     from passes.eliminate_data_move_pass import EliminateDataMovePass
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
 
-    pm = PassManager(passes=[
-        GraphvizPass("00-before"),
-        ToTtPass(),
-        GraphvizPass("01-rewrite"),
-        EliminateDataMovePass(),
-        GraphvizPass("02-eliminate"),
-        CSEPass(),
-        GraphvizPass("03-cse"),
-    ])
+    pm = PassManager(
+        passes=[
+            GraphvizPass("00-before"),
+            ToTtPass(),
+            GraphvizPass("01-rewrite"),
+            EliminateDataMovePass(),
+            GraphvizPass("02-eliminate"),
+            CSEPass(),
+            GraphvizPass("03-cse"),
+        ]
+    )
     gm, modified = pm(gm)
 
     gm.recompile()
@@ -68,5 +69,5 @@ class TorchTtnnOption:
 
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.
 def backend(torch_ttnn_option: TorchTtnnOption):
-    options = {'torch_ttnn_option': torch_ttnn_option}
+    options = {"torch_ttnn_option": torch_ttnn_option}
     return aot_autograd(fw_compiler=partial(aten_backend, options=options))

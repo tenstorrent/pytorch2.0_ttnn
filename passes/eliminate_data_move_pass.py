@@ -47,12 +47,8 @@ class EliminateDataMovePass(PassBase):
             modified |= _eliminate_pair_data_move(
                 node, ttnn.from_device, ttnn.to_device
             )
-            modified |= _eliminate_pair_data_move(
-                node, ttnn.to_torch, ttnn.from_torch
-            )
-            modified |= _eliminate_pair_data_move(
-                node, ttnn.from_torch, ttnn.to_torch
-            )
+            modified |= _eliminate_pair_data_move(node, ttnn.to_torch, ttnn.from_torch)
+            modified |= _eliminate_pair_data_move(node, ttnn.from_torch, ttnn.to_torch)
         if modified:
             gm.graph.eliminate_dead_code()
         return PassResult(gm, modified)
