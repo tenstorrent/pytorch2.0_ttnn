@@ -47,8 +47,5 @@ class ToTtPass(PassBase):
             elif node.op == "call_function" and node.target == torch.ops.aten.mm.default:
                 replace_with_ttnn(node, ttnn.matmul, device)
                 modified = True
-            elif node.op == "call_function" and node.target == torch.ops.aten.mul.Tensor:
-                replace_with_ttnn(node, ttnn.matmul, device)
-                modified = True
 
         return PassResult(gm, modified)
