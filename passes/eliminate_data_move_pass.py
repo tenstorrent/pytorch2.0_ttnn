@@ -10,7 +10,7 @@ except ImportError:
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
 
-def _eliminate_pair_data_move(node, func, pre_func):
+def _eliminate_pair(node, func, pre_func):
     """
     Eliminate redundant pattern of paired data movement, such as from_device => to_device.
     """
@@ -41,14 +41,10 @@ class EliminateDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
         for node in gm.graph.nodes:
-            modified |= _eliminate_pair_data_move(
-                node, ttnn.to_device, ttnn.from_device
-            )
-            modified |= _eliminate_pair_data_move(
-                node, ttnn.from_device, ttnn.to_device
-            )
-            modified |= _eliminate_pair_data_move(node, ttnn.to_torch, ttnn.from_torch)
-            modified |= _eliminate_pair_data_move(node, ttnn.from_torch, ttnn.to_torch)
+            modified |= _eliminate_pair(node, ttnn.to_device, ttnn.from_device)
+            modified |= _eliminate_pair(node, ttnn.from_device, ttnn.to_device)
+            modified |= _eliminate_pair(node, ttnn.to_torch, ttnn.from_torch)
+            modified |= _eliminate_pair(node, ttnn.from_torch, ttnn.to_torch)
         if modified:
             gm.graph.eliminate_dead_code()
         return PassResult(gm, modified)

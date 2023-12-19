@@ -41,7 +41,6 @@ def replace_with_ttnn(node, func, device):
 class ToTtPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         device = DummyDevice()
-        graph: torch.fx.Graph = gm.graph
         modified = False
         for node in gm.graph.nodes:
             if node.op == "call_function" and node.target == torch.ops.aten.add.Tensor:
