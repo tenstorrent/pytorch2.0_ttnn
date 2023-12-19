@@ -58,13 +58,15 @@ def node_label(node):
 
 def node_fillcolor(node):
     if node.target in [ttnn.from_torch, ttnn.to_torch]:
-        return "#ffffaa"
-    elif node.target in [ttnn.to_device, ttnn.from_device]:
         return "#ffddaa"
+    elif node.target in [ttnn.to_device, ttnn.from_device]:
+        return "#ffffaa"
     elif node.target in [ttnn.add, ttnn.matmul]:
+        return "#aaffaa"
+    elif node.op == "call_function":
         return "#ffaaaa"
     else:
-        return "#eeeeee"
+        return "#dddddd"
 
 
 def from_port(from_op, it):
@@ -99,9 +101,10 @@ def to_port(to_op, it_idx):
 def to_svg(g: torch.fx.Graph, filename: str):
     # Setup dot
     dot = graphviz.Digraph()
+    dot.graph_attr["ranksep="] = "0.2"
     dot.node_attr["style"] = "rounded,filled"
     dot.node_attr["shape"] = "box"
-    dot.node_attr["fillcolor"] = "#eeeeee"
+    dot.node_attr["fillcolor"] = "#dddddd"
     dot.edge_attr["color"] = "#77777777"
 
     # setup nodes
@@ -123,16 +126,30 @@ def to_svg(g: torch.fx.Graph, filename: str):
         "#77ff7777",
     ]
 
+    # import for defaultdict
+    from collections import defaultdict
+
+    literal_table = defaultdict(int)
     for node in g.nodes:
         if node.op == "output":
             in_nodes = node.args[0]
         else:
             in_nodes = node.args
+
         for idx, in_node in enumerate(in_nodes):
+            if isinstance(in_node, torch.fx.node.Node):
+                src_name = node_name(in_node)
+            else:
+                serial_num = literal_table[in_node]
+                src_name = f"{node_name(in_node)}_{serial_num}"
+                src_label = node_name(in_node)
+                literal_table[in_node] += 1
+                dot.node(src_name, label=src_label)
+            dst_name = node_name(node) + to_port(node, idx)
             edge_color = edge_color_table[(id(node) + idx) % 5]
             dot.edge(
-                node_name(in_node),
-                node_name(node) + to_port(node, idx),
+                src_name,
+                dst_name,
                 color=edge_color,
                 penwidth=str(4),
             )
