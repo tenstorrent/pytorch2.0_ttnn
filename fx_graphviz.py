@@ -2,6 +2,7 @@ import graphviz
 import torch
 import os
 import math
+from collections import defaultdict
 
 try:
     import ttnn
@@ -39,49 +40,52 @@ def _tensor_label(t):
 
 
 def node_name(node):
+    # FX graph node
+    # The node name is uquie and can be used as a key
     if isinstance(node, torch.fx.node.Node):
-        return hex(id(node))
-    else:
-        return str(node)
+        return node.name
 
-
-def node_text_const(op):
-    return op.kind()
+    # Other Python Object, like "device" or constant value
+    # TODO(yoco): not all device are the same, maybe we should use a different name
+    return str(node)
 
 
 def node_label(node):
-    if isinstance(node, torch.fx.node.Node):
-        return str(node.op + "\n" + node.name)
-    else:
+    # If it is not a FX node, just return the string
+    if not isinstance(node, torch.fx.node.Node):
         return str(node)
+
+    # If it is a FX call function
+    if node.op == "call_function":
+        # A func wrapper with "_name" attribute
+        if hasattr(node.target, "_name"):
+            return node.target._name
+        # Normal function: __module__.__name__
+        return f"{node.target.__module__}.{node.target.__name__}"
+
+    # call_module, call_method, output, and placeholder
+    return str(node.op + "\n" + node.name)
 
 
 def node_fillcolor(node):
+    # Green for supported ops
+    if node.target in [ttnn.add, ttnn.matmul]:
+        return "#aaffaa"
+
+    # Yellow for device ops
+    if node.target in [ttnn.to_device, ttnn.from_device]:
+        return "#ffffaa"
+
+    # Orange for torch tensor conversion ops
     if node.target in [ttnn.from_torch, ttnn.to_torch]:
         return "#ffddaa"
-    elif node.target in [ttnn.to_device, ttnn.from_device]:
-        return "#ffffaa"
-    elif node.target in [ttnn.add, ttnn.matmul]:
-        return "#aaffaa"
-    elif node.op == "call_function":
+
+    # Red for call_function (unknown ops)
+    if node.op == "call_function":
         return "#ffaaaa"
-    else:
-        return "#dddddd"
 
-
-def from_port(from_op, it):
-    port_table = [
-        [],
-        [""],
-        [":sw", ":se"],
-        [":sw", ":s", ":se"],
-        [":w", ":sw", ":s", ":se"],
-        [":w", ":sw", ":s", ":se", ":e"],
-        [":sw", ":sw", ":s", ":s", ":se", ":se"],
-    ]
-    idx = list(from_op.outputs()).index(it)
-    result = port_table[len(list(from_op.outputs()))][idx]
-    return result
+    # Gray for others
+    return "#dddddd"
 
 
 def to_port(to_op, it_idx):
@@ -101,8 +105,9 @@ def to_port(to_op, it_idx):
 def to_svg(g: torch.fx.Graph, filename: str):
     # Setup dot
     dot = graphviz.Digraph()
-    dot.graph_attr["ranksep="] = "0.2"
+    dot.graph_attr["ranksep"] = "0.4"
     dot.node_attr["style"] = "rounded,filled"
+    dot.node_attr["height"] = "0.3"
     dot.node_attr["shape"] = "box"
     dot.node_attr["fillcolor"] = "#dddddd"
     dot.edge_attr["color"] = "#77777777"
@@ -126,25 +131,32 @@ def to_svg(g: torch.fx.Graph, filename: str):
         "#77ff7777",
     ]
 
-    # import for defaultdict
-    from collections import defaultdict
-
-    literal_table = defaultdict(int)
+    # A table of non-fx.node, like constant or other object that has been used.
+    # For those objects, we will use a different name for each of them.
+    var_obj_cnt = defaultdict(int)
     for node in g.nodes:
+        # If the node is output, the "args" is a tuple like ((v1, v2),).
+        # else, the "args" is a tuple like (v1, v2).
+        # It is very stange, but we need to handle it.
         if node.op == "output":
             in_nodes = node.args[0]
         else:
             in_nodes = node.args
 
         for idx, in_node in enumerate(in_nodes):
+            # For each input:
+            # If it is a fx.node, use the node name.
+            # else create a duplicated visual node for the input.
             if isinstance(in_node, torch.fx.node.Node):
                 src_name = node_name(in_node)
             else:
-                serial_num = literal_table[in_node]
+                serial_num = var_obj_cnt[in_node]
                 src_name = f"{node_name(in_node)}_{serial_num}"
                 src_label = node_name(in_node)
-                literal_table[in_node] += 1
+                var_obj_cnt[in_node] += 1
                 dot.node(src_name, label=src_label)
+
+            # Draw the edge
             dst_name = node_name(node) + to_port(node, idx)
             edge_color = edge_color_table[(id(node) + idx) % 5]
             dot.edge(

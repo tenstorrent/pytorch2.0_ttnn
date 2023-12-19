@@ -42,10 +42,11 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option.out_fx_graph.nodes)
-        #  self.assertTrue(nodes[6].target == ttnn.matmul)
-        #  self.assertTrue(nodes[6].args[0].target == ttnn.to_device)
-        #  self.assertTrue(nodes[6].args[0].args[0].target == ttnn.from_torch)
-        #  self.assertTrue(nodes[7].target == ttnn.from_device)
-        #  self.assertTrue(nodes[8].target == ttnn.to_torch)
+        self.assertTrue(nodes[3].target == ttnn.from_torch)
+        self.assertTrue(nodes[4].target == ttnn.to_device)
+        self.assertTrue(nodes[5].target == ttnn.add)
+        self.assertTrue(nodes[6].target == ttnn.matmul)
+        self.assertTrue(nodes[7].target == ttnn.from_device)
+        self.assertTrue(nodes[8].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
