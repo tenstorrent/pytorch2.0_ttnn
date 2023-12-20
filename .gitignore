@@ -1,4 +1,6 @@
 __pycache__
 .vscode
+stat
 *.dot
 *.svg
+*.csv
