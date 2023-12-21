@@ -88,7 +88,7 @@ def node_fillcolor(node):
     return "#dddddd"
 
 
-def to_port(to_op, it_idx):
+def to_port(in_size, it_idx):
     port_table = [
         [],
         [""],
@@ -98,10 +98,9 @@ def to_port(to_op, it_idx):
         [":w", ":nw", ":n", ":ne", ":e"],
         [":nw", ":nw", ":n", ":n", ":ne", ":ne"],
     ]
-    args = list(to_op.args)
-    if len(args) > 6:
+    if in_size > 6:
         return ""
-    result = port_table[len(list(to_op.args))][it_idx]
+    result = port_table[in_size][it_idx]
     return result
 
 
@@ -160,7 +159,7 @@ def to_svg(g: torch.fx.Graph, filename: str):
                 dot.node(src_name, label=src_label)
 
             # Draw the edge
-            dst_name = node_name(node) + to_port(node, idx)
+            dst_name = node_name(node) + to_port(len(in_nodes), idx)
             edge_color = edge_color_table[(id(node) + idx) % 5]
             dot.edge(
                 src_name,
