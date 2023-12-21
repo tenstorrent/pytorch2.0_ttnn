@@ -98,6 +98,9 @@ def to_port(to_op, it_idx):
         [":w", ":nw", ":n", ":ne", ":e"],
         [":nw", ":nw", ":n", ":n", ":ne", ":ne"],
     ]
+    args = list(to_op.args)
+    if len(args) > 6:
+        return ""
     result = port_table[len(list(to_op.args))][it_idx]
     return result
 
