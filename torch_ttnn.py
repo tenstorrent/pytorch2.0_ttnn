@@ -32,6 +32,7 @@ def aten_backend(
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
     from passes.to_tt_pass import ToTtPass
+    from passes.add_data_move_pass import AddDataMovePass
     from passes.graphviz_pass import GraphvizPass
     from passes.eliminate_data_move_pass import EliminateDataMovePass
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
@@ -41,10 +42,12 @@ def aten_backend(
             GraphvizPass("00-before"),
             ToTtPass(),
             GraphvizPass("01-rewrite"),
+            AddDataMovePass(),
+            GraphvizPass("02-add_data_move"),
             EliminateDataMovePass(),
-            GraphvizPass("02-eliminate"),
+            GraphvizPass("03-elimate_data_move"),
             CSEPass(),
-            GraphvizPass("03-cse"),
+            GraphvizPass("04-cse"),
         ]
     )
     gm, modified = pm(gm)
