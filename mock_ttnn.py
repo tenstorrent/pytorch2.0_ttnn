@@ -62,3 +62,10 @@ def add(x, y):
 def matmul(x, y):
     mm = torch.ops.aten.mm(x, y)
     return mm
+
+
+# Wrap the functions so that they can be used in torch.fx
+# and block the further recusive tracing. See:
+# https://pytorch.org/docs/stable/fx.html#torch.fx.wrap
+torch.fx.wrap(add)
+torch.fx.wrap(matmul)

@@ -32,27 +32,29 @@ def aten_backend(
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
     from passes.to_tt_pass import ToTtPass
+    from passes.add_data_move_pass import AddDataMovePass
     from passes.graphviz_pass import GraphvizPass
     from passes.eliminate_data_move_pass import EliminateDataMovePass
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
 
-    passes=[
+    passes = [
         GraphvizPass("00-before"),
         ToTtPass(),
         GraphvizPass("01-rewrite"),
+        AddDataMovePass(),
+        GraphvizPass("02-add_data_move"),
         EliminateDataMovePass(),
-        GraphvizPass("02-eliminate"),
+        GraphvizPass("03-elimate_data_move"),
         CSEPass(),
-        GraphvizPass("03-cse"),
+        GraphvizPass("04-cse"),
     ]
     if option.enable_stat:
         assert option.model_name != "" and "should give the model_name"
         from passes.stat_pass import StatPass
+
         passes.append(StatPass(option.model_name))
 
-    pm = PassManager(
-        passes=passes
-    )
+    pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
     gm.recompile()
@@ -68,7 +70,7 @@ from functools import partial
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device, enable_stat = False, model_name: str = ""):
+    def __init__(self, device: ttnn.Device, enable_stat=False, model_name: str = ""):
         self.device = device
         self.enable_stat = enable_stat
         self.model_name = model_name
