@@ -12,14 +12,17 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 class ToTtPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
-        for node in gm.graph.nodes:
-            if node.op != "call_function":
-                continue
-            if node.target == torch.ops.aten.add.Tensor:
-                node.target = ttnn.add
-                modified = True
-            elif node.target == torch.ops.aten.mm.default:
-                node.target = ttnn.matmul
-                modified = True
+        import patterns.add
+        import patterns.mm
+
+        # Patterns and replacements
+        pat_rep_list = list()
+        pat_rep_list += patterns.add.pat_rep_list
+        pat_rep_list += patterns.mm.pat_rep_list
+
+        # Replace patterns
+        for pat, rep in pat_rep_list:
+            replaced_pats = torch.fx.subgraph_rewriter.replace_pattern(gm, pat, rep)
+            modified = modified or len(replaced_pats) > 0
 
         return PassResult(gm, modified)
