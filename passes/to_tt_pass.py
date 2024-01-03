@@ -9,6 +9,19 @@ except ImportError:
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
 
+class ReplaceMoreTt(torch.fx.Transformer):
+    def call_function(self, target, args, kwargs):
+        if target == torch.ops.aten.sub.Tensor:
+            return super().call_function(ttnn.sub, args, kwargs)
+        elif target == torch.ops.aten.mul.Tensor:
+            return super().call_function(ttnn.mul, args, kwargs)
+        elif target == torch.ops.aten._softmax.default:
+            return super().call_function(ttnn.softmax, args[:2], kwargs)
+        elif target == torch.ops.aten.tanh:
+            return super().call_function(ttnn.tanh, args, kwargs)
+        return super().call_function(target, args, kwargs)
+
+
 class ToTtPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
@@ -24,5 +37,8 @@ class ToTtPass(PassBase):
         for pat, rep in pat_rep_list:
             replaced_pats = torch.fx.subgraph_rewriter.replace_pattern(gm, pat, rep)
             modified = modified or len(replaced_pats) > 0
+
+        # Replace more patterns with torch.fx.Transformer
+        gm = ReplaceMoreTt(gm).transform()
 
         return PassResult(gm, modified)

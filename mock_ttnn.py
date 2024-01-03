@@ -55,18 +55,36 @@ def to_device(tensor, device):
 ############################################################
 
 
+@torch.fx.wrap
 def add(x, y):
     z = x + y
     return z
 
 
+@torch.fx.wrap
 def matmul(x, y):
     mm = torch.ops.aten.mm(x, y)
     return mm
 
 
+@torch.fx.wrap
+def sub(x, y):
+    z = x - y
+    return z
+
+
+@torch.fx.wrap
+def mul(x, y):
+    z = x * y
+    return z
+
+
+@torch.fx.wrap
+def softmax(x, axis):
+    r = torch.softmax(x, axis)
+    return r
+
+
 # Wrap the functions so that they can be used in torch.fx
 # and block the further recusive tracing. See:
 # https://pytorch.org/docs/stable/fx.html#torch.fx.wrap
-torch.fx.wrap(add)
-torch.fx.wrap(matmul)

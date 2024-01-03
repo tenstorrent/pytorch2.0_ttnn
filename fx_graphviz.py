@@ -69,7 +69,7 @@ def node_label(node):
 
 def node_fillcolor(node):
     # Green for supported ops
-    if node.target in [ttnn.add, ttnn.matmul]:
+    if node.target in [ttnn.add, ttnn.matmul, ttnn.sub, ttnn.mul, ttnn.softmax]:
         return "#aaffaa"
 
     # Yellow for device ops
