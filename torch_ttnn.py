@@ -52,7 +52,7 @@ def aten_backend(
         assert option.model_name != "" and "should give the model_name"
         from passes.stat_pass import StatPass
 
-        passes.append(StatPass(option.model_name))
+        passes.append(StatPass(option.model_name, example_inputs))
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
