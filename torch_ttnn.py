@@ -38,16 +38,19 @@ def aten_backend(
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
 
     passes = [
-        GraphvizPass("00-before"),
         ToTtPass(),
-        GraphvizPass("01-rewrite"),
         AddDataMovePass(),
-        GraphvizPass("02-add_data_move"),
         EliminateDataMovePass(),
-        GraphvizPass("03-elimate_data_move"),
         CSEPass(),
-        GraphvizPass("04-cse"),
     ]
+    
+    # Add graphviz pass interleavly if needed
+    if option.gen_graphviz:
+        graphviz_filenames = ["00.origin", "01.to-tt", "02.add-data-move", "03.elimate-data-move", "04.cse"]
+        assert len(graphviz_filenames) == len(passes) + 1
+        for idx in range(len(graphviz_filenames)):
+            passes.insert(idx * 2, GraphvizPass(graphviz_filenames[idx]))
+
     if option.enable_stat:
         assert option.model_name != "" and "should give the model_name"
         from passes.stat_pass import StatPass
@@ -74,6 +77,7 @@ class TorchTtnnOption:
         self.device = device
         self.enable_stat = enable_stat
         self.model_name = model_name
+        self.gen_graphviz = False
         self.out_fx_graph = None
 
 
