@@ -1,17 +1,14 @@
 import torch
 import torchvision
-import torch_ttnn
+import torch_stat
 import unittest
-from torch_ttnn import ttnn
 
 class TestModules(unittest.TestCase):
     def setUp(self):
-        # Open device 0
-        self.device: ttnn.Device = ttnn.open(0)
+        pass
 
     def tearDown(self):
-        # Close the device
-        ttnn.close(self.device)
+        pass
     
     def template(self, model_name: str, input_shapes: list, source: str = "torchvision"):
         if source == "torchvision":
@@ -24,11 +21,9 @@ class TestModules(unittest.TestCase):
         input_shapes = input_shapes
         inputs = torch.rand(input_shapes, dtype=torch.float32)
         # inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
-        option = torch_ttnn.TorchTtnnOption(device=self.device,
-                                            enable_stat = True,
-                                            model_name = model_name)
+        option = torch_stat.TorchStatOption(model_name = model_name)
         result_before = m.forward(inputs)
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_stat.backend(option))
         # m = torch.compile(m)
         result_after = m.forward(inputs)
         # self.assertTrue(torch.allclose(result_before, result_after))

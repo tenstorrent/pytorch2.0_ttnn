@@ -51,7 +51,7 @@ def main():
     print("Before conversion", type(m))
     result_before = m.forward(input)
     # Create a Torch2TNN option
-    option = torch_ttnn.TorchTtnnOption(device=device, enable_stat=True, model_name="test")
+    option = torch_ttnn.TorchTtnnOption(device=device)
     # Convert it
     m = torch.compile(m, backend=torch_ttnn.backend(option))
     # Run it again

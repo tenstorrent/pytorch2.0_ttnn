@@ -48,11 +48,6 @@ def aten_backend(
         CSEPass(),
         GraphvizPass("04-cse"),
     ]
-    if option.enable_stat:
-        assert option.model_name != "" and "should give the model_name"
-        from passes.stat_pass import StatPass
-
-        passes.append(StatPass(option.model_name, example_inputs))
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
@@ -70,10 +65,8 @@ from functools import partial
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device, enable_stat=False, model_name: str = ""):
+    def __init__(self, device: ttnn.Device):
         self.device = device
-        self.enable_stat = enable_stat
-        self.model_name = model_name
         self.out_fx_graph = None
 
 
