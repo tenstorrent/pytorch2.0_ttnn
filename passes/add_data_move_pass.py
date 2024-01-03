@@ -101,8 +101,6 @@ class AddDataMovePass(PassBase):
         modified = False
         device = DummyDevice()
         i = 0
-        fx_graphviz.to_svg(gm.graph, f"zzzz{i:03d}")
-        i += 1
         nodes = list(gm.graph.nodes)
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
@@ -111,10 +109,8 @@ class AddDataMovePass(PassBase):
                 if arg in seen_args:
                     continue
                 if try_add_data_move_in(arg, idx, node, device):
-                    fx_graphviz.to_svg(gm.graph, f"zzzz{i:03d}")
                     i += 1
                 if try_add_data_move_out(arg, idx, node):
-                    fx_graphviz.to_svg(gm.graph, f"zzzz{i:03d}")
                     i += 1
                 seen_args.add(arg)
 
