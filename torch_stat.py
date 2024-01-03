@@ -3,6 +3,7 @@ import torch
 from typing import List
 import torch._dynamo
 import os
+from collections import Counter
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -28,7 +29,7 @@ def aten_backend(
     from torch.fx.passes.infra.pass_manager import PassManager
     from passes.stat_pass import StatPass
 
-    passes = [StatPass(option.model_name, example_inputs, option.out)]
+    passes = [StatPass(option.model_name, example_inputs, option.counter, option.out)]
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
@@ -48,6 +49,7 @@ class TorchStatOption:
         self.model_name = model_name
         self.out = out
         self.out_fx_graph = None
+        self.counter = Counter()
 
 # The wrapper of aot_autograd that takes a TorchStatOption as options.
 def backend(torch_stat_option: TorchStatOption):
