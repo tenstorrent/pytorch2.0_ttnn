@@ -10,8 +10,8 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
             FakeTensorProp(gm).propagate(*example_inputs)
         except Exception as e:
             print(e)
-            print("FakeTensorProp propagate failed, do nothing.")
-            return
+            print("FakeTensorProp propagate failed")
+
         def is_jsonable(x):
             try:
                 json.dumps(x)
@@ -21,32 +21,30 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
 
         out = {}
         for node in gm.graph.nodes:
-            if node.op in ["call_function", "call_method"]:
-                try:
-                    name = str(node.target)
-                except:
-                    name = node.target.__name__
-                out.setdefault(name, {})
-                out[name].setdefault("cnt", 0)
-                out[name].setdefault("args", [])
-                out[name].setdefault("metas", [])
-                out[name]["cnt"] += 1
-                args_list = []
-                for arg in node.args:
-                    arg = arg if is_jsonable(arg) else f"not_jsonable:{str(arg)}"
-                    args_list.append(arg)
-                out[name]["args"].append(args_list)
-                if 'tensor_meta' in node.meta:
-                    meta = {"shape": list(node.meta['tensor_meta'].shape),
-                            "dtype": str(node.meta['tensor_meta'].dtype)}
-                    out[name]["metas"].append(meta)
+            if node.op not in ["call_function", "call_method"]:
+                continue
+            try:
+                name = str(node.target)
+            except:
+                name = node.target.__name__
+            out.setdefault(name, {})
+            out[name].setdefault("cnt", 0)
+            out[name].setdefault("args", [])
+            out[name].setdefault("metas", [])
+            out[name]["cnt"] += 1
+            args_list = []
+            for arg in node.args:
+                arg = arg if is_jsonable(arg) else f"not_jsonable:{str(arg)}"
+                args_list.append(arg)
+            out[name]["args"].append(args_list)
+            if 'tensor_meta' in node.meta:
+                meta = {"shape": list(node.meta['tensor_meta'].shape),
+                        "dtype": str(node.meta['tensor_meta'].dtype)}
+                out[name]["metas"].append(meta)
         os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
-        try:
-            with open(out_file, "w") as f:
-                json.dump(out, f, indent=4)
-        except Exception as e:
-            print(e)
+        with open(out_file, "w") as f:
+            json.dump(out, f, indent=4)
 
 # The pass to collect node's information
 # Run tools/generate_report.py to genetate report

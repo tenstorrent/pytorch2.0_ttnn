@@ -4,11 +4,14 @@
 
 
 # Tracer
-The tracer dump the information of fx graph such as node's op_name, args and shape. For example, you can run this test to parse the information
+The tracer dump the information of fx graph such as node's op_name, args and shape.
+
+For example, you can run this script to parse the information
 ```
-python3 -m unittest zootests/test_vision.py
+PYTHONPATH=`pwd` python3 tools/stat_torchvision.py
 ls stat/raw
 ```
+
 By default, the result will be stored at `stat/raw`, and you can run this script to generate the report
 ```
 python3 tools/generate_report.py
@@ -20,9 +23,8 @@ Now the `stat/` folder have these report
  - `total_arguments/`
 
 The `node_count.csv` show the node with `op_type` appear in the fx graph. This report can help analyze the frequency of op type appear in the graph.
-```
-```
-The `total_input_size_dist/` statistics the `op_type`'s input_size distribution from all fx graph recored in `stat/raw`. This report can help analyze the memory footprint durning the calculation of `op_type`.
+
+The `total_input_size_dist/` statistics the `op_type`'s input_size distribution from all fx graph recored in `stat/raw`. This report can help analyze the memory footprint durning the calculation of `op_type`. Notice the default `input_shapes` in `tools/stat_torchvision.py` is `[1,3,224,224]`, which has dependency with `total_input_size_dist/` report.
 
 The `total_arguments/` statistics the `op_type`'s argument value from all fx graph recored in `stat/raw`. For example the `aten.convolution.default.csv`
 
