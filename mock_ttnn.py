@@ -91,6 +91,18 @@ def tanh(x):
     return r
 
 
+@torch.fx.wrap
+def reshape(x, new_shape):
+    r = torch.reshape(x, new_shape)
+    return r
+
+
+@torch.fx.wrap
+def permute(x, order):
+    r = torch.permute(x, order)
+    return r
+
+
 # Wrap the functions so that they can be used in torch.fx
 # and block the further recusive tracing. See:
 # https://pytorch.org/docs/stable/fx.html#torch.fx.wrap

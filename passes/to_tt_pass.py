@@ -19,6 +19,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return super().call_function(ttnn.softmax, args[:2], kwargs)
         elif target == torch.ops.aten.tanh.default:
             return super().call_function(ttnn.tanh, args, kwargs)
+        elif target == torch.ops.aten.view.default:
+            return super().call_function(ttnn.reshape, args, kwargs)
+        elif target == torch.ops.aten.permute.default:
+            return super().call_function(ttnn.permute, args, kwargs)
         return super().call_function(target, args, kwargs)
 
 

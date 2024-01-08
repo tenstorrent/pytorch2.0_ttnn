@@ -77,6 +77,8 @@ def node_fillcolor(node):
             ttnn.mul,
             ttnn.softmax,
             ttnn.tanh,
+            ttnn.reshape,
+            ttnn.permute,
         ]
     ):
         return "#aaffaa"
