@@ -19,7 +19,9 @@ def is_function_call(node) -> bool:
 def is_tt_compute(node) -> bool:
     if not is_function_call(node):
         return False
-    return node.target in set([ttnn.add, ttnn.matmul, ttnn.sub, ttnn.mul, ttnn.softmax])
+    return node.target in set(
+        [ttnn.add, ttnn.matmul, ttnn.sub, ttnn.mul, ttnn.softmax, ttnn.tanh]
+    )
 
 
 def is_tt_data_move(node) -> bool:

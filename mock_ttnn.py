@@ -85,6 +85,12 @@ def softmax(x, axis):
     return r
 
 
+@torch.fx.wrap
+def tanh(x):
+    r = torch.tanh(x)
+    return r
+
+
 # Wrap the functions so that they can be used in torch.fx
 # and block the further recusive tracing. See:
 # https://pytorch.org/docs/stable/fx.html#torch.fx.wrap
