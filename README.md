@@ -1,5 +1,21 @@
+# `torch_ttnn` Module
 
+The `torch_ttnn` module has a `backend` function, which can used with the `torch.compile()` function.
 
+```python
+import torch
+import torch_ttnn
+
+# A torch Module
+class FooModule(torch.Module):
+    ...
+# Create a module
+module = FooModule()
+# Compile the module, with ttnn backend
+ttnn_module = torch.compile(module, torch_ttnn.backend)
+# Running inference
+ttnn_module(input_data)
+```
 
 
 
