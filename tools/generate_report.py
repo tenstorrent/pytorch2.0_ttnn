@@ -44,6 +44,8 @@ def generate_node_count(titles, stat_dict, node_count_csv):
 def generate_total_input_size(titles, stat_dict, size_dir):
     op_sizes = {}
     def sizeof(dtype: str):
+        if dtype in ["torch.bool"]:
+            return 1/8
         if dtype in ["torch.float32", "torch.int32"]:
             return 4
         if dtype in ["torch.float64", "torch.int64"]:
