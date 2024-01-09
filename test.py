@@ -58,7 +58,7 @@ def main():
     print("After conversion", type(m))
     result_after = m.forward(input)
     # Verify the results are the same
-    option.out_fx_graph.print_tabular()
+    option._out_fx_graph.print_tabular()
     print(result_before)
     print(result_after)
     allclose = torch.allclose(result_before, result_after)

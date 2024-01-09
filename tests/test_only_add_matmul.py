@@ -58,10 +58,10 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)
-        option.out_fx_graph.print_tabular()
-        
+        option._out_fx_graph.print_tabular()
+
         # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option.out_fx_graph.nodes)
+        nodes = list(option._out_fx_graph.nodes)
         self.assertTrue(nodes[6].target == ttnn.add)
         self.assertTrue(nodes[6].args[0].target == ttnn.to_device)
         self.assertTrue(nodes[6].args[0].args[0].target == ttnn.from_torch)
@@ -79,10 +79,10 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)
-        option.out_fx_graph.print_tabular()
+        option._out_fx_graph.print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option.out_fx_graph.nodes)
+        nodes = list(option._out_fx_graph.nodes)
         self.assertTrue(nodes[6].target == ttnn.matmul)
         self.assertTrue(nodes[6].args[0].target == ttnn.to_device)
         self.assertTrue(nodes[6].args[0].args[0].target == ttnn.from_torch)
@@ -90,7 +90,6 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[8].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
-
 
     def test_add_and_matmul(self):
         m = AddMatmulModule()
@@ -102,10 +101,10 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)
-        option.out_fx_graph.print_tabular()
+        option._out_fx_graph.print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option.out_fx_graph.nodes)
+        nodes = list(option._out_fx_graph.nodes)
         self.assertTrue(nodes[6].target == ttnn.add)
         self.assertTrue(nodes[6].args[0].target == ttnn.to_device)
         self.assertTrue(nodes[6].args[0].args[0].target == ttnn.from_torch)
