@@ -35,12 +35,13 @@ class TestModules(unittest.TestCase):
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)
         option.out_fx_graph.print_tabular()
-        
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option.out_fx_graph.nodes)
         self.assertTrue(nodes[3].target == ttnn.add)
         self.assertTrue(nodes[3].args[0].target == ttnn.to_device)
         self.assertTrue(nodes[3].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[3].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[3].args[1].args[0].target == ttnn.from_torch)
         self.assertTrue(nodes[4].target == ttnn.from_device)
         self.assertTrue(nodes[5].target == ttnn.to_torch)
         # Check inference result

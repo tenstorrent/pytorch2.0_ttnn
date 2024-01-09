@@ -104,15 +104,11 @@ class AddDataMovePass(PassBase):
         nodes = list(gm.graph.nodes)
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
-            seen_args = set()
             for idx, arg in enumerate(args):
-                if arg in seen_args:
-                    continue
                 if try_add_data_move_in(arg, idx, node, device):
                     i += 1
                 if try_add_data_move_out(arg, idx, node):
                     i += 1
-                seen_args.add(arg)
 
         print(gm.code)
         gm.graph.print_tabular()
