@@ -63,7 +63,7 @@ def aten_backend(
     gm.recompile()
     gm.graph.print_tabular()
     print(gm.code)
-    option._out_fx_graph = gm.graph
+    option._out_fx_graphs.append(gm.graph)
     return gm
 
 
@@ -76,7 +76,7 @@ class TorchTtnnOption:
     def __init__(self, device: ttnn.Device):
         self.device = device
         self.gen_graphviz = False
-        self._out_fx_graph = None
+        self._out_fx_graphs = list()
 
 
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.

@@ -34,9 +34,10 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)
-        option._out_fx_graph.print_tabular()
+        self.assertEqual(1, len(option._out_fx_graphs))
+        option._out_fx_graphs[0].print_tabular()
         # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option._out_fx_graph.nodes)
+        nodes = list(option._out_fx_graphs[0].nodes)
         self.assertTrue(nodes[3].target == ttnn.add)
         self.assertTrue(nodes[3].args[0].target == ttnn.to_device)
         self.assertTrue(nodes[3].args[0].args[0].target == ttnn.from_torch)
