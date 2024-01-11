@@ -43,10 +43,16 @@ def aten_backend(
         EliminateDataMovePass(),
         CSEPass(),
     ]
-    
+
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
-        graphviz_filenames = ["00.origin", "01.to-tt", "02.add-data-move", "03.elimate-data-move", "04.cse"]
+        graphviz_filenames = [
+            "00.origin",
+            "01.to-tt",
+            "02.add-data-move",
+            "03.elimate-data-move",
+            "04.cse",
+        ]
         assert len(graphviz_filenames) == len(passes) + 1
         for idx in range(len(graphviz_filenames)):
             passes.insert(idx * 2, GraphvizPass(graphviz_filenames[idx]))
@@ -57,7 +63,7 @@ def aten_backend(
     gm.recompile()
     gm.graph.print_tabular()
     print(gm.code)
-    option.out_fx_graph = gm.graph
+    option._out_fx_graphs.append(gm.graph)
     return gm
 
 
@@ -70,7 +76,7 @@ class TorchTtnnOption:
     def __init__(self, device: ttnn.Device):
         self.device = device
         self.gen_graphviz = False
-        self.out_fx_graph = None
+        self._out_fx_graphs = list()
 
 
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.
