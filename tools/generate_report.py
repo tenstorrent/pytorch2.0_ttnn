@@ -19,19 +19,25 @@ def parse_status_json_files(status_folder, prefix = "fw_"):
                 j = json.load(f)
                 model_name = p.replace(prefix, "").replace(".json", "")
                 stat_dict[model_name] = j
-                titles.update(set(j.keys()))
+                op_types = set([op_info["op_type"] for op_info in j])
+                titles.update(op_types)
         except:
             pass
     titles = list(sorted(titles))
     return titles, stat_dict
 
+
+
 def generate_node_count(titles, stat_dict, node_count_csv):
+    def get_op_cnt(op_type, op_infos):
+        op_types = [op_info["op_type"] for op_info in op_infos]
+        return op_types.count(op_type)
     rows = [["model_name"] + titles]
-    for model_name in stat_dict.keys():
+    for model_name in sorted(stat_dict.keys()):
         stat = stat_dict[model_name]
         row = [model_name]
-        for op_name in titles:
-            cnt = str(stat[op_name]["cnt"]) if op_name in stat else 0
+        for op_type in titles:
+            cnt = str(get_op_cnt(op_type, stat))
             row.append(cnt)
         rows.append(row)
     row = ["TOTAL"]
@@ -54,24 +60,24 @@ def generate_total_output_size(titles, stat_dict, size_dir):
             return 8
         print(f"{dtype} not support")
         assert(0)
+
     for model_name in stat_dict.keys():
         stat = stat_dict[model_name]
-        for op_name in titles:
-            if op_name in stat:
-                op_sizes.setdefault(op_name, [])
-                metas = stat[op_name]["metas"]
-                for meta in metas:
-                    size = math.prod(meta["shape"]) * sizeof(meta["dtype"])
-                    op_sizes[op_name].append(size)
+        for op_info in stat:
+            op_type = op_info["op_type"]
+            op_sizes.setdefault(op_type, [])
+            if "output" in op_info:
+                size = math.prod(op_info["output"]["shape"]) * sizeof(op_info["output"]["dtype"])
+                op_sizes[op_type].append(size)
 
     os.makedirs(size_dir, exist_ok=True)
-    for op_name in op_sizes.keys():
-        f = os.path.join(size_dir, f"{op_name}.png")
-        if len(op_sizes[op_name]) > 0:
-            plt.title(f"{op_name}: TOTAL distribution of output size")
+    for op_type in op_sizes.keys():
+        f = os.path.join(size_dir, f"{op_type}.png")
+        if len(op_sizes[op_type]) > 0:
+            plt.title(f"{op_type}: TOTAL distribution of output size")
             plt.xlabel("output size: prod(output_shape) * dtype")
             plt.ylabel("count")
-            plt.hist(op_sizes[op_name])
+            plt.hist(op_sizes[op_type])
             plt.savefig(f)
             plt.cla()
     print(f"{size_dir} prepared")
