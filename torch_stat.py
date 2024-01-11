@@ -3,7 +3,6 @@ import torch
 from typing import List
 import torch._dynamo
 import os
-from collections import Counter
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -13,7 +12,8 @@ torch._dynamo.config.verbose = True
 # The value of "torch_stat_option" is a TorchStatOption object.
 # See document for detail.
 def aten_backend(
-    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options: dict
+    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor],
+    options: dict, direction: str = "fw"
 ) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that statistics the graph information.
@@ -29,14 +29,24 @@ def aten_backend(
     from torch.fx.passes.infra.pass_manager import PassManager
     from passes.stat_pass import StatPass
 
-    passes = [StatPass(option.model_name, example_inputs, option.counter, option.out)]
+    stat_filename = os.path.join(option.out, "raw", 
+                                 f"{direction}_{option.model_name}.json")
+    os.makedirs(os.path.dirname(stat_filename), exist_ok=True)
+    passes = [StatPass(filename = stat_filename, example_inputs = example_inputs)]
+    if option.gen_graphviz:
+        from passes.graphviz_pass import GraphvizPass
+        graphviz_filename = os.path.join(option.out, "graphviz",
+                                         f"{direction}_{option.model_name}")
+        os.makedirs(os.path.dirname(graphviz_filename), exist_ok=True)
+        passes.append(GraphvizPass(filename = graphviz_filename))
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
     gm.recompile()
-    option.out_fx_graph = gm.graph
+    option.out_fx_graphs.append(gm.graph)
     return gm
+
 
 
 from torch._dynamo.backends.common import aot_autograd
@@ -45,13 +55,17 @@ from functools import partial
 
 # The option for torch_stat.backend
 class TorchStatOption:
-    def __init__(self, model_name: str = "", out = os.path.join(os.getcwd(), "stat")):
+    def __init__(self, model_name: str = "", out = os.path.join(os.getcwd(), "stat"), gen_graphviz = False):
         self.model_name = model_name
         self.out = out
-        self.out_fx_graph = None
-        self.counter = Counter()
+        self.gen_graphviz = gen_graphviz
+        self.out_fx_graphs = []
 
 # The wrapper of aot_autograd that takes a TorchStatOption as options.
-def backend(torch_stat_option: TorchStatOption):
+def backend(torch_stat_option: TorchStatOption, backward = False):
     options = {"torch_stat_option": torch_stat_option}
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))
+    if backward:
+        return aot_autograd(fw_compiler=partial(aten_backend, options=options, direction = "fw"),
+                            bw_compiler=partial(aten_backend, options=options, direction = "bw"))
+    else:
+        return aot_autograd(fw_compiler=partial(aten_backend, options=options, direction = "fw"))
