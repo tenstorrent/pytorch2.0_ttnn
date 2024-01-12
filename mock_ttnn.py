@@ -41,11 +41,12 @@ def to_torch(tensor):
 
 
 def from_device(tensor):
+    print(f"Tensor with shape {tensor.shape} is moved from device")
     return tensor
 
 
 def to_device(tensor, device):
-    print(f"Tensor {tensor} is moved to device {device.device_id}")
+    print(f"Tensor with shape {tensor.shape} is moved to device {device.device_id}")
     return tensor
 
 

@@ -96,8 +96,6 @@ class DummyDevice:
 
 class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
-        print(gm.code)
-        gm.graph.print_tabular()
         modified = False
         device = DummyDevice()
         i = 0
@@ -110,7 +108,5 @@ class AddDataMovePass(PassBase):
                 if try_add_data_move_out(arg, idx, node):
                     i += 1
 
-        print(gm.code)
-        gm.graph.print_tabular()
         modified = i > 0
         return PassResult(gm, modified)
