@@ -21,6 +21,7 @@ class TestRealWorld(unittest.TestCase):
         # Download model from cloud
         model = torch.hub.load("pytorch/vision:v0.10.0", "resnet18", pretrained=True)
         model.eval()
+        model = model.to(torch.bfloat16)
 
         # Create random input tensor
         input_batch = torch.rand((1, 3, 224, 224), dtype=torch.bfloat16)
