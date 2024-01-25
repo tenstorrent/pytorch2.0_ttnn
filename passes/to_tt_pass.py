@@ -38,6 +38,12 @@ class ToTtPass(PassBase):
         pat_rep_list += patterns.mm.pat_rep_list
 
         # Replace patterns
+        # NOTE(yoco): In our case, subgraph_rewriter actually
+        # is not a best choice. We should use torch.fx.Transformer.
+        # However, we use subgraph_rewriter for demonstration
+        # and as a code stub. Because Transformer only support
+        # 1-to-N replacement. For N-to-M replacement, we need
+        # to use subgraph_rewriter.
         for pat, rep in pat_rep_list:
             replaced_pats = torch.fx.subgraph_rewriter.replace_pattern(gm, pat, rep)
             modified = modified or len(replaced_pats) > 0
