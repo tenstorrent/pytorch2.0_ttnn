@@ -16,10 +16,23 @@ def is_function_call(node) -> bool:
     return node.op == "call_function"
 
 
+# For operations limitations
+# See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
 def is_tt_compute(node) -> bool:
     if not is_function_call(node):
         return False
-    return node.target in [ttnn.add, ttnn.matmul]
+    return node.target in set(
+        [
+            ttnn.add,
+            ttnn.matmul,
+            ttnn.sub,
+            ttnn.mul,
+            ttnn.softmax,
+            ttnn.tanh,
+            ttnn.reshape,
+            ttnn.permute,
+        ]
+    )
 
 
 def is_tt_data_move(node) -> bool:
@@ -38,6 +51,8 @@ def is_tt(node):
 
 
 def should_add_data_move_in(src_node, dst_node) -> bool:
+    if isinstance(src_node, (int, float, list, tuple)):
+        return False
     return is_tt_compute(dst_node) and not is_tt(src_node)
 
 

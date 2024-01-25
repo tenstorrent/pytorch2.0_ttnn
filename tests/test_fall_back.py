@@ -12,8 +12,8 @@ class MixModule(torch.nn.Module):
         z = torch.div(x, y)
         z = torch.add(z, z)
         z = torch.matmul(z, z)
-        z = torch.mul(z, z)
-        z = torch.sub(z, z)
+        z = torch.div(z, z)
+        z = torch.div(z, z)
         return z
 
     def input_shapes(self):
