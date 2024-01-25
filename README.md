@@ -36,11 +36,13 @@ ls stat/
 Now the `stat/` folder have these report
  - `fw_node_count.csv`
  - `bw_node_count.csv`
+ - `fw_total_input_size_dist/`
+ - `bw_total_input_size_dist/`
  - `fw_total_output_size_dist/`
  - `bw_total_output_size_dist/`
 
 The `node_count.csv` show the node with `op_type` appear in the fx graph. This report can help analyze the frequency of op type appear in the graph.
 
-The `total_output_size_dist/` statistics the `op_type`'s output_size distribution from all fx graph recored in `stat/raw`. This report can help analyze the memory footprint durning the calculation of `op_type`.
+The `*_total_*_size_dist/` statistics the `op_type`'s input/output_size distribution from all fx graph recored in `stat/raw`. This report can help analyze the memory footprint durning the calculation of `op_type`.
 
- - Notice: the default `output_shapes` in `tools/stat_torchvision.py` is `[1,3,224,224]`, which has dependency with `total_output_size_dist/` report.
+ - Notice: the default `input_shapes` in `tools/stat_torchvision.py` is `[1,3,224,224]`, which has dependency with `*_total_*_size_dist/` report.

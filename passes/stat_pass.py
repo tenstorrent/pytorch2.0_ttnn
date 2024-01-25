@@ -11,7 +11,20 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
         if node.op not in ["call_function", "call_method"]:
             continue
         node_info = {}
+        # set node's op_type
         node_info["op_type"] = str(node.target)
+        # set node's inputs info
+        node_info["inputs"] = []
+        inputs_info = node.args
+        for input_info in inputs_info:
+            input = {}
+            # Only record if the input is torch.Tensor
+            if isinstance(input_info, torch.fx.node.Node) and \
+               isinstance(input_info.meta["val"], torch.Tensor):
+                input["shape"] = list(input_info.meta["val"].shape)
+                input["dtype"] = str(input_info.meta["val"].dtype)
+            node_info["inputs"].append(input)
+        # set node's outputs info
         node_info["outputs"] = []
         outputs_info = node.meta["val"]
         if isinstance(outputs_info, torch.Tensor):
