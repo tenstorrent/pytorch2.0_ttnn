@@ -65,10 +65,14 @@ def generate_total_output_size(titles, stat_dict, size_dir):
         stat = stat_dict[model_name]
         for op_info in stat:
             op_type = op_info["op_type"]
-            op_sizes.setdefault(op_type, [])
-            if "output" in op_info:
-                size = math.prod(op_info["output"]["shape"]) * sizeof(op_info["output"]["dtype"])
-                op_sizes[op_type].append(size)
+            if "outputs" in op_info:
+                for idx in range(len(op_info["outputs"])):
+                    name = f"{op_type}_{idx}"
+                    output = op_info["outputs"][idx]
+                    if "shape" in output.keys() and "dtype" in output.keys():
+                        size = math.prod(output["shape"]) * sizeof(output["dtype"])
+                        op_sizes.setdefault(name, [])
+                        op_sizes[name].append(size)
 
     os.makedirs(size_dir, exist_ok=True)
     for op_type in op_sizes.keys():

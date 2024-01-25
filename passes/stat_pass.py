@@ -12,12 +12,22 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
             continue
         node_info = {}
         node_info["op_type"] = str(node.target)
-        output_info = node.meta["val"]
-        #TODO: currently just handle the output format is instance of torch.Tensor
-        if isinstance(output_info, torch.Tensor):
-            output = {"shape": list(output_info.shape),
-                      "dtype": str(output_info.dtype)}
-            node_info["output"] = output
+        node_info["outputs"] = []
+        outputs_info = node.meta["val"]
+        if isinstance(outputs_info, torch.Tensor):
+            output = {"shape": list(outputs_info.shape),
+                      "dtype": str(outputs_info.dtype)}
+            node_info["outputs"].append(output)
+        elif isinstance(outputs_info, tuple):
+            for output_info in outputs_info:
+                output = {}
+                # some output_info is None
+                if isinstance(output_info, torch.Tensor):
+                    output["shape"] = list(output_info.shape)
+                    output["dtype"] = str(output_info.dtype)
+                node_info["outputs"].append(output)
+        else:
+            assert(0 and "unsupport outputs_info")
         out.append(node_info)
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
