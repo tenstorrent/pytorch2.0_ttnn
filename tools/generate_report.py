@@ -49,7 +49,8 @@ def generate_node_count(titles, stat_dict, node_count_csv):
         csv.writer(f, quotechar = '"').writerows(rows)
     print(f"{node_count_csv} generated")
 
-def generate_total_output_size(titles, stat_dict, size_dir):
+def generate_total_size(stat_dict, size_dir, key):
+    assert(key in ["inputs", "outputs"])
     op_sizes = {}
     def sizeof(dtype: str):
         if dtype in ["torch.bool"]:
@@ -65,21 +66,22 @@ def generate_total_output_size(titles, stat_dict, size_dir):
         stat = stat_dict[model_name]
         for op_info in stat:
             op_type = op_info["op_type"]
-            if "outputs" in op_info:
-                for idx in range(len(op_info["outputs"])):
+            if key in op_info:
+                for idx in range(len(op_info[key])):
                     name = f"{op_type}_{idx}"
-                    output = op_info["outputs"][idx]
-                    if "shape" in output.keys() and "dtype" in output.keys():
-                        size = math.prod(output["shape"]) * sizeof(output["dtype"])
+                    tensor_info = op_info[key][idx]
+                    if "shape" in tensor_info.keys() and "dtype" in tensor_info.keys():
+                        size = math.prod(tensor_info["shape"]) * sizeof(tensor_info["dtype"])
                         op_sizes.setdefault(name, [])
                         op_sizes[name].append(size)
 
     os.makedirs(size_dir, exist_ok=True)
+    key_name = "input" if key == "inputs" else "output"
     for op_type in op_sizes.keys():
         f = os.path.join(size_dir, f"{op_type}.png")
         if len(op_sizes[op_type]) > 0:
-            plt.title(f"{op_type}: TOTAL distribution of output size")
-            plt.xlabel("output size: prod(output_shape) * dtype")
+            plt.title(f"{op_type}: TOTAL distribution of {key_name} size")
+            plt.xlabel("{key_name} size: prod({key_name}_shape) * dtype")
             plt.ylabel("count")
             plt.hist(op_sizes[op_type])
             plt.savefig(f)
@@ -95,7 +97,8 @@ if __name__ == "__main__":
         titles, stat_dict = parse_status_json_files(raw, prefix)
 
         generate_node_count(titles, stat_dict, os.path.join(out,f"{prefix}node_count.csv"))
-        generate_total_output_size(titles, stat_dict, os.path.join(out,f"{prefix}total_output_size_dist/"))
+        generate_total_size(stat_dict, os.path.join(out,f"{prefix}total_input_size_dist/"), key = "inputs")
+        generate_total_size(stat_dict, os.path.join(out,f"{prefix}total_output_size_dist/"), key = "outputs")
 
     generate("fw_")
     generate("bw_")
