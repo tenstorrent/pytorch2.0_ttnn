@@ -52,7 +52,9 @@ class TestModules(unittest.TestCase):
     def test_add(self):
         m = AddModule()
         input_shapes = m.input_shapes()
-        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        inputs = [
+            torch.randint(1, 4, shape).type(torch.bfloat16) for shape in input_shapes
+        ]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
