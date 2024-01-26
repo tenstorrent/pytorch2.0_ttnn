@@ -27,7 +27,10 @@ def aten_backend(
     """
 
     option: TorchTtnnOption = options["torch_ttnn_option"]
-    torch.fx.graph._register_custom_builtin("device", "", option.device)
+    torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
+    torch.fx.graph._register_custom_builtin(
+        "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
+    )
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager

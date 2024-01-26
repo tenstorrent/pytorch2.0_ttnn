@@ -23,7 +23,7 @@ class MatmulModule(torch.nn.Module):
         return torch.matmul(x, y)
 
     def input_shapes(self):
-        return [(3, 4), (4, 5)]
+        return [(32, 32), (32, 32)]
 
 
 # Nested module for demonstration, verify nested modules work
@@ -69,16 +69,20 @@ class TestModules(unittest.TestCase):
         self.assertEqual(nodes[6].args[0].target, ttnn.to_device)
         self.assertEqual(nodes[6].args[0].args[0].target, ttnn.from_torch)
         self.assertEqual(nodes[7].target, ttnn.from_device)
-        self.assertEqual(nodes[8].target, ttnn.to_torch)
+        self.assertEqual(nodes[8].target, ttnn.to_layout)
+        self.assertEqual(nodes[9].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
     def test_matmul(self):
         m = MatmulModule()
         input_shapes = m.input_shapes()
-        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        inputs = [
+            torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes
+        ]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)
@@ -91,14 +95,17 @@ class TestModules(unittest.TestCase):
         self.assertEqual(nodes[6].args[0].target, ttnn.to_device)
         self.assertEqual(nodes[6].args[0].args[0].target, ttnn.from_torch)
         self.assertEqual(nodes[7].target, ttnn.from_device)
-        self.assertEqual(nodes[8].target, ttnn.to_torch)
+        self.assertEqual(nodes[8].target, ttnn.to_layout)
+        self.assertEqual(nodes[9].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
     def test_add_and_matmul(self):
         m = AddMatmulModule()
         input_shapes = m.input_shapes()
-        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        inputs = [
+            torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes
+        ]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
@@ -115,7 +122,8 @@ class TestModules(unittest.TestCase):
         self.assertEqual(nodes[6].args[0].args[0].target, ttnn.from_torch)
         self.assertEqual(nodes[7].target, ttnn.matmul)
         self.assertEqual(nodes[8].target, ttnn.from_device)
-        self.assertEqual(nodes[9].target, ttnn.to_torch)
+        self.assertEqual(nodes[9].target, ttnn.to_layout)
+        self.assertEqual(nodes[10].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
