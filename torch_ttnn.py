@@ -27,7 +27,10 @@ def aten_backend(
     """
 
     option: TorchTtnnOption = options["torch_ttnn_option"]
-    torch.fx.graph._register_custom_builtin("device", "", option.device)
+    torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
+    torch.fx.graph._register_custom_builtin(
+        "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
+    )
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
@@ -36,12 +39,14 @@ def aten_backend(
     from passes.graphviz_pass import GraphvizPass
     from passes.eliminate_data_move_pass import EliminateDataMovePass
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
+    from passes.permute_reshape_tuple import PermuteReshapeTuple
 
     passes = [
         ToTtPass(),
         AddDataMovePass(),
         EliminateDataMovePass(),
         CSEPass(),
+        PermuteReshapeTuple(),
     ]
 
     # Add graphviz pass interleavly if needed
@@ -52,6 +57,7 @@ def aten_backend(
             "02.add-data-move",
             "03.elimate-data-move",
             "04.cse",
+            "05.permute-reshape-tuple",
         ]
         assert len(graphviz_filenames) == len(passes) + 1
         for idx in range(len(graphviz_filenames)):

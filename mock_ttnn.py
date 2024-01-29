@@ -50,6 +50,11 @@ def to_device(tensor, device):
     return tensor
 
 
+def to_layout(tensor, layout):
+    print(f"Tensor with shape {tensor.shape} is convert to layout {layout}")
+    return tensor
+
+
 ############################################################
 # Operations
 ############################################################
@@ -102,6 +107,8 @@ def permute(x, order):
     r = torch.permute(x, order)
     return r
 
+
+ROW_MAJOR_LAYOUT = 0
 
 # Wrap the functions so that they can be used in torch.fx
 # and block the further recusive tracing. See:

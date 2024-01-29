@@ -49,6 +49,7 @@ class TestModules(unittest.TestCase):
         self.assertEqual(nodes[5].target, ttnn.add)
         self.assertEqual(nodes[6].target, ttnn.matmul)
         self.assertEqual(nodes[7].target, ttnn.from_device)
-        self.assertEqual(nodes[8].target, ttnn.to_torch)
+        self.assertEqual(nodes[8].target, ttnn.to_layout)
+        self.assertEqual(nodes[9].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))

@@ -97,7 +97,10 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> bool:
     g = dst_node.graph
     with g.inserting_before(dst_node):
         from_device = g.call_function(ttnn.from_device, (src_node,))
-        to_torch = g.call_function(ttnn.to_torch, (from_device,))
+        row_major_layout = g.call_function(
+            ttnn.to_layout, (from_device, DummyTtnnRowMajorLayout())
+        )
+        to_torch = g.call_function(ttnn.to_torch, (row_major_layout,))
 
     insert_node_between(src_node, dst_idx, dst_node, [from_device, to_torch])
     return True
@@ -106,7 +109,12 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> bool:
 # See https://docs.google.com/document/d/1r2D4AagoeTRjEmXFnWzzafaWQkf-8hlIbX2ze-JAUFo/edit#heading=h.zad9rwqjv6cr
 class DummyDevice:
     def __repr__(self):
-        return f"device"
+        return f"ttnn_Specified_Device"
+
+
+class DummyTtnnRowMajorLayout:
+    def __repr__(self):
+        return f"ttnn_ROW_MAJOR_LAYOUT"
 
 
 class AddDataMovePass(PassBase):

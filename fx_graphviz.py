@@ -47,7 +47,7 @@ def node_name(node):
 
     # Other Python Object, like "device" or constant value
     # TODO(yoco): not all device are the same, maybe we should use a different name
-    return str(node)
+    return str(node) + hex(id(node))
 
 
 def node_label(node):
@@ -90,6 +90,10 @@ def node_fillcolor(node):
     # Orange for torch tensor conversion ops
     if node.target in [ttnn.from_torch, ttnn.to_torch]:
         return "#ffddaa"
+
+    # Orange for torch tensor conversion ops
+    if node.target in [ttnn.to_layout]:
+        return "#ffeeaa"
 
     # Red for call_function (unknown ops)
     if node.op == "call_function":
@@ -165,7 +169,7 @@ def to_svg(g: torch.fx.Graph, filename: str):
             else:
                 serial_num = var_obj_cnt[in_node]
                 src_name = f"{node_name(in_node)}_{serial_num}"
-                src_label = node_name(in_node)
+                src_label = node_label(in_node)
                 var_obj_cnt[in_node] += 1
                 dot.node(src_name, label=src_label)
 
