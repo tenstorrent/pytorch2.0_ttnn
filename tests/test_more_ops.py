@@ -67,7 +67,7 @@ class PermuteModule(torch.nn.Module):
         return torch.permute(x, order)
 
     def input_shapes(self):
-        return [(16, 3, 128, 256)]
+        return [(4, 4)]
 
 
 class TestModules(unittest.TestCase):
@@ -174,14 +174,6 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
-    @unittest.skip(
-        """
-        The ttnn.reshape require new shape type is tuple, however, 
-        when dynamo re-generate the python code, the tuple will 
-        be converted to list. Request to change the ttnn.reshape's
-        interface to accept list as new shape input.
-        """
-    )
     def test_reshape(self):
         m = ReshapeModule()
         input_shapes = m.input_shapes()
@@ -206,19 +198,14 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
-    @unittest.skip(
-        """
-        The ttnn.permute require new shape type is tuple, however, 
-        when dynamo re-generate the python code, the tuple will 
-        be converted to list. Request to change the ttnn.permute's
-        interface to accept list as new shape input.
-        """
-    )
+    # NOTE(yoco) This test failed because currently
+    # the ttnn.permute does nothing. Seems like the ttnn.permute
+    # is not implemented yet.
     def test_permute(self):
         m = PermuteModule()
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
-        order = (0, 1, 3, 2)
+        order = (1, 0)
         result_before = m.forward(*inputs, order)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True

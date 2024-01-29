@@ -39,12 +39,14 @@ def aten_backend(
     from passes.graphviz_pass import GraphvizPass
     from passes.eliminate_data_move_pass import EliminateDataMovePass
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
+    from passes.permute_reshape_tuple import PermuteReshapeTuple
 
     passes = [
         ToTtPass(),
         AddDataMovePass(),
         EliminateDataMovePass(),
         CSEPass(),
+        PermuteReshapeTuple(),
     ]
 
     # Add graphviz pass interleavly if needed
@@ -55,6 +57,7 @@ def aten_backend(
             "02.add-data-move",
             "03.elimate-data-move",
             "04.cse",
+            "05.permute-reshape-tuple",
         ]
         assert len(graphviz_filenames) == len(passes) + 1
         for idx in range(len(graphviz_filenames)):
