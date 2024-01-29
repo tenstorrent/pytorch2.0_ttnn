@@ -53,7 +53,7 @@ class TestModules(unittest.TestCase):
         m = AddModule()
         input_shapes = m.input_shapes()
         inputs = [
-            torch.randint(1, 4, shape).type(torch.bfloat16) for shape in input_shapes
+            torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
         ]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
@@ -78,7 +78,7 @@ class TestModules(unittest.TestCase):
         m = MatmulModule()
         input_shapes = m.input_shapes()
         inputs = [
-            torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes
+            torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
         ]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
@@ -104,7 +104,7 @@ class TestModules(unittest.TestCase):
         m = AddMatmulModule()
         input_shapes = m.input_shapes()
         inputs = [
-            torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes
+            torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
         ]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
