@@ -8,7 +8,7 @@ try:
     import ttnn
 except ImportError:
     print("ttnn is not installed, use mock_ttnn instead")
-    import mock_ttnn as ttnn
+    from . import mock_ttnn as ttnn
 
 
 def _tensor_weight(t):
