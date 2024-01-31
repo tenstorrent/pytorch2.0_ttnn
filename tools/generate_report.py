@@ -81,7 +81,7 @@ def generate_total_size(stat_dict, size_dir, key):
         f = os.path.join(size_dir, f"{op_type}.png")
         if len(op_sizes[op_type]) > 0:
             plt.title(f"{op_type}: TOTAL distribution of {key_name} size")
-            plt.xlabel("{key_name} size: prod({key_name}_shape) * dtype")
+            plt.xlabel(f"{key_name} size: prod({key_name}_shape) * dtype")
             plt.ylabel("count")
             plt.hist(op_sizes[op_type])
             plt.savefig(f)
@@ -95,7 +95,8 @@ if __name__ == "__main__":
 
     def generate(prefix = "fw_"):
         titles, stat_dict = parse_status_json_files(raw, prefix)
-
+        if titles == []:
+            return
         generate_node_count(titles, stat_dict, os.path.join(out,f"{prefix}node_count.csv"))
         generate_total_size(stat_dict, os.path.join(out,f"{prefix}total_input_size_dist/"), key = "inputs")
         generate_total_size(stat_dict, os.path.join(out,f"{prefix}total_output_size_dist/"), key = "outputs")

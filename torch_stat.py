@@ -3,6 +3,7 @@ import torch
 from typing import List
 import torch._dynamo
 import os
+from collections import Counter
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -30,13 +31,13 @@ def aten_backend(
     from passes.stat_pass import StatPass
 
     stat_filename = os.path.join(option.out, "raw", 
-                                 f"{direction}_{option.model_name}.json")
+                                 f"{direction}_{option.model_name}_{option.counter['val']}.json")
     os.makedirs(os.path.dirname(stat_filename), exist_ok=True)
     passes = [StatPass(filename = stat_filename, example_inputs = example_inputs)]
     if option.gen_graphviz:
         from passes.graphviz_pass import GraphvizPass
         graphviz_filename = os.path.join(option.out, "graphviz",
-                                         f"{direction}_{option.model_name}")
+                                         f"{direction}_{option.model_name}_{option.counter['val']}")
         os.makedirs(os.path.dirname(graphviz_filename), exist_ok=True)
         passes.append(GraphvizPass(filename = graphviz_filename))
 
@@ -45,6 +46,7 @@ def aten_backend(
 
     gm.recompile()
     option.out_fx_graphs.append(gm.graph)
+    option.counter["val"] += 1
     return gm
 
 
@@ -55,16 +57,19 @@ from functools import partial
 
 # The option for torch_stat.backend
 class TorchStatOption:
-    def __init__(self, model_name: str = "", out = os.path.join(os.getcwd(), "stat"), gen_graphviz = False):
+    def __init__(self, model_name: str = "", backward = False,
+                 out = os.path.join(os.getcwd(), "stat"), gen_graphviz = False):
         self.model_name = model_name
+        self.backward = backward
         self.out = out
         self.gen_graphviz = gen_graphviz
         self.out_fx_graphs = []
+        self.counter= Counter()
 
 # The wrapper of aot_autograd that takes a TorchStatOption as options.
-def backend(torch_stat_option: TorchStatOption, backward = False):
+def backend(torch_stat_option: TorchStatOption):
     options = {"torch_stat_option": torch_stat_option}
-    if backward:
+    if torch_stat_option.backward:
         return aot_autograd(fw_compiler=partial(aten_backend, options=options, direction = "fw"),
                             bw_compiler=partial(aten_backend, options=options, direction = "bw"))
     else:
