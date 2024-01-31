@@ -70,7 +70,7 @@ if __name__ == "__main__":
     if args.backend == "torch_ttnn":
         import torch_ttnn
     elif args.backend == "torch_stat":
-        import torch_stat
+        from torch_ttnn import torch_stat
 
     models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
 
