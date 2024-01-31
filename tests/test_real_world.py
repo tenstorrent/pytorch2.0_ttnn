@@ -1,4 +1,5 @@
 import torch
+import torchvision
 import torch_ttnn
 import unittest
 from torch_ttnn import ttnn
@@ -19,7 +20,7 @@ class TestRealWorld(unittest.TestCase):
     )
     def test_resnet(self):
         # Download model from cloud
-        model = torch.hub.load("pytorch/vision:v0.10.0", "resnet18", pretrained=True)
+        model = torchvision.models.get_model("resnet18", pretrained=True)
         model.eval()
         model = model.to(torch.bfloat16)
 
@@ -43,11 +44,12 @@ class TestRealWorld(unittest.TestCase):
         target_count = collections.Counter()
         for n in option._out_fx_graphs[0].nodes:
             target_count[n.target] += 1
-        self.assertEqual(target_count[ttnn.from_torch], 16)
-        self.assertEqual(target_count[ttnn.to_device], 16)
-        self.assertEqual(target_count[ttnn.from_device], 8)
-        self.assertEqual(target_count[ttnn.to_torch], 8)
+        self.assertEqual(target_count[ttnn.from_torch], 17)
+        self.assertEqual(target_count[ttnn.to_device], 17)
+        self.assertEqual(target_count[ttnn.from_device], 9)
+        self.assertEqual(target_count[ttnn.to_torch], 9)
         self.assertEqual(target_count[ttnn.add], 8)
+        self.assertEqual(target_count[ttnn.reshape], 1)
         self.assertEqual(target_count[ttnn.matmul], 0)
 
         # Check inference result
