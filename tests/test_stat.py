@@ -43,8 +43,8 @@ class TestModules(unittest.TestCase):
                                             gen_graphviz=True)
         m = torch.compile(m, backend=torch_stat.backend(option))
         _ = m.forward(*inputs)
-        fw_result_json_path = os.path.join(self.out_path, "raw", "fw_conv.json")
-        fw_graphviz_path = os.path.join(self.out_path, "graphviz", "fw_conv.dot.svg")
+        fw_result_json_path = os.path.join(self.out_path, "raw", "fw_conv_0.json")
+        fw_graphviz_path = os.path.join(self.out_path, "graphviz", "fw_conv_0.dot.svg")
         self.assertTrue(os.path.isfile(fw_result_json_path))
         self.assertTrue(os.path.isfile(fw_graphviz_path))
 
@@ -53,12 +53,13 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, requires_grad=True) for shape in input_shapes]
         option = torch_stat.TorchStatOption(model_name = "conv_backward",
+                                            backward = True,
                                             out = self.out_path,
                                             gen_graphviz=True)
-        m = torch.compile(m, backend=torch_stat.backend(option, backward = True))
+        m = torch.compile(m, backend=torch_stat.backend(option))
         result = m.forward(*inputs)
         result.sum().backward()
-        bw_result_json_path = os.path.join(self.out_path, "raw", "bw_conv_backward.json")
-        bw_graphviz_path = os.path.join(self.out_path, "graphviz", "bw_conv_backward.dot.svg")
+        bw_result_json_path = os.path.join(self.out_path, "raw", "bw_conv_backward_1.json")
+        bw_graphviz_path = os.path.join(self.out_path, "graphviz", "bw_conv_backward_1.dot.svg")
         self.assertTrue(os.path.isfile(bw_result_json_path))
         self.assertTrue(os.path.isfile(bw_graphviz_path))
