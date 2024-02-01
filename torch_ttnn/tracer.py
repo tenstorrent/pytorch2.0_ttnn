@@ -23,10 +23,10 @@ class Tracer:
             out_path = os.path.join(
                 self.out_folder,
                 "raw",
-                f"{self.out_prefix}_ori_{self.counter['val']}.json",
+                f"{self.out_prefix}_orig_{self.counter['val']}.json",
             )
             self.parse_fx_graph(gm, example_inputs, out_path)
-            self.counter["ori"] += 1
+            self.counter["orig"] += 1
 
         gm = self.functor(gm, example_inputs)
 

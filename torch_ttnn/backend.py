@@ -79,13 +79,23 @@ from functools import partial
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device):
+    def __init__(self, device: ttnn.Device, tracer_option = None):
         self.device = device
         self.gen_graphviz = False
         self._out_fx_graphs = list()
-
+        self.tracer_option = tracer_option
 
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.
 def backend(torch_ttnn_option: TorchTtnnOption):
     options = {"torch_ttnn_option": torch_ttnn_option}
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))
+    tracer_option = torch_ttnn_option.tracer_option
+    if tracer_option is not None:
+        from .tracer import Tracer
+        out_prefix = f"fw_{tracer_option['model_name']}"
+        out_folder = tracer_option["out_folder"]
+        trace_orig = tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
+        trace_modi = tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
+        fw_compiler = Tracer(partial(aten_backend, options=options), out_prefix, out_folder, trace_orig, trace_modi)
+        return aot_autograd(fw_compiler=fw_compiler)
+    else:
+        return aot_autograd(fw_compiler=partial(aten_backend, options=options))

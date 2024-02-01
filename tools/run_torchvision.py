@@ -3,7 +3,21 @@ import argparse
 import torch
 import torchvision
 
-def dummy_aot_autograd(model_name, trace_orig, trace_modi, backward, out_folder):
+def get_ttnn_backend(model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device):
+    use_tracer = (trace_orig or trace_modi)
+    if use_tracer:
+        tracer_option = {
+            "model_name": model_name,
+            "out_folder": out_folder,
+            "trace_orig": trace_orig,
+            "trace_modi": trace_modi
+        }
+    else:
+        tracer_option = None
+    option = torch_ttnn.TorchTtnnOption(device=device, tracer_option = tracer_option)
+    return torch_ttnn.backend(option)
+
+def get_dummy_backend(model_name, trace_orig, trace_modi, backward, out_folder):
     from torch._dynamo.backends.common import aot_autograd
     def dummy_backend(gm, example_inputs):
         return gm
@@ -49,10 +63,10 @@ def run_model(model_name: str, do_compile: bool, trace_orig: bool, trace_modi, \
         m.eval()
 
     if do_compile:
-        option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz = graphviz)
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        backend = get_ttnn_backend(model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device)
     else:
-        m = torch.compile(m, backend=dummy_aot_autograd(model_name, trace_orig, trace_modi, backward, out_folder))
+        backend = get_dummy_backend(model_name, trace_orig, trace_modi, backward, out_folder)
+    m = torch.compile(m, backend = backend)
 
     inputs = [torch.randn([1, 3, 224, 224])]
 
@@ -85,8 +99,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.do_compile and args.backward:
         assert(0 and "torch_ttnn not yet support backward")
-    if args.do_compile and (args.trace_orig or args.trace_modi):
-        assert(0 and "torch_ttnn not yet support tracer")
     if not args.do_compile and args.graphviz:
         assert(0 and "graphviz is in ttnn")
 
