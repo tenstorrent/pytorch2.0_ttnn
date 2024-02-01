@@ -49,7 +49,7 @@ def run_model(model_name: str, backend: str, backward: bool, out_path: str, grap
             result = m(*inputs)
             if backward:
                 result.backward(torch.ones_like(result))
-        prof.export_chrome_trace(trace_file)
+            prof.export_chrome_trace(trace_file)
     else:
         result = m(*inputs)
         if backward:
