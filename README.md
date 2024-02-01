@@ -24,7 +24,7 @@ The tracer dump the information of fx graph such as node's op_name and shape.
 
 For example, you can run this script to parse the information
 ```
-PYTHONPATH=$(pwd) python3 tools/run_torchvision.py --backend torch_stat --backward --profile
+PYTHONPATH=$(pwd) python3 tools/run_torchvision.py --trace_ori --backward --profile
 ls stat/raw
 ```
 
