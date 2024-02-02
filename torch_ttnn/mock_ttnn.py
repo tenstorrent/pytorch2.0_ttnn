@@ -1,5 +1,8 @@
 import torch
 
+# A mock enum value used by ttnn.to_layout()
+ROW_MAJOR_LAYOUT = 0
+
 
 ############################################################
 # Device related functions
@@ -60,56 +63,41 @@ def to_layout(tensor, layout):
 ############################################################
 
 
-@torch.fx.wrap
 def add(x, y):
     z = x + y
     return z
 
 
-@torch.fx.wrap
 def matmul(x, y):
     mm = torch.ops.aten.mm(x, y)
     return mm
 
 
-@torch.fx.wrap
 def sub(x, y):
     z = x - y
     return z
 
 
-@torch.fx.wrap
 def mul(x, y):
     z = x * y
     return z
 
 
-@torch.fx.wrap
 def softmax(x, axis):
     r = torch.softmax(x, axis)
     return r
 
 
-@torch.fx.wrap
 def tanh(x):
     r = torch.tanh(x)
     return r
 
 
-@torch.fx.wrap
 def reshape(x, new_shape):
     r = torch.reshape(x, new_shape)
     return r
 
 
-@torch.fx.wrap
 def permute(x, order):
     r = torch.permute(x, order)
     return r
-
-
-ROW_MAJOR_LAYOUT = 0
-
-# Wrap the functions so that they can be used in torch.fx
-# and block the further recusive tracing. See:
-# https://pytorch.org/docs/stable/fx.html#torch.fx.wrap

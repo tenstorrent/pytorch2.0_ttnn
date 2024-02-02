@@ -6,3 +6,5 @@ try:
 except ImportError:
     print("ttnn is not installed, use mock_ttnn instead")
     from . import mock_ttnn as ttnn
+
+from . import wrap_ttnn_ops
