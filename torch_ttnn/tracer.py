@@ -19,13 +19,17 @@ class Tracer:
         self.counter = Counter()
 
     def __call__(self, gm, example_inputs):
+        if self.trace_orig or self.trace_modi:
+            os.makedirs(os.path.join(self.out_folder, "raw"), exist_ok=True)
         if self.trace_orig:
             out_path = os.path.join(
                 self.out_folder,
                 "raw",
                 f"{self.out_prefix}_orig_{self.counter['val']}.json",
             )
-            self.parse_fx_graph(gm, example_inputs, out_path)
+            out = self.parse_fx_graph(gm, example_inputs)
+            with open(out_path, "w") as f:
+                json.dump(out, f, indent=4)
             self.counter["orig"] += 1
 
         gm = self.functor(gm, example_inputs)
@@ -36,15 +40,18 @@ class Tracer:
                 "raw",
                 f"{self.out_prefix}_modi_{self.counter['val']}.json",
             )
-            self.parse_fx_graph(gm, example_inputs, out_path)
+            out = self.parse_fx_graph(gm, example_inputs)
+            with open(out_path, "w") as f:
+                json.dump(out, f, indent=4)
             self.counter["modi"] += 1
 
         return gm
 
     @staticmethod
-    def parse_fx_graph(gm: torch.fx.GraphModule, example_inputs, out_path):
+    def parse_fx_graph(gm: torch.fx.GraphModule, example_inputs):
         try:
             FakeTensorProp(gm).propagate(*example_inputs)
+            # ShapeProp(gm).propagate(*example_inputs)
             prog_success = True
         except Exception as e:
             print(e)
@@ -96,8 +103,5 @@ class Tracer:
             else:
                 assert(0 and "unsupport outputs_info")
             out.append(node_info)
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-
-        with open(out_path, "w") as f:
-            json.dump(out, f, indent=4)
+        return out
 
