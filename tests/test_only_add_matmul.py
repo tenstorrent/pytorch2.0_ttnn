@@ -56,7 +56,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)
@@ -81,7 +81,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
@@ -107,7 +107,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))

@@ -1,5 +1,5 @@
 from .backend import backend
-from .backend import TorchTtnnOption
+from .backend import TenstorrentBackendOption
 
 try:
     import ttnn
