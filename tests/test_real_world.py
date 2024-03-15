@@ -32,7 +32,7 @@ class TestRealWorld(unittest.TestCase):
             output_before = model(input_batch)
 
         # Compile the model
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         option.gen_graphviz = True
         model = torch.compile(model, backend=torch_ttnn.backend(option))
 

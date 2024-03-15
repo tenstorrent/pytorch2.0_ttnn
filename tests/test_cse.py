@@ -30,7 +30,7 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend(option))
         result_after = m.forward(*inputs)

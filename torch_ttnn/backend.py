@@ -1,6 +1,6 @@
 import torch.linalg
 import torch
-from typing import List
+from typing import List, Optional, Union, Mapping, Any
 import torch._dynamo
 
 torch._dynamo.config.suppress_errors = False
@@ -13,12 +13,22 @@ except ImportError:
     from . import mock_ttnn as ttnn
 
 
+# The option for torch_ttnn.backend
+class TenstorrentBackendOption:
+    def __init__(self, device: ttnn.Device):
+        self.device = device
+        self.gen_graphviz = False
+        self._out_fx_graphs = list()
+
+
 # The backend for torch.compile that converts a graph to use ttnn.
 # The "option" parameter is a dict that contains one key "torch_ttnn_option".
 # The value of "torch_ttnn_option" is a TorchTtnnOption object.
 # See document for detail.
 def aten_backend(
-    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options: dict
+    gm: torch.fx.GraphModule,
+    example_inputs: List[torch.Tensor],
+    options: Optional[Union[TenstorrentBackendOption, Mapping[str, Any]]] = None,
 ) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -26,7 +36,7 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
-    option: TorchTtnnOption = options["torch_ttnn_option"]
+    option: TenstorrentBackendOption = options
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
     torch.fx.graph._register_custom_builtin(
         "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
@@ -77,15 +87,6 @@ from torch._dynamo.backends.common import aot_autograd
 from functools import partial
 
 
-# The option for torch_ttnn.backend
-class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device):
-        self.device = device
-        self.gen_graphviz = False
-        self._out_fx_graphs = list()
-
-
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.
-def backend(torch_ttnn_option: TorchTtnnOption):
-    options = {"torch_ttnn_option": torch_ttnn_option}
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))
+def backend(torch_ttnn_option: TenstorrentBackendOption):
+    return aot_autograd(fw_compiler=partial(aten_backend, options=torch_ttnn_option))
