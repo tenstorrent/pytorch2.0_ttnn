@@ -1,16 +1,11 @@
 import torch.linalg
 import torch
-from typing import List, Optional, Union, Mapping, Any
+import ttnn
 import torch._dynamo
+from typing import List, Optional, Union, Mapping, Any
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
-
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from . import mock_ttnn as ttnn
 
 
 # The option for torch_ttnn.backend

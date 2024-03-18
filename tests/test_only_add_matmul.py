@@ -1,7 +1,7 @@
 import torch
 import torch_ttnn
+import ttnn
 import unittest
-from torch_ttnn import ttnn
 
 
 class AddModule(torch.nn.Module):

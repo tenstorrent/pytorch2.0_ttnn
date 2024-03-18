@@ -1,8 +1,8 @@
 import torch
-import torchvision
 import torch_ttnn
+import torchvision
+import ttnn
 import unittest
-from torch_ttnn import ttnn
 import collections
 
 
