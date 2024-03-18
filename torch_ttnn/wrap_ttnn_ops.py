@@ -4,7 +4,7 @@ import torch
 # and block the trace through them. See:
 # https://pytorch.org/docs/stable/fx.html#torch.fx.wrap
 
-from . import ttnn
+import ttnn
 
 # We have to create a variable for the wrapped function,
 # because the `wrap` actually will try to find the target

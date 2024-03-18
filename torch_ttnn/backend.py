@@ -1,16 +1,11 @@
 import torch.linalg
 import torch
-from typing import List
 import torch._dynamo
+import ttnn
+from typing import List
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
-
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from . import mock_ttnn as ttnn
 
 
 # The backend for torch.compile that converts a graph to use ttnn.
