@@ -32,7 +32,7 @@ class TestModules(unittest.TestCase):
         result_before = m.forward(*inputs)
         option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
         self.assertEqual(1, len(option._out_fx_graphs))
         option._out_fx_graphs[0].print_tabular()

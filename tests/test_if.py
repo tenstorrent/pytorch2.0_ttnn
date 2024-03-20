@@ -36,7 +36,7 @@ class TestModules(unittest.TestCase):
         result_before_else = m.forward(*inputs_else)
         option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend="ttnn", options=option)
         result_after_then = m.forward(*inputs_then)
         result_after_else = m.forward(*inputs_else)
 

@@ -37,7 +37,7 @@ def run_model(
         m.eval()
     if backend == "torch_ttnn":
         option = torch_ttnn.TenstorrentBackendOption(device=device)
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend="ttnn", options=option)
     elif backend == "torch_stat":
         option = torch_stat.TorchStatOption(
             model_name=model_name,

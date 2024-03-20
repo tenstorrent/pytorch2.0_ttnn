@@ -17,13 +17,12 @@ class TenstorrentBackendOption:
 
 
 # The backend for torch.compile that converts a graph to use ttnn.
-# The "option" parameter is a dict that contains one key "torch_ttnn_option".
-# The value of "torch_ttnn_option" is a TorchTtnnOption object.
+# The "option" parameter is a TorchTtnnOption object
 # See document for detail.
 def aten_backend(
     gm: torch.fx.GraphModule,
     example_inputs: List[torch.Tensor],
-    options: Optional[Union[TenstorrentBackendOption, Mapping[str, Any]]] = None,
+    options: TenstorrentBackendOption = None,
 ) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -82,6 +81,16 @@ from torch._dynamo.backends.common import aot_autograd
 from functools import partial
 
 
-# The wrapper of aot_autograd that takes a TorchTtnnOption as options.
-def backend(torch_ttnn_option: TenstorrentBackendOption):
-    return aot_autograd(fw_compiler=partial(aten_backend, options=torch_ttnn_option))
+# The backend for torch.compile that converts a graph to use ttnn.
+# The "option" parameter is a TorchTtnnOption object
+# See document for detail.
+# This function is a wrapper of aten_backend, and is used by torch.compile.
+# This function is also registered as a backend for torch.compile.
+def ttnn_backend(
+    gm: torch.fx.GraphModule,
+    example_inputs: List[torch.Tensor],
+    options: TenstorrentBackendOption = None,
+) -> torch.fx.GraphModule:
+    return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
+        gm, example_inputs
+    )

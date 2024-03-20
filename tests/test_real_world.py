@@ -34,7 +34,7 @@ class TestRealWorld(unittest.TestCase):
         # Compile the model
         option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         option.gen_graphviz = True
-        model = torch.compile(model, backend=torch_ttnn.backend(option))
+        model = torch.compile(model, backend="ttnn", options=option)
 
         # Run inference with the compiled model
         with torch.no_grad():
