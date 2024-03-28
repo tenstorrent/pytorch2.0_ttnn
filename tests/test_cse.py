@@ -19,11 +19,11 @@ class AddModule(torch.nn.Module):
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
-        self.device: ttnn.Device = ttnn.open(0)
+        self.device: ttnn.Device = ttnn.open_device(device_id=0)
 
     def tearDown(self):
         # Close the device
-        ttnn.close(self.device)
+        ttnn.close_device(self.device)
 
     def test_add(self):
         m = AddModule()
