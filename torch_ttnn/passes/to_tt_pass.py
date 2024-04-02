@@ -73,6 +73,20 @@ class ReplacePointwiseBinary(torch.fx.Transformer):
         return super().call_function(target, args, kwargs)
 
 
+class ReplacePointwiseTrinary(torch.fx.Transformer):
+    opmap = {
+        torch.ops.aten.addcdiv.default: ttnn.addcdiv,
+        torch.ops.aten.addcmul.default: ttnn.addcmul,
+        # torch.ops.aten.mac.Tensor: ttnn.mac,        # NOTE(yoco): I don't what ttnn.mac is
+        torch.ops.aten.where.self: ttnn.where,
+    }
+
+    def call_function(self, target, args, kwargs):
+        if target in self.opmap:
+            return super().call_function(self.opmap[target], args, kwargs)
+        return super().call_function(target, args, kwargs)
+
+
 class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if target == torch.ops.aten.mm.default:
@@ -113,5 +127,6 @@ class ToTtPass(PassBase):
         gm = ReplaceMoreTt(gm).transform()
         gm = ReplacePointwiseUnary(gm).transform()
         gm = ReplacePointwiseBinary(gm).transform()
+        gm = ReplacePointwiseTrinary(gm).transform()
 
         return PassResult(gm, True)

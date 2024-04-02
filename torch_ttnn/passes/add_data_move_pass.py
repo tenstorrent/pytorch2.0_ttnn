@@ -82,6 +82,13 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add_and_apply_activation_,
 ]
 
+TTNN_POINTWISE_TRINARY_OPS = [
+    ttnn.addcdiv,
+    ttnn.addcmul,
+    ttnn.mac,
+    ttnn.where,
+]
+
 
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
@@ -98,6 +105,7 @@ def is_tt_compute(node) -> bool:
         ]
         + TTNN_POINTWISE_UNARY_OPS
         + TTNN_POINTWISE_BINARY_OPS
+        + TTNN_POINTWISE_TRINARY_OPS
     )
 
 
