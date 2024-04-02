@@ -4,16 +4,34 @@ import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
 
+class ReplacePointwiseBinary(torch.fx.Transformer):
+    opmap = {
+        torch.ops.aten.add.Tensor: ttnn.add,
+        torch.ops.aten.eq.Tensor: ttnn.eq,
+        torch.ops.aten.gt.Tensor: ttnn.gt,
+        torch.ops.aten.logical_and.default: ttnn.logical_and,
+        torch.ops.aten.logical_or.default: ttnn.logical_or,
+        torch.ops.aten.logical_xor.default: ttnn.logical_xor,
+        torch.ops.aten.lt.Tensor: ttnn.lt,
+        torch.ops.aten.maximum.default: ttnn.maximum,
+        torch.ops.aten.minimum.default: ttnn.minimum,
+        torch.ops.aten.mul.Tensor: ttnn.mul,
+        torch.ops.aten.ne.Tensor: ttnn.ne,
+        torch.ops.aten.pow.Tensor_Tensor: ttnn.pow,
+        torch.ops.aten.sub.Tensor: ttnn.sub,
+        torch.ops.aten.xlogy.Tensor: ttnn.xlogy,
+    }
+
+    def call_function(self, target, args, kwargs):
+        if target in self.opmap:
+            return super().call_function(self.opmap[target], args, kwargs)
+        return super().call_function(target, args, kwargs)
+
+
 class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
-        if target == torch.ops.aten.add.Tensor:
-            return super().call_function(ttnn.add, args, kwargs)
-        elif target == torch.ops.aten.mm.default:
+        if target == torch.ops.aten.mm.default:
             return super().call_function(ttnn.matmul, args, kwargs)
-        elif target == torch.ops.aten.sub.Tensor:
-            return super().call_function(ttnn.sub, args, kwargs)
-        elif target == torch.ops.aten.mul.Tensor:
-            return super().call_function(ttnn.mul, args, kwargs)
         elif target == torch.ops.aten._softmax.default:
             return super().call_function(ttnn.softmax, args[:2], kwargs)
         elif target == torch.ops.aten.tanh.default:
@@ -48,5 +66,6 @@ class ToTtPass(PassBase):
 
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm).transform()
+        gm = ReplacePointwiseBinary(gm).transform()
 
         return PassResult(gm, True)

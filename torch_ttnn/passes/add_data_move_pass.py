@@ -9,6 +9,41 @@ def is_function_call(node) -> bool:
     return node.op == "call_function"
 
 
+TTNN_POINTWISE_BINARY_OPS = [
+    ttnn.add,
+    ttnn.eqz,
+    ttnn.gez,
+    ttnn.gte,
+    ttnn.gtz,
+    ttnn.isclose,
+    ttnn.ldexp,
+    ttnn.lez,
+    ttnn.logaddexp,
+    ttnn.logaddexp2,
+    ttnn.lte,
+    ttnn.ltz,
+    ttnn.nextafter,
+    ttnn.nez,
+    ttnn.polyval,
+    ttnn.squared_difference,
+    ttnn.eq,
+    ttnn.gt,
+    ttnn.logical_and,
+    ttnn.logical_or,
+    ttnn.logical_xor,
+    ttnn.lt,
+    ttnn.maximum,
+    ttnn.minimum,
+    ttnn.mul,
+    ttnn.ne,
+    ttnn.pow,
+    ttnn.sub,
+    ttnn.xlogy,
+    ttnn.add_and_apply_activation,
+    ttnn.add_and_apply_activation_,
+]
+
+
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
 def is_tt_compute(node) -> bool:
@@ -16,15 +51,13 @@ def is_tt_compute(node) -> bool:
         return False
     return node.target in set(
         [
-            ttnn.add,
             ttnn.matmul,
-            ttnn.sub,
-            ttnn.mul,
             ttnn.softmax,
             ttnn.tanh,
             ttnn.reshape,
             ttnn.permute,
         ]
+        + TTNN_POINTWISE_BINARY_OPS
     )
 
 
