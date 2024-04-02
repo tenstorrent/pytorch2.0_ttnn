@@ -9,6 +9,45 @@ def is_function_call(node) -> bool:
     return node.op == "call_function"
 
 
+TTNN_POINTWISE_UNARY_OPS = [
+    ttnn.abs,
+    ttnn.acos,
+    ttnn.acosh,
+    ttnn.asin,
+    ttnn.asinh,
+    ttnn.atan,
+    ttnn.atan2,  # binary
+    ttnn.atanh,
+    ttnn.clone,
+    ttnn.cos,
+    ttnn.cosh,
+    ttnn.erf,
+    ttnn.exp,
+    ttnn.expm1,
+    ttnn.gelu,
+    ttnn.hardtanh,
+    ttnn.isinf,
+    ttnn.isnan,
+    ttnn.leaky_relu,
+    ttnn.log,
+    ttnn.log10,
+    ttnn.log1p,
+    ttnn.log2,
+    ttnn.logical_not,
+    ttnn.neg,
+    ttnn.reciprocal,
+    ttnn.relu,
+    ttnn.rsqrt,
+    ttnn.sigmoid,
+    ttnn.sign,
+    ttnn.sin,
+    ttnn.sinh,
+    ttnn.sqrt,
+    ttnn.tan,
+    ttnn.tanh,
+]
+
+
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
     ttnn.eqz,
@@ -57,6 +96,7 @@ def is_tt_compute(node) -> bool:
             ttnn.reshape,
             ttnn.permute,
         ]
+        + TTNN_POINTWISE_UNARY_OPS
         + TTNN_POINTWISE_BINARY_OPS
     )
 

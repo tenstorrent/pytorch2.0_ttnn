@@ -4,6 +4,51 @@ import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
 
+class ReplacePointwiseUnary(torch.fx.Transformer):
+    opmap = {
+        torch.ops.aten.abs.default: ttnn.abs,
+        torch.ops.aten.acos.default: ttnn.acos,
+        torch.ops.aten.acosh.default: ttnn.acosh,
+        torch.ops.aten.asin.default: ttnn.asin,
+        torch.ops.aten.asinh.default: ttnn.asinh,
+        torch.ops.aten.atan.default: ttnn.atan,
+        torch.ops.aten.atan2.default: ttnn.atan2,
+        torch.ops.aten.atanh.default: ttnn.atanh,
+        torch.ops.aten.clone.default: ttnn.clone,
+        torch.ops.aten.cos.default: ttnn.cos,
+        torch.ops.aten.cosh.default: ttnn.cosh,
+        torch.ops.aten.erf.default: ttnn.erf,
+        torch.ops.aten.exp.default: ttnn.exp,
+        torch.ops.aten.expm1.default: ttnn.expm1,
+        torch.ops.aten.gelu.default: ttnn.gelu,
+        torch.ops.aten.hardtanh.default: ttnn.hardtanh,
+        torch.ops.aten.isinf.default: ttnn.isinf,
+        torch.ops.aten.isnan.default: ttnn.isnan,
+        torch.ops.aten.leaky_relu.default: ttnn.leaky_relu,
+        torch.ops.aten.log.default: ttnn.log,
+        torch.ops.aten.log10.default: ttnn.log10,
+        torch.ops.aten.log1p.default: ttnn.log1p,
+        torch.ops.aten.log2.default: ttnn.log2,
+        torch.ops.aten.logical_not.default: ttnn.logical_not,
+        torch.ops.aten.neg.default: ttnn.neg,
+        torch.ops.aten.reciprocal.default: ttnn.reciprocal,
+        torch.ops.aten.relu.default: ttnn.relu,
+        torch.ops.aten.rsqrt.default: ttnn.rsqrt,
+        torch.ops.aten.sigmoid.default: ttnn.sigmoid,
+        torch.ops.aten.sign.default: ttnn.sign,
+        torch.ops.aten.sin.default: ttnn.sin,
+        torch.ops.aten.sinh.default: ttnn.sinh,
+        torch.ops.aten.sqrt.default: ttnn.sqrt,
+        torch.ops.aten.tan.default: ttnn.tan,
+        torch.ops.aten.tanh.default: ttnn.tanh,
+    }
+
+    def call_function(self, target, args, kwargs):
+        if target in self.opmap:
+            return super().call_function(self.opmap[target], args, kwargs)
+        return super().call_function(target, args, kwargs)
+
+
 class ReplacePointwiseBinary(torch.fx.Transformer):
     opmap = {
         torch.ops.aten.add.Tensor: ttnn.add,
@@ -66,6 +111,7 @@ class ToTtPass(PassBase):
 
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm).transform()
+        gm = ReplacePointwiseUnary(gm).transform()
         gm = ReplacePointwiseBinary(gm).transform()
 
         return PassResult(gm, True)
