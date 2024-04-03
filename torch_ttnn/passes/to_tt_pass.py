@@ -87,14 +87,24 @@ class ReplacePointwiseTrinary(torch.fx.Transformer):
         return super().call_function(target, args, kwargs)
 
 
+class ReplaceMatrixMultiplication(torch.fx.Transformer):
+    opmap = {
+        torch.ops.aten.mm.default: ttnn.matmul,
+        torch.ops.aten.linear.default: ttnn.linear,
+    }
+
+    def call_function(self, target, args, kwargs):
+        if target in self.opmap:
+            return super().call_function(self.opmap[target], args, kwargs)
+        return super().call_function(target, args, kwargs)
+
+
 class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if target == torch.ops.aten.mm.default:
             return super().call_function(ttnn.matmul, args, kwargs)
         elif target == torch.ops.aten._softmax.default:
             return super().call_function(ttnn.softmax, args[:2], kwargs)
-        elif target == torch.ops.aten.tanh.default:
-            return super().call_function(ttnn.tanh, args, kwargs)
         elif target == torch.ops.aten.view.default:
             return super().call_function(ttnn.reshape, args, kwargs)
         elif target == torch.ops.aten.permute.default:
@@ -111,22 +121,24 @@ class ToTtPass(PassBase):
         # 1-to-N replacement. For N-to-M replacement, we need
         # to use subgraph_rewriter.
         # import patterns.add
-        # import patterns.mm
 
+        pat_rep_list = list()
         # Patterns and replacements
-        # pat_rep_list = list()
-        # pat_rep_list += patterns.add.pat_rep_list
-        # pat_rep_list += patterns.mm.pat_rep_list
+        from ..patterns import linear
+
+        pat_rep_list += linear.pat_rep_list
 
         # Replace patterns
-        #  for pat, rep in pat_rep_list:
-        #      replaced_pats = torch.fx.subgraph_rewriter.replace_pattern(gm, pat, rep)
-        #      modified = modified or len(replaced_pats) > 0
+        modified = False
+        for pat, rep in pat_rep_list:
+            replaced_pats = torch.fx.subgraph_rewriter.replace_pattern(gm, pat, rep)
+            modified = modified or len(replaced_pats) > 0
 
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm).transform()
         gm = ReplacePointwiseUnary(gm).transform()
         gm = ReplacePointwiseBinary(gm).transform()
         gm = ReplacePointwiseTrinary(gm).transform()
+        gm = ReplaceMatrixMultiplication(gm).transform()
 
         return PassResult(gm, True)

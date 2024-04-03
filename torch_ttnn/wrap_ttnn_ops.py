@@ -185,4 +185,7 @@ opnames = [
 
 for opname in opnames:
     exec(f"{opname} = ttnn.{opname}")
-    torch.fx.wrap(getattr(ttnn, opname))
+    exec(f"torch.fx.wrap({opname})")
+
+
+__all__ = opnames

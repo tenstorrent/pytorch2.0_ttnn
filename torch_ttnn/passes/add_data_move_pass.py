@@ -89,6 +89,11 @@ TTNN_POINTWISE_TRINARY_OPS = [
     ttnn.where,
 ]
 
+TTNN_MATRIX_MULPIPLICATION_OPS = [
+    ttnn.matmul,
+    ttnn.linear,
+]
+
 
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
@@ -97,15 +102,14 @@ def is_tt_compute(node) -> bool:
         return False
     return node.target in set(
         [
-            ttnn.matmul,
             ttnn.softmax,
-            ttnn.tanh,
             ttnn.reshape,
             ttnn.permute,
         ]
         + TTNN_POINTWISE_UNARY_OPS
         + TTNN_POINTWISE_BINARY_OPS
         + TTNN_POINTWISE_TRINARY_OPS
+        + TTNN_MATRIX_MULPIPLICATION_OPS
     )
 
 
