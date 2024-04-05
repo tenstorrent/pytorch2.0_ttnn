@@ -139,7 +139,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 
@@ -165,7 +165,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 
@@ -190,7 +190,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs, axis)
         option._out_fx_graphs[0].print_tabular()
 
@@ -214,7 +214,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 
@@ -239,7 +239,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs, new_shape)
         option._out_fx_graphs[0].print_tabular()
 
@@ -260,7 +260,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs, new_shape)
         option._out_fx_graphs[0].print_tabular()
 
@@ -287,7 +287,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs, order)
         option._out_fx_graphs[0].print_tabular()
 
@@ -311,7 +311,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 
@@ -335,7 +335,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 
@@ -367,7 +367,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 
@@ -396,7 +396,7 @@ class TestModules(unittest.TestCase):
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 

@@ -27,6 +27,10 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
+    # Clone ops used for input aliasing workaround are no longer needed at this point
+    from .handle_input_aliasing import remove_clones_for_input_aliasing
+    gm = remove_clones_for_input_aliasing(gm)
+
     option: TorchTtnnOption = options["torch_ttnn_option"]
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
     torch.fx.graph._register_custom_builtin(
@@ -70,6 +74,7 @@ def aten_backend(
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
+    gm.graph.lint()
     gm.recompile()
     gm.graph.print_tabular()
     print(gm.code)
@@ -88,8 +93,14 @@ class TorchTtnnOption:
         self.gen_graphviz = False
         self._out_fx_graphs = list()
 
+from .handle_input_aliasing import insert_clones_for_input_aliasing
 
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.
-def backend(torch_ttnn_option: TorchTtnnOption):
-    options = {"torch_ttnn_option": torch_ttnn_option}
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))
+def backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], **kwargs) -> torch.fx.GraphModule:
+    if options := kwargs.get("options"):
+        options = {"torch_ttnn_option": options}
+    else:
+        raise RuntimeError("TorchTtnnOption missing")
+
+    gm = insert_clones_for_input_aliasing(gm)
+    return aot_autograd(fw_compiler=partial(aten_backend, options=options))(gm, example_inputs)
