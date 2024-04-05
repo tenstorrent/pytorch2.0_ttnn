@@ -41,6 +41,8 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return super().call_function(ttnn.gelu, args, kwargs)
         elif target == torch.ops.aten.embedding.default:
             return super().call_function(ttnn.embedding, (args[1], args[0]), kwargs)
+        elif target == torch.ops.aten.split.Tensor:
+            return super().call_function(ttnn.split, args, kwargs)
         return super().call_function(target, args, kwargs)
 
 

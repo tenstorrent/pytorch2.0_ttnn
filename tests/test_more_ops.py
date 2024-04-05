@@ -142,6 +142,16 @@ class EmbeddingModule(torch.nn.Module):
     def input_shapes(self):
         return [((1, 2, 4, 5), (4, 3, 2, 9)), (10, 4)]
 
+class SplitModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, split_size, dim):
+        return torch.split(input, split_size, dim)
+
+    def input_shapes(self):
+        return [(2, 4)]
+
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
@@ -481,6 +491,36 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[8].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
+
+    def test_split(self):
+        m = SplitModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        # TODO(kevinwuTT): test other shapes and dims
+        result_before = m.forward(*inputs, 2, -1)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(*inputs, 2, -1)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[4].target == ttnn.split)
+        self.assertTrue(nodes[4].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[4].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[4].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[7].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].target == ttnn.from_device)
+        self.assertTrue(nodes[9].target == ttnn.to_torch)
+        self.assertTrue(nodes[10].target == ttnn.to_layout)
+        self.assertTrue(nodes[11].target == ttnn.from_device)
+        self.assertTrue(nodes[12].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(len(result_before) == len(result_after))
+        for before, after in zip(result_before, result_after):
+            self.assertTrue(torch.allclose(before, after))
 
 
 if __name__ == "__main__":
