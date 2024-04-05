@@ -121,6 +121,26 @@ class GeluModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+class RSubModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x, y):
+        return torch.rsub(x, y)
+
+    def input_shapes(self):
+        return [(4, 4), (4, 4)]
+
+class EmbeddingModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, weight):
+        embedding = torch.nn.Embedding.from_pretrained(weight)
+        return embedding(input)
+
+    def input_shapes(self):
+        return [((1, 2, 4, 5), (4, 3, 2, 9)), (10, 4)]
 
 class TestModules(unittest.TestCase):
     def setUp(self):
@@ -412,6 +432,55 @@ class TestModules(unittest.TestCase):
         # Check inference result
         print(result_before, "\n", result_after)
         self.assertTrue(check_with_pcc(result_before, result_after))
+
+    def test_rsub(self):
+        m = RSubModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        result_before = m.forward(*inputs)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(*inputs)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[8].target == ttnn.sub)
+        self.assertTrue(nodes[8].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[8].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[9].target == ttnn.from_device)
+        self.assertTrue(nodes[10].target == ttnn.to_layout)
+        self.assertTrue(nodes[11].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before, result_after))
+
+    def test_embedding(self):
+        m = EmbeddingModule()
+        input_shapes = m.input_shapes()
+        input = torch.tensor(input_shapes[0])
+        weight = torch.rand(input_shapes[1], dtype=torch.bfloat16)
+        result_before = m.forward(input, weight)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(input, weight)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[6].target == ttnn.embedding)
+        self.assertTrue(nodes[6].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[6].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[6].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[6].args[1].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[7].target == ttnn.from_device)
+        self.assertTrue(nodes[8].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before, result_after))
 
 
 if __name__ == "__main__":

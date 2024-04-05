@@ -39,6 +39,8 @@ def aten_backend(
     torch.fx.graph._register_custom_builtin(
         "ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT
     )
+    torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
+    torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager

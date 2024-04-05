@@ -33,6 +33,7 @@ def is_tt_compute(node) -> bool:
             ttnn.relu,
             ttnn.reciprocal,
             ttnn.gelu,
+            ttnn.embedding,
         ]
     )
 
@@ -85,15 +86,18 @@ def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
         dst_node.update_arg(0, tuple(new_arg))
 
 
-def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> bool:
+def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
     if not should_add_data_move_in(src_node, dst_node):
         return None
 
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
-        if dst_node.target != ttnn.reshape:
+        if dst_node.target == ttnn.embedding and dst_idx == 0:
+            new_nodes.append(g.call_function(ttnn.from_torch, (src_node, DummyTtnnUint32())))
+        else:
+            new_nodes.append(g.call_function(ttnn.from_torch, (src_node, )))
+        if dst_node.target != ttnn.reshape and dst_node.target != ttnn.embedding:
             new_nodes.append(g.call_function(
                 ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout())
             ))
@@ -105,23 +109,23 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> bool:
     return new_nodes[-1]
 
 
-def try_add_data_move_out(src_node, dst_idx, dst_node) -> bool:
+def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     if not should_add_data_move_out(src_node, dst_node):
-        return False
+        return None
 
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
         if (is_tt_compute(src_node) and src_node.target != ttnn.reshape) or (src_node.target == ttnn.reshape and len(src_node.args[1]) == 4):
             new_nodes.append(g.call_function(ttnn.from_device, (src_node,)))
-            new_nodes.append(g.call_function(
-                ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
-            ))
+            if (src_node.target != ttnn.embedding):
+                new_nodes.append(g.call_function(
+                    ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
+                ))
         new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,)))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
-    return True
-
+    return new_nodes[-1]
 
 # See https://docs.google.com/document/d/1r2D4AagoeTRjEmXFnWzzafaWQkf-8hlIbX2ze-JAUFo/edit#heading=h.zad9rwqjv6cr
 class DummyDevice:
@@ -136,15 +140,23 @@ class DummyTtnnTileLayout:
     def __repr__(self):
         return f"ttnn_TILE_LAYOUT"
 
+class DummyTtnnUint32:
+    def __repr__(self):
+        return f"ttnn_uint32"
+
+class DummyTtnnBfloat16:
+    def __repr__(self):
+        return f"ttnn_bfloat16"
+
 class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
         device = DummyDevice()
         i = 0
         nodes = list(gm.graph.nodes)
+        # Track argument reuse
+        data_move_in_hash = {}
         for node in nodes:
-            # Track argument reuse
-            data_move_in_hash = {}
             args = node.args[0] if node.op == "output" else node.args
             for idx, arg in enumerate(args):
                 if arg in data_move_in_hash:
