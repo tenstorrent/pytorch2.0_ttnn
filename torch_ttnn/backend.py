@@ -32,6 +32,7 @@ def aten_backend(
 
     option: TenstorrentBackendOption = options
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
+    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
     torch.fx.graph._register_custom_builtin(
         "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
     )

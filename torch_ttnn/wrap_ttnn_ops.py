@@ -131,7 +131,7 @@ opnames = [
     "polyval",
     "pow",
     "prelu",
-    "print_l1_buffers",
+    #  "print_l1_buffers",
     "rad2deg",
     "reciprocal",
     "register_post_operation_hook",
@@ -144,7 +144,7 @@ opnames = [
     "reshape",
     "rms_norm",
     "rsqrt",
-    "set_printoptions",
+    #  "set_printoptions",
     "sigmoid",
     "sign",
     "signbit",
@@ -183,8 +183,11 @@ opnames = [
     "zeros_like",
 ]
 
-for opname in opnames:
+datamove_names = ["to_torch", "from_torch", "to_device", "from_device", "to_layout"]
+
+for opname in opnames + datamove_names:
     exec(f"{opname} = ttnn.{opname}")
+    exec(f"{opname}.__name__ = '{opname}'")
     exec(f"torch.fx.wrap({opname})")
 
 

@@ -162,7 +162,10 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> bool:
     g = dst_node.graph
     with g.inserting_before(dst_node):
         from_torch = g.call_function(ttnn.from_torch, (src_node,))
-        to_device = g.call_function(ttnn.to_device, (from_torch, device))
+        tile_layout = g.call_function(
+            ttnn.to_layout, (from_torch, DummyTtnnTileLayout())
+        )
+        to_device = g.call_function(ttnn.to_device, (tile_layout, device))
 
     insert_node_between(src_node, dst_idx, dst_node, [from_torch, to_device])
     return True
@@ -193,6 +196,11 @@ class DummyDevice:
 class DummyTtnnRowMajorLayout:
     def __repr__(self):
         return f"ttnn_ROW_MAJOR_LAYOUT"
+
+
+class DummyTtnnTileLayout:
+    def __repr__(self):
+        return f"ttnn_TILE_LAYOUT"
 
 
 class AddDataMovePass(PassBase):
