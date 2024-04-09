@@ -138,9 +138,9 @@ def should_add_data_move_out(src_node, dst_node) -> bool:
     return is_tt_compute(src_node) and not is_tt(dst_node)
 
 
-def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
+def insert_nodes_between(src_node, dst_idx, dst_node, new_nodes):
     """
-    Insert new_node between src_node and dest_node's dst_idx-th arg
+    Insert new_nodes between src_node and dest_node's dst_idx-th arg
 
     If dst_node is output, the args is stored in dst_node.args[0], and it is a tuple,
     so we need to check if dst_node is output and handle it separately.
@@ -167,7 +167,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> bool:
         )
         to_device = g.call_function(ttnn.to_device, (tile_layout, device))
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_torch, to_device])
+    insert_nodes_between(src_node, dst_idx, dst_node, [from_torch, to_device])
     return True
 
 
@@ -183,7 +183,7 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> bool:
         )
         to_torch = g.call_function(ttnn.to_torch, (row_major_layout,))
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_torch])
+    insert_nodes_between(src_node, dst_idx, dst_node, [from_device, to_torch])
     return True
 
 

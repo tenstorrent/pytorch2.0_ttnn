@@ -40,12 +40,16 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[6].target, ttnn.matmul)
-        self.assertEqual(nodes[6].args[0].target, ttnn.to_device)
-        self.assertEqual(nodes[6].args[0].args[0].target, ttnn.from_torch)
-        self.assertEqual(nodes[7].target, ttnn.from_device)
-        self.assertEqual(nodes[8].target, ttnn.to_layout)
-        self.assertEqual(nodes[9].target, ttnn.to_torch)
+        self.assertEqual(nodes[2 + 0].target, ttnn.from_torch)
+        self.assertEqual(nodes[2 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[2 + 2].target, ttnn.to_device)
+        self.assertEqual(nodes[5 + 0].target, ttnn.from_torch)
+        self.assertEqual(nodes[5 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[5 + 2].target, ttnn.to_device)
+        self.assertEqual(nodes[8].target, ttnn.matmul)
+        self.assertEqual(nodes[9 + 0].target, ttnn.from_device)
+        self.assertEqual(nodes[9 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[9 + 2].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
@@ -76,11 +80,18 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[9].target, ttnn.linear)
-        self.assertEqual(nodes[9].args[0].target, ttnn.to_device)
-        self.assertEqual(nodes[9].args[0].args[0].target, ttnn.from_torch)
-        self.assertEqual(nodes[10].target, ttnn.from_device)
-        self.assertEqual(nodes[11].target, ttnn.to_layout)
-        self.assertEqual(nodes[12].target, ttnn.to_torch)
+        self.assertEqual(nodes[3 + 0].target, ttnn.from_torch)
+        self.assertEqual(nodes[3 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[3 + 2].target, ttnn.to_device)
+        self.assertEqual(nodes[6 + 0].target, ttnn.from_torch)
+        self.assertEqual(nodes[6 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[6 + 2].target, ttnn.to_device)
+        self.assertEqual(nodes[9 + 0].target, ttnn.from_torch)
+        self.assertEqual(nodes[9 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[9 + 2].target, ttnn.to_device)
+        self.assertEqual(nodes[12].target, ttnn.linear)
+        self.assertEqual(nodes[13 + 0].target, ttnn.from_device)
+        self.assertEqual(nodes[13 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[13 + 2].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
