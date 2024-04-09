@@ -1,3 +1,4 @@
+from typing import Union
 import torch
 import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
@@ -138,7 +139,9 @@ def should_add_data_move_out(src_node, dst_node) -> bool:
     return is_tt_compute(src_node) and not is_tt(dst_node)
 
 
-def insert_nodes_between(src_node, dst_idx, dst_node, new_nodes):
+def insert_nodes_between(
+    src_node, dst_idx_or_key: Union[int, str], dst_node, new_nodes
+):
     """
     Insert new_nodes between src_node and dest_node's dst_idx-th arg
 
@@ -147,15 +150,18 @@ def insert_nodes_between(src_node, dst_idx, dst_node, new_nodes):
     """
     new_nodes[0].update_arg(0, src_node)
     if dst_node.op != "output":
-        dst_node.update_arg(dst_idx, new_nodes[-1])
+        if isinstance(dst_idx_or_key, int):
+            dst_node.update_arg(dst_idx_or_key, new_nodes[-1])
+        else:
+            dst_node.update_kwarg(dst_idx_or_key, new_nodes[-1])
     else:
         old_arg = dst_node.args[0]
         new_arg = list(old_arg)
-        new_arg[dst_idx] = new_nodes[-1]
+        new_arg[dst_idx_or_key] = new_nodes[-1]
         dst_node.update_arg(0, tuple(new_arg))
 
 
-def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> bool:
+def try_add_data_move_in(src_node, dst_idx_or_key, dst_node, device) -> bool:
     if not should_add_data_move_in(src_node, dst_node):
         return False
 
@@ -167,11 +173,11 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> bool:
         )
         to_device = g.call_function(ttnn.to_device, (tile_layout, device))
 
-    insert_nodes_between(src_node, dst_idx, dst_node, [from_torch, to_device])
+    insert_nodes_between(src_node, dst_idx_or_key, dst_node, [from_torch, to_device])
     return True
 
 
-def try_add_data_move_out(src_node, dst_idx, dst_node) -> bool:
+def try_add_data_move_out(src_node, dst_idx_or_key, dst_node) -> bool:
     if not should_add_data_move_out(src_node, dst_node):
         return False
 
@@ -183,7 +189,7 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> bool:
         )
         to_torch = g.call_function(ttnn.to_torch, (row_major_layout,))
 
-    insert_nodes_between(src_node, dst_idx, dst_node, [from_device, to_torch])
+    insert_nodes_between(src_node, dst_idx_or_key, dst_node, [from_device, to_torch])
     return True
 
 
@@ -215,6 +221,12 @@ class AddDataMovePass(PassBase):
                 if try_add_data_move_in(arg, idx, node, device):
                     i += 1
                 if try_add_data_move_out(arg, idx, node):
+                    i += 1
+            kwargs = node.kwargs
+            for key, arg in kwargs.items():
+                if try_add_data_move_in(arg, key, node, device):
+                    i += 1
+                if try_add_data_move_out(arg, key, node):
                     i += 1
 
         modified = i > 0

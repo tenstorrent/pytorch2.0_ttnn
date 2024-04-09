@@ -11,7 +11,7 @@ def linear_pat(x, y, z):
 
 
 def linear_rep(x, y, z):
-    return wrap.linear(x, y, z)
+    return wrap.linear(x, y, bias=z)
 
 
 pat_rep_list = [
