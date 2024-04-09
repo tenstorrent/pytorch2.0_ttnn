@@ -56,17 +56,13 @@ def aten_backend(
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
-        graphviz_filenames = [
-            "00.origin",
-            "01.to-tt",
-            "02.add-data-move",
-            "03.elimate-data-move",
-            "04.cse",
-            "05.permute-reshape-tuple",
-        ]
-        assert len(graphviz_filenames) == len(passes) + 1
-        for idx in range(len(graphviz_filenames)):
-            passes.insert(idx * 2, GraphvizPass(graphviz_filenames[idx]))
+        passes_with_graphviz = [GraphvizPass("00.origin")]
+        for idx in range(len(passes)):
+            passes_with_graphviz.append(passes[idx])
+            passes_with_graphviz.append(
+                GraphvizPass(f"{idx + 1:02d}.{passes[idx].__class__.__name__}")
+            )
+        passes = passes_with_graphviz
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
