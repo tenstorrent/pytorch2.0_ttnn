@@ -231,7 +231,7 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[1].target == ttnn.from_torch)
         self.assertTrue(nodes[2].target == ttnn.to_layout)
         self.assertTrue(nodes[3].target == ttnn.to_device)
-        self.assertTrue(nodes[4].target == ttnn.clone)
+        self.assertTrue(nodes[4].target == torch_ttnn.target_wrappers.clone)
         self.assertTrue(nodes[5].target == ttnn.from_device)
         self.assertTrue(nodes[6].target == ttnn.to_layout)
         self.assertTrue(nodes[7].target == ttnn.to_torch)
@@ -358,7 +358,7 @@ class TestModules(unittest.TestCase):
 
         m = Expm1Module()
         input_shapes = m.input_shapes()
-        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) + 1 for shape in input_shapes]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation

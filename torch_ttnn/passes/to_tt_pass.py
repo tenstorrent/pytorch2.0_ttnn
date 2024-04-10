@@ -2,6 +2,7 @@ import torch
 import ttnn
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
+from . import target_wrappers 
 
 
 class ReplaceSimpleOpMap(torch.fx.Transformer):
@@ -17,17 +18,17 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         torch.ops.aten.atan.default: ttnn.atan,
         torch.ops.aten.atan2.default: ttnn.atan2,
         torch.ops.aten.atanh.default: ttnn.atanh,
-        torch.ops.aten.clone.default: ttnn.clone,
+        torch.ops.aten.clone.default: target_wrappers.clone,      # Custom wrapper
         torch.ops.aten.cos.default: ttnn.cos,
         torch.ops.aten.cosh.default: ttnn.cosh,
         torch.ops.aten.erf.default: ttnn.erf,
         torch.ops.aten.exp.default: ttnn.exp,
         torch.ops.aten.expm1.default: ttnn.expm1,
         torch.ops.aten.gelu.default: ttnn.gelu,
-        torch.ops.aten.hardtanh.default: ttnn.hardtanh,
+        #  torch.ops.aten.hardtanh.default: ttnn.hardtanh, # can not specify min/max
         torch.ops.aten.isinf.default: ttnn.isinf,
         torch.ops.aten.isnan.default: ttnn.isnan,
-        torch.ops.aten.leaky_relu.default: ttnn.leaky_relu,
+        #  torch.ops.aten.leaky_relu.default: ttnn.leaky_relu, # no default slope
         torch.ops.aten.log.default: ttnn.log,
         torch.ops.aten.log10.default: ttnn.log10,
         torch.ops.aten.log1p.default: ttnn.log1p,
@@ -90,6 +91,12 @@ class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if target == torch.ops.aten._softmax.default:
             return super().call_function(ttnn.softmax, args[:2], kwargs)
+        elif target == torch.ops.aten.leaky_relu.default and len(args) == 2:  # leaky_relu w/ specify slope
+            return super().call_function(ttnn.leaky_relu, args, kwargs)
+        elif target == torch.ops.aten.leaky_relu.default and len(args) == 1:  # leaky_relu w/o specify slope
+            return super().call_function(ttnn.leaky_relu, (args[0], 0.01), kwargs)
+        elif target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
+            return super().call_function(ttnn.hardtanh, args[:1], kwargs)
         return super().call_function(target, args, kwargs)
 
 

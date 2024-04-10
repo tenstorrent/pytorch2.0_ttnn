@@ -2,6 +2,7 @@ from typing import Union
 import torch
 import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
+from . import target_wrappers 
 
 
 def is_function_call(node) -> bool:
@@ -19,7 +20,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.atan,
     ttnn.atan2,  # binary
     ttnn.atanh,
-    ttnn.clone,
+    #  ttnn.clone,  in target_wrappers
     ttnn.cos,
     ttnn.cosh,
     ttnn.erf,
@@ -95,6 +96,10 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
     ttnn.linear,
 ]
 
+TTNN_TARGET_WRAPPERS = [
+    target_wrappers.clone
+]
+
 
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
@@ -111,6 +116,7 @@ def is_tt_compute(node) -> bool:
         + TTNN_POINTWISE_BINARY_OPS
         + TTNN_POINTWISE_TRINARY_OPS
         + TTNN_MATRIX_MULPIPLICATION_OPS
+        + TTNN_TARGET_WRAPPERS
     )
 
 
