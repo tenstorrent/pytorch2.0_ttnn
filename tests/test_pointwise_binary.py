@@ -29,7 +29,7 @@ class TestModules(unittest.TestCase):
         result_before = m.forward(*inputs)
         option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
         self.assertEqual(1, len(option._out_fx_graphs))
         option._out_fx_graphs[0].print_tabular()
@@ -71,49 +71,49 @@ class TestModules(unittest.TestCase):
         )
 
     def test_add(self):
-        self._test_impl(torch.add, ttnn.add)
+        self._test_impl(torch.add, ttnn.add, True, True)
 
     def test_atan2(self):
-        self._test_impl(torch.atan2, ttnn.atan2)
+        self._test_impl(torch.atan2, ttnn.atan2, True, True)
 
     def test_eq(self):
-        self._test_impl(torch.eq, ttnn.eq)
+        self._test_impl(torch.eq, ttnn.eq, True, True)
 
     def test_gt(self):
-        self._test_impl(torch.gt, ttnn.gt)
+        self._test_impl(torch.gt, ttnn.gt, True, True)
 
     def test_logical_and(self):
-        self._test_impl(torch.logical_and, ttnn.logical_and)
+        self._test_impl(torch.logical_and, ttnn.logical_and, True, True)
 
     def test_logical_or(self):
-        self._test_impl(torch.logical_or, ttnn.logical_or)
+        self._test_impl(torch.logical_or, ttnn.logical_or, True, True)
 
     def test_logical_xor(self):
-        self._test_impl(torch.logical_xor, ttnn.logical_xor)
+        self._test_impl(torch.logical_xor, ttnn.logical_xor, True, True)
 
     def test_lt(self):
-        self._test_impl(torch.lt, ttnn.lt)
+        self._test_impl(torch.lt, ttnn.lt, True, True)
 
     def test_maximum(self):
-        self._test_impl(torch.maximum, ttnn.maximum)
+        self._test_impl(torch.maximum, ttnn.maximum, True, True)
 
     def test_minimum(self):
-        self._test_impl(torch.minimum, ttnn.minimum)
+        self._test_impl(torch.minimum, ttnn.minimum, True, True)
 
     def test_mul(self):
-        self._test_impl(torch.mul, ttnn.mul)
+        self._test_impl(torch.mul, ttnn.mul, True, True)
 
     def test_ne(self):
-        self._test_impl(torch.ne, ttnn.ne)
+        self._test_impl(torch.ne, ttnn.ne, True, True)
 
     def test_pow(self):
-        self._test_impl(torch.pow, ttnn.pow)
+        self._test_impl(torch.pow, ttnn.pow, True, True)
 
     def test_pow_t_s(self):
-        self._test_impl(torch.pow, ttnn.pow)
+        self._test_impl(torch.pow, ttnn.pow, True, False)
 
     def test_sub(self):
-        self._test_impl(torch.sub, ttnn.sub)
+        self._test_impl(torch.sub, ttnn.sub, True, True)
 
     def test_xlogy(self):
-        self._test_impl(torch.xlogy, ttnn.xlogy)
+        self._test_impl(torch.xlogy, ttnn.xlogy, True, True)

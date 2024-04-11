@@ -66,8 +66,8 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         ############################################################
         # Pointwise trinary
         ############################################################
-        torch.ops.aten.addcdiv.default: ttnn.addcdiv,
-        torch.ops.aten.addcmul.default: ttnn.addcmul,
+        #  torch.ops.aten.addcdiv.default: ttnn.addcdiv,  # ttnn require `parameter` parameter, which optional in torch
+        #  torch.ops.aten.addcmul.default: ttnn.addcmul,  # ttnn require `parameter` parameter, which optional in torch
         # torch.ops.aten.mac.Tensor: ttnn.mac,        # NOTE(yoco): I don't what ttnn.mac is
         torch.ops.aten.where.self: ttnn.where,
         ############################################################
@@ -100,6 +100,20 @@ class ReplaceMoreTt(torch.fx.Transformer):
             target == torch.ops.aten.leaky_relu.default and len(args) == 1
         ):  # leaky_relu w/o specify slope
             return super().call_function(ttnn.leaky_relu, (args[0], 0.01), kwargs)
+        elif target == torch.ops.aten.addcmul.default:
+            value = 1.0
+            modified_kwargs = dict(kwargs)
+            if "value" in kwargs:
+                value = kwargs.get("value")
+                modified_kwargs.pop("value")
+            return super().call_function(ttnn.addcmul, args + (value,), modified_kwargs)
+        elif target == torch.ops.aten.addcdiv.default:
+            value = 1.0
+            modified_kwargs = dict(kwargs)
+            if "value" in kwargs:
+                value = kwargs.get("value")
+                modified_kwargs.pop("value")
+            return super().call_function(ttnn.addcdiv, args + (value,), modified_kwargs)
         elif (
             target == torch.ops.aten.hardtanh.default
             and args[1] == -1.0
