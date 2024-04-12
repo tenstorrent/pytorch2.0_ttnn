@@ -1,5 +1,6 @@
 import torch
 from typing import List
+from .utils import GraphCleanup
 
 """
 AOT Autograd has an optimization where if it determines that the storage of the
@@ -27,13 +28,6 @@ def get_input_nodes(gm: torch.fx.GraphModule) -> List[torch.fx.Node]:
     input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder")]
     return input_nodes
 
-def clean_up_graph(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    gm.graph.eliminate_dead_code()
-    gm.graph.lint()
-    gm.recompile()
-
-    return gm
-
 # Insert aten.clone nodes after every input to prevent input aliasing
 def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     input_nodes = get_input_nodes(gm)
@@ -51,7 +45,7 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
             modified = True
 
     if modified:
-        gm = clean_up_graph(gm)
+        gm = GraphCleanup(gm)
 
     return gm
 
@@ -78,6 +72,6 @@ def remove_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
             modified = True
 
     if modified:
-        gm = clean_up_graph(gm)
+        gm = GraphCleanup(gm)
 
     return gm
