@@ -13,7 +13,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if target == torch.ops.aten.sub.Tensor:
             return super().call_function(ttnn.sub, args, kwargs)
-        if target == torch.ops.aten.rsub.Tensor:
+        elif target == torch.ops.aten.rsub.Tensor:
             # TODO(kevinwuMCW): handle alpha parameter if exists
             return super().call_function(ttnn.sub, (args[1], args[0]), kwargs)
         elif target == torch.ops.aten.mul.Tensor:
