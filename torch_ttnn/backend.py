@@ -42,6 +42,15 @@ def aten_backend(
     torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
 
+    # Some ttnn objects are unhashable because they are function calls.
+    # However, arguments for these functions are usually hashable.
+    import tt_lib as ttl
+    # ttnn.DRAM_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.DRAM)
+    torch.fx.graph._register_custom_builtin("ttl_tensor_TensorMemoryLayout_INTERLEAVED", "", ttl.tensor.TensorMemoryLayout.INTERLEAVED)
+    torch.fx.graph._register_custom_builtin("ttl_tensor_BufferType_DRAM", "", ttl.tensor.BufferType.DRAM)
+    # ttnn.L1_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.L1)
+    torch.fx.graph._register_custom_builtin("ttl_tensor_BufferType_L1", "", ttl.tensor.BufferType.L1)
+
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch.fx.passes.dialect.common.cse_pass import CSEPass

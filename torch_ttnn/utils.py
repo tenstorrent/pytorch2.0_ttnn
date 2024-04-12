@@ -27,3 +27,11 @@ class DummyTtnnUint32:
 class DummyTtnnBfloat16:
     def __repr__(self):
         return f"ttnn_bfloat16"
+
+class DummyTtlTensorTensorMemoryLayoutInterleaved:
+    def __repr__(self):
+        return f"ttl_tensor_TensorMemoryLayout_INTERLEAVED"
+
+class DummyTtlTensorBufferTypeDram:
+    def __repr__(self):
+        return f"ttl_tensor_BufferType_DRAM"

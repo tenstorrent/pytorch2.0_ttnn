@@ -41,6 +41,7 @@ def is_tt_compute(node) -> bool:
             ttnn.gelu,
             ttnn.embedding,
             ttnn.split,
+            ttnn.clone,
         ]
     )
 
@@ -53,6 +54,7 @@ def is_tt_data_move(node) -> bool:
         ttnn.to_device,
         ttnn.from_torch,
         ttnn.to_torch,
+        ttnn.MemoryConfig
     ]
 
 
@@ -67,7 +69,7 @@ def is_reshape_rank_4(node):
         return False
 
 def should_add_data_move_in(src_node, dst_node) -> bool:
-    if isinstance(src_node, (int, float, list, tuple)):
+    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return False
     return is_tt_compute(dst_node) and not is_tt(src_node)
 
