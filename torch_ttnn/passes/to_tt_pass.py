@@ -133,8 +133,12 @@ class ToTtPass(PassBase):
         pat_rep_list = list()
         # Patterns and replacements
         from ..patterns import linear
+        from ..patterns import addcdiv
+        from ..patterns import where
 
         pat_rep_list += linear.pat_rep_list
+        pat_rep_list += addcdiv.pat_rep_list
+        pat_rep_list += where.pat_rep_list
 
         # Replace patterns
         modified = False
