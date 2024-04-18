@@ -80,6 +80,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         ############################################################
         torch.ops.aten.view.default: ttnn.reshape,
         torch.ops.aten.permute.default: ttnn.permute,
+        torch.ops.aten.repeat.default: ttnn.repeat,
     }
 
     def call_function(self, target, args, kwargs):

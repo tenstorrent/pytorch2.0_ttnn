@@ -2,7 +2,7 @@ from typing import Union
 import torch
 import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
-from . import target_wrappers 
+from . import target_wrappers
 
 
 def is_function_call(node) -> bool:
@@ -41,6 +41,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.relu,
     ttnn.rsqrt,
     ttnn.sigmoid,
+    ttnn.softmax,
     ttnn.sign,
     ttnn.sin,
     ttnn.sinh,
@@ -96,8 +97,12 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
     ttnn.linear,
 ]
 
-TTNN_TARGET_WRAPPERS = [
-    target_wrappers.clone
+TTNN_TARGET_WRAPPERS = [target_wrappers.clone]
+
+TTNN_DATAMOVE_OPS = [
+    ttnn.reshape,
+    ttnn.permute,
+    ttnn.repeat,
 ]
 
 
@@ -107,16 +112,12 @@ def is_tt_compute(node) -> bool:
     if not is_function_call(node):
         return False
     return node.target in set(
-        [
-            ttnn.softmax,
-            ttnn.reshape,
-            ttnn.permute,
-        ]
-        + TTNN_POINTWISE_UNARY_OPS
+        TTNN_POINTWISE_UNARY_OPS
         + TTNN_POINTWISE_BINARY_OPS
         + TTNN_POINTWISE_TRINARY_OPS
         + TTNN_MATRIX_MULPIPLICATION_OPS
         + TTNN_TARGET_WRAPPERS
+        + TTNN_DATAMOVE_OPS
     )
 
 

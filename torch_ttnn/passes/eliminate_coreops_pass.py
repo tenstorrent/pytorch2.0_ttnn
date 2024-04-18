@@ -30,7 +30,7 @@ def _eliminate_pair(node, func, pre_func):
     return changed
 
 
-class EliminateDataMovePass(PassBase):
+class EliminateCoreopsPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
         for node in gm.graph.nodes:

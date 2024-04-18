@@ -41,15 +41,15 @@ def aten_backend(
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
     from .passes.to_tt_pass import ToTtPass
-    from .passes.add_data_move_pass import AddDataMovePass
+    from .passes.add_coreops_pass import AddDataMovePass
     from .passes.graphviz_pass import GraphvizPass
-    from .passes.eliminate_data_move_pass import EliminateDataMovePass
+    from .passes.eliminate_coreops_pass import EliminateCoreopsPass
     from .passes.permute_reshape_tuple import PermuteReshapeTuple
 
     passes = [
         ToTtPass(),
         AddDataMovePass(),
-        EliminateDataMovePass(),
+        EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
     ]
