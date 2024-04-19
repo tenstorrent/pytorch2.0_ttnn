@@ -81,7 +81,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 memory_config = g.call_function(ttnn.MemoryConfig, (DummyTtlTensorTensorMemoryLayoutInterleaved(), DummyTtlTensorBufferTypeDram()))
                 new_node = g.call_function(ttnn.clone, args=(args[0], memory_config, dummy_dtype))
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
-    
+            if node.target == torch.ops.aten.native_layer_norm.default:
+                new_node = g.call_function(ttnn.layer_norm, args=(args[0],), kwargs={"epsilon": args[4], "weight": args[2], "bias": args[3]})
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+                node_users = list(new_node.users.keys())
+                for node_user in node_users:
+                    node_user.replace_all_uses_with(new_node)
+
     gm = GraphCleanup(gm)
     return gm
 

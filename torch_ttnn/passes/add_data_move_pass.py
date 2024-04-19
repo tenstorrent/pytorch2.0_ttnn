@@ -42,6 +42,7 @@ def is_tt_compute(node) -> bool:
             ttnn.embedding,
             ttnn.split,
             ttnn.clone,
+            ttnn.layer_norm,
         ]
     )
 
@@ -75,7 +76,7 @@ def should_add_data_move_in(src_node, dst_node) -> bool:
 
 
 def should_add_data_move_out(src_node, dst_node) -> bool:
-    return is_tt_compute(src_node) and not is_tt(dst_node) and src_node.target != ttnn.split
+    return is_tt_compute(src_node) and not is_tt(dst_node) and src_node.target != ttnn.split and src_node.target != ttnn.layer_norm
 
 def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
     """
@@ -182,6 +183,30 @@ def try_add_data_move_out_for_split(src_node, dst_idx, dst_node) -> torch.fx.nod
     else:
         return None
 
+def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
+    if not is_function_call(src_node):
+        return None
+
+    g = dst_node.graph
+    new_nodes = list()
+    with g.inserting_before(dst_node):
+        if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
+            new_nodes.append(g.call_function(ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout())))
+            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
+            new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1],)))
+
+    # Workaround to output the same layer_norm output
+    if new_nodes:
+        old_args = dst_node.args[0]
+        new_args = list(old_args)
+        for idx, old_arg in enumerate(old_args):
+            if old_arg == src_node:
+                new_args[idx] = new_nodes[-1]
+        dst_node.update_arg(0, tuple(new_args))
+        return new_nodes[-1]
+    else:
+        return None
+
 
 class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
@@ -191,6 +216,8 @@ class AddDataMovePass(PassBase):
         nodes = list(gm.graph.nodes)
         # Track argument reuse
         data_move_in_hash = {}
+        # This might not be needed if workaround is not needed
+        data_move_out_hash = {}
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
             kwargs = tuple((k, v) for k, v in node.kwargs.items() if isinstance(v, torch.fx.node.Node))
@@ -205,9 +232,21 @@ class AddDataMovePass(PassBase):
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
                     data_move_in_hash[arg] = to_device
                     i += 1
-                if try_add_data_move_out(arg, idx, node):
+
+                if arg in data_move_out_hash and node.op == "output":
+                    old_arg = node.args[0]
+                    new_arg = list(old_arg)
+                    new_arg[idx] = data_move_out_hash[arg]
+                    node.update_arg(0, tuple(new_arg))
                     i += 1
-                elif try_add_data_move_out_for_split(arg, idx, node):
+                elif to_torch := try_add_data_move_out(arg, idx, node):
+                    data_move_out_hash[arg] = to_torch
+                    i += 1
+                elif to_torch := try_add_data_move_out_for_split(arg, idx, node):
+                    data_move_out_hash[arg] = to_torch
+                    i += 1
+                elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
+                    data_move_out_hash[arg] = to_torch
                     i += 1
 
         modified = i > 0
