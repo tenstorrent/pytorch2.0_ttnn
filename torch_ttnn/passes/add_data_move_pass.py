@@ -93,6 +93,32 @@ def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
         new_arg[dst_idx] = new_nodes[-1]
         dst_node.update_arg(0, tuple(new_arg))
 
+def insert_node_between_kwarg(src_node, key, dst_node, new_nodes):
+    """
+    Insert new_node between src_node and dest_node's keyword arg.
+
+    Output does not have keyword args.
+    """
+    assert(dst_node.op != "output")
+    new_nodes[0].update_arg(0, src_node)
+    dst_node.update_kwarg(key, new_nodes[-1])
+
+def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.node.Node:
+    key = src_node_kwarg[0]
+    src_node = src_node_kwarg[1]
+    if not should_add_data_move_in(src_node, dst_node):
+        return None
+
+    g = dst_node.graph
+    new_nodes = list()
+    with g.inserting_before(dst_node):
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node, )))
+        new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout())))
+        if (is_tt_compute(dst_node)):
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
+
+    insert_node_between_kwarg(src_node, key, dst_node, new_nodes)
+    return new_nodes[-1]
 
 def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
     if not should_add_data_move_in(src_node, dst_node):
@@ -167,8 +193,14 @@ class AddDataMovePass(PassBase):
         data_move_in_hash = {}
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
+            kwargs = tuple((k, v) for k, v in node.kwargs.items() if isinstance(v, torch.fx.node.Node))
+            if isinstance(args, tuple):
+                args += kwargs
+
             for idx, arg in enumerate(args):
-                if arg in data_move_in_hash:
+                if isinstance(arg, tuple):
+                    try_add_data_move_in_kwargs(arg, node, device)
+                elif arg in data_move_in_hash and node.op != "output":
                     node.update_arg(idx, data_move_in_hash[arg])
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
                     data_move_in_hash[arg] = to_device
