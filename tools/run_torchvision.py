@@ -14,8 +14,8 @@ def get_ttnn_backend(model_name, trace_orig, trace_modi, backward, out_folder, g
         }
     else:
         tracer_option = None
-    option = torch_ttnn.TorchTtnnOption(device=device, tracer_option = tracer_option)
-    return torch_ttnn.backend(option)
+    option = torch_ttnn.TenstorrentBackendOption(device=device, tracer_option = tracer_option)
+    return torch.compile(m, backend="ttnn", options=option)
 
 def get_dummy_backend(model_name, trace_orig, trace_modi, backward, out_folder):
     from torch._dynamo.backends.common import aot_autograd

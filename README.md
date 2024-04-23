@@ -12,11 +12,12 @@ class FooModule(torch.Module):
 # Create a module
 module = FooModule()
 # Compile the module, with ttnn backend
-ttnn_module = torch.compile(module, torch_ttnn.backend)
+device: ttnn.Device = ttnn.open(0)
+option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+ttnn_module = torch.compile(module, backend='ttnn', option=option)
 # Running inference
 ttnn_module(input_data)
 ```
-
 
 
 # Tracer
