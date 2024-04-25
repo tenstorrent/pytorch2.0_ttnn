@@ -2,7 +2,7 @@ import torch
 import ttnn
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
-from . import target_wrappers 
+from . import target_wrappers
 
 
 class ReplaceSimpleOpMap(torch.fx.Transformer):
@@ -18,7 +18,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         torch.ops.aten.atan.default: ttnn.atan,
         torch.ops.aten.atan2.default: ttnn.atan2,
         torch.ops.aten.atanh.default: ttnn.atanh,
-        torch.ops.aten.clone.default: target_wrappers.clone,      # Custom wrapper
+        torch.ops.aten.clone.default: target_wrappers.clone,  # Custom wrapper
         torch.ops.aten.cos.default: ttnn.cos,
         torch.ops.aten.cosh.default: ttnn.cosh,
         torch.ops.aten.erf.default: ttnn.erf,
@@ -60,6 +60,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         torch.ops.aten.mul.Tensor: ttnn.mul,
         torch.ops.aten.ne.Tensor: ttnn.ne,
         torch.ops.aten.pow.Tensor_Tensor: ttnn.pow,
+        torch.ops.aten.pow.Tensor_Scalar: ttnn.pow,
         torch.ops.aten.sub.Tensor: ttnn.sub,
         torch.ops.aten.xlogy.Tensor: ttnn.xlogy,
         ############################################################
@@ -91,11 +92,19 @@ class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if target == torch.ops.aten._softmax.default:
             return super().call_function(ttnn.softmax, args[:2], kwargs)
-        elif target == torch.ops.aten.leaky_relu.default and len(args) == 2:  # leaky_relu w/ specify slope
+        elif (
+            target == torch.ops.aten.leaky_relu.default and len(args) == 2
+        ):  # leaky_relu w/ specify slope
             return super().call_function(ttnn.leaky_relu, args, kwargs)
-        elif target == torch.ops.aten.leaky_relu.default and len(args) == 1:  # leaky_relu w/o specify slope
+        elif (
+            target == torch.ops.aten.leaky_relu.default and len(args) == 1
+        ):  # leaky_relu w/o specify slope
             return super().call_function(ttnn.leaky_relu, (args[0], 0.01), kwargs)
-        elif target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
+        elif (
+            target == torch.ops.aten.hardtanh.default
+            and args[1] == -1.0
+            and args[2] == 1.0
+        ):
             return super().call_function(ttnn.hardtanh, args[:1], kwargs)
         return super().call_function(target, args, kwargs)
 
