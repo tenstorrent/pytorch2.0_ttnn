@@ -43,6 +43,9 @@ def is_tt_compute(node) -> bool:
             ttnn.split,
             ttnn.clone,
             ttnn.layer_norm,
+            ttnn.neg,
+            ttnn.ones,
+            ttnn.tril,
         ]
     )
 

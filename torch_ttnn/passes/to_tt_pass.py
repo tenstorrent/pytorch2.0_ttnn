@@ -4,6 +4,7 @@ from ..utils import (
     DummyTtlTensorTensorMemoryLayoutInterleaved,
     DummyTtlTensorBufferTypeDram,
     DummyTtnnBfloat16,
+    DummyDevice,
 )
 
 try:
@@ -49,6 +50,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func =  super().call_function(ttnn.embedding, (args[1], args[0]), kwargs)
         elif target == torch.ops.aten.split.Tensor:
             call_func =  super().call_function(ttnn.split, args, kwargs)
+        elif target == torch.ops.aten.neg.default:
+            call_func =  super().call_function(ttnn.neg, args, kwargs)
+        elif target == torch.ops.aten.tril.default:
+            call_func =  super().call_function(ttnn.tril, args, kwargs)
         else:
             call_func = super().call_function(target, args, kwargs)
 
@@ -87,6 +92,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 node_users = list(new_node.users.keys())
                 for node_user in node_users:
                     node_user.replace_all_uses_with(new_node)
+            if node.target == torch.ops.aten.ones.default:
+                new_node = g.call_function(ttnn.ones, args=args, kwargs={"device": DummyDevice()})
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
 
     gm = GraphCleanup(gm)
     return gm
