@@ -73,7 +73,7 @@ class TorchStatOption:
         out=os.path.join(os.getcwd(), "stat"),
         gen_graphviz=False,
     ):
-        self.model_name = model_name
+        self.model_name = model_name.replace("/", "_")
         self.backward = backward
         self.out = out
         self.gen_graphviz = gen_graphviz
