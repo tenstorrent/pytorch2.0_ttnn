@@ -92,7 +92,7 @@ def ttnn_backend(
 ) -> torch.fx.GraphModule:
     tracer_option = options.tracer_option
     if tracer_option is not None:
-        from .tracer import Tracer
+        from ..tracer import Tracer
         out_prefix = f"fw_{tracer_option['model_name']}"
         out_folder = tracer_option["out_folder"]
         trace_orig = tracer_option["trace_orig"] if "trace_orig" in tracer_option else True

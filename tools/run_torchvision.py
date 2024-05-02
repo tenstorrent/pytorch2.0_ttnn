@@ -22,7 +22,7 @@ def get_dummy_backend(model_name, trace_orig, trace_modi, backward, out_folder):
     def dummy_backend(gm, example_inputs):
         return gm
     def dummy_backend_with_tracer(out_prefix):
-        from torch_ttnn.tracer import Tracer
+        from tracer.tracer import Tracer
         return Tracer(dummy_backend, out_prefix = out_prefix, out_folder = out_folder, \
                       trace_orig = trace_orig, trace_modi = trace_modi)
     use_tracer = (trace_orig or trace_modi)
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     parser.add_argument("--trace_modi", action="store_true")
     parser.add_argument("--backward", action="store_true")
     parser.add_argument("--graphviz", action="store_true")
+    parser.add_argument("--more", action="store_true")
     parser.add_argument("--profile", action="store_true")
     args = parser.parse_args()
     if args.do_compile and args.backward:
@@ -105,7 +106,14 @@ if __name__ == "__main__":
     if args.do_compile:
         import torch_ttnn
 
-    models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
+    if not args.more:
+        models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
+    else:
+        # There have some weired bug if squentially run the model seems because of torch.SymInt
+        # torch._dynamo.exc.TorchRuntimeError:
+        # Failed running call_function
+        # <built-in method tensor of type object at 0x7f0ff3bff9e0>(*(0.00125*s9,), **{}):
+        models = ["dinov2_vits14"] + torchvision.models.list_models()
 
     device = torch_ttnn.ttnn.open(0) if args.do_compile else None
     for m in models:
