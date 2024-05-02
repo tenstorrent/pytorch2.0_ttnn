@@ -14,6 +14,11 @@ except ImportError:
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
+class _Kwarg:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+
 
 def is_function_call(node) -> bool:
     if not isinstance(node, torch.fx.node.Node):
@@ -108,8 +113,10 @@ def insert_node_between_kwarg(src_node, key, dst_node, new_nodes):
     dst_node.update_kwarg(key, new_nodes[-1])
 
 def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.node.Node:
-    key = src_node_kwarg[0]
-    src_node = src_node_kwarg[1]
+    if not isinstance(src_node_kwarg, _Kwarg):
+        return None
+    key = src_node_kwarg.key
+    src_node = src_node_kwarg.value
     if not should_add_data_move_in(src_node, dst_node):
         return None
 
@@ -223,12 +230,12 @@ class AddDataMovePass(PassBase):
         data_move_out_hash = {}
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
-            kwargs = tuple((k, v) for k, v in node.kwargs.items() if isinstance(v, torch.fx.node.Node))
+            kwargs = tuple(_Kwarg(k, v) for k, v in node.kwargs.items() if isinstance(v, torch.fx.node.Node))
             if isinstance(args, tuple):
                 args += kwargs
 
             for idx, arg in enumerate(args):
-                if isinstance(arg, tuple):
+                if isinstance(arg, _Kwarg):
                     try_add_data_move_in_kwargs(arg, node, device)
                 elif arg in data_move_in_hash and node.op != "output":
                     node.update_arg(idx, data_move_in_hash[arg])
