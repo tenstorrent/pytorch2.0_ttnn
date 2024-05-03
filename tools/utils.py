@@ -90,7 +90,8 @@ def do_model_backward(model_name, result):
         result.aux_logits.backward(torch.ones_like(result.aux_logits), retain_graph=True)
     elif isinstance(result, dict):
         for k in result.keys():
-            if model_name in ["deeplabv3_mobilenet_v3_large",
+            if model_name in ["detr_resnet50",
+                              "deeplabv3_mobilenet_v3_large",
                               "deeplabv3_resnet101",
                               "deeplabv3_resnet50",
                               "fasterrcnn_mobilenet_v3_large_320_fpn",

@@ -52,11 +52,11 @@ class Tracer:
         try:
             FakeTensorProp(gm).propagate(*example_inputs)
             # ShapeProp(gm).propagate(*example_inputs)
-            prog_success = True
+            prop_success = True
         except Exception as e:
             print(e)
             print("FakeTensorProp propagate failed")
-            prog_success = False
+            prop_success = False
 
         def get_tensor_info(t):
             def no_symInt_in_list(the_list):
@@ -78,7 +78,7 @@ class Tracer:
             # set node's op_type
             node_info["op_type"] = str(node.target)
             # skip set node's inputs/outpus if FakeTensorProp failed
-            if prog_success == False:
+            if prop_success == False:
                 out.append(node_info)
                 continue
             # set node's inputs info
