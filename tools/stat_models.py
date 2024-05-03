@@ -3,6 +3,8 @@ import argparse
 import torch
 import torchvision
 
+from utils import get_model, model_example_inputs, do_model_backward
+
 def get_ttnn_backend(model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device):
     use_tracer = (trace_orig or trace_modi)
     if use_tracer:
@@ -37,21 +39,13 @@ def get_dummy_backend(model_name, trace_orig, trace_modi, backward, out_folder):
                             bw_compiler = dummy_backend_with_tracer(f"bw_{model_name}"))
 
 
-def run_model(model_name: str, do_compile: bool, trace_orig: bool, trace_modi, \
+def run_model(model_name: str, use_torch_ttnn: bool, trace_orig: bool, trace_modi, \
               backward: bool, out_folder: str, graphviz: bool, to_profile: bool, device = None):
-    if model_name == "dinov2_vits14":
-        m = torch.hub.load('facebookresearch/dinov2', model_name)
-    else:
-        try:
-            m = torchvision.models.get_model(model_name, pretrained=True)
-        except Exception as e:
-            print(e)
-            try:
-                m = torchvision.models.get_model(model_name, pretrained=False)
-            except Exception as e:
-                print(e)
-                print(f"Skip this model: {model_name}")
-                return
+    m = get_model(model_name)
+    if m is None:
+        print(f"Skip this model: {model_name}")
+        return
+
     if backward:
         try:
             m.train()
@@ -62,13 +56,13 @@ def run_model(model_name: str, do_compile: bool, trace_orig: bool, trace_modi, \
     else:
         m.eval()
 
-    if do_compile:
+    if use_torch_ttnn:
         backend = get_ttnn_backend(model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device)
     else:
         backend = get_dummy_backend(model_name, trace_orig, trace_modi, backward, out_folder)
     m = torch.compile(m, backend = backend)
 
-    inputs = [torch.randn([1, 3, 224, 224])]
+    inputs = model_example_inputs(model_name, backward)
 
     if to_profile:
         from torch.profiler import profile, record_function, ProfilerActivity
@@ -80,46 +74,51 @@ def run_model(model_name: str, do_compile: bool, trace_orig: bool, trace_modi, \
         with profile(activities=activities, record_shapes=True) as prof:
             result = m(*inputs)
             if backward:
-                result.backward(torch.ones_like(result))
+                do_model_backward(model_name, result)
         prof.export_chrome_trace(trace_file)
     else:
         result = m(*inputs)
         if backward:
-            result.backward(torch.ones_like(result))
+            do_model_backward(model_name, result)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--out_folder", "-o", type = str, default = os.path.join(os.getcwd(),"stat"))
-    parser.add_argument("--do_compile", action="store_true")
+    parser.add_argument("--use_torch_ttnn", action="store_true")
     parser.add_argument("--trace_orig", action="store_true")
     parser.add_argument("--trace_modi", action="store_true")
     parser.add_argument("--backward", action="store_true")
     parser.add_argument("--graphviz", action="store_true")
-    parser.add_argument("--more", action="store_true")
+    parser.add_argument("--model_more", action="store_true")
+    parser.add_argument("--model_sow2_list1", action="store_true")
     parser.add_argument("--profile", action="store_true")
     args = parser.parse_args()
-    if args.do_compile and args.backward:
+    if args.use_torch_ttnn and args.backward:
         assert(0 and "torch_ttnn not yet support backward")
-    if not args.do_compile and args.graphviz:
+    if not args.use_torch_ttnn and args.graphviz:
         assert(0 and "graphviz is in ttnn")
 
-    if args.do_compile:
+    if args.use_torch_ttnn:
         import torch_ttnn
 
-    if not args.more:
-        models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
-    else:
+    models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
+    if args.model_more:
         # There have some weired bug if squentially run the model seems because of torch.SymInt
         # torch._dynamo.exc.TorchRuntimeError:
         # Failed running call_function
         # <built-in method tensor of type object at 0x7f0ff3bff9e0>(*(0.00125*s9,), **{}):
         models = ["dinov2_vits14"] + torchvision.models.list_models()
+    elif args.model_sow2_list1:
+        models = ["detr_resnet50",
+                  "retinanet_resnet50_fpn", "mobilenet_v2", "mobilenet_v3_small",
+                  "vit_b_16", "resnet50", "regnet_x_16gf",
+                  "ssd300_vgg16", "ssdlite320_mobilenet_v3_large", "swin_v2_b"]
 
-    device = torch_ttnn.ttnn.open(0) if args.do_compile else None
+    device = torch_ttnn.ttnn.open(0) if args.use_torch_ttnn else None
     for m in models:
-        try:
-            run_model(m, args.do_compile, args.trace_orig, args.trace_modi, args.backward, args.out_folder, args.graphviz, args.profile, device)
-        except:
-            print(f"{m} FAIL")
-    if args.do_compile:
+        # try:
+            run_model(m, args.use_torch_ttnn, args.trace_orig, args.trace_modi, args.backward, args.out_folder, args.graphviz, args.profile, device)
+        # except:
+        #     print(f"{m} FAIL")
+    if args.use_torch_ttnn:
         torch_ttnn.ttnn.close(device)
