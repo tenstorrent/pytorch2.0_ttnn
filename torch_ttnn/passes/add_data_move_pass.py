@@ -51,6 +51,11 @@ def is_tt_compute(node) -> bool:
             ttnn.neg,
             ttnn.ones,
             ttnn.tril,
+            ttnn.arange,
+            ttnn.eq,
+            ttnn.logical_not,
+            ttnn.zeros_like,
+            ttnn.mean,
         ]
     )
 
@@ -142,7 +147,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             new_nodes.append(g.call_function(ttnn.from_torch, (src_node, DummyTtnnUint32())))
         else:
             new_nodes.append(g.call_function(ttnn.from_torch, (src_node, )))
-        if dst_node.target != ttnn.reshape and dst_node.target != ttnn.embedding:
+        if dst_node.target != ttnn.reshape and dst_node.target != ttnn.embedding and dst_node.target != ttnn.zeros_like:
             new_nodes.append(g.call_function(
                 ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout())
             ))
@@ -163,7 +168,7 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     with g.inserting_before(dst_node):
         if (is_tt_compute(src_node) and src_node.target != ttnn.reshape) or (src_node.target == ttnn.reshape and len(src_node.args[1]) == 4):
             new_nodes.append(g.call_function(ttnn.from_device, (src_node,)))
-            if (src_node.target != ttnn.embedding):
+            if (src_node.target != ttnn.embedding and src_node.target != ttnn.zeros_like):
                 new_nodes.append(g.call_function(
                     ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
                 ))

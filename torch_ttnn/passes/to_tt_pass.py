@@ -54,6 +54,19 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func =  super().call_function(ttnn.neg, args, kwargs)
         elif target == torch.ops.aten.tril.default:
             call_func =  super().call_function(ttnn.tril, args, kwargs)
+        elif target == torch.ops.aten.eq.Tensor:
+            call_func =  super().call_function(ttnn.eq, args, kwargs)
+        elif target == torch.ops.aten.eq.Scalar:
+            call_func =  super().call_function(ttnn.eq, args, kwargs)
+        elif target == torch.ops.aten.logical_not.default:
+            call_func =  super().call_function(ttnn.logical_not, args, kwargs)
+        elif target == torch.ops.aten.zeros_like.default:
+            call_func =  super().call_function(ttnn.zeros_like, args, {})
+        elif target == torch.ops.aten.mean.dim:
+            # change dim parameter to tuple
+            new_args = list(args)
+            new_args[1] = tuple(args[1]) if len(args[1]) > 1 else args[1][0]
+            call_func = super().call_function(ttnn.mean, tuple(new_args), kwargs)
         else:
             call_func = super().call_function(target, args, kwargs)
 
@@ -78,7 +91,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     for node in nodes:
         g = node.graph
         args = node.args
+
         with g.inserting_before(node):
+            # TODO (kevinwuTT): consolidate and simplify these statements?
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
                 dummy_dtype = torch_dtype_to_dummy_ttnn_dtype(arg_metadata.dtype)
@@ -94,6 +109,23 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     node_user.replace_all_uses_with(new_node)
             if node.target == torch.ops.aten.ones.default:
                 new_node = g.call_function(ttnn.ones, args=args, kwargs={"device": DummyDevice()})
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.arange.default:
+                # start = 0, step = 1
+                new_args = (0,)
+                new_kwargs = {"end": args[0], "step": 1, "device": DummyDevice()}
+                new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.arange.start:
+                # step = 1
+                new_args = (args[0],)
+                new_kwargs = {"end": args[1], "step": 1, "device": DummyDevice()}
+                new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.arange.start_step:
+                new_args = (args[0],)
+                new_kwargs = {"end": args[1], "step": args[2], "device": DummyDevice()}
+                new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
 
     gm = GraphCleanup(gm)
