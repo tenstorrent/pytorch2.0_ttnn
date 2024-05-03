@@ -25,7 +25,7 @@ class Tracer:
             out_path = os.path.join(
                 self.out_folder,
                 "raw",
-                f"{self.out_prefix}_orig_{self.counter['val']}.json",
+                f"{self.out_prefix}_orig_{self.counter['orig']}.json",
             )
             out = self.parse_fx_graph(gm, example_inputs)
             with open(out_path, "w") as f:
@@ -38,7 +38,7 @@ class Tracer:
             out_path = os.path.join(
                 self.out_folder,
                 "raw",
-                f"{self.out_prefix}_modi_{self.counter['val']}.json",
+                f"{self.out_prefix}_modi_{self.counter['modi']}.json",
             )
             out = self.parse_fx_graph(gm, example_inputs)
             with open(out_path, "w") as f:
