@@ -1,7 +1,23 @@
 import torch
 import torchvision
 
+
+def get_model_swimdi(model_name):
+    return None
+
+
+def get_model_yoco(model_name):
+    return None
+
+
 def get_model(model_name):
+    m = get_model_swimdi(model_name)
+    if m is not None:
+        return m
+    m = get_model_yoco(model_name)
+    if m is not None:
+        return m
+
     if model_name == "dinov2_vits14":
         m = torch.hub.load('facebookresearch/dinov2', model_name)
     elif model_name == "detr_resnet50":
@@ -18,8 +34,24 @@ def get_model(model_name):
                 return None
     return m
 
+
+def model_example_inputs_swimdi(model_name):
+    return None
+
+
+def model_example_inputs_yoco(model_name):
+    return None
+
+
 def model_example_inputs(model_name, backward):
     torch.manual_seed(0)
+    i = get_example_inputs_swimdi(model_name)
+    if i is not None:
+        return i
+    i = get_example_inputs_yoco(model_name)
+    if i is not None:
+        return i
+
     if backward == False:
         if model_name in ["raft_small", "raft_large"]:
             input_shapes = [1, 3, 224, 224]
