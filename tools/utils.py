@@ -1,8 +1,65 @@
 import torch
 import torchvision
+import os
+import sys
+import site
 
+class Monodepth2_depth(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        home_dir = os.path.dirname(os.path.dirname(__file__))
+        cache_dir = os.path.join(home_dir, ".cache")
+        site.addsitedir(cache_dir)
+        if not os.path.exists(cache_dir):
+            os.mkdir(cache_dir)
+        monodepth2_dir = os.path.join(cache_dir, "monodepth2")
+        if not os.path.exists(monodepth2_dir):
+            os.system(f"git clone https://github.com/nianticlabs/monodepth2.git {monodepth2_dir}")
+            # Workaround: dynamo failed at these code in depth_decoder.py
+            #     if i in self.scales:
+            #         self.outputs[("disp", i)] = self.sigmoid(self.convs[("dispconv", i)](x))
+            # disable it to pass the dynamo
+            os.system(f"cp {home_dir}/tools/patches/depth_decoder.py {cache_dir}/monodepth2/networks/depth_decoder.py")
+        site.addsitedir(monodepth2_dir)
+        from monodepth2.utils import download_model_if_doesnt_exist
+        from monodepth2 import networks
+        download_model_if_doesnt_exist("mono+stereo_640x192")
+        model_path = os.path.join("models", "mono+stereo_640x192")
+        print("-> Loading model from ", model_path)
+        encoder_path = os.path.join(model_path, "encoder.pth")
+        depth_decoder_path = os.path.join(model_path, "depth.pth")
+        # LOADING PRETRAINED MODEL
+        print("   Loading pretrained encoder")
+        encoder = networks.ResnetEncoder(18, False)
+        device = torch.device("cpu")
+        loaded_dict_enc = torch.load(encoder_path, map_location=device)
+        # extract the height and width of image that this model was trained with
+        feed_height = loaded_dict_enc['height']
+        feed_width = loaded_dict_enc['width']
+        filtered_dict_enc = {k: v for k, v in loaded_dict_enc.items() if k in encoder.state_dict()}
+        encoder.load_state_dict(filtered_dict_enc)
+        encoder.to(device)
+        encoder.eval()
+        self.encoder = encoder
+        print("   Loading pretrained decoder")
+        depth_decoder = networks.DepthDecoder(
+            num_ch_enc=encoder.num_ch_enc, scales=range(4))
+
+        loaded_dict = torch.load(depth_decoder_path, map_location=device)
+        depth_decoder.load_state_dict(loaded_dict)
+
+        depth_decoder.to(device)
+        depth_decoder.eval()
+        self.depth_decoder = depth_decoder
+
+    def forward(self, input_image):
+        features = self.encoder(input_image)
+        outputs = self.depth_decoder(features)
+        return outputs
 
 def get_model_swimdi(model_name):
+    if model_name == "monodepth2_depth":
+        return Monodepth2_depth()
     return None
 
 
@@ -45,10 +102,10 @@ def model_example_inputs_yoco(model_name):
 
 def model_example_inputs(model_name, backward):
     torch.manual_seed(0)
-    i = get_example_inputs_swimdi(model_name)
+    i = model_example_inputs_swimdi(model_name)
     if i is not None:
         return i
-    i = get_example_inputs_yoco(model_name)
+    i = model_example_inputs_yoco(model_name)
     if i is not None:
         return i
 

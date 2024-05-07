@@ -89,6 +89,8 @@ if __name__ == "__main__":
     parser.add_argument("--trace_modi", action="store_true")
     parser.add_argument("--backward", action="store_true")
     parser.add_argument("--graphviz", action="store_true")
+    parser.add_argument("--model_list", type=str, nargs='+')
+    parser.add_argument("--model_list_txt", type=str)
     parser.add_argument("--model_more", action="store_true")
     parser.add_argument("--model_sow2_list1", action="store_true")
     parser.add_argument("--profile", action="store_true")
@@ -102,23 +104,18 @@ if __name__ == "__main__":
         import torch_ttnn
 
     models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
-    if args.model_more:
-        # There have some weired bug if squentially run the model seems because of torch.SymInt
-        # torch._dynamo.exc.TorchRuntimeError:
-        # Failed running call_function
-        # <built-in method tensor of type object at 0x7f0ff3bff9e0>(*(0.00125*s9,), **{}):
-        models = ["dinov2_vits14"] + torchvision.models.list_models()
-    elif args.model_sow2_list1:
-        models = ["detr_resnet50",
-                  "retinanet_resnet50_fpn", "mobilenet_v2", "mobilenet_v3_small",
-                  "vit_b_16", "resnet50", "regnet_x_16gf",
-                  "ssd300_vgg16", "ssdlite320_mobilenet_v3_large", "swin_v2_b"]
+    if args.model_list is not None:
+        models = args.model_list
+    elif os.path.exists(args.model_list_txt):
+        with open(args.model_list_txt) as f:
+            models = [m.strip() for m in f.readlines()]
+            models = [m for m in models if m != '' and not m.startswith('#')]
 
     device = torch_ttnn.ttnn.open(0) if args.use_torch_ttnn else None
     for m in models:
         try:
             run_model(m, args.use_torch_ttnn, args.trace_orig, args.trace_modi, args.backward, args.out_folder, args.graphviz, args.profile, device)
         except:
-            print(f"{m} FAIL")
+           print(f"{m} FAIL")
     if args.use_torch_ttnn:
         torch_ttnn.ttnn.close(device)
