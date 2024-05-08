@@ -7,6 +7,11 @@ def get_model_swimdi(model_name):
 
 
 def get_model_yoco(model_name):
+    if model_name == "yolov8":
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.pt")
+        return model
     return None
 
 
@@ -19,9 +24,11 @@ def get_model(model_name):
         return m
 
     if model_name == "dinov2_vits14":
-        m = torch.hub.load('facebookresearch/dinov2', model_name)
+        m = torch.hub.load("facebookresearch/dinov2", model_name)
     elif model_name == "detr_resnet50":
-        m = torch.hub.load('facebookresearch/detr:main', 'detr_resnet50', pretrained=True)
+        m = torch.hub.load(
+            "facebookresearch/detr:main", "detr_resnet50", pretrained=True
+        )
     else:
         try:
             m = torchvision.models.get_model(model_name, pretrained=True)
@@ -40,15 +47,18 @@ def model_example_inputs_swimdi(model_name):
 
 
 def model_example_inputs_yoco(model_name):
+    if model_name == "yolov8":
+        input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
     return None
 
 
 def model_example_inputs(model_name, backward):
     torch.manual_seed(0)
-    i = get_example_inputs_swimdi(model_name)
+    i = model_example_inputs_swimdi(model_name)
     if i is not None:
         return i
-    i = get_example_inputs_yoco(model_name)
+    i = model_example_inputs_yoco(model_name)
     if i is not None:
         return i
 
@@ -58,32 +68,45 @@ def model_example_inputs(model_name, backward):
             return [torch.rand(input_shapes), torch.rand(input_shapes)]
         elif model_name in ["mvit_v1_b", "mvit_v2_s"]:
             input_shapes = [1, 3, 16, 224, 224]
-        elif model_name in ["mc3_18", "r2plus1d_18", "r3d_18",
-                            "s3d", "swin3d_b", "swin3d_s", "swin3d_t"]:
+        elif model_name in [
+            "mc3_18",
+            "r2plus1d_18",
+            "r3d_18",
+            "s3d",
+            "swin3d_b",
+            "swin3d_s",
+            "swin3d_t",
+        ]:
             input_shapes = [1, 3, 224, 224, 224]
         else:
             input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     else:
-        if model_name in ["deeplabv3_mobilenet_v3_large",
-                          "deeplabv3_resnet101",
-                          "deeplabv3_resnet50"]:
+        if model_name in [
+            "deeplabv3_mobilenet_v3_large",
+            "deeplabv3_resnet101",
+            "deeplabv3_resnet50",
+        ]:
             # batch_size should > 1
             input_shapes = [2, 3, 224, 224]
-        elif model_name in ["fasterrcnn_mobilenet_v3_large_320_fpn",
-                            "fasterrcnn_mobilenet_v3_large_fpn",
-                            "fasterrcnn_resnet50_fpn",
-                            "fasterrcnn_resnet50_fpn_v2",
-                            "fcos_resnet50_fpn",
-                            "keypointrcnn_resnet50_fpn",
-                            "maskrcnn_resnet50_fpn",
-                            "maskrcnn_resnet50_fpn_v2",
-                            "retinanet_resnet50_fpn",
-                            "retinanet_resnet50_fpn_v2",
-                            "ssd300_vgg16",
-                            "ssdlite320_mobilenet_v3_large"]:
+        elif model_name in [
+            "fasterrcnn_mobilenet_v3_large_320_fpn",
+            "fasterrcnn_mobilenet_v3_large_fpn",
+            "fasterrcnn_resnet50_fpn",
+            "fasterrcnn_resnet50_fpn_v2",
+            "fcos_resnet50_fpn",
+            "keypointrcnn_resnet50_fpn",
+            "maskrcnn_resnet50_fpn",
+            "maskrcnn_resnet50_fpn_v2",
+            "retinanet_resnet50_fpn",
+            "retinanet_resnet50_fpn_v2",
+            "ssd300_vgg16",
+            "ssdlite320_mobilenet_v3_large",
+        ]:
             batch_size = 2
-            images, boxes = torch.rand(batch_size, 3, 224, 224), torch.rand(batch_size, 11, 4)
+            images, boxes = torch.rand(batch_size, 3, 224, 224), torch.rand(
+                batch_size, 11, 4
+            )
             boxes[:, :, 2:4] = boxes[:, :, 0:2] + boxes[:, :, 2:4]
             labels = torch.randint(1, 91, (batch_size, 11))
             images = list(image for image in images)
@@ -92,13 +115,12 @@ def model_example_inputs(model_name, backward):
             targets = []
             for i in range(len(images)):
                 d = {}
-                d['boxes'] = boxes[i]
-                d['labels'] = labels[i]
+                d["boxes"] = boxes[i]
+                d["labels"] = labels[i]
                 if model_name in ["keypointrcnn_resnet50_fpn"]:
-                    d['keypoints'] = torch.zeros([11, 5, 3])
-                if model_name in ["maskrcnn_resnet50_fpn",
-                                  "maskrcnn_resnet50_fpn_v2"]:
-                    d['masks'] = torch.zeros([11, 1, 1])
+                    d["keypoints"] = torch.zeros([11, 5, 3])
+                if model_name in ["maskrcnn_resnet50_fpn", "maskrcnn_resnet50_fpn_v2"]:
+                    d["masks"] = torch.zeros([11, 1, 1])
                 targets.append(d)
             return [images, targets]
         elif model_name in ["inception_v3"]:
@@ -108,8 +130,15 @@ def model_example_inputs(model_name, backward):
             return [torch.rand(input_shapes), torch.rand(input_shapes)]
         elif model_name in ["mvit_v1_b", "mvit_v2_s"]:
             input_shapes = [1, 3, 16, 224, 224]
-        elif model_name in ["mc3_18", "r2plus1d_18", "r3d_18",
-                            "s3d", "swin3d_b", "swin3d_s", "swin3d_t"]:
+        elif model_name in [
+            "mc3_18",
+            "r2plus1d_18",
+            "r3d_18",
+            "s3d",
+            "swin3d_b",
+            "swin3d_s",
+            "swin3d_t",
+        ]:
             input_shapes = [1, 3, 224, 224, 224]
         else:
             input_shapes = [1, 3, 224, 224]
@@ -119,27 +148,31 @@ def model_example_inputs(model_name, backward):
 def do_model_backward(model_name, result):
     if model_name in ["inception_v3"]:
         result.logits.backward(torch.ones_like(result.logits), retain_graph=True)
-        result.aux_logits.backward(torch.ones_like(result.aux_logits), retain_graph=True)
+        result.aux_logits.backward(
+            torch.ones_like(result.aux_logits), retain_graph=True
+        )
     elif isinstance(result, dict):
         for k in result.keys():
-            if model_name in ["detr_resnet50",
-                              "deeplabv3_mobilenet_v3_large",
-                              "deeplabv3_resnet101",
-                              "deeplabv3_resnet50",
-                              "fasterrcnn_mobilenet_v3_large_320_fpn",
-                              "fasterrcnn_mobilenet_v3_large_fpn",
-                              "fasterrcnn_resnet50_fpn",
-                              "fasterrcnn_resnet50_fpn_v2",
-                              "fcn_resnet101",
-                              "fcn_resnet50",
-                              "fcos_resnet50_fpn",
-                              "keypointrcnn_resnet50_fpn",
-                              "maskrcnn_resnet50_fpn",
-                              "maskrcnn_resnet50_fpn_v2",
-                              "retinanet_resnet50_fpn",
-                              "retinanet_resnet50_fpn_v2",
-                              "ssd300_vgg16",
-                              "ssdlite320_mobilenet_v3_large"]:
+            if model_name in [
+                "detr_resnet50",
+                "deeplabv3_mobilenet_v3_large",
+                "deeplabv3_resnet101",
+                "deeplabv3_resnet50",
+                "fasterrcnn_mobilenet_v3_large_320_fpn",
+                "fasterrcnn_mobilenet_v3_large_fpn",
+                "fasterrcnn_resnet50_fpn",
+                "fasterrcnn_resnet50_fpn_v2",
+                "fcn_resnet101",
+                "fcn_resnet50",
+                "fcos_resnet50_fpn",
+                "keypointrcnn_resnet50_fpn",
+                "maskrcnn_resnet50_fpn",
+                "maskrcnn_resnet50_fpn_v2",
+                "retinanet_resnet50_fpn",
+                "retinanet_resnet50_fpn_v2",
+                "ssd300_vgg16",
+                "ssdlite320_mobilenet_v3_large",
+            ]:
                 result[k].backward(torch.ones_like(result[k]), retain_graph=True)
             else:
                 result[k].backward(torch.ones_like(result[k]))
