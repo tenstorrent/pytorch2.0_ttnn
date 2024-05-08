@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from torch.fx.passes.fake_tensor_prop import FakeTensorProp
 from torch.fx.passes.shape_prop import ShapeProp
 
+
 @dataclass
 class Tracer:
     functor: callable
@@ -14,7 +15,7 @@ class Tracer:
     out_folder: str = os.path.join(os.getcwd(), "stat")
     trace_orig: bool = True
     trace_modi: bool = False
-    
+
     def __post_init__(self):
         self.counter = Counter()
 
@@ -60,16 +61,17 @@ class Tracer:
 
         def get_tensor_info(t):
             def no_symInt_in_list(the_list):
-                return not any(isinstance(element, torch.SymInt) for element in the_list)
+                return not any(
+                    isinstance(element, torch.SymInt) for element in the_list
+                )
+
             # Only record if the tensor is torch.Tensor
             # some shape is referenced by a variable, like [2, 256, s0, s1]
             if isinstance(t, torch.Tensor) and no_symInt_in_list(list(t.shape)):
-                return {
-                    "shape": list(t.shape),
-                    "dtype": str(t.dtype)
-                }
+                return {"shape": list(t.shape), "dtype": str(t.dtype)}
             else:
                 return {}
+
         out = []
         for node in gm.graph.nodes:
             if node.op not in ["call_function", "call_method"]:
@@ -92,8 +94,9 @@ class Tracer:
             # set node's outputs info
             node_info["outputs"] = []
             outputs_info = node.meta["val"]
-            if isinstance(outputs_info, tuple) or \
-                isinstance(outputs_info, list):
+            if isinstance(outputs_info, torch.SymInt):
+                continue
+            elif isinstance(outputs_info, tuple) or isinstance(outputs_info, list):
                 for output_info in outputs_info:
                     output = get_tensor_info(output_info)
                     node_info["outputs"].append(output)
@@ -101,7 +104,6 @@ class Tracer:
                 output = get_tensor_info(outputs_info)
                 node_info["outputs"].append(output)
             else:
-                assert(0 and "unsupport outputs_info")
+                assert 0 and "unsupport outputs_info"
             out.append(node_info)
         return out
-

@@ -3,7 +3,7 @@ import argparse
 import torch
 import torchvision
 
-from utils import get_model, model_example_inputs, do_model_backward
+from torch_ttnn_utils import get_model, model_example_inputs, do_model_backward
 
 
 def get_ttnn_backend(
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     if args.use_torch_ttnn:
         import torch_ttnn
 
-    models = ["yolov8"]
+    models = ["yolov5"]
     #  models = ["resnet18"]
     if args.model_more:
         # There have some weired bug if squentially run the model seems because of torch.SymInt

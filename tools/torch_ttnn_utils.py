@@ -12,6 +12,9 @@ def get_model_yoco(model_name):
 
         model = YOLO("yolov8n.pt")
         return model
+
+    elif model_name == "yolov5":
+        return torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
     return None
 
 
@@ -48,6 +51,9 @@ def model_example_inputs_swimdi(model_name):
 
 def model_example_inputs_yoco(model_name):
     if model_name == "yolov8":
+        input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
+    elif model_name == "yolov5":
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     return None
