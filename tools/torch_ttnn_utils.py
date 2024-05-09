@@ -70,6 +70,8 @@ class Monodepth2_depth(torch.nn.Module):
 def get_model_swimdi(model_name):
     if model_name == "monodepth2_depth":
         return Monodepth2_depth()
+    if model_name == "deit":
+        return torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=True)
     return None
 
 
