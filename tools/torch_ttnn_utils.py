@@ -73,9 +73,25 @@ def get_model_swimdi(model_name):
     if model_name == "monodepth2_depth":
         return Monodepth2_depth()
     if model_name == "deit":
-        return torch.hub.load(
-            "facebookresearch/deit:main", "deit_base_patch16_224", pretrained=True
-        )
+        return torch.hub.load('facebookresearch/deit:main',
+                              'deit_base_patch16_224',
+                              pretrained=True)
+    if model_name == "hardnet":
+        print(f"If raise torch.cuda.is_available() is False \n\
+Then you should edit the map_location: MAP_LOCATION = 'cpu' of load_state_dict_from_url in {torch.hub.__file__} \n\
+def load_state_dict_from_url( \n\
+    url: str,\n\
+    model_dir: Optional[str] = None,\n\
+    map_location: MAP_LOCATION = None <= change to 'cpu',\n\
+    progress: bool = True,\n\
+    check_hash: bool = False,\n\
+    file_name: Optional[str] = None,\n\
+    weights_only: bool = False,\n\
+)")
+        return torch.hub.load('PingoLH/Pytorch-HarDNet',
+                              'hardnet68',
+                               map_location=torch.device('cpu'),
+                               pretrained=True)
     return None
 
 

@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     device = torch_ttnn.ttnn.open(0) if args.use_torch_ttnn else None
     for m in models:
-        try:
+        # try:
             run_model(
                 m,
                 args.use_torch_ttnn,
@@ -158,7 +158,7 @@ if __name__ == "__main__":
                 args.profile,
                 device,
             )
-        except:
-            print(f"{m} FAIL")
+        # except:
+        #     print(f"{m} FAIL")
     if args.use_torch_ttnn:
         torch_ttnn.ttnn.close(device)
