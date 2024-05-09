@@ -12,3 +12,4 @@ swin_v2_b
 monodepth2_depth
 deit
 hardnet
+unet_carvana
