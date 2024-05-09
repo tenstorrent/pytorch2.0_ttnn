@@ -126,8 +126,6 @@ if __name__ == "__main__":
     parser.add_argument("--graphviz", action="store_true")
     parser.add_argument("--model_list", type=str, nargs="+")
     parser.add_argument("--model_list_txt", type=str)
-    parser.add_argument("--model_more", action="store_true")
-    parser.add_argument("--model_sow2_list1", action="store_true")
     parser.add_argument("--profile", action="store_true")
     args = parser.parse_args()
     if args.use_torch_ttnn and args.backward:
