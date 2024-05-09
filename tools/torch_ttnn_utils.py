@@ -4,6 +4,7 @@ import os
 import sys
 import site
 import transformers
+from transformers import AutoImageProcessor, SegformerModel
 
 
 class Monodepth2_depth(torch.nn.Module):
@@ -101,6 +102,9 @@ def get_model_yoco(model_name):
         return transformers.MobileNetV1Model.from_pretrained(
             "google/mobilenet_v1_1.0_224"
         )
+    elif model_name == "segformer":
+        return SegformerModel.from_pretrained("nvidia/mit-b0")
+
     return None
 
 
@@ -146,6 +150,9 @@ def model_example_inputs_yoco(model_name):
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     elif model_name == "mobilenetv1":
+        input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
+    elif model_name == "segformer":
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     return None
