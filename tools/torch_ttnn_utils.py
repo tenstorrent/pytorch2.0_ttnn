@@ -3,6 +3,7 @@ import torchvision
 import os
 import sys
 import site
+import transformers
 
 
 class Monodepth2_depth(torch.nn.Module):
@@ -71,7 +72,9 @@ def get_model_swimdi(model_name):
     if model_name == "monodepth2_depth":
         return Monodepth2_depth()
     if model_name == "deit":
-        return torch.hub.load('facebookresearch/deit:main', 'deit_base_patch16_224', pretrained=True)
+        return torch.hub.load(
+            "facebookresearch/deit:main", "deit_base_patch16_224", pretrained=True
+        )
     return None
 
 
@@ -93,6 +96,10 @@ def get_model_yoco(model_name):
             out_channels=1,
             init_features=32,
             pretrained=True,
+        )
+    elif model_name == "mobilenetv1":
+        return transformers.MobileNetV1Model.from_pretrained(
+            "google/mobilenet_v1_1.0_224"
         )
     return None
 
@@ -136,6 +143,9 @@ def model_example_inputs_yoco(model_name):
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     elif model_name == "unet-brain":
+        input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
+    elif model_name == "mobilenetv1":
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     return None
