@@ -3,6 +3,8 @@ import torchvision
 import os
 import sys
 import site
+import transformers
+
 
 class Monodepth2_depth(torch.nn.Module):
     def __init__(self):
@@ -14,15 +16,20 @@ class Monodepth2_depth(torch.nn.Module):
             os.mkdir(cache_dir)
         monodepth2_dir = os.path.join(cache_dir, "monodepth2")
         if not os.path.exists(monodepth2_dir):
-            os.system(f"git clone https://github.com/nianticlabs/monodepth2.git {monodepth2_dir}")
+            os.system(
+                f"git clone https://github.com/nianticlabs/monodepth2.git {monodepth2_dir}"
+            )
             # Workaround: dynamo failed at these code in depth_decoder.py
             #     if i in self.scales:
             #         self.outputs[("disp", i)] = self.sigmoid(self.convs[("dispconv", i)](x))
             # disable it to pass the dynamo
-            os.system(f"cp {home_dir}/tools/patches/depth_decoder.py {cache_dir}/monodepth2/networks/depth_decoder.py")
+            os.system(
+                f"cp {home_dir}/tools/patches/depth_decoder.py {cache_dir}/monodepth2/networks/depth_decoder.py"
+            )
         site.addsitedir(monodepth2_dir)
         from monodepth2.utils import download_model_if_doesnt_exist
         from monodepth2 import networks
+
         download_model_if_doesnt_exist("mono+stereo_640x192")
         model_path = os.path.join("models", "mono+stereo_640x192")
         print("-> Loading model from ", model_path)
@@ -34,16 +41,19 @@ class Monodepth2_depth(torch.nn.Module):
         device = torch.device("cpu")
         loaded_dict_enc = torch.load(encoder_path, map_location=device)
         # extract the height and width of image that this model was trained with
-        feed_height = loaded_dict_enc['height']
-        feed_width = loaded_dict_enc['width']
-        filtered_dict_enc = {k: v for k, v in loaded_dict_enc.items() if k in encoder.state_dict()}
+        feed_height = loaded_dict_enc["height"]
+        feed_width = loaded_dict_enc["width"]
+        filtered_dict_enc = {
+            k: v for k, v in loaded_dict_enc.items() if k in encoder.state_dict()
+        }
         encoder.load_state_dict(filtered_dict_enc)
         encoder.to(device)
         encoder.eval()
         self.encoder = encoder
         print("   Loading pretrained decoder")
         depth_decoder = networks.DepthDecoder(
-            num_ch_enc=encoder.num_ch_enc, scales=range(4))
+            num_ch_enc=encoder.num_ch_enc, scales=range(4)
+        )
 
         loaded_dict = torch.load(depth_decoder_path, map_location=device)
         depth_decoder.load_state_dict(loaded_dict)
@@ -56,6 +66,7 @@ class Monodepth2_depth(torch.nn.Module):
         features = self.encoder(input_image)
         outputs = self.depth_decoder(features)
         return outputs
+
 
 def get_model_swimdi(model_name):
     if model_name == "monodepth2_depth":
@@ -92,6 +103,20 @@ def get_model_yoco(model_name):
 
     elif model_name == "yolov5":
         return torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
+
+    elif model_name == "unet-brain":
+        return torch.hub.load(
+            "mateuszbuda/brain-segmentation-pytorch",
+            "unet",
+            in_channels=3,
+            out_channels=1,
+            init_features=32,
+            pretrained=True,
+        )
+    elif model_name == "mobilenetv1":
+        return transformers.MobileNetV1Model.from_pretrained(
+            "google/mobilenet_v1_1.0_224"
+        )
     return None
 
 
@@ -131,6 +156,12 @@ def model_example_inputs_yoco(model_name):
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     elif model_name == "yolov5":
+        input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
+    elif model_name == "unet-brain":
+        input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
+    elif model_name == "mobilenetv1":
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
     return None
