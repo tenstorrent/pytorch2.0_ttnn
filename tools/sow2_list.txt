@@ -11,3 +11,4 @@ ssdlite320_mobilenet_v3_large
 swin_v2_b
 monodepth2_depth
 deit
+hardnet
