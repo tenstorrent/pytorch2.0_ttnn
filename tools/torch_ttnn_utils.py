@@ -5,6 +5,10 @@ import sys
 import site
 import transformers
 from transformers import AutoImageProcessor, SegformerModel
+from ultralytics import YOLO
+from yoloxdetect import YoloxDetector
+from yolox.data.datasets import COCO_CLASSES
+from diffusers import StableDiffusionPipeline
 
 
 class Monodepth2_depth(torch.nn.Module):
@@ -73,11 +77,12 @@ def get_model_swimdi(model_name):
     if model_name == "monodepth2_depth":
         return Monodepth2_depth()
     if model_name == "deit":
-        return torch.hub.load('facebookresearch/deit:main',
-                              'deit_base_patch16_224',
-                              pretrained=True)
+        return torch.hub.load(
+            "facebookresearch/deit:main", "deit_base_patch16_224", pretrained=True
+        )
     if model_name == "hardnet":
-        print(f"If raise torch.cuda.is_available() is False \n\
+        print(
+            f"If raise torch.cuda.is_available() is False \n\
 Then you should edit the map_location: MAP_LOCATION = 'cpu' of load_state_dict_from_url in {torch.hub.__file__} \n\
 def load_state_dict_from_url( \n\
     url: str,\n\
@@ -87,24 +92,23 @@ def load_state_dict_from_url( \n\
     check_hash: bool = False,\n\
     file_name: Optional[str] = None,\n\
     weights_only: bool = False,\n\
-)")
-        return torch.hub.load('PingoLH/Pytorch-HarDNet',
-                              'hardnet68',
-                               map_location=torch.device('cpu'),
-                               pretrained=True)
+)"
+        )
+        return torch.hub.load(
+            "PingoLH/Pytorch-HarDNet",
+            "hardnet68",
+            map_location=torch.device("cpu"),
+            pretrained=True,
+        )
     return None
 
 
 def get_model_yoco(model_name):
     if model_name == "yolov8":
-        from ultralytics import YOLO
-
         model = YOLO("yolov8n.pt")
-        return model
-
+        return model.model.mode
     elif model_name == "yolov5":
         return torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
-
     elif model_name == "unet-brain":
         return torch.hub.load(
             "mateuszbuda/brain-segmentation-pytorch",
@@ -120,7 +124,15 @@ def get_model_yoco(model_name):
         )
     elif model_name == "segformer":
         return SegformerModel.from_pretrained("nvidia/mit-b0")
-
+    elif model_name == "yolox":
+        model = YoloxDetector(
+            model_path="kadirnar/yolox_tiny-v0.1.1",
+            config_path="configs.yolox_tiny",
+            device="cuda:0",
+            hf_model=True,
+        )
+    elif model_name == "stable-diffusion-v1-5":
+        return StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
     return None
 
 
@@ -171,6 +183,12 @@ def model_example_inputs_yoco(model_name):
     elif model_name == "segformer":
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
+    elif model_name == "yolox":
+        input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
+    elif model_name == "stable-diffusion-v1-5":
+        input_shapes = [1, 3, 224, 224]
+        return ["a photograph of an astronaut riding a horse"]
     return None
 
 
