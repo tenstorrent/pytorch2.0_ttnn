@@ -73,6 +73,22 @@ class Monodepth2_depth(torch.nn.Module):
         return outputs
 
 
+def print_map_location_note():
+    print(
+        f"If raise 'torch.cuda.is_available() is False' \n\
+Then you should edit these code in {torch.hub.__file__} \n\
+def load_state_dict_from_url( \n\
+    url: str,\n\
+    model_dir: Optional[str] = None,\n\
+    map_location: MAP_LOCATION = None <= !!!change to 'cpu'!!!,\n\
+    progress: bool = True,\n\
+    check_hash: bool = False,\n\
+    file_name: Optional[str] = None,\n\
+    weights_only: bool = False,\n\
+)"
+    )
+
+
 def get_model_swimdi(model_name):
     if model_name == "monodepth2_depth":
         return Monodepth2_depth()
@@ -81,24 +97,17 @@ def get_model_swimdi(model_name):
             "facebookresearch/deit:main", "deit_base_patch16_224", pretrained=True
         )
     if model_name == "hardnet":
-        print(
-            f"If raise torch.cuda.is_available() is False \n\
-Then you should edit the map_location: MAP_LOCATION = 'cpu' of load_state_dict_from_url in {torch.hub.__file__} \n\
-def load_state_dict_from_url( \n\
-    url: str,\n\
-    model_dir: Optional[str] = None,\n\
-    map_location: MAP_LOCATION = None <= change to 'cpu',\n\
-    progress: bool = True,\n\
-    check_hash: bool = False,\n\
-    file_name: Optional[str] = None,\n\
-    weights_only: bool = False,\n\
-)"
-        )
+        print_map_location_note()
         return torch.hub.load(
             "PingoLH/Pytorch-HarDNet",
             "hardnet68",
             map_location=torch.device("cpu"),
             pretrained=True,
+        )
+    if model_name == "unet_carvana":
+        print_map_location_note()
+        return torch.hub.load(
+            "milesial/Pytorch-UNet", "unet_carvana", pretrained=True, scale=0.5
         )
     return None
 
