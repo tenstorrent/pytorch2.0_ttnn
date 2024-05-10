@@ -13,3 +13,9 @@ monodepth2_depth
 deit
 hardnet
 unet_carvana
+mlp-mixer
+mobilenetv1
+segformer
+stable-diffusion-v1-5
+unet-brain
+yolov5
