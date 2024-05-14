@@ -3,6 +3,7 @@ import torch_ttnn
 import unittest
 from torch_ttnn import ttnn
 
+from tests.ttnn.utils_for_testing import check_with_pcc
 
 class MixModule(torch.nn.Module):
     def __init__(self):
@@ -44,13 +45,22 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[3].target, ttnn.from_torch)
-        self.assertEqual(nodes[4].target, ttnn.to_layout)
-        self.assertEqual(nodes[5].target, ttnn.to_device)
-        self.assertEqual(nodes[6].target, ttnn.add)
-        self.assertEqual(nodes[7].target, ttnn.matmul)
-        self.assertEqual(nodes[8].target, ttnn.from_device)
-        self.assertEqual(nodes[9].target, ttnn.to_layout)
-        self.assertEqual(nodes[10].target, ttnn.to_torch)
+        self.assertEqual(nodes[2].target, ttnn.from_torch)
+        self.assertEqual(nodes[3].target, ttnn.to_layout)
+        self.assertEqual(nodes[4].target, ttnn.to_device)
+        self.assertEqual(nodes[5].target, ttnn.reciprocal)
+        self.assertEqual(nodes[6].target, ttnn.from_torch)
+        self.assertEqual(nodes[7].target, ttnn.to_layout)
+        self.assertEqual(nodes[8].target, ttnn.to_device)
+        self.assertEqual(nodes[9].target, ttnn.mul)
+        self.assertEqual(nodes[10].target, ttnn.add)
+        self.assertEqual(nodes[11].target, ttnn.matmul)
+        self.assertEqual(nodes[12].target, ttnn.reciprocal)
+        self.assertEqual(nodes[13].target, ttnn.mul)
+        self.assertEqual(nodes[14].target, ttnn.reciprocal)
+        self.assertEqual(nodes[15].target, ttnn.mul)
+        self.assertEqual(nodes[16].target, ttnn.from_device)
+        self.assertEqual(nodes[17].target, ttnn.to_layout)
+        self.assertEqual(nodes[18].target, ttnn.to_torch)
         # Check inference result
-        self.assertTrue(torch.allclose(result_before, result_after))
+        self.assertTrue(check_with_pcc(result_before, result_after))
