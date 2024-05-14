@@ -9,6 +9,8 @@ from ultralytics import YOLO
 from yoloxdetect import YoloxDetector
 from yolox.data.datasets import COCO_CLASSES
 from diffusers import StableDiffusionPipeline
+from diffusers import DiffusionPipeline
+from mlp_mixer_pytorch import MLPMixer
 
 
 class Monodepth2_depth(torch.nn.Module):
@@ -142,6 +144,37 @@ def get_model_yoco(model_name):
         )
     elif model_name == "stable-diffusion-v1-5":
         return StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
+    elif model_name == "stable-diffusion-xl":
+        model = DiffusionPipeline.from_pretrained(
+            "stabilityai/stable-diffusion-xl-base-1.0",
+            torch_dtype=torch.float,
+            use_safetensors=True,
+            variant="fp16",
+        )
+        return model
+    elif model_name == "mlp-mixer":
+        return MLPMixer(
+            image_size=224,
+            channels=3,
+            patch_size=16,
+            dim=512,
+            depth=12,
+            num_classes=1000,
+        )
+    elif model_name == "lanenet":
+        sys.path.append("../lanenet-lane-detection-pytorch/")
+        from model.lanenet.LaneNet import LaneNet
+        from model.utils.cli_helper_test import parse_args
+
+        #  args = parse_args()
+        model_path = "../lanenet-lane-detection-pytorch/log/best_model.pth"
+        model = LaneNet(arch="ENet")
+        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
+        model.load_state_dict(state_dict)
+        model.eval()
+        model.to("cpu")
+        return model
+
     return None
 
 
@@ -195,8 +228,15 @@ def model_example_inputs_yoco(model_name):
     elif model_name == "yolox":
         input_shapes = [1, 3, 224, 224]
         return [torch.rand(input_shapes)]
-    elif model_name == "stable-diffusion-v1-5":
+    elif model_name == "mlp-mixer":
         input_shapes = [1, 3, 224, 224]
+        return [torch.rand(input_shapes)]
+    elif model_name == "lanenet":
+        input_shapes = [1, 3, 512, 256]
+        return [torch.rand(input_shapes)]
+    elif model_name == "stable-diffusion-v1-5":
+        return ["a photograph of an astronaut riding a horse"]
+    elif model_name == "stable-diffusion-xl":
         return ["a photograph of an astronaut riding a horse"]
     return None
 
