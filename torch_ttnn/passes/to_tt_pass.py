@@ -67,6 +67,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             new_args = list(args)
             new_args[1] = tuple(args[1]) if len(args[1]) > 1 else args[1][0]
             call_func = super().call_function(ttnn.mean, tuple(new_args), kwargs)
+        elif target == torch.ops.aten.add.Tensor:
+            call_func = super().call_function(ttnn.add, args, kwargs)
+        elif target == torch.ops.aten.mm.default:
+            call_func = super().call_function(ttnn.matmul, args, kwargs)
         else:
             call_func = super().call_function(target, args, kwargs)
 
@@ -134,26 +138,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 class ToTtPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
-        # NOTE(yoco): In our case, subgraph_rewriter actually
-        # is not a best choice. We should use torch.fx.Transformer.
-        # However, we use subgraph_rewriter for demonstration
-        # and as a code stub. Because Transformer only support
-        # 1-to-N replacement. For N-to-M replacement, we need
-        # to use subgraph_rewriter.
-        from ..patterns import add
-        from ..patterns import mm
-
-        # Patterns and replacements
-        pat_rep_list = list()
-        pat_rep_list += add.pat_rep_list
-        pat_rep_list += mm.pat_rep_list
-
-        # Replace patterns
-        modified = False
-        for pat, rep in pat_rep_list:
-            replaced_pats = torch.fx.subgraph_rewriter.replace_pattern(gm, pat, rep)
-            modified = modified or len(replaced_pats) > 0
-
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm).transform()
 

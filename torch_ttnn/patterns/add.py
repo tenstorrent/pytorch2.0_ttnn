@@ -1,3 +1,6 @@
+# TODO(kevinwuTT): I have a patch for tt-metal that assigns the __name__ attribute of each Operation.
+# This file may not be needed anymore.
+
 import torch
 
 try:
