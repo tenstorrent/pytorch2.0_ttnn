@@ -42,6 +42,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         torch.ops.aten.sign.default: ttnn.sign,
         torch.ops.aten.sin.default: ttnn.sin,
         torch.ops.aten.sinh.default: ttnn.sinh,
+        torch.ops.aten.silu.default: ttnn.silu,
         torch.ops.aten.sqrt.default: ttnn.sqrt,
         torch.ops.aten.tan.default: ttnn.tan,
         torch.ops.aten.tanh.default: ttnn.tanh,

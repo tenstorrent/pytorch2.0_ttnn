@@ -6,3 +6,6 @@ stat
 *.dot
 *.svg
 *.csv
+*.pt
+dist
+torch_ttnn.egg-info

@@ -45,6 +45,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.sign,
     ttnn.sin,
     ttnn.sinh,
+    ttnn.silu,
     ttnn.sqrt,
     ttnn.tan,
     ttnn.tanh,

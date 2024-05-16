@@ -910,6 +910,34 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before.to(torch.bfloat16), result_after.to(torch.bfloat16), rtol=0.2))
 
+    def test_silu(self):
+        class SiluModule(torch.nn.Module):
+            def __init__(self): super().__init__()
+            def forward(self, x): return torch.nn.functional.silu(x)
+            def input_shapes(self): return [(4, 4)]
+
+        m = SiluModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        result_before = m.forward(*inputs)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        result_after = m.forward(*inputs)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[1].target == ttnn.from_torch)
+        self.assertTrue(nodes[2].target == ttnn.to_layout)
+        self.assertTrue(nodes[3].target == ttnn.to_device)
+        self.assertTrue(nodes[4].target == ttnn.silu)
+        self.assertTrue(nodes[5].target == ttnn.from_device)
+        self.assertTrue(nodes[6].target == ttnn.to_layout)
+        self.assertTrue(nodes[7].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before.to(torch.bfloat16), result_after.to(torch.bfloat16), rtol=0.2))
+
     def test_sqrt(self):
         class SqrtModule(torch.nn.Module):
             def __init__(self): super().__init__()
