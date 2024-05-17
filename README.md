@@ -7,15 +7,16 @@ import torch
 import torch_ttnn
 
 # A torch Module
-class FooModule(torch.Module):
+class FooModule(torch.nn.Module):
     ...
 # Create a module
 module = FooModule()
 # Compile the module, with ttnn backend
 device: ttnn.Device = ttnn.open_device(device_id=0)
-option = torch_ttnn.TenstorrentBackendOption(device=self.device)
-ttnn_module = torch.compile(module, backend='ttnn', option=option)
+option = torch_ttnn.TenstorrentBackendOption(device=device)
+ttnn_module = torch.compile(module, backend='ttnn', options=option)
 # Running inference with ttnn device
+input_data = [torch.rand(shape, dtype=torch.bfloat16) for shape in [(4, 4)]]
 ttnn_module(input_data)
 ```
 
