@@ -71,6 +71,19 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func = super().call_function(ttnn.add, args, kwargs)
         elif target == torch.ops.aten.mm.default:
             call_func = super().call_function(ttnn.matmul, args, kwargs)
+        elif target == torch.ops.aten.pow.Tensor_Scalar:
+            call_func = super().call_function(ttnn.pow, args, kwargs)
+        elif target == torch.ops.aten.rsqrt.default:
+            call_func = super().call_function(ttnn.rsqrt, args, kwargs)
+        elif target == torch.ops.aten.silu.default:
+            call_func = super().call_function(ttnn.silu, args, kwargs)
+        elif target == torch.ops.aten._adaptive_avg_pool2d.default:
+            # assumes output size is (1, 1)
+            call_func = super().call_function(ttnn.global_avg_pool2d, (args[0],), kwargs)
+        elif target == torch.ops.aten.clamp.default:
+            call_func = super().call_function(ttnn.clip, args, kwargs)
+        elif target == torch.ops.aten.squeeze.dim:
+            call_func = super().call_function(ttnn.squeeze, args, kwargs)
         else:
             call_func = super().call_function(target, args, kwargs)
 

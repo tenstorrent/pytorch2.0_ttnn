@@ -56,6 +56,12 @@ def is_tt_compute(node) -> bool:
             ttnn.logical_not,
             ttnn.zeros_like,
             ttnn.mean,
+            ttnn.pow,
+            ttnn.rsqrt,
+            ttnn.silu,
+            ttnn.global_avg_pool2d,
+            ttnn.clip,
+            ttnn.squeeze,
         ]
     )
 
