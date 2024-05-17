@@ -32,7 +32,7 @@ class TestModules(unittest.TestCase):
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
         self.assertEqual(1, len(option._out_fx_graphs))
-        option._out_fx_graphs[0].print_tabular()
+        # option._out_fx_graphs[0].print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
