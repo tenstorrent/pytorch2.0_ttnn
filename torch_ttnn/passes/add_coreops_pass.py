@@ -108,6 +108,7 @@ TTNN_DATAMOVE_OPS = [
 
 TTNN_NORM_OPS = [
     ttnn.group_norm,
+    ttnn.layer_norm,
 ]
 
 # For operations limitations
