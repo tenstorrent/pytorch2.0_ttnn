@@ -76,13 +76,13 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[1].target == ttnn.from_torch)
-        self.assertTrue(nodes[2].target == ttnn.to_layout)
-        self.assertTrue(nodes[3].target == ttnn.to_device)
-        self.assertTrue(nodes[4].target == ttnn.permute)
-        self.assertTrue(nodes[5].target == ttnn.from_device)
-        self.assertTrue(nodes[6].target == ttnn.to_layout)
-        self.assertTrue(nodes[7].target == ttnn.to_torch)
+        self.assertEqual(nodes[1].target, ttnn.from_torch)
+        self.assertEqual(nodes[2].target, ttnn.to_layout)
+        self.assertEqual(nodes[3].target, ttnn.to_device)
+        self.assertEqual(nodes[4].target, ttnn.permute)
+        self.assertEqual(nodes[5].target, ttnn.from_device)
+        self.assertEqual(nodes[6].target, ttnn.to_layout)
+        self.assertEqual(nodes[7].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
@@ -100,7 +100,7 @@ class TestModules(unittest.TestCase):
         m = RepeatModule()
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
-        sizes = ttnn.Shape(2, 2)
+        sizes = (2, 2)
         result_before = m.forward(*inputs, sizes)
         option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         option.gen_graphviz = True
@@ -111,12 +111,12 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[1].target == ttnn.from_torch)
-        self.assertTrue(nodes[2].target == ttnn.to_layout)
-        self.assertTrue(nodes[3].target == ttnn.to_device)
-        self.assertTrue(nodes[4].target == ttnn.repeat)
-        self.assertTrue(nodes[5].target == ttnn.from_device)
-        self.assertTrue(nodes[6].target == ttnn.to_layout)
-        self.assertTrue(nodes[7].target == ttnn.to_torch)
+        self.assertEqual(nodes[1].target, ttnn.from_torch)
+        self.assertEqual(nodes[2].target, ttnn.to_layout)
+        self.assertEqual(nodes[3].target, ttnn.to_device)
+        self.assertEqual(nodes[4].target, torch_ttnn.target_wrappers.repeat)
+        self.assertEqual(nodes[5].target, ttnn.from_device)
+        self.assertEqual(nodes[6].target, ttnn.to_layout)
+        self.assertEqual(nodes[7].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))

@@ -98,13 +98,13 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
     ttnn.linear,
 ]
 
-TTNN_TARGET_WRAPPERS = [target_wrappers.clone]
-
 TTNN_DATAMOVE_OPS = [
     ttnn.reshape,
     ttnn.permute,
-    ttnn.repeat,
+    #  ttnn.repeat,  in target_wrapper
 ]
+
+TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
 
 
 # For operations limitations
