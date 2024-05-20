@@ -137,11 +137,14 @@ class ToTtPass(PassBase):
         from ..patterns import linear
         from ..patterns import addcdiv
         from ..patterns import where
+        from ..patterns import norm
 
         pat_rep_list += linear.pat_rep_list
         pat_rep_list += addcdiv.pat_rep_list
         pat_rep_list += where.pat_rep_list
+        pat_rep_list += norm.pat_rep_list
 
+        from torch.fx._symbolic_trace import symbolic_trace
         # Replace patterns
         modified = False
         for pat, rep in pat_rep_list:

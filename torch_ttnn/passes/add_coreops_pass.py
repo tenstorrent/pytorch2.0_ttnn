@@ -106,6 +106,11 @@ TTNN_DATAMOVE_OPS = [
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
 
+TTNN_NORM_OPS = [
+    ttnn.group_norm,
+    ttnn.layer_norm,
+]
+
 
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
@@ -119,6 +124,7 @@ def is_tt_compute(node) -> bool:
         + TTNN_MATRIX_MULPIPLICATION_OPS
         + TTNN_TARGET_WRAPPERS
         + TTNN_DATAMOVE_OPS
+        + TTNN_NORM_OPS
     )
 
 
