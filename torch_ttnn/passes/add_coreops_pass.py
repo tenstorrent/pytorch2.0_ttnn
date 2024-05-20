@@ -102,6 +102,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.reshape,
     ttnn.permute,
     #  ttnn.repeat,  in target_wrapper
+    ttnn.concat,
 ]
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
@@ -175,7 +176,32 @@ def insert_nodes_between(
         dst_node.update_arg(0, tuple(new_arg))
 
 
+def try_add_data_move_in_list_elements(l, dst_index_or_key, dst_node, device):
+    new_list = list()
+    modified = False
+    for idx, elem in enumerate(l):
+        if should_add_data_move_in(elem, dst_node):
+            g = dst_node.graph
+            with g.inserting_before(dst_node):
+                from_torch = g.call_function(ttnn.from_torch, (elem,))
+                tile_layout = g.call_function(
+                    ttnn.to_layout, (from_torch, DummyTtnnTileLayout())
+                )
+                to_device = g.call_function(ttnn.to_device, (tile_layout, device))
+            new_list.append(to_device)
+            modified = True
+        else:
+            new_list.append(elem)
+    if modified:
+        dst_node.update_arg(dst_index_or_key, new_list)
+
+
 def try_add_data_move_in(src_node, dst_idx_or_key, dst_node, device) -> bool:
+    # If the input is a list, like torch.can([x1, x2, x3, ...])
+    # We have to check each element in the list
+    if isinstance(src_node, (list,)):
+        try_add_data_move_in_list_elements(src_node, dst_idx_or_key, dst_node, device)
+
     if not should_add_data_move_in(src_node, dst_node):
         return False
 
@@ -227,21 +253,21 @@ class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
         device = DummyDevice()
-        i = 0
+        cnt = 0
         nodes = list(gm.graph.nodes)
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
             for idx, arg in enumerate(args):
                 if try_add_data_move_in(arg, idx, node, device):
-                    i += 1
+                    cnt += 1
                 if try_add_data_move_out(arg, idx, node):
-                    i += 1
+                    cnt += 1
             kwargs = node.kwargs
             for key, arg in kwargs.items():
                 if try_add_data_move_in(arg, key, node, device):
-                    i += 1
+                    cnt += 1
                 if try_add_data_move_out(arg, key, node):
-                    i += 1
+                    cnt += 1
 
-        modified = i > 0
+        modified = cnt > 0
         return PassResult(gm, modified)

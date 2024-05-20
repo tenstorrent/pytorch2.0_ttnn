@@ -82,6 +82,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         torch.ops.aten.view.default: ttnn.reshape,
         torch.ops.aten.permute.default: ttnn.permute,
         torch.ops.aten.repeat.default: target_wrappers.repeat,
+        torch.ops.aten.cat.default: ttnn.concat,
     }
 
     def call_function(self, target, args, kwargs):
@@ -144,7 +145,6 @@ class ToTtPass(PassBase):
         pat_rep_list += where.pat_rep_list
         pat_rep_list += norm.pat_rep_list
 
-        from torch.fx._symbolic_trace import symbolic_trace
         # Replace patterns
         modified = False
         for pat, rep in pat_rep_list:
