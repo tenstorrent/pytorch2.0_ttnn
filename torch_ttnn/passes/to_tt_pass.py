@@ -83,6 +83,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         torch.ops.aten.permute.default: ttnn.permute,
         torch.ops.aten.repeat.default: target_wrappers.repeat,
         torch.ops.aten.cat.default: ttnn.concat,
+        torch.ops.aten.split.Tensor: ttnn.split,
     }
 
     def call_function(self, target, args, kwargs):

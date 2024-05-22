@@ -103,6 +103,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.permute,
     #  ttnn.repeat,  in target_wrapper
     ttnn.concat,
+    ttnn.split,
 ]
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
@@ -118,6 +119,12 @@ TTNN_NORM_OPS = [
 def is_tt_compute(node) -> bool:
     if not is_function_call(node):
         return False
+
+    # if node is the built-in function "getitme", the result of split
+    # we have to check the input of split
+    if node.op == "call_function" and node.target.__name__ == "getitem":
+        return is_tt_compute(node.args[0])
+
     return node.target in set(
         TTNN_POINTWISE_UNARY_OPS
         + TTNN_POINTWISE_BINARY_OPS

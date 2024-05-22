@@ -34,7 +34,6 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs, new_shape)
-        option._out_fx_graphs[0].print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
@@ -72,7 +71,6 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs, order)
-        option._out_fx_graphs[0].print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
@@ -107,7 +105,6 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs, sizes)
-        option._out_fx_graphs[0].print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
@@ -121,7 +118,7 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
-    def test_concat(self):
+    def _test_concat_impl(self, dim):
         class RepeatModule(torch.nn.Module):
             def __init__(self):
                 super().__init__()
@@ -135,13 +132,12 @@ class TestModules(unittest.TestCase):
         m = RepeatModule()
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
-        result_before = m.forward(*inputs, 0)
+        result_before = m.forward(*inputs, dim)
         option = torch_ttnn.TenstorrentBackendOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
-        result_after = m.forward(*inputs, 0)
-        option._out_fx_graphs[0].print_tabular()
+        result_after = m.forward(*inputs, dim)
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
@@ -157,3 +153,53 @@ class TestModules(unittest.TestCase):
         self.assertEqual(nodes[11].target, ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
+
+    def test_concat_0(self):
+        self._test_concat_impl(0)
+
+    def test_concat_1(self):
+        self._test_concat_impl(1)
+
+    def test_split(self):
+        class RepeatModule(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x, size, dim):
+                return torch.split(x, size, dim)
+
+            def input_shapes(self):
+                return [(5, 2)]
+
+        m = RepeatModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        result_before = m.forward(*inputs, 2, 0)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend="ttnn", options=option)
+        result_after = m.forward(*inputs, 2, 0)
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertEqual(nodes[1 + 0].target, ttnn.from_torch)
+        self.assertEqual(nodes[1 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[1 + 2].target, ttnn.to_device)
+        self.assertEqual(nodes[4].target, ttnn.split)
+        self.assertEqual(nodes[5 + 0].target.__name__, "getitem")
+        self.assertEqual(nodes[5 + 1].target.__name__, "getitem")
+        self.assertEqual(nodes[5 + 2].target.__name__, "getitem")
+        self.assertEqual(nodes[8 + 0].target, ttnn.from_device)
+        self.assertEqual(nodes[8 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[8 + 2].target, ttnn.to_torch)
+        self.assertEqual(nodes[11 + 0].target, ttnn.from_device)
+        self.assertEqual(nodes[11 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[11 + 2].target, ttnn.to_torch)
+        self.assertEqual(nodes[14 + 0].target, ttnn.from_device)
+        self.assertEqual(nodes[14 + 1].target, ttnn.to_layout)
+        self.assertEqual(nodes[14 + 2].target, ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before[0], result_after[0]))
+        self.assertTrue(torch.allclose(result_before[1], result_after[1]))
+        self.assertTrue(torch.allclose(result_before[2], result_after[2]))
