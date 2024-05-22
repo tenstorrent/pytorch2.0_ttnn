@@ -5,6 +5,7 @@ from ..utils import (
     DummyTtlTensorBufferTypeDram,
     DummyTtnnBfloat16,
     DummyDevice,
+    DummyTtnnTileLayout,
 )
 
 try:
@@ -55,8 +56,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         elif target == torch.ops.aten.tril.default:
             call_func =  super().call_function(ttnn.tril, args, kwargs)
         elif target == torch.ops.aten.eq.Tensor:
-            call_func =  super().call_function(ttnn.eq, args, kwargs)
-        elif target == torch.ops.aten.eq.Scalar:
             call_func =  super().call_function(ttnn.eq, args, kwargs)
         elif target == torch.ops.aten.logical_not.default:
             call_func =  super().call_function(ttnn.logical_not, args, kwargs)
@@ -143,6 +142,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_args = (args[0],)
                 new_kwargs = {"end": args[1], "step": args[2], "device": DummyDevice()}
                 new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.eq.Scalar:
+                # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
+                # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
+                arg_metadata = node.meta["val"]
+                new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
+                full_node = g.call_function(ttnn.full, args=(arg_metadata.size(), ), kwargs=new_kwargs)
+                new_node = g.call_function(ttnn.eq, args=(args[0], full_node), kwargs={})
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.full.default:
+                new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
+                new_node = g.call_function(ttnn.full, args=(tuple(args[0]), ), kwargs=new_kwargs)
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
 
     gm = GraphCleanup(gm)

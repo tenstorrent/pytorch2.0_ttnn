@@ -257,12 +257,18 @@ class EqTensorModule(torch.nn.Module):
     def forward(self, tensor1, tensor2):
         return torch.eq(tensor1, tensor2)
 
+    def input_shapes(self):
+        return[(4, 4), (4,4)]
+
 class EqScalarModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, tensor, scalar):
         return torch.eq(tensor, scalar)
+
+    def input_shapes(self):
+        return[(64, 128)]
 
 class LogicalNotModule(torch.nn.Module):
     def __init__(self):
@@ -355,6 +361,16 @@ class SqueezeDimModule(torch.nn.Module):
 
     def input_shapes(self):
         return[(1, 32, 16)]
+
+class FullModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, size, fill_value):
+        return torch.full(size, fill_value)
+
+    def input_shapes(self):
+        return[(64, 128)]
 
 class TestModules(unittest.TestCase):
     def setUp(self):
@@ -942,15 +958,14 @@ class TestModules(unittest.TestCase):
 
     def test_eq_tensor(self):
         m = EqTensorModule()
-        # TODO(kevinwuTT): test different shapes
-        torch_tensor1 = torch.tensor(([[1, 2], [3, 4]]), dtype=torch.bfloat16)
-        torch_tensor2 = torch.tensor(([[1, 1], [4, 4]]), dtype=torch.bfloat16)
-        result_before = m.forward(torch_tensor1, torch_tensor2)
+        input_shapes = m.input_shapes()
+        inputs = [torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes]
+        result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m.forward(torch_tensor1, torch_tensor2)
+        result_after = m.forward(*inputs)
         option._out_fx_graphs[0].print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
@@ -970,26 +985,27 @@ class TestModules(unittest.TestCase):
 
     def test_eq_scalar(self):
         m = EqScalarModule()
-        # TODO(kevinwuTT): test different shapes
-        torch_tensor = torch.tensor(([[1, 2], [1, 4]]), dtype=torch.bfloat16)
-        scalar = 1
-        result_before = m.forward(torch_tensor, scalar)
+        input_shapes = m.input_shapes()
+        inputs = [torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes]
+        scalar = torch.randint(0, 2, (1,)).item()
+        result_before = m.forward(inputs[0], scalar)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m.forward(torch_tensor, scalar)
+        result_after = m.forward(inputs[0], scalar)
         option._out_fx_graphs[0].print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[4].target == ttnn.eq)
-        self.assertTrue(nodes[4].args[0].target == ttnn.to_device)
-        self.assertTrue(nodes[4].args[0].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[4].args[0].args[0].args[0].target == ttnn.from_torch)
-        self.assertTrue(nodes[5].target == ttnn.from_device)
-        self.assertTrue(nodes[6].target == ttnn.to_layout)
-        self.assertTrue(nodes[7].target == ttnn.to_torch)
+        self.assertTrue(nodes[1].target == ttnn.full)
+        self.assertTrue(nodes[5].target == ttnn.eq)
+        self.assertTrue(nodes[5].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[5].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[5].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[6].target == ttnn.from_device)
+        self.assertTrue(nodes[7].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after.to(torch.bool)))
 
@@ -1208,6 +1224,27 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[5].target == ttnn.from_device)
         self.assertTrue(nodes[6].target == ttnn.to_layout)
         self.assertTrue(nodes[7].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before, result_after))
+
+    def test_full(self):
+        m = FullModule()
+        input_shapes = m.input_shapes()
+        fill_value = 1.23
+        result_before = m.forward(input_shapes[0], fill_value).to(torch.bfloat16)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(input_shapes[0], fill_value)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[0].target == ttnn.full)
+        self.assertTrue(nodes[1].target == ttnn.from_device)
+        self.assertTrue(nodes[2].target == ttnn.to_layout)
+        self.assertTrue(nodes[3].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
