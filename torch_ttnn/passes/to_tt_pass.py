@@ -124,6 +124,8 @@ class ReplaceNonSimpleOpTt(torch.fx.Transformer):
             and args[2] == 1.0
         ):
             return super().call_function(ttnn.hardtanh, args[:1], kwargs)
+        elif target == torch.ops.aten.t.default:
+            return super().call_function(ttnn.permute, args + ((1, 0),), kwargs)
         return super().call_function(target, args, kwargs)
 
 

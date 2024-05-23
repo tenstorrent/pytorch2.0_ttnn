@@ -84,6 +84,40 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
+    def test_t(self):
+        class Module(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x):
+                return x.t()
+
+            def input_shapes(self):
+                return [(32, 16)]
+
+        m = Module()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        result_before = m.forward(*inputs)
+        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend="ttnn", options=option)
+        result_after = m.forward(*inputs)
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertEqual(nodes[1].target, ttnn.from_torch)
+        self.assertEqual(nodes[2].target, ttnn.to_layout)
+        self.assertEqual(nodes[3].target, ttnn.to_device)
+        self.assertEqual(nodes[4].target, ttnn.permute)
+        self.assertEqual(nodes[4].args[1], (1, 0))
+        self.assertEqual(nodes[5].target, ttnn.from_device)
+        self.assertEqual(nodes[6].target, ttnn.to_layout)
+        self.assertEqual(nodes[7].target, ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before, result_after))
+
     def test_repeat(self):
         class RepeatModule(torch.nn.Module):
             def __init__(self):
