@@ -139,12 +139,10 @@ class ToTtPass(PassBase):
         from ..patterns import linear
         from ..patterns import addcdiv
         from ..patterns import where
-        from ..patterns import norm
 
         pat_rep_list += linear.pat_rep_list
         pat_rep_list += addcdiv.pat_rep_list
         pat_rep_list += where.pat_rep_list
-        pat_rep_list += norm.pat_rep_list
 
         # Replace patterns
         modified = False
@@ -155,5 +153,12 @@ class ToTtPass(PassBase):
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceSimpleOpMap(gm).transform()
         gm = ReplaceMoreTt(gm).transform()
+
+        # Replace customized
+        customized_rep_list = list()
+        from ..customized_replace import norm
+        customized_rep_list += norm.customized_rep_list
+        for customized_rep in customized_rep_list:
+            gm = customized_rep(gm)
 
         return PassResult(gm, True)
