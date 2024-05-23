@@ -92,7 +92,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         return super().call_function(target, args, kwargs)
 
 
-class ReplaceMoreTt(torch.fx.Transformer):
+class ReplaceNonSimpleOpTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if target == torch.ops.aten._softmax.default:
             return super().call_function(ttnn.softmax, args[:2], kwargs)
@@ -151,8 +151,10 @@ class ToTtPass(PassBase):
             modified = modified or len(replaced_pats) > 0
 
         # Replace more patterns with torch.fx.Transformer
+        # Some ops has exactly interface, we only have to replace the node.target
         gm = ReplaceSimpleOpMap(gm).transform()
-        gm = ReplaceMoreTt(gm).transform()
+        # Some ops involve customized handling, like default value, etc.
+        gm = ReplaceNonSimpleOpTt(gm).transform()
 
         # Replace customized
         customized_rep_list = list()
