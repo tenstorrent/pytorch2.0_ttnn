@@ -157,6 +157,7 @@ class ToTtPass(PassBase):
         # Replace customized
         customized_rep_list = list()
         from ..customized_replace import norm
+
         customized_rep_list += norm.customized_rep_list
         for customized_rep in customized_rep_list:
             gm = customized_rep(gm)
