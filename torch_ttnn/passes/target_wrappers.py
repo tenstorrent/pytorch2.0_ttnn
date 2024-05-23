@@ -10,3 +10,14 @@ def clone(t):
 @torch.fx.wrap
 def repeat(t, sizes):
     return ttnn.repeat(t, ttnn.Size(sizes))
+
+
+def group_norm(input, num_groups, epsilon, weight=None, bias=None):
+    # TODO: make it work
+    #  if weight is not None:
+    #      kwargs["weight"] = weight
+    #  if bias is not None:
+    #      kwargs["bias"] = bias
+    #  if weight is None:
+    #      weight = ttnn.Tensor()
+    return ttnn.group_norm(input, num_groups, epsilon, weight, bias)

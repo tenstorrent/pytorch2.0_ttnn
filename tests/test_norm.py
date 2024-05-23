@@ -18,8 +18,8 @@ class TestModules(unittest.TestCase):
             def __init__(self):
                 super().__init__()
 
-            def forward(self, x, num_groups, weight=None, bias=None, eps=1e-05):
-                return torch.group_norm(x, num_groups, weight, bias, eps)
+            def forward(self, x, num_groups, **kwargs):
+                return torch.group_norm(x, num_groups, **kwargs)
 
             def input_shapes(self):
                 return [(20, 6, 10, 10)]
@@ -47,8 +47,6 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[7].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
-
-
 
     def test_layer_norm(self):
         class LayerNormModule(torch.nn.Module):
