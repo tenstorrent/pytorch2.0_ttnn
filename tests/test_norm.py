@@ -115,7 +115,6 @@ class TestModules(unittest.TestCase):
         elif norm_type == "layer":
             m = self.LayerNormModule()
             kwargs = {"normalized_shape": m.normalized_shape()}
-        m = self.GroupNormModule()
         input = torch.rand(m.input_shape(), dtype=torch.bfloat16)
         weight = torch.rand(m.weight_shape(), dtype=torch.bfloat16)
         bias = torch.rand(m.bias_shape(), dtype=torch.bfloat16)
