@@ -38,6 +38,7 @@ def aten_backend(
         "raw",
         f"{direction}_{option.model_name}_{option.counter['val']}.json",
     )
+    print(stat_filename)
     os.makedirs(os.path.dirname(stat_filename), exist_ok=True)
     passes = [StatPass(filename=stat_filename, example_inputs=example_inputs)]
     if option.gen_graphviz:
@@ -91,5 +92,6 @@ def backend(torch_stat_option: TorchStatOption):
         )
     else:
         return aot_autograd(
-            fw_compiler=partial(aten_backend, options=options, direction="fw")
+            fw_compiler=partial(aten_backend, options=options, direction="fw"),
+            # inference_compiler=partial(aten_backend, options=options, direction="fw"),
         )
