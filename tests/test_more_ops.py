@@ -714,6 +714,9 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
+    @unittest.skip(
+        "NOTE(kevinwuTT) ttnn.split is "#8364 ttnn.split has been using fallback version and is not implemented yet"
+    )
     def test_split(self):
         m = SplitModule()
         input_shapes = m.input_shapes()
