@@ -403,6 +403,26 @@ class FullModule(torch.nn.Module):
     def input_shapes(self):
         return[(64, 128)]
 
+class LtTensorModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, tensor):
+        return torch.lt(input, tensor)
+
+    def input_shapes(self):
+        return[(4, 4), (4, 4)]
+
+class LtScalarModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, scalar):
+        return torch.lt(input, scalar)
+
+    def input_shapes(self):
+        return[(64, 128)]
+
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
@@ -1326,6 +1346,59 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[3].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
+
+    def test_lt_tensor(self):
+        m = LtTensorModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        result_before = m.forward(*inputs)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(*inputs)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[8].target == ttnn.lt)
+        self.assertTrue(nodes[8].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[8].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[8].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[8].args[1].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].args[1].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[9].target == ttnn.from_device)
+        self.assertTrue(nodes[10].target == ttnn.to_layout)
+        self.assertTrue(nodes[11].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before, result_after.to(torch.bool)))
+
+    def test_lt_scalar(self):
+        m = LtScalarModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        scalar = inputs[0][0][0].item()
+        result_before = m.forward(inputs[0], scalar)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(inputs[0], scalar)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[1].target == ttnn.full)
+        self.assertTrue(nodes[5].target == ttnn.lt)
+        self.assertTrue(nodes[5].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[5].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[5].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[6].target == ttnn.from_device)
+        self.assertTrue(nodes[7].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(check_with_pcc(result_before, result_after))
 
 if __name__ == "__main__":
     unittest.main()

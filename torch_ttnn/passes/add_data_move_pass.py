@@ -63,6 +63,7 @@ def is_tt_compute(node) -> bool:
             ttnn.clip,
             ttnn.squeeze,
             ttnn.full,
+            ttnn.lt,
         ]
     )
 

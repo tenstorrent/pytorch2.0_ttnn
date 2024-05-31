@@ -17,6 +17,10 @@ except ImportError:
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 
+relational_scalar_ops = {
+    torch.ops.aten.eq.Scalar: ttnn.eq,
+    torch.ops.aten.lt.Scalar: ttnn.lt,
+}
 class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if target == torch.ops.aten.sub.Tensor:
@@ -83,6 +87,8 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func = super().call_function(ttnn.clip, args, kwargs)
         elif target == torch.ops.aten.squeeze.dim:
             call_func = super().call_function(ttnn.squeeze, args, kwargs)
+        elif target == torch.ops.aten.lt.Tensor:
+            call_func =  super().call_function(ttnn.lt, args, kwargs)
         else:
             call_func = super().call_function(target, args, kwargs)
 
@@ -143,13 +149,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_kwargs = {"end": args[1], "step": args[2], "device": DummyDevice()}
                 new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
-            if node.target == torch.ops.aten.eq.Scalar:
+            if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 arg_metadata = node.meta["val"]
                 new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
                 full_node = g.call_function(ttnn.full, args=(arg_metadata.size(), ), kwargs=new_kwargs)
-                new_node = g.call_function(ttnn.eq, args=(args[0], full_node), kwargs={})
+                new_node = g.call_function(relational_scalar_ops[node.target], args=(args[0], full_node), kwargs={})
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             if node.target == torch.ops.aten.full.default:
                 new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
