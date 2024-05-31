@@ -161,6 +161,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
                 new_node = g.call_function(ttnn.full, args=(tuple(args[0]), ), kwargs=new_kwargs)
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.baddbmm.default:
+                kwargs = node.kwargs
+                # out = beta * input + alpha * (batch1 @ batch2)
+                # if beta is 0, input is ignored, and nan and inf in it will not be propogated
+                new_node = g.call_function(ttnn.matmul, args=(args[1], args[2]))
+                if "alpha" in kwargs:
+                    new_node = g.call_function(ttnn.multiply, args=(new_node, kwargs["alpha"]))
+                if "beta" in kwargs:
+                    if kwargs["beta"] != 0:
+                        beta_node = g.call_function(ttnn.multiply, args=(args[0], kwargs["beta"]))
+                        new_node = g.call_function(ttnn.add, args=(beta_node, new_node))
+                else:
+                    new_node = g.call_function(ttnn.add, args=(args[0], new_node))
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
 
     gm = GraphCleanup(gm)
     return gm

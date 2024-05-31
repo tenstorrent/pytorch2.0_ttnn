@@ -423,6 +423,24 @@ class LtScalarModule(torch.nn.Module):
     def input_shapes(self):
         return[(64, 128)]
 
+class BaddbmmModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, batch1, batch2, beta = 1, alpha = 1):
+        if beta == 1:
+            return torch.baddbmm(input, batch1, batch2, alpha = alpha)
+        elif alpha == 1:
+            return torch.baddbmm(input, batch1, batch2, beta = beta)
+        elif beta == 1 and alpha == 1:
+            return torch.baddbmm(input, batch1, batch2)
+        else:
+            return torch.baddbmm(input, batch1, batch2, beta = beta, alpha = alpha)
+
+    def input_shapes(self):
+        # input, batch1, batch2
+        return[(10, 64, 128), (10, 64, 32), (10, 32, 128)]
+
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
@@ -1398,6 +1416,141 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[7].target == ttnn.to_layout)
         self.assertTrue(nodes[8].target == ttnn.to_torch)
         # Check inference result
+        self.assertTrue(check_with_pcc(result_before, result_after))
+
+    def test_baddbmm(self):
+        m = BaddbmmModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+
+        # (1) Test with default alpha and beta values
+        result_before = m.forward(*inputs)
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m_ttnn.forward(*inputs)
+        option._out_fx_graphs[-1].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[-1].nodes)
+        self.assertTrue(nodes[9].target == ttnn.matmul)
+        self.assertTrue(nodes[9].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[9].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[1].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[1].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[13].target == ttnn.add)
+        self.assertTrue(nodes[13].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[13].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[13].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[13].args[1].target == ttnn.matmul)
+        self.assertTrue(nodes[14].target == ttnn.from_device)
+        self.assertTrue(nodes[15].target == ttnn.to_layout)
+        self.assertTrue(nodes[16].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(check_with_pcc(result_before, result_after))
+
+        # (2) Test with alpha and default beta value
+        result_before = m.forward(*inputs, alpha = 2)
+        m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m_ttnn.forward(*inputs, alpha = 2)
+        option._out_fx_graphs[-1].print_tabular()
+
+        nodes = list(option._out_fx_graphs[-1].nodes)
+        self.assertTrue(nodes[9].target == ttnn.matmul)
+        self.assertTrue(nodes[9].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[9].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[1].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[1].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[10].target == ttnn.multiply)
+        self.assertTrue(nodes[10].args[0].target == ttnn.matmul)
+        self.assertTrue(nodes[14].target == ttnn.add)
+        self.assertTrue(nodes[14].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[14].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[14].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[14].args[1].target == ttnn.multiply)
+        self.assertTrue(nodes[15].target == ttnn.from_device)
+        self.assertTrue(nodes[16].target == ttnn.to_layout)
+        self.assertTrue(nodes[17].target == ttnn.to_torch)
+        self.assertTrue(check_with_pcc(result_before, result_after))
+
+        # (3) Test with beta and default alpha value
+        result_before = m.forward(*inputs, beta = 2)
+        m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m_ttnn.forward(*inputs, beta = 2)
+        option._out_fx_graphs[-1].print_tabular()
+
+        nodes = list(option._out_fx_graphs[-1].nodes)
+        self.assertTrue(nodes[9].target == ttnn.matmul)
+        self.assertTrue(nodes[9].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[9].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[1].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[1].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[13].target == ttnn.multiply)
+        self.assertTrue(nodes[13].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[13].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[13].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[14].target == ttnn.add)
+        self.assertTrue(nodes[14].args[0].target == ttnn.multiply)
+        self.assertTrue(nodes[14].args[1].target == ttnn.matmul)
+        self.assertTrue(nodes[15].target == ttnn.from_device)
+        self.assertTrue(nodes[16].target == ttnn.to_layout)
+        self.assertTrue(nodes[17].target == ttnn.to_torch)
+        self.assertTrue(check_with_pcc(result_before, result_after))
+
+        # (4) Test with beta and alpha values
+        result_before = m.forward(*inputs, beta = 2, alpha = 2)
+        m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m_ttnn.forward(*inputs, beta = 2, alpha = 2)
+        option._out_fx_graphs[-1].print_tabular()
+
+        nodes = list(option._out_fx_graphs[-1].nodes)
+        self.assertTrue(nodes[9].target == ttnn.matmul)
+        self.assertTrue(nodes[9].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[9].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[1].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[1].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[10].target == ttnn.multiply)
+        self.assertTrue(nodes[10].args[0].target == ttnn.matmul)
+        self.assertTrue(nodes[14].target == ttnn.multiply)
+        self.assertTrue(nodes[14].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[14].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[14].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[15].target == ttnn.add)
+        self.assertTrue(nodes[15].args[0].target == ttnn.multiply)
+        self.assertTrue(nodes[15].args[1].target == ttnn.multiply)
+        self.assertTrue(nodes[16].target == ttnn.from_device)
+        self.assertTrue(nodes[17].target == ttnn.to_layout)
+        self.assertTrue(nodes[18].target == ttnn.to_torch)
+        self.assertTrue(check_with_pcc(result_before, result_after))
+
+        # (5) Test special case when beta is 0
+        result_before = m.forward(*inputs, beta = 0, alpha = 2)
+        m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m_ttnn.forward(*inputs, beta = 0, alpha = 2)
+        option._out_fx_graphs[-1].print_tabular()
+
+        nodes = list(option._out_fx_graphs[-1].nodes)
+        self.assertTrue(nodes[9].target == ttnn.matmul)
+        self.assertTrue(nodes[9].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[9].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[9].args[1].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[9].args[1].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[10].target == ttnn.multiply)
+        self.assertTrue(nodes[10].args[0].target == ttnn.matmul)
+        self.assertTrue(nodes[11].target == ttnn.from_device)
+        self.assertTrue(nodes[12].target == ttnn.to_layout)
+        self.assertTrue(nodes[13].target == ttnn.to_torch)
         self.assertTrue(check_with_pcc(result_before, result_after))
 
 if __name__ == "__main__":
