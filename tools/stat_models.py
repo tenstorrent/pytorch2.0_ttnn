@@ -2,8 +2,12 @@ import os
 import argparse
 import torch
 import torchvision
+import annotate_scheme
 
 from torch_ttnn_utils import get_model, model_example_inputs, do_model_backward
+
+
+scheme_table = annotate_scheme.load_op_scheme()
 
 
 def get_ttnn_backend(
@@ -98,8 +102,9 @@ def run_model(
     if to_profile:
         from torch.profiler import profile, record_function, ProfilerActivity
 
-        trace_file = os.path.join(out_folder, "profile", model_name)
-        os.makedirs(os.path.dirname(trace_file), exist_ok=True)
+        profile_file = os.path.join(out_folder, "profile", model_name + ".json")
+        trace_file = os.path.join(out_folder, "trace", model_name + ".json")
+        os.makedirs(os.path.dirname(profile_file), exist_ok=True)
         activities = [ProfilerActivity.CPU]
         if torch.cuda.is_available():
             activities.append(ProfilerActivity.CUDA)
@@ -107,7 +112,9 @@ def run_model(
             result = m(*inputs)
             if backward:
                 do_model_backward(model_name, result)
-        prof.export_chrome_trace(trace_file)
+        prof.export_chrome_trace(profile_file)
+        global scheme_table
+        annotate_scheme.annotate_scheme_file(profile_file, trace_file, scheme_table)
     else:
         result = m(*inputs)
         if backward:

@@ -1,6 +1,6 @@
 import glob
 import json
-from typing import List, Dict
+from typing import List, Dict, Optional
 import collections
 import torch
 import os
@@ -38,20 +38,16 @@ def get_op_scheme(opname, scheme_table):
     """
     if opname in scheme_table:
         return scheme_table[opname]
+    if opname.endswith("_") and opname[:-1] in scheme_table:
+        return scheme_table[opname[:-1]]
 
     if opname.startswith("aten::"):
         opname = opname[6:]
 
     if opname in scheme_table:
         return scheme_table[opname]
-
-    # remove tailing underscores
-    if opname.endswith("_"):
-        opname = opname[:-1]
-
-    # Look up in the scheme table
-    if opname in scheme_table:
-        return scheme_table[opname]
+    if opname.endswith("_") and opname[:-1] in scheme_table:
+        return scheme_table[opname[:-1]]
 
     return []
 
@@ -60,8 +56,8 @@ def annotate_scheme_file(
     in_file_name: str,
     out_file_name: str,
     op_scheme: Dict[str, List[str]],
-    op_ok: set,
-    op_ng: set,
+    op_ok: Optional[set] = None,
+    op_ng: Optional[set] = None,
 ):
     """
     Open the input file (JSON), annotate the operator's scheme, and save it to the output file.
@@ -71,6 +67,7 @@ def annotate_scheme_file(
         trace = json.load(f)
 
     new_trace = []
+    model_ng_op = set()
 
     for event in trace["traceEvents"]:
         opname = event["name"]
@@ -82,9 +79,14 @@ def annotate_scheme_file(
         # Get the schemes of the operator
         schemes = get_op_scheme(opname, op_scheme)
         if len(schemes) == 0:
-            op_ng.add(opname)
+            if op_ng is not None:
+                op_ng.add(opname)
+            if opname not in model_ng_op:
+                model_ng_op.add(opname)
+                print(f"  Operator {opname} not in the scheme table")
         else:
-            op_ok.add(opname)
+            if op_ok is not None:
+                op_ok.add(opname)
 
         # Annotate the operation with the schemes
         try:
@@ -95,9 +97,9 @@ def annotate_scheme_file(
             if "Input type" in event["args"]:
                 e.update(
                     {
-                        "types": event["args"]["Input type"],
-                        "shapes": event["args"]["Input Dims"],
-                        "values": event["args"]["Concrete Inputs"],
+                        "input_types": event["args"]["Input type"],
+                        "input_shapes": event["args"]["Input Dims"],
+                        "input_values": event["args"]["Concrete Inputs"],
                     }
                 )
         except Exception as e:
@@ -138,7 +140,7 @@ def annotate_scheme_dir(in_dir: str, out_dir: str, op_scheme: Dict[str, List[str
 
 def main():
     op_scheme = load_op_scheme()
-    annotate_scheme_dir("stat/profile/", "/tmp/trace", op_scheme)
+    annotate_scheme_dir("stat/profile/", "stat/trace", op_scheme)
     #  annotate_scheme_file("stat/profile/resnet18", "/tmp/ker", op_scheme)
 
 
