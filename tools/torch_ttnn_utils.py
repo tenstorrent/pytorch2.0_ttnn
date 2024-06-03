@@ -4,13 +4,6 @@ import os
 import sys
 import site
 import transformers
-from transformers import AutoImageProcessor, SegformerModel
-from ultralytics import YOLO
-from yoloxdetect import YoloxDetector
-from yolox.data.datasets import COCO_CLASSES
-from diffusers import StableDiffusionPipeline
-from diffusers import DiffusionPipeline
-from mlp_mixer_pytorch import MLPMixer
 
 
 class Monodepth2_depth(torch.nn.Module):
@@ -116,6 +109,8 @@ def get_model_swimdi(model_name):
 
 def get_model_yoco(model_name):
     if model_name == "yolov8":
+        from ultralytics import YOLO
+
         model = YOLO("yolov8n.pt")
         return model.model.mode
     elif model_name == "yolov5":
@@ -134,8 +129,12 @@ def get_model_yoco(model_name):
             "google/mobilenet_v1_1.0_224"
         )
     elif model_name == "segformer":
+        from transformers import SegformerModel
+
         return SegformerModel.from_pretrained("nvidia/mit-b0")
     elif model_name == "yolox":
+        from yoloxdetect import YoloxDetector
+
         model = YoloxDetector(
             model_path="kadirnar/yolox_tiny-v0.1.1",
             config_path="configs.yolox_tiny",
@@ -143,8 +142,12 @@ def get_model_yoco(model_name):
             hf_model=True,
         )
     elif model_name == "stable-diffusion-v1-5":
+        from diffusers import StableDiffusionPipeline
+
         return StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
     elif model_name == "stable-diffusion-xl":
+        from diffusers import DiffusionPipeline
+
         model = DiffusionPipeline.from_pretrained(
             "stabilityai/stable-diffusion-xl-base-1.0",
             torch_dtype=torch.float,
@@ -153,6 +156,8 @@ def get_model_yoco(model_name):
         )
         return model
     elif model_name == "mlp-mixer":
+        from mlp_mixer_pytorch import MLPMixer
+
         return MLPMixer(
             image_size=224,
             channels=3,
