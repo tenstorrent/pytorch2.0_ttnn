@@ -101,6 +101,7 @@ aten.isnan	isnan(Tensor self) -> Tensor
 aten.le.Scalar	le.Scalar(Tensor self, Scalar other) -> Tensor
 aten.le.Tensor	le.Tensor(Tensor self, Tensor other) -> Tensor
 aten.leaky_relu	leaky_relu(Tensor self, Scalar negative_slope=0.01) -> Tensor
+aten.linear	linear(Tensor self, Tensor weight, Tensor? bias) -> Tensor
 aten.log	log(Tensor self) -> Tensor
 aten.log10	log10(Tensor self) -> Tensor
 aten.log1p	log1p(Tensor self) -> Tensor
@@ -131,6 +132,8 @@ aten.native_layer_norm_backward	native_layer_norm_backward(Tensor grad_out, Tens
 aten.ne.Scalar	ne.Scalar(Tensor self, Scalar other) -> Tensor
 aten.ne.Tensor	ne.Tensor(Tensor self, Tensor other) -> Tensor
 aten.neg	neg(Tensor self) -> Tensor
+aten.new_empty	new_empty(Tensor self, SymInt[] size, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor
+aten.new_zeros	new_zeros(Tensor self, SymInt[] size, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor
 aten.nonzero	nonzero(Tensor self) -> Tensor
 aten.permute	permute(Tensor(a) self, int[] dims) -> Tensor(a)
 aten.pow.Scalar	pow.Scalar(Scalar self, Tensor exponent) -> Tensor
@@ -165,6 +168,7 @@ aten.sigmoid	sigmoid(Tensor self) -> Tensor
 aten.sign	sign(Tensor self) -> Tensor
 aten.sin	sin(Tensor self) -> Tensor
 aten.sinh	sinh(Tensor self) -> Tensor
+aten.silu	silu(Tensor self) -> Tensor
 aten.slice.Tensor	slice.Tensor(Tensor(a) self, int dim=0, SymInt? start=None, SymInt? end=None, SymInt step=1) -> Tensor(a)
 aten.slice_scatter	slice_scatter(Tensor self, Tensor src, int dim=0, SymInt? start=None, SymInt? end=None, SymInt step=1) -> Tensor
 aten.sort	sort(Tensor self, int dim=-1, bool descending=False) -> (Tensor values, Tensor indices)
