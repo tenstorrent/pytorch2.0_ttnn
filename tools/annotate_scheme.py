@@ -14,6 +14,7 @@ def load_op_scheme():
     An op might have multiple schemes, because it has multiple signatures.
     """
     op_scheme = collections.defaultdict(list)
+    # The key is "lib::opname", for example, "aten::conv2d"
     with open("tools/op_scheme_doc.txt", "r") as fin:
         for line in fin.readlines():
             line = line.strip()
@@ -22,6 +23,7 @@ def load_op_scheme():
             lib = opname_tokens[0]
             opname = opname_tokens[1]
             op_scheme[lib + "::" + opname].append(scheme)
+    # The key is "opname", for example, "conv2d"
     with open("tools/op_scheme_pyi.txt") as fin:
         for line in fin.readlines():
             line = line.strip()
@@ -73,7 +75,7 @@ def annotate_scheme_file(
         opname = event["name"]
         # If the operator is not aten:: or prim::,
         # it is PyTorch internal op like profiling or some side effect op, skip it
-        if not opname.startswith("aten::") and not opname.startswith("prim::"):
+        if not opname.startswith("aten::") and not opname.startswith("prims::"):
             continue
 
         # Get the schemes of the operator
