@@ -44,6 +44,20 @@ def load_op_scheme():
             opname = opname_tokens[1]
             line = line.replace("〡", ".").replace("〇", ".")
             op_scheme[lib + "::" + opname].append(line)
+    # The key is "lib::opname", for example, "aten::conv2d"
+    with open("tools/op_scheme_aten_declarations.txt", "r") as fin:
+        keyword = '// {"schema":'
+        for line in fin.readlines():
+            line = line.strip()
+            if keyword not in line:
+                continue
+            keyword_pos = line.find(keyword)
+            comment_str = line[keyword_pos+3:]
+            comment_dict = eval(comment_str)
+            scheme = comment_dict['schema']
+            left_paranthesis_pos = scheme.find("(")
+            opname = scheme[:left_paranthesis_pos].split(".")[0]
+            op_scheme[opname].append(scheme)
     return op_scheme
 
 
