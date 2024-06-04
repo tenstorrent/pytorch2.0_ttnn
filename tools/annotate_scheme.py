@@ -2,10 +2,8 @@ import glob
 import json
 from typing import List, Dict, Optional
 import collections
-import torch
 import os
 
-torch._convolution
 
 
 def load_op_scheme():
@@ -31,6 +29,21 @@ def load_op_scheme():
             left_paranthesis_pos = line.find("(")
             opname = line[:left_paranthesis_pos]
             op_scheme[opname].append(line)
+    # The key is "lib::opname", for example, "aten::conv2d"
+    with open("tools/op_scheme_torch_mlir.txt", "r") as fin:
+        for line in fin.readlines():
+            line = line.strip()
+            if not (line.startswith("def aten") or line.startswith("def prims")):
+                continue
+            line = line[4:]
+            left_paranthesis_pos = line.find("(")
+            opname_full = line[:left_paranthesis_pos]
+            # There has special character in the parsed data
+            opname_tokens = opname_full.replace("〡", "〇").split("〇")
+            lib = opname_tokens[0]
+            opname = opname_tokens[1]
+            line = line.replace("〡", ".").replace("〇", ".")
+            op_scheme[lib + "::" + opname].append(line)
     return op_scheme
 
 
