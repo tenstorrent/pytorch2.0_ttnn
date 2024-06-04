@@ -441,6 +441,16 @@ class BaddbmmModule(torch.nn.Module):
         # input, batch1, batch2
         return[(10, 64, 128), (10, 64, 32), (10, 32, 128)]
 
+class CosModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        return torch.cos(x)
+
+    def input_shapes(self):
+        return [(4, 4)]
+
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
@@ -1552,6 +1562,30 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[12].target == ttnn.to_layout)
         self.assertTrue(nodes[13].target == ttnn.to_torch)
         self.assertTrue(check_with_pcc(result_before, result_after))
+
+    def test_cos(self):
+        m = CosModule()
+        input_shapes = m.input_shapes()
+        inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+        result_before = m.forward(*inputs)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(*inputs)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[4].target == ttnn.cos)
+        self.assertTrue(nodes[4].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[4].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[4].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[5].target == ttnn.from_device)
+        self.assertTrue(nodes[6].target == ttnn.to_layout)
+        self.assertTrue(nodes[7].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
 if __name__ == "__main__":
     unittest.main()

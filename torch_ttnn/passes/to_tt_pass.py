@@ -89,6 +89,8 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func = super().call_function(ttnn.squeeze, args, kwargs)
         elif target == torch.ops.aten.lt.Tensor:
             call_func =  super().call_function(ttnn.lt, args, kwargs)
+        elif target == torch.ops.aten.cos.default:
+            call_func =  super().call_function(ttnn.cos, args, kwargs)
         else:
             call_func = super().call_function(target, args, kwargs)
 
