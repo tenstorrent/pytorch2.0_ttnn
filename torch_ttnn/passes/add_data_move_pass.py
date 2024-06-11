@@ -45,7 +45,6 @@ def is_tt_compute(node) -> bool:
             ttnn.reciprocal,
             ttnn.gelu,
             ttnn.embedding,
-            ttnn.split,
             ttnn.clone,
             ttnn.layer_norm,
             ttnn.neg,
@@ -98,7 +97,7 @@ def should_add_data_move_in(src_node, dst_node) -> bool:
 
 
 def should_add_data_move_out(src_node, dst_node) -> bool:
-    return is_tt_compute(src_node) and not is_tt(dst_node) and src_node.target != ttnn.split and src_node.target != ttnn.layer_norm
+    return is_tt_compute(src_node) and not is_tt(dst_node) and src_node.target != ttnn.layer_norm
 
 def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
     """
@@ -189,27 +188,6 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
 
-def try_add_data_move_out_for_split(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
-    if not is_function_call(src_node):
-        return None
-
-    new_nodes = list()
-    for input_node in src_node.all_input_nodes:
-        if is_function_call(input_node) and input_node.target == ttnn.split:
-            g = dst_node.graph
-            with g.inserting_before(dst_node):
-                new_nodes.append(g.call_function(
-                    ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout())
-                ))
-                new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
-                new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,)))
-
-    if new_nodes:
-        insert_node_between(src_node, dst_idx, dst_node, new_nodes)
-        return new_nodes[-1]
-    else:
-        return None
-
 def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     if not is_function_call(src_node):
         return None
@@ -267,9 +245,6 @@ class AddDataMovePass(PassBase):
                     node.update_arg(0, tuple(new_arg))
                     i += 1
                 elif to_torch := try_add_data_move_out(arg, idx, node):
-                    data_move_out_hash[arg] = to_torch
-                    i += 1
-                elif to_torch := try_add_data_move_out_for_split(arg, idx, node):
                     data_move_out_hash[arg] = to_torch
                     i += 1
                 elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
