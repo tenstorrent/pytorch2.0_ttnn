@@ -64,6 +64,7 @@ def is_tt_compute(node) -> bool:
             ttnn.full,
             ttnn.lt,
             ttnn.cos,
+            ttnn.sigmoid,
         ]
     )
 
