@@ -1,0 +1,19 @@
+name: "hello world workflow"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  hello-world:
+    runs-on: ["in-service", "n150"]
+    steps:
+      - name: Hello World
+        run: echo "Hello World!"    
