@@ -21,9 +21,24 @@ relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
     torch.ops.aten.lt.Scalar: ttnn.lt,
 }
+
+# Workaround: If an arg of the model output is argmax then skip conversion
+# TODO(kevinwuTT): Handle this case with ttnn ops
+int_output_ops = [
+    torch.ops.aten.argmax.default,
+    torch.ops.aten.argmin.default,
+]
+def are_args_from_int_output_ops(args):
+    for arg in args:
+        if isinstance(arg, torch.fx.proxy.Proxy):
+            if arg.node.target in int_output_ops:
+                return True
+
 class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
-        if target == torch.ops.aten.sub.Tensor:
+        if are_args_from_int_output_ops(args):
+            call_func = super().call_function(target, args, kwargs)
+        elif target == torch.ops.aten.sub.Tensor:
             call_func = super().call_function(ttnn.sub, args, kwargs)
         elif target == torch.ops.aten.rsub.Tensor:
             # TODO(kevinwuMCW): handle alpha parameter if exists
