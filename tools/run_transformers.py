@@ -51,7 +51,7 @@ def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz:
         m.eval()
     if backend == "torch_ttnn":
         option = torch_ttnn.TorchTtnnOption(device=device)
-        m = torch.compile(m, backend=torch_ttnn.backend(option))
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     elif backend == "torch_stat":
         option = torch_stat.TorchStatOption(model_name = model.model_name, backward = backward,
                                             out = out_path, gen_graphviz=graphviz)
@@ -60,7 +60,15 @@ def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz:
         assert(0 and "Unsupport backend")
 
     if model.model_task == AutoModelForQuestionAnswering:
-        inputs = tokenizer.encode_plus(model.test_input["question"], model.test_input["context"], add_special_tokens=True, return_tensors="pt")
+        inputs = tokenizer.encode_plus(
+            model.test_input["question"],
+            model.test_input["context"],
+            add_special_tokens=True,
+            return_tensors="pt",
+            max_length=256,
+            padding="max_length",
+            truncation=True
+        )
     elif (
         model.model_task == AutoModelForCausalLM or 
         model.model_task == AutoModelForSequenceClassification
@@ -88,6 +96,8 @@ def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz:
     else:
         with torch.no_grad():
             outputs = m(**inputs)
+            if backend == "torch_ttnn":
+                option._out_fx_graphs[0].print_tabular()
         # if backward:
         #     result.backward(torch.ones_like(result))
 
