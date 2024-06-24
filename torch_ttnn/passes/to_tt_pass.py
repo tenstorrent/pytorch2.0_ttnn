@@ -116,6 +116,15 @@ def torch_dtype_to_dummy_ttnn_dtype(dtype: torch.dtype):
     else:
         raise RuntimeError(f"Missing conversion from torch.dtype: {dtype} to DummyTtnn dtype.")
 
+# Certain ops don't support certain shapes and will emit a valid_page_size error
+# RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
+# For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
+def has_valid_page_size(shape):
+    for dim in shape:
+        if dim < 32:
+            return False
+    return True
+
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
@@ -168,10 +177,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 arg_metadata = node.meta["val"]
-                new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
-                full_node = g.call_function(ttnn.full, args=(arg_metadata.size(), ), kwargs=new_kwargs)
-                new_node = g.call_function(relational_scalar_ops[node.target], args=(args[0], full_node), kwargs={})
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+                if has_valid_page_size(arg_metadata.size()):
+                    new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
+                    full_node = g.call_function(ttnn.full, args=(arg_metadata.size(), ), kwargs=new_kwargs)
+                    new_node = g.call_function(relational_scalar_ops[node.target], args=(args[0], full_node), kwargs={})
+                    node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             if node.target == torch.ops.aten.full.default:
                 # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
                 if args[0]:
