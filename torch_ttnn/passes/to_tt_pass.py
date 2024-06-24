@@ -164,9 +164,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_node = g.call_function(relational_scalar_ops[node.target], args=(args[0], full_node), kwargs={})
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             if node.target == torch.ops.aten.full.default:
-                new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
-                new_node = g.call_function(ttnn.full, args=(tuple(args[0]), ), kwargs=new_kwargs)
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+                # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
+                if args[0]:
+                    new_kwargs = {"fill_value": args[1], "device": DummyDevice(), "layout": DummyTtnnTileLayout()}
+                    new_node = g.call_function(ttnn.full, args=(tuple(args[0]), ), kwargs=new_kwargs)
+                    node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             if node.target == torch.ops.aten.baddbmm.default:
                 kwargs = node.kwargs
                 # out = beta * input + alpha * (batch1 @ batch2)
