@@ -98,7 +98,7 @@ def should_add_data_move_in(src_node, dst_node) -> bool:
 
 
 def should_add_data_move_out(src_node, dst_node) -> bool:
-    return is_tt_compute(src_node) and not is_tt(dst_node) and src_node.target != ttnn.layer_norm
+    return is_tt_compute(src_node) and not is_tt(dst_node)
 
 def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
     """
@@ -190,7 +190,7 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     return new_nodes[-1]
 
 def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
-    if not is_function_call(src_node):
+    if not should_add_data_move_out(src_node, dst_node):
         return None
 
     g = dst_node.graph
@@ -202,13 +202,22 @@ def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.f
             new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1],)))
 
     # Workaround to output the same layer_norm output
+    # Before: layer_norm = aten.layer_norm
+    #          getitem = getitem(layer_norm, 0)
+    #          return ((getitem,),)
+    # After: layer_norm = ttnn.layer_norm
+    #        return (layer_norm,)
+    # Need to match the tuple in the original return statement
     if new_nodes:
         old_args = dst_node.args[0]
-        new_args = list(old_args)
-        for idx, old_arg in enumerate(old_args):
-            if old_arg == src_node:
-                new_args[idx] = new_nodes[-1]
-        dst_node.update_arg(0, tuple(new_args))
+        if isinstance(old_args, tuple):
+            new_args = list(old_args)
+            for idx, old_arg in enumerate(old_args):
+                if old_arg == src_node:
+                    new_args[idx] = new_nodes[-1]
+            dst_node.update_arg(0, tuple(new_args))
+        else:
+            dst_node.update_arg(dst_idx, new_nodes[-1])
         return new_nodes[-1]
     else:
         return None
@@ -245,7 +254,7 @@ class AddDataMovePass(PassBase):
                     new_arg[idx] = data_move_out_hash[arg]
                     node.update_arg(0, tuple(new_arg))
                     i += 1
-                elif to_torch := try_add_data_move_out(arg, idx, node):
+                elif (node.target != ttnn.layer_norm) and (to_torch := try_add_data_move_out(arg, idx, node)):
                     data_move_out_hash[arg] = to_torch
                     i += 1
                 elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
