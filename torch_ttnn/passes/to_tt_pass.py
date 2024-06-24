@@ -140,23 +140,30 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.ones.default:
                 new_node = g.call_function(ttnn.ones, args=args, kwargs={"device": DummyDevice()})
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            """
+            # NOTE(kevinwuTT): aten.arange.default starts with 0 which is unsupported by ttnn.arange at the moment
             if node.target == torch.ops.aten.arange.default:
                 # start = 0, step = 1
                 new_args = (0,)
                 new_kwargs = {"end": args[0], "step": 1, "device": DummyDevice()}
                 new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            """
             if node.target == torch.ops.aten.arange.start:
-                # step = 1
-                new_args = (args[0],)
-                new_kwargs = {"end": args[1], "step": 1, "device": DummyDevice()}
-                new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+                # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
+                if args[0] >= 2:
+                    # step = 1
+                    new_args = (args[0],)
+                    new_kwargs = {"end": args[1], "step": 1, "device": DummyDevice()}
+                    new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                    node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             if node.target == torch.ops.aten.arange.start_step:
-                new_args = (args[0],)
-                new_kwargs = {"end": args[1], "step": args[2], "device": DummyDevice()}
-                new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+                # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
+                if args[0] >= 2:
+                    new_args = (args[0],)
+                    new_kwargs = {"end": args[1], "step": args[2], "device": DummyDevice()}
+                    new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                    node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
