@@ -19,6 +19,8 @@ class TestModel():
         self.model_name = model_name
         self.model_task = model_task
         self.test_input = test_input
+    def __repr__(self):
+        return self.model_name
 
 def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz: bool, to_profile: bool, device = None):
 
@@ -135,6 +137,7 @@ def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model", type = str, required = True)
     parser.add_argument("--out_path", "-o", type = str, default = os.path.join(os.getcwd(),"stat"))
     parser.add_argument("--backend", type = str)
     parser.add_argument("--graphviz", action="store_true")
@@ -194,9 +197,13 @@ if __name__ == "__main__":
             "http://images.cocodataset.org/val2017/000000039769.jpg"
         ),
     ]
+    def get_model(model_name):
+        for m in models:
+            if model_name == m.model_name:
+                return m
+        raise ValueError(f"model: {model_name} not supported. Supported models: {models}")
 
     device = torch_ttnn.ttnn.open_device(device_id = 0) if args.backend == "torch_ttnn" else None
-    for m in models:
-        run_model(m, args.backend, args.backward, args.out_path, args.graphviz, args.profile, device)
+    run_model(get_model(args.model), args.backend, args.backward, args.out_path, args.graphviz, args.profile, device)
     if args.backend == "torch_ttnn":
         torch_ttnn.ttnn.close_device(device)
