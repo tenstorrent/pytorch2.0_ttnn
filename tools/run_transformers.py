@@ -1,8 +1,18 @@
 import os
 import argparse
 import torch
+from PIL import Image
+import requests
+
 # Load model directly
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering, AutoModelForCausalLM
+from transformers import (
+    AutoTokenizer,
+    AutoModelForQuestionAnswering,
+    AutoModelForCausalLM,
+    AutoModelForSequenceClassification,
+    AutoImageProcessor,
+    AutoModelForObjectDetection,
+)
 
 class TestModel():
     def __init__(self, model_name, model_task, test_input):
@@ -12,7 +22,22 @@ class TestModel():
 
 def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz: bool, to_profile: bool, device = None):
 
-    tokenizer = AutoTokenizer.from_pretrained(model.model_name, padding_side="left")
+    text_modules = [
+        AutoModelForQuestionAnswering,
+        AutoModelForCausalLM,
+        AutoModelForSequenceClassification
+    ]
+    vision_modules = [
+        AutoModelForObjectDetection,
+    ]
+
+    if model.model_task in text_modules:
+        tokenizer = AutoTokenizer.from_pretrained(model.model_name, padding_side="left")
+    elif model.model_task in vision_modules:
+        image_processor = AutoImageProcessor.from_pretrained(model.model_name)
+    else:
+        raise ValueError(f"model task: {model.model_task} not supported.")
+
     m = model.model_task.from_pretrained(model.model_name)
 
     if backward:
@@ -36,8 +61,14 @@ def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz:
 
     if model.model_task == AutoModelForQuestionAnswering:
         inputs = tokenizer.encode_plus(model.test_input["question"], model.test_input["context"], add_special_tokens=True, return_tensors="pt")
-    elif model.model_task == AutoModelForCausalLM:
+    elif (
+        model.model_task == AutoModelForCausalLM or 
+        model.model_task == AutoModelForSequenceClassification
+    ):
         inputs = tokenizer(model.test_input, return_tensors="pt")
+    elif model.model_task == AutoModelForObjectDetection:
+        image = Image.open(requests.get(model.test_input, stream=True).raw)
+        inputs = image_processor(images=image, return_tensors="pt")
     else:
         raise ValueError(f"model task: {model.model_task} not supported.")
 
@@ -50,29 +81,46 @@ def run_model(model: str, backend: str, backward: bool, out_path: str, graphviz:
             activities.append(ProfilerActivity.CUDA)
         with profile(activities=activities, record_shapes=True) as prof:
             with torch.no_grad():
-                results = m(**inputs)
+                outputs = m(**inputs)
             # if backward:
             #     result.backward(torch.ones_like(result))
         prof.export_chrome_trace(trace_file)
     else:
         with torch.no_grad():
-            results = m(**inputs)
+            outputs = m(**inputs)
         # if backward:
         #     result.backward(torch.ones_like(result))
 
     if model.model_task == AutoModelForQuestionAnswering:
-        response_start = torch.argmax(results.start_logits)
-        response_end = torch.argmax(results.end_logits) + 1
+        response_start = torch.argmax(outputs.start_logits)
+        response_end = torch.argmax(outputs.end_logits) + 1
         response_tokens = inputs.input_ids[0, response_start:response_end]
-        output = tokenizer.decode(response_tokens)
+        result = tokenizer.decode(response_tokens)
     elif model.model_task == AutoModelForCausalLM:
-        next_token_logits = results.logits[:, -1]
+        next_token_logits = outputs.logits[:, -1]
         next_token = next_token_logits.softmax(dim=-1).argmax()
-        output = tokenizer.decode([next_token])
+        result = tokenizer.decode([next_token])
+    elif model.model_task == AutoModelForSequenceClassification:
+        normalized = outputs.logits.softmax(dim=-1)
+        print(normalized)
+        result = normalized.argmax().item()
+    elif model.model_task == AutoModelForObjectDetection:
+        target_sizes = torch.tensor([image.size[::-1]])
+        results = image_processor.post_process_object_detection(outputs, threshold=0.9, target_sizes=target_sizes)[0]
     else:
         raise ValueError(f"model task: {model.model_task} not supported.")
 
-    print(f"model_name: {model.model_name}\ninput: {model.test_input}\noutput: {output}")
+    if model.model_task in text_modules:
+        print(f"model_name: {model.model_name}\ninput: {model.test_input}\nresult: {result}")
+    elif model.model_task in vision_modules:
+        for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
+            box = [round(i, 2) for i in box.tolist()]
+            print(
+                f"Detected {m.config.id2label[label.item()]} with confidence "
+                f"{round(score.item(), 3)} at location {box}"
+            )
+    else:
+        raise ValueError(f"model task: {model.model_task} not supported.")
 
 
 if __name__ == "__main__":
@@ -113,7 +161,28 @@ if __name__ == "__main__":
             "bigscience/bloom-1b1",
             AutoModelForCausalLM,
             "My cat and my dog"
-        )
+        ),
+        # Need torch 2.3.0+
+        TestModel(
+            "state-spaces/mamba-130m-hf",
+            AutoModelForCausalLM,
+            "Hey how are you doing?"
+        ),
+        TestModel(
+            "huggyllama/llama-7b",
+            AutoModelForCausalLM,
+            "Spring is a good time to"
+        ),
+        TestModel(
+            "mnoukhov/gpt2-imdb-sentiment-classifier",
+            AutoModelForSequenceClassification,
+            'This is the kind of movie you put in the background while working on other things.'
+        ),
+        TestModel(
+            "hustvl/yolos-tiny",
+            AutoModelForObjectDetection,
+            "http://images.cocodataset.org/val2017/000000039769.jpg"
+        ),
     ]
 
     device = torch_ttnn.ttnn.open_device(device_id = 0) if args.backend == "torch_ttnn" else None
