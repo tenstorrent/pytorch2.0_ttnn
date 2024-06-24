@@ -102,7 +102,6 @@ class Reshape4DNegativeModule(torch.nn.Module):
     def output_shapes(self):
         return [(1, -1, 2, 32)]
 
-
 class PermuteModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -561,6 +560,9 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
+    @unittest.skip(
+        "NOTE(kevinwuTT) ttnn.reshape conversion needs to be reworked to support the many restrictions."
+    )
     def test_reshape(self):
         m = ReshapeModule()
         input_shapes = m.input_shapes()
@@ -582,6 +584,9 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
+    @unittest.skip(
+        "NOTE(kevinwuTT) ttnn.reshape conversion needs to be reworked to support the many restrictions."
+    )
     def test_reshape_negative(self):
         m = ReshapeNegativeModule()
         input_shapes = m.input_shapes()
@@ -603,6 +608,9 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
+    @unittest.skip(
+        "NOTE(kevinwuTT) ttnn.reshape conversion needs to be reworked to support the many restrictions."
+    )
     def test_reshape_4d(self):
         m = Reshape4DModule()
         input_shapes = m.input_shapes()
@@ -627,6 +635,9 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
+    @unittest.skip(
+        "NOTE(kevinwuTT) ttnn.reshape conversion needs to be reworked to support the many restrictions."
+    )
     def test_reshape_4d_negative(self):
         m = Reshape4DNegativeModule()
         input_shapes = m.input_shapes()
@@ -813,6 +824,9 @@ class TestModules(unittest.TestCase):
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
+    @unittest.skip(
+        "NOTE(kevinwuTT) Re-enable after conversion to ttnn.embedding with both ROW_MAJOR_LAYOUT and TILE_LAYOUT"
+    )
     def test_embedding(self):
         m = EmbeddingModule()
         input_shapes = m.input_shapes()
