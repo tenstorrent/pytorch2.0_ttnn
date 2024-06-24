@@ -105,6 +105,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 def torch_dtype_to_dummy_ttnn_dtype(dtype: torch.dtype):
     # Add newly supported dtypes here:
     dtype_map = {
+        torch.float32 : DummyTtnnBfloat16(),
         torch.bfloat16 : DummyTtnnBfloat16()
     }
     if dtype in dtype_map:
