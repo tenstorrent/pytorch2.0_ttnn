@@ -85,7 +85,11 @@ class ReplaceMoreTt(torch.fx.Transformer):
         elif target == torch.ops.aten.clamp.default:
             call_func = super().call_function(ttnn.clip, args, kwargs)
         elif target == torch.ops.aten.squeeze.dim:
-            call_func = super().call_function(ttnn.squeeze, args, kwargs)
+            # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
+            if args[1] != 0:
+                call_func = super().call_function(target, args, kwargs)
+            else:
+                call_func = super().call_function(ttnn.squeeze, args, kwargs)
         elif target == torch.ops.aten.lt.Tensor:
             call_func =  super().call_function(ttnn.lt, args, kwargs)
         elif target == torch.ops.aten.cos.default:
