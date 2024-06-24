@@ -45,9 +45,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # TODO(kevinwuMCW): include beta, alpha, and optional args
             mm = super().call_function(ttnn.matmul, (args[1], args[2]), kwargs)
             call_func =  super().call_function(ttnn.add, (args[0], mm), kwargs)
-        elif target == torch.ops.aten.div.Tensor:
-            recip = super().call_function(ttnn.reciprocal, (args[1],), kwargs)
-            call_func =  super().call_function(ttnn.mul, (args[0], recip), kwargs)
         elif target == torch.ops.aten.bmm.default:
             call_func =  super().call_function(ttnn.matmul, args, kwargs)
         elif target == torch.ops.aten.gelu.default:
@@ -214,6 +211,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_kwargs = {"dtype": torch.bfloat16}
                 full_node = g.call_function(torch.ops.aten.full.default, args=(arg_metadata.size(), args[1]), kwargs=new_kwargs)
                 new_node = g.call_function(ttnn.sub, args=(full_node, args[0]), kwargs={})
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.div.Tensor:
+                # ttnn.recip does not support scalars. Call an aten.full and pass that to ttnn.recip
+                # TODO(kevinwuTT): Use a ttnn equivalent
+                node_metadata = node.meta["val"]
+                if isinstance(args[1], float):
+                    full = g.call_function(torch.ops.aten.full.default, (node_metadata.size(), args[1]), {})
+                    recip = g.call_function(ttnn.reciprocal, (full,), {})
+                else:
+                    recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                new_node = g.call_function(ttnn.mul, (args[0], recip), {})
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
 
     gm = GraphCleanup(gm)
