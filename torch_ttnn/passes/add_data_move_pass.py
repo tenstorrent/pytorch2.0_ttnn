@@ -155,10 +155,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        if dst_node.target == ttnn.embedding and dst_idx == 0:
-            new_nodes.append(g.call_function(ttnn.from_torch, (src_node, DummyTtnnUint32())))
-        else:
-            new_nodes.append(g.call_function(ttnn.from_torch, (src_node, )))
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node, )))
         if dst_node.target != ttnn.reshape and dst_node.target != ttnn.embedding and dst_node.target != ttnn.zeros_like:
             new_nodes.append(g.call_function(
                 ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout())

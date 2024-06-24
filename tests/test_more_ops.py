@@ -183,6 +183,21 @@ class EmbeddingModule(torch.nn.Module):
     def input_shapes(self):
         return [((1, 2, 4, 5), (4, 3, 2, 9)), (10, 4)]
 
+class EmbeddingTileLayoutModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, weights):
+        return torch.nn.functional.embedding(input, weights)
+
+    def input_shapes(self):
+        # from test_bloom_embedding at tt-metal/tests/ttnn/unit_tests/operations/test_embedding.py
+        batch_size = 8
+        sentence_size = 384
+        vocabulary_size = 250880
+        hidden_embedding_dim = 1024
+        return [(0, vocabulary_size - 1, (batch_size, sentence_size)), ((vocabulary_size, hidden_embedding_dim))]
+
 class CloneFromNodeModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -886,6 +901,31 @@ class TestModules(unittest.TestCase):
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         result_after = m.forward(input, weight)
+        option._out_fx_graphs[0].print_tabular()
+
+        # Check the graph has be rewritten and contain ttnn ops
+        nodes = list(option._out_fx_graphs[0].nodes)
+        self.assertTrue(nodes[6].target == ttnn.embedding)
+        self.assertTrue(nodes[6].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[6].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[6].args[1].target == ttnn.to_device)
+        self.assertTrue(nodes[6].args[1].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[7].target == ttnn.from_device)
+        self.assertTrue(nodes[8].target == ttnn.to_torch)
+        # Check inference result
+        self.assertTrue(torch.allclose(result_before, result_after))
+
+    def test_embedding_tile_layout(self):
+        m = EmbeddingTileLayoutModule()
+        input_shapes = m.input_shapes()
+        input = torch.randint(*input_shapes[0])
+        weights = torch.zeros(*input_shapes[1], dtype=torch.bfloat16).uniform_(-0.1, 0.1)
+        result_before = m.forward(input, weights)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option.gen_graphviz = True
+        # The compilation is lazy, so we need to run forward once to trigger the compilation
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+        result_after = m.forward(input, weights)
         option._out_fx_graphs[0].print_tabular()
 
         # Check the graph has be rewritten and contain ttnn ops

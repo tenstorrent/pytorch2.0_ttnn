@@ -52,8 +52,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func =  super().call_function(ttnn.matmul, args, kwargs)
         elif target == torch.ops.aten.gelu.default:
             call_func =  super().call_function(ttnn.gelu, args, kwargs)
-        elif target == torch.ops.aten.embedding.default:
-            call_func =  super().call_function(ttnn.embedding, (args[1], args[0]), kwargs)
         elif target == torch.ops.aten.neg.default:
             call_func =  super().call_function(ttnn.neg, args, kwargs)
         elif target == torch.ops.aten.tril.default:
@@ -201,6 +199,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         new_node = g.call_function(ttnn.add, args=(beta_node, new_node))
                 else:
                     new_node = g.call_function(ttnn.add, args=(args[0], new_node))
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
+            if node.target == torch.ops.aten.embedding.default:
+                # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
+                new_kwargs = {"layout": DummyTtnnTileLayout()}
+                new_node =  g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             if node.target == torch.ops.aten.rsub.Scalar:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
