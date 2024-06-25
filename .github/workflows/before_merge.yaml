@@ -12,8 +12,12 @@ permissions:
   id-token: write
 
 jobs:
-  tests:
+  tests-job:
+    env:
+      PYTHONPATH: ${TT_METAL_HOME}
     runs-on: ["in-service", "n150"]
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
       - name: Run Tests
-        run: echo "Action run!"    
+        run: pytest tests/*.py
