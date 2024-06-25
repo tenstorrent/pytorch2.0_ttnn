@@ -5,7 +5,9 @@ on:
 
 jobs:
   validate-pr:
-    runs-on: ["in-service", "n150"]
+    runs-on: ubuntu-latest
     steps:
-    - name: Skip run
-      run: echo "Empty check passed"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Black
+        uses: psf/black@23.10.1
