@@ -1,0 +1,11 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+
+jobs:
+  validate-pr:
+    runs-on: ["in-service", "n150"]
+    steps:
+    - name: Skip run
+      run: echo "Empty check passed"
