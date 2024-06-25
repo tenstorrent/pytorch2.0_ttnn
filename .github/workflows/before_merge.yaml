@@ -21,7 +21,13 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-      - name: Where Am I?
-        run: ls
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt      
       - name: Run Tests
-        run: python3 -m pytest tests/*.py
+        run: | 
+          source venv/bin/activate
+          python3 -m pytest tests/*.py
