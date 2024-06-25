@@ -1,4 +1,4 @@
-name: "Merge Queue Workflow"
+name: "Tests"
 
 on:
   workflow_call:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 jobs:
-  tests-job:
+  run-tests-job:
     env:
       ARCH_NAME: wormhole_b0
       TT_METAL_HOME: ${pwd}
