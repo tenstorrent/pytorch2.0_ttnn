@@ -15,5 +15,5 @@ jobs:
   hello-world:
     runs-on: ["in-service", "n150"]
     steps:
-      - name: Hello World
-        run: echo "Hello World!"    
+      - name: Sample Action
+        run: echo "Action run!"    
