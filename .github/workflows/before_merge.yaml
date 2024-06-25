@@ -24,4 +24,4 @@ jobs:
       - name: Where Am I?
         run: ls
       - name: Run Tests
-        run: pytest tests/*.py
+        run: python3 -m pytest tests/*.py
