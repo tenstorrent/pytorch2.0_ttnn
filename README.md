@@ -51,3 +51,11 @@ The `*_total_*_size_dist/` statistics the `op_type`'s input/output_size distribu
  - Notice: the [aten ir interface is in there](https://pytorch.org/docs/stable/torch.compiler_ir.html)
 
 [The `profile/` is the tools provided by pytorch](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html), you can open it by the url: chrome://tracing
+
+# Run transformer models
+To run transformer model with ttnn backend, run:
+```
+PYTHONPATH=${TT_METAL_HOME}:$(pwd) python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
+```
+
+You can also substitute the backend with `torch_stat` to run a reference comparison.
