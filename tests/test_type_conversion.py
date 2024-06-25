@@ -4,8 +4,6 @@ import unittest
 from torch_ttnn import ttnn
 import tt_lib
 
-from tests.ttnn.utils_for_testing import check_with_pcc
-
 class MulModule(torch.nn.Module):
     def __init__(self):
         super().__init__()

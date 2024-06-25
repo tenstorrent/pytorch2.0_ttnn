@@ -3,7 +3,7 @@ import torch_ttnn
 import unittest
 from torch_ttnn import ttnn
 
-from tests.ttnn.utils_for_testing import check_with_pcc
+from torch_ttnn.utils import check_with_pcc
 
 class MixModule(torch.nn.Module):
     def __init__(self):
