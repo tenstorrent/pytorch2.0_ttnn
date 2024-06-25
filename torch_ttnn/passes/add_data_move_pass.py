@@ -146,10 +146,7 @@ def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.no
     return new_nodes[-1]
 
 def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
-    print(f"src_node: {src_node}, dst_node: {dst_node}")
-
     if not should_add_data_move_in(src_node, dst_node):
-        print("skip should_add_data_move_in")
         return None
 
     g = dst_node.graph
