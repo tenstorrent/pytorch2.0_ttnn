@@ -1,3 +1,4 @@
+pytest
 torch==2.2.1.0+cpu
 torchvision==0.17.1+cpu
 tabulate
