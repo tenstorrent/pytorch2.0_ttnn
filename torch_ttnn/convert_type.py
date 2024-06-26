@@ -3,16 +3,19 @@ import torch
 from typing import List
 from .utils import GraphCleanup
 
+
 # torch.fx defines a placeholder node as a function input
 def get_input_nodes(gm: torch.fx.GraphModule) -> List[torch.fx.Node]:
     input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder")]
     return input_nodes
+
 
 pytorch_float_types = [
     torch.float32,
     torch.float64,
     torch.float16,
 ]
+
 
 def convert_float_to_bfloat16(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     input_nodes = get_input_nodes(gm)
@@ -23,12 +26,16 @@ def convert_float_to_bfloat16(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
         if arg_metadata.dtype in pytorch_float_types:
             with gm.graph.inserting_after(input_nodes[-1]):
                 to = gm.graph.call_method("to", args=(node, torch.bfloat16))
-                node.replace_all_uses_with(to, delete_user_cb=lambda node: node != to,)
+                node.replace_all_uses_with(
+                    to,
+                    delete_user_cb=lambda node: node != to,
+                )
                 modified = True
 
     if modified:
         gm = GraphCleanup(gm)
     return gm
+
 
 # Use on aten level
 def convert_dtype_to_bfloat16(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:

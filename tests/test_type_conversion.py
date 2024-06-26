@@ -4,6 +4,7 @@ import unittest
 from torch_ttnn import ttnn
 import tt_lib
 
+
 class MulModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -14,10 +15,11 @@ class MulModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4), (4, 4)]
 
+
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
-        self.device: ttnn.Device = ttnn.open_device(device_id = 0)
+        self.device: ttnn.Device = ttnn.open_device(device_id=0)
         # For AutoFormat
         tt_lib.device.SetDefaultDevice(self.device)
 
@@ -81,6 +83,7 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[8].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before.to(torch.bfloat16), result_after))
+
 
 if __name__ == "__main__":
     unittest.main()

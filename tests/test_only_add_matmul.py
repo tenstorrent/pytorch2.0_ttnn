@@ -5,6 +5,7 @@ from torch_ttnn import ttnn
 
 from torch_ttnn.utils import check_with_pcc
 
+
 class AddModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -55,7 +56,7 @@ class AddMatmulModule(torch.nn.Module):
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
-        self.device: ttnn.Device = ttnn.open_device(device_id = 0)
+        self.device: ttnn.Device = ttnn.open_device(device_id=0)
 
     def tearDown(self):
         # Close the device
@@ -117,9 +118,7 @@ class TestModules(unittest.TestCase):
     def test_batchmatmul(self):
         m = BatchMatmulModule()
         input_shapes = m.input_shapes()
-        inputs = [
-            torch.rand(shape).type(torch.bfloat16) for shape in input_shapes
-        ]
+        inputs = [torch.rand(shape).type(torch.bfloat16) for shape in input_shapes]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True

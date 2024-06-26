@@ -14,6 +14,7 @@ except ImportError:
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
+
 class _Kwarg:
     def __init__(self, key, value):
         self.key = key
@@ -77,7 +78,7 @@ def is_tt_data_move(node) -> bool:
         ttnn.to_device,
         ttnn.from_torch,
         ttnn.to_torch,
-        ttnn.MemoryConfig
+        ttnn.MemoryConfig,
     ]
 
 
@@ -91,14 +92,18 @@ def is_reshape_rank_4(node):
     else:
         return False
 
+
 def should_add_data_move_in(src_node, dst_node) -> bool:
-    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
+    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(
+        src_node, torch.fx.node.Node
+    ):
         return False
     return is_tt_compute(dst_node) and not is_tt(src_node)
 
 
 def should_add_data_move_out(src_node, dst_node) -> bool:
     return is_tt_compute(src_node) and not is_tt(dst_node)
+
 
 def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
     """
@@ -116,15 +121,17 @@ def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
         new_arg[dst_idx] = new_nodes[-1]
         dst_node.update_arg(0, tuple(new_arg))
 
+
 def insert_node_between_kwarg(src_node, key, dst_node, new_nodes):
     """
     Insert new_node between src_node and dest_node's keyword arg.
 
     Output does not have keyword args.
     """
-    assert(dst_node.op != "output")
+    assert dst_node.op != "output"
     new_nodes[0].update_arg(0, src_node)
     dst_node.update_kwarg(key, new_nodes[-1])
+
 
 def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.node.Node:
     if not isinstance(src_node_kwarg, _Kwarg):
@@ -137,13 +144,16 @@ def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.no
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(g.call_function(ttnn.from_torch, (src_node, )))
-        new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout())))
-        if (is_tt_compute(dst_node)):
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
+        new_nodes.append(
+            g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
+        )
+        if is_tt_compute(dst_node):
             new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
 
     insert_node_between_kwarg(src_node, key, dst_node, new_nodes)
     return new_nodes[-1]
+
 
 def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
     if not should_add_data_move_in(src_node, dst_node):
@@ -152,13 +162,19 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(g.call_function(ttnn.from_torch, (src_node, )))
-        if dst_node.target != ttnn.reshape and dst_node.target != ttnn.embedding and dst_node.target != ttnn.zeros_like:
-            new_nodes.append(g.call_function(
-                ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout())
-            ))
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
+        if (
+            dst_node.target != ttnn.reshape
+            and dst_node.target != ttnn.embedding
+            and dst_node.target != ttnn.zeros_like
+        ):
+            new_nodes.append(
+                g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
+            )
         # For reshape only put tensor on device if rank is 4
-        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4):
+        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
+            dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
+        ):
             new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
@@ -172,18 +188,27 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        if (is_tt_compute(src_node) and src_node.target != ttnn.reshape) or (src_node.target == ttnn.reshape and len(src_node.args[1]) == 4):
+        if (is_tt_compute(src_node) and src_node.target != ttnn.reshape) or (
+            src_node.target == ttnn.reshape and len(src_node.args[1]) == 4
+        ):
             new_nodes.append(g.call_function(ttnn.from_device, (src_node,)))
-            if (src_node.target != ttnn.embedding and src_node.target != ttnn.zeros_like):
-                new_nodes.append(g.call_function(
-                    ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
-                ))
-        new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,)))
+            if src_node.target != ttnn.embedding and src_node.target != ttnn.zeros_like:
+                new_nodes.append(
+                    g.call_function(
+                        ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
+                    )
+                )
+        new_nodes.append(
+            g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,))
+        )
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
 
-def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
+
+def try_add_data_move_out_for_layer_norm(
+    src_node, dst_idx, dst_node
+) -> torch.fx.node.Node:
     if not should_add_data_move_out(src_node, dst_node):
         return None
 
@@ -191,7 +216,9 @@ def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.f
     new_nodes = list()
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
-            new_nodes.append(g.call_function(ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout())))
+            new_nodes.append(
+                g.call_function(ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout()))
+            )
             new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
             new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1],)))
 
@@ -229,7 +256,11 @@ class AddDataMovePass(PassBase):
         data_move_out_hash = {}
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
-            kwargs = tuple(_Kwarg(k, v) for k, v in node.kwargs.items() if isinstance(v, torch.fx.node.Node))
+            kwargs = tuple(
+                _Kwarg(k, v)
+                for k, v in node.kwargs.items()
+                if isinstance(v, torch.fx.node.Node)
+            )
             if isinstance(args, tuple):
                 args += kwargs
 
@@ -248,7 +279,9 @@ class AddDataMovePass(PassBase):
                     new_arg[idx] = data_move_out_hash[arg]
                     node.update_arg(0, tuple(new_arg))
                     i += 1
-                elif (node.target != ttnn.layer_norm) and (to_torch := try_add_data_move_out(arg, idx, node)):
+                elif (node.target != ttnn.layer_norm) and (
+                    to_torch := try_add_data_move_out(arg, idx, node)
+                ):
                     data_move_out_hash[arg] = to_torch
                     i += 1
                 elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):

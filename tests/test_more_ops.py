@@ -6,6 +6,7 @@ import tt_lib
 
 from torch_ttnn.utils import check_with_pcc
 
+
 class SubModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -63,6 +64,7 @@ class ReshapeModule(torch.nn.Module):
     def output_shapes(self):
         return [(2 * 32, 32)]
 
+
 class ReshapeNegativeModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -75,6 +77,7 @@ class ReshapeNegativeModule(torch.nn.Module):
 
     def output_shapes(self):
         return [(-1,)]
+
 
 class Reshape4DModule(torch.nn.Module):
     def __init__(self):
@@ -89,6 +92,7 @@ class Reshape4DModule(torch.nn.Module):
     def output_shapes(self):
         return [(16, 32, 64, 32)]
 
+
 class Reshape4DNegativeModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -102,6 +106,7 @@ class Reshape4DNegativeModule(torch.nn.Module):
     def output_shapes(self):
         return [(1, -1, 2, 32)]
 
+
 class PermuteModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -111,6 +116,7 @@ class PermuteModule(torch.nn.Module):
 
     def input_shapes(self):
         return [(4, 4)]
+
 
 class ReluModule(torch.nn.Module):
     def __init__(self):
@@ -122,6 +128,7 @@ class ReluModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+
 class AddMmModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -131,6 +138,7 @@ class AddMmModule(torch.nn.Module):
 
     def input_shapes(self):
         return [(4, 4), (4, 4), (4, 4)]
+
 
 class DivModule(torch.nn.Module):
     def __init__(self):
@@ -142,6 +150,7 @@ class DivModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4), (4, 4)]
 
+
 class DivScalarDenomModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -151,6 +160,7 @@ class DivScalarDenomModule(torch.nn.Module):
 
     def input_shapes(self):
         return [(4, 4)]
+
 
 class GeluModule(torch.nn.Module):
     def __init__(self):
@@ -162,6 +172,7 @@ class GeluModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+
 class RSubModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -171,6 +182,7 @@ class RSubModule(torch.nn.Module):
 
     def input_shapes(self):
         return [(4, 4), (4, 4)]
+
 
 class RSubScalarModule(torch.nn.Module):
     def __init__(self):
@@ -182,6 +194,7 @@ class RSubScalarModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+
 class EmbeddingModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -192,6 +205,7 @@ class EmbeddingModule(torch.nn.Module):
 
     def input_shapes(self):
         return [((1, 2, 4, 5), (4, 3, 2, 9)), (10, 4)]
+
 
 class EmbeddingTileLayoutModule(torch.nn.Module):
     def __init__(self):
@@ -206,7 +220,11 @@ class EmbeddingTileLayoutModule(torch.nn.Module):
         sentence_size = 384
         vocabulary_size = 250880
         hidden_embedding_dim = 1024
-        return [(0, vocabulary_size - 1, (batch_size, sentence_size)), ((vocabulary_size, hidden_embedding_dim))]
+        return [
+            (0, vocabulary_size - 1, (batch_size, sentence_size)),
+            ((vocabulary_size, hidden_embedding_dim)),
+        ]
+
 
 class CloneFromNodeModule(torch.nn.Module):
     def __init__(self):
@@ -219,6 +237,7 @@ class CloneFromNodeModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+
 class CloneFromArgModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -229,30 +248,45 @@ class CloneFromArgModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+
 class LayerNormModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, embedding, weight, bias):
-        return torch.nn.functional.layer_norm(embedding, normalized_shape = [embedding.shape[-1]], weight = weight, bias = bias)
+        return torch.nn.functional.layer_norm(
+            embedding, normalized_shape=[embedding.shape[-1]], weight=weight, bias=bias
+        )
 
     def input_shapes(self):
         batch, sentence_length, embedding_dim = 2, 32, 64
         # [embedding, weight, bias]
-        return [(batch, sentence_length, embedding_dim), (embedding_dim), (embedding_dim)]
+        return [
+            (batch, sentence_length, embedding_dim),
+            (embedding_dim),
+            (embedding_dim),
+        ]
+
 
 class LayerNormWithOtherOpModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, embedding, weight, bias):
-        layer_norm = torch.nn.functional.layer_norm(embedding, normalized_shape = [embedding.shape[-1]], weight = weight, bias = bias)
+        layer_norm = torch.nn.functional.layer_norm(
+            embedding, normalized_shape=[embedding.shape[-1]], weight=weight, bias=bias
+        )
         return layer_norm + layer_norm
 
     def input_shapes(self):
         batch, sentence_length, embedding_dim = 2, 32, 64
         # [embedding, weight, bias]
-        return [(batch, sentence_length, embedding_dim), (embedding_dim), (embedding_dim)]
+        return [
+            (batch, sentence_length, embedding_dim),
+            (embedding_dim),
+            (embedding_dim),
+        ]
+
 
 class NegModule(torch.nn.Module):
     def __init__(self):
@@ -262,7 +296,8 @@ class NegModule(torch.nn.Module):
         return torch.neg(input)
 
     def input_shapes(self):
-        return[(4)]
+        return [(4)]
+
 
 class OnesModule(torch.nn.Module):
     def __init__(self):
@@ -272,7 +307,8 @@ class OnesModule(torch.nn.Module):
         return torch.ones(shape)
 
     def input_shapes(self):
-        return[(32, 32)]
+        return [(32, 32)]
+
 
 class TrilModule(torch.nn.Module):
     def __init__(self):
@@ -282,7 +318,8 @@ class TrilModule(torch.nn.Module):
         return torch.tril(input)
 
     def input_shapes(self):
-        return[(4, 4)]
+        return [(4, 4)]
+
 
 class ArangeModule(torch.nn.Module):
     def __init__(self):
@@ -293,7 +330,8 @@ class ArangeModule(torch.nn.Module):
         return torch.arange(end)
 
     def input_shapes(self):
-        return[100]
+        return [100]
+
 
 class ArangeStartModule(torch.nn.Module):
     def __init__(self):
@@ -305,7 +343,8 @@ class ArangeStartModule(torch.nn.Module):
 
     def input_shapes(self):
         # ttnn.arange does not support star values less than 2?
-        return[2, 100]
+        return [2, 100]
+
 
 class ArangeStartStepModule(torch.nn.Module):
     def __init__(self):
@@ -316,7 +355,8 @@ class ArangeStartStepModule(torch.nn.Module):
 
     def input_shapes(self):
         # ttnn.arange does not support star values less than 2?
-        return[4, 100, 3]
+        return [4, 100, 3]
+
 
 class EqTensorModule(torch.nn.Module):
     def __init__(self):
@@ -326,7 +366,8 @@ class EqTensorModule(torch.nn.Module):
         return torch.eq(tensor1, tensor2)
 
     def input_shapes(self):
-        return[(4, 4), (4,4)]
+        return [(4, 4), (4, 4)]
+
 
 class EqScalarModule(torch.nn.Module):
     def __init__(self):
@@ -336,7 +377,8 @@ class EqScalarModule(torch.nn.Module):
         return torch.eq(tensor, scalar)
 
     def input_shapes(self):
-        return[(64, 128)]
+        return [(64, 128)]
+
 
 class LogicalNotModule(torch.nn.Module):
     def __init__(self):
@@ -346,7 +388,8 @@ class LogicalNotModule(torch.nn.Module):
         return torch.logical_not(input)
 
     def input_shapes(self):
-        return[(4, 4)]
+        return [(4, 4)]
+
 
 class ZerosLikeModule(torch.nn.Module):
     def __init__(self):
@@ -356,17 +399,19 @@ class ZerosLikeModule(torch.nn.Module):
         return torch.zeros_like(input)
 
     def input_shapes(self):
-        return[(4, 4)]
+        return [(4, 4)]
+
 
 class MeanDimModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, input, dim, keepdim = False):
+    def forward(self, input, dim, keepdim=False):
         return torch.mean(input, dim, keepdim)
 
     def input_shapes(self):
-        return[(1, 32, 32), -1]
+        return [(1, 32, 32), -1]
+
 
 class PowTensorScalarModule(torch.nn.Module):
     def __init__(self):
@@ -378,7 +423,8 @@ class PowTensorScalarModule(torch.nn.Module):
         return square
 
     def input_shapes(self):
-        return[(4, 4)]
+        return [(4, 4)]
+
 
 class RsqrtModule(torch.nn.Module):
     def __init__(self):
@@ -388,7 +434,8 @@ class RsqrtModule(torch.nn.Module):
         return torch.rsqrt(input)
 
     def input_shapes(self):
-        return[(4, 4)]
+        return [(4, 4)]
+
 
 class SiluModule(torch.nn.Module):
     def __init__(self):
@@ -398,7 +445,8 @@ class SiluModule(torch.nn.Module):
         return torch.nn.functional.silu(input)
 
     def input_shapes(self):
-        return[(4, 4)]
+        return [(4, 4)]
+
 
 class AdaptiveAvgPool2dModule(torch.nn.Module):
     def __init__(self):
@@ -408,7 +456,8 @@ class AdaptiveAvgPool2dModule(torch.nn.Module):
         return torch._adaptive_avg_pool2d(input, (1, 1))
 
     def input_shapes(self):
-        return[(1, 2048, 7, 7)]
+        return [(1, 2048, 7, 7)]
+
 
 class ClampModule(torch.nn.Module):
     def __init__(self):
@@ -418,7 +467,8 @@ class ClampModule(torch.nn.Module):
         return torch.clamp(input, min=min, max=max)
 
     def input_shapes(self):
-        return[(4, 4)]
+        return [(4, 4)]
+
 
 class SqueezeDimModule(torch.nn.Module):
     def __init__(self):
@@ -428,7 +478,8 @@ class SqueezeDimModule(torch.nn.Module):
         return torch.squeeze(input, dim)
 
     def input_shapes(self):
-        return[(1, 32, 16)]
+        return [(1, 32, 16)]
+
 
 class FullModule(torch.nn.Module):
     def __init__(self):
@@ -438,7 +489,8 @@ class FullModule(torch.nn.Module):
         return torch.full(size, fill_value)
 
     def input_shapes(self):
-        return[(64, 128)]
+        return [(64, 128)]
+
 
 class LtTensorModule(torch.nn.Module):
     def __init__(self):
@@ -448,7 +500,8 @@ class LtTensorModule(torch.nn.Module):
         return torch.lt(input, tensor)
 
     def input_shapes(self):
-        return[(4, 4), (4, 4)]
+        return [(4, 4), (4, 4)]
+
 
 class LtScalarModule(torch.nn.Module):
     def __init__(self):
@@ -458,25 +511,27 @@ class LtScalarModule(torch.nn.Module):
         return torch.lt(input, scalar)
 
     def input_shapes(self):
-        return[(64, 128)]
+        return [(64, 128)]
+
 
 class BaddbmmModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, input, batch1, batch2, beta = 1, alpha = 1):
+    def forward(self, input, batch1, batch2, beta=1, alpha=1):
         if beta == 1:
-            return torch.baddbmm(input, batch1, batch2, alpha = alpha)
+            return torch.baddbmm(input, batch1, batch2, alpha=alpha)
         elif alpha == 1:
-            return torch.baddbmm(input, batch1, batch2, beta = beta)
+            return torch.baddbmm(input, batch1, batch2, beta=beta)
         elif beta == 1 and alpha == 1:
             return torch.baddbmm(input, batch1, batch2)
         else:
-            return torch.baddbmm(input, batch1, batch2, beta = beta, alpha = alpha)
+            return torch.baddbmm(input, batch1, batch2, beta=beta, alpha=alpha)
 
     def input_shapes(self):
         # input, batch1, batch2
-        return[(10, 64, 128), (10, 64, 32), (10, 32, 128)]
+        return [(10, 64, 128), (10, 64, 32), (10, 32, 128)]
+
 
 class CosModule(torch.nn.Module):
     def __init__(self):
@@ -488,6 +543,7 @@ class CosModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+
 class SigmoidModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -498,10 +554,11 @@ class SigmoidModule(torch.nn.Module):
     def input_shapes(self):
         return [(4, 4)]
 
+
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
-        self.device: ttnn.Device = ttnn.open_device(device_id = 0)
+        self.device: ttnn.Device = ttnn.open_device(device_id=0)
         # For AutoFormat
         tt_lib.device.SetDefaultDevice(self.device)
 
@@ -958,7 +1015,9 @@ class TestModules(unittest.TestCase):
         m = EmbeddingTileLayoutModule()
         input_shapes = m.input_shapes()
         input = torch.randint(*input_shapes[0])
-        weights = torch.zeros(*input_shapes[1], dtype=torch.bfloat16).uniform_(-0.1, 0.1)
+        weights = torch.zeros(*input_shapes[1], dtype=torch.bfloat16).uniform_(
+            -0.1, 0.1
+        )
         result_before = m.forward(input, weights)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
@@ -1047,10 +1106,14 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[12].args[0].args[0].args[0].target == ttnn.from_torch)
         self.assertTrue(nodes[12].kwargs["weight"].target == ttnn.to_device)
         self.assertTrue(nodes[12].kwargs["weight"].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[12].kwargs["weight"].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(
+            nodes[12].kwargs["weight"].args[0].args[0].target == ttnn.from_torch
+        )
         self.assertTrue(nodes[12].kwargs["bias"].target == ttnn.to_device)
         self.assertTrue(nodes[12].kwargs["bias"].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[12].kwargs["bias"].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(
+            nodes[12].kwargs["bias"].args[0].args[0].target == ttnn.from_torch
+        )
         self.assertTrue(nodes[13].target == ttnn.from_device)
         self.assertTrue(nodes[14].target == ttnn.to_layout)
         self.assertTrue(nodes[15].target == ttnn.to_torch)
@@ -1224,7 +1287,9 @@ class TestModules(unittest.TestCase):
     def test_eq_tensor(self):
         m = EqTensorModule()
         input_shapes = m.input_shapes()
-        inputs = [torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes]
+        inputs = [
+            torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes
+        ]
         result_before = m.forward(*inputs)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
@@ -1251,7 +1316,9 @@ class TestModules(unittest.TestCase):
     def test_eq_scalar(self):
         m = EqScalarModule()
         input_shapes = m.input_shapes()
-        inputs = [torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes]
+        inputs = [
+            torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes
+        ]
         scalar = torch.randint(0, 2, (1,)).item()
         result_before = m.forward(inputs[0], scalar)
         option = torch_ttnn.TorchTtnnOption(device=self.device)
@@ -1601,9 +1668,9 @@ class TestModules(unittest.TestCase):
         self.assertTrue(check_with_pcc(result_before, result_after))
 
         # (2) Test with alpha and default beta value
-        result_before = m.forward(*inputs, alpha = 2)
+        result_before = m.forward(*inputs, alpha=2)
         m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m_ttnn.forward(*inputs, alpha = 2)
+        result_after = m_ttnn.forward(*inputs, alpha=2)
         option._out_fx_graphs[-1].print_tabular()
 
         nodes = list(option._out_fx_graphs[-1].nodes)
@@ -1627,9 +1694,9 @@ class TestModules(unittest.TestCase):
         self.assertTrue(check_with_pcc(result_before, result_after))
 
         # (3) Test with beta and default alpha value
-        result_before = m.forward(*inputs, beta = 2)
+        result_before = m.forward(*inputs, beta=2)
         m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m_ttnn.forward(*inputs, beta = 2)
+        result_after = m_ttnn.forward(*inputs, beta=2)
         option._out_fx_graphs[-1].print_tabular()
 
         nodes = list(option._out_fx_graphs[-1].nodes)
@@ -1653,9 +1720,9 @@ class TestModules(unittest.TestCase):
         self.assertTrue(check_with_pcc(result_before, result_after))
 
         # (4) Test with beta and alpha values
-        result_before = m.forward(*inputs, beta = 2, alpha = 2)
+        result_before = m.forward(*inputs, beta=2, alpha=2)
         m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m_ttnn.forward(*inputs, beta = 2, alpha = 2)
+        result_after = m_ttnn.forward(*inputs, beta=2, alpha=2)
         option._out_fx_graphs[-1].print_tabular()
 
         nodes = list(option._out_fx_graphs[-1].nodes)
@@ -1681,9 +1748,9 @@ class TestModules(unittest.TestCase):
         self.assertTrue(check_with_pcc(result_before, result_after))
 
         # (5) Test special case when beta is 0
-        result_before = m.forward(*inputs, beta = 0, alpha = 2)
+        result_before = m.forward(*inputs, beta=0, alpha=2)
         m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m_ttnn.forward(*inputs, beta = 0, alpha = 2)
+        result_after = m_ttnn.forward(*inputs, beta=0, alpha=2)
         option._out_fx_graphs[-1].print_tabular()
 
         nodes = list(option._out_fx_graphs[-1].nodes)
@@ -1748,6 +1815,7 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[7].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -23,10 +23,12 @@ The method is inspired by TensorRT:
 https://github.com/pytorch/TensorRT/commit/7daa1120dc1bc72d6f92f1e7aa2b357a65b6ea08
 """
 
+
 # torch.fx defines a placeholder node as a function input
 def get_input_nodes(gm: torch.fx.GraphModule) -> List[torch.fx.Node]:
     input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder")]
     return input_nodes
+
 
 # Insert aten.clone nodes after every input to prevent input aliasing
 def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
@@ -40,8 +42,12 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
         """
         with gm.graph.inserting_after(input_nodes[-1]):
             clone_node = gm.graph.call_function(
-                torch.ops.aten.clone.default, args=(node,))
-            node.replace_all_uses_with(clone_node, delete_user_cb=lambda node: node != clone_node,)
+                torch.ops.aten.clone.default, args=(node,)
+            )
+            node.replace_all_uses_with(
+                clone_node,
+                delete_user_cb=lambda node: node != clone_node,
+            )
             modified = True
 
     if modified:
@@ -51,10 +57,10 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
 
 
 def remove_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    """ Remove the clone ops inserted to handle input aliasing
-    opcode         name             target               args                                                                           
+    """Remove the clone ops inserted to handle input aliasing
+    opcode         name             target               args
     -------------  ---------------  -------------------  ------------
-    placeholder    l_input_         L_input_             ()   
+    placeholder    l_input_         L_input_             ()
     call_function  clone_default    aten.clone.default   (l_input_,)
     call_function  op               <op_func>            (clone_default)
     """

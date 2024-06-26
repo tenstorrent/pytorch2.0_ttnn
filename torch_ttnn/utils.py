@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 
+
 # Testing utils copied from tt-metal/tests/ttnn/utils_for_testing.py
 def comp_pcc(golden, calculated, pcc=0.99):
     golden = torch.Tensor(golden)
@@ -56,7 +57,10 @@ def comp_pcc(golden, calculated, pcc=0.99):
 
     return cal_pcc >= pcc, cal_pcc
 
-def construct_pcc_assert_message(message, expected_pytorch_result, actual_pytorch_result):
+
+def construct_pcc_assert_message(
+    message, expected_pytorch_result, actual_pytorch_result
+):
     messages = []
     messages.append(message)
     # messages.append("Expected")
@@ -66,14 +70,20 @@ def construct_pcc_assert_message(message, expected_pytorch_result, actual_pytorc
     messages = [str(m) for m in messages]
     return "\n".join(messages)
 
+
 def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.9999):
     if expected_pytorch_result.shape != actual_pytorch_result.shape:
         return (
             False,
             f"list(expected_pytorch_result.shape)={list(expected_pytorch_result.shape)} vs list(actual_pytorch_result.shape)={list(actual_pytorch_result.shape)}",
         )
-    pcc_passed, pcc_message = comp_pcc(expected_pytorch_result, actual_pytorch_result, pcc)
-    return pcc_passed, construct_pcc_assert_message(pcc_message, expected_pytorch_result, actual_pytorch_result)
+    pcc_passed, pcc_message = comp_pcc(
+        expected_pytorch_result, actual_pytorch_result, pcc
+    )
+    return pcc_passed, construct_pcc_assert_message(
+        pcc_message, expected_pytorch_result, actual_pytorch_result
+    )
+
 
 def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     gm.graph.eliminate_dead_code()
@@ -82,30 +92,37 @@ def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
     return gm
 
+
 # See https://docs.google.com/document/d/1r2D4AagoeTRjEmXFnWzzafaWQkf-8hlIbX2ze-JAUFo/edit#heading=h.zad9rwqjv6cr
 class DummyDevice:
     def __repr__(self):
         return f"ttnn_Specified_Device"
 
+
 class DummyTtnnRowMajorLayout:
     def __repr__(self):
         return f"ttnn_ROW_MAJOR_LAYOUT"
+
 
 class DummyTtnnTileLayout:
     def __repr__(self):
         return f"ttnn_TILE_LAYOUT"
 
+
 class DummyTtnnUint32:
     def __repr__(self):
         return f"ttnn_uint32"
+
 
 class DummyTtnnBfloat16:
     def __repr__(self):
         return f"ttnn_bfloat16"
 
+
 class DummyTtlTensorTensorMemoryLayoutInterleaved:
     def __repr__(self):
         return f"ttl_tensor_TensorMemoryLayout_INTERLEAVED"
+
 
 class DummyTtlTensorBufferTypeDram:
     def __repr__(self):

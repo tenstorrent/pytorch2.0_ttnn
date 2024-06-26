@@ -5,6 +5,7 @@ from torch_ttnn import ttnn
 
 from torch_ttnn.utils import check_with_pcc
 
+
 class MixModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -24,7 +25,7 @@ class MixModule(torch.nn.Module):
 class TestModules(unittest.TestCase):
     def setUp(self):
         # Open device 0
-        self.device: ttnn.Device = ttnn.open_device(device_id = 0)
+        self.device: ttnn.Device = ttnn.open_device(device_id=0)
 
     def tearDown(self):
         # Close the device

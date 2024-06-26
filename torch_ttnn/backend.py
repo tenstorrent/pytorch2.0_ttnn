@@ -29,10 +29,12 @@ def aten_backend(
 
     # Clone ops used for input aliasing workaround are no longer needed at this point
     from .handle_input_aliasing import remove_clones_for_input_aliasing
+
     gm = remove_clones_for_input_aliasing(gm)
 
     # Change float types in dtype kwargs to bfloat16
     from .convert_type import convert_dtype_to_bfloat16, convert_float_to_bfloat16
+
     gm = convert_float_to_bfloat16(gm)
     gm = convert_dtype_to_bfloat16(gm)
 
@@ -41,20 +43,27 @@ def aten_backend(
     torch.fx.graph._register_custom_builtin(
         "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
     )
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT
-    )
+    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
     torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
 
     # Some ttnn objects are unhashable because they are function calls.
     # However, arguments for these functions are usually hashable.
     import tt_lib as ttl
+
     # ttnn.DRAM_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.DRAM)
-    torch.fx.graph._register_custom_builtin("ttl_tensor_TensorMemoryLayout_INTERLEAVED", "", ttl.tensor.TensorMemoryLayout.INTERLEAVED)
-    torch.fx.graph._register_custom_builtin("ttl_tensor_BufferType_DRAM", "", ttl.tensor.BufferType.DRAM)
+    torch.fx.graph._register_custom_builtin(
+        "ttl_tensor_TensorMemoryLayout_INTERLEAVED",
+        "",
+        ttl.tensor.TensorMemoryLayout.INTERLEAVED,
+    )
+    torch.fx.graph._register_custom_builtin(
+        "ttl_tensor_BufferType_DRAM", "", ttl.tensor.BufferType.DRAM
+    )
     # ttnn.L1_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.L1)
-    torch.fx.graph._register_custom_builtin("ttl_tensor_BufferType_L1", "", ttl.tensor.BufferType.L1)
+    torch.fx.graph._register_custom_builtin(
+        "ttl_tensor_BufferType_L1", "", ttl.tensor.BufferType.L1
+    )
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
@@ -109,14 +118,20 @@ class TorchTtnnOption:
         self.gen_graphviz = False
         self._out_fx_graphs = list()
 
+
 from .handle_input_aliasing import insert_clones_for_input_aliasing
 
+
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.
-def backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], **kwargs) -> torch.fx.GraphModule:
+def backend(
+    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], **kwargs
+) -> torch.fx.GraphModule:
     if options := kwargs.get("options"):
         options = {"torch_ttnn_option": options}
     else:
         raise RuntimeError("TorchTtnnOption missing")
 
     gm = insert_clones_for_input_aliasing(gm)
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))(gm, example_inputs)
+    return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
+        gm, example_inputs
+    )
