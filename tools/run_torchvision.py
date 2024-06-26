@@ -3,9 +3,18 @@ import argparse
 import torch
 import torchvision
 
-def run_model(model_name: str, backend: str, backward: bool, out_path: str, graphviz: bool, to_profile: bool, device = None):
+
+def run_model(
+    model_name: str,
+    backend: str,
+    backward: bool,
+    out_path: str,
+    graphviz: bool,
+    to_profile: bool,
+    device=None,
+):
     if model_name == "dinov2_vits14":
-        m = torch.hub.load('facebookresearch/dinov2', model_name)
+        m = torch.hub.load("facebookresearch/dinov2", model_name)
     else:
         try:
             m = torchvision.models.get_model(model_name, pretrained=True)
@@ -30,16 +39,21 @@ def run_model(model_name: str, backend: str, backward: bool, out_path: str, grap
         option = torch_ttnn.TorchTtnnOption(device=device)
         m = torch.compile(m, backend=torch_ttnn.backend(option))
     elif backend == "torch_stat":
-        option = torch_stat.TorchStatOption(model_name = model_name, backward = backward,
-                                            out = out_path, gen_graphviz=graphviz)
+        option = torch_stat.TorchStatOption(
+            model_name=model_name,
+            backward=backward,
+            out=out_path,
+            gen_graphviz=graphviz,
+        )
         m = torch.compile(m, backend=torch_stat.backend(option))
     else:
-        assert(0 and "Unsupport backend")
+        assert 0 and "Unsupport backend"
 
     inputs = [torch.randn([1, 3, 224, 224])]
 
     if to_profile:
         from torch.profiler import profile, record_function, ProfilerActivity
+
         trace_file = os.path.join(out_path, "profile", model_name)
         os.makedirs(os.path.dirname(trace_file), exist_ok=True)
         activities = [ProfilerActivity.CPU]
@@ -55,17 +69,20 @@ def run_model(model_name: str, backend: str, backward: bool, out_path: str, grap
         if backward:
             result.backward(torch.ones_like(result))
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out_path", "-o", type = str, default = os.path.join(os.getcwd(),"stat"))
-    parser.add_argument("--backend", type = str)
+    parser.add_argument(
+        "--out_path", "-o", type=str, default=os.path.join(os.getcwd(), "stat")
+    )
+    parser.add_argument("--backend", type=str)
     parser.add_argument("--graphviz", action="store_true")
     parser.add_argument("--backward", action="store_true")
     parser.add_argument("--profile", action="store_true")
     args = parser.parse_args()
-    assert(args.backend in ["torch_ttnn", "torch_stat"])
+    assert args.backend in ["torch_ttnn", "torch_stat"]
     if args.backend == "torch_ttnn" and args.backward:
-        assert(0 and "torch_ttnn not yet support backward")
+        assert 0 and "torch_ttnn not yet support backward"
 
     if args.backend == "torch_ttnn":
         import torch_ttnn
@@ -77,7 +94,15 @@ if __name__ == "__main__":
     device = torch_ttnn.ttnn.open(0) if args.backend == "torch_ttnn" else None
     for m in models:
         try:
-            run_model(m, args.backend, args.backward, args.out_path, args.graphviz, args.profile, device)
+            run_model(
+                m,
+                args.backend,
+                args.backward,
+                args.out_path,
+                args.graphviz,
+                args.profile,
+                device,
+            )
         except:
             print(f"{m} FAIL")
     if args.backend == "torch_ttnn":
