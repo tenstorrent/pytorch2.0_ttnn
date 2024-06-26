@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 jobs:
-  run-pytest:
+  validate-pr:
     env:
       ARCH_NAME: wormhole_b0
       TT_METAL_HOME: ${pwd}
@@ -26,8 +26,9 @@ jobs:
           python3 -m venv venv
           source venv/bin/activate
           python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
-          python3 -m pip install --upgrade pip          
-          python3 -m pip install -r requirements-dev.txt      
+          python3 -m pip install --upgrade pip                    
+          python3 -m pip install -r requirements-dev.txt
+          python3 -m pip install pytest-github-report
       - name: Run Tests
         env:
           pytest_verbosity: 2

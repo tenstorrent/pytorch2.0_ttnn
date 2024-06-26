@@ -4,6 +4,7 @@ import torch
 from torch.fx.passes.fake_tensor_prop import FakeTensorProp
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
+
 def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
     try:
         FakeTensorProp(gm).propagate(*example_inputs)
@@ -16,13 +17,11 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
     def get_tensor_info(t):
         def no_symInt_in_list(the_list):
             return not any(isinstance(element, torch.SymInt) for element in the_list)
+
         # Only record if the tensor is torch.Tensor
         # some shape is referenced by a variable, like [2, 256, s0, s1]
         if isinstance(t, torch.Tensor) and no_symInt_in_list(list(t.shape)):
-            return {
-                "shape": list(t.shape),
-                "dtype": str(t.dtype)
-            }
+            return {"shape": list(t.shape), "dtype": str(t.dtype)}
         else:
             return {}
 
@@ -48,8 +47,7 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
         # set node's outputs info
         node_info["outputs"] = []
         outputs_info = node.meta["val"]
-        if isinstance(outputs_info, tuple) or \
-             isinstance(outputs_info, list):
+        if isinstance(outputs_info, tuple) or isinstance(outputs_info, list):
             for output_info in outputs_info:
                 output = get_tensor_info(output_info)
                 node_info["outputs"].append(output)
@@ -57,12 +55,13 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
             output = get_tensor_info(outputs_info)
             node_info["outputs"].append(output)
         else:
-            assert(0 and "unsupport outputs_info")
+            assert 0 and "unsupport outputs_info"
         out.append(node_info)
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
 
     with open(out_file, "w") as f:
         json.dump(out, f, indent=4)
+
 
 # The pass to collect node's information
 # Run tools/generate_report.py to genetate report
