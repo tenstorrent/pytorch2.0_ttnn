@@ -4,6 +4,7 @@ import torch_ttnn
 import unittest
 from torch_ttnn import ttnn
 import collections
+import os
 
 
 class TestRealWorld(unittest.TestCase):
@@ -17,6 +18,10 @@ class TestRealWorld(unittest.TestCase):
 
     @unittest.skip(
         "Skip this test because it take 135 MB to download the ResNet18 model. Un-skip it if you want to test it."
+    )
+    @unittest.skipUnless(
+        os.getenv("RUN_INTEGRATION_TESTS", "0") == "1",
+        "Skip this test because it takes 135 MB to download the ResNet18 model. Set RUN_INTEGRATION_TESTS=1 to run it.",
     )
     def test_resnet(self):
         # Download model from cloud
