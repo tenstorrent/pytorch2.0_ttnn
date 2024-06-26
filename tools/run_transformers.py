@@ -34,7 +34,6 @@ def run_model(
     to_profile: bool,
     device=None,
 ):
-
     text_modules = [
         AutoModelForQuestionAnswering,
         AutoModelForCausalLM,
