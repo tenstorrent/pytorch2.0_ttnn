@@ -29,6 +29,18 @@ jobs:
           python3 -m pip install --upgrade pip                    
           python3 -m pip install -r requirements-dev.txt
           python3 -m pip install pytest-github-report
+      - id: dl_metal_libs
+        name: Download metal_libs
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: tenstorrent/tt-metal
+          latest: true
+          preRelease: true
+          fileName: metal_libs-*wormhole.b0*.whl
+      - name: Install metal_libs
+        run: |
+          source venv/bin/activate
+          python3 -m pip install ${{ fromJson(steps.dl_metal_libs.outputs.downloaded_files)[0] }}
       - name: Run Tests
         env:
           pytest_verbosity: 2
