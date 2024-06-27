@@ -322,8 +322,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # TODO(kevinwuTT): Use a ttnn equivalent
                 node_metadata = node.meta["val"]
                 if isinstance(args[1], float):
+                    new_kwargs = {"dtype": torch.bfloat16}
                     full = g.call_function(
-                        torch.ops.aten.full.default, (node_metadata.size(), args[1]), {}
+                        torch.ops.aten.full.default,
+                        (node_metadata.size(), args[1]),
+                        new_kwargs,
                     )
                     recip = g.call_function(ttnn.reciprocal, (full,), {})
                 else:
