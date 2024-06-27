@@ -15,8 +15,6 @@ jobs:
   validate-pr:
     env:
       ARCH_NAME: wormhole_b0
-      TT_METAL_HOME: ${pwd}
-      PYTHONPATH: ${pwd}
     runs-on: ["in-service", "n150"]
     steps:
       - name: Checkout Repo
