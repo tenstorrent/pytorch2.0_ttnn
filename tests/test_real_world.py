@@ -16,9 +16,6 @@ class TestRealWorld(unittest.TestCase):
         # Close the device
         ttnn.close_device(self.device)
 
-    @unittest.skip(
-        "Skip this test because it take 135 MB to download the ResNet18 model. Un-skip it if you want to test it."
-    )
     @unittest.skipUnless(
         os.getenv("RUN_INTEGRATION_TESTS", "0") == "1",
         "Skip this test because it takes 135 MB to download the ResNet18 model. Set RUN_INTEGRATION_TESTS=1 to run it.",
