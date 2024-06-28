@@ -2,6 +2,7 @@ import torch.linalg
 import torch
 from typing import List
 import torch._dynamo
+from functorch.compile import make_boxed_func
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -26,10 +27,42 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
+    # Clone ops used for input aliasing workaround are no longer needed at this point
+    from .handle_input_aliasing import remove_clones_for_input_aliasing
+
+    gm = remove_clones_for_input_aliasing(gm)
+
+    # Change float types in dtype kwargs to bfloat16
+    from .convert_type import convert_dtype_to_bfloat16, convert_float_to_bfloat16
+
+    gm = convert_float_to_bfloat16(gm)
+    gm = convert_dtype_to_bfloat16(gm)
+
     option: TorchTtnnOption = options["torch_ttnn_option"]
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
     torch.fx.graph._register_custom_builtin(
         "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
+    )
+    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
+    torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
+    torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
+
+    # Some ttnn objects are unhashable because they are function calls.
+    # However, arguments for these functions are usually hashable.
+    import tt_lib as ttl
+
+    # ttnn.DRAM_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.DRAM)
+    torch.fx.graph._register_custom_builtin(
+        "ttl_tensor_TensorMemoryLayout_INTERLEAVED",
+        "",
+        ttl.tensor.TensorMemoryLayout.INTERLEAVED,
+    )
+    torch.fx.graph._register_custom_builtin(
+        "ttl_tensor_BufferType_DRAM", "", ttl.tensor.BufferType.DRAM
+    )
+    # ttnn.L1_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.L1)
+    torch.fx.graph._register_custom_builtin(
+        "ttl_tensor_BufferType_L1", "", ttl.tensor.BufferType.L1
     )
 
     # Rewrite with ttnn ops, will insert redundant data movement
@@ -66,11 +99,12 @@ def aten_backend(
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
+    gm.graph.lint()
     gm.recompile()
     gm.graph.print_tabular()
     print(gm.code)
     option._out_fx_graphs.append(gm.graph)
-    return gm
+    return make_boxed_func(gm)
 
 
 from torch._dynamo.backends.common import aot_autograd
@@ -85,7 +119,19 @@ class TorchTtnnOption:
         self._out_fx_graphs = list()
 
 
+from .handle_input_aliasing import insert_clones_for_input_aliasing
+
+
 # The wrapper of aot_autograd that takes a TorchTtnnOption as options.
-def backend(torch_ttnn_option: TorchTtnnOption):
-    options = {"torch_ttnn_option": torch_ttnn_option}
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))
+def backend(
+    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], **kwargs
+) -> torch.fx.GraphModule:
+    if options := kwargs.get("options"):
+        options = {"torch_ttnn_option": options}
+    else:
+        raise RuntimeError("TorchTtnnOption missing")
+
+    gm = insert_clones_for_input_aliasing(gm)
+    return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
+        gm, example_inputs
+    )
