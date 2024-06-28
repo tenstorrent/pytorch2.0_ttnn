@@ -1,4 +1,10 @@
 import torch
+from ..utils import (
+    DummyTtnnUint32,
+    DummyTtnnRowMajorLayout,
+    DummyTtnnTileLayout,
+    DummyDevice,
+)
 
 try:
     import ttnn
@@ -7,6 +13,12 @@ except ImportError:
     from .. import mock_ttnn as ttnn
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
+
+
+class _Kwarg:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
 
 
 def is_function_call(node) -> bool:
@@ -30,6 +42,30 @@ def is_tt_compute(node) -> bool:
             ttnn.tanh,
             ttnn.reshape,
             ttnn.permute,
+            ttnn.relu,
+            ttnn.reciprocal,
+            ttnn.gelu,
+            ttnn.embedding,
+            ttnn.clone,
+            ttnn.layer_norm,
+            ttnn.neg,
+            ttnn.ones,
+            ttnn.tril,
+            ttnn.arange,
+            ttnn.eq,
+            ttnn.logical_not,
+            ttnn.zeros_like,
+            ttnn.mean,
+            ttnn.pow,
+            ttnn.rsqrt,
+            ttnn.silu,
+            ttnn.global_avg_pool2d,
+            ttnn.clip,
+            ttnn.squeeze,
+            ttnn.full,
+            ttnn.lt,
+            ttnn.cos,
+            ttnn.sigmoid,
         ]
     )
 
@@ -42,6 +78,7 @@ def is_tt_data_move(node) -> bool:
         ttnn.to_device,
         ttnn.from_torch,
         ttnn.to_torch,
+        ttnn.MemoryConfig,
     ]
 
 
@@ -49,8 +86,17 @@ def is_tt(node):
     return is_tt_compute(node) or is_tt_data_move(node)
 
 
+def is_reshape_rank_4(node):
+    if node.target == ttnn.reshape:
+        return len(node.args[1]) == 4
+    else:
+        return False
+
+
 def should_add_data_move_in(src_node, dst_node) -> bool:
-    if isinstance(src_node, (int, float, list, tuple)):
+    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(
+        src_node, torch.fx.node.Node
+    ):
         return False
     return is_tt_compute(dst_node) and not is_tt(src_node)
 
@@ -76,44 +122,126 @@ def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
         dst_node.update_arg(0, tuple(new_arg))
 
 
-def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> bool:
+def insert_node_between_kwarg(src_node, key, dst_node, new_nodes):
+    """
+    Insert new_node between src_node and dest_node's keyword arg.
+
+    Output does not have keyword args.
+    """
+    assert dst_node.op != "output"
+    new_nodes[0].update_arg(0, src_node)
+    dst_node.update_kwarg(key, new_nodes[-1])
+
+
+def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.node.Node:
+    if not isinstance(src_node_kwarg, _Kwarg):
+        return None
+    key = src_node_kwarg.key
+    src_node = src_node_kwarg.value
     if not should_add_data_move_in(src_node, dst_node):
-        return False
+        return None
 
     g = dst_node.graph
+    new_nodes = list()
     with g.inserting_before(dst_node):
-        from_torch = g.call_function(ttnn.from_torch, (src_node,))
-        to_device = g.call_function(ttnn.to_device, (from_torch, device))
-
-    insert_node_between(src_node, dst_idx, dst_node, [from_torch, to_device])
-    return True
-
-
-def try_add_data_move_out(src_node, dst_idx, dst_node) -> bool:
-    if not should_add_data_move_out(src_node, dst_node):
-        return False
-
-    g = dst_node.graph
-    with g.inserting_before(dst_node):
-        from_device = g.call_function(ttnn.from_device, (src_node,))
-        row_major_layout = g.call_function(
-            ttnn.to_layout, (from_device, DummyTtnnRowMajorLayout())
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
+        new_nodes.append(
+            g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
         )
-        to_torch = g.call_function(ttnn.to_torch, (row_major_layout,))
+        if is_tt_compute(dst_node):
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_torch])
-    return True
-
-
-# See https://docs.google.com/document/d/1r2D4AagoeTRjEmXFnWzzafaWQkf-8hlIbX2ze-JAUFo/edit#heading=h.zad9rwqjv6cr
-class DummyDevice:
-    def __repr__(self):
-        return f"ttnn_Specified_Device"
+    insert_node_between_kwarg(src_node, key, dst_node, new_nodes)
+    return new_nodes[-1]
 
 
-class DummyTtnnRowMajorLayout:
-    def __repr__(self):
-        return f"ttnn_ROW_MAJOR_LAYOUT"
+def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
+    if not should_add_data_move_in(src_node, dst_node):
+        return None
+
+    g = dst_node.graph
+    new_nodes = list()
+    with g.inserting_before(dst_node):
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
+        if (
+            dst_node.target != ttnn.reshape
+            and dst_node.target != ttnn.embedding
+            and dst_node.target != ttnn.zeros_like
+        ):
+            new_nodes.append(
+                g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
+            )
+        # For reshape only put tensor on device if rank is 4
+        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
+            dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
+        ):
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
+
+    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
+    return new_nodes[-1]
+
+
+def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
+    if not should_add_data_move_out(src_node, dst_node):
+        return None
+
+    g = dst_node.graph
+    new_nodes = list()
+    with g.inserting_before(dst_node):
+        if (is_tt_compute(src_node) and src_node.target != ttnn.reshape) or (
+            src_node.target == ttnn.reshape and len(src_node.args[1]) == 4
+        ):
+            new_nodes.append(g.call_function(ttnn.from_device, (src_node,)))
+            if src_node.target != ttnn.embedding and src_node.target != ttnn.zeros_like:
+                new_nodes.append(
+                    g.call_function(
+                        ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
+                    )
+                )
+        new_nodes.append(
+            g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,))
+        )
+
+    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
+    return new_nodes[-1]
+
+
+def try_add_data_move_out_for_layer_norm(
+    src_node, dst_idx, dst_node
+) -> torch.fx.node.Node:
+    if not should_add_data_move_out(src_node, dst_node):
+        return None
+
+    g = dst_node.graph
+    new_nodes = list()
+    with g.inserting_before(dst_node):
+        if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
+            new_nodes.append(
+                g.call_function(ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout()))
+            )
+            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
+            new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1],)))
+
+    # Workaround to output the same layer_norm output
+    # Before: layer_norm = aten.layer_norm
+    #          getitem = getitem(layer_norm, 0)
+    #          return ((getitem,),)
+    # After: layer_norm = ttnn.layer_norm
+    #        return (layer_norm,)
+    # Need to match the tuple in the original return statement
+    if new_nodes:
+        old_args = dst_node.args[0]
+        if isinstance(old_args, tuple):
+            new_args = list(old_args)
+            for idx, old_arg in enumerate(old_args):
+                if old_arg == src_node:
+                    new_args[idx] = new_nodes[-1]
+            dst_node.update_arg(0, tuple(new_args))
+        else:
+            dst_node.update_arg(dst_idx, new_nodes[-1])
+        return new_nodes[-1]
+    else:
+        return None
 
 
 class AddDataMovePass(PassBase):
@@ -122,12 +250,42 @@ class AddDataMovePass(PassBase):
         device = DummyDevice()
         i = 0
         nodes = list(gm.graph.nodes)
+        # Track argument reuse
+        data_move_in_hash = {}
+        # This might not be needed if workaround is not needed
+        data_move_out_hash = {}
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
+            kwargs = tuple(
+                _Kwarg(k, v)
+                for k, v in node.kwargs.items()
+                if isinstance(v, torch.fx.node.Node)
+            )
+            if isinstance(args, tuple):
+                args += kwargs
+
             for idx, arg in enumerate(args):
-                if try_add_data_move_in(arg, idx, node, device):
+                if isinstance(arg, _Kwarg):
+                    try_add_data_move_in_kwargs(arg, node, device)
+                elif arg in data_move_in_hash and node.op != "output":
+                    node.update_arg(idx, data_move_in_hash[arg])
+                elif to_device := try_add_data_move_in(arg, idx, node, device):
+                    data_move_in_hash[arg] = to_device
                     i += 1
-                if try_add_data_move_out(arg, idx, node):
+
+                if arg in data_move_out_hash and node.op == "output":
+                    old_arg = node.args[0]
+                    new_arg = list(old_arg)
+                    new_arg[idx] = data_move_out_hash[arg]
+                    node.update_arg(0, tuple(new_arg))
+                    i += 1
+                elif (node.target != ttnn.layer_norm) and (
+                    to_torch := try_add_data_move_out(arg, idx, node)
+                ):
+                    data_move_out_hash[arg] = to_torch
+                    i += 1
+                elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
+                    data_move_out_hash[arg] = to_torch
                     i += 1
 
         modified = i > 0

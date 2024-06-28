@@ -4,6 +4,7 @@ from typing import List
 import torch._dynamo
 import os
 from collections import Counter
+from functorch.compile import make_boxed_func
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -37,6 +38,7 @@ def aten_backend(
         "raw",
         f"{direction}_{option.model_name}_{option.counter['val']}.json",
     )
+    print(stat_filename)
     os.makedirs(os.path.dirname(stat_filename), exist_ok=True)
     passes = [StatPass(filename=stat_filename, example_inputs=example_inputs)]
     if option.gen_graphviz:
@@ -56,7 +58,7 @@ def aten_backend(
     gm.recompile()
     option.out_fx_graphs.append(gm.graph)
     option.counter["val"] += 1
-    return gm
+    return make_boxed_func(gm)
 
 
 from torch._dynamo.backends.common import aot_autograd
@@ -72,7 +74,7 @@ class TorchStatOption:
         out=os.path.join(os.getcwd(), "stat"),
         gen_graphviz=False,
     ):
-        self.model_name = model_name
+        self.model_name = model_name.replace("/", "_")
         self.backward = backward
         self.out = out
         self.gen_graphviz = gen_graphviz
@@ -90,5 +92,6 @@ def backend(torch_stat_option: TorchStatOption):
         )
     else:
         return aot_autograd(
-            fw_compiler=partial(aten_backend, options=options, direction="fw")
+            fw_compiler=partial(aten_backend, options=options, direction="fw"),
+            # inference_compiler=partial(aten_backend, options=options, direction="fw"),
         )
