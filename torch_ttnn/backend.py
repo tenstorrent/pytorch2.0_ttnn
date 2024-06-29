@@ -32,12 +32,6 @@ def aten_backend(
 
     gm = remove_clones_for_input_aliasing(gm)
 
-    # Change float types in dtype kwargs to bfloat16
-    from .convert_type import convert_dtype_to_bfloat16, convert_float_to_bfloat16
-
-    gm = convert_float_to_bfloat16(gm)
-    gm = convert_dtype_to_bfloat16(gm)
-
     option: TorchTtnnOption = options["torch_ttnn_option"]
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
     torch.fx.graph._register_custom_builtin(

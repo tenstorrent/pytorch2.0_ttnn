@@ -44,13 +44,17 @@ def run_model(
     ]
 
     if model.model_task in text_modules:
-        tokenizer = AutoTokenizer.from_pretrained(model.model_name, padding_side="left")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model.model_name, padding_side="left", torch_dtype=torch.bfloat16
+        )
     elif model.model_task in vision_modules:
-        image_processor = AutoImageProcessor.from_pretrained(model.model_name)
+        image_processor = AutoImageProcessor.from_pretrained(
+            model.model_name, torch_dtype=torch.bfloat16
+        )
     else:
         raise ValueError(f"model task: {model.model_task} not supported.")
 
-    m = model.model_task.from_pretrained(model.model_name)
+    m = model.model_task.from_pretrained(model.model_name, torch_dtype=torch.bfloat16)
 
     if backward:
         try:
