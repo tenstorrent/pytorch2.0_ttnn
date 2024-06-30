@@ -300,35 +300,45 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 )
             if node.target == torch.ops.aten.rsub.Scalar:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
-                # Instead, fill a tensor with the same size as args[0] with the scalar value using aten.full
-                arg_metadata = node.meta["val"]
+                # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
+                node_metadata = node.meta["val"]
                 # NOTE(kevinwuTT): Only bfloat16 seems to work for now
                 # TODO(kevinwuTT): Use ttnn.full instead of aten
-                new_kwargs = {"dtype": torch.bfloat16}
-                full_node = g.call_function(
-                    torch.ops.aten.full.default,
-                    args=(arg_metadata.size(), args[1]),
-                    kwargs=new_kwargs,
+                new_kwargs = {
+                    "fill_value": args[1],
+                    "device": DummyDevice(),
+                }
+                full = g.call_function(
+                    ttnn.full, args=(tuple(node_metadata.size()),), kwargs=new_kwargs
+                )
+                to_layout = g.call_function(
+                    ttnn.to_layout, (full,), {"layout": DummyTtnnTileLayout()}
                 )
                 new_node = g.call_function(
-                    ttnn.sub, args=(full_node, args[0]), kwargs={}
+                    ttnn.sub, args=(to_layout, args[0]), kwargs={}
                 )
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
                 )
             if node.target == torch.ops.aten.div.Tensor:
-                # ttnn.recip does not support scalars. Call an aten.full and pass that to ttnn.recip
+                # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
                 # TODO(kevinwuTT): Use a ttnn equivalent
                 node_metadata = node.meta["val"]
                 if isinstance(args[1], float):
-                    new_kwargs = {"dtype": torch.bfloat16}
+                    new_kwargs = {
+                        "fill_value": args[1],
+                        "device": DummyDevice(),
+                    }
                     full = g.call_function(
-                        torch.ops.aten.full.default,
-                        (node_metadata.size(), args[1]),
-                        new_kwargs,
+                        ttnn.full,
+                        args=(tuple(node_metadata.size()),),
+                        kwargs=new_kwargs,
                     )
-                    recip = g.call_function(ttnn.reciprocal, (full,), {})
+                    to_layout = g.call_function(
+                        ttnn.to_layout, (full,), {"layout": DummyTtnnTileLayout()}
+                    )
+                    recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
                 else:
                     recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                 new_node = g.call_function(ttnn.mul, (args[0], recip), {})

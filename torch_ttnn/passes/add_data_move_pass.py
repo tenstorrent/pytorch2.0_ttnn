@@ -79,6 +79,7 @@ def is_tt_data_move(node) -> bool:
         ttnn.to_device,
         ttnn.from_torch,
         ttnn.to_torch,
+        ttnn.to_layout,
         ttnn.MemoryConfig,
     ]
 
