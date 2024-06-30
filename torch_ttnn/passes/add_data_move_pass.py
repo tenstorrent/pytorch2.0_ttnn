@@ -66,6 +66,7 @@ def is_tt_compute(node) -> bool:
             ttnn.lt,
             ttnn.cos,
             ttnn.sigmoid,
+            ttnn.as_tensor,
         ]
     )
 
@@ -98,7 +99,11 @@ def should_add_data_move_in(src_node, dst_node) -> bool:
         src_node, torch.fx.node.Node
     ):
         return False
-    return is_tt_compute(dst_node) and not is_tt(src_node)
+    return (
+        is_tt_compute(dst_node)
+        and not is_tt(src_node)
+        and not (dst_node.target == ttnn.as_tensor)
+    )
 
 
 def should_add_data_move_out(src_node, dst_node) -> bool:

@@ -336,6 +336,28 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
                 )
+            if node.target == torch.ops.aten._to_copy.default:
+                kwargs = node.kwargs
+                dummy_dtype = torch_dtype_to_dummy_ttnn_dtype(kwargs["dtype"])
+                # Add additional logic to choose the appropriate memory_config type: DRAM or L1
+                memory_config = g.call_function(
+                    ttnn.MemoryConfig,
+                    (
+                        DummyTtlTensorTensorMemoryLayoutInterleaved(),
+                        DummyTtlTensorBufferTypeDram(),
+                    ),
+                )
+                new_kwargs = {
+                    "dtype": dummy_dtype,
+                    "layout": DummyTtnnTileLayout(),
+                    "device": DummyDevice(),
+                    "memory_config": memory_config,
+                }
+                new_node = g.call_function(ttnn.as_tensor, args, new_kwargs)
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
 
     gm = GraphCleanup(gm)
     return gm
