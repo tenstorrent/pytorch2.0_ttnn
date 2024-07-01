@@ -70,7 +70,14 @@ class TestBert(unittest.TestCase):
         answer_after = decode_output(outputs_after)
 
         print(
-            f"model_name: {model_name}\ninput:\n\tcontext: {context}\n\tquestion: {question}\nanswer before: {answer_before}\nanswer_after: {answer_after}"
+            f"""
+        model_name: {model_name}
+        input:
+            context: {context}
+            question: {question}
+        answer before: {answer_before}
+        answer after: {answer_after}
+        """
         )
 
         # TODO: Add more checks for the compiled graph
