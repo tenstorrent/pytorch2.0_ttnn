@@ -181,3 +181,7 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[13].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
+
+
+if __name__ == "__main__":
+    unittest.main()
