@@ -6,6 +6,7 @@ import tt_lib
 
 from torch_ttnn.utils import check_with_pcc
 
+
 class AtenTModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -16,6 +17,7 @@ class AtenTModule(torch.nn.Module):
     def input_shapes(self):
         return [(1, 32)]
 
+
 class AtenT0DModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -25,7 +27,8 @@ class AtenT0DModule(torch.nn.Module):
 
     def input_shapes(self):
         return 5
-    
+
+
 class AtenT1DModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -35,6 +38,7 @@ class AtenT1DModule(torch.nn.Module):
 
     def input_shapes(self):
         return [(5)]
+
 
 class TestModules(unittest.TestCase):
     def setUp(self):
@@ -70,7 +74,7 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[7].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(check_with_pcc(result_before, result_after))
-        
+
     def test_aten_t_0d(self):
         m = AtenT0DModule()
         input_shapes = m.input_shapes()
@@ -84,12 +88,12 @@ class TestModules(unittest.TestCase):
         option._out_fx_graphs[0].print_tabular()
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        
+
         self.assertTrue(nodes[1].target == torch.ops.aten.t.default)
-        self.assertTrue(nodes[1].args[0].target == 'arg0_1')
-        self.assertTrue(nodes[1].args[0].op == 'placeholder')
-        self.assertTrue(nodes[2].target == 'output')
-        self.assertTrue(nodes[2].op == 'output')
+        self.assertTrue(nodes[1].args[0].target == "arg0_1")
+        self.assertTrue(nodes[1].args[0].op == "placeholder")
+        self.assertTrue(nodes[2].target == "output")
+        self.assertTrue(nodes[2].op == "output")
         self.assertTrue(check_with_pcc(result_before, result_after))
 
     def test_aten_t_1d(self):
@@ -105,13 +109,14 @@ class TestModules(unittest.TestCase):
         option._out_fx_graphs[0].print_tabular()
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        
+
         self.assertTrue(nodes[1].target == torch.ops.aten.t.default)
-        self.assertTrue(nodes[1].args[0].target == 'arg0_1')
-        self.assertTrue(nodes[1].args[0].op == 'placeholder')
-        self.assertTrue(nodes[2].target == 'output')
-        self.assertTrue(nodes[2].op == 'output')
+        self.assertTrue(nodes[1].args[0].target == "arg0_1")
+        self.assertTrue(nodes[1].args[0].op == "placeholder")
+        self.assertTrue(nodes[2].target == "output")
+        self.assertTrue(nodes[2].op == "output")
         self.assertTrue(check_with_pcc(result_before, result_after))
+
 
 if __name__ == "__main__":
     unittest.main()

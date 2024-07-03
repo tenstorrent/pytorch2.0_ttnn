@@ -373,8 +373,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 rank = len(node.meta["val"].size())
                 assert rank >= 0 and rank <= 2, "Input tensor can only be 0D, 1D or 2D"
                 if rank == 2:
-                    permutation = [1,0]
-                    new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
+                    permutation = [1, 0]
+                    new_node = g.call_function(
+                        ttnn.permute, args=(args[0], permutation)
+                    )
                     node.replace_all_uses_with(
                         new_node,
                         delete_user_cb=lambda node: node != new_node,
