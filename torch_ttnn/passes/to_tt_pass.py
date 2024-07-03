@@ -373,7 +373,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 dim1 = args[2]
                 rank = len(node.meta["val"].size())
                 permutation = list(range(rank))
-                permutation[dim0], permutation[dim1] = permutation[dim1], permutation[dim0]
+                permutation[dim0], permutation[dim1] = (
+                    permutation[dim1],
+                    permutation[dim0],
+                )
                 new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
                 node.replace_all_uses_with(
                     new_node,

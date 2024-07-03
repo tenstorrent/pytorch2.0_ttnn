@@ -6,6 +6,7 @@ import tt_lib
 
 from torch_ttnn.utils import check_with_pcc
 
+
 class TransposeModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -13,8 +14,11 @@ class TransposeModule(torch.nn.Module):
     def forward(self, x, dim0, dim1):
         return torch.transpose(x, dim0, dim1)
 
+    # Last dim of input should be even for it to be converted to tile layout.
+    # If not, this runtime error will be thrown:
+    # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
     def input_shapes(self):
-        return [(32, 64, 128), 0, 2]
+        return [(5, 3, 2), 0, 2]
 
 
 class TestModules(unittest.TestCase):
@@ -31,7 +35,7 @@ class TestModules(unittest.TestCase):
     def test_transpose(self):
         m = TransposeModule()
         input_shapes = m.input_shapes()
-        input = torch.randint(0, 3, input_shapes[0]).type(torch.bfloat16)
+        input = torch.rand(input_shapes[0], dtype=torch.bfloat16)
         dim0 = input_shapes[1]
         dim1 = input_shapes[2]
         result_before = m.forward(input, dim0, dim1)
@@ -44,8 +48,7 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        for node in nodes:
-            print(node.name)
+
         self.assertTrue(nodes[4].target == ttnn.permute)
         self.assertTrue(nodes[4].args[0].target == ttnn.to_device)
         self.assertTrue(nodes[4].args[0].args[0].target == ttnn.to_layout)
@@ -55,6 +58,7 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[7].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(check_with_pcc(result_before, result_after))
+
 
 if __name__ == "__main__":
     unittest.main()
