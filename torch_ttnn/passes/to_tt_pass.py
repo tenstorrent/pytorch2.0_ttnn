@@ -83,7 +83,7 @@ class ReplaceSimpleOpMap(torch.fx.Transformer):
         torch.ops.aten.permute.default: ttnn.permute,
         torch.ops.aten.repeat.default: target_wrappers.repeat,
         torch.ops.aten.cat.default: ttnn.concat,
-        torch.ops.aten.split.Tensor: ttnn.split,
+        # torch.ops.aten.split.Tensor: ttnn.split,  # ttnn has no split, remove the comment once it has
     }
 
     def call_function(self, target, args, kwargs):
@@ -139,12 +139,17 @@ class ToTtPass(PassBase):
         pat_rep_list = list()
         # Patterns and replacements
         from ..patterns import linear
-        from ..patterns import addcdiv
-        from ..patterns import where
+
+        # NOTE(yoco)
+        # Currently the ttnn.wrap has problem to handle the addcdiv and the where
+        # Comment it out for now, try to fix it once the problem is solved
+        # Or we don't use subgraph_rewriter, but raw graph manipulation.
+        # from ..patterns import addcdiv
+        # from ..patterns import where
 
         pat_rep_list += linear.pat_rep_list
-        pat_rep_list += addcdiv.pat_rep_list
-        pat_rep_list += where.pat_rep_list
+        # pat_rep_list += addcdiv.pat_rep_list
+        # pat_rep_list += where.pat_rep_list
 
         # Replace patterns
         modified = False

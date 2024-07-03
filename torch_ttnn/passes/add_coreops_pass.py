@@ -56,14 +56,14 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
     ttnn.eqz,
     ttnn.gez,
-    ttnn.gte,
+    #ttnn.gte,  # ttnn has no gte, remote the comment in the future when it has
     ttnn.gtz,
     ttnn.isclose,
     ttnn.ldexp,
     ttnn.lez,
     ttnn.logaddexp,
     ttnn.logaddexp2,
-    ttnn.lte,
+    #ttnn.lte,  # ttnn has no lte, remote the comment in the future when it has
     ttnn.ltz,
     ttnn.nextafter,
     ttnn.nez,
@@ -82,8 +82,8 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.pow,
     ttnn.sub,
     ttnn.xlogy,
-    ttnn.add_and_apply_activation,
-    ttnn.add_and_apply_activation_,
+    #ttnn.add_and_apply_activation,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
+    #ttnn.add_and_apply_activation_,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
 ]
 
 TTNN_POINTWISE_TRINARY_OPS = [
@@ -103,7 +103,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.permute,
     #  ttnn.repeat,  in target_wrapper
     ttnn.concat,
-    ttnn.split,
+    #ttnn.split,  # ttnn has no split, remote the comment in the future when it has
 ]
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]

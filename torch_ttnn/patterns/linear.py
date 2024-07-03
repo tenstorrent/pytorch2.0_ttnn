@@ -1,7 +1,10 @@
 import torch
+import ttnn
+
+linear = ttnn.linear
 
 
-from .. import wrap_ttnn_ops as wrap
+torch.fx.wrap(linear)
 
 
 def linear_with_bias_pat(x, y, z):
@@ -11,7 +14,7 @@ def linear_with_bias_pat(x, y, z):
 
 
 def linear_with_bias_rep(x, y, z):
-    return wrap.linear(x, y, bias=z)
+    return linear(x, y, bias=z)
 
 
 def linear_pat(x, y):
@@ -21,7 +24,7 @@ def linear_pat(x, y):
 
 
 def linear_rep(x, y):
-    return wrap.linear(x, y)
+    return linear(x, y)
 
 
 pat_rep_list = [

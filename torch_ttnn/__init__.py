@@ -7,5 +7,4 @@ import torch as _torch
 _torch._dynamo.backends.registry.register_backend(name="ttnn", compiler_fn=ttnn_backend)
 
 # To wrap the ttnn ops
-from . import wrap_ttnn_ops
 from .passes import target_wrappers

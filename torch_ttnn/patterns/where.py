@@ -1,7 +1,9 @@
 import torch
 
 
-from .. import wrap_ttnn_ops as wrap
+import ttnn
+
+where = ttnn.fx.wrap(ttnn.where)
 
 
 def where_pat(x, y, z):
@@ -11,13 +13,10 @@ def where_pat(x, y, z):
 
 def where_rep(x, y, z):
     x_bfloat16 = x.to(torch.bfloat16)
-    r = wrap.where(x_bfloat16, y, z)
+    r = where(x_bfloat16, y, z)
     return r
-
-
 
 
 pat_rep_list = [
     (where_pat, where_rep),
 ]
-

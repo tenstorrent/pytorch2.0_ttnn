@@ -1,7 +1,12 @@
 import torch
 
 
-from .. import wrap_ttnn_ops as wrap
+import ttnn
+
+addcdiv = ttnn.operations.ternary.addcdiv
+# NOTE(yoco) wrap the addcdiv will cause error in current ttnn version
+# Try to fix it, or don't use subgraph rewriter, but manipulate the raw graph
+# torch.fx.wrap(addcdiv)
 
 
 def addcdiv_with_value_pat(a0, a1, a2, value):
@@ -12,11 +17,9 @@ def addcdiv_with_value_pat(a0, a1, a2, value):
 
 
 def addcdiv_with_value_rep(a0, a1, a2, value):
-    return wrap.addcdiv(a0, a1, a2, value)
-
+    return addcdiv(a0, a1, a2, value)
 
 
 pat_rep_list = [
     (addcdiv_with_value_pat, addcdiv_with_value_rep),
 ]
-
