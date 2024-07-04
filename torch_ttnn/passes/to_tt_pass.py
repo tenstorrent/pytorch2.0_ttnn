@@ -395,6 +395,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 node.replace_all_uses_with(
                     new_node, delete_user_cb=lambda node: node != new_node
                 )
+            if node.target == torch.ops.aten.unsqueeze.default:
+                output_size = node.meta["val"].size()
+                output_size = list(output_size)
+                new_node = g.call_function(ttnn.reshape, args=(args[0], output_size))
+                new_node.meta["val"] = node.meta["val"]
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
 
     gm = GraphCleanup(gm)
     return gm

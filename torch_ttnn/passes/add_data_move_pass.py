@@ -180,6 +180,13 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             new_nodes.append(
                 g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
             )
+        # ttnn reshape requires row major layout
+        elif dst_node.target == ttnn.reshape:
+            new_nodes.append(
+                g.call_function(
+                    ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
+                )
+            )
         # For reshape only put tensor on device if rank is 4
         if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
             dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
