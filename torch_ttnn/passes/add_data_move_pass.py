@@ -67,6 +67,7 @@ def is_tt_compute(node) -> bool:
             ttnn.cos,
             ttnn.sigmoid,
             ttnn.as_tensor,
+            ttnn.repeat,
         ]
     )
 
@@ -81,6 +82,7 @@ def is_tt_data_move(node) -> bool:
         ttnn.to_torch,
         ttnn.to_layout,
         ttnn.MemoryConfig,
+        ttnn.Shape,
     ]
 
 
@@ -173,6 +175,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             dst_node.target != ttnn.reshape
             and dst_node.target != ttnn.embedding
             and dst_node.target != ttnn.zeros_like
+            and dst_node.target != ttnn.repeat
         ):
             new_nodes.append(
                 g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
@@ -185,6 +188,48 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
+
+
+def try_add_layout_change_before_repeat(
+    src_node, dst_idx, dst_node
+) -> torch.fx.node.Node:
+    # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
+    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(
+        src_node, torch.fx.node.Node
+    ):
+        return None
+    if not is_function_call(dst_node):
+        return None
+    if dst_node.target != ttnn.repeat or dst_idx != 0 or not is_tt(src_node):
+        return None
+
+    g = dst_node.graph
+    with g.inserting_before(dst_node):
+        to_layout = g.call_function(
+            ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout())
+        )
+
+    insert_node_between(src_node, dst_idx, dst_node, [to_layout])
+
+    return to_layout
+
+
+def try_add_layout_change_after_repeat(
+    src_node, dst_idx, dst_node
+) -> torch.fx.node.Node:
+    # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
+    if not is_function_call(src_node):
+        return None
+    if src_node.target != ttnn.repeat or not is_tt_compute(dst_node):
+        return None
+
+    g = dst_node.graph
+    with g.inserting_before(dst_node):
+        to_layout = g.call_function(ttnn.to_layout, (dst_node, DummyTtnnTileLayout()))
+
+    insert_node_between(src_node, dst_idx, dst_node, [to_layout])
+
+    return to_layout
 
 
 def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
@@ -277,6 +322,12 @@ class AddDataMovePass(PassBase):
                     node.update_arg(idx, data_move_in_hash[arg])
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
                     data_move_in_hash[arg] = to_device
+                    i += 1
+                elif to_layout := try_add_layout_change_before_repeat(arg, idx, node):
+                    data_move_in_hash[arg] = to_layout
+                    i += 1
+                elif to_layout := try_add_layout_change_after_repeat(arg, idx, node):
+                    data_move_in_hash[arg] = to_layout
                     i += 1
 
                 if arg in data_move_out_hash and node.op == "output":
