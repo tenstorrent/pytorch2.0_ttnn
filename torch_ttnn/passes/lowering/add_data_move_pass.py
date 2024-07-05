@@ -1,5 +1,5 @@
 import torch
-from ..utils import (
+from torch_ttnn.utils import (
     DummyTtnnUint32,
     DummyTtnnRowMajorLayout,
     DummyTtnnTileLayout,

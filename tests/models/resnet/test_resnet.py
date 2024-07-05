@@ -6,7 +6,7 @@ from torch_ttnn import ttnn
 import collections
 
 
-class TestRealWorld(unittest.TestCase):
+class TestRestNet(unittest.TestCase):
     def setUp(self):
         # Open device 0
         self.device: ttnn.Device = ttnn.open_device(device_id=0)

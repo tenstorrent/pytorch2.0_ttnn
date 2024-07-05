@@ -1,5 +1,5 @@
 import torch
-from .. import fx_graphviz
+from torch_ttnn import fx_graphviz
 
 try:
     import ttnn
