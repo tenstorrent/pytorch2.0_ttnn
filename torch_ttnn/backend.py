@@ -62,11 +62,13 @@ def aten_backend(
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
-    from .passes.to_tt_pass import ToTtPass
-    from .passes.add_data_move_pass import AddDataMovePass
-    from .passes.graphviz_pass import GraphvizPass
-    from .passes.eliminate_data_move_pass import EliminateDataMovePass
-    from .passes.permute_reshape_tuple import PermuteReshapeTuple
+    from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
+    from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
+    from torch_ttnn.passes.graphviz_pass import GraphvizPass
+    from torch_ttnn.passes.lowering.eliminate_data_move_pass import (
+        EliminateDataMovePass,
+    )
+    from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
 
     passes = [
         ToTtPass(),
