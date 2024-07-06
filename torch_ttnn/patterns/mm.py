@@ -2,12 +2,7 @@
 # This file may not be needed anymore.
 
 import torch
-
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from torch_ttnn import mock_ttnn as ttnn
+import ttnn
 
 
 # NOTE(yoco) The name `matmul` must be the same as the name of the function.

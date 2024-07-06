@@ -1,7 +1,7 @@
 import torch
 import torch_ttnn
 import unittest
-from torch_ttnn import ttnn
+import ttnn
 import collections
 
 # Load model directly
