@@ -4,7 +4,7 @@ try:
     import ttnn
 except ImportError:
     print("ttnn is not installed, use mock_ttnn instead")
-    from .. import mock_ttnn as ttnn
+    from torch_ttnn import mock_ttnn as ttnn
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 

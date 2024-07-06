@@ -7,7 +7,7 @@ try:
     import ttnn
 except ImportError:
     print("ttnn is not installed, use mock_ttnn instead")
-    from .. import mock_ttnn as ttnn
+    from torch_ttnn import mock_ttnn as ttnn
 
 
 # NOTE(yoco) The name `add` must be the same as the name of the function.
