@@ -1,7 +1,7 @@
 import os
 import shutil
 import torch
-import torch_stat
+from torch_ttnn import torch_stat
 import unittest
 import json
 from torch.fx.passes.dialect.common.cse_pass import CSEPass
