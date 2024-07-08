@@ -1,10 +1,9 @@
 import torch
 import ttnn
 from torch_ttnn.utils import (
-    DummyTtnnUint32,
-    DummyTtnnRowMajorLayout,
-    DummyTtnnTileLayout,
-    DummyDevice,
+    TtnnRowMajorLayout,
+    TtnnTileLayout,
+    TtnnDevice,
 )
 
 
@@ -150,7 +149,7 @@ def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.no
     with g.inserting_before(dst_node):
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
         new_nodes.append(
-            g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
+            g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout()))
         )
         if is_tt_compute(dst_node):
             new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
@@ -174,7 +173,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             and dst_node.target != ttnn.repeat
         ):
             new_nodes.append(
-                g.call_function(ttnn.to_layout, (new_nodes[-1], DummyTtnnTileLayout()))
+                g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout()))
             )
         # For reshape only put tensor on device if rank is 4
         if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
@@ -201,9 +200,7 @@ def try_add_layout_change_before_repeat(
 
     g = dst_node.graph
     with g.inserting_before(dst_node):
-        to_layout = g.call_function(
-            ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout())
-        )
+        to_layout = g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout()))
 
     insert_node_between(src_node, dst_idx, dst_node, [to_layout])
 
@@ -221,7 +218,7 @@ def try_add_layout_change_after_repeat(
 
     g = dst_node.graph
     with g.inserting_before(dst_node):
-        to_layout = g.call_function(ttnn.to_layout, (dst_node, DummyTtnnTileLayout()))
+        to_layout = g.call_function(ttnn.to_layout, (dst_node, TtnnTileLayout()))
 
     insert_node_between(src_node, dst_idx, dst_node, [to_layout])
 
@@ -242,7 +239,7 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
             if src_node.target != ttnn.embedding and src_node.target != ttnn.zeros_like:
                 new_nodes.append(
                     g.call_function(
-                        ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
+                        ttnn.to_layout, (new_nodes[-1], TtnnRowMajorLayout())
                     )
                 )
         new_nodes.append(
@@ -264,7 +261,7 @@ def try_add_data_move_out_for_layer_norm(
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
             new_nodes.append(
-                g.call_function(ttnn.to_layout, (src_node, DummyTtnnRowMajorLayout()))
+                g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout()))
             )
             new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
             new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1],)))
@@ -294,7 +291,7 @@ def try_add_data_move_out_for_layer_norm(
 class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
-        device = DummyDevice()
+        device = TtnnDevice()
         i = 0
         nodes = list(gm.graph.nodes)
         # Track argument reuse
