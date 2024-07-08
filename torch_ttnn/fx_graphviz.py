@@ -4,11 +4,7 @@ import os
 import math
 from collections import defaultdict
 
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from . import mock_ttnn as ttnn
+import ttnn
 
 
 def _tensor_weight(t):

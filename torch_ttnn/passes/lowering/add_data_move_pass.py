@@ -1,16 +1,12 @@
 import torch
-from ..utils import (
+import ttnn
+from torch_ttnn.utils import (
     DummyTtnnUint32,
     DummyTtnnRowMajorLayout,
     DummyTtnnTileLayout,
     DummyDevice,
 )
 
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from .. import mock_ttnn as ttnn
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
