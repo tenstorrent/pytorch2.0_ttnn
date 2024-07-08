@@ -1,7 +1,7 @@
 import torch
 import torch_ttnn
 import unittest
-from torch_ttnn import ttnn
+import ttnn
 import tt_lib
 
 from torch_ttnn.utils import check_with_pcc
@@ -14,7 +14,7 @@ class TransposeModule(torch.nn.Module):
     def forward(self, x, dim0, dim1):
         return torch.transpose(x, dim0, dim1)
 
-    # Last dim of input should be even for it to be converted to tile layout.
+    # Constraint: Last dim of input should be even.
     # If not, this runtime error will be thrown:
     # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
     def input_shapes(self):
