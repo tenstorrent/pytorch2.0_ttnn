@@ -1,5 +1,6 @@
 import torch
-from ..utils import (
+import ttnn
+from torch_ttnn.utils import (
     GraphCleanup,
     DummyTtlTensorTensorMemoryLayoutInterleaved,
     DummyTtlTensorBufferTypeDram,
@@ -7,12 +8,7 @@ from ..utils import (
     DummyDevice,
     DummyTtnnTileLayout,
 )
-
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from .. import mock_ttnn as ttnn
+import numpy as np
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
@@ -167,6 +163,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_node = g.call_function(
                     ttnn.clone, args=(args[0], memory_config, dummy_dtype)
                 )
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
@@ -177,9 +174,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     args=(args[0],),
                     kwargs={"epsilon": args[4], "weight": args[2], "bias": args[3]},
                 )
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
-                    new_node,
-                    delete_user_cb=lambda node: node != new_node,
+                    new_node, delete_user_cb=lambda node: node != new_node
                 )
                 node_users = list(new_node.users.keys())
                 for node_user in node_users:
@@ -188,6 +185,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_node = g.call_function(
                     ttnn.ones, args=args, kwargs={"device": DummyDevice()}
                 )
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
@@ -210,6 +208,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_node = g.call_function(
                         ttnn.arange, args=new_args, kwargs=new_kwargs
                     )
+                    new_node.meta["val"] = node.meta["val"]
                     node.replace_all_uses_with(
                         new_node,
                         delete_user_cb=lambda node: node != new_node,
@@ -226,6 +225,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_node = g.call_function(
                         ttnn.arange, args=new_args, kwargs=new_kwargs
                     )
+                    new_node.meta["val"] = node.meta["val"]
                     node.replace_all_uses_with(
                         new_node,
                         delete_user_cb=lambda node: node != new_node,
@@ -248,6 +248,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         args=(args[0], full_node),
                         kwargs={},
                     )
+                    new_node.meta["val"] = node.meta["val"]
                     node.replace_all_uses_with(
                         new_node,
                         delete_user_cb=lambda node: node != new_node,
@@ -263,6 +264,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_node = g.call_function(
                         ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs
                     )
+                    new_node.meta["val"] = node.meta["val"]
                     node.replace_all_uses_with(
                         new_node,
                         delete_user_cb=lambda node: node != new_node,
@@ -284,6 +286,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         new_node = g.call_function(ttnn.add, args=(beta_node, new_node))
                 else:
                     new_node = g.call_function(ttnn.add, args=(args[0], new_node))
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
@@ -294,6 +297,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_node = g.call_function(
                     ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs
                 )
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
@@ -317,6 +321,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_node = g.call_function(
                     ttnn.sub, args=(to_layout, args[0]), kwargs={}
                 )
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
@@ -342,6 +347,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 else:
                     recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                 new_node = g.call_function(ttnn.mul, (args[0], recip), {})
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
@@ -364,6 +370,37 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     "memory_config": memory_config,
                 }
                 new_node = g.call_function(ttnn.as_tensor, args, new_kwargs)
+                new_node.meta["val"] = node.meta["val"]
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
+            if node.target == torch.ops.aten.expand.default:
+                # aten.expand and ttnn.repeat has different meaning for their `shape` argument
+                # aten.expand: the desired output shape, where respective singleton dims are broadcasted
+                # ttnn.repeat: the number of times to repeat a respective singleton dim
+                input_tensor_shape = args[0].meta["val"].size()
+                output_shape = torch.Size(args[1])
+
+                multiplier = np.array(output_shape) // np.array(input_tensor_shape)
+
+                shape_node = g.call_function(ttnn.Shape, (multiplier.tolist(),), {})
+                new_node = g.call_function(ttnn.repeat, (args[0], shape_node), {})
+                new_node.meta["val"] = node.meta["val"]
+                node.replace_all_uses_with(
+                    new_node, delete_user_cb=lambda node: node != new_node
+                )
+            if node.target == torch.ops.aten.transpose.int:
+                dim0 = args[1]
+                dim1 = args[2]
+                rank = len(node.meta["val"].size())
+                permutation = list(range(rank))
+                permutation[dim0], permutation[dim1] = (
+                    permutation[dim1],
+                    permutation[dim0],
+                )
+                new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
+                new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
@@ -388,8 +425,22 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 class ToTtPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
+        # TODO(kevinwuTT): transform() removes metadata from Placeholder (input argument) nodes.
+        # Reversing the order will not work either because of the already converted ttnn.ops under
+        # ReplaceMoreTtManually. Might need to consider consolidating these methods.
+
+        # Save Placeholder metadata before calling transform()
+        input_nodes = {
+            node.name: node.meta for node in gm.graph.nodes if node.op == "placeholder"
+        }
+
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm).transform()
+
+        # Restore metadata for Placeholder nodes
+        for node in gm.graph.nodes:
+            if node.op == "placeholder":
+                node.meta = input_nodes[node.name]
 
         # Replace patterns manually
         gm = ReplaceMoreTtManually(gm)

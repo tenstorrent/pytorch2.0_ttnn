@@ -1,8 +1,10 @@
-from .backend import backend
-from .backend import TorchTtnnOption
+from torch_ttnn.backend import backend
+from torch_ttnn.backend import TorchTtnnOption
 
 try:
     import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from . import mock_ttnn as ttnn
+except ImportError as e:
+    print(
+        "ttnn is not installed. Run `python3 -m pip install -r requirements.txt` or `python3 -m pip install -r requirements-dev.txt` if you are developing the compiler"
+    )
+    raise e

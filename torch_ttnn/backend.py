@@ -3,15 +3,10 @@ import torch
 from typing import List
 import torch._dynamo
 from functorch.compile import make_boxed_func
+import ttnn
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
-
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from . import mock_ttnn as ttnn
 
 
 # The backend for torch.compile that converts a graph to use ttnn.
@@ -62,11 +57,13 @@ def aten_backend(
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
-    from .passes.to_tt_pass import ToTtPass
-    from .passes.add_data_move_pass import AddDataMovePass
-    from .passes.graphviz_pass import GraphvizPass
-    from .passes.eliminate_data_move_pass import EliminateDataMovePass
-    from .passes.permute_reshape_tuple import PermuteReshapeTuple
+    from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
+    from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
+    from torch_ttnn.passes.graphviz_pass import GraphvizPass
+    from torch_ttnn.passes.lowering.eliminate_data_move_pass import (
+        EliminateDataMovePass,
+    )
+    from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
 
     passes = [
         ToTtPass(),
