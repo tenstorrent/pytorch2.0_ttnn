@@ -31,7 +31,7 @@ def aten_backend(
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
-    from .passes.stat_pass import StatPass
+    from tools.torch_stat.stat_pass import StatPass
 
     stat_filename = os.path.join(
         option.out,
@@ -42,7 +42,7 @@ def aten_backend(
     os.makedirs(os.path.dirname(stat_filename), exist_ok=True)
     passes = [StatPass(filename=stat_filename, example_inputs=example_inputs)]
     if option.gen_graphviz:
-        from .passes.graphviz_pass import GraphvizPass
+        from torch_ttnn.passes.graphviz_pass import GraphvizPass
 
         graphviz_filename = os.path.join(
             option.out,
