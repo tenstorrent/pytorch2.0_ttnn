@@ -3,7 +3,7 @@ import torch_ttnn
 import unittest
 import ttnn
 
-from tests.utils_for_testing import check_with_pcc
+from tests.utils import check_with_pcc
 
 
 class AddModule(torch.nn.Module):
