@@ -1,5 +1,6 @@
 import torch
-from ..utils import (
+import ttnn
+from torch_ttnn.utils import (
     GraphCleanup,
     DummyTtlTensorTensorMemoryLayoutInterleaved,
     DummyTtlTensorBufferTypeDram,
@@ -8,12 +9,6 @@ from ..utils import (
     DummyTtnnTileLayout,
 )
 import numpy as np
-
-try:
-    import ttnn
-except ImportError:
-    print("ttnn is not installed, use mock_ttnn instead")
-    from .. import mock_ttnn as ttnn
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
@@ -399,6 +394,21 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
                 new_node = g.call_function(ttnn.reshape, args=(args[0], output_size))
+                new_node.meta["val"] = node.meta["val"]
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
+            if node.target == torch.ops.aten.transpose.int:
+                dim0 = args[1]
+                dim1 = args[2]
+                rank = len(node.meta["val"].size())
+                permutation = list(range(rank))
+                permutation[dim0], permutation[dim1] = (
+                    permutation[dim1],
+                    permutation[dim0],
+                )
+                new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
                 new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
                     new_node,

@@ -1,6 +1,6 @@
 import torch
 from typing import List
-from .utils import GraphCleanup
+from torch_ttnn.utils import GraphCleanup
 
 """
 AOT Autograd has an optimization where if it determines that the storage of the
