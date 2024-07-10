@@ -45,6 +45,9 @@ jobs:
         env:
           pytest_verbosity: 2
           pytest_report_title: "⭐️ Model Tests"
+          TT_METAL_WATCHER: 120
+          TT_METAL_WATCHER_APPEND: 0
+          TT_METAL_WATCHER_DUMP_ALL: 1
         run: | 
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ -s
