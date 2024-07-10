@@ -2,7 +2,7 @@ import torch
 import torch_ttnn
 import unittest
 import ttnn
-import collections
+from torch_ttnn.utils import RunTimeMetrics
 
 # Load model directly
 from transformers import (
@@ -47,7 +47,7 @@ class TestBert(unittest.TestCase):
 
         # Run inference with the original model
         with torch.no_grad():
-            outputs_before = m(**inputs)
+            outputs_before = RunTimeMetrics("BERT", "original", lambda: m(**inputs))
 
         # Helper function to decode output to human-readable text
         def decode_output(outputs):
@@ -59,13 +59,13 @@ class TestBert(unittest.TestCase):
         answer_before = decode_output(outputs_before)
 
         # Compile model with ttnn backend
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device, metrics_path="BERT")
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 
         # Run inference with the compiled model
         with torch.no_grad():
-            outputs_after = m(**inputs)
-        option._out_fx_graphs[0].print_tabular()
+            outputs_after = RunTimeMetrics("BERT", "compiled", lambda: m(**inputs))
+        # option._out_fx_graphs[0].print_tabular()
 
         answer_after = decode_output(outputs_after)
 
