@@ -1,0 +1,116 @@
+import torch
+import torch_ttnn
+import unittest
+import ttnn
+from torch_ttnn.utils import RunTimeMetrics
+from tests.utils import check_with_pcc
+from torchvision import transforms, datasets
+from torch.utils.data import DataLoader
+
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+# adapted from https://github.com/pytorch/examples/blob/main/mnist/main.py
+class MnistModel(torch.nn.Module):
+    def __init__(self):
+        super(MnistModel, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.dropout1 = nn.Dropout(0.25)
+        self.dropout2 = nn.Dropout(0.5)
+        self.fc1 = nn.Linear(9216, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, 2)
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.dropout2(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+        return output
+
+
+class TestMnist(unittest.TestCase):
+    def setUp(self):
+        # Open device 0
+        self.device: ttnn.Device = ttnn.open_device(device_id=0)
+
+        # Setup dataset
+        self.transform = transforms.Compose([transforms.ToTensor()])
+
+    def tearDown(self):
+        # Close the device
+        ttnn.close_device(self.device)
+
+    def test_mnist_train(self):
+        train_dataset = datasets.MNIST(
+            root="./data", train=True, transform=self.transform, download=True
+        )
+        dataloader = DataLoader(train_dataset, batch_size=1)
+
+        m = MnistModel()
+        m = m.to(torch.bfloat16)
+        m.train()
+
+        metrics_path = "Mnist (Train)"
+        test_input, target = next(iter(dataloader))
+        # Run train with the original model
+        outputs_before = RunTimeMetrics(
+            metrics_path, "original", lambda: m(test_input.to(torch.bfloat16))
+        )
+
+        # Compile model with ttnn backend
+        option = torch_ttnn.TorchTtnnOption(
+            device=self.device, metrics_path=metrics_path
+        )
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+
+        # Run train with the compiled model
+        outputs_after = RunTimeMetrics(
+            metrics_path, "compiled", lambda: m(test_input.to(torch.bfloat16))
+        )
+        option._out_fx_graphs[0].print_tabular()
+
+        # TODO: Since only one loop of training is done, the outputs could have greater differences.
+        # Consider adding more loops.
+
+    def test_mnist_eval(self):
+        test_dataset = datasets.MNIST(
+            root="./data", train=False, transform=self.transform, download=True
+        )
+        dataloader = DataLoader(test_dataset, batch_size=1)
+
+        m = MnistModel()
+        m = m.to(torch.bfloat16)
+        m.eval()
+
+        metrics_path = "Mnist (Eval)"
+        test_input, _ = next(iter(dataloader))
+        # Run inference with the original model
+        with torch.no_grad():
+            outputs_before = RunTimeMetrics(
+                metrics_path, "original", lambda: m(test_input.to(torch.bfloat16))
+            )
+
+        # Compile model with ttnn backend
+        option = torch_ttnn.TorchTtnnOption(
+            device=self.device, metrics_path=metrics_path
+        )
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+
+        # Run inference with the compiled model
+        with torch.no_grad():
+            outputs_after = RunTimeMetrics(
+                metrics_path, "compiled", lambda: m(test_input.to(torch.bfloat16))
+            )
+        option._out_fx_graphs[0].print_tabular()
+
+        self.assertTrue(check_with_pcc(outputs_before, outputs_after))
