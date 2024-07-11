@@ -93,37 +93,37 @@ def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     return gm
 
 
-# See https://docs.google.com/document/d/1r2D4AagoeTRjEmXFnWzzafaWQkf-8hlIbX2ze-JAUFo/edit#heading=h.zad9rwqjv6cr
-class DummyDevice:
+# Ttnn globals added with torch.fx._register_custom_builtin
+class TtnnDevice:
     def __repr__(self):
         return f"ttnn_Specified_Device"
 
 
-class DummyTtnnRowMajorLayout:
+class TtnnRowMajorLayout:
     def __repr__(self):
         return f"ttnn_ROW_MAJOR_LAYOUT"
 
 
-class DummyTtnnTileLayout:
+class TtnnTileLayout:
     def __repr__(self):
         return f"ttnn_TILE_LAYOUT"
 
 
-class DummyTtnnUint32:
+class TtnnUint32:
     def __repr__(self):
         return f"ttnn_uint32"
 
 
-class DummyTtnnBfloat16:
+class TtnnBfloat16:
     def __repr__(self):
         return f"ttnn_bfloat16"
 
 
-class DummyTtlTensorTensorMemoryLayoutInterleaved:
+class TtnnDramMemoryConfig:
     def __repr__(self):
-        return f"ttl_tensor_TensorMemoryLayout_INTERLEAVED"
+        return f"ttnn_DRAM_MEMORY_CONFIG"
 
 
-class DummyTtlTensorBufferTypeDram:
+class TtnnL1MemoryConfig:
     def __repr__(self):
-        return f"ttl_tensor_BufferType_DRAM"
+        return f"ttnn_L1_MEMORY_CONFIG"
