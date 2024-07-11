@@ -4,7 +4,8 @@ import torch_ttnn
 import unittest
 import ttnn
 import collections
-from torch_ttnn.utils import check_with_pcc, RunTimeMetrics
+from torch_ttnn.utils import RunTimeMetrics
+from tests.utils import check_with_pcc
 
 
 class TestRestNet(unittest.TestCase):

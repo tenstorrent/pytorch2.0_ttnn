@@ -4,7 +4,7 @@ import pickle
 import csv
 from pathlib import Path
 
-from torch_ttnn.utils import comp_pcc
+from tests.utils import comp_pcc
 
 
 def load_pickle(path: str):
