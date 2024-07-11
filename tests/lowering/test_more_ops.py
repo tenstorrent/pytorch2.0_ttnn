@@ -4,7 +4,7 @@ import unittest
 import ttnn
 import tt_lib
 
-from torch_ttnn.utils import check_with_pcc
+from tests.utils import check_with_pcc
 
 
 class SubModule(torch.nn.Module):
