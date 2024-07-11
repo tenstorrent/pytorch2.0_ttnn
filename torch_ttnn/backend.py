@@ -12,6 +12,48 @@ torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
 
 
+# The option for torch_ttnn.backend
+class TorchTtnnOption:
+    def __init__(self, device: ttnn.Device, gen_graphviz=False, metrics_path=""):
+        self.device = device
+        self.gen_graphviz = gen_graphviz
+        self._out_fx_graphs = list()
+
+        if metrics_path:
+            p = Path(f"metrics/{metrics_path}")
+            os.makedirs(p, exist_ok=True)
+        self.metrics_path = metrics_path
+        self._metrics = dict()
+
+
+def register_ttnn_objects(option: TorchTtnnOption):
+    """
+    torch.fx builds a source object as a string, calls builtin compile(), and finally
+    calls builtin exec() with a dictionary of globals that contains the strings (keys)
+    that will be replaced by the ttnn objects (values) during evaluation.
+    """
+    torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
+
+    torch.fx.graph._register_custom_builtin(
+        "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
+    )
+    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
+
+    torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
+    torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
+
+    torch.fx.graph._register_custom_builtin(
+        "ttnn_DRAM_MEMORY_CONFIG",
+        "",
+        ttnn.DRAM_MEMORY_CONFIG,
+    )
+    torch.fx.graph._register_custom_builtin(
+        "ttnn_L1_MEMORY_CONFIG",
+        "",
+        ttnn.L1_MEMORY_CONFIG,
+    )
+
+
 # The backend for torch.compile that converts a graph to use ttnn.
 # The "option" parameter is a dict that contains one key "torch_ttnn_option".
 # The value of "torch_ttnn_option" is a TorchTtnnOption object.
@@ -47,31 +89,8 @@ def aten_backend(
     if option.metrics_path:
         option._metrics["torch_ops_before"] = count_aten_ops()
 
-    torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
-    )
-    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
-    torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
-    torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
-
-    # Some ttnn objects are unhashable because they are function calls.
-    # However, arguments for these functions are usually hashable.
-    import tt_lib as ttl
-
-    # ttnn.DRAM_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.DRAM)
-    torch.fx.graph._register_custom_builtin(
-        "ttl_tensor_TensorMemoryLayout_INTERLEAVED",
-        "",
-        ttl.tensor.TensorMemoryLayout.INTERLEAVED,
-    )
-    torch.fx.graph._register_custom_builtin(
-        "ttl_tensor_BufferType_DRAM", "", ttl.tensor.BufferType.DRAM
-    )
-    # ttnn.L1_MEMORY_CONFIG = ttnn.MemoryConfig(ttl.tensor.TensorMemoryLayout.INTERLEAVED, ttl.tensor.BufferType.L1)
-    torch.fx.graph._register_custom_builtin(
-        "ttl_tensor_BufferType_L1", "", ttl.tensor.BufferType.L1
-    )
+    # Register ttnn objects as graph globals
+    register_ttnn_objects(option)
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
@@ -137,20 +156,6 @@ def aten_backend(
 
 from torch._dynamo.backends.common import aot_autograd
 from functools import partial
-
-
-# The option for torch_ttnn.backend
-class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device, gen_graphviz=False, metrics_path=""):
-        self.device = device
-        self.gen_graphviz = gen_graphviz
-        self._out_fx_graphs = list()
-
-        if metrics_path:
-            p = Path(f"metrics/{metrics_path}")
-            os.makedirs(p, exist_ok=True)
-        self.metrics_path = metrics_path
-        self._metrics = dict()
 
 
 from .handle_input_aliasing import insert_clones_for_input_aliasing

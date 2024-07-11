@@ -4,8 +4,8 @@ import unittest
 import ttnn
 import tt_lib
 from torch_ttnn.utils import (
-    DummyTtnnRowMajorLayout,
-    DummyTtnnTileLayout,
+    TtnnRowMajorLayout,
+    TtnnTileLayout,
 )
 
 
@@ -108,16 +108,14 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[8].target == ttnn.repeat)
-        self.assertTrue(nodes[8].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[8].args[0].args[0].target == ttnn.clone)
-        self.assertTrue(
-            type(nodes[8].args[0].args[1]) is type(DummyTtnnRowMajorLayout())
-        )
-        self.assertTrue(nodes[8].args[1].target == ttnn.Shape)
-        self.assertTrue(nodes[9].target == ttnn.from_device)
-        self.assertTrue(nodes[10].target == ttnn.to_layout)
-        self.assertTrue(nodes[11].target == ttnn.to_torch)
+        self.assertTrue(nodes[7].target == ttnn.repeat)
+        self.assertTrue(nodes[7].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[7].args[0].args[0].target == ttnn.clone)
+        self.assertTrue(type(nodes[7].args[0].args[1]) is type(TtnnRowMajorLayout()))
+        self.assertTrue(nodes[7].args[1].target == ttnn.Shape)
+        self.assertTrue(nodes[8].target == ttnn.from_device)
+        self.assertTrue(nodes[9].target == ttnn.to_layout)
+        self.assertTrue(nodes[10].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
@@ -141,7 +139,7 @@ class TestModules(unittest.TestCase):
         self.assertTrue(nodes[4].args[1].target == ttnn.Shape)
         self.assertTrue(nodes[5].target == ttnn.to_layout)
         self.assertTrue(nodes[5].args[0].target == ttnn.repeat)
-        self.assertTrue(type(nodes[5].args[1]) is type(DummyTtnnTileLayout()))
+        self.assertTrue(type(nodes[5].args[1]) is type(TtnnTileLayout()))
         self.assertTrue(nodes[6].target == ttnn.add)
         self.assertTrue(nodes[7].target == ttnn.from_device)
         self.assertTrue(nodes[8].target == ttnn.to_layout)
@@ -165,20 +163,18 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[8].target == ttnn.repeat)
-        self.assertTrue(nodes[8].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[8].args[0].args[0].target == ttnn.clone)
-        self.assertTrue(
-            type(nodes[8].args[0].args[1]) is type(DummyTtnnRowMajorLayout())
-        )
-        self.assertTrue(nodes[8].args[1].target == ttnn.Shape)
-        self.assertTrue(nodes[9].target == ttnn.to_layout)
-        self.assertTrue(nodes[9].args[0].target == ttnn.repeat)
-        self.assertTrue(type(nodes[9].args[1]) is type(DummyTtnnTileLayout()))
-        self.assertTrue(nodes[10].target == ttnn.add)
-        self.assertTrue(nodes[11].target == ttnn.from_device)
-        self.assertTrue(nodes[12].target == ttnn.to_layout)
-        self.assertTrue(nodes[13].target == ttnn.to_torch)
+        self.assertTrue(nodes[7].target == ttnn.repeat)
+        self.assertTrue(nodes[7].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[7].args[0].args[0].target == ttnn.clone)
+        self.assertTrue(type(nodes[7].args[0].args[1]) is type(TtnnRowMajorLayout()))
+        self.assertTrue(nodes[7].args[1].target == ttnn.Shape)
+        self.assertTrue(nodes[8].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].args[0].target == ttnn.repeat)
+        self.assertTrue(type(nodes[8].args[1]) is type(TtnnTileLayout()))
+        self.assertTrue(nodes[9].target == ttnn.add)
+        self.assertTrue(nodes[10].target == ttnn.from_device)
+        self.assertTrue(nodes[11].target == ttnn.to_layout)
+        self.assertTrue(nodes[12].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 

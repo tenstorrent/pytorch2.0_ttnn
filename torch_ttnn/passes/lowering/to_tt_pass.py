@@ -2,11 +2,10 @@ import torch
 import ttnn
 from torch_ttnn.utils import (
     GraphCleanup,
-    DummyTtlTensorTensorMemoryLayoutInterleaved,
-    DummyTtlTensorBufferTypeDram,
-    DummyTtnnBfloat16,
-    DummyDevice,
-    DummyTtnnTileLayout,
+    TtnnBfloat16,
+    TtnnDevice,
+    TtnnTileLayout,
+    TtnnDramMemoryConfig,
 )
 import numpy as np
 
@@ -117,17 +116,17 @@ class ReplaceMoreTt(torch.fx.Transformer):
         return call_func
 
 
-def torch_dtype_to_dummy_ttnn_dtype(dtype: torch.dtype):
+def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     # Add newly supported dtypes here:
     dtype_map = {
-        torch.float32: DummyTtnnBfloat16(),
-        torch.bfloat16: DummyTtnnBfloat16(),
+        torch.float32: TtnnBfloat16(),
+        torch.bfloat16: TtnnBfloat16(),
     }
     if dtype in dtype_map:
         return dtype_map.get(dtype)
     else:
         raise RuntimeError(
-            f"Missing conversion from torch.dtype: {dtype} to DummyTtnn dtype."
+            f"Missing conversion from torch.dtype: {dtype} to Ttnn dtype."
         )
 
 
@@ -151,17 +150,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             # TODO (kevinwuTT): consolidate and simplify these statements?
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
-                dummy_dtype = torch_dtype_to_dummy_ttnn_dtype(arg_metadata.dtype)
+                ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                memory_config = g.call_function(
-                    ttnn.MemoryConfig,
-                    (
-                        DummyTtlTensorTensorMemoryLayoutInterleaved(),
-                        DummyTtlTensorBufferTypeDram(),
-                    ),
-                )
                 new_node = g.call_function(
-                    ttnn.clone, args=(args[0], memory_config, dummy_dtype)
+                    ttnn.clone, args=(args[0], TtnnDramMemoryConfig(), ttnn_dtype)
                 )
                 new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
@@ -183,7 +175,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     node_user.replace_all_uses_with(new_node)
             if node.target == torch.ops.aten.ones.default:
                 new_node = g.call_function(
-                    ttnn.ones, args=args, kwargs={"device": DummyDevice()}
+                    ttnn.ones, args=args, kwargs={"device": TtnnDevice()}
                 )
                 new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
@@ -195,7 +187,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.arange.default:
                 # start = 0, step = 1
                 new_args = (0,)
-                new_kwargs = {"end": args[0], "step": 1, "device": DummyDevice()}
+                new_kwargs = {"end": args[0], "step": 1, "device": TtnnDevice()}
                 new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node,)
             """
@@ -204,7 +196,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if args[0] >= 2:
                     # step = 1
                     new_args = (args[0],)
-                    new_kwargs = {"end": args[1], "step": 1, "device": DummyDevice()}
+                    new_kwargs = {"end": args[1], "step": 1, "device": TtnnDevice()}
                     new_node = g.call_function(
                         ttnn.arange, args=new_args, kwargs=new_kwargs
                     )
@@ -220,7 +212,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_kwargs = {
                         "end": args[1],
                         "step": args[2],
-                        "device": DummyDevice(),
+                        "device": TtnnDevice(),
                     }
                     new_node = g.call_function(
                         ttnn.arange, args=new_args, kwargs=new_kwargs
@@ -237,8 +229,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if has_valid_page_size(arg_metadata.size()):
                     new_kwargs = {
                         "fill_value": args[1],
-                        "device": DummyDevice(),
-                        "layout": DummyTtnnTileLayout(),
+                        "device": TtnnDevice(),
+                        "layout": TtnnTileLayout(),
                     }
                     full_node = g.call_function(
                         ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs
@@ -258,8 +250,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if args[0]:
                     new_kwargs = {
                         "fill_value": args[1],
-                        "device": DummyDevice(),
-                        "layout": DummyTtnnTileLayout(),
+                        "device": TtnnDevice(),
+                        "layout": TtnnTileLayout(),
                     }
                     new_node = g.call_function(
                         ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs
@@ -293,7 +285,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 )
             if node.target == torch.ops.aten.embedding.default:
                 # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
-                new_kwargs = {"layout": DummyTtnnTileLayout()}
+                new_kwargs = {"layout": TtnnTileLayout()}
                 new_node = g.call_function(
                     ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs
                 )
@@ -310,13 +302,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # TODO(kevinwuTT): Use ttnn.full instead of aten
                 new_kwargs = {
                     "fill_value": args[1],
-                    "device": DummyDevice(),
+                    "device": TtnnDevice(),
                 }
                 full = g.call_function(
                     ttnn.full, args=(tuple(node_metadata.size()),), kwargs=new_kwargs
                 )
                 to_layout = g.call_function(
-                    ttnn.to_layout, (full,), {"layout": DummyTtnnTileLayout()}
+                    ttnn.to_layout, (full,), {"layout": TtnnTileLayout()}
                 )
                 new_node = g.call_function(
                     ttnn.sub, args=(to_layout, args[0]), kwargs={}
@@ -333,7 +325,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if isinstance(args[1], float):
                     new_kwargs = {
                         "fill_value": args[1],
-                        "device": DummyDevice(),
+                        "device": TtnnDevice(),
                     }
                     full = g.call_function(
                         ttnn.full,
@@ -341,7 +333,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         kwargs=new_kwargs,
                     )
                     to_layout = g.call_function(
-                        ttnn.to_layout, (full,), {"layout": DummyTtnnTileLayout()}
+                        ttnn.to_layout, (full,), {"layout": TtnnTileLayout()}
                     )
                     recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
                 else:
@@ -354,20 +346,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 )
             if node.target == torch.ops.aten._to_copy.default:
                 kwargs = node.kwargs
-                dummy_dtype = torch_dtype_to_dummy_ttnn_dtype(kwargs["dtype"])
+                ttnn_dtype = torch_dtype_to_ttnn_dtype(kwargs["dtype"])
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                memory_config = g.call_function(
-                    ttnn.MemoryConfig,
-                    (
-                        DummyTtlTensorTensorMemoryLayoutInterleaved(),
-                        DummyTtlTensorBufferTypeDram(),
-                    ),
-                )
                 new_kwargs = {
-                    "dtype": dummy_dtype,
-                    "layout": DummyTtnnTileLayout(),
-                    "device": DummyDevice(),
-                    "memory_config": memory_config,
+                    "dtype": ttnn_dtype,
+                    "layout": TtnnTileLayout(),
+                    "device": TtnnDevice(),
+                    "memory_config": TtnnDramMemoryConfig(),
                 }
                 new_node = g.call_function(ttnn.as_tensor, args, new_kwargs)
                 new_node.meta["val"] = node.meta["val"]
@@ -405,6 +390,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
                 )
+            if node.target == torch.ops.aten.t.default:
+                permutation = list()
+                rank = len(node.meta["val"].size())
+                assert rank >= 0 and rank <= 2, "Input tensor can only be 0D, 1D or 2D"
+                if rank == 2:
+                    permutation = [1, 0]
+                    new_node = g.call_function(
+                        ttnn.permute, args=(args[0], permutation)
+                    )
+                    node.replace_all_uses_with(
+                        new_node,
+                        delete_user_cb=lambda node: node != new_node,
+                    )
 
     gm = GraphCleanup(gm)
     return gm
