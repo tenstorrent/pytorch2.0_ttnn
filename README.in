@@ -17,7 +17,15 @@ ttnn_module = torch.compile(module, torch_ttnn.backend)
 ttnn_module(input_data)
 ```
 
+# Results
 
+The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
+
+{metrics_md}
+
+## Explanation of Metrics
+
+{explanations_md}
 
 # Tracer
 The tracer dump the information of fx graph such as node's op_name and shape.
@@ -55,7 +63,7 @@ The `*_total_*_size_dist/` statistics the `op_type`'s input/output_size distribu
 # Run transformer models
 To run transformer model with ttnn backend, run:
 ```
-PYTHONPATH=${TT_METAL_HOME}:$(pwd) python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
+PYTHONPATH=${{TT_METAL_HOME}}:$(pwd) python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
 ```
 
 You can also substitute the backend with `torch_stat` to run a reference comparison.
