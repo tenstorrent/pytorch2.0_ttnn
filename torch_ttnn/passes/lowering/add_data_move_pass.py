@@ -178,9 +178,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         # ttnn reshape requires row major layout
         elif dst_node.target == ttnn.reshape:
             new_nodes.append(
-                g.call_function(
-                    ttnn.to_layout, (new_nodes[-1], DummyTtnnRowMajorLayout())
-                )
+                g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnRowMajorLayout()))
             )
         # For reshape only put tensor on device if rank is 4
         if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
