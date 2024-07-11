@@ -60,13 +60,13 @@ if __name__ == "__main__":
 
         # Rename run_time keys to match original or compiled
         if "run_time" in original_runtime_metrics:
-            original_runtime_metrics["original_run_time"] = (
-                original_runtime_metrics.pop("run_time")
-            )
+            original_runtime_metrics[
+                "original_run_time"
+            ] = original_runtime_metrics.pop("run_time")
         if "run_time" in compiled_runtime_metrics:
-            compiled_runtime_metrics["compiled_run_time"] = (
-                compiled_runtime_metrics.pop("run_time")
-            )
+            compiled_runtime_metrics[
+                "compiled_run_time"
+            ] = compiled_runtime_metrics.pop("run_time")
 
         # Metric containing op counts. Will not exist if test failed.
         compiled_ops_metrics_path = model_path / "compiled-op_metrics.pickle"
