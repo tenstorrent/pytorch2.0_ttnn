@@ -4,7 +4,7 @@ import unittest
 import ttnn
 import tt_lib
 
-from torch_ttnn.utils import check_with_pcc
+from tests.utils import check_with_pcc
 
 
 class SubModule(torch.nn.Module):
@@ -1075,14 +1075,13 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[5].target == ttnn.clone)
-        self.assertTrue(nodes[5].args[0].target == ttnn.to_device)
-        self.assertTrue(nodes[5].args[0].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[5].args[0].args[0].args[0].target == ttnn.from_torch)
-        self.assertTrue(nodes[5].args[1].target == ttnn.MemoryConfig)
-        self.assertTrue(nodes[6].target == ttnn.from_device)
-        self.assertTrue(nodes[7].target == ttnn.to_layout)
-        self.assertTrue(nodes[8].target == ttnn.to_torch)
+        self.assertTrue(nodes[4].target == ttnn.clone)
+        self.assertTrue(nodes[4].args[0].target == ttnn.to_device)
+        self.assertTrue(nodes[4].args[0].args[0].target == ttnn.to_layout)
+        self.assertTrue(nodes[4].args[0].args[0].args[0].target == ttnn.from_torch)
+        self.assertTrue(nodes[5].target == ttnn.from_device)
+        self.assertTrue(nodes[6].target == ttnn.to_layout)
+        self.assertTrue(nodes[7].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
@@ -1100,12 +1099,11 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[6].target == ttnn.clone)
-        self.assertTrue(nodes[6].args[0].target == ttnn.add)
-        self.assertTrue(nodes[6].args[1].target == ttnn.MemoryConfig)
-        self.assertTrue(nodes[7].target == ttnn.from_device)
-        self.assertTrue(nodes[8].target == ttnn.to_layout)
-        self.assertTrue(nodes[9].target == ttnn.to_torch)
+        self.assertTrue(nodes[5].target == ttnn.clone)
+        self.assertTrue(nodes[5].args[0].target == ttnn.add)
+        self.assertTrue(nodes[6].target == ttnn.from_device)
+        self.assertTrue(nodes[7].target == ttnn.to_layout)
+        self.assertTrue(nodes[8].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
@@ -1853,10 +1851,10 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[2].target == ttnn.as_tensor)
-        self.assertTrue(nodes[3].target == ttnn.from_device)
-        self.assertTrue(nodes[4].target == ttnn.to_layout)
-        self.assertTrue(nodes[5].target == ttnn.to_torch)
+        self.assertTrue(nodes[1].target == ttnn.as_tensor)
+        self.assertTrue(nodes[2].target == ttnn.from_device)
+        self.assertTrue(nodes[3].target == ttnn.to_layout)
+        self.assertTrue(nodes[4].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
@@ -1874,13 +1872,13 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[2].target == ttnn.as_tensor)
-        self.assertTrue(nodes[3].target == ttnn.add)
-        self.assertTrue(nodes[3].args[0].target == ttnn.as_tensor)
-        self.assertTrue(nodes[3].args[1].target == ttnn.as_tensor)
-        self.assertTrue(nodes[4].target == ttnn.from_device)
-        self.assertTrue(nodes[5].target == ttnn.to_layout)
-        self.assertTrue(nodes[6].target == ttnn.to_torch)
+        self.assertTrue(nodes[1].target == ttnn.as_tensor)
+        self.assertTrue(nodes[2].target == ttnn.add)
+        self.assertTrue(nodes[2].args[0].target == ttnn.as_tensor)
+        self.assertTrue(nodes[2].args[1].target == ttnn.as_tensor)
+        self.assertTrue(nodes[3].target == ttnn.from_device)
+        self.assertTrue(nodes[4].target == ttnn.to_layout)
+        self.assertTrue(nodes[5].target == ttnn.to_torch)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
