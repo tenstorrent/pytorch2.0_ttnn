@@ -25,22 +25,26 @@ class TestRestNet(unittest.TestCase):
         # Create random input tensor
         input_batch = torch.rand((1, 3, 224, 224), dtype=torch.bfloat16)
 
+        metrics_path = "ResNet18"
         # Run inference with the original model
         with torch.no_grad():
             output_before = RunTimeMetrics(
-                "ResNet18", "original", lambda: model(input_batch)
+                metrics_path, "original", lambda: model(input_batch)
             )
 
         # Compile the model
-        option = torch_ttnn.TorchTtnnOption(device=self.device, metrics_path="ResNet18")
+        option = torch_ttnn.TorchTtnnOption(
+            device=self.device, metrics_path=metrics_path
+        )
         option.gen_graphviz = True
         model = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
         # Run inference with the compiled model
         with torch.no_grad():
             output_after = RunTimeMetrics(
-                "ResNet18", "compiled", lambda: model(input_batch)
+                metrics_path, "compiled", lambda: model(input_batch)
             )
+        option._out_fx_graphs[0].print_tabular()
 
         # TODO: Check the graph has be rewritten and contain ttnn ops
 
