@@ -4,6 +4,9 @@ from typing import List
 import torch._dynamo
 from functorch.compile import make_boxed_func
 import ttnn
+import pickle
+from pathlib import Path
+import os
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -11,10 +14,16 @@ torch._dynamo.config.verbose = True
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device):
+    def __init__(self, device: ttnn.Device, gen_graphviz=False, metrics_path=""):
         self.device = device
-        self.gen_graphviz = False
+        self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
+
+        if metrics_path:
+            p = Path(f"metrics/{metrics_path}")
+            os.makedirs(p, exist_ok=True)
+        self.metrics_path = metrics_path
+        self._metrics = dict()
 
 
 def register_ttnn_objects(option: TorchTtnnOption):
@@ -65,6 +74,21 @@ def aten_backend(
 
     option: TorchTtnnOption = options["torch_ttnn_option"]
 
+    # Helper function to count the number of aten ops in the graph currently
+    def count_aten_ops():
+        aten_ops = [
+            str(node.target)
+            for node in list(gm.graph.nodes)
+            if node.op in ["call_function", "call_method"]
+            and isinstance(node.target, torch._ops.OpOverload)
+            and "aten" in str(node.target)
+        ]
+        return len(aten_ops)
+
+    # Save the number of aten ops before compilation
+    if option.metrics_path:
+        option._metrics["torch_ops_before"] = count_aten_ops()
+
     # Register ttnn objects as graph globals
     register_ttnn_objects(option)
 
@@ -106,8 +130,26 @@ def aten_backend(
 
     gm.graph.lint()
     gm.recompile()
-    gm.graph.print_tabular()
-    print(gm.code)
+
+    if option.metrics_path:
+        # Save the number of aten ops after compilation
+        option._metrics["torch_ops_remain"] = count_aten_ops()
+        # Save the number of to/from_device ops in current graph
+        to_from_device_ops = [
+            node.target.__name__
+            for node in list(gm.graph.nodes)
+            if node.op in ["call_function", "call_method"]
+            and (
+                "ttnn.to" in node.target.__name__ or "ttnn.from" in node.target.__name__
+            )
+        ]
+        option._metrics["to_from_device_ops"] = len(to_from_device_ops)
+        # Save the data as pickle files
+        p = Path(f"metrics/{option.metrics_path}")
+        pickle_out_path = p / "compiled-op_metrics.pickle"
+        with open(pickle_out_path, "wb") as f:
+            pickle.dump(option._metrics, f)
+
     option._out_fx_graphs.append(gm.graph)
     return make_boxed_func(gm)
 
