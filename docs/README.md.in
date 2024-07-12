@@ -1,6 +1,20 @@
-# `torch_ttnn` Module
 
-The `torch_ttnn` module has a `backend` function, which can used with the `torch.compile()` function.
+# PyTorch 2.0 TTNN Compiler
+This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com/) hardware.
+
+## Supported Models
+
+The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
+
+{metrics_md}
+
+### Explanation of Metrics
+
+{explanations_md}
+
+## Quickstart
+
+The `torch_ttnn` module has a `backend` function, which can be used with the `torch.compile()`.
 
 ```python
 import torch
@@ -11,23 +25,17 @@ class FooModule(torch.Module):
     ...
 # Create a module
 module = FooModule()
+
 # Compile the module, with ttnn backend
-ttnn_module = torch.compile(module, torch_ttnn.backend)
-# Running inference
+device = ttnn.open_device(device_id=0)
+option = torch_ttnn.TorchTtnnOption(device=self.device)
+ttnn_module = torch.compile(module, backend=torch_ttnn.backend, options=option)
+
+# Running inference / training
 ttnn_module(input_data)
 ```
 
-# Results
-
-The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
-
-{metrics_md}
-
-## Explanation of Metrics
-
-{explanations_md}
-
-# Tracer
+## Tracer
 The tracer dump the information of fx graph such as node's op_name and shape.
 
 For example, you can run this script to parse the information
@@ -60,7 +68,7 @@ The `*_total_*_size_dist/` statistics the `op_type`'s input/output_size distribu
 
 [The `profile/` is the tools provided by pytorch](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html), you can open it by the url: chrome://tracing
 
-# Run transformer models
+## Run transformer models
 To run transformer model with ttnn backend, run:
 ```
 PYTHONPATH=${{TT_METAL_HOME}}:$(pwd) python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
