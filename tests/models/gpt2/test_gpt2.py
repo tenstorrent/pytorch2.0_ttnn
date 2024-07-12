@@ -5,10 +5,10 @@ import ttnn
 from torch_ttnn.utils import RunTimeMetrics
 
 # Load model directly
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
-class TestBert(unittest.TestCase):
+class TestGPT2(unittest.TestCase):
     def setUp(self):
         # Open device 0
         self.device: ttnn.Device = ttnn.open_device(device_id=0)
@@ -17,32 +17,22 @@ class TestBert(unittest.TestCase):
         # Close the device
         ttnn.close_device(self.device)
 
-    def test_bert(self):
+    def test_gpt2(self):
         # Download model from cloud
-        model_name = "phiyodr/bert-large-finetuned-squad2"
+        model_name = "mnoukhov/gpt2-imdb-sentiment-classifier"
         tokenizer = AutoTokenizer.from_pretrained(
             model_name, padding_side="left", torch_dtype=torch.bfloat16
         )
-        m = AutoModelForQuestionAnswering.from_pretrained(
+        m = AutoModelForSequenceClassification.from_pretrained(
             model_name, torch_dtype=torch.bfloat16
         )
         m.eval()
 
         # Set up sample input
-        context = 'Johann Joachim Winckelmann was a German art historian and archaeologist. He was a pioneering Hellenist who first articulated the difference between Greek, Greco-Roman and Roman art. "The prophet and founding hero of modern archaeology", Winckelmann was one of the founders of scientific archaeology and first applied the categories of style on a large, systematic basis to the history of art. '
-        question = "What discipline did Winkelmann create?"
+        test_input = "This is a sample text from "
+        inputs = tokenizer(test_input, return_tensors="pt")
 
-        inputs = tokenizer.encode_plus(
-            question,
-            context,
-            add_special_tokens=True,
-            return_tensors="pt",
-            max_length=256,
-            padding="max_length",
-            truncation=True,
-        )
-
-        metrics_path = "BERT"
+        metrics_path = "GPT-2"
         # Run inference with the original model
         with torch.no_grad():
             outputs_before = RunTimeMetrics(
@@ -51,12 +41,10 @@ class TestBert(unittest.TestCase):
 
         # Helper function to decode output to human-readable text
         def decode_output(outputs):
-            response_start = torch.argmax(outputs.start_logits)
-            response_end = torch.argmax(outputs.end_logits) + 1
-            response_tokens = inputs.input_ids[0, response_start:response_end]
-            return tokenizer.decode(response_tokens)
+            normalized = outputs.logits.softmax(dim=-1)
+            return normalized.argmax().item()
 
-        answer_before = decode_output(outputs_before)
+        decoded_output_before = decode_output(outputs_before)
 
         # Compile model with ttnn backend
         option = torch_ttnn.TorchTtnnOption(
@@ -72,22 +60,20 @@ class TestBert(unittest.TestCase):
         if outputs_after:
             option._out_fx_graphs[0].print_tabular()
 
-            answer_after = decode_output(outputs_after)
+            decoded_output_after = decode_output(outputs_after)
 
             print(
                 f"""
             model_name: {model_name}
-            input:
-                context: {context}
-                question: {question}
-            answer before: {answer_before}
-            answer after: {answer_after}
+            input: {test_input}
+            output before: {decoded_output_before}
+            output after: {decoded_output_after}
             """
             )
 
             # TODO: Add more checks for the compiled graph
 
             # Check inference result
-            self.assertEqual(answer_before, answer_after)
+            self.assertEqual(decoded_output_before, decoded_output_after)
         else:
             print(f"Compiled model: {model_name} failed to run.")
