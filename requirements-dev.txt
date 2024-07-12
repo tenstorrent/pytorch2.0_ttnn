@@ -4,3 +4,4 @@ pytest-timeout==2.2.0
 pre-commit==3.0.4
 transformers==4.38.0
 pandas==2.0.3
+Pillow==10.3.0

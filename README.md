@@ -8,12 +8,17 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model         | Run Success   |   Torch Ops (Before) |   Torch Ops (Remain) |   To/From_Device Ops |   Original Run Time (s) |   Compiled Run Time(s) |   Accuracy |
-|:--------------|:--------------|---------------------:|---------------------:|---------------------:|------------------------:|-----------------------:|-----------:|
-| Mnist (Eval)  | Yes           |                   14 |                    5 |                   36 |               0.0115848 |               2.16093  |   0.99461  |
-| Mnist (Train) | Yes           |                   14 |                    7 |                   42 |               0.011369  |               0.349193 |   0.766803 |
-| ResNet18      | Yes           |                   70 |                   42 |                  132 |               1.72085   |               8.91572  |   0.999911 |
-| BERT          | Yes           |                 1393 |                  539 |                 3862 |              61.5832    |              36.024    |   0.986412 |
+| Model         | Run Success   | Torch Ops (Before)   | Torch Ops (Remain)   | To/From_Device Ops   |   Original Run Time (s) | Compiled Run Time(s)   | Accuracy           |
+|:--------------|:--------------|:---------------------|:---------------------|:---------------------|------------------------:|:-----------------------|:-------------------|
+| Mnist (Eval)  | Yes           | 14                   | 5                    | 36                   |               0.0113227 | 2.2285212059505284     | 0.9871560472189823 |
+| Mnist (Train) | Yes           | 14                   | 7                    | 42                   |               0.0120502 | 0.3592461119405925     | 0.7461481019967987 |
+| ResNet18      | Yes           | 70                   | 42                   | 132                  |               1.82999   | 8.746782089932822      | 0.9999111054719786 |
+| Bloom         | No            | N/A                  | N/A                  | N/A                  |               5.5785    | N/A                    | N/A                |
+| YOLOS         | No            | N/A                  | N/A                  | N/A                  |               0.27139   | N/A                    | N/A                |
+| Llama         | No            | 3                    | 2                    | 6                    |              38.4944    | N/A                    | N/A                |
+| BERT          | Yes           | 1393                 | 539                  | 3862                 |              61.9702    | 36.7952290129615       | 0.9864120722326671 |
+| Falcon        | No            | 3                    | 2                    | 6                    |              34.9667    | N/A                    | N/A                |
+| GPT-2         | No            | N/A                  | N/A                  | N/A                  |               1.07637   | N/A                    | N/A                |
 
 ### Explanation of Metrics
 
