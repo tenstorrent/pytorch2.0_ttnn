@@ -23,10 +23,12 @@ ttnn_module(input_data)
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model    | Run Success   |   Torch Ops (Before) |   Torch Ops (Remain) |   To/From_Device Ops |   Original Run Time (s) |   Compiled Run Time(s) |   Accuracy |
-|:---------|:--------------|---------------------:|---------------------:|---------------------:|------------------------:|-----------------------:|-----------:|
-| ResNet18 | Yes           |                   70 |                   42 |                  132 |                 1.71981 |                9.07353 |   0.999921 |
-| BERT     | Yes           |                 1393 |                  539 |                 3862 |                61.4666  |               36.2097  |   0.986412 |
+| Model         | Run Success   |   Torch Ops (Before) |   Torch Ops (Remain) |   To/From_Device Ops |   Original Run Time (s) |   Compiled Run Time(s) |   Accuracy |
+|:--------------|:--------------|---------------------:|---------------------:|---------------------:|------------------------:|-----------------------:|-----------:|
+| Mnist (Eval)  | Yes           |                   14 |                    5 |                   36 |               0.0115848 |               2.16093  |   0.99461  |
+| Mnist (Train) | Yes           |                   14 |                    7 |                   42 |               0.011369  |               0.349193 |   0.766803 |
+| ResNet18      | Yes           |                   70 |                   42 |                  132 |               1.72085   |               8.91572  |   0.999911 |
+| BERT          | Yes           |                 1393 |                  539 |                 3862 |              61.5832    |              36.024    |   0.986412 |
 
 ## Explanation of Metrics
 
