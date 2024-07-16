@@ -8,28 +8,30 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model         | Run Success   | Torch Ops (Before)   | Torch Ops (Remain)   | To/From_Device Ops   |   Original Run Time (s) | Compiled Run Time(s)   | Accuracy           |
-|:--------------|:--------------|:---------------------|:---------------------|:---------------------|------------------------:|:-----------------------|:-------------------|
-| Mnist (Eval)  | Yes           | 14                   | 5                    | 36                   |               0.0113227 | 2.2285212059505284     | 0.9871560472189823 |
-| Mnist (Train) | Yes           | 14                   | 7                    | 42                   |               0.0120502 | 0.3592461119405925     | 0.7461481019967987 |
-| ResNet18      | Yes           | 70                   | 42                   | 132                  |               1.82999   | 8.746782089932822      | 0.9999111054719786 |
-| Bloom         | No            | N/A                  | N/A                  | N/A                  |               5.5785    | N/A                    | N/A                |
-| YOLOS         | No            | N/A                  | N/A                  | N/A                  |               0.27139   | N/A                    | N/A                |
-| Llama         | No            | 3                    | 2                    | 6                    |              38.4944    | N/A                    | N/A                |
-| BERT          | Yes           | 1393                 | 539                  | 3862                 |              61.9702    | 36.7952290129615       | 0.9864120722326671 |
-| Falcon        | No            | 3                    | 2                    | 6                    |              34.9667    | N/A                    | N/A                |
-| GPT-2         | No            | N/A                  | N/A                  | N/A                  |               1.07637   | N/A                    | N/A                |
+| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (s) | Compiled Run Time(s)   | Accuracy   |
+|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|------------------------:|:-----------------------|:-----------|
+| [Mnist (Eval)](tests/models/mnist)  | ✔             | 14 (8)                          | 5 (4)                           | 36                   |                    0.01 | 2.86                   | 0.99       |
+| [Mnist (Train)](tests/models/mnist) | ✔             | 14 (8)                          | 7 (5)                           | 42                   |                    0.01 | 0.36                   | 0.73       |
+| [ResNet18](tests/models/resnet)     | ✔             | 70 (9)                          | 42 (4)                          | 132                  |                    1.75 | 8.99                   | 1.0        |
+| [Bloom](tests/models/bloom)         | ✘             | N/A                             | N/A                             | N/A                  |                    5.45 | N/A                    | N/A        |
+| [YOLOS](tests/models/yolos)         | ✘             | N/A                             | N/A                             | N/A                  |                    0.2  | N/A                    | N/A        |
+| [Llama](tests/models/llama)         | ✘             | 3 (3)                           | 1 (1)                           | 9                    |                   38.41 | N/A                    | N/A        |
+| [BERT](tests/models/bert)           | ✔             | 1393 (21)                       | 537 (4)                         | 3867                 |                   61.87 | 40.38                  | 0.99       |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 1 (1)                           | 9                    |                   34.87 | N/A                    | N/A        |
+| [GPT-2](tests/models/gpt2)          | ✘             | N/A                             | N/A                             | N/A                  |                    1.05 | N/A                    | N/A        |
 
 ### Explanation of Metrics
 
 **Model**: Name of the model.  
 **Run Success**: Indicates whether the model runs successfully after conversion.  
-**Torch Ops (Before)**: The number of operations used by the model in the original Torch implementation.  
-**Torch Ops (Remain)**: The number of operations used after conversion to TTNN.  
-**To/From_Device Ops**: The number of `to/from_device` operations (data transfer to/from the device).  
+**Torch Ops Before (Unique Ops)**: The total number of operations used by the model in the original Torch implementation. The number in parenthesis represents the total unique ops.  
+**Torch Ops Remain (Unique Ops)**: The total number of operations used after conversion to TTNN. The number in parenthesis represents the total unique ops.  
+**To/From Device Ops**: The number of `to/from_device` operations (data transfer to/from the device).  
 **Original Run Time (s)**: Execution time (in seconds) of the model before conversion.  
 **Compiled Run Time(s)**: Execution time (in seconds) of the model after conversion.  
 **Accuracy**: Model accuracy on a predefined test dataset after conversion.  
+***
+**NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  
 
 ## Quickstart
 

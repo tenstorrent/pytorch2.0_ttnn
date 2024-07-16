@@ -20,16 +20,16 @@ csv_header_mappings = {
         "Run Success",
         "Indicates whether the model runs successfully after conversion.",
     ),
-    "torch_ops_before": (
-        "Torch Ops (Before)",
-        "The number of operations used by the model in the original Torch implementation.",
+    "torch_ops_total_unique_before": (
+        "Torch Ops Before (Unique Ops)",
+        "The total number of operations used by the model in the original Torch implementation. The number in parenthesis represents the total unique ops.",
     ),
-    "torch_ops_remain": (
-        "Torch Ops (Remain)",
-        "The number of operations used after conversion to TTNN.",
+    "torch_ops_total_unique_remain": (
+        "Torch Ops Remain (Unique Ops)",
+        "The total number of operations used after conversion to TTNN. The number in parenthesis represents the total unique ops.",
     ),
     "to_from_device_ops": (
-        "To/From_Device Ops",
+        "To/From Device Ops",
         "The number of `to/from_device` operations (data transfer to/from the device).",
     ),
     "original_run_time": (
@@ -44,6 +44,18 @@ csv_header_mappings = {
         "Accuracy",
         "Model accuracy on a predefined test dataset after conversion.",
     ),
+}
+
+model_link_mappings = {
+    "BERT": "tests/models/bert",
+    "Bloom": "tests/models/bloom",
+    "Falcon": "tests/models/falcon",
+    "GPT-2": "tests/models/gpt2",
+    "Llama": "tests/models/llama",
+    "Mnist (Eval)": "tests/models/mnist",
+    "Mnist (Train)": "tests/models/mnist",
+    "ResNet18": "tests/models/resnet",
+    "YOLOS": "tests/models/yolos",
 }
 
 if __name__ == "__main__":
@@ -143,8 +155,35 @@ if __name__ == "__main__":
                 f"compiled_outputs:\n"
                 f"{compiled_outputs}\n"
             )
-        accuracy_metric = {"accuracy": accuracy}
-        model_metric = {"model": model}
+        accuracy_metric = {
+            "accuracy": round(accuracy, 2)
+            if not isinstance(accuracy, str)
+            else accuracy
+        }
+
+        # Add links that point to the directory of the model in the model name
+        model_metric = {"model": f"[{model}]({model_link_mappings[model]})"}
+
+        # Add new column that formats the total torch ops like: "total torch ops (total unique torch ops)""
+        if "torch_ops_before" in compiled_ops_metrics:
+            torch_ops_unique_before = (
+                compiled_ops_metrics["torch_ops_unique_before"]
+                if "torch_ops_unique_before" in compiled_ops_metrics
+                else "N/A"
+            )
+            compiled_ops_metrics[
+                "torch_ops_total_unique_before"
+            ] = f'{compiled_ops_metrics["torch_ops_before"]} ({torch_ops_unique_before})'
+
+        if "torch_ops_remain" in compiled_ops_metrics:
+            torch_ops_unique_remain = (
+                compiled_ops_metrics["torch_ops_unique_remain"]
+                if "torch_ops_unique_remain" in compiled_ops_metrics
+                else "N/A"
+            )
+            compiled_ops_metrics[
+                "torch_ops_total_unique_remain"
+            ] = f'{compiled_ops_metrics["torch_ops_remain"]} ({torch_ops_unique_remain})'
 
         # Concatenate all the metrics together
         cat_metrics = {
@@ -180,6 +219,8 @@ if __name__ == "__main__":
     explanations_md = "\n".join(
         [f"**{val[0]}**: {val[1]}  " for val in csv_header_mappings.values()]
     )
+    # FIXME: Remove this once metrics generation and collection work for multiple graphs
+    explanations_md += "\n***\n**NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  "
 
     # Load README.in as an f-string and substitute the variables
     with open("docs/README.md.in", "r") as text_file:
@@ -195,4 +236,5 @@ if __name__ == "__main__":
 
     with open("README.md", "w") as text_file:
         print(readme_md, file=text_file)
+
     print("Data written to README.md")
