@@ -38,11 +38,11 @@ def RunTimeMetrics(path: str, prefix: str, f):
         start = time.perf_counter()
         ret = f()
         end = time.perf_counter()
-        runtime_metrics = {"success": "Yes", "run_time": end - start}
+        runtime_metrics = {"success": "✔️", "run_time": round(end - start, 2)}
 
         torch.save(ret, pt_out_path)
     except:
-        runtime_metrics = {"success": "No"}
+        runtime_metrics = {"success": "✘"}
         ret = None
 
     with open(pickle_out_path, "wb") as f:
