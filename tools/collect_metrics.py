@@ -4,6 +4,7 @@ import pickle
 import csv
 from pathlib import Path
 import pandas as pd
+import numpy as np
 
 from tests.utils import comp_pcc
 
@@ -61,6 +62,9 @@ model_link_mappings = {
 if __name__ == "__main__":
     # Holds the concatenation of all the metrics for each model
     all_metrics = []
+
+    # Holds the concatenation of input variation metrics for all models
+    all_input_var_metrics = {}
 
     # Assumed directory structure example. Some files will not exist if test failed.
     """
@@ -156,9 +160,9 @@ if __name__ == "__main__":
                 f"{compiled_outputs}\n"
             )
         accuracy_metric = {
-            "accuracy": round(accuracy, 2)
-            if not isinstance(accuracy, str)
-            else accuracy
+            "accuracy": (
+                round(accuracy, 2) if not isinstance(accuracy, str) else accuracy
+            )
         }
 
         # Add links that point to the directory of the model in the model name
@@ -202,6 +206,63 @@ if __name__ == "__main__":
                 cat_metrics_remapped[val[0]] = "N/A"
 
         all_metrics.append(cat_metrics_remapped)
+
+        # Process input variation metrics. Currently, this is not per model, but per op.
+        input_var_metrics_path = model_path / "aten_ops_input_variations.pickle"
+        input_var_metrics = (
+            load_pickle(input_var_metrics_path)
+            if os.path.isfile(input_var_metrics_path)
+            else {}
+        )
+
+        for key, val in input_var_metrics.items():
+            if key not in all_input_var_metrics:
+                all_input_var_metrics[key] = val
+            else:
+                # Only append if shape and value combination have not been collected
+                for shape, value in zip(val["input_shapes"], val["input_values"]):
+                    if (
+                        shape not in all_input_var_metrics[key]["input_shapes"]
+                        and value not in all_input_var_metrics[key]["input_values"]
+                    ):
+                        all_input_var_metrics[key]["input_shapes"].append(shape)
+                        all_input_var_metrics[key]["input_values"].append(value)
+
+    # Write input variation metrics to csv
+    if all_input_var_metrics:
+        # Holds the rows to generate csv
+        input_var_list_for_csv = {}
+        # turn input_shapes and input_values into individual columns
+        for val in list(all_input_var_metrics.values()):
+            # holds the variations of input string
+            input_var_list = []
+            for shapes, values in zip(val["input_shapes"], val["input_values"]):
+                # holds each individual input to be joined to a string
+                input_string_list = []
+                for i, (shape, value) in enumerate(zip(shapes, values)):
+                    # This instance is a kwarg
+                    if isinstance(value, tuple):
+                        arg_name = value[0]
+                        arg_type = val["schema"]["kwargs"][arg_name]
+                        arg_val = f" = {value[1]}"
+                    else:
+                        arg_type = val["schema"]["args"][i][0]
+                        arg_name = val["schema"]["args"][i][1]
+                        arg_val = f" = {value}" if value else ""
+
+                    arg_shape = f"<{shape}>" if shape else ""
+
+                    input_string_list.append(
+                        f"{arg_type}{arg_shape} {arg_name}{arg_val}"
+                    )
+                input_var_list.append(", ".join(input_string_list))
+            input_var_list_for_csv[val["opname"]] = input_var_list
+
+        df = pd.DataFrame(
+            {key: pd.Series(value) for key, value in input_var_list_for_csv.items()}
+        )
+        df.to_csv("input_variations.csv", encoding="utf-8", index=False)
+        print(f"Data written to input_variations.csv")
 
     # Write metrics to csv
     if all_metrics:

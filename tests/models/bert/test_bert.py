@@ -2,7 +2,7 @@ import torch
 import torch_ttnn
 import unittest
 import ttnn
-from torch_ttnn.utils import RunTimeMetrics
+from torch_ttnn.metrics import RunTimeMetrics
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
