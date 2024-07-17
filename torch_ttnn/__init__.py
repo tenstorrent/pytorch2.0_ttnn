@@ -1,5 +1,6 @@
 from torch_ttnn.backend import backend
 from torch_ttnn.backend import TorchTtnnOption
+from torch_ttnn.memory_backend import memory_backend
 
 try:
     import ttnn
