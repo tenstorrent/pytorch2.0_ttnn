@@ -3,6 +3,7 @@ import pickle
 import time
 import os
 from pathlib import Path
+import warnings
 
 
 # Count the number of aten ops in the graph currently
@@ -171,6 +172,7 @@ def RunTimeMetrics(path: str, prefix: str, f):
 
         torch.save(ret, pt_out_path)
     except:
+        warnings.warn(f"{path} {prefix} failed to run. No outputs generated.")
         runtime_metrics = {"success": "✘"}
         ret = None
 
