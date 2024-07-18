@@ -84,11 +84,9 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[4].target == ttnn.repeat)
-        self.assertTrue(nodes[4].args[1].target == ttnn.Shape)
-        self.assertTrue(nodes[5].target == ttnn.from_device)
-        self.assertTrue(nodes[6].target == ttnn.to_layout)
-        self.assertTrue(nodes[7].target == ttnn.to_torch)
+        target = [node.target for node in nodes]
+        self.assertTrue(target.count(ttnn.repeat) == 1)
+        self.assertTrue(nodes[target.index(ttnn.repeat)].args[1].target == ttnn.Shape)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
@@ -108,14 +106,13 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[7].target == ttnn.repeat)
-        self.assertTrue(nodes[7].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[7].args[0].args[0].target == ttnn.clone)
-        self.assertTrue(type(nodes[7].args[0].args[1]) is type(TtnnRowMajorLayout()))
-        self.assertTrue(nodes[7].args[1].target == ttnn.Shape)
-        self.assertTrue(nodes[8].target == ttnn.from_device)
-        self.assertTrue(nodes[9].target == ttnn.to_layout)
-        self.assertTrue(nodes[10].target == ttnn.to_torch)
+        target = [node.target for node in nodes]
+        self.assertTrue(target.count(ttnn.repeat) == 1)
+        repeat_node = nodes[target.index(ttnn.repeat)]
+        self.assertTrue(repeat_node.args[0].target == ttnn.to_layout)
+        self.assertTrue(repeat_node.args[0].args[0].target == ttnn.clone)
+        self.assertTrue(type(repeat_node.args[0].args[1]) is type(TtnnRowMajorLayout()))
+        self.assertTrue(repeat_node.args[1].target == ttnn.Shape)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
@@ -135,15 +132,17 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[4].target == ttnn.repeat)
-        self.assertTrue(nodes[4].args[1].target == ttnn.Shape)
-        self.assertTrue(nodes[5].target == ttnn.to_layout)
-        self.assertTrue(nodes[5].args[0].target == ttnn.repeat)
-        self.assertTrue(type(nodes[5].args[1]) is type(TtnnTileLayout()))
-        self.assertTrue(nodes[6].target == ttnn.add)
-        self.assertTrue(nodes[7].target == ttnn.from_device)
-        self.assertTrue(nodes[8].target == ttnn.to_layout)
-        self.assertTrue(nodes[9].target == ttnn.to_torch)
+        target = [node.target for node in nodes]
+        self.assertTrue(target.count(ttnn.repeat) == 1)
+        self.assertTrue(nodes[target.index(ttnn.repeat)].args[1].target == ttnn.Shape)
+        # to_layout that follows ttnn.repeat
+        to_layout_idx = target.index(ttnn.to_layout, target.index(ttnn.repeat))
+        to_layout_node = nodes[to_layout_idx]
+        self.assertTrue(to_layout_node.args[0].target == ttnn.repeat)
+        self.assertTrue(type(to_layout_node.args[1]) is type(TtnnTileLayout()))
+        self.assertTrue(target.count(ttnn.add) == 1)
+        self.assertTrue(to_layout_idx < target.index(ttnn.add))
+
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 
@@ -163,18 +162,20 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue(nodes[7].target == ttnn.repeat)
-        self.assertTrue(nodes[7].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[7].args[0].args[0].target == ttnn.clone)
-        self.assertTrue(type(nodes[7].args[0].args[1]) is type(TtnnRowMajorLayout()))
-        self.assertTrue(nodes[7].args[1].target == ttnn.Shape)
-        self.assertTrue(nodes[8].target == ttnn.to_layout)
-        self.assertTrue(nodes[8].args[0].target == ttnn.repeat)
-        self.assertTrue(type(nodes[8].args[1]) is type(TtnnTileLayout()))
-        self.assertTrue(nodes[9].target == ttnn.add)
-        self.assertTrue(nodes[10].target == ttnn.from_device)
-        self.assertTrue(nodes[11].target == ttnn.to_layout)
-        self.assertTrue(nodes[12].target == ttnn.to_torch)
+        target = [node.target for node in nodes]
+        self.assertTrue(target.count(ttnn.repeat) == 1)
+        repeat_node = nodes[target.index(ttnn.repeat)]
+        self.assertTrue(repeat_node.args[0].target == ttnn.to_layout)
+        self.assertTrue(repeat_node.args[0].args[0].target == ttnn.clone)
+        self.assertTrue(type(repeat_node.args[0].args[1]) is type(TtnnRowMajorLayout()))
+        self.assertTrue(repeat_node.args[1].target == ttnn.Shape)
+        # to_layout that follows ttnn.repeat
+        to_layout_idx = target.index(ttnn.to_layout, target.index(ttnn.repeat))
+        to_layout_node = nodes[to_layout_idx]
+        self.assertTrue(to_layout_node.args[0].target == ttnn.repeat)
+        self.assertTrue(type(to_layout_node.args[1]) is type(TtnnTileLayout()))
+        self.assertTrue(target.count(ttnn.add) == 1)
+        self.assertTrue(to_layout_idx < target.index(ttnn.add))
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after, rtol=0.2))
 

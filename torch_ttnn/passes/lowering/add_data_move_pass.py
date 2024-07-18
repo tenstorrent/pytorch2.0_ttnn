@@ -147,12 +147,8 @@ def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.no
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
-        new_nodes.append(
-            g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout()))
-        )
-        if is_tt_compute(dst_node):
-            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
+        kwargs = {"layout": TtnnTileLayout(), "device": device}
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
     insert_node_between_kwarg(src_node, key, dst_node, new_nodes)
     return new_nodes[-1]
@@ -165,26 +161,24 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,)))
+        kwargs = {}
         if (
-            dst_node.target != ttnn.reshape
-            and dst_node.target != ttnn.embedding
-            and dst_node.target != ttnn.zeros_like
-            and dst_node.target != ttnn.repeat
+            dst_node.target == ttnn.reshape
+            or dst_node.target == ttnn.embedding
+            or dst_node.target == ttnn.zeros_like
+            or dst_node.target == ttnn.repeat
         ):
-            new_nodes.append(
-                g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout()))
-            )
-        # ttnn reshape requires row major layout
-        elif dst_node.target == ttnn.reshape:
-            new_nodes.append(
-                g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnRowMajorLayout()))
-            )
+            kwargs["layout"] = TtnnRowMajorLayout()
+        else:
+            kwargs["layout"] = TtnnTileLayout()
+
         # For reshape only put tensor on device if rank is 4
         if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
             dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
         ):
-            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], device)))
+            kwargs["device"] = device
+
+        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
@@ -237,16 +231,6 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        if (is_tt_compute(src_node) and src_node.target != ttnn.reshape) or (
-            src_node.target == ttnn.reshape and len(src_node.args[1]) == 4
-        ):
-            new_nodes.append(g.call_function(ttnn.from_device, (src_node,)))
-            if src_node.target != ttnn.embedding and src_node.target != ttnn.zeros_like:
-                new_nodes.append(
-                    g.call_function(
-                        ttnn.to_layout, (new_nodes[-1], TtnnRowMajorLayout())
-                    )
-                )
         new_nodes.append(
             g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,))
         )
@@ -265,11 +249,7 @@ def try_add_data_move_out_for_layer_norm(
     new_nodes = list()
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
-            new_nodes.append(
-                g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout()))
-            )
-            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
-            new_nodes.append(g.call_function(ttnn.to_torch, (new_nodes[-1],)))
+            new_nodes.append(g.call_function(ttnn.to_torch, (src_node,)))
 
     # Workaround to output the same layer_norm output
     # Before: layer_norm = aten.layer_norm

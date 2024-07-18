@@ -78,13 +78,7 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[8].target, ttnn.add)
-        self.assertEqual(nodes[8].args[0].target, ttnn.to_device)
-        self.assertEqual(nodes[8].args[0].args[0].target, ttnn.to_layout)
-        self.assertEqual(nodes[8].args[0].args[0].args[0].target, ttnn.from_torch)
-        self.assertEqual(nodes[9].target, ttnn.from_device)
-        self.assertEqual(nodes[10].target, ttnn.to_layout)
-        self.assertEqual(nodes[11].target, ttnn.to_torch)
+        self.assertTrue([node.target for node in nodes].count(ttnn.add) == 1)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
@@ -105,13 +99,7 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[8].target, ttnn.matmul)
-        self.assertEqual(nodes[8].args[0].target, ttnn.to_device)
-        self.assertEqual(nodes[8].args[0].args[0].target, ttnn.to_layout)
-        self.assertEqual(nodes[8].args[0].args[0].args[0].target, ttnn.from_torch)
-        self.assertEqual(nodes[9].target, ttnn.from_device)
-        self.assertEqual(nodes[10].target, ttnn.to_layout)
-        self.assertEqual(nodes[11].target, ttnn.to_torch)
+        self.assertTrue([node.target for node in nodes].count(ttnn.matmul) == 1)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
@@ -130,16 +118,7 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[8].target, ttnn.matmul)
-        self.assertEqual(nodes[8].args[0].target, ttnn.to_device)
-        self.assertEqual(nodes[8].args[0].args[0].target, ttnn.to_layout)
-        self.assertEqual(nodes[8].args[0].args[0].args[0].target, ttnn.from_torch)
-        self.assertEqual(nodes[8].args[1].target, ttnn.to_device)
-        self.assertEqual(nodes[8].args[1].args[0].target, ttnn.to_layout)
-        self.assertEqual(nodes[8].args[1].args[0].args[0].target, ttnn.from_torch)
-        self.assertEqual(nodes[9].target, ttnn.from_device)
-        self.assertEqual(nodes[10].target, ttnn.to_layout)
-        self.assertEqual(nodes[11].target, ttnn.to_torch)
+        self.assertTrue([node.target for node in nodes].count(ttnn.matmul) == 1)
         # Check inference result
         self.assertTrue(check_with_pcc(result_before, result_after))
 
@@ -160,14 +139,12 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[8].target, ttnn.add)
-        self.assertEqual(nodes[8].args[0].target, ttnn.to_device)
-        self.assertEqual(nodes[8].args[0].args[0].target, ttnn.to_layout)
-        self.assertEqual(nodes[8].args[0].args[0].args[0].target, ttnn.from_torch)
-        self.assertEqual(nodes[9].target, ttnn.matmul)
-        self.assertEqual(nodes[10].target, ttnn.from_device)
-        self.assertEqual(nodes[11].target, ttnn.to_layout)
-        self.assertEqual(nodes[12].target, ttnn.to_torch)
+        target = [node.target for node in nodes]
+        self.assertTrue(target.count(ttnn.add) == 1)
+        self.assertTrue(target.count(ttnn.matmul) == 1)
+        self.assertTrue(target.index(ttnn.add) < target.index(ttnn.matmul))
+        self.assertTrue(nodes[target.index(ttnn.matmul)].args[0].target == ttnn.add)
+        self.assertTrue(nodes[target.index(ttnn.matmul)].args[1].target == ttnn.add)
         # Check inference result
         self.assertTrue(torch.allclose(result_before, result_after))
 
