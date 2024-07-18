@@ -57,6 +57,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
         elif target == torch.ops.aten.addmm.default:
             # TODO(kevinwuMCW): include beta, alpha, and optional args
             mm = super().call_function(ttnn.matmul, (args[1], args[2]), kwargs)
+            # Intermediate node meta is not preserved, this ensures retention
+            meta = fx_traceback.get_current_meta()
+            if meta is not None and "val" in meta:
+                mm.node.meta["val"] = meta["val"]
             call_func = super().call_function(ttnn.add, (args[0], mm), kwargs)
         elif target == torch.ops.aten.bmm.default:
             call_func = super().call_function(ttnn.matmul, args, kwargs)
