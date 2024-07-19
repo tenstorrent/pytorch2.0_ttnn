@@ -4,7 +4,7 @@ import torch_ttnn
 import unittest
 import ttnn
 import collections
-from torch_ttnn.utils import RunTimeMetrics
+from torch_ttnn.metrics import RunTimeMetrics
 from tests.utils import check_with_pcc
 
 
