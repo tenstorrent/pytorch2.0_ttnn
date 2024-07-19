@@ -69,7 +69,7 @@ if __name__ == "__main__":
     #     outputs_after = RunTimeMetrics(
     #         metrics_path, "compiled", lambda: m(test_input.to(torch.bfloat16))
     #     )
-    option._out_fx_graphs[0].print_tabular()
+    # option._out_fx_graphs[0].print_tabular()
 
     # Close the device
     ttnn.close_device(device)

@@ -46,6 +46,12 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     input_shape = get_input_shape(input_node)
                     input_dtype = get_input_dtype(input_node)
                     input_size = input_size + get_size(input_shape, input_dtype)
+                elif is_tt_compute(input_node):
+                    on_device = True
+                    out_shape = input_node.meta["val"].size()
+                    out_dtype = input_node.meta["val"].dtype
+                    input_size = input_size + get_size(out_shape, out_dtype)
+            
 
             if on_device:
                 output_size = get_size(
@@ -54,21 +60,29 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 )
                 compute = compute + input_size + output_size
                 print(f"op execution on device: {node.name}")
-                print(f"input size: {input_size}")
-                print(f"output size: {output_size}")
+                print(f"input size: {input_size} bytes")
+                print(f"output size: {output_size} bytes")
                 print(f"total compute: {compute} bytes")
 
+                # Are any users of current node a ttnn op?
                 node_users = list(node.users.keys())
+                is_follow_up_tt_compute = False
+                for user in node_users:
+                    if is_tt_compute(user):
+                        is_follow_up_tt_compute = True
 
-                if ttnn.from_device in node_users:
+                # If no follow up ttnn op using the output of current node
+                # and if one of the users is a from device operation,
+                # then swap out output tensor from device
+                if is_follow_up_tt_compute is False and ttnn.from_device in node_users:
                     output_size = get_size(
                         node.meta["val"].size(),
                         node.meta["val"].dtype
                     )
                     compute = compute - output_size
                     print(f"op removed from device: {node.name}")
-                    print(f"output size: {output_size}")
-                    print(f"total compute: {compute}")
+                    print(f"output size: {output_size} bytes")
+                    print(f"total compute: {compute} bytes")
 
 
     return gm
