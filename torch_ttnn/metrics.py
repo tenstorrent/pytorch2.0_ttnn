@@ -168,7 +168,7 @@ def RunTimeMetrics(path: str, prefix: str, f):
         start = time.perf_counter()
         ret = f()
         end = time.perf_counter()
-        runtime_metrics = {"success": "✔️", "run_time": round(end - start, 2)}
+        runtime_metrics = {"success": "✅", "run_time": round(end - start, 2)}
 
         torch.save(ret, pt_out_path)
     except:
