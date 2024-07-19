@@ -161,7 +161,7 @@ def RunTimeMetrics(path: str, prefix: str, f):
         Output from the model or None if model fails
     """
     p = Path(f"metrics/{path}")
-    pt_out_path = p / f"{prefix}-outputs.pt"👋
+    pt_out_path = p / f"{prefix}-outputs.pt"
     pickle_out_path = p / f"{prefix}-runtime_metrics.pickle"
     os.makedirs(p, exist_ok=True)
     try:
