@@ -10,15 +10,15 @@ The table below summarizes the results of running various ML models through our 
 
 | Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (s) | Compiled Run Time(s)   | Accuracy   |
 |:------------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|------------------------:|:-----------------------|:-----------|
-| [Mnist (Eval)](tests/models/mnist)  | ✔             | 14 (8)                          | 5 (4)                           | 36                   |                    0.01 | 2.86                   | 0.99       |
-| [Mnist (Train)](tests/models/mnist) | ✔             | 14 (8)                          | 7 (5)                           | 42                   |                    0.01 | 0.36                   | 0.73       |
-| [ResNet18](tests/models/resnet)     | ✔             | 70 (9)                          | 42 (4)                          | 132                  |                    1.75 | 8.99                   | 1.0        |
-| [Bloom](tests/models/bloom)         | ✘             | N/A                             | N/A                             | N/A                  |                    5.45 | N/A                    | N/A        |
-| [YOLOS](tests/models/yolos)         | ✘             | N/A                             | N/A                             | N/A                  |                    0.2  | N/A                    | N/A        |
-| [Llama](tests/models/llama)         | ✘             | 3 (3)                           | 1 (1)                           | 9                    |                   38.41 | N/A                    | N/A        |
-| [BERT](tests/models/bert)           | ✔             | 1393 (21)                       | 537 (4)                         | 3867                 |                   61.87 | 40.38                  | 0.99       |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 1 (1)                           | 9                    |                   34.87 | N/A                    | N/A        |
-| [GPT-2](tests/models/gpt2)          | ✘             | N/A                             | N/A                             | N/A                  |                    1.05 | N/A                    | N/A        |
+| [Mnist (Eval)](tests/models/mnist)  | ✘             | 14 (8)                          | 5 (4)                           | 12                   |                    0.01 | N/A                    | N/A        |
+| [Mnist (Train)](tests/models/mnist) | ✔️            | 14 (8)                          | 7 (5)                           | 14                   |                    0.01 | 2.57                   | 0.81       |
+| [ResNet18](tests/models/resnet)     | ✔️            | 70 (9)                          | 42 (4)                          | 42                   |                    1.78 | 8.98                   | 1.0        |
+| [Bloom](tests/models/bloom)         | ✘             | N/A                             | N/A                             | N/A                  |                    5.55 | N/A                    | N/A        |
+| [YOLOS](tests/models/yolos)         | ✘             | N/A                             | N/A                             | N/A                  |                    0.18 | N/A                    | N/A        |
+| [Llama](tests/models/llama)         | ✘             | 3 (3)                           | 1 (1)                           | 5                    |                   38.31 | N/A                    | N/A        |
+| [BERT](tests/models/bert)           | ✔️            | 1393 (21)                       | 489 (4)                         | 1340                 |                   61.91 | 36.89                  | 0.99       |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 1 (1)                           | 5                    |                   34.93 | N/A                    | N/A        |
+| [GPT-2](tests/models/gpt2)          | ✘             | N/A                             | N/A                             | N/A                  |                    1.06 | N/A                    | N/A        |
 
 ### Explanation of Metrics
 

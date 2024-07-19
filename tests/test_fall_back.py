@@ -46,22 +46,27 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertEqual(nodes[2].target, ttnn.from_torch)
-        self.assertEqual(nodes[3].target, ttnn.to_layout)
-        self.assertEqual(nodes[4].target, ttnn.to_device)
-        self.assertEqual(nodes[5].target, ttnn.reciprocal)
-        self.assertEqual(nodes[6].target, ttnn.from_torch)
-        self.assertEqual(nodes[7].target, ttnn.to_layout)
-        self.assertEqual(nodes[8].target, ttnn.to_device)
-        self.assertEqual(nodes[9].target, ttnn.mul)
-        self.assertEqual(nodes[10].target, ttnn.add)
-        self.assertEqual(nodes[11].target, ttnn.matmul)
-        self.assertEqual(nodes[12].target, ttnn.reciprocal)
-        self.assertEqual(nodes[13].target, ttnn.mul)
-        self.assertEqual(nodes[14].target, ttnn.reciprocal)
-        self.assertEqual(nodes[15].target, ttnn.mul)
-        self.assertEqual(nodes[16].target, ttnn.from_device)
-        self.assertEqual(nodes[17].target, ttnn.to_layout)
-        self.assertEqual(nodes[18].target, ttnn.to_torch)
+        target = [node.target for node in nodes]
+        self.assertEqual(target.count(ttnn.reciprocal), 3)
+        self.assertEqual(target.count(ttnn.mul), 3)
+        self.assertEqual(target.count(ttnn.add), 1)
+        self.assertEqual(target.count(ttnn.matmul), 1)
+
+        nodes = list(option._out_fx_graphs[-1].nodes)
+        reciprocal_idx = [i for i, n in enumerate(target) if n == ttnn.reciprocal]
+        multiply_idx = [i for i, n in enumerate(target) if n == ttnn.multiply]
+        self.assertTrue(len(reciprocal_idx) == len(multiply_idx))
+        for ri, mi in zip(reciprocal_idx, multiply_idx):
+            self.assertTrue(ri < mi)
+        add_idx = target.index(ttnn.add)
+        self.assertTrue(add_idx > multiply_idx[0])
+        self.assertTrue(add_idx < multiply_idx[1])
+        self.assertTrue(add_idx < multiply_idx[2])
+        matmul_idx = target.index(ttnn.matmul)
+        self.assertTrue(matmul_idx > multiply_idx[0])
+        self.assertTrue(matmul_idx > add_idx)
+        self.assertTrue(matmul_idx < multiply_idx[1])
+        self.assertTrue(matmul_idx < multiply_idx[2])
+
         # Check inference result
         self.assertTrue(check_with_pcc(result_before, result_after))

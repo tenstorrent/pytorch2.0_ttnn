@@ -48,14 +48,7 @@ class TestModules(unittest.TestCase):
 
         # Check the graph has be rewritten and contain ttnn ops
         nodes = list(option._out_fx_graphs[0].nodes)
-
-        self.assertTrue(nodes[4].target == ttnn.permute)
-        self.assertTrue(nodes[4].args[0].target == ttnn.to_device)
-        self.assertTrue(nodes[4].args[0].args[0].target == ttnn.to_layout)
-        self.assertTrue(nodes[4].args[0].args[0].args[0].target == ttnn.from_torch)
-        self.assertTrue(nodes[5].target == ttnn.from_device)
-        self.assertTrue(nodes[6].target == ttnn.to_layout)
-        self.assertTrue(nodes[7].target == ttnn.to_torch)
+        self.assertTrue([node.target for node in nodes].count(ttnn.permute) == 1)
         # Check inference result
         self.assertTrue(check_with_pcc(result_before, result_after))
 

@@ -126,34 +126,33 @@ if __name__ == "__main__":
         original_outputs = (
             torch.load(original_outputs_path)
             if os.path.isfile(original_outputs_path)
-            else {}
+            else None
         )
         compiled_outputs = (
             torch.load(compiled_outputs_path)
             if os.path.isfile(compiled_outputs_path)
-            else {}
+            else None
         )
 
         if isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
             # Handle case where outputs can be converted to dictionaries
-            if not original_outputs or not compiled_outputs:
-                accuracy = "N/A"
-            else:
-                original_outputs = dict(original_outputs)
-                compiled_outputs = dict(compiled_outputs)
-                output_pccs = []
-                for key in original_outputs.keys() & compiled_outputs.keys():
-                    _, pcc = comp_pcc(original_outputs[key], compiled_outputs[key])
-                    output_pccs.append(pcc)
-                accuracy = torch.mean(torch.tensor(output_pccs)).item()
+            original_outputs = dict(original_outputs)
+            compiled_outputs = dict(compiled_outputs)
+            output_pccs = []
+            for key in original_outputs.keys() & compiled_outputs.keys():
+                _, pcc = comp_pcc(original_outputs[key], compiled_outputs[key])
+                output_pccs.append(pcc)
+            accuracy = torch.mean(torch.tensor(output_pccs)).item()
         elif isinstance(original_outputs, torch.Tensor) and isinstance(
             compiled_outputs, torch.Tensor
         ):
             # Handle case where outputs are Pytorch Tensors
             _, accuracy = comp_pcc(original_outputs, compiled_outputs)
+        elif original_outputs is not None or compiled_outputs is not None:
+            accuracy = "N/A"
         else:
             raise ValueError(
-                f"Output types not supported. Review these outputs:\n"
+                f"Output types for {model} not supported. Review these outputs:\n"
                 f"original_outputs:\n"
                 f"{original_outputs}\n"
                 f"compiled_outputs:\n"
