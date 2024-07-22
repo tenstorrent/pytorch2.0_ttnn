@@ -172,11 +172,12 @@ def RunTimeMetrics(path: str, prefix: str, f):
 
         torch.save(ret, pt_out_path)
     except:
-        warnings.warn(f"{path} {prefix} failed to run. No outputs generated.")
         runtime_metrics = {"success": "✘"}
         ret = None
 
     with open(pickle_out_path, "wb") as f:
         pickle.dump(runtime_metrics, f)
 
+    if ret is None:
+        raise RuntimeError(f"{path} {prefix} failed to run. No outputs generated.")
     return ret

@@ -1,6 +1,6 @@
 import torch
 import torch_ttnn
-import unittest
+import pytest
 import ttnn
 
 from tests.utils import check_with_pcc
@@ -13,9 +13,6 @@ class AddModule(torch.nn.Module):
     def forward(self, x, y):
         return x + y
 
-    def input_shapes(self):
-        return [(4, 4), (4, 4)]
-
 
 class MatmulModule(torch.nn.Module):
     def __init__(self):
@@ -23,9 +20,6 @@ class MatmulModule(torch.nn.Module):
 
     def forward(self, x, y):
         return torch.matmul(x, y)
-
-    def input_shapes(self):
-        return [(32, 32), (32, 32)]
 
 
 class BatchMatmulModule(torch.nn.Module):
@@ -35,11 +29,7 @@ class BatchMatmulModule(torch.nn.Module):
     def forward(self, x, y):
         return torch.bmm(x, y)
 
-    def input_shapes(self):
-        return [(10, 64, 32), (10, 32, 128)]
 
-
-# Nested module for demonstration, verify nested modules work
 class AddMatmulModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -49,105 +39,106 @@ class AddMatmulModule(torch.nn.Module):
         m = torch.add(x, y)
         return self.mm(m, m)
 
-    def input_shapes(self):
-        return [(4, 4), (4, 4)]
+
+@pytest.mark.parametrize(
+    "input_shapes",
+    [
+        [(4, 4), (4, 4)],
+    ],
+)
+def test_add(device, input_shapes):
+    m = AddModule()
+    inputs = [torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes]
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    assert 1 == len(option._out_fx_graphs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.add) == 1
+    # Check inference result
+    assert torch.allclose(result_before, result_after)
 
 
-class TestModules(unittest.TestCase):
-    def setUp(self):
-        # Open device 0
-        self.device: ttnn.Device = ttnn.open_device(device_id=0)
+@pytest.mark.parametrize(
+    "input_shapes",
+    [
+        [(32, 32), (32, 32)],
+    ],
+)
+def test_matmul(device, input_shapes):
+    m = MatmulModule()
+    inputs = [torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes]
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    assert 1 == len(option._out_fx_graphs)
+    option._out_fx_graphs[0].print_tabular()
 
-    def tearDown(self):
-        # Close the device
-        ttnn.close_device(self.device)
-
-    def test_add(self):
-        m = AddModule()
-        input_shapes = m.input_shapes()
-        inputs = [
-            torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
-        ]
-        result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
-        # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m.forward(*inputs)
-        self.assertEqual(1, len(option._out_fx_graphs))
-        option._out_fx_graphs[0].print_tabular()
-
-        # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue([node.target for node in nodes].count(ttnn.add) == 1)
-        # Check inference result
-        self.assertTrue(torch.allclose(result_before, result_after))
-
-    def test_matmul(self):
-        m = MatmulModule()
-        input_shapes = m.input_shapes()
-        inputs = [
-            torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
-        ]
-        result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
-        option.gen_graphviz = True
-        # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m.forward(*inputs)
-        self.assertEqual(1, len(option._out_fx_graphs))
-        option._out_fx_graphs[0].print_tabular()
-
-        # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue([node.target for node in nodes].count(ttnn.matmul) == 1)
-        # Check inference result
-        self.assertTrue(torch.allclose(result_before, result_after))
-
-    def test_batchmatmul(self):
-        m = BatchMatmulModule()
-        input_shapes = m.input_shapes()
-        inputs = [torch.rand(shape).type(torch.bfloat16) for shape in input_shapes]
-        result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
-        option.gen_graphviz = True
-        # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m.forward(*inputs)
-        self.assertEqual(1, len(option._out_fx_graphs))
-        option._out_fx_graphs[0].print_tabular()
-
-        # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option._out_fx_graphs[0].nodes)
-        self.assertTrue([node.target for node in nodes].count(ttnn.matmul) == 1)
-        # Check inference result
-        self.assertTrue(check_with_pcc(result_before, result_after))
-
-    def test_add_and_matmul(self):
-        m = AddMatmulModule()
-        input_shapes = m.input_shapes()
-        inputs = [
-            torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes
-        ]
-        result_before = m.forward(*inputs)
-        option = torch_ttnn.TorchTtnnOption(device=self.device)
-        option.gen_graphviz = True
-        # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-        result_after = m.forward(*inputs)
-        self.assertEqual(1, len(option._out_fx_graphs))
-        option._out_fx_graphs[0].print_tabular()
-
-        # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option._out_fx_graphs[0].nodes)
-        target = [node.target for node in nodes]
-        self.assertTrue(target.count(ttnn.add) == 1)
-        self.assertTrue(target.count(ttnn.matmul) == 1)
-        self.assertTrue(target.index(ttnn.add) < target.index(ttnn.matmul))
-        self.assertTrue(nodes[target.index(ttnn.matmul)].args[0].target == ttnn.add)
-        self.assertTrue(nodes[target.index(ttnn.matmul)].args[1].target == ttnn.add)
-        # Check inference result
-        self.assertTrue(torch.allclose(result_before, result_after))
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.matmul) == 1
+    # Check inference result
+    assert torch.allclose(result_before, result_after)
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.mark.parametrize(
+    "input_shapes",
+    [
+        [(10, 64, 32), (10, 32, 128)],
+    ],
+)
+def test_batchmatmul(device, input_shapes):
+    m = BatchMatmulModule()
+    inputs = [torch.rand(shape).type(torch.bfloat16) for shape in input_shapes]
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    assert 1 == len(option._out_fx_graphs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.matmul) == 1
+    # Check inference result
+    assert check_with_pcc(result_before, result_after)
+
+
+@pytest.mark.parametrize(
+    "input_shapes",
+    [
+        [(4, 4), (4, 4)],
+    ],
+)
+def test_add_and_matmul(device, input_shapes):
+    m = AddMatmulModule()
+    inputs = [torch.randint(0, 3, shape).type(torch.bfloat16) for shape in input_shapes]
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    assert 1 == len(option._out_fx_graphs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    target = [node.target for node in nodes]
+    assert target.count(ttnn.add) == 1
+    assert target.count(ttnn.matmul) == 1
+    assert target.index(ttnn.add) < target.index(ttnn.matmul)
+    assert nodes[target.index(ttnn.matmul)].args[0].target == ttnn.add
+    assert nodes[target.index(ttnn.matmul)].args[1].target == ttnn.add
+    # Check inference result
+    assert torch.allclose(result_before, result_after)
