@@ -45,6 +45,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     last_assigned_addr = 0
     # List of already executed nodes on device
     computed_nodes = []
+    # Data points containing info of on device tensors allocation & deallocation for ttnn ops
+    # Useful for visualization by plotting in a chart
+    data_points = []
+    # On device tensors info
+    on_device_meta = []
 
     # Tensor IDs allocation for ttnn ops input & output
     for node in nodes:
@@ -59,7 +64,9 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 node_to_tid_map[node] = last_assigned_tid
                 last_assigned_tid += 1
     
-    print(f"Tensor IDs for nodes on device:\n{node_to_tid_map}")
+    print(f"Tensor IDs for nodes on device:")
+    for key, value in node_to_tid_map.items():
+        print(f"Node: {key} - {value}")
 
     # Tracks the total compute memory of the model
     compute = 0
@@ -83,6 +90,9 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     tid_to_addr_map_in_L1[tid] = last_assigned_addr
                     last_assigned_addr += input_size
 
+                    if (tid, input_size) not in on_device_meta:
+                        on_device_meta.append((tid, input_size))
+
 
             if on_device:
                 output_shape = get_shape(node)
@@ -94,6 +104,10 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 tid = node_to_tid_map[node]
                 tid_to_addr_map_in_L1[tid] = last_assigned_addr
                 last_assigned_addr += output_size
+
+                if (tid, output_size) not in on_device_meta:
+                    on_device_meta.append((tid, output_size))
+                data_points.append(on_device_meta.copy())
 
                 print("\n---------------------------------------------------")
                 print(f"op execution on device: {node.name}")
@@ -123,6 +137,8 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     compute = compute - output_size
                     tid_to_addr_map_in_L1.pop(tid)
                     last_assigned_addr -= output_size
+
+                    on_device_meta.remove((tid, output_size))
                     
                     print(f"op removed from device: {node.name}")
                     print(f"output size: {output_size} bytes")
@@ -148,12 +164,18 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         tid_to_addr_map_in_L1.pop(tid)
                         last_assigned_addr -= input_size
 
+                        on_device_meta.remove((tid, input_size))
+
                         print(f"input tensor removed from device: {input_size} bytes")
                         print(f"total compute memory parked in L1: {compute} bytes")
+                
+                data_points.append(on_device_meta.copy())
     
     print(f"Tensor IDs existing on device after the model is executed:")
     print(f"{tid_to_addr_map_in_L1}")
 
+    for data in data_points:
+        print(data)
 
     return gm
 
