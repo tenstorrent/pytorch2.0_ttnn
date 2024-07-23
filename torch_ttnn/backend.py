@@ -82,12 +82,17 @@ def aten_backend(
             option._metrics["torch_ops_unique_before"],
         ) = metrics.count_aten_ops(gm.graph.nodes)
 
-        input_variations = metrics.collect_input_variations_from_nodes(gm.graph.nodes)
         # Save the input variation data
-        p = Path(f"metrics/{option.metrics_path}")
-        pickle_out_path = p / "aten_ops_input_variations.pickle"
-        with open(pickle_out_path, "wb") as f:
-            pickle.dump(input_variations, f)
+        input_variations = metrics.collect_input_variations_from_nodes(gm.graph.nodes)
+        metrics.save_pickle(
+            input_variations, option.metrics_path, "aten_ops_input_variations"
+        )
+
+        # Save list of aten ops before compilation
+        original_aten_ops_list = metrics.get_aten_ops_list(gm.graph.nodes)
+        metrics.save_pickle(
+            original_aten_ops_list, option.metrics_path, "original-aten_ops_list"
+        )
 
     # Register ttnn objects as graph globals
     register_ttnn_objects(option)
@@ -142,10 +147,13 @@ def aten_backend(
         )
 
         # Save the data as pickle files
-        p = Path(f"metrics/{option.metrics_path}")
-        pickle_out_path = p / "compiled-op_metrics.pickle"
-        with open(pickle_out_path, "wb") as f:
-            pickle.dump(option._metrics, f)
+        metrics.save_pickle(option._metrics, option.metrics_path, "compiled-op_metrics")
+
+        # Save list of aten ops after compilation
+        compiled_aten_ops_list = metrics.get_aten_ops_list(gm.graph.nodes)
+        metrics.save_pickle(
+            compiled_aten_ops_list, option.metrics_path, "compiled-aten_ops_list"
+        )
 
     option._out_fx_graphs.append(gm.graph)
     return make_boxed_func(gm)

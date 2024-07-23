@@ -33,6 +33,82 @@ The table below summarizes the results of running various ML models through our 
 ***
 **NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  
 
+***
+
+### Op conversion status per model
+
+#### Mnist (Eval)
+| aten ops                             | status   |   count |
+|:-------------------------------------|:---------|--------:|
+| aten._log_softmax.default            | ✘        |       1 |
+| aten.addmm.default                   | ✅       |       2 |
+| aten.clone.default                   | ✅       |       2 |
+| aten.convolution.default             | ✘        |       2 |
+| aten.max_pool2d_with_indices.default | ✘        |       1 |
+| aten.relu.default                    | ✅       |       3 |
+| aten.t.default                       | ✅       |       2 |
+| aten.view.default                    | ✘        |       1 |
+#### Mnist (Train)
+| aten ops                             | status   |   count |
+|:-------------------------------------|:---------|--------:|
+| aten._log_softmax.default            | ✘        |       1 |
+| aten.addmm.default                   | ✅       |       2 |
+| aten.convolution.default             | ✘        |       2 |
+| aten.max_pool2d_with_indices.default | ✘        |       1 |
+| aten.native_dropout.default          | ✘        |       2 |
+| aten.relu.default                    | ✅       |       3 |
+| aten.t.default                       | ✅       |       2 |
+| aten.view.default                    | ✘        |       1 |
+#### ResNet18
+| aten ops                                          | status   |   count |
+|:--------------------------------------------------|:---------|--------:|
+| aten._native_batch_norm_legit_no_training.default | ✘        |      20 |
+| aten.add.Tensor                                   | ✅       |       8 |
+| aten.addmm.default                                | ✅       |       1 |
+| aten.convolution.default                          | ✘        |      20 |
+| aten.max_pool2d_with_indices.default              | ✘        |       1 |
+| aten.mean.dim                                     | ✅       |       1 |
+| aten.relu.default                                 | ✅       |      17 |
+| aten.t.default                                    | ✅       |       1 |
+| aten.view.default                                 | ✘        |       1 |
+#### Llama
+| aten ops               | status   |   count |
+|:-----------------------|:---------|--------:|
+| aten.arange.start      | ✘        |       1 |
+| aten.embedding.default | ✅       |       1 |
+| aten.unsqueeze.default | ✅       |       1 |
+#### BERT
+| aten ops                       | status   |   count |
+|:-------------------------------|:---------|--------:|
+| aten._softmax.default          | ✅       |      24 |
+| aten._to_copy.default          | ✅       |       1 |
+| aten.add.Tensor                | ✅       |      74 |
+| aten.addmm.default             | ✅       |     145 |
+| aten.bmm.default               | ✅       |      48 |
+| aten.clone.default             | ✅       |      99 |
+| aten.div.Tensor                | ✅       |      24 |
+| aten.embedding.default         | ✅       |       3 |
+| aten.expand.default            | ✅       |      96 |
+| aten.gelu.default              | ✅       |      24 |
+| aten.mul.Tensor                | ✅       |       1 |
+| aten.native_layer_norm.default | ✅       |      49 |
+| aten.permute.default           | ✅       |      96 |
+| aten.rsub.Scalar               | ✅       |       1 |
+| aten.slice.Tensor              | ✘        |       4 |
+| aten.split.Tensor              | ✘        |       1 |
+| aten.squeeze.dim               | ✘        |       2 |
+| aten.t.default                 | ✅       |     145 |
+| aten.transpose.int             | ✅       |      24 |
+| aten.unsqueeze.default         | ✅       |       2 |
+| aten.view.default              | ✘        |     530 |
+#### Falcon
+| aten ops               | status   |   count |
+|:-----------------------|:---------|--------:|
+| aten.arange.start      | ✘        |       1 |
+| aten.embedding.default | ✅       |       1 |
+| aten.unsqueeze.default | ✅       |       1 |
+
+
 ## Quickstart
 
 The `torch_ttnn` module has a `backend` function, which can be used with the `torch.compile()`.

@@ -6,9 +6,16 @@ from pathlib import Path
 import warnings
 
 
-# Count the number of aten ops in the graph currently
-# Returns a tuple of (total ops, total unique ops)
-def count_aten_ops(nodes: list):
+# Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
+def save_pickle(obj, base_path, filename):
+    p = Path(f"metrics/{base_path}")
+    pickle_out_path = p / f"{filename}.pickle"
+    with open(pickle_out_path, "wb") as f:
+        pickle.dump(obj, f)
+
+
+# Get a string list of aten ops from graph. Can include duplicates.
+def get_aten_ops_list(nodes: list):
     aten_ops = [
         str(node.target)
         for node in nodes
@@ -16,6 +23,13 @@ def count_aten_ops(nodes: list):
         and isinstance(node.target, torch._ops.OpOverload)
         and "aten" in str(node.target)
     ]
+    return aten_ops
+
+
+# Count the number of aten ops in the graph currently
+# Returns a tuple of (total ops, total unique ops)
+def count_aten_ops(nodes: list):
+    aten_ops = get_aten_ops_list(nodes)
     return (len(aten_ops), len(set(aten_ops)))
 
 

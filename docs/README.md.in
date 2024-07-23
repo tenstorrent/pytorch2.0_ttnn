@@ -12,6 +12,10 @@ The table below summarizes the results of running various ML models through our 
 
 {explanations_md}
 
+### Op conversion status per model
+
+{aten_ops_md}
+
 ## Quickstart
 
 The `torch_ttnn` module has a `backend` function, which can be used with the `torch.compile()`.

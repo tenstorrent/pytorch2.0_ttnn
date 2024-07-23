@@ -5,6 +5,7 @@ import csv
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from collections import Counter
 
 from tests.utils import comp_pcc
 
@@ -65,6 +66,9 @@ if __name__ == "__main__":
 
     # Holds the concatenation of input variation metrics for all models
     all_input_var_metrics = {}
+
+    # Hold aten ops per model
+    aten_ops_per_model = {}
 
     # Assumed directory structure example. Some files will not exist if test failed.
     """
@@ -227,6 +231,36 @@ if __name__ == "__main__":
                         all_input_var_metrics[key]["input_shapes"].append(shape)
                         all_input_var_metrics[key]["input_values"].append(value)
 
+        # Compile list of aten ops per model
+        original_aten_ops_list_path = model_path / "original-aten_ops_list.pickle"
+        compiled_aten_ops_list_path = model_path / "compiled-aten_ops_list.pickle"
+        original_aten_ops_list = (
+            load_pickle(original_aten_ops_list_path)
+            if os.path.isfile(original_aten_ops_list_path)
+            else None
+        )
+        compiled_aten_ops_list = (
+            load_pickle(compiled_aten_ops_list_path)
+            if os.path.isfile(compiled_aten_ops_list_path)
+            else None
+        )
+        if original_aten_ops_list and compiled_aten_ops_list:
+            original_aten_ops_set = set(original_aten_ops_list)
+            remaining_aten_ops_set = original_aten_ops_set.intersection(
+                compiled_aten_ops_list
+            )
+
+            original_aten_ops_count = Counter(original_aten_ops_list)
+            aten_ops_dict = {"aten ops": [], "status": [], "count": []}
+            for op in sorted(list(original_aten_ops_set)):
+                aten_ops_dict["aten ops"].append(op)
+                aten_ops_dict["count"].append(original_aten_ops_count[op])
+                if op in remaining_aten_ops_set:
+                    aten_ops_dict["status"].append("✘")
+                else:
+                    aten_ops_dict["status"].append("✅")
+            aten_ops_per_model[model] = aten_ops_dict
+
     # Write input variation metrics to csv
     if all_input_var_metrics:
         # Holds the rows to generate csv
@@ -282,6 +316,12 @@ if __name__ == "__main__":
     # FIXME: Remove this once metrics generation and collection work for multiple graphs
     explanations_md += "\n***\n**NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  "
 
+    # Create a series of tables showing the status of converted ops per model
+    aten_ops_md = ""
+    for key, val in aten_ops_per_model.items():
+        aten_ops_md += f"#### {key}\n"
+        aten_ops_md += pd.DataFrame(val).to_markdown(index=False) + "\n"
+
     # Load README.in as an f-string and substitute the variables
     with open("docs/README.md.in", "r") as text_file:
         readme_in = text_file.read()
@@ -291,7 +331,7 @@ if __name__ == "__main__":
         "[comment]: <> (Please modify docs/README.md.in and/or collect_metrics.py to make permanent changes.)\n"
     )
     readme_md = readme_comment + readme_in.format(
-        metrics_md=metrics_md, explanations_md=explanations_md
+        metrics_md=metrics_md, explanations_md=explanations_md, aten_ops_md=aten_ops_md
     )
 
     with open("README.md", "w") as text_file:
