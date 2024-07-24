@@ -23,7 +23,9 @@ def test_resnet(device):
         )
 
     # Compile the model
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
+    option = torch_ttnn.TorchTtnnOption(
+        device=device, gen_graphviz=True, metrics_path=metrics_path
+    )
     option.gen_graphviz = True
     model = torch.compile(model, backend=torch_ttnn.backend, options=option)
 

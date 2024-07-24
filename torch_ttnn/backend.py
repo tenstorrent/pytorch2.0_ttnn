@@ -77,21 +77,9 @@ def aten_backend(
 
     # Save the number of aten ops before compilation
     if option.metrics_path:
-        (
-            option._metrics["torch_ops_before"],
-            option._metrics["torch_ops_unique_before"],
-        ) = metrics.count_aten_ops(gm.graph.nodes)
-
-        # Save the input variation data
-        input_variations = metrics.collect_input_variations_from_nodes(gm.graph.nodes)
+        original_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
         metrics.save_pickle(
-            input_variations, option.metrics_path, "aten_ops_input_variations"
-        )
-
-        # Save list of aten ops before compilation
-        original_aten_ops_list = metrics.get_aten_ops_list(gm.graph.nodes)
-        metrics.save_pickle(
-            original_aten_ops_list, option.metrics_path, "original-aten_ops_list"
+            original_schema_list, option.metrics_path, "original-schema_list"
         )
 
     # Register ttnn objects as graph globals
@@ -99,7 +87,6 @@ def aten_backend(
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
-    from torch.fx.passes.dialect.common.cse_pass import CSEPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
@@ -112,7 +99,6 @@ def aten_backend(
         ToTtPass(),
         AddDataMovePass(),
         EliminateDataMovePass(),
-        CSEPass(),
         PermuteReshapeTuple(),
     ]
 
@@ -123,12 +109,12 @@ def aten_backend(
             "01.to-tt",
             "02.add-data-move",
             "03.elimate-data-move",
-            "04.cse",
-            "05.permute-reshape-tuple",
+            "04.permute-reshape-tuple",
         ]
         assert len(graphviz_filenames) == len(passes) + 1
         for idx in range(len(graphviz_filenames)):
-            passes.insert(idx * 2, GraphvizPass(graphviz_filenames[idx]))
+            p = Path(f"metrics/{option.metrics_path}/{graphviz_filenames[idx]}")
+            passes.insert(idx * 2, GraphvizPass(p))
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
@@ -137,22 +123,9 @@ def aten_backend(
     gm.recompile()
 
     if option.metrics_path:
-        # Save the number of aten ops after compilation
-        (
-            option._metrics["torch_ops_remain"],
-            option._metrics["torch_ops_unique_remain"],
-        ) = metrics.count_aten_ops(gm.graph.nodes)
-        option._metrics["to_from_device_ops"] = metrics.count_to_from_device_ops(
-            gm.graph.nodes
-        )
-
-        # Save the data as pickle files
-        metrics.save_pickle(option._metrics, option.metrics_path, "compiled-op_metrics")
-
-        # Save list of aten ops after compilation
-        compiled_aten_ops_list = metrics.get_aten_ops_list(gm.graph.nodes)
+        compiled_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
         metrics.save_pickle(
-            compiled_aten_ops_list, option.metrics_path, "compiled-aten_ops_list"
+            compiled_schema_list, option.metrics_path, "compiled-schema_list"
         )
 
     option._out_fx_graphs.append(gm.graph)

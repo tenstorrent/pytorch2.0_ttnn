@@ -57,7 +57,9 @@ def test_mnist_train(device):
     )
 
     # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
+    option = torch_ttnn.TorchTtnnOption(
+        device=device, gen_graphviz=True, metrics_path=metrics_path
+    )
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 
     # Run train with the compiled model
@@ -93,7 +95,9 @@ def test_mnist_eval(device):
         )
 
     # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
+    option = torch_ttnn.TorchTtnnOption(
+        device=device, gen_graphviz=True, metrics_path=metrics_path
+    )
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 
     # Run inference with the compiled model
