@@ -7,6 +7,7 @@ import ttnn
 import pickle
 from pathlib import Path
 import os
+import torch_ttnn.metrics as metrics
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -74,20 +75,19 @@ def aten_backend(
 
     option: TorchTtnnOption = options["torch_ttnn_option"]
 
-    # Helper function to count the number of aten ops in the graph currently
-    def count_aten_ops():
-        aten_ops = [
-            str(node.target)
-            for node in list(gm.graph.nodes)
-            if node.op in ["call_function", "call_method"]
-            and isinstance(node.target, torch._ops.OpOverload)
-            and "aten" in str(node.target)
-        ]
-        return len(aten_ops)
-
     # Save the number of aten ops before compilation
     if option.metrics_path:
-        option._metrics["torch_ops_before"] = count_aten_ops()
+        (
+            option._metrics["torch_ops_before"],
+            option._metrics["torch_ops_unique_before"],
+        ) = metrics.count_aten_ops(gm.graph.nodes)
+
+        input_variations = metrics.collect_input_variations_from_nodes(gm.graph.nodes)
+        # Save the input variation data
+        p = Path(f"metrics/{option.metrics_path}")
+        pickle_out_path = p / "aten_ops_input_variations.pickle"
+        with open(pickle_out_path, "wb") as f:
+            pickle.dump(input_variations, f)
 
     # Register ttnn objects as graph globals
     register_ttnn_objects(option)
@@ -133,17 +133,14 @@ def aten_backend(
 
     if option.metrics_path:
         # Save the number of aten ops after compilation
-        option._metrics["torch_ops_remain"] = count_aten_ops()
-        # Save the number of to/from_device ops in current graph
-        to_from_device_ops = [
-            node.target.__name__
-            for node in list(gm.graph.nodes)
-            if node.op in ["call_function", "call_method"]
-            and (
-                "ttnn.to" in node.target.__name__ or "ttnn.from" in node.target.__name__
-            )
-        ]
-        option._metrics["to_from_device_ops"] = len(to_from_device_ops)
+        (
+            option._metrics["torch_ops_remain"],
+            option._metrics["torch_ops_unique_remain"],
+        ) = metrics.count_aten_ops(gm.graph.nodes)
+        option._metrics["to_from_device_ops"] = metrics.count_to_from_device_ops(
+            gm.graph.nodes
+        )
+
         # Save the data as pickle files
         p = Path(f"metrics/{option.metrics_path}")
         pickle_out_path = p / "compiled-op_metrics.pickle"

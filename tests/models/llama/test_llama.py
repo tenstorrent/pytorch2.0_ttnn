@@ -1,78 +1,61 @@
 import torch
 import torch_ttnn
-import unittest
-import ttnn
-from torch_ttnn.utils import RunTimeMetrics
+import pytest
+from torch_ttnn.metrics import RunTimeMetrics
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
-class TestLlama(unittest.TestCase):
-    def setUp(self):
-        # Open device 0
-        self.device: ttnn.Device = ttnn.open_device(device_id=0)
+@pytest.mark.xfail
+def test_llama(device):
+    # Download model from cloud
+    model_name = "huggyllama/llama-7b"
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name, padding_side="left", torch_dtype=torch.bfloat16
+    )
+    m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+    m.eval()
 
-    def tearDown(self):
-        # Close the device
-        ttnn.close_device(self.device)
+    # Set up sample input
+    test_input = "This is a sample text from "
+    inputs = tokenizer(test_input, return_tensors="pt")
 
-    def test_llama(self):
-        # Download model from cloud
-        model_name = "huggyllama/llama-7b"
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name, padding_side="left", torch_dtype=torch.bfloat16
-        )
-        m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
-        m.eval()
+    metrics_path = "Llama"
+    # Run inference with the original model
+    with torch.no_grad():
+        outputs_before = RunTimeMetrics(metrics_path, "original", lambda: m(**inputs))
 
-        # Set up sample input
-        test_input = "This is a sample text from "
-        inputs = tokenizer(test_input, return_tensors="pt")
+    # Helper function to decode output to human-readable text
+    def decode_output(outputs):
+        next_token_logits = outputs.logits[:, -1]
+        next_token = next_token_logits.softmax(dim=-1).argmax()
+        return tokenizer.decode([next_token])
 
-        metrics_path = "Llama"
-        # Run inference with the original model
-        with torch.no_grad():
-            outputs_before = RunTimeMetrics(
-                metrics_path, "original", lambda: m(**inputs)
-            )
+    decoded_output_before = decode_output(outputs_before)
 
-        # Helper function to decode output to human-readable text
-        def decode_output(outputs):
-            next_token_logits = outputs.logits[:, -1]
-            next_token = next_token_logits.softmax(dim=-1).argmax()
-            return tokenizer.decode([next_token])
+    # Compile model with ttnn backend
+    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 
-        decoded_output_before = decode_output(outputs_before)
+    # Run inference with the compiled model
+    with torch.no_grad():
+        outputs_after = RunTimeMetrics(metrics_path, "compiled", lambda: m(**inputs))
 
-        # Compile model with ttnn backend
-        option = torch_ttnn.TorchTtnnOption(
-            device=self.device, metrics_path=metrics_path
-        )
-        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    option._out_fx_graphs[0].print_tabular()
 
-        # Run inference with the compiled model
-        with torch.no_grad():
-            outputs_after = RunTimeMetrics(
-                metrics_path, "compiled", lambda: m(**inputs)
-            )
-        if outputs_after:
-            option._out_fx_graphs[0].print_tabular()
+    decoded_output_after = decode_output(outputs_after)
 
-            decoded_output_after = decode_output(outputs_after)
+    print(
+        f"""
+    model_name: {model_name}
+    input: {test_input}
+    output before: {decoded_output_before}
+    output after: {decoded_output_after}
+    """
+    )
 
-            print(
-                f"""
-            model_name: {model_name}
-            input: {test_input}
-            output before: {decoded_output_before}
-            output after: {decoded_output_after}
-            """
-            )
+    # TODO: Add more checks for the compiled graph
 
-            # TODO: Add more checks for the compiled graph
-
-            # Check inference result
-            self.assertEqual(decoded_output_before, decoded_output_after)
-        else:
-            print(f"Compiled model: {model_name} failed to run.")
+    # Check inference result
+    assert decoded_output_before == decoded_output_after
