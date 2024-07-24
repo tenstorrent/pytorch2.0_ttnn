@@ -2,7 +2,7 @@ import torch
 import torchvision
 import torch_ttnn
 import ttnn
-from torch_ttnn.utils import RunTimeMetrics
+from torch_ttnn.metrics import RunTimeMetrics
 
 
 if __name__ == "__main__":

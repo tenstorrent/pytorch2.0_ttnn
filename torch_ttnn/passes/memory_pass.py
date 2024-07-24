@@ -2,6 +2,7 @@ import torch
 import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
+from torch_ttnn.utils import TtnnDevice
 
 L1_LIMIT = 1048576 # 1024 * 1024 bytes (1 MB)
 
@@ -41,12 +42,13 @@ def get_dtype(node):
             
 
 def is_input_tensor_on_device(node):
-    # This is a data move op which propagates shape of input tensor
-    if node.target == ttnn.Shape:
-        return False
+    if node.target == ttnn.from_torch:
+        if "device" in node.kwargs and isinstance(node.kwargs["device"], TtnnDevice):
+            return True
     if node.target is ttnn.to_device or is_tt_compute(node):
         return True
-    if node.target is ttnn.from_device:
+    # This is a data move op which propagates shape of input tensor
+    if node.target == ttnn.Shape or node.target == ttnn.from_device:
         return False
     # Considers cases like ttnn op --> to_layout
     if is_tt_data_move(node):
@@ -172,7 +174,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 for user in node_users:
                     if is_tt_compute(user):
                         is_follow_up_tt_compute = True
-                    if user.target == ttnn.from_device:
+                    if user.target == ttnn.from_device or user.target == ttnn.to_torch:
                         is_follow_up_from_device = True
   
                 # If no follow up ttnn op using the output of current node
