@@ -19,7 +19,11 @@ def get_shape(node):
         assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
         return get_shape(node.all_input_nodes[0])
     else:
-        return node.meta["val"].size()
+        # TODO: What if meta of nth output of the node is requested?
+        if len(node.meta["val"]) > 1:
+            return node.meta["val"][0].size()
+        else:
+            return node.meta["val"].size()
 
 
 def get_dtype(node):
@@ -27,9 +31,29 @@ def get_dtype(node):
         assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
         return get_dtype(node.all_input_nodes[0])
     else:
-        return node.meta["val"].dtype
+        # TODO: What if meta of nth output of the node is requested?
+        if len(node.meta["val"]) > 1:
+            return node.meta["val"][0].dtype
+        else:
+            return node.meta["val"].dtype
 
             
+
+def is_input_tensor_on_device(node):
+    # This is a data move op which propagates shape of input tensor
+    if node.target == ttnn.Shape:
+        return False
+    if node.target is ttnn.to_device or is_tt_compute(node):
+        return True
+    if node.target is ttnn.from_device:
+        return False
+    # Considers cases like ttnn op --> to_layout
+    if is_tt_data_move(node):
+        return is_input_tensor_on_device(node.all_input_nodes[0])
+    else:
+        return False
+
+
 
 def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     print("Track memory footprint for each of the ops:")
@@ -52,8 +76,10 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     on_device_meta = []
 
     # Tensor IDs allocation for ttnn ops input & output
+    tt_compute_count = 0
     for node in nodes:
         if is_tt_compute(node):
+            tt_compute_count += 1
             # For inputs
             for input_node in node.all_input_nodes:
                 if input_node not in node_to_tid_map:
@@ -64,21 +90,28 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 node_to_tid_map[node] = last_assigned_tid
                 last_assigned_tid += 1
     
-    print(f"Tensor IDs for nodes on device:")
-    for key, value in node_to_tid_map.items():
-        print(f"Node: {key} - {value}")
+    # print(f"Tensor IDs for nodes on device:")
+    # for key, value in node_to_tid_map.items():
+    #     print(f"Node: {key} - {value}")
 
     # Tracks the total compute memory of the model
+    print(f"Total tt compute nodes: {tt_compute_count}")
+    i = 0
     compute = 0
-    
     for node in nodes:
         on_device = False
         # Has to be a ttnn op
         if is_tt_compute(node):
+            print(f"tt compute node numbered: {i}")
+            i += 1
+            # Exception: Full node has no input
+            # Assumption: Full node outputs a tensor on device
+            if node.target == ttnn.full:
+                on_device = True
             total_input_size = 0
             for input_node in node.all_input_nodes:
                 # If input tensor on device or coming as output from another ttnn on device op
-                if input_node.target is ttnn.to_device or is_tt_compute(input_node):
+                if is_input_tensor_on_device(input_node):
                     on_device = True
                     input_shape = get_shape(input_node)
                     input_dtype = get_dtype(input_node)
@@ -145,10 +178,12 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     print(f"total compute memory parked in L1: {compute} bytes")
                 # Once current node's input & output tensor processing is over, mark it as computed
                 computed_nodes.append(node)
-
                 # Swap out input tensors from device if its usage is completed
                 # i.e there are no ttnn ops on device which uses the tensor
                 for input_node in node.all_input_nodes:
+                    # Exception: Shape node is just like a parameter containing shape of input tensor
+                    if input_node.target == ttnn.Shape:
+                        continue
                     keep_on_device = False
                     input_node_users = list(input_node.users.keys())
                     for user in input_node_users:

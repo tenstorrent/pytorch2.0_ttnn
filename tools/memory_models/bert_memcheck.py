@@ -45,9 +45,10 @@ if __name__ == "__main__":
 
     # Run inference with the compiled model
     with torch.no_grad():
-        outputs_after = RunTimeMetrics(
-            metrics_path, "compiled", lambda: m(**inputs)
-        )
+        outputs_after = m(**inputs)
+        # outputs_after = RunTimeMetrics(
+        #     metrics_path, "compiled", lambda: m(**inputs)
+        # )
         
     # Close the device
     ttnn.close_device(device)
