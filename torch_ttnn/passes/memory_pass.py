@@ -3,6 +3,7 @@ import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
 
+L1_LIMIT = 1048576 # 1024 * 1024 bytes (1 MB)
 
 def get_size(shape, dtype):
     size = 1
@@ -98,12 +99,17 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     print(f"Total tt compute nodes: {tt_compute_count}")
     i = 0
     compute = 0
+    overflow_ops = []
+
     for node in nodes:
         on_device = False
         # Has to be a ttnn op
         if is_tt_compute(node):
             print(f"tt compute node numbered: {i}")
             i += 1
+            # This is for marking those ttnn ops whose execution on device takes the compute memory above the threshold.
+            if compute < L1_LIMIT:
+                can_mark = True
             # Exception: Full node has no input
             # Assumption: Full node outputs a tensor on device
             if node.target == ttnn.full:
@@ -140,7 +146,12 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 if (tid, output_size) not in on_device_meta:
                     on_device_meta.append((tid, output_size))
+
                 data_points.append(on_device_meta.copy())
+
+                if can_mark and compute >= L1_LIMIT:
+                    can_mark = False
+                    overflow_ops.append(node)
 
                 print("\n---------------------------------------------------")
                 print(f"op execution on device: {node.name}")
@@ -152,6 +163,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     print(f"Tensor IDs existing on device after {node.name} is executed")
                     print(f"{tid_to_addr_map_in_L1}")
 
+                # This part of code is to assess whether we can swap out output tensor from device
                 node_users = list(node.users.keys())
                 # Are any users of current node a ttnn op?
                 is_follow_up_tt_compute = False
@@ -208,7 +220,9 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     
     print(f"Tensor IDs existing on device after the model is executed:")
     print(f"{tid_to_addr_map_in_L1}")
-
+    print(f"----------------------------------------------------------------")
+    print(f"These ttnn ops overflow the L1 buffer: {overflow_ops}")
+    print(f"Data captured for plotting on a chart:")
     for data in data_points:
         print(data)
 
