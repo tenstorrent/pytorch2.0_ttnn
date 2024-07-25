@@ -7,29 +7,7 @@ import numpy as np
 from collections import Counter
 import glob
 from tests.utils import comp_pcc
-from typing import List, Optional
-from pydantic import BaseModel
-
-
-# Pydantic model definitions
-class Operation(BaseModel):
-    op_name: str = "N/A"  # like aten.add or ttnn.add
-    op_schema: str = "N/A"
-
-
-class ModelRun(BaseModel):
-    name: str = "N/A"
-    path_in_repo: str = "N/A"  # relative path
-    run_success: bool = None
-    original_run_time: float = None  # (ms)
-    compile_time: float = None  # (ms)
-    compiled_run_time: float = None  # (ms)
-    accuracy: float = None  # %
-    ops_original: List[Operation] = None
-    ops_compiled: List[Operation] = None
-    graph_before: str = "N/A"  # url
-    graph_after: str = "N/A"  # url
-    memory_footprint: str = "N/A"  # url
+from tools.data_collection import pydantic_models
 
 
 # Map dictionary keys from metrics to header descriptions
@@ -165,7 +143,11 @@ def serialize_schema_metrics_to_operations(metrics):
         op_schema_string = serialize_schema_metrics_to_string(
             node["schema"], node["input_shapes"], node["input_values"]
         )
-        operations.append(Operation(op_name=node["opname"], op_schema=op_schema_string))
+        operations.append(
+            pydantic_models.Operation(
+                op_name=node["opname"], op_schema=op_schema_string
+            )
+        )
     return operations
 
 
@@ -331,7 +313,7 @@ if __name__ == "__main__":
         path_in_repo = model_link_mappings[model]
         model_metric = {"model": f"[{model}]({path_in_repo})"}
         # Initialize the Pydantic model
-        pydantic_model = ModelRun(name=model, path_in_repo=path_in_repo)
+        pydantic_model = pydantic_models.ModelRun(name=model, path_in_repo=path_in_repo)
 
         # Load run time metrics
         original_runtime_metrics_path = model_path / "original-run_time_metrics.pickle"
