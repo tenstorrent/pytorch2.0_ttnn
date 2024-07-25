@@ -36,7 +36,9 @@ def test_gpt2(device):
     decoded_output_before = decode_output(outputs_before)
 
     # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
+    option = torch_ttnn.TorchTtnnOption(
+        device=device, gen_graphviz=True, metrics_path=metrics_path
+    )
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 
     # Run inference with the compiled model

@@ -6,17 +6,12 @@ from pathlib import Path
 import warnings
 
 
-# Count the number of aten ops in the graph currently
-# Returns a tuple of (total ops, total unique ops)
-def count_aten_ops(nodes: list):
-    aten_ops = [
-        str(node.target)
-        for node in nodes
-        if node.op in ["call_function", "call_method"]
-        and isinstance(node.target, torch._ops.OpOverload)
-        and "aten" in str(node.target)
-    ]
-    return (len(aten_ops), len(set(aten_ops)))
+# Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
+def save_pickle(obj, base_path, filename):
+    p = Path(f"metrics/{base_path}")
+    pickle_out_path = p / f"{filename}.pickle"
+    with open(pickle_out_path, "wb") as f:
+        pickle.dump(obj, f)
 
 
 # Save the number of to/from device ops in current graph
@@ -80,7 +75,7 @@ def collect_schema_from_nodes(nodes: list):
                     arg_values.append("")
 
                 # Collect the input shapes from the metadata if possible.
-                if hasattr(arg, "meta"):
+                if hasattr(arg, "meta") and "val" in arg.meta:
                     arg_shapes.append(str(list(arg.meta["val"].size())))
                 else:
                     arg_shapes.append("")
@@ -96,50 +91,18 @@ def collect_schema_from_nodes(nodes: list):
             node_stats["input_values"] = arg_values
 
             collection.append(node_stats)
-    return collection
+        elif node.op in [
+            "call_function",
+            "call_method",
+        ] and node.target.__name__.startswith("ttnn."):
+            node_stats = {}
+            node_stats["opname"] = node.target.__name__
+            node_stats["schema"] = ""
+            node_stats["input_shapes"] = ""
+            node_stats["input_values"] = ""
 
+            collection.append(node_stats)
 
-def collect_input_variations_from_nodes(nodes: list):
-    """Creates a dictionary of unique nodes with their schema and input variations.
-
-    Returns:
-        ```
-        {
-            <opname>:
-            {
-                'opname': str,
-                'schema': {"args": list(tuple), "kwargs": list(tuple)}
-                'input_shapes': list(str),
-                'input_values': list(str|tuple),
-            },
-            <opname2>: {...},
-        }
-        ```
-
-    """
-    schemas = collect_schema_from_nodes(nodes)
-    collection = {}
-    for node in schemas:
-        if "schema" in node:
-            opname = node["opname"]
-            input_shapes = node["input_shapes"]
-            input_values = node["input_values"]
-            # Create a new entry if opname has not been registered
-            if opname not in collection:
-                entry = {
-                    "opname": opname,
-                    "schema": node["schema"],
-                    "input_shapes": [input_shapes],
-                    "input_values": [input_values],
-                }
-                collection[opname] = entry
-            else:
-                if (
-                    input_shapes not in collection[opname]["input_shapes"]
-                    and input_values not in collection[opname]["input_values"]
-                ):
-                    collection[opname]["input_shapes"].append(input_shapes)
-                    collection[opname]["input_values"].append(input_values)
     return collection
 
 
@@ -162,22 +125,24 @@ def RunTimeMetrics(path: str, prefix: str, f):
     """
     p = Path(f"metrics/{path}")
     pt_out_path = p / f"{prefix}-outputs.pt"
-    pickle_out_path = p / f"{prefix}-runtime_metrics.pickle"
+    pickle_out_path = p / f"{prefix}-run_time_metrics.pickle"
     os.makedirs(p, exist_ok=True)
     try:
-        start = time.perf_counter()
+        # get time in milliseconds
+        start = time.perf_counter() * 1000
         ret = f()
-        end = time.perf_counter()
-        runtime_metrics = {"success": "✅", "run_time": round(end - start, 2)}
+        end = time.perf_counter() * 1000
+        runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
 
         torch.save(ret, pt_out_path)
-    except:
-        runtime_metrics = {"success": "✘"}
-        ret = None
+    except Exception as e:
+        runtime_metrics = {"success": False}
+        print(
+            f"{path} {prefix} failed to run. No outputs generated. Raised exception: {e}"
+        )
+        raise
+    finally:
+        with open(pickle_out_path, "wb") as f:
+            pickle.dump(runtime_metrics, f)
 
-    with open(pickle_out_path, "wb") as f:
-        pickle.dump(runtime_metrics, f)
-
-    if ret is None:
-        raise RuntimeError(f"{path} {prefix} failed to run. No outputs generated.")
     return ret

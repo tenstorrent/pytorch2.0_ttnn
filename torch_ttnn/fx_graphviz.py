@@ -181,4 +181,4 @@ def to_svg(g: torch.fx.Graph, filename: str):
 
     # Write .dot & .svg
     dot.save(f"{filename}.dot")
-    os.system(f"dot -T svg -O {filename}.dot")
+    os.system(f'sfdp -x -Goverlap=scale -Tsvg "{filename}.dot" > "{filename}.dot.svg"')
