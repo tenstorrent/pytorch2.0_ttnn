@@ -4,7 +4,7 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
 from torch_ttnn.utils import TtnnDevice
 
-L1_LIMIT = 1048576 # 1024 * 1024 bytes (1 MB)
+L1_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
 
 def get_size(shape, dtype):
     size = 1
@@ -22,7 +22,7 @@ def get_shape(node):
         return get_shape(node.all_input_nodes[0])
     else:
         # TODO: What if meta of nth output of the node is requested?
-        if len(node.meta["val"]) > 1:
+        if isinstance(node.meta["val"], tuple):
             return node.meta["val"][0].size()
         else:
             return node.meta["val"].size()
@@ -34,7 +34,7 @@ def get_dtype(node):
         return get_dtype(node.all_input_nodes[0])
     else:
         # TODO: What if meta of nth output of the node is requested?
-        if len(node.meta["val"]) > 1:
+        if isinstance(node.meta["val"], tuple):
             return node.meta["val"][0].dtype
         else:
             return node.meta["val"].dtype
@@ -109,9 +109,6 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
         if is_tt_compute(node):
             print(f"tt compute node numbered: {i}")
             i += 1
-            # This is for marking those ttnn ops whose execution on device takes the compute memory above the threshold.
-            if compute < L1_LIMIT:
-                can_mark = True
             # Exception: Full node has no input
             # Assumption: Full node outputs a tensor on device
             if node.target == ttnn.full:
@@ -145,14 +142,12 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 tid = node_to_tid_map[node]
                 tid_to_addr_map_in_L1[tid] = last_assigned_addr
                 last_assigned_addr += output_size
-
                 if (tid, output_size) not in on_device_meta:
                     on_device_meta.append((tid, output_size))
 
                 data_points.append(on_device_meta.copy())
 
-                if can_mark and compute >= L1_LIMIT:
-                    can_mark = False
+                if compute >= L1_LIMIT:
                     overflow_ops.append(node)
 
                 print("\n---------------------------------------------------")
@@ -223,15 +218,18 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     print(f"Tensor IDs existing on device after the model is executed:")
     print(f"{tid_to_addr_map_in_L1}")
     print(f"----------------------------------------------------------------")
-    print(f"These ttnn ops overflow the L1 buffer: {overflow_ops}")
+    print(f"These ttnn ops overflow the L1 buffer:")
+    for op in overflow_ops:
+        print(op)
     print(f"Data captured for plotting on a chart:")
     for data in data_points:
         print(data)
 
-    return gm
+    return gm, data_points
 
 
 class MemoryPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
-        gm = memory_footprint(gm)
+        self.data_points = list()
+        gm, self.data_points = memory_footprint(gm)
         return PassResult(gm, True)
