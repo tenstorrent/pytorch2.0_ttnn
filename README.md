@@ -10,15 +10,15 @@ The table below summarizes the results of running various ML models through our 
 
 | Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
 |:------------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------|:---------------|
-| [Mnist (Eval)](tests/models/mnist)  | ✘             | 14 (8)                          | 5 (4)                           | 12                   |                    11.04 | N/A                      | N/A            |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           | 14                   |                    18.01 | 2922.51                  | 85.88          |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          | 45                   |                  1772.4  | 8398.87                  | 99.99          |
-| [Bloom](tests/models/bloom)         | ✘             | 1407 (29)                       | N/A                             | N/A                  |                  5602.6  | N/A                      | N/A            |
-| [YOLOS](tests/models/yolos)         | ✘             | 964 (28)                        | N/A                             | N/A                  |                   209.04 | N/A                      | N/A            |
-| [Llama](tests/models/llama)         | ✘             | 3 (3)                           | 1 (1)                           | 5                    |                 38255.4  | N/A                      | N/A            |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 537 (4)                         | 1388                 |                 61919.4  | 52814.88                 | 98.64          |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 1 (1)                           | 5                    |                 35014.3  | N/A                      | N/A            |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | N/A                             | N/A                  |                  1033.47 | N/A                      | N/A            |
+| [Mnist (Eval)](tests/models/mnist)  | ✘             | 14 (8)                          | 5 (4)                           | 16                   |                    36.12 | N/A                      | N/A            |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           | 14                   |                   114.49 | 2742.8                   | 81.75          |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          | 47                   |                  2094.6  | 10950.18                 | 99.99          |
+| [Bloom](tests/models/bloom)         | ✘             | 1407 (29)                       | N/A                             | N/A                  |                  9127.68 | N/A                      | N/A            |
+| [YOLOS](tests/models/yolos)         | ✘             | 964 (28)                        | N/A                             | N/A                  |                  1353.22 | N/A                      | N/A            |
+| [Llama](tests/models/llama)         | ✘             | 3 (3)                           | 1 (1)                           | 5                    |                 52926.3  | N/A                      | N/A            |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 537 (4)                         | 1607                 |                 65342    | 61028.65                 | 98.64          |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 1 (1)                           | 5                    |                 47738.8  | N/A                      | N/A            |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | N/A                             | N/A                  |                  2287.61 | N/A                      | N/A            |
 
 ### Explanation of Metrics
 
@@ -172,4 +172,28 @@ PYTHONPATH=${TT_METAL_HOME}:$(pwd) python3 tools/run_transformers.py --model "ph
 ```
 
 You can also substitute the backend with `torch_stat` to run a reference comparison.
+
+# Add a model test
+If you want to record run time metrics for a model or test, include a Pytest fixture named `record_property` as a parameter and set the "model_name" key.  
+If you also want to compile the model with torch_ttnn backend, set the "torch_ttnn" key to a tuple in this order `(model, test_inputs, outputs)`. "model_name" still needs to be set. See the example code snippet below. Currently, only `torch.nn.Module` models with a `forward` function are supported.
+```
+def Model(torch.nn.Module):
+    def forward(self, x):
+        # ...
+        return outputs
+
+# Add "record_property" parameter
+def test_model_name(record_property):
+    # Should be set as early as possible
+    record_property("model_name", "Model Name")
+
+    model = Model()
+    # ...
+    outputs = model(test_input)
+    # outputs = model(**test_inputs) # dictionary inputs are also supported
+    # ...
+
+    # Can be set once all three objects for the tuple are defined
+    record_property("torch_ttnn", (model, test_input(s), outputs))
+```
 

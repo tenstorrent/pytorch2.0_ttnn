@@ -3,7 +3,6 @@ import pickle
 import time
 import os
 from pathlib import Path
-import warnings
 
 
 # Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
@@ -104,45 +103,3 @@ def collect_schema_from_nodes(nodes: list):
             collection.append(node_stats)
 
     return collection
-
-
-def RunTimeMetrics(path: str, prefix: str, f):
-    """
-    Measure the runtime of the model in seconds.
-    * Exports a pickle file containing success and runtime data
-    * Exports outputs in Pytorch tensor format
-
-    Parameters:
-        path (str): Typically the name of the model
-        prefix (str): Either "original" or "compiled" is recommended
-        f: lambda function of model run
-
-    Example:
-        output = RunTimeMetrics("BERT", "compiled", lambda: model(**inputs))
-
-    Returns:
-        Output from the model or None if model fails
-    """
-    p = Path(f"metrics/{path}")
-    pt_out_path = p / f"{prefix}-outputs.pt"
-    pickle_out_path = p / f"{prefix}-run_time_metrics.pickle"
-    os.makedirs(p, exist_ok=True)
-    try:
-        # get time in milliseconds
-        start = time.perf_counter() * 1000
-        ret = f()
-        end = time.perf_counter() * 1000
-        runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
-
-        torch.save(ret, pt_out_path)
-    except Exception as e:
-        runtime_metrics = {"success": False}
-        print(
-            f"{path} {prefix} failed to run. No outputs generated. Raised exception: {e}"
-        )
-        raise
-    finally:
-        with open(pickle_out_path, "wb") as f:
-            pickle.dump(runtime_metrics, f)
-
-    return ret

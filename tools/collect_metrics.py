@@ -43,18 +43,6 @@ csv_header_mappings = {
     ),
 }
 
-model_link_mappings = {
-    "BERT": "tests/models/bert",
-    "Bloom": "tests/models/bloom",
-    "Falcon": "tests/models/falcon",
-    "GPT-2": "tests/models/gpt2",
-    "Llama": "tests/models/llama",
-    "Mnist (Eval)": "tests/models/mnist",
-    "Mnist (Train)": "tests/models/mnist",
-    "ResNet18": "tests/models/resnet",
-    "YOLOS": "tests/models/yolos",
-}
-
 
 # Load a pickle file from path and return an object or None
 def load_pickle(path: str):
@@ -195,46 +183,6 @@ def write_input_variation_metrics_to_csv(all_input_var_metrics):
     print(f"Data written to input_variations.csv")
 
 
-def calculate_accuracy(model_path):
-    """Loads Pytorch tensor objects from `model_path` and calculates the accuracy
-    between them. Can return a numeric object or string. Returns "N/A" if either
-    original and compiled outputs are missing.
-    """
-    # Read outputs and compute accuracy. Will not exist if test failed.
-    # Some models have multiple outputs. Collect them all and compute the average pcc.
-    original_outputs_path = model_path / "original-outputs.pt"
-    compiled_outputs_path = model_path / "compiled-outputs.pt"
-
-    original_outputs = load_pt(original_outputs_path)
-    compiled_outputs = load_pt(compiled_outputs_path)
-
-    if isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
-        # Handle case where outputs can be converted to dictionaries
-        original_outputs = dict(original_outputs)
-        compiled_outputs = dict(compiled_outputs)
-        output_pccs = []
-        for key in original_outputs.keys() & compiled_outputs.keys():
-            _, pcc = comp_pcc(original_outputs[key], compiled_outputs[key])
-            output_pccs.append(pcc)
-        accuracy = torch.mean(torch.tensor(output_pccs)).item()
-    elif isinstance(original_outputs, torch.Tensor) and isinstance(
-        compiled_outputs, torch.Tensor
-    ):
-        # Handle case where outputs are Pytorch Tensors
-        _, accuracy = comp_pcc(original_outputs, compiled_outputs)
-    elif original_outputs is None or compiled_outputs is None:
-        accuracy = "N/A"
-    else:
-        raise ValueError(
-            f"Output types for {model} not supported. Review these outputs:\n"
-            f"original_outputs:\n"
-            f"{original_outputs}\n"
-            f"compiled_outputs:\n"
-            f"{compiled_outputs}\n"
-        )
-    return accuracy
-
-
 def write_to_readme(all_metrics, aten_ops_per_model):
     """Write collected metrics to sections of the README.
 
@@ -291,14 +239,11 @@ if __name__ == "__main__":
     pytorch2.0_ttnn
     ├── metrics
         ├── BERT
-        │   ├── compiled-outputs.pt
         │   ├── compiled-run_time_metrics.pickle
         │   ├── compiled-schema_list.pickle
-        │   ├── original-outputs.pt
         │   ├── original-runtime_metrics.pickle
         │   └── original-schema_list.pickle
         └── ResNet18
-            ├── compiled-outputs.pt
             ├── compiled-run_time_metrics.pickle
             └── compiled-schema_list.pickle
     """
@@ -309,11 +254,8 @@ if __name__ == "__main__":
     for model in os.listdir("metrics"):
         model_path = Path("metrics") / Path(model)
 
-        # Add links that point to the directory of the model in the model name
-        path_in_repo = model_link_mappings[model]
-        model_metric = {"model": f"[{model}]({path_in_repo})"}
-        # Initialize the Pydantic model
-        pydantic_model = pydantic_models.ModelRun(name=model, path_in_repo=path_in_repo)
+        if not model_path.is_dir():
+            continue
 
         # Load run time metrics
         original_runtime_metrics_path = model_path / "original-run_time_metrics.pickle"
@@ -327,6 +269,16 @@ if __name__ == "__main__":
         assert (
             compiled_runtime_metrics
         ), f"{compiled_runtime_metrics_path} file not found"
+
+        # Add links that point to the directory of the model in the model name
+        assert (
+            "model_path" in original_runtime_metrics
+        ), "model_path key not in original_runtime_metrics"
+        path_in_repo = original_runtime_metrics["model_path"]
+        model_metric = {"model": f"[{model}]({path_in_repo})"}
+
+        # Initialize the Pydantic model
+        pydantic_model = pydantic_models.ModelRun(name=model, path_in_repo=path_in_repo)
 
         # Rename run_time keys to distinguish between original or compiled
         if "run_time" in original_runtime_metrics:
@@ -401,14 +353,16 @@ if __name__ == "__main__":
                     aten_ops_before_list, aten_ops_remain_list
                 )
 
-        # Read outputs and compute accuracy. Will not exist if test failed.
-        accuracy = calculate_accuracy(model_path)
-        if not isinstance(accuracy, str):
-            acc = round(accuracy * 100, 2)
+        # Get accuracy metric. Will not exist if test failed.
+        if (
+            "accuracy" in compiled_runtime_metrics
+            and compiled_runtime_metrics["accuracy"] is not None
+        ):
+            acc = round(compiled_runtime_metrics["accuracy"] * 100, 2)
             accuracy_metric = {"accuracy": acc}
             pydantic_model.accuracy = acc
         else:
-            accuracy_metric = {"accuracy": accuracy}
+            accuracy_metric = {"accuracy": "N/A"}
 
         # Save run_success status before changing it
         pydantic_model.run_success = compiled_runtime_metrics["success"]
