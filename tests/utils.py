@@ -83,3 +83,23 @@ def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.9999):
     return pcc_passed, construct_pcc_assert_message(
         pcc_message, expected_pytorch_result, actual_pytorch_result
     )
+
+
+def calculate_accuracy(original_outputs, compiled_outputs):
+    if isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
+        # Handle case where outputs can be converted to dictionaries
+        original_outputs = dict(original_outputs)
+        compiled_outputs = dict(compiled_outputs)
+        output_pccs = []
+        for key in original_outputs.keys() & compiled_outputs.keys():
+            _, pcc = comp_pcc(original_outputs[key], compiled_outputs[key])
+            output_pccs.append(pcc)
+        accuracy = torch.mean(torch.tensor(output_pccs)).item()
+    elif isinstance(original_outputs, torch.Tensor) and isinstance(
+        compiled_outputs, torch.Tensor
+    ):
+        # Handle case where outputs are Pytorch Tensors
+        _, accuracy = comp_pcc(original_outputs, compiled_outputs)
+    else:
+        accuracy = None
+    return accuracy
