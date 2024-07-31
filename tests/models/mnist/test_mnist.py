@@ -1,8 +1,5 @@
 import torch
-import torch_ttnn
 import pytest
-from torch_ttnn.metrics import RunTimeMetrics
-from tests.utils import check_with_pcc
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 
@@ -37,7 +34,9 @@ class MnistModel(torch.nn.Module):
         return output
 
 
-def test_mnist_train(device):
+def test_mnist_train(record_property):
+    record_property("model_name", "Mnist (Train)")
+
     transform = transforms.Compose([transforms.ToTensor()])
 
     train_dataset = datasets.MNIST(
@@ -49,30 +48,20 @@ def test_mnist_train(device):
     m = m.to(torch.bfloat16)
     m.train()
 
-    metrics_path = "Mnist (Train)"
     test_input, target = next(iter(dataloader))
-    # Run train with the original model
-    outputs_before = RunTimeMetrics(
-        metrics_path, "original", lambda: m(test_input.to(torch.bfloat16))
-    )
-
-    # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
-    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-
-    # Run train with the compiled model
-    outputs_after = RunTimeMetrics(
-        metrics_path, "compiled", lambda: m(test_input.to(torch.bfloat16))
-    )
-
-    option._out_fx_graphs[0].print_tabular()
+    test_input = test_input.to(torch.bfloat16)
+    outputs = m(test_input)
 
     # TODO: Since only one loop of training is done, the outputs could have greater differences.
     # Consider adding more loops.
 
+    record_property("torch_ttnn", (m, test_input, outputs))
+
 
 @pytest.mark.xfail
-def test_mnist_eval(device):
+def test_mnist_eval(record_property):
+    record_property("model_name", "Mnist (Eval)")
+
     transform = transforms.Compose([transforms.ToTensor()])
 
     test_dataset = datasets.MNIST(
@@ -84,24 +73,9 @@ def test_mnist_eval(device):
     m = m.to(torch.bfloat16)
     m.eval()
 
-    metrics_path = "Mnist (Eval)"
     test_input, _ = next(iter(dataloader))
-    # Run inference with the original model
+    test_input = test_input.to(torch.bfloat16)
     with torch.no_grad():
-        outputs_before = RunTimeMetrics(
-            metrics_path, "original", lambda: m(test_input.to(torch.bfloat16))
-        )
+        outputs = m(test_input)
 
-    # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
-    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-
-    # Run inference with the compiled model
-    with torch.no_grad():
-        outputs_after = RunTimeMetrics(
-            metrics_path, "compiled", lambda: m(test_input.to(torch.bfloat16))
-        )
-
-    option._out_fx_graphs[0].print_tabular()
-
-    assert check_with_pcc(outputs_before, outputs_after)
+    record_property("torch_ttnn", (m, test_input, outputs))
