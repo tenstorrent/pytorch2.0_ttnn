@@ -8,8 +8,37 @@ import json
 import os
 from pathlib import Path
 
+# Configs
 L1_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
+device_name = "Wormhole"
+cores = 120
+L1_mem = 1048576 # 1 MB
+circular_buffer = 20 * 1048576 # 20 MB
 
+class MemoryManager:
+    def __init__(self, device, cores, L1_mem, circular_buffer):
+        self.device = device
+        self.cores = cores
+        self.L1_mem = L1_mem
+        self.total_sram_limit = self.cores * self.L1_mem
+        self.circular_buffer = circular_buffer
+        self.free_sram = self.total_sram_limit - self.circular_buffer
+        self.used_sram = 0
+    
+    def set_mem_data(self, mem_data):
+        self.mem_data = mem_data
+
+    def set_ops_mem_usage(self, ops_mem_usage):
+        self.ops_mem_usage = ops_mem_usage
+    
+    def set_node_to_tid_map(self, node_to_tid_map):
+        self.node_to_tid_map = node_to_tid_map
+
+    def set_tid_to_addr_map(self, tid_to_addr_map):
+        self.tid_to_addr_map = tid_to_addr_map
+
+
+        
 def get_size(shape, dtype):
     size = 1
     if dtype is torch.bfloat16:
@@ -63,6 +92,12 @@ def is_input_tensor_on_device(node):
 
 
 def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+    mm = MemoryManager(
+        device_name,
+        cores,
+        L1_mem,
+        circular_buffer
+    )
     print("Track memory footprint for each of the ops:")
     nodes = list(gm.graph.nodes)
 
@@ -78,9 +113,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     computed_nodes = []
     # Data points containing info of on device tensors allocation & deallocation for ttnn ops
     # Useful for visualization by plotting in a chart
-    data_points = []
+    data_points = {}
     # On device tensors info
     on_device_meta = []
+    # Each ops memory usage on device
+    ops_mem_usage = {}
 
     # Tensor IDs allocation for ttnn ops input & output
     tt_compute_count = 0
@@ -97,6 +134,8 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 node_to_tid_map[node] = last_assigned_tid
                 last_assigned_tid += 1
     
+    mm.set_node_to_tid_map(node_to_tid_map)
+
     # print(f"Tensor IDs for nodes on device:")
     # for key, value in node_to_tid_map.items():
     #     print(f"Node: {key} - {value}")
@@ -104,7 +143,6 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     # Tracks the total compute memory of the model
     print(f"Total tt compute nodes: {tt_compute_count}")
     i = 0
-    compute = 0
     overflow_ops = []
 
     for node in nodes:
@@ -128,9 +166,12 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     total_input_size += input_size
                     
                     assert input_node in node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
+
                     tid = node_to_tid_map[input_node]
-                    tid_to_addr_map_in_L1[tid] = last_assigned_addr
+                    start_addr = last_assigned_addr
                     last_assigned_addr += input_size
+                    end_addr = last_assigned_addr
+                    tid_to_addr_map_in_L1[tid] = (start_addr, end_addr)
 
                     if (tid, input_size) not in on_device_meta:
                         on_device_meta.append((tid, input_size))
@@ -140,29 +181,32 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 output_shape = get_shape(node)
                 output_dtype = get_dtype(node)
                 output_size = get_size(output_shape, output_dtype)
-                compute += total_input_size + output_size
+
+                mm.used_sram += total_input_size + output_size
+                mm.free_sram -= (total_input_size + output_size)
+                ops_mem_usage[node.name] = total_input_size + output_size
 
                 assert node in node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
+
                 tid = node_to_tid_map[node]
-                tid_to_addr_map_in_L1[tid] = last_assigned_addr
+                start_addr = last_assigned_addr
                 last_assigned_addr += output_size
+                end_addr = last_assigned_addr
+                tid_to_addr_map_in_L1[tid] = (start_addr, end_addr)
+
                 if (tid, output_size) not in on_device_meta:
                     on_device_meta.append((tid, output_size))
 
-                data_points.append(on_device_meta.copy())
+                data_points[(node, "to_device")] = on_device_meta.copy()
 
-                if compute >= L1_LIMIT:
+                if mm.used_sram >= L1_LIMIT:
                     overflow_ops.append(node)
 
                 print("\n---------------------------------------------------")
                 print(f"op execution on device: {node.name}")
                 print(f"input size: {total_input_size} bytes")
                 print(f"output size: {output_size} bytes")
-                print(f"total compute memory parked in L1: {compute} bytes")
-                
-                if is_tt_compute(node):
-                    print(f"Tensor IDs existing on device after {node.name} is executed")
-                    print(f"{tid_to_addr_map_in_L1}")
+                print(f"total compute memory parked in L1: {mm.used_sram} bytes")
 
                 # This part of code is to assess whether we can swap out output tensor from device
                 node_users = list(node.users.keys())
@@ -186,15 +230,14 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # and if one of the users is a from device operation,
                 # then swap out output tensor from device
                 if not is_follow_up_tt_compute and is_follow_up_from_device:
-                    compute = compute - output_size
-                    tid_to_addr_map_in_L1.pop(tid)
-                    last_assigned_addr -= output_size
+                    mm.used_sram -= output_size
+                    mm.free_sram += output_size
 
                     on_device_meta.remove((tid, output_size))
                     
                     print(f"op removed from device: {node.name}")
                     print(f"output size: {output_size} bytes")
-                    print(f"total compute memory parked in L1: {compute} bytes")
+                    print(f"total compute memory parked in L1: {mm.used_sram} bytes")
                 # Once current node's input & output tensor processing is over, mark it as computed
                 computed_nodes.append(node)
                 # Swap out input tensors from device if its usage is completed
@@ -213,32 +256,37 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                             get_shape(input_node),
                             get_dtype(input_node)
                         )
-                        compute -= input_size
+                        mm.used_sram -= input_size
+                        mm.free_sram += input_size
                         tid = node_to_tid_map[input_node]
-                        tid_to_addr_map_in_L1.pop(tid)
-                        last_assigned_addr -= input_size
-
                         on_device_meta.remove((tid, input_size))
 
                         print(f"input tensor removed from device: {input_size} bytes")
-                        print(f"total compute memory parked in L1: {compute} bytes")
+                        print(f"total compute memory parked in L1: {mm.used_sram} bytes")
                 
-                data_points.append(on_device_meta.copy())
+                data_points[(node, "from_device")] = on_device_meta.copy()
     
-    print(f"Tensor IDs existing on device after the model is executed:")
+    mm.set_ops_mem_usage(ops_mem_usage)
+    mm.set_tid_to_addr_map(tid_to_addr_map_in_L1)
+
+    print(f"Tensor IDs to address map in SRAM:")
     print(f"{tid_to_addr_map_in_L1}")
     print(f"----------------------------------------------------------------")
     print(f"These ttnn ops overflow the L1 buffer:")
     for op in overflow_ops:
         print(op)
     print(f"Data captured for plotting on a chart:")
-    for data in data_points:
-        print(data)
+    for key, value in data_points.items():
+        print(f"{key}: {value}")
     # Save the data points to a file
     p = Path(f"data/memory")
     os.makedirs(p, exist_ok=True)
+    # Convert dictionary keys to strings
+    data_str_keys = {str(key): value for key, value in data_points.items()}
+    mm.set_mem_data(data_str_keys)
+
     with open("./data/memory/memory_footprint.txt", 'w') as f:
-        json.dump(data_points, f)
+        json.dump(data_str_keys, f)
 
     return gm, data_points
 
