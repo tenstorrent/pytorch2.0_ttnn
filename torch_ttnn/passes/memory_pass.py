@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 # Configs
-device_name = "Wormhole"
+device_name = "wormhole"
 cores = 120
 SRAM_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
 L1_mem = 1048576 # 1 MB
@@ -198,7 +198,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if (tid, output_size) not in on_device_meta:
                     on_device_meta.append((tid, output_size))
 
-                data_points[(node, "to_device")] = on_device_meta.copy()
+                data_points[(node.name, "to_device")] = on_device_meta.copy()
 
                 if mm.used_sram >= SRAM_LIMIT:
                     overflow_ops.append(node)
@@ -265,7 +265,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         print(f"input tensor removed from device: {input_size} bytes")
                         print(f"total compute memory parked in L1: {mm.used_sram} bytes")
                 
-                data_points[(node, "from_device")] = on_device_meta.copy()
+                data_points[(node.name, "from_device")] = on_device_meta.copy()
     
     mm.set_ops_mem_usage(ops_mem_usage)
     mm.set_tid_to_addr_map(tid_to_addr_map_in_L1)

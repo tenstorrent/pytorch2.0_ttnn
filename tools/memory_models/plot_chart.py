@@ -5,9 +5,10 @@ def plot_bar_chart(src_file, dest_file):
     # Load the data points from the file
     with open(src_file, 'r') as f:
         data_points = json.load(f)
-
+    # Convert the keys back to tuples
+    data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)
-    data_points_mb = [[(tid, size / (1024 * 1024)) for tid, size in tensors] for tensors in data_points]
+    data_points_mb = [[(tid, size / (1024 * 1024)) for tid, size in value] for key, value in data_points.items()]
 
     # Adjust the figure size
     plt.figure(figsize=(18, 8))
@@ -61,9 +62,10 @@ def plot_line_chart(src_file, dest_file):
     # Load the data points from the file
     with open(src_file, 'r') as f:
         data_points = json.load(f)
-
+    # Convert the keys back to tuples
+    data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)
-    data_points_mb = [[(tid, size / (1024 * 1024)) for tid, size in tensors] for tensors in data_points]
+    data_points_mb = [[(tid, size / (1024 * 1024)) for tid, size in value] for key, value in data_points.items()]
 
     # Calculate the total tensor size for each entry
     total_sizes = [sum(size for _, size in tensors) for tensors in data_points_mb]

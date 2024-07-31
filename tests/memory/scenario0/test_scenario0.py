@@ -44,9 +44,9 @@ def test_scenario(device, test_name, input_shape, model_fits_in_memory):
     # From the memory footprint, this checks whether the model fits in memory or not
     can_fit_in_memory = True
     sram_limit = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
-    for row in option.memory_footprint:
+    for _, value in option._memory_manager.mem_data.items():
         used_sram = 0
-        for tid, size in row:
+        for _, size in value:
             used_sram += size
             if used_sram >= sram_limit:
                 can_fit_in_memory = False
