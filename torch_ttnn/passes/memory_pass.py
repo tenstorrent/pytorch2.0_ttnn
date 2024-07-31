@@ -4,6 +4,10 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
 from torch_ttnn.utils import TtnnDevice
 
+import json
+import os
+from pathlib import Path
+
 L1_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
 
 def get_size(shape, dtype):
@@ -169,7 +173,13 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 for user in node_users:
                     if is_tt_compute(user):
                         is_follow_up_tt_compute = True
-                    if user.target == ttnn.from_device or user.target == ttnn.to_torch:
+                    if user.target in set(
+                        [
+                        ttnn.from_device,
+                        ttnn.to_torch,
+                        ttnn.to_layout
+                        ]
+                    ):
                         is_follow_up_from_device = True
   
                 # If no follow up ttnn op using the output of current node
@@ -224,6 +234,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     print(f"Data captured for plotting on a chart:")
     for data in data_points:
         print(data)
+    # Save the data points to a file
+    p = Path(f"data/memory")
+    os.makedirs(p, exist_ok=True)
+    with open("./data/memory/memory_footprint.txt", 'w') as f:
+        json.dump(data_points, f)
 
     return gm, data_points
 
