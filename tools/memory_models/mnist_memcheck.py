@@ -2,8 +2,6 @@ import torch
 import torch_ttnn
 import unittest
 import ttnn
-from torch_ttnn.metrics import RunTimeMetrics
-from tests.utils import check_with_pcc
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 

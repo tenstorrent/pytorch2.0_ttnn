@@ -3,7 +3,7 @@ import torch_ttnn
 import ttnn
 import tt_lib
 
-class TransposeModule(torch.nn.Module):
+class MatmulModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # For AutoFormat
     tt_lib.device.SetDefaultDevice(device)
 
-    m = TransposeModule()
+    m = MatmulModule()
     input_shapes = m.input_shapes()
     x = torch.rand(input_shapes[0], dtype=torch.bfloat16)
     y = torch.rand(input_shapes[1], dtype=torch.bfloat16)

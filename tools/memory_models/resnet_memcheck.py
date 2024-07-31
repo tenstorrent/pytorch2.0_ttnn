@@ -2,7 +2,6 @@ import torch
 import torchvision
 import torch_ttnn
 import ttnn
-from torch_ttnn.metrics import RunTimeMetrics
 
 
 if __name__ == "__main__":
@@ -27,9 +26,7 @@ if __name__ == "__main__":
     model = torch.compile(model, backend=torch_ttnn.memory_backend, options=option)
     # Run inference with the compiled model
     with torch.no_grad():
-        output_after = RunTimeMetrics(
-            metrics_path, "compiled", lambda: model(input_batch)
-        )
+        output_after = model(input_batch)
 
     # Close the device
     ttnn.close_device(device)
