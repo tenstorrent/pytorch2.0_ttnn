@@ -9,12 +9,13 @@ import os
 from pathlib import Path
 
 # Configs
-L1_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
 device_name = "Wormhole"
 cores = 120
+SRAM_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
 L1_mem = 1048576 # 1 MB
 circular_buffer = 20 * 1048576 # 20 MB
 
+# This will manage all memory related operations & data
 class MemoryManager:
     def __init__(self, device, cores, L1_mem, circular_buffer):
         self.device = device
@@ -38,66 +39,66 @@ class MemoryManager:
         self.tid_to_addr_map = tid_to_addr_map
 
 
-        
-def get_size(shape, dtype):
-    size = 1
-    if dtype is torch.bfloat16:
-        size = 2
-    for val in list(shape):
-        size = val * size
-    return size
+# This holds op related information one can query from
+class OpRegistry:
+    def get_size(self, shape, dtype):
+        size = 1
+        if dtype is torch.bfloat16:
+            size = 2
+        for val in list(shape):
+            size = val * size
+        return size
 
-
-
-def get_shape(node):
-    if is_tt_data_move(node):
-        assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
-        return get_shape(node.all_input_nodes[0])
-    else:
-        # TODO: What if meta of nth output of the node is requested?
-        if isinstance(node.meta["val"], tuple):
-            return node.meta["val"][0].size()
+    def get_shape(self, node):
+        if is_tt_data_move(node):
+            assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
+            return self.get_shape(node.all_input_nodes[0])
         else:
-            return node.meta["val"].size()
+            # TODO: What if meta of nth output of the node is requested?
+            if isinstance(node.meta["val"], tuple):
+                return node.meta["val"][0].size()
+            else:
+                return node.meta["val"].size()
 
-
-def get_dtype(node):
-    if is_tt_data_move(node):
-        assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
-        return get_dtype(node.all_input_nodes[0])
-    else:
-        # TODO: What if meta of nth output of the node is requested?
-        if isinstance(node.meta["val"], tuple):
-            return node.meta["val"][0].dtype
+    def get_dtype(self, node):
+        if is_tt_data_move(node):
+            assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
+            return self.get_dtype(node.all_input_nodes[0])
         else:
-            return node.meta["val"].dtype
-
-            
-
-def is_input_tensor_on_device(node):
-    if node.target == ttnn.from_torch:
-        if "device" in node.kwargs and isinstance(node.kwargs["device"], TtnnDevice):
+            # TODO: What if meta of nth output of the node is requested?
+            if isinstance(node.meta["val"], tuple):
+                return node.meta["val"][0].dtype
+            else:
+                return node.meta["val"].dtype
+   
+    def is_input_tensor_on_device(self, node):
+        if node.target == ttnn.from_torch:
+            if "device" in node.kwargs and isinstance(node.kwargs["device"], TtnnDevice):
+                return True
+        if node.target is ttnn.to_device or is_tt_compute(node):
             return True
-    if node.target is ttnn.to_device or is_tt_compute(node):
-        return True
-    # This is a data move op which propagates shape of input tensor
-    if node.target == ttnn.Shape or node.target == ttnn.from_device:
-        return False
-    # Considers cases like ttnn op --> to_layout
-    if is_tt_data_move(node):
-        return is_input_tensor_on_device(node.all_input_nodes[0])
-    else:
-        return False
+        # This is a data move op which propagates shape of input tensor
+        if node.target == ttnn.Shape or node.target == ttnn.from_device:
+            return False
+        # Considers cases like ttnn op --> to_layout
+        if is_tt_data_move(node):
+            return self.is_input_tensor_on_device(node.all_input_nodes[0])
+        else:
+            return False
 
 
 
 def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+
     mm = MemoryManager(
         device_name,
         cores,
         L1_mem,
         circular_buffer
     )
+
+    op_registry = OpRegistry()
+
     print("Track memory footprint for each of the ops:")
     nodes = list(gm.graph.nodes)
 
@@ -158,11 +159,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             total_input_size = 0
             for input_node in node.all_input_nodes:
                 # If input tensor on device or coming as output from another ttnn on device op
-                if is_input_tensor_on_device(input_node):
+                if op_registry.is_input_tensor_on_device(input_node):
                     on_device = True
-                    input_shape = get_shape(input_node)
-                    input_dtype = get_dtype(input_node)
-                    input_size = get_size(input_shape, input_dtype)
+                    input_shape = op_registry.get_shape(input_node)
+                    input_dtype = op_registry.get_dtype(input_node)
+                    input_size = op_registry.get_size(input_shape, input_dtype)
                     total_input_size += input_size
                     
                     assert input_node in node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
@@ -178,9 +179,9 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 
             if on_device:
-                output_shape = get_shape(node)
-                output_dtype = get_dtype(node)
-                output_size = get_size(output_shape, output_dtype)
+                output_shape = op_registry.get_shape(node)
+                output_dtype = op_registry.get_dtype(node)
+                output_size = op_registry.get_size(output_shape, output_dtype)
 
                 mm.used_sram += total_input_size + output_size
                 mm.free_sram -= (total_input_size + output_size)
@@ -199,7 +200,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 data_points[(node, "to_device")] = on_device_meta.copy()
 
-                if mm.used_sram >= L1_LIMIT:
+                if mm.used_sram >= SRAM_LIMIT:
                     overflow_ops.append(node)
 
                 print("\n---------------------------------------------------")
@@ -252,9 +253,9 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         if user not in computed_nodes and is_tt_compute(user):
                             keep_on_device = True
                     if keep_on_device is False:
-                        input_size = get_size(
-                            get_shape(input_node),
-                            get_dtype(input_node)
+                        input_size = op_registry.get_size(
+                            op_registry.get_shape(input_node),
+                            op_registry.get_dtype(input_node)
                         )
                         mm.used_sram -= input_size
                         mm.free_sram += input_size
@@ -288,11 +289,10 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     with open("./data/memory/memory_footprint.txt", 'w') as f:
         json.dump(data_str_keys, f)
 
-    return gm, data_points
+    return gm, mm
 
 
 class MemoryPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
-        self.data_points = list()
-        gm, self.data_points = memory_footprint(gm)
+        gm, self.memory_manager = memory_footprint(gm)
         return PassResult(gm, True)
