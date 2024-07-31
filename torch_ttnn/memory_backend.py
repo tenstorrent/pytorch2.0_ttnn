@@ -18,7 +18,7 @@ class TorchTtnnOption:
         self.device = device
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
-        self.memory_footprint = list()
+        self._memory_manager = list()
 
         if metrics_path:
             p = Path(f"metrics/{metrics_path}")
@@ -134,8 +134,10 @@ def aten_backend(
     gm.graph.lint()
     gm.recompile()
 
-    # Second from last is the memory pass which returns the graph as well as memory footprint data
-    option.memory_footprint = passes[-2].data_points
+    # Find memory pass which returns the graph as well as memory footprint data
+    for p in passes:
+        if isinstance(p, MemoryPass):
+            option._memory_manager = p.memory_manager
 
     if option.metrics_path:
         # Save the number of aten ops after compilation
