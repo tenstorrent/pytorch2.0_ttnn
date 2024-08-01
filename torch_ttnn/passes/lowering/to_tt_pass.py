@@ -57,6 +57,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
         elif target == torch.ops.aten.addmm.default:
             # TODO(kevinwuMCW): include beta, alpha, and optional args
             mm = super().call_function(ttnn.matmul, (args[1], args[2]), kwargs)
+            # Intermediate node meta is not preserved, this ensures retention
+            meta = fx_traceback.get_current_meta()
+            if meta is not None and "val" in meta:
+                mm.node.meta["val"] = meta["val"]
             call_func = super().call_function(ttnn.add, (args[0], mm), kwargs)
         elif target == torch.ops.aten.bmm.default:
             call_func = super().call_function(ttnn.matmul, args, kwargs)
@@ -235,6 +239,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     full_node = g.call_function(
                         ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs
                     )
+                    # Intermediate node meta is not preserved, this ensures retention
+                    # Are output dims same for full node and actual node to be replaced?
+                    full_node.meta["val"] = node.meta["val"]
+
                     new_node = g.call_function(
                         relational_scalar_ops[node.target],
                         args=(args[0], full_node),
@@ -266,15 +274,22 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # out = beta * input + alpha * (batch1 @ batch2)
                 # if beta is 0, input is ignored, and nan and inf in it will not be propogated
                 new_node = g.call_function(ttnn.matmul, args=(args[1], args[2]))
+                # Intermediate node meta is not preserved, this ensures retention
+                new_node.meta["val"] = node.meta["val"]
+
                 if "alpha" in kwargs:
                     new_node = g.call_function(
                         ttnn.multiply, args=(new_node, kwargs["alpha"])
                     )
+                    # Intermediate node meta is not preserved, this ensures retention
+                    new_node.meta["val"] = node.meta["val"]
                 if "beta" in kwargs:
                     if kwargs["beta"] != 0:
                         beta_node = g.call_function(
                             ttnn.multiply, args=(args[0], kwargs["beta"])
                         )
+                        # Intermediate node meta is not preserved, this ensures retention
+                        beta_node.meta["val"] = node.meta["val"]
                         new_node = g.call_function(ttnn.add, args=(beta_node, new_node))
                 else:
                     new_node = g.call_function(ttnn.add, args=(args[0], new_node))
@@ -307,6 +322,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 full = g.call_function(
                     ttnn.full, args=(tuple(node_metadata.size()),), kwargs=new_kwargs
                 )
+                # Intermediate node meta is not preserved, this ensures retention
+                full.meta["val"] = node.meta["val"]
                 to_layout = g.call_function(
                     ttnn.to_layout, (full,), {"layout": TtnnTileLayout()}
                 )
@@ -332,12 +349,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         args=(tuple(node_metadata.size()),),
                         kwargs=new_kwargs,
                     )
+                    # Intermediate node meta is not preserved, this ensures retention
+                    full.meta["val"] = node.meta["val"]
                     to_layout = g.call_function(
                         ttnn.to_layout, (full,), {"layout": TtnnTileLayout()}
                     )
                     recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
                 else:
                     recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                # Intermediate node meta is not preserved, this ensures retention
+                recip.meta["val"] = node.meta["val"]
                 new_node = g.call_function(ttnn.mul, (args[0], recip), {})
                 new_node.meta["val"] = node.meta["val"]
                 node.replace_all_uses_with(
