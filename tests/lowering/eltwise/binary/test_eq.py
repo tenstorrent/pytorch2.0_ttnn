@@ -32,6 +32,10 @@ def test_eq_tensor(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.eq) == 1
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.full:
+            assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
     assert torch.allclose(result_before, result_after.to(torch.bool))
 
@@ -60,5 +64,9 @@ def test_eq_scalar(device, input_shapes):
     assert target.count(ttnn.full) == 1
     assert target.count(ttnn.eq) == 1
     assert target.index(ttnn.full) < target.index(ttnn.eq)
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.full:
+            assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
     assert torch.allclose(result_before, result_after.to(torch.bool))

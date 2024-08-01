@@ -36,5 +36,9 @@ def test_addmm(device, input_shapes):
     assert target.count(ttnn.add) == 1
     assert target.index(ttnn.matmul) < target.index(ttnn.add)
     assert nodes[target.index(ttnn.add)].args[1].target == ttnn.matmul
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.matmul:
+            assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
     assert check_with_pcc(result_before, result_after)
