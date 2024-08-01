@@ -1,13 +1,12 @@
 import torch
-import torch_ttnn
-import pytest
-from torch_ttnn.metrics import RunTimeMetrics
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
 
-def test_bert(device):
+def test_bert(record_property):
+    record_property("model_name", "BERT")
+
     # Download model from cloud
     model_name = "phiyodr/bert-large-finetuned-squad2"
     tokenizer = AutoTokenizer.from_pretrained(
@@ -32,10 +31,9 @@ def test_bert(device):
         truncation=True,
     )
 
-    metrics_path = "BERT"
     # Run inference with the original model
     with torch.no_grad():
-        outputs_before = RunTimeMetrics(metrics_path, "original", lambda: m(**inputs))
+        outputs = m(**inputs)
 
     # Helper function to decode output to human-readable text
     def decode_output(outputs):
@@ -44,19 +42,7 @@ def test_bert(device):
         response_tokens = inputs.input_ids[0, response_start:response_end]
         return tokenizer.decode(response_tokens)
 
-    answer_before = decode_output(outputs_before)
-
-    # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
-    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-
-    # Run inference with the compiled model
-    with torch.no_grad():
-        outputs_after = RunTimeMetrics(metrics_path, "compiled", lambda: m(**inputs))
-
-    option._out_fx_graphs[0].print_tabular()
-
-    answer_after = decode_output(outputs_after)
+    answer = decode_output(outputs)
 
     print(
         f"""
@@ -64,12 +50,8 @@ def test_bert(device):
     input:
         context: {context}
         question: {question}
-    answer before: {answer_before}
-    answer after: {answer_after}
+    answer: {answer}
     """
     )
 
-    # TODO: Add more checks for the compiled graph
-
-    # Check inference result
-    assert answer_before == answer_after
+    record_property("torch_ttnn", (m, inputs, outputs))
