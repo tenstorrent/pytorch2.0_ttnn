@@ -45,9 +45,14 @@ if __name__ == "__main__":
     # Run inference with the compiled model
     with torch.no_grad():
         outputs_after = m(**inputs)
-        # outputs_after = RunTimeMetrics(
-        #     metrics_path, "compiled", lambda: m(**inputs)
-        # )
-        
+    
+    # These are for plotting charts for later inspection
+    from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart
+    src_file = "./data/memory/memory_footprint.txt"
+    bar_chart_file = "./tools/memory_models/assets/bert_bar_chart.png"
+    line_chart_file = "./tools/memory_models/assets/bert_line_chart.png"
+    plot_bar_chart(src_file, bar_chart_file)
+    plot_line_chart(src_file, line_chart_file)
+
     # Close the device
     ttnn.close_device(device)

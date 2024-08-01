@@ -28,5 +28,13 @@ if __name__ == "__main__":
     with torch.no_grad():
         output_after = model(input_batch)
 
+    # These are for plotting charts for later inspection
+    from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart
+    src_file = "./data/memory/memory_footprint.txt"
+    bar_chart_file = "./tools/memory_models/assets/resnet_bar_chart.png"
+    line_chart_file = "./tools/memory_models/assets/resnet_line_chart.png"
+    plot_bar_chart(src_file, bar_chart_file)
+    plot_line_chart(src_file, line_chart_file)
+
     # Close the device
     ttnn.close_device(device)

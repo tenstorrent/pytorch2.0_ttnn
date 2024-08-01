@@ -33,10 +33,10 @@ def plot_bar_chart(src_file, dest_file):
             plt.text(i * (bar_width + bar_spacing), bottom + size / 2, f'{tensor_id}', ha='center', va='center', fontsize=8, color='black')
             bottom += size
 
-    # Draw horizontal line for SRAM memory limit (1 MB)
+    # Draw horizontal line for SRAM memory limit (100 MB)
     plt.axhline(y=sram_limit_mb, color='red', linestyle='--', linewidth=2, label='SRAM Memory Limit (100 MB)')
 
-    plt.xlabel('Time (Sequence of operations)')
+    plt.xlabel('TTNN Op Sequence')
     plt.ylabel('Tensor Size (MB)')
     plt.title('Tensor Sizes Over Time')
     plt.yscale('log')  # Set y-axis to logarithmic scale
