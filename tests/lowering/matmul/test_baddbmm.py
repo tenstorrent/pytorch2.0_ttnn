@@ -45,6 +45,10 @@ def test_baddbmm(device, input_shapes):
     assert target.count(ttnn.add) == 1
     assert target.index(ttnn.matmul) < target.index(ttnn.add)
     assert nodes[target.index(ttnn.add)].args[1].target == ttnn.matmul
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.matmul or node.target == ttnn.multiply:
+            assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
     assert check_with_pcc(result_before, result_after)
 
@@ -63,6 +67,10 @@ def test_baddbmm(device, input_shapes):
     assert target.count(ttnn.add) == 1
     assert target.index(ttnn.multiply) < target.index(ttnn.add)
     assert nodes[target.index(ttnn.add)].args[1].target == ttnn.multiply
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.matmul or node.target == ttnn.multiply:
+            assert node.meta["val"].size() == input_shapes[0]
     assert check_with_pcc(result_before, result_after)
 
     # (3) Test with beta and default alpha value
@@ -80,6 +88,10 @@ def test_baddbmm(device, input_shapes):
     assert target.index(ttnn.multiply) < target.index(ttnn.add)
     assert nodes[target.index(ttnn.add)].args[0].target == ttnn.multiply
     assert nodes[target.index(ttnn.add)].args[1].target == ttnn.matmul
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.matmul or node.target == ttnn.multiply:
+            assert node.meta["val"].size() == input_shapes[0]
     assert check_with_pcc(result_before, result_after)
 
     # (4) Test with beta and alpha values
@@ -101,7 +113,10 @@ def test_baddbmm(device, input_shapes):
     assert multiply_idx[1] < add_index
     assert nodes[add_index].args[0].target == ttnn.multiply
     assert nodes[add_index].args[1].target == ttnn.multiply
-
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.matmul or node.target == ttnn.multiply:
+            assert node.meta["val"].size() == input_shapes[0]
     assert check_with_pcc(result_before, result_after)
 
     # (5) Test special case when beta is 0
@@ -116,5 +131,8 @@ def test_baddbmm(device, input_shapes):
     assert target.count(ttnn.multiply) == 1
     assert target.index(ttnn.matmul) < target.index(ttnn.multiply)
     assert nodes[target.index(ttnn.multiply)].args[0].target == ttnn.matmul
-
+    # Intermediate node meta check if preserved
+    for node in nodes:
+        if node.target == ttnn.matmul or node.target == ttnn.multiply:
+            assert node.meta["val"].size() == input_shapes[0]
     assert check_with_pcc(result_before, result_after)
