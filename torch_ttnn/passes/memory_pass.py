@@ -25,6 +25,7 @@ class MemoryManager:
         self.circular_buffer = circular_buffer
         self.free_sram = self.total_sram_limit - self.circular_buffer
         self.used_sram = 0
+        self.tensors_on_device = []
     
     def set_mem_data(self, mem_data):
         self.mem_data = mem_data
@@ -174,6 +175,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     end_addr = last_assigned_addr
                     tid_to_addr_map_in_L1[tid] = (start_addr, end_addr)
 
+                    if tid not in mm.tensors_on_device:
+                        mm.used_sram += input_size
+                        mm.free_sram -= input_size
+                        mm.tensors_on_device.append(tid)
+
                     if (tid, input_size) not in on_device_meta:
                         on_device_meta.append((tid, input_size))
 
@@ -183,8 +189,6 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 output_dtype = op_registry.get_dtype(node)
                 output_size = op_registry.get_size(output_shape, output_dtype)
 
-                mm.used_sram += total_input_size + output_size
-                mm.free_sram -= (total_input_size + output_size)
                 ops_mem_usage[node.name] = total_input_size + output_size
 
                 assert node in node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
@@ -194,6 +198,10 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 last_assigned_addr += output_size
                 end_addr = last_assigned_addr
                 tid_to_addr_map_in_L1[tid] = (start_addr, end_addr)
+
+                mm.used_sram += output_size
+                mm.free_sram -= output_size
+                mm.tensors_on_device.append(tid)
 
                 if (tid, output_size) not in on_device_meta:
                     on_device_meta.append((tid, output_size))
@@ -233,6 +241,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if not is_follow_up_tt_compute and is_follow_up_from_device:
                     mm.used_sram -= output_size
                     mm.free_sram += output_size
+                    mm.tensors_on_device.remove(tid)
 
                     on_device_meta.remove((tid, output_size))
                     
@@ -260,6 +269,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         mm.used_sram -= input_size
                         mm.free_sram += input_size
                         tid = node_to_tid_map[input_node]
+                        mm.tensors_on_device.remove(tid)
                         on_device_meta.remove((tid, input_size))
 
                         print(f"input tensor removed from device: {input_size} bytes")

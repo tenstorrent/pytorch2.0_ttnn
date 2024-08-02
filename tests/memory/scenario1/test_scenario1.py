@@ -54,4 +54,5 @@ def test_scenario(device, test_name, input_shape, model_fits_in_memory):
                 can_fit_in_memory = False
                 break
     assert can_fit_in_memory == model_fits_in_memory, "Model fits in SRAM memory, this test case failed!"
+    assert option._memory_manager.used_sram == 0, "There are still tensors on device after model execution"
 
