@@ -1,9 +1,13 @@
 import os
 import shutil
 import torch
+<<<<<<< HEAD:tests/test_stat.py
 
 # from torch_ttnn import torch_stat
 from tracer.tracer import Tracer
+=======
+from tools import torch_stat
+>>>>>>> upstream/main:tests/tools/test_stats.py
 import unittest
 from torch._dynamo.backends.common import aot_autograd
 
