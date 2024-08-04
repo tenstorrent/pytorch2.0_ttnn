@@ -1,20 +1,14 @@
 __pycache__
-<<<<<<< HEAD
 dist
 torch_ttnn.egg-info
-=======
 venv
->>>>>>> upstream/main
 .vscode
 stat
 *.dot
 *.svg
 *.csv
-<<<<<<< HEAD
 *.pt
 dist
 torch_ttnn.egg-info
-=======
 metrics
 data
->>>>>>> upstream/main
