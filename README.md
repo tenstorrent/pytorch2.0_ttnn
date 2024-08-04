@@ -124,18 +124,6 @@ class FooModule(torch.nn.Module):
 module = FooModule()
 
 # Compile the module, with ttnn backend
-<<<<<<< HEAD
-device: ttnn.Device = ttnn.open_device(device_id=0)
-option = torch_ttnn.TenstorrentBackendOption(device=device)
-ttnn_module = torch.compile(module, backend='ttnn', options=option)
-# Running inference with ttnn device
-input_data = [torch.rand(shape, dtype=torch.bfloat16) for shape in [(4, 4)]]
-ttnn_module(input_data)
-```
-
-
-# Tracer
-=======
 device = ttnn.open_device(device_id=0)
 option = torch_ttnn.TorchTtnnOption(device=self.device)
 ttnn_module = torch.compile(module, backend=torch_ttnn.backend, options=option)
@@ -145,7 +133,6 @@ ttnn_module(input_data)
 ```
 
 ## Tracer
->>>>>>> upstream/main
 The tracer dump the information of fx graph such as node's op_name and shape.
 
 For example, you can run this script to parse the information
@@ -178,7 +165,6 @@ The `*_total_*_size_dist/` statistics the `op_type`'s input/output_size distribu
 
 [The `profile/` is the tools provided by pytorch](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html), you can open it by the url: chrome://tracing
 
-<<<<<<< HEAD
 
 # For developers
 
@@ -203,7 +189,7 @@ python -m build
 ```
 
 Then you can upload the `.whl` file to the PyPI (Python Package Index).
-=======
+
 ## Run transformer models
 To run transformer model with ttnn backend, run:
 ```
@@ -235,5 +221,3 @@ def test_model_name(record_property):
     # Can be set once all three objects for the tuple are defined
     record_property("torch_ttnn", (model, test_input(s), outputs))
 ```
-
->>>>>>> upstream/main
