@@ -34,11 +34,7 @@ def generate_node_count(titles, stat_dict, node_count_csv):
             return len(op_infos)
         op_types = [op_info["op_type"] for op_info in op_infos]
         return op_types.count(op_type)
-<<<<<<< HEAD
     titles = ["_TOTAL_"] + titles
-=======
-
->>>>>>> upstream/main
     rows = [["model_name"] + titles]
     for model_name in sorted(stat_dict.keys()):
         stat = stat_dict[model_name]
