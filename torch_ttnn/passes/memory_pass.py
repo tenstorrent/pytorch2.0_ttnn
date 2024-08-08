@@ -2,91 +2,12 @@ import torch
 import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
-from torch_ttnn.utils import TtnnDevice
+
+from torch_ttnn.mem_utils import *
 
 import json
 import os
 from pathlib import Path
-
-# Configs
-device_name = "wormhole"
-cores = 120
-SRAM_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
-L1_mem = 1048576 # 1 MB
-circular_buffer = 20 * 1048576 # 20 MB
-
-# This will manage all memory related operations & data
-class MemoryManager:
-    def __init__(self, device, cores, L1_mem, circular_buffer):
-        self.device = device
-        self.cores = cores
-        self.L1_mem = L1_mem
-        self.total_sram_limit = self.cores * self.L1_mem
-        self.circular_buffer = circular_buffer
-        self.free_sram = self.total_sram_limit - self.circular_buffer
-        self.used_sram = 0
-        self.tensors_on_device = []
-    
-    def set_mem_data(self, mem_data):
-        self.mem_data = mem_data
-
-    def set_ops_mem_usage(self, ops_mem_usage):
-        self.ops_mem_usage = ops_mem_usage
-    
-    def set_node_to_tid_map(self, node_to_tid_map):
-        self.node_to_tid_map = node_to_tid_map
-
-    def set_tid_to_addr_map(self, tid_to_addr_map):
-        self.tid_to_addr_map = tid_to_addr_map
-
-
-# This holds op related information one can query from
-class OpRegistry:
-    def get_size(self, shape, dtype):
-        size = 1
-        if dtype is torch.bfloat16:
-            size = 2
-        for val in list(shape):
-            size = val * size
-        return size
-
-    def get_shape(self, node):
-        if is_tt_data_move(node):
-            assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
-            return self.get_shape(node.all_input_nodes[0])
-        else:
-            # TODO: What if meta of nth output of the node is requested?
-            if isinstance(node.meta["val"], tuple):
-                return node.meta["val"][0].size()
-            else:
-                return node.meta["val"].size()
-
-    def get_dtype(self, node):
-        if is_tt_data_move(node):
-            assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
-            return self.get_dtype(node.all_input_nodes[0])
-        else:
-            # TODO: What if meta of nth output of the node is requested?
-            if isinstance(node.meta["val"], tuple):
-                return node.meta["val"][0].dtype
-            else:
-                return node.meta["val"].dtype
-   
-    def is_input_tensor_on_device(self, node):
-        if node.target == ttnn.from_torch:
-            if "device" in node.kwargs and isinstance(node.kwargs["device"], TtnnDevice):
-                return True
-        if node.target is ttnn.to_device or is_tt_compute(node):
-            return True
-        # This is a data move op which propagates shape of input tensor
-        if node.target == ttnn.Shape or node.target == ttnn.from_device:
-            return False
-        # Considers cases like ttnn op --> to_layout
-        if is_tt_data_move(node):
-            return self.is_input_tensor_on_device(node.all_input_nodes[0])
-        else:
-            return False
-
 
 
 def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
@@ -103,10 +24,6 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     print("Track memory footprint for each of the ops:")
     nodes = list(gm.graph.nodes)
 
-    # Each node's output tensor will be assigned a unique tensor ID
-    node_to_tid_map = {}
-    # Tensor ID to address map
-    tid_to_addr_map_in_L1 = {}
     # Tensor ID allocation tracker
     last_assigned_tid = 1
     # Memory address allocation tracker
@@ -118,8 +35,6 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     data_points = {}
     # On device tensors info
     on_device_meta = []
-    # Each ops memory usage on device
-    ops_mem_usage = {}
 
     # Tensor IDs allocation for ttnn ops input & output
     tt_compute_count = 0
@@ -128,18 +43,17 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             tt_compute_count += 1
             # For inputs
             for input_node in node.all_input_nodes:
-                if input_node not in node_to_tid_map:
-                    node_to_tid_map[input_node] = last_assigned_tid
+                if input_node not in mm.node_to_tid_map:
+                    mm.node_to_tid_map[input_node] = last_assigned_tid
                     last_assigned_tid += 1
             # For output
-            if node not in node_to_tid_map:
-                node_to_tid_map[node] = last_assigned_tid
+            if node not in mm.node_to_tid_map:
+                mm.node_to_tid_map[node] = last_assigned_tid
                 last_assigned_tid += 1
     
-    mm.set_node_to_tid_map(node_to_tid_map)
 
     # print(f"Tensor IDs for nodes on device:")
-    # for key, value in node_to_tid_map.items():
+    # for key, value in mm.node_to_tid_map.items():
     #     print(f"Node: {key} - {value}")
 
     # Tracks the total compute memory of the model
@@ -158,6 +72,8 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == ttnn.full:
                 on_device = True
             total_input_size = 0
+            # Input & Output tensor IDs for ttnn op
+            ttnn_ops_tids = []
             for input_node in node.all_input_nodes:
                 # If input tensor on device or coming as output from another ttnn on device op
                 if op_registry.is_input_tensor_on_device(input_node):
@@ -167,13 +83,16 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     input_size = op_registry.get_size(input_shape, input_dtype)
                     total_input_size += input_size
                     
-                    assert input_node in node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
+                    assert input_node in mm.node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
+                    
+                    tid = mm.node_to_tid_map[input_node]
+                    ttnn_ops_tids.append(tid)
+                    mm.tensor_size_of[tid] = input_size
 
-                    tid = node_to_tid_map[input_node]
                     start_addr = last_assigned_addr
                     last_assigned_addr += input_size
                     end_addr = last_assigned_addr
-                    tid_to_addr_map_in_L1[tid] = (start_addr, end_addr)
+                    mm.tid_to_addr_map_in_sram[tid] = (start_addr, end_addr)
 
                     if tid not in mm.tensors_on_device:
                         mm.used_sram += input_size
@@ -183,25 +102,30 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if (tid, input_size) not in on_device_meta:
                         on_device_meta.append((tid, input_size))
 
-
             if on_device:
                 output_shape = op_registry.get_shape(node)
                 output_dtype = op_registry.get_dtype(node)
                 output_size = op_registry.get_size(output_shape, output_dtype)
 
-                ops_mem_usage[node.name] = total_input_size + output_size
+                mm.ops_mem_usage[node.name] = total_input_size + output_size
 
-                assert node in node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
+                assert node in mm.node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
 
-                tid = node_to_tid_map[node]
+                tid = mm.node_to_tid_map[node]
+                ttnn_ops_tids.append(tid)
+                mm.ttnn_ops_tids[node.name] = ttnn_ops_tids
+                mm.tensor_size_of[tid] = output_size
+
                 start_addr = last_assigned_addr
                 last_assigned_addr += output_size
                 end_addr = last_assigned_addr
-                tid_to_addr_map_in_L1[tid] = (start_addr, end_addr)
+                mm.tid_to_addr_map_in_sram[tid] = (start_addr, end_addr)
 
                 mm.used_sram += output_size
                 mm.free_sram -= output_size
                 mm.tensors_on_device.append(tid)
+                mm.tids_in_sram_at[node.name] = mm.tensors_on_device.copy()
+                mm.sram_usage_at[node.name] = mm.used_sram
 
                 if (tid, output_size) not in on_device_meta:
                     on_device_meta.append((tid, output_size))
@@ -268,7 +192,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         )
                         mm.used_sram -= input_size
                         mm.free_sram += input_size
-                        tid = node_to_tid_map[input_node]
+                        tid = mm.node_to_tid_map[input_node]
                         mm.tensors_on_device.remove(tid)
                         on_device_meta.remove((tid, input_size))
 
@@ -276,12 +200,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         print(f"total compute memory parked in L1: {mm.used_sram} bytes")
                 
                 # data_points[(node.name, "from_device")] = on_device_meta.copy()
+        
     
-    mm.set_ops_mem_usage(ops_mem_usage)
-    mm.set_tid_to_addr_map(tid_to_addr_map_in_L1)
 
     print(f"Tensor IDs to address map in SRAM:")
-    print(f"{tid_to_addr_map_in_L1}")
+    print(f"{mm.tid_to_addr_map_in_sram}")
     print(f"----------------------------------------------------------------")
     print(f"These ttnn ops overflow the L1 buffer:")
     for op in overflow_ops:
@@ -294,7 +217,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     os.makedirs(p, exist_ok=True)
     # Convert dictionary keys to strings
     data_str_keys = {str(key): value for key, value in data_points.items()}
-    mm.set_mem_data(data_str_keys)
+    mm.data_points = data_str_keys
 
     with open("./data/memory/memory_footprint.txt", 'w') as f:
         json.dump(data_str_keys, f)
