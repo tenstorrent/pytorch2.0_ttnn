@@ -291,7 +291,11 @@ class AddDataMovePass(PassBase):
             for idx, arg in enumerate(args):
                 if isinstance(arg, _Kwarg):
                     try_add_data_move_in_kwargs(arg, node, device)
-                elif arg in data_move_in_hash and node.op != "output":
+                elif (
+                    arg in data_move_in_hash
+                    and not isinstance(node.target, torch._ops.OpOverload)
+                    and node.op != "output"
+                ):
                     node.update_arg(idx, data_move_in_hash[arg])
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
                     data_move_in_hash[arg] = to_device
