@@ -63,6 +63,7 @@ def is_tt_compute(node) -> bool:
             ttnn.sigmoid,
             ttnn.as_tensor,
             ttnn.repeat,
+            ttnn.min,
         ]
     )
 

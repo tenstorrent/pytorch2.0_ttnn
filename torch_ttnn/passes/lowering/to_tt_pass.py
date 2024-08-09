@@ -122,6 +122,8 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func = self.call_function_prop_meta(ttnn.cos, args, kwargs)
         elif target == torch.ops.aten.sigmoid.default:
             call_func = self.call_function_prop_meta(ttnn.sigmoid, args, kwargs)
+        elif target == torch.ops.aten.min.default:
+            call_func = self.call_function_prop_meta(ttnn.min, args, kwargs)
         else:
             call_func = self.call_function_prop_meta(target, args, kwargs)
 
