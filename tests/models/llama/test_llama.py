@@ -5,7 +5,6 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
-@pytest.mark.xfail
 def test_llama(record_property):
     record_property("model_name", "Llama")
 
@@ -14,12 +13,20 @@ def test_llama(record_property):
     tokenizer = AutoTokenizer.from_pretrained(
         model_name, padding_side="left", torch_dtype=torch.bfloat16
     )
+    tokenizer.pad_token = tokenizer.eos_token
     m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
     m.eval()
 
     # Set up sample input
     test_input = "This is a sample text from "
-    inputs = tokenizer(test_input, return_tensors="pt")
+    inputs = tokenizer.encode_plus(
+        test_input,
+        return_tensors="pt",
+        max_length=32,
+        padding="max_length",
+        add_special_tokens=True,
+        truncation=True,
+    )
 
     # Run inference with the original model
     with torch.no_grad():
