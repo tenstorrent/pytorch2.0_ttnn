@@ -82,8 +82,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func = self.call_function_prop_meta(ttnn.neg, args, kwargs)
         elif target == torch.ops.aten.tril.default:
             call_func = self.call_function_prop_meta(ttnn.tril, args, kwargs)
-        elif target == torch.ops.aten.eq.Tensor:
-            call_func = self.call_function_prop_meta(ttnn.eq, args, kwargs)
         elif target == torch.ops.aten.logical_not.default:
             call_func = self.call_function_prop_meta(ttnn.logical_not, args, kwargs)
         elif target == torch.ops.aten.zeros_like.default:
@@ -255,6 +253,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_node = g.call_function(
                         relational_scalar_ops[node.target],
                         args=(args[0], full_node),
+                        kwargs={},
+                    )
+                    new_nodes.append(new_node)
+            if node.target == torch.ops.aten.eq.Tensor:
+                # Combine this with relational_scalar_ops
+                if np.prod(args[1].meta["val"].size()) != 1:
+                    new_node = g.call_function(
+                        ttnn.eq,
+                        args=args,
                         kwargs={},
                     )
                     new_nodes.append(new_node)
