@@ -4,6 +4,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnDevice,
+    TtnnBfloat16,
 )
 
 
@@ -173,6 +174,8 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["layout"] = TtnnTileLayout()
 
+        if dst_node.target != ttnn.embedding:
+            kwargs["dtype"] = TtnnBfloat16()
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
