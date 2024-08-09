@@ -387,8 +387,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
-                new_node = g.call_function(ttnn.reshape, args=(args[0], output_size))
-                new_nodes.append(new_node)
+                if output_size[-1] == args[0].meta["val"].size()[-1]:
+                    new_node = g.call_function(
+                        ttnn.reshape, args=(args[0], output_size)
+                    )
+                    new_nodes.append(new_node)
             if node.target == torch.ops.aten.transpose.int:
                 dim0 = args[1]
                 dim1 = args[2]
