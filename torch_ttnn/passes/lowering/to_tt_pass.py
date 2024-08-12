@@ -377,13 +377,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
                 input_tensor_shape = args[0].meta["val"].size()
-                output_shape = torch.Size(args[1])
+                # Repeat fails if last dimension of input is 1
+                if input_tensor_shape[-1] != 1:
+                    output_shape = torch.Size(args[1])
 
-                multiplier = np.array(output_shape) // np.array(input_tensor_shape)
+                    multiplier = np.array(output_shape) // np.array(input_tensor_shape)
+                    # -1 // positive non-zero number will always be -1
+                    # Convert -1 to 1
+                    multiplier = np.array([1 if i == -1 else i for i in multiplier])
 
-                shape_node = g.call_function(ttnn.Shape, (multiplier.tolist(),), {})
-                new_node = g.call_function(ttnn.repeat, (args[0], shape_node), {})
-                new_nodes.append(new_node)
+                    shape_node = g.call_function(ttnn.Shape, (multiplier.tolist(),), {})
+                    new_node = g.call_function(ttnn.repeat, (args[0], shape_node), {})
+                    new_nodes.append(new_node)
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
