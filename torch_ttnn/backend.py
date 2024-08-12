@@ -1,23 +1,17 @@
 import torch.linalg
 import torch
-import ttnn
 import torch._dynamo
-<<<<<<< HEAD
 from typing import List, Optional, Union, Mapping, Any
-=======
 from functorch.compile import make_boxed_func
 import ttnn
 import pickle
 from pathlib import Path
 import os
 import torch_ttnn.metrics as metrics
->>>>>>> upstream/main
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
 
-<<<<<<< HEAD
-=======
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
@@ -59,15 +53,16 @@ def register_ttnn_objects(option: TorchTtnnOption):
         "",
         ttnn.L1_MEMORY_CONFIG,
     )
->>>>>>> upstream/main
+
 
 # The option for torch_ttnn.backend
 class TenstorrentBackendOption:
-    def __init__(self, device: ttnn.Device, tracer_option = None):
+    def __init__(self, device: ttnn.Device, tracer_option=None):
         self.device = device
         self.gen_graphviz = False
         self._out_fx_graphs = list()
         self.tracer_option = tracer_option
+
 
 # The backend for torch.compile that converts a graph to use ttnn.
 # The "option" parameter is a TorchTtnnOption object
@@ -83,23 +78,8 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
-<<<<<<< HEAD
     option: TenstorrentBackendOption = options
-    torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
-    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
-    )
 
-    # Rewrite with ttnn ops, will insert redundant data movement
-    from torch.fx.passes.infra.pass_manager import PassManager
-    from torch.fx.passes.dialect.common.cse_pass import CSEPass
-    from .passes.to_tt_pass import ToTtPass
-    from .passes.add_coreops_pass import AddDataMovePass
-    from .passes.graphviz_pass import GraphvizPass
-    from .passes.eliminate_coreops_pass import EliminateCoreopsPass
-    from .passes.permute_reshape_tuple import PermuteReshapeTuple
-=======
     # Clone ops used for input aliasing workaround are no longer needed at this point
     from .handle_input_aliasing import remove_clones_for_input_aliasing
 
@@ -119,24 +99,18 @@ def aten_backend(
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
+    from torch.fx.passes.dialect.common.cse_pass import CSEPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
+    from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
-    from torch_ttnn.passes.lowering.eliminate_data_move_pass import (
-        EliminateDataMovePass,
-    )
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
->>>>>>> upstream/main
 
     passes = [
         ToTtPass(),
         AddDataMovePass(),
-<<<<<<< HEAD
         EliminateCoreopsPass(),
         CSEPass(),
-=======
-        EliminateDataMovePass(),
->>>>>>> upstream/main
         PermuteReshapeTuple(),
     ]
 
@@ -146,7 +120,9 @@ def aten_backend(
         for idx in range(len(passes)):
             passes_with_graphviz.append(passes[idx])
             passes_with_graphviz.append(
-                GraphvizPass(f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}")
+                GraphvizPass(
+                    f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}"
+                )
             )
         passes = passes_with_graphviz
 
@@ -169,6 +145,7 @@ def aten_backend(
 from torch._dynamo.backends.common import aot_autograd
 from functools import partial
 
+
 # The backend for torch.compile that converts a graph to use ttnn.
 # The "option" parameter is a TorchTtnnOption object
 # See document for detail.
@@ -182,14 +159,23 @@ def ttnn_backend(
     tracer_option = options.tracer_option
     if tracer_option is not None:
         from ..tracer import Tracer
+
         out_prefix = f"fw_{tracer_option['model_name']}"
         out_folder = tracer_option["out_folder"]
-        trace_orig = tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
-        trace_modi = tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
-        fw_compiler = Tracer(partial(aten_backend, options=options), out_prefix, out_folder, trace_orig, trace_modi)
-        return aot_autograd(fw_compiler=fw_compiler)(
-            gm, example_inputs
+        trace_orig = (
+            tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
         )
+        trace_modi = (
+            tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
+        )
+        fw_compiler = Tracer(
+            partial(aten_backend, options=options),
+            out_prefix,
+            out_folder,
+            trace_orig,
+            trace_modi,
+        )
+        return aot_autograd(fw_compiler=fw_compiler)(gm, example_inputs)
     else:
         gm = insert_clones_for_input_aliasing(gm)
         return aot_autograd(fw_compiler=partial(aten_backend, options=options))(

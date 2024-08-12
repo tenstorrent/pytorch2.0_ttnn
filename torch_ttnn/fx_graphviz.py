@@ -5,11 +5,6 @@ import os
 import math
 from collections import defaultdict
 
-<<<<<<< HEAD
-=======
-import ttnn
-
->>>>>>> upstream/main
 
 def _tensor_weight(t):
     s = t.shape

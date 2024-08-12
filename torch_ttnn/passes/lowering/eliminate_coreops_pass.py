@@ -1,9 +1,5 @@
 import torch
 import ttnn
-<<<<<<<< HEAD:torch_ttnn/passes/eliminate_coreops_pass.py
-========
-
->>>>>>>> upstream/main:torch_ttnn/passes/lowering/eliminate_data_move_pass.py
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
 
