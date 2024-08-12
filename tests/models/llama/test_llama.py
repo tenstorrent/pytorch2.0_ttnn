@@ -15,6 +15,8 @@ def test_llama(record_property):
     )
     tokenizer.pad_token = tokenizer.eos_token
     m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+    for param in m.parameters():
+        param.requires_grad = False
     m.eval()
 
     # Set up sample input
