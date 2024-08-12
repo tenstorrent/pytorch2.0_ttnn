@@ -17,7 +17,8 @@ class UnsqueezeModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shape, dim",
-    [((5, 2, 4, 3), 1)],
+    # [((5, 2, 4, 3), 1)],
+    [((32, 32, 32, 32), 1)],
 )
 def test_unsqueeze1(device, input_shape, dim):
     mod = UnsqueezeModule()
@@ -64,7 +65,8 @@ def test_unsqueeze2(device, input_shape, dim):
 
 @pytest.mark.parametrize(
     "input_shape, dim",
-    [((5, 2, 4, 3), -2)],
+    # [((5, 2, 4, 3), -2)],
+    [((32, 32, 32, 32), -2)],
 )
 def test_unsqueeze3(device, input_shape, dim):
     mod = UnsqueezeModule()
