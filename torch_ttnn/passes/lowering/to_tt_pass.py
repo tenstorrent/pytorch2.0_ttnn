@@ -166,6 +166,8 @@ class GraphWrapper:
     def call_function(self, target, args=(), kwargs={}):
         new_node = self.g.call_function(target, args, kwargs)
         new_node.meta = self.node.meta
+        if target == ttnn.layer_norm:
+            new_node.meta["val"] = new_node.meta["val"][0]
         return new_node
 
     def inserting_before(self, node):

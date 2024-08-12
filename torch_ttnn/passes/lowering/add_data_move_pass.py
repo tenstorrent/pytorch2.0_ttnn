@@ -94,6 +94,13 @@ def is_reshape_rank_4(node):
         return False
 
 
+def call_to_torch_with_meta(g, src_node):
+    call_func = g.call_function(ttnn.to_torch, (src_node,))
+    if src_node.meta is not None:
+        call_func.meta = src_node.meta
+    return call_func
+
+
 def should_add_data_move_in(src_node, dst_node) -> bool:
     if isinstance(src_node, (int, float, list, tuple)) or not isinstance(
         src_node, torch.fx.node.Node
@@ -242,8 +249,7 @@ def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
         if should_add_data_move_out(src_node, dst_node):
             g = dst_node.graph
             with g.inserting_before(dst_node):
-                new_node = g.call_function(ttnn.to_torch, (src_node,))
-                new_nodes.append(new_node)
+                new_nodes.append(call_to_torch_with_meta(g, src_node))
         else:
             new_nodes.append(src_node)
 
@@ -262,7 +268,7 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     new_nodes = list()
     with g.inserting_before(dst_node):
         new_nodes.append(
-            g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,))
+            call_to_torch_with_meta(g, new_nodes[-1] if new_nodes else src_node)
         )
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
@@ -279,7 +285,7 @@ def try_add_data_move_out_for_layer_norm(
     new_nodes = list()
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
-            new_nodes.append(g.call_function(ttnn.to_torch, (src_node,)))
+            new_nodes.append(call_to_torch_with_meta(g, src_node))
 
     # Workaround to output the same layer_norm output
     # Before: layer_norm = aten.layer_norm
@@ -362,3 +368,21 @@ class AddDataMovePass(PassBase):
 
         modified = i > 0
         return PassResult(gm, modified)
+
+    def ensures(self, gm: torch.fx.GraphModule) -> None:
+        # Because of the mixing of ttnn and aten ops, some types need to be fixed
+        for node in gm.graph.nodes:
+            if node.target == ttnn.to_torch:
+                # Reconvert int64 types back to torch
+                if node.meta["val"].dtype == torch.int64:
+                    g = node.graph
+                    with g.inserting_after(node):
+                        # TODO: Is _to_copy the right op?
+                        new_node = g.call_function(
+                            torch.ops.aten._to_copy.default,
+                            (node,),
+                            {"dtype": torch.int64},
+                        )
+                        node.replace_all_uses_with(
+                            new_node, delete_user_cb=lambda node: node != new_node
+                        )
