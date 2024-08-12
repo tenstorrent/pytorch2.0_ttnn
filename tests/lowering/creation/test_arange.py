@@ -38,7 +38,7 @@ class ArangeStartStepModule(torch.nn.Module):
 )
 def test_arange(device, input_shapes):
     m = ArangeModule()
-    result_before = m.forward(*input_shapes).to(torch.bfloat16)
+    result_before = m.forward(*input_shapes)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
@@ -59,7 +59,7 @@ def test_arange(device, input_shapes):
 )
 def test_arange_start(device, input_shapes):
     m = ArangeStartModule()
-    result_before = m.forward(*input_shapes).to(torch.bfloat16)
+    result_before = m.forward(*input_shapes)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
@@ -80,7 +80,7 @@ def test_arange_start(device, input_shapes):
 )
 def test_arange_start_step(device, input_shapes):
     m = ArangeStartStepModule()
-    result_before = m.forward(*input_shapes).to(torch.bfloat16)
+    result_before = m.forward(*input_shapes)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
