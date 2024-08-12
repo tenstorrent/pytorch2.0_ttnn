@@ -142,27 +142,13 @@ def aten_backend(
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
-<<<<<<< HEAD
         passes_with_graphviz = [GraphvizPass("00.origin")]
         for idx in range(len(passes)):
             passes_with_graphviz.append(passes[idx])
             passes_with_graphviz.append(
-                GraphvizPass(f"{idx + 1:02d}.{passes[idx].__class__.__name__}")
+                GraphvizPass(f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}")
             )
         passes = passes_with_graphviz
-=======
-        graphviz_filenames = [
-            "00.origin",
-            "01.to-tt",
-            "02.add-data-move",
-            "03.elimate-data-move",
-            "04.permute-reshape-tuple",
-        ]
-        assert len(graphviz_filenames) == len(passes) + 1
-        for idx in range(len(graphviz_filenames)):
-            p = Path(f"metrics/{option.metrics_path}/{graphviz_filenames[idx]}")
-            passes.insert(idx * 2, GraphvizPass(p))
->>>>>>> upstream/main
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
@@ -183,7 +169,6 @@ def aten_backend(
 from torch._dynamo.backends.common import aot_autograd
 from functools import partial
 
-<<<<<<< HEAD
 # The backend for torch.compile that converts a graph to use ttnn.
 # The "option" parameter is a TorchTtnnOption object
 # See document for detail.
@@ -206,25 +191,7 @@ def ttnn_backend(
             gm, example_inputs
         )
     else:
+        gm = insert_clones_for_input_aliasing(gm)
         return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
             gm, example_inputs
         )
-=======
-
-from .handle_input_aliasing import insert_clones_for_input_aliasing
-
-
-# The wrapper of aot_autograd that takes a TorchTtnnOption as options.
-def backend(
-    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], **kwargs
-) -> torch.fx.GraphModule:
-    if options := kwargs.get("options"):
-        options = {"torch_ttnn_option": options}
-    else:
-        raise RuntimeError("TorchTtnnOption missing")
-
-    gm = insert_clones_for_input_aliasing(gm)
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
-        gm, example_inputs
-    )
->>>>>>> upstream/main
