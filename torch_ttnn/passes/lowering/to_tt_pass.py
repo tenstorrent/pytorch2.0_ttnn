@@ -6,6 +6,7 @@ from torch_ttnn.utils import (
     TtnnDevice,
     TtnnTileLayout,
     TtnnDramMemoryConfig,
+    TtnnRowMajorLayout,
 )
 import numpy as np
 from typing import Tuple
@@ -400,14 +401,36 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.transpose.int:
                 dim0 = args[1]
                 dim1 = args[2]
-                rank = len(node.meta["val"].size())
+                output_size = node.meta["val"].size()
+                rank = len(output_size)
                 permutation = list(range(rank))
                 permutation[dim0], permutation[dim1] = (
                     permutation[dim1],
                     permutation[dim0],
                 )
-                new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
-                new_nodes.append(new_node)
+                new_nodes = list()
+                new_nodes.append(
+                    g.call_function(ttnn.permute, args=(args[0], permutation))
+                )
+                new_nodes[-1].meta["val"] = node.meta["val"]
+                # strange workaround when dim 0 is 1 for rank 3
+                if rank == 3 and output_size[0] == 1:
+                    if output_size[1] % 32 or output_size[2] % 32:
+                        new_nodes.append(
+                            g.call_function(
+                                ttnn.to_layout,
+                                (new_nodes[-1],),
+                                {"layout": TtnnRowMajorLayout()},
+                            )
+                        )
+                    new_nodes.append(
+                        g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size))
+                    )
+
+                node.replace_all_uses_with(
+                    new_nodes[-1],
+                    delete_user_cb=lambda node: node != new_nodes[-1],
+                )
             if node.target == torch.ops.aten.t.default:
                 permutation = list()
                 rank = len(node.meta["val"].size())
