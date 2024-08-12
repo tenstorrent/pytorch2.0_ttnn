@@ -316,27 +316,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 node_metadata = node.meta["val"]
-                # NOTE(kevinwuTT): Only bfloat16 seems to work for now
-                # TODO(kevinwuTT): Use ttnn.full instead of aten
-                new_kwargs = {
-                    "fill_value": args[1],
-                    "device": TtnnDevice(),
-                }
-                full = g.call_function(
-                    ttnn.full, args=(tuple(node_metadata.size()),), kwargs=new_kwargs
-                )
-                to_layout = g.call_function(
-                    ttnn.to_layout, (full,), {"layout": TtnnTileLayout()}
-                )
-                new_node = g.call_function(
-                    ttnn.sub, args=(to_layout, args[0]), kwargs={}
-                )
-                new_nodes.append(new_node)
-            if node.target == torch.ops.aten.div.Tensor:
-                # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
-                # TODO(kevinwuTT): Use a ttnn equivalent
-                node_metadata = node.meta["val"]
-                if isinstance(args[1], float):
+                if has_valid_page_size(node_metadata.size()):
+                    # NOTE(kevinwuTT): Only bfloat16 seems to work for now
+                    # TODO(kevinwuTT): Use ttnn.full instead of aten
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
@@ -349,11 +331,33 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     to_layout = g.call_function(
                         ttnn.to_layout, (full,), {"layout": TtnnTileLayout()}
                     )
-                    recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
-                else:
-                    recip = g.call_function(ttnn.reciprocal, (args[1],), {})
-                new_node = g.call_function(ttnn.mul, (args[0], recip), {})
-                new_nodes.append(new_node)
+                    new_node = g.call_function(
+                        ttnn.sub, args=(to_layout, args[0]), kwargs={}
+                    )
+                    new_nodes.append(new_node)
+            if node.target == torch.ops.aten.div.Tensor:
+                # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
+                # TODO(kevinwuTT): Use a ttnn equivalent
+                node_metadata = node.meta["val"]
+                if has_valid_page_size(node_metadata.size()):
+                    if isinstance(args[1], float):
+                        new_kwargs = {
+                            "fill_value": args[1],
+                            "device": TtnnDevice(),
+                        }
+                        full = g.call_function(
+                            ttnn.full,
+                            args=(tuple(node_metadata.size()),),
+                            kwargs=new_kwargs,
+                        )
+                        to_layout = g.call_function(
+                            ttnn.to_layout, (full,), {"layout": TtnnTileLayout()}
+                        )
+                        recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
+                    else:
+                        recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                    new_node = g.call_function(ttnn.mul, (args[0], recip), {})
+                    new_nodes.append(new_node)
             if node.target == torch.ops.aten._to_copy.default:
                 kwargs = node.kwargs
                 if kwargs["dtype"] == torch.float32:
