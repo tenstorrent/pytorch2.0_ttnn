@@ -222,6 +222,28 @@ def try_add_layout_change_after_repeat(
     return to_layout
 
 
+def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
+    # Handle list type arguments from ops like cat
+    if not isinstance(src_nodes, list):
+        return None
+
+    new_nodes = list()
+    for src_node in src_nodes:
+        if should_add_data_move_out(src_node, dst_node):
+            g = dst_node.graph
+            with g.inserting_before(dst_node):
+                new_node = g.call_function(ttnn.to_torch, (src_node,))
+                new_nodes.append(new_node)
+        else:
+            new_nodes.append(src_node)
+
+    if new_nodes:
+        dst_node.update_arg(dst_idx, new_nodes)
+        return new_nodes
+    else:
+        return None
+
+
 def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     if not should_add_data_move_out(src_node, dst_node):
         return None
@@ -322,6 +344,9 @@ class AddDataMovePass(PassBase):
                     data_move_out_hash[arg] = to_torch
                     i += 1
                 elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
+                    data_move_out_hash[arg] = to_torch
+                    i += 1
+                elif to_torch := try_add_data_move_out_for_list_args(arg, idx, node):
                     data_move_out_hash[arg] = to_torch
                     i += 1
 
