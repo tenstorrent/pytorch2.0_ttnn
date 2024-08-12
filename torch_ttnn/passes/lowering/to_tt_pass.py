@@ -393,9 +393,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     # Convert -1 to 1
                     multiplier = np.array([1 if i == -1 else i for i in multiplier])
 
-                    shape_node = g.call_function(ttnn.Shape, (multiplier.tolist(),), {})
-                    new_node = g.call_function(ttnn.repeat, (args[0], shape_node), {})
-                    new_nodes.append(new_node)
+                    if np.prod(multiplier) != 1:
+                        shape_node = g.call_function(
+                            ttnn.Shape, (multiplier.tolist(),), {}
+                        )
+                        new_node = g.call_function(
+                            ttnn.repeat, (args[0], shape_node), {}
+                        )
+                        new_nodes.append(new_node)
+                    else:
+                        node.replace_all_uses_with(
+                            args[0],
+                            delete_user_cb=lambda node: node != args[0],
+                        )
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
