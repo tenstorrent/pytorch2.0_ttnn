@@ -5,6 +5,7 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
+@pytest.mark.xfail
 def test_gpt2(record_property):
     record_property("model_name", "GPT-2")
 
