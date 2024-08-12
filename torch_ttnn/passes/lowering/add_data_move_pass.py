@@ -182,7 +182,15 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     return new_nodes[-1]
 
 
-def try_add_layout_change_before_repeat(
+layout_change_ops = set(
+    [
+        ttnn.repeat,
+        ttnn.reshape,
+    ]
+)
+
+
+def try_add_layout_change_before_node(
     src_node, dst_idx, dst_node
 ) -> torch.fx.node.Node:
     # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
@@ -192,7 +200,7 @@ def try_add_layout_change_before_repeat(
         return None
     if not is_function_call(dst_node):
         return None
-    if dst_node.target != ttnn.repeat or dst_idx != 0 or not is_tt(src_node):
+    if dst_node.target not in layout_change_ops or dst_idx != 0 or not is_tt(src_node):
         return None
 
     g = dst_node.graph
@@ -204,13 +212,15 @@ def try_add_layout_change_before_repeat(
     return to_layout
 
 
-def try_add_layout_change_after_repeat(
-    src_node, dst_idx, dst_node
-) -> torch.fx.node.Node:
+def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
     if not is_function_call(src_node):
         return None
-    if src_node.target != ttnn.repeat or not is_tt_compute(dst_node):
+    if (
+        src_node.target not in layout_change_ops
+        or not is_tt_compute(dst_node)
+        or dst_node.target == ttnn.embedding
+    ):
         return None
 
     g = dst_node.graph
@@ -325,10 +335,10 @@ class AddDataMovePass(PassBase):
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
                     data_move_in_hash[arg] = to_device
                     i += 1
-                elif to_layout := try_add_layout_change_before_repeat(arg, idx, node):
+                elif to_layout := try_add_layout_change_before_node(arg, idx, node):
                     data_move_in_hash[arg] = to_layout
                     i += 1
-                elif to_layout := try_add_layout_change_after_repeat(arg, idx, node):
+                elif to_layout := try_add_layout_change_after_node(arg, idx, node):
                     data_move_in_hash[arg] = to_layout
                     i += 1
 
