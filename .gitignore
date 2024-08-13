@@ -8,7 +8,5 @@ stat
 *.svg
 *.csv
 *.pt
-dist
-torch_ttnn.egg-info
 metrics
 data
