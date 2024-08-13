@@ -14,7 +14,7 @@ class TestModules(unittest.TestCase):
         ttnn.close_device(self.device)
 
     def test_reshape(self):
-        class SoftmaxModule(torch.nn.Module):
+        class ReshapeModule(torch.nn.Module):
             def __init__(self):
                 super().__init__()
 
@@ -24,7 +24,7 @@ class TestModules(unittest.TestCase):
             def input_shapes(self):
                 return [(32, 64)]
 
-        m = SoftmaxModule()
+        m = ReshapeModule()
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         new_shape = (64, 32)
