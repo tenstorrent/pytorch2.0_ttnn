@@ -10,15 +10,15 @@ The table below summarizes the results of running various ML models through our 
 
 | Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
 |:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    36.62 | 477.12                   | 98.33          |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   117.66 | 2571.71                  | 68.54          |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  2025.6  | 10350.92                 | 99.99          |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 627 (12)                        |                 1375 |                 28876.2  | 65763.95                 | 45.77          |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1516.37 | 45219.57                 | 71.71          |
-| [Llama](tests/models/llama)         | ✅            | 5 (4)                           | 3 (2)                           |                    3 |                168160    | 186989.25                | 34.41          |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 564 (7)                         |                 1488 |                 64262    | 57553.72                 | 98.64          |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 39306.6  | N/A                      | N/A            |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 330 (15)                        |                  530 |                  5889.45 | N/A                      | N/A            |
+| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    38.64 | 501.5                    | 99.85          |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   136.38 | 2709.01                  | 66.84          |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  2131.05 | 9985.44                  | 99.99          |
+| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 28892.3  | 68470.67                 | 45.77          |
+| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1410.28 | 45328.58                 | 71.71          |
+| [Llama](tests/models/llama)         | ✅            | 5 (4)                           | 3 (2)                           |                    3 |                206771    | 187910.29                | 45.46          |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 67347.3  | 60024.8                  | 98.64          |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 51366.6  | N/A                      | N/A            |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 316 (12)                        |                  569 |                  5711.32 | N/A                      | N/A            |
 
 ### Explanation of Metrics
 
@@ -94,7 +94,7 @@ The table below summarizes the results of running various ML models through our 
 | aten.native_layer_norm.default | ✅       |      50 |
 | aten.permute.default           | ✅       |      48 |
 | aten.pow.Tensor_Tensor         | ✘        |       1 |
-| aten.rsub.Scalar               | ✘        |       1 |
+| aten.rsub.Scalar               | ✅       |       1 |
 | aten.select.int                | ✘        |      72 |
 | aten.slice.Tensor              | ✘        |      78 |
 | aten.sub.Tensor                | ✅       |       1 |
@@ -150,14 +150,14 @@ The table below summarizes the results of running various ML models through our 
 | aten.addmm.default             | ✅       |     145 |
 | aten.bmm.default               | ✅       |      48 |
 | aten.clone.default             | ✅       |      99 |
-| aten.div.Tensor                | ✘        |      24 |
+| aten.div.Tensor                | ✅       |      24 |
 | aten.embedding.default         | ✅       |       3 |
 | aten.expand.default            | ✅       |      96 |
 | aten.gelu.default              | ✅       |      24 |
 | aten.mul.Tensor                | ✅       |       1 |
 | aten.native_layer_norm.default | ✅       |      49 |
 | aten.permute.default           | ✅       |      96 |
-| aten.rsub.Scalar               | ✘        |       1 |
+| aten.rsub.Scalar               | ✅       |       1 |
 | aten.slice.Tensor              | ✘        |       4 |
 | aten.split.Tensor              | ✘        |       1 |
 | aten.squeeze.dim               | ✘        |       2 |
@@ -183,9 +183,9 @@ The table below summarizes the results of running various ML models through our 
 | aten.argmax.default            | ✘        |       1 |
 | aten.bmm.default               | ✅       |      24 |
 | aten.clone.default             | ✅       |      49 |
-| aten.div.Tensor                | ✘        |      12 |
+| aten.div.Tensor                | ✅       |      12 |
 | aten.embedding.default         | ✅       |       2 |
-| aten.eq.Scalar                 | ✘        |       1 |
+| aten.eq.Scalar                 | ✅       |       1 |
 | aten.expand.default            | ✅       |      48 |
 | aten.full.default              | ✘        |      24 |
 | aten.index.Tensor              | ✘        |       1 |
@@ -195,7 +195,7 @@ The table below summarizes the results of running various ML models through our 
 | aten.permute.default           | ✅       |      48 |
 | aten.pow.Tensor_Scalar         | ✅       |      12 |
 | aten.remainder.Scalar          | ✘        |       1 |
-| aten.rsub.Scalar               | ✘        |       1 |
+| aten.rsub.Scalar               | ✅       |       1 |
 | aten.slice.Tensor              | ✘        |      50 |
 | aten.split.Tensor              | ✘        |      12 |
 | aten.sub.Tensor                | ✘        |       1 |
