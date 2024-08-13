@@ -151,10 +151,11 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
 def has_valid_page_size(shape):
-    for dim in shape:
-        if dim < 32:
-            return False
-    return True
+    assert len(shape) > 0, f"has_valid_page_size requires rank of {shape} > 0"
+    return len(shape) >= 2 and (
+        (shape[-1] > 1 and shape[-1] < 31)
+        or (shape[-1] >= 32 and (shape[-1] % 32 == 0))
+    )
 
 
 # override some functions from torch.fx.graph.Graph
@@ -316,7 +317,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 node_metadata = node.meta["val"]
-                if has_valid_page_size(node_metadata.size()):
+                shape = node_metadata.size()
+                # If last dim == 1, then the follow error will appear:
+                # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
+                if shape[-1] != 1 and has_valid_page_size(shape):
                     # NOTE(kevinwuTT): Only bfloat16 seems to work for now
                     # TODO(kevinwuTT): Use ttnn.full instead of aten
                     new_kwargs = {
@@ -325,7 +329,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     }
                     full = g.call_function(
                         ttnn.full,
-                        args=(tuple(node_metadata.size()),),
+                        args=(tuple(shape),),
                         kwargs=new_kwargs,
                     )
                     to_layout = g.call_function(
@@ -339,7 +343,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
                 # TODO(kevinwuTT): Use a ttnn equivalent
                 node_metadata = node.meta["val"]
-                if has_valid_page_size(node_metadata.size()):
+                shape = node_metadata.size()
+                # If last dim == 1, then the follow error will appear:
+                # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
+                if shape[-1] != 1 and has_valid_page_size(shape):
                     if isinstance(args[1], float):
                         new_kwargs = {
                             "fill_value": args[1],
@@ -347,7 +354,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         }
                         full = g.call_function(
                             ttnn.full,
-                            args=(tuple(node_metadata.size()),),
+                            args=(tuple(shape),),
                             kwargs=new_kwargs,
                         )
                         to_layout = g.call_function(

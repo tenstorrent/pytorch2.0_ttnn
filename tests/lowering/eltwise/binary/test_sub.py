@@ -80,8 +80,7 @@ def test_rsub(device, input_shapes):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    # [[(4, 4)]],
-    [[(32, 32)]],
+    [[(4, 4)], [(32, 32)]],
 )
 def test_rsub_scalar(device, input_shapes):
     m = RSubScalarModule()
