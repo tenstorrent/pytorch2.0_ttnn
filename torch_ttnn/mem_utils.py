@@ -101,7 +101,8 @@ def which_tensors_to_evict(mm: MemoryManager) -> tuple:
 
             # Checks if the ttnn op itself can fit in SRAM or not.
             if mm.ops_mem_usage[node_name] >= mm.usable_sram_limit:
-                assert False, f"Splitting required, {node_name} op doesn't fit in SRAM!"
+                print(f"Splitting required, {node_name} op doesn't fit in SRAM!")
+                return (node_name, -1)
 
             # Removes tids of current ttnn op from list of potential tensors that can be evicted
             current_op_tids = mm.ttnn_ops_tids[node_name]

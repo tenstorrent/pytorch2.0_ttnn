@@ -152,7 +152,9 @@ def aten_backend(
         while mem_utils.check_sram_overflow(mm) is True:
         # if check_sram_overflow(mm) is True:
             guilty_op, tensors_to_evict = mem_utils.which_tensors_to_evict(mm)
-
+            # This indicates splitting is required
+            if tensors_to_evict == -1:
+                break
             # Run a eviction pass to remove tensors from device
             # This pass only evicts tensors for a single ttnn op which overflows the SRAM
             # Multiple overflows require multiple run of this pass
