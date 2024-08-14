@@ -3,7 +3,7 @@ import torch_ttnn
 import pytest
 import ttnn
 
-from tests.utils import check_with_pcc
+from tests.utils import assert_with_pcc
 
 
 class TransposeModule(torch.nn.Module):
@@ -38,4 +38,4 @@ def test_transpose(device, input_shape, dim0, dim1):
     nodes = list(option._out_fx_graphs[0].nodes)
     [node.target for node in nodes].count(ttnn.permute) == 1
     # Check inference result
-    check_with_pcc(result_before, result_after)
+    assert_with_pcc(result_before, result_after)
