@@ -17,20 +17,11 @@ def test_gpt2(record_property):
     m = AutoModelForSequenceClassification.from_pretrained(
         model_name, torch_dtype=torch.bfloat16
     )
-    for param in m.parameters():
-        param.requires_grad = False
     m.eval()
 
     # Set up sample input
     test_input = "This is a sample text from "
-    inputs = tokenizer.encode_plus(
-        test_input,
-        return_tensors="pt",
-        max_length=32,
-        padding="max_length",
-        add_special_tokens=True,
-        truncation=True,
-    )
+    inputs = tokenizer(test_input, return_tensors="pt")
 
     # Run inference with the original model
     with torch.no_grad():
