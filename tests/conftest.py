@@ -111,6 +111,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
         raise
 
     finally:
+        # For tests with no calls to record_property
+        if record == {}:
+            return
         compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
         with open(compiled_metrics_path, "wb") as f:
             pickle.dump(comp_runtime_metrics, f)
