@@ -56,3 +56,4 @@ class ModelRun(BaseModel):
     memory_footprint: str = Field(
         "N/A", description="Link to the visual chart of memory footprint of the model."
     )
+    fit_in_memory: str = Field(None, description="Whether model fits in SRAM.")
