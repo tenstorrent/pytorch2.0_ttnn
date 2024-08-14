@@ -92,7 +92,7 @@ def check_sram_overflow(mm: MemoryManager) -> bool:
     return mm.has_sram_overflow()
 
 
-def which_tensors_to_evict(mm: MemoryManager) -> list:
+def which_tensors_to_evict(mm: MemoryManager) -> tuple:
     sram_usage = 0
     tensors_to_evict = []
     for node_name, sram_used in mm.sram_usage_at.items():
@@ -122,4 +122,5 @@ def which_tensors_to_evict(mm: MemoryManager) -> list:
             tensors_to_evict.append(tid)
             if sram_usage < mm.usable_sram_limit:
                 break
-    return tensors_to_evict
+            
+    return (node_name, tensors_to_evict)

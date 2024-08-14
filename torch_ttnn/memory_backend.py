@@ -142,23 +142,31 @@ def aten_backend(
             mm = p.memory_manager
 
     # See if SRAM overflows and eviction is required
-    if check_sram_overflow(mm) is True:
-        tensors_to_evict = which_tensors_to_evict(mm)
+    while check_sram_overflow(mm) is True:
+    # if check_sram_overflow(mm) is True:
+        guilty_op, tensors_to_evict = which_tensors_to_evict(mm)
 
-    # Run a eviction pass to remove tensors from device
-    # This pass only evicts tensors for a single ttnn op which overflows the SRAM
-    # Multiple overflows require multiple run of this pass
-    from torch_ttnn.passes.eviction_pass import EvictionPass
-    passes = [
-        EvictionPass(mm, tensors_to_evict),
-        GraphvizPass("eviction-pass")
-    ]
-    pm = PassManager(passes=passes)
-    gm, modified = pm(gm)
+        # Run a eviction pass to remove tensors from device
+        # This pass only evicts tensors for a single ttnn op which overflows the SRAM
+        # Multiple overflows require multiple run of this pass
+        from torch_ttnn.passes.eviction_pass import EvictionPass
+        passes = [
+            EvictionPass(mm, guilty_op, tensors_to_evict),
+            GraphvizPass("eviction-pass"),
+            MemoryPass(),
+        ]
+        pm = PassManager(passes=passes)
+        gm, modified = pm(gm)
 
-    gm.graph.lint()
-    gm.recompile()
-        
+        gm.graph.lint()
+        gm.recompile()
+
+        # Get the memory manager object for memory analysis
+        for p in passes:
+            if isinstance(p, MemoryPass):
+                option._memory_manager = p.memory_manager
+                mm = p.memory_manager
+
     if option.metrics_path:
         # Save the number of aten ops after compilation
         option._metrics["torch_ops_remain"] = count_aten_ops()
