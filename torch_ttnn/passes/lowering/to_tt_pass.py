@@ -126,10 +126,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         else:
             call_func = self.call_function_prop_meta(target, args, kwargs)
 
-        # # Copy metadata of old node to replacement
-        # meta = fx_traceback.get_current_meta()
-        # if meta is not None:
-        #     call_func.node.meta = meta
         return call_func
 
 
