@@ -30,8 +30,8 @@ if __name__ == "__main__":
     result_before = m.forward(input, dim0, dim1)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
-    # The compilation is lazy, so we need to run forward once to trigger the compilation
-    m = torch.compile(m, backend=torch_ttnn.memory_backend, options=option)
+    option.run_mem_analysis = True
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m.forward(input, dim0, dim1)
 
     # Check the graph has be rewritten and contain ttnn ops

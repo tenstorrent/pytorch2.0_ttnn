@@ -52,15 +52,14 @@ if __name__ == "__main__":
 
     metrics_path = "Mnist (Train)"
     test_input, _ = next(iter(dataloader))
-    # test_input, target = next(iter(dataloader))
-    # test_input = test_input.to(torch.bfloat16)
-    # outputs = m(test_input)
+    
     # Compile model with ttnn backend
     option = torch_ttnn.TorchTtnnOption(
         device=device, metrics_path=metrics_path
     )
     option.gen_graphviz = True
-    m = torch.compile(m, backend=torch_ttnn.memory_backend, options=option)
+    option.run_mem_analysis = True
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 
     # These are for plotting charts for later inspection
     from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart

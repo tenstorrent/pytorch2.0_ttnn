@@ -58,7 +58,8 @@ if __name__ == "__main__":
         device=device, metrics_path=metrics_path
     )
     option.gen_graphviz = True
-    m = torch.compile(m, backend=torch_ttnn.memory_backend, options=option)
+    option.run_mem_analysis = True
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 
     # These are for plotting charts for later inspection
     from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart

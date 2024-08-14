@@ -29,8 +29,10 @@ if __name__ == "__main__":
     input = torch.rand(m.input_shape(), dtype=torch.bfloat16)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
+    option.run_mem_analysis = True
+    option.run_eviction_opt = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
-    m = torch.compile(m, backend=torch_ttnn.memory_backend, options=option)
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result = m.forward(input)
 
     # Close the device

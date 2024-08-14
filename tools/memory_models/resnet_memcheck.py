@@ -23,7 +23,8 @@ if __name__ == "__main__":
         device=device, metrics_path=metrics_path
     )
     option.gen_graphviz = True
-    model = torch.compile(model, backend=torch_ttnn.memory_backend, options=option)
+    option.run_mem_analysis = True
+    model = torch.compile(model, backend=torch_ttnn.backend, options=option)
     # Run inference with the compiled model
     with torch.no_grad():
         output_after = model(input_batch)
