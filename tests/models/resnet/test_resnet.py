@@ -22,4 +22,3 @@ def test_resnet(record_property):
 
     # Memory analysis
     record_property("memory_analysis", (model, input_batch))
-

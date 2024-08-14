@@ -12,12 +12,7 @@ from pathlib import Path
 
 def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
-    mm = MemoryManager(
-        device_name,
-        cores,
-        L1_mem,
-        circular_buffer
-    )
+    mm = MemoryManager(device_name, cores, L1_mem, circular_buffer)
 
     op_registry = OpRegistry()
 
@@ -50,7 +45,6 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node not in mm.node_to_tid_map:
                 mm.node_to_tid_map[node] = last_assigned_tid
                 last_assigned_tid += 1
-    
 
     # print(f"Tensor IDs for nodes on device:")
     # for key, value in mm.node_to_tid_map.items():
@@ -82,9 +76,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     input_dtype = op_registry.get_dtype(input_node)
                     input_size = op_registry.get_size(input_shape, input_dtype)
                     total_input_size += input_size
-                    
-                    assert input_node in mm.node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
-                    
+
+                    assert (
+                        input_node in mm.node_to_tid_map
+                    ), "Tensor ID not allocated for one of the inputs!"
+
                     tid = mm.node_to_tid_map[input_node]
                     ttnn_ops_tids.append(tid)
                     mm.tensor_size_of[tid] = input_size
@@ -109,7 +105,9 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 mm.ops_mem_usage[node.name] = total_input_size + output_size
 
-                assert node in mm.node_to_tid_map, "Tensor ID not allocated for one of the inputs!"
+                assert (
+                    node in mm.node_to_tid_map
+                ), "Tensor ID not allocated for one of the inputs!"
 
                 tid = mm.node_to_tid_map[node]
                 ttnn_ops_tids.append(tid)
@@ -145,20 +143,16 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 node_users = list(node.users.keys())
                 # Are any users of current node a ttnn op?
                 is_follow_up_tt_compute = False
-                 # Is from device op a user of the node?
+                # Is from device op a user of the node?
                 is_follow_up_from_device = False
                 for user in node_users:
                     if is_tt_compute(user):
                         is_follow_up_tt_compute = True
                     if user.target in set(
-                        [
-                        ttnn.from_device,
-                        ttnn.to_torch,
-                        ttnn.to_layout
-                        ]
+                        [ttnn.from_device, ttnn.to_torch, ttnn.to_layout]
                     ):
                         is_follow_up_from_device = True
-  
+
                 # If no follow up ttnn op using the output of current node
                 # and if one of the users is a from device operation,
                 # then swap out output tensor from device
@@ -168,7 +162,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     mm.tensors_on_device.remove(tid)
 
                     on_device_meta.remove((tid, output_size))
-                    
+
                     print(f"op removed from device: {node.name}")
                     print(f"output size: {output_size} bytes")
                     print(f"total compute memory parked in L1: {mm.used_sram} bytes")
@@ -188,7 +182,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if keep_on_device is False:
                         input_size = op_registry.get_size(
                             op_registry.get_shape(input_node),
-                            op_registry.get_dtype(input_node)
+                            op_registry.get_dtype(input_node),
                         )
                         mm.used_sram -= input_size
                         mm.free_sram += input_size
@@ -197,11 +191,11 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         on_device_meta.remove((tid, input_size))
 
                         print(f"input tensor removed from device: {input_size} bytes")
-                        print(f"total compute memory parked in L1: {mm.used_sram} bytes")
-                
+                        print(
+                            f"total compute memory parked in L1: {mm.used_sram} bytes"
+                        )
+
                 # data_points[(node.name, "from_device")] = on_device_meta.copy()
-        
-    
 
     print(f"Tensor IDs to address map in SRAM:")
     print(f"{mm.tid_to_addr_map_in_sram}")
@@ -219,7 +213,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     data_str_keys = {str(key): value for key, value in data_points.items()}
     mm.data_points = data_str_keys
 
-    with open("./data/memory/memory_footprint.txt", 'w') as f:
+    with open("./data/memory/memory_footprint.txt", "w") as f:
         json.dump(data_str_keys, f)
 
     return gm, mm

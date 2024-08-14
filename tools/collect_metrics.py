@@ -275,9 +275,7 @@ if __name__ == "__main__":
         assert (
             compiled_runtime_metrics
         ), f"{compiled_runtime_metrics_path} file not found"
-        assert (
-            compiled_memory_metrics
-        ), f"{compiled_memory_metrics_path} file not found"
+        assert compiled_memory_metrics, f"{compiled_memory_metrics_path} file not found"
 
         # Add links that point to the directory of the model in the model name
         assert (
@@ -321,9 +319,9 @@ if __name__ == "__main__":
             aten_ops_before, aten_ops_unique_before = len(aten_ops_before_list), len(
                 set(aten_ops_before_list)
             )
-            ops_metrics[
-                "torch_ops_total_unique_before"
-            ] = f"{aten_ops_before} ({aten_ops_unique_before})"
+            ops_metrics["torch_ops_total_unique_before"] = (
+                f"{aten_ops_before} ({aten_ops_unique_before})"
+            )
 
             # Populate schemas for each op for original graph
             pydantic_model.ops_original = serialize_schema_metrics_to_operations(
@@ -345,9 +343,9 @@ if __name__ == "__main__":
                 aten_ops_remain, aten_ops_unique_remain = len(
                     aten_ops_remain_list
                 ), len(set(aten_ops_remain_list))
-                ops_metrics[
-                    "torch_ops_total_unique_remain"
-                ] = f"{aten_ops_remain} ({aten_ops_unique_remain})"
+                ops_metrics["torch_ops_total_unique_remain"] = (
+                    f"{aten_ops_remain} ({aten_ops_unique_remain})"
+                )
 
                 device_op_list = [
                     node["opname"]

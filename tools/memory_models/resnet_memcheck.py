@@ -19,9 +19,7 @@ if __name__ == "__main__":
     metrics_path = "ResNet18"
 
     # Compile the model
-    option = torch_ttnn.TorchTtnnOption(
-        device=device, metrics_path=metrics_path
-    )
+    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
     option.gen_graphviz = True
     option.run_mem_analysis = True
     model = torch.compile(model, backend=torch_ttnn.backend, options=option)
@@ -31,6 +29,7 @@ if __name__ == "__main__":
 
     # These are for plotting charts for later inspection
     from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart
+
     src_file = "./data/memory/memory_footprint.txt"
     bar_chart_file = "./tools/memory_models/assets/resnet_bar_chart.png"
     line_chart_file = "./tools/memory_models/assets/resnet_line_chart.png"

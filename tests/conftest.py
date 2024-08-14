@@ -102,7 +102,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             else:
                 compiled_memory_metric = {"fits_in_memory": "Yes"}
             memory_analysis_flag = True
-        
+
     except Exception as e:
         if not (torch_ttnn_flag is True and memory_analysis_flag is False):
             comp_runtime_metrics = {"success": False}
@@ -120,5 +120,3 @@ def compile_and_run(device, reset_torch_dynamo, request):
         compiled_memory_metrics_path = p / f"compiled_memory_metrics.pickle"
         with open(compiled_memory_metrics_path, "wb") as f:
             pickle.dump(compiled_memory_metric, f)
-
-    

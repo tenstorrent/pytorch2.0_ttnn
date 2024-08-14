@@ -123,7 +123,7 @@ def aten_backend(
             assert len(graphviz_filenames) == len(passes)
         else:
             assert len(graphviz_filenames) == len(passes) + 1
-            
+
         for idx in range(len(graphviz_filenames)):
             p = Path(f"metrics/{option.metrics_path}/{graphviz_filenames[idx]}")
             passes.insert(idx * 2, GraphvizPass(p))
@@ -134,23 +134,24 @@ def aten_backend(
     gm.graph.lint()
     gm.recompile()
 
-
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
         for p in passes:
             if isinstance(p, MemoryPass):
                 option._memory_manager = p.memory_manager
 
-
     # Run eviction opt pass if enabled
     if option.run_eviction_opt == True:
-        assert option.run_mem_analysis == True, "Eviction pass depends on memory analysis pass!"
+        assert (
+            option.run_mem_analysis == True
+        ), "Eviction pass depends on memory analysis pass!"
         from torch_ttnn.passes.eviction_pass import EvictionPass
+
         mm = option._memory_manager
         nth_eviction = 1
         # See if SRAM overflows and eviction is required
         while mem_utils.check_sram_overflow(mm) is True:
-        # if check_sram_overflow(mm) is True:
+            # if check_sram_overflow(mm) is True:
             guilty_op, tensors_to_evict = mem_utils.which_tensors_to_evict(mm)
             # This indicates splitting is required
             if tensors_to_evict == -1:
@@ -158,7 +159,7 @@ def aten_backend(
             # Run a eviction pass to remove tensors from device
             # This pass only evicts tensors for a single ttnn op which overflows the SRAM
             # Multiple overflows require multiple run of this pass
-            
+
             passes = [
                 EvictionPass(mm, guilty_op, tensors_to_evict),
                 GraphvizPass(f"eviction-pass-{nth_eviction}"),
@@ -176,7 +177,6 @@ def aten_backend(
                     option._memory_manager = p.memory_manager
                     mm = p.memory_manager
             nth_eviction += 1
-
 
     if option.metrics_path:
         compiled_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)

@@ -3,6 +3,7 @@ import torch_ttnn
 import ttnn
 import tt_lib
 
+
 class TransposeModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -15,6 +16,7 @@ class TransposeModule(torch.nn.Module):
     # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
     def input_shapes(self):
         return [(5, 3, 2), 0, 2]
+
 
 if __name__ == "__main__":
     # Open device 0

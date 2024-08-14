@@ -3,6 +3,7 @@ import torch_ttnn
 import ttnn
 import tt_lib
 
+
 class Module(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -14,9 +15,10 @@ class Module(torch.nn.Module):
         t5 = torch.nn.functional.tanh(t4)
         t6 = t2 + t3 + t5
         return t6
-    
+
     def input_shape(self):
         return [100, 3, 224, 224]
+
 
 if __name__ == "__main__":
     # Open device 0
@@ -37,6 +39,3 @@ if __name__ == "__main__":
 
     # Close the device
     ttnn.close_device(device)
-
-    
-    

@@ -3,6 +3,7 @@ import torch_ttnn
 import ttnn
 import tt_lib
 
+
 class MatmulModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -12,6 +13,7 @@ class MatmulModule(torch.nn.Module):
 
     def input_shapes(self):
         return [(5, 3), (3, 4)]
+
 
 if __name__ == "__main__":
     # Open device 0

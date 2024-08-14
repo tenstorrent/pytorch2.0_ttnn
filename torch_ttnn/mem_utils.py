@@ -6,9 +6,10 @@ import torch
 # Configs
 device_name = "wormhole"
 cores = 120
-SRAM_LIMIT = 104857600 # 100 * 1024 * 1024 bytes (100 MB)
-L1_mem = 1048576 # 1 MB
-circular_buffer = 20 * 1048576 # 20 MB
+SRAM_LIMIT = 104857600  # 100 * 1024 * 1024 bytes (100 MB)
+L1_mem = 1048576  # 1 MB
+circular_buffer = 20 * 1048576  # 20 MB
+
 
 # This will manage all memory related operations & data
 class MemoryManager:
@@ -51,7 +52,9 @@ class OpRegistry:
 
     def get_shape(self, node):
         if is_tt_data_move(node):
-            assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
+            assert (
+                len(node.all_input_nodes) == 1
+            ), "Data movement operators can't have more than one input!"
             return self.get_shape(node.all_input_nodes[0])
         else:
             # TODO: What if meta of nth output of the node is requested?
@@ -62,7 +65,9 @@ class OpRegistry:
 
     def get_dtype(self, node):
         if is_tt_data_move(node):
-            assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
+            assert (
+                len(node.all_input_nodes) == 1
+            ), "Data movement operators can't have more than one input!"
             return self.get_dtype(node.all_input_nodes[0])
         else:
             # TODO: What if meta of nth output of the node is requested?
@@ -70,10 +75,12 @@ class OpRegistry:
                 return node.meta["val"][0].dtype
             else:
                 return node.meta["val"].dtype
-   
+
     def is_input_tensor_on_device(self, node):
         if node.target == ttnn.from_torch:
-            if "device" in node.kwargs and isinstance(node.kwargs["device"], TtnnDevice):
+            if "device" in node.kwargs and isinstance(
+                node.kwargs["device"], TtnnDevice
+            ):
                 return True
         if node.target is ttnn.to_device or is_tt_compute(node):
             return True
@@ -85,7 +92,6 @@ class OpRegistry:
             return self.is_input_tensor_on_device(node.all_input_nodes[0])
         else:
             return False
-
 
 
 def check_sram_overflow(mm: MemoryManager) -> bool:
@@ -112,16 +118,25 @@ def which_tensors_to_evict(mm: MemoryManager) -> tuple:
                     potential_tensors_to_evict.remove(tid)
 
             # Convert list of potential tensors to evict to dict with tensor's memory size
-            potential_tensors_to_evict = { tid: mm.tensor_size_of[tid] for tid in potential_tensors_to_evict }
+            potential_tensors_to_evict = {
+                tid: mm.tensor_size_of[tid] for tid in potential_tensors_to_evict
+            }
             # Sort the dict as per tensor memory size (in decreasing order)
-            potential_tensors_to_evict = {k: v for k, v in sorted(potential_tensors_to_evict.items(), key=lambda item: item[1], reverse=True)}
+            potential_tensors_to_evict = {
+                k: v
+                for k, v in sorted(
+                    potential_tensors_to_evict.items(),
+                    key=lambda item: item[1],
+                    reverse=True,
+                )
+            }
             break
-    
+
     if len(potential_tensors_to_evict) > 0:
         for tid, tensor_size in potential_tensors_to_evict.items():
             sram_usage -= tensor_size
             tensors_to_evict.append(tid)
             if sram_usage < mm.usable_sram_limit:
                 break
-            
+
     return (node_name, tensors_to_evict)
