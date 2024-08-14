@@ -7,6 +7,7 @@ import ttnn
 import pickle
 from pathlib import Path
 import os
+from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
 import torch_ttnn.metrics as metrics
 
 torch._dynamo.config.suppress_errors = False
@@ -15,10 +16,17 @@ torch._dynamo.config.verbose = True
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device, gen_graphviz=False, metrics_path=""):
+    def __init__(
+        self,
+        device: ttnn.Device,
+        gen_graphviz=False,
+        metrics_path="",
+        tracer_option=None,
+    ):
         self.device = device
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
+        self.tracer_option = tracer_option
 
         if metrics_path:
             p = Path(f"metrics/{metrics_path}")
@@ -55,22 +63,13 @@ def register_ttnn_objects(option: TorchTtnnOption):
     )
 
 
-# The option for torch_ttnn.backend
-class TenstorrentBackendOption:
-    def __init__(self, device: ttnn.Device, tracer_option=None):
-        self.device = device
-        self.gen_graphviz = False
-        self._out_fx_graphs = list()
-        self.tracer_option = tracer_option
-
-
 # The backend for torch.compile that converts a graph to use ttnn.
 # The "option" parameter is a TorchTtnnOption object
 # See document for detail.
 def aten_backend(
     gm: torch.fx.GraphModule,
     example_inputs: List[torch.Tensor],
-    options: TenstorrentBackendOption = None,
+    options: TorchTtnnOption,
 ) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -78,15 +77,12 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
-    option: TenstorrentBackendOption = options
+    option: TorchTtnnOption = options
 
     # Clone ops used for input aliasing workaround are no longer needed at this point
     from .handle_input_aliasing import remove_clones_for_input_aliasing
 
     gm = remove_clones_for_input_aliasing(gm)
-
-    option: TorchTtnnOption = options["torch_ttnn_option"]
-
     # Save the number of aten ops before compilation
     if option.metrics_path:
         original_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
@@ -154,7 +150,7 @@ from functools import partial
 def ttnn_backend(
     gm: torch.fx.GraphModule,
     example_inputs: List[torch.Tensor],
-    options: TenstorrentBackendOption = None,
+    options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
     tracer_option = options.tracer_option
     if tracer_option is not None:

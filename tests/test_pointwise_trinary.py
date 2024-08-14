@@ -39,7 +39,7 @@ class TestModules(unittest.TestCase):
         input_types = m.input_types()
         inputs = [torch.randint(1, 3, type[0]).type(type[1]) for type in input_types]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
@@ -108,7 +108,7 @@ class TestModules(unittest.TestCase):
         input_types = m.input_types()
         inputs = [torch.randint(1, 3, type[0]).type(type[1]) for type in input_types]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)

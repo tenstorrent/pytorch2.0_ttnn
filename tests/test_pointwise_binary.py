@@ -28,7 +28,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -86,7 +86,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -144,7 +144,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -202,7 +202,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -260,7 +260,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -318,7 +318,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -376,7 +376,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -434,7 +434,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -492,7 +492,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -550,7 +550,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -608,7 +608,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -666,7 +666,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -724,7 +724,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -782,7 +782,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if False else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -840,7 +840,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)
@@ -898,7 +898,7 @@ class TestModules(unittest.TestCase):
             torch.randint(0, 3, (4, 4)).type(torch.bfloat16) if True else 2.0,
         ]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
         result_after = m.forward(*inputs)

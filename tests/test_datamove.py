@@ -29,7 +29,7 @@ class TestModules(unittest.TestCase):
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         new_shape = (64, 32)
         result_before = m.forward(*inputs, new_shape)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
@@ -66,7 +66,7 @@ class TestModules(unittest.TestCase):
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         order = (1, 0)
         result_before = m.forward(*inputs, order)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
@@ -99,7 +99,7 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         result_before = m.forward(*inputs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
@@ -134,7 +134,7 @@ class TestModules(unittest.TestCase):
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         sizes = (2, 2)
         result_before = m.forward(*inputs, sizes)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
@@ -167,7 +167,7 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         result_before = m.forward(*inputs, dim)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
@@ -209,7 +209,7 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
         result_before = m.forward(*inputs, 2, 0)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)

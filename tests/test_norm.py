@@ -54,7 +54,7 @@ class TestModules(unittest.TestCase):
         if bias:
             kwargs["bias"] = torch.rand(m.bias_shape(), dtype=torch.bfloat16)
         result_before = m.forward(input, **kwargs)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)
@@ -121,7 +121,7 @@ class TestModules(unittest.TestCase):
         result_before1 = m.forward(input, **kwargs)
         result_before2 = m.forward(input, **kwargs, bias = bias)
         result_before3 = m.forward(input, **kwargs, weight = weight, bias = bias)
-        option = torch_ttnn.TenstorrentBackendOption(device=self.device)
+        option = torch_ttnn.TorchTtnnOption(device=self.device)
         option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend="ttnn", options=option)

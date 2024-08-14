@@ -1,10 +1,10 @@
 # The inferface of this backend
 
-from .backend import ttnn_backend
-from .backend import TenstorrentBackendOption
+from .backend import ttnn_backend as backend
+from .backend import TorchTtnnOption
 import torch as _torch
 
-_torch._dynamo.backends.registry.register_backend(name="ttnn", compiler_fn=ttnn_backend)
+_torch._dynamo.backends.registry.register_backend(name="ttnn", compiler_fn=backend)
 
 # To wrap the ttnn ops
 from .passes import target_wrappers
