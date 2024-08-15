@@ -170,7 +170,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        kwargs = {"device": device}
+        kwargs = {}
         if (
             dst_node.target == ttnn.reshape
             or dst_node.target == ttnn.embedding
@@ -183,6 +183,13 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
 
         if dst_node.target != ttnn.embedding:
             kwargs["dtype"] = TtnnBfloat16()
+
+        # For reshape only put tensor on device if rank is 4
+        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
+            dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
+        ):
+            kwargs["device"] = device
+
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
