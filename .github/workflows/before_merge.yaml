@@ -64,6 +64,8 @@ jobs:
         run: | 
           source venv/bin/activate          
           python3 tools/collect_metrics.py
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
           git status
           git add README.md
           git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
