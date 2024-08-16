@@ -4,6 +4,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnDevice,
+    TtnnBfloat16,
 )
 
 
@@ -63,6 +64,7 @@ def is_tt_compute(node) -> bool:
             ttnn.sigmoid,
             ttnn.as_tensor,
             ttnn.repeat,
+            ttnn.min,
         ]
     )
 
@@ -90,6 +92,13 @@ def is_reshape_rank_4(node):
         return len(node.args[1]) == 4
     else:
         return False
+
+
+def call_to_torch_with_meta(g, src_node):
+    call_func = g.call_function(ttnn.to_torch, (src_node,))
+    if src_node.meta is not None:
+        call_func.meta = src_node.meta
+    return call_func
 
 
 def should_add_data_move_in(src_node, dst_node) -> bool:
@@ -172,6 +181,9 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["layout"] = TtnnTileLayout()
 
+        if dst_node.target != ttnn.embedding:
+            kwargs["dtype"] = TtnnBfloat16()
+
         # For reshape only put tensor on device if rank is 4
         if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
             dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
@@ -184,7 +196,15 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     return new_nodes[-1]
 
 
-def try_add_layout_change_before_repeat(
+layout_change_ops = set(
+    [
+        ttnn.repeat,
+        ttnn.reshape,
+    ]
+)
+
+
+def try_add_layout_change_before_node(
     src_node, dst_idx, dst_node
 ) -> torch.fx.node.Node:
     # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
@@ -194,7 +214,7 @@ def try_add_layout_change_before_repeat(
         return None
     if not is_function_call(dst_node):
         return None
-    if dst_node.target != ttnn.repeat or dst_idx != 0 or not is_tt(src_node):
+    if dst_node.target not in layout_change_ops or dst_idx != 0 or not is_tt(src_node):
         return None
 
     g = dst_node.graph
@@ -206,13 +226,15 @@ def try_add_layout_change_before_repeat(
     return to_layout
 
 
-def try_add_layout_change_after_repeat(
-    src_node, dst_idx, dst_node
-) -> torch.fx.node.Node:
+def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
     if not is_function_call(src_node):
         return None
-    if src_node.target != ttnn.repeat or not is_tt_compute(dst_node):
+    if (
+        src_node.target not in layout_change_ops
+        or not is_tt_compute(dst_node)
+        or dst_node.target == ttnn.embedding
+    ):
         return None
 
     g = dst_node.graph
@@ -224,6 +246,27 @@ def try_add_layout_change_after_repeat(
     return to_layout
 
 
+def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
+    # Handle list type arguments from ops like cat
+    if not isinstance(src_nodes, list):
+        return None
+
+    new_nodes = list()
+    for src_node in src_nodes:
+        if should_add_data_move_out(src_node, dst_node):
+            g = dst_node.graph
+            with g.inserting_before(dst_node):
+                new_nodes.append(call_to_torch_with_meta(g, src_node))
+        else:
+            new_nodes.append(src_node)
+
+    if new_nodes:
+        dst_node.update_arg(dst_idx, new_nodes)
+        return new_nodes
+    else:
+        return None
+
+
 def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     if not should_add_data_move_out(src_node, dst_node):
         return None
@@ -232,7 +275,7 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     new_nodes = list()
     with g.inserting_before(dst_node):
         new_nodes.append(
-            g.call_function(ttnn.to_torch, (new_nodes[-1] if new_nodes else src_node,))
+            call_to_torch_with_meta(g, new_nodes[-1] if new_nodes else src_node)
         )
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
@@ -249,7 +292,7 @@ def try_add_data_move_out_for_layer_norm(
     new_nodes = list()
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
-            new_nodes.append(g.call_function(ttnn.to_torch, (src_node,)))
+            new_nodes.append(call_to_torch_with_meta(g, src_node))
 
     # Workaround to output the same layer_norm output
     # Before: layer_norm = aten.layer_norm
@@ -296,15 +339,19 @@ class AddDataMovePass(PassBase):
             for idx, arg in enumerate(args):
                 if isinstance(arg, _Kwarg):
                     try_add_data_move_in_kwargs(arg, node, device)
-                elif arg in data_move_in_hash and node.op != "output":
+                elif (
+                    arg in data_move_in_hash
+                    and not isinstance(node.target, torch._ops.OpOverload)
+                    and node.op != "output"
+                ):
                     node.update_arg(idx, data_move_in_hash[arg])
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
                     data_move_in_hash[arg] = to_device
                     i += 1
-                elif to_layout := try_add_layout_change_before_repeat(arg, idx, node):
+                elif to_layout := try_add_layout_change_before_node(arg, idx, node):
                     data_move_in_hash[arg] = to_layout
                     i += 1
-                elif to_layout := try_add_layout_change_after_repeat(arg, idx, node):
+                elif to_layout := try_add_layout_change_after_node(arg, idx, node):
                     data_move_in_hash[arg] = to_layout
                     i += 1
 
@@ -322,6 +369,27 @@ class AddDataMovePass(PassBase):
                 elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
                     data_move_out_hash[arg] = to_torch
                     i += 1
+                elif to_torch := try_add_data_move_out_for_list_args(arg, idx, node):
+                    data_move_out_hash[arg] = to_torch
+                    i += 1
 
         modified = i > 0
         return PassResult(gm, modified)
+
+    def ensures(self, gm: torch.fx.GraphModule) -> None:
+        # Because of the mixing of ttnn and aten ops, some types need to be fixed
+        for node in gm.graph.nodes:
+            if node.target == ttnn.to_torch:
+                # Reconvert int64 types back to torch
+                if node.meta["val"].dtype == torch.int64:
+                    g = node.graph
+                    with g.inserting_after(node):
+                        # TODO: Is _to_copy the right op?
+                        new_node = g.call_function(
+                            torch.ops.aten._to_copy.default,
+                            (node,),
+                            {"dtype": torch.int64},
+                        )
+                        node.replace_all_uses_with(
+                            new_node, delete_user_cb=lambda node: node != new_node
+                        )
