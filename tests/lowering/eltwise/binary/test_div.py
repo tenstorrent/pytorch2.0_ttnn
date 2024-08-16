@@ -15,11 +15,11 @@ class DivModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    [[(4, 4), (4, 4)], [(64, 128), (64, 128)]],
 )
 def test_div(device, input_shapes):
     m = DivModule()
-    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+    inputs = [torch.randint(1, 15, shape).to(torch.bfloat16) for shape in input_shapes]
     result_before = m.forward(*inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
@@ -45,7 +45,7 @@ def test_div(device, input_shapes):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4)]],
+    [[(4, 4)], [(32, 32)]],
 )
 def test_div_scalar_denom(device, input_shapes):
     m = DivModule()

@@ -7,7 +7,7 @@ import requests
 from transformers import AutoImageProcessor, AutoModelForObjectDetection
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_yolos(record_property):
     record_property("model_name", "YOLOS")
 

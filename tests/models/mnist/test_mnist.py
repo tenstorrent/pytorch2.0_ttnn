@@ -61,7 +61,6 @@ def test_mnist_train(record_property):
     record_property("memory_analysis", (m, test_input))
 
 
-@pytest.mark.xfail
 def test_mnist_eval(record_property):
     record_property("model_name", "Mnist (Eval)")
 
