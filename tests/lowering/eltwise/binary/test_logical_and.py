@@ -4,20 +4,20 @@ import torch_ttnn
 import pytest
 import ttnn
 
-class AddModule(torch.nn.Module):
+class LogicalAndModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, x, y):
-        return x + y
+        return torch.logical_and(x, y)
 
 
 @pytest.mark.parametrize(
     "input_shapes",
     [[(4, 4), (4, 4)]],
 )
-def test_add(device, input_shapes):
-    m = AddModule()
+def test_logical_and(device, input_shapes):
+    m = LogicalAndModule()
     inputs = [torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes]
     result_before = m.forward(*inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
@@ -29,7 +29,7 @@ def test_add(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.add) == 1
+    assert [node.target for node in nodes].count(ttnn.logical_and) == 1
 
     # Check inference result
     assert_with_pcc(result_before, result_after)
