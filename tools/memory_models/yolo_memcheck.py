@@ -27,10 +27,8 @@ if __name__ == "__main__":
     image = Image.open(requests.get(test_input, stream=True).raw)
     inputs = image_processor(images=image, return_tensors="pt")
 
-    metrics_path = "yolo"
-
     # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
+    option = torch_ttnn.TorchTtnnOption(device=device)
     option.run_mem_analysis = True
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
 

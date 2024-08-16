@@ -8,17 +8,17 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
-|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    38.64 | 501.5                    | 99.85          |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   136.38 | 2709.01                  | 66.84          |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  2131.05 | 9985.44                  | 99.99          |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 28892.3  | 68470.67                 | 45.77          |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1410.28 | 45328.58                 | 71.71          |
-| [Llama](tests/models/llama)         | ✅            | 5 (4)                           | 3 (2)                           |                    3 |                206771    | 187910.29                | 45.46          |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 67347.3  | 60024.8                  | 98.64          |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 51366.6  | N/A                      | N/A            |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 316 (12)                        |                  569 |                  5711.32 | N/A                      | N/A            |
+| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |
+|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|:-----------------|
+| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    30.89 | 487.81                   | 99.53          | Yes              |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   111.93 | 3630.83                  | 92.42          | Yes              |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  1995.27 | 11020.53                 | 99.99          | Yes              |
+| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 26534.7  | 66222.71                 | 43.08          | No               |
+| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  2166.85 | 43201.61                 | 71.05          | Yes              |
+| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           |                    2 |                161972    | 165600.87                | 100.0          | Yes              |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 63364.9  | 61110.02                 | 99.17          | Yes              |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 39476.5  | N/A                      | N/A            | N/A              |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 329 (12)                        |                  644 |                  1861.64 | N/A                      | N/A            | N/A              |
 
 ### Explanation of Metrics
 
@@ -136,12 +136,10 @@ The table below summarizes the results of running various ML models through our 
 | aten.unsqueeze.default         | ✅       |       1 |
 | aten.view.default              | ✅       |     283 |
 #### Llama
-| aten ops              | status   |   count |
-|:----------------------|:---------|--------:|
-| aten._to_copy.default | ✘        |       1 |
-| aten.mm.default       | ✅       |       1 |
-| aten.t.default        | ✅       |       1 |
-| aten.view.default     | ✅       |       2 |
+| aten ops               | status   |   count |
+|:-----------------------|:---------|--------:|
+| aten.slice.Tensor      | ✘        |       1 |
+| aten.unsqueeze.default | ✘        |       2 |
 #### BERT
 | aten ops                       | status   |   count |
 |:-------------------------------|:---------|--------:|

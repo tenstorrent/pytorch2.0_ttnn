@@ -50,14 +50,16 @@ if __name__ == "__main__":
     m = m.to(torch.bfloat16)
     m.eval()
 
-    metrics_path = "Mnist (Eval)"
     test_input, _ = next(iter(dataloader))
 
     # Compile model with ttnn backend
-    option = torch_ttnn.TorchTtnnOption(device=device, metrics_path=metrics_path)
+    option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     option.run_mem_analysis = True
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+
+    # Run inference with the compiled model
+    m(test_input.to(torch.bfloat16))
 
     # These are for plotting charts for later inspection
     from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart
@@ -67,9 +69,6 @@ if __name__ == "__main__":
     line_chart_file = "./tools/memory_models/assets/mnist_line_chart.png"
     plot_bar_chart(src_file, bar_chart_file)
     plot_line_chart(src_file, line_chart_file)
-
-    # Run inference with the compiled model
-    m(test_input.to(torch.bfloat16))
 
     # Close the device
     ttnn.close_device(device)
