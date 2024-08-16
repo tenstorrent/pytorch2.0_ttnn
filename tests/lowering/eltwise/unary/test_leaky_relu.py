@@ -32,4 +32,5 @@ def test_leaky_relu(device, input_shape, init_offset):
     assert [node.target for node in nodes].count(ttnn.leaky_relu) == 1
 
     # Check inference result
+    from tests.utils import assert_with_pcc
     assert_with_pcc(result_before, result_after)
