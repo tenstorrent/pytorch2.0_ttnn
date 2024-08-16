@@ -14,7 +14,7 @@ class AcoshModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     ("input_shape", "init_offset"),
-    ((4, 4), 1),
+    [((4, 4), 1)],
 )
 def test_acosh(device, input_shape, init_offset):
     m = AcoshModule()

@@ -14,7 +14,7 @@ class Expm1Module(torch.nn.Module):
 
 @pytest.mark.parametrize(
     ("input_shape", "init_offset"),
-    ((4, 4), 0),
+    [((4, 4), 0)],
 )
 def test_expm1(device, input_shape, init_offset):
     m = Expm1Module()

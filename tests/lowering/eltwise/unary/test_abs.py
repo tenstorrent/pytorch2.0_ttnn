@@ -14,7 +14,7 @@ class AbsModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     ("input_shape", "init_offset"),
-    ((4, 4), 0),
+    [((4, 4), 0)],
 )
 def test_abs(device, input_shape, init_offset):
     m = AbsModule()
