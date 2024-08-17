@@ -3,7 +3,7 @@ import torch
 
 import ttnn
 
-addcdiv = ttnn.operations.ternary.addcdiv
+addcdiv = ttnn.addcdiv
 # NOTE(yoco) wrap the addcdiv will cause error in current ttnn version
 # Try to fix it, or don't use subgraph rewriter, but manipulate the raw graph
 # torch.fx.wrap(addcdiv)
