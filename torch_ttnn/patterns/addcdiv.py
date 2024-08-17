@@ -9,17 +9,17 @@ addcdiv = ttnn.operations.ternary.addcdiv
 # torch.fx.wrap(addcdiv)
 
 
-def addcdiv_with_value_pat(a0, a1, a2, value):
+def addcdiv_with_value_pattern(a0, a1, a2, value):
     div = torch.ops.aten.div.Tensor(a1, a2)
     mul = torch.ops.aten.mul.Tensor(div, value)
     add = torch.ops.aten.add.Tensor(a0, mul)
     return add
 
 
-def addcdiv_with_value_rep(a0, a1, a2, value):
+def addcdiv_with_value_replace(a0, a1, a2, value):
     return addcdiv(a0, a1, a2, value)
 
 
-pat_rep_list = [
-    (addcdiv_with_value_pat, addcdiv_with_value_rep),
+pattern_replace_list = [
+    (addcdiv_with_value_pattern, addcdiv_with_value_replace),
 ]
