@@ -2,23 +2,23 @@ import torch
 import ttnn
 
 
-def add_pat(x, y):
+def add_pattern(x, y):
     return torch.ops.aten.add.Tensor(x, y)
 
 
-def add_rep(x, y):
+def add_replace(x, y):
     return ttnn.add(x, y)
 
 
-def add_pat2(x):
+def add_pattern2(x):
     return torch.ops.aten.add.Tensor(x, x)
 
 
-def add_rep2(x):
+def add_replace2(x):
     return ttnn.add(x, x)
 
 
-pat_rep_list = [
-    (add_pat, add_rep),
-    (add_pat2, add_rep2),
+pattern_replace_list = [
+    (add_pattern, add_replace),
+    (add_pattern2, add_replace2),
 ]
