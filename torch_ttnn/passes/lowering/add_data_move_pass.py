@@ -68,14 +68,14 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
     ttnn.eqz,
     ttnn.gez,
-    #ttnn.gte,  # ttnn has no gte, remote the comment in the future when it has
+    ttnn.ge,
     ttnn.gtz,
     ttnn.isclose,
     ttnn.ldexp,
     ttnn.lez,
     ttnn.logaddexp,
     ttnn.logaddexp2,
-    #ttnn.lte,  # ttnn has no lte, remote the comment in the future when it has
+    ttnn.le,
     ttnn.ltz,
     ttnn.nextafter,
     ttnn.nez,
