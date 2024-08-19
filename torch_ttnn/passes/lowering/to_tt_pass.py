@@ -258,6 +258,14 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Other ops
         ############################################################
+        if target == torch.ops.aten.addcdiv.default:
+            value = kwargs.pop("value", 1.0)
+            return self.call_function_prop_meta(ttnn.addcdiv, args + (value,), kwargs)
+
+        if target == torch.ops.aten.addcmul.default:
+            value = kwargs.pop("value", 1.0)
+            return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
+
         if target == torch.ops.aten._adaptive_avg_pool2d.default:
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(
