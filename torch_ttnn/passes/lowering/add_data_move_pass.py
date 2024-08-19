@@ -9,7 +9,7 @@ from torch_ttnn.utils import (
 
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
-
+from . import target_wrappers
 
 class _Kwarg:
     def __init__(self, key, value):
@@ -23,12 +23,129 @@ def is_function_call(node) -> bool:
     return node.op == "call_function"
 
 
+TTNN_POINTWISE_UNARY_OPS = [
+    ttnn.abs,
+    ttnn.acos,
+    ttnn.acosh,
+    ttnn.asin,
+    ttnn.asinh,
+    ttnn.atan,
+    ttnn.atan2,  # binary
+    ttnn.atanh,
+    #  ttnn.clone,  in target_wrappers
+    ttnn.cos,
+    ttnn.cosh,
+    ttnn.erf,
+    ttnn.exp,
+    ttnn.expm1,
+    ttnn.gelu,
+    ttnn.hardtanh,
+    ttnn.isinf,
+    ttnn.isnan,
+    ttnn.leaky_relu,
+    ttnn.log,
+    ttnn.log10,
+    ttnn.log1p,
+    ttnn.log2,
+    ttnn.logical_not,
+    ttnn.neg,
+    ttnn.reciprocal,
+    ttnn.relu,
+    ttnn.rsqrt,
+    ttnn.sigmoid,
+    ttnn.softmax,
+    ttnn.sign,
+    ttnn.sin,
+    ttnn.sinh,
+    ttnn.silu,
+    ttnn.sqrt,
+    ttnn.tan,
+    ttnn.tanh,
+]
+
+
+TTNN_POINTWISE_BINARY_OPS = [
+    ttnn.add,
+    ttnn.eqz,
+    ttnn.gez,
+    #ttnn.gte,  # ttnn has no gte, remote the comment in the future when it has
+    ttnn.gtz,
+    ttnn.isclose,
+    ttnn.ldexp,
+    ttnn.lez,
+    ttnn.logaddexp,
+    ttnn.logaddexp2,
+    #ttnn.lte,  # ttnn has no lte, remote the comment in the future when it has
+    ttnn.ltz,
+    ttnn.nextafter,
+    ttnn.nez,
+    ttnn.polyval,
+    ttnn.squared_difference,
+    ttnn.eq,
+    ttnn.gt,
+    ttnn.logical_and,
+    ttnn.logical_or,
+    ttnn.logical_xor,
+    ttnn.lt,
+    ttnn.maximum,
+    ttnn.minimum,
+    ttnn.mul,
+    ttnn.ne,
+    ttnn.pow,
+    ttnn.sub,
+    ttnn.xlogy,
+    #ttnn.add_and_apply_activation,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
+    #ttnn.add_and_apply_activation_,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
+]
+
+TTNN_POINTWISE_TRINARY_OPS = [
+    ttnn.addcdiv,
+    ttnn.addcmul,
+    ttnn.mac,
+    ttnn.where,
+]
+
+TTNN_MATRIX_MULPIPLICATION_OPS = [
+    ttnn.matmul,
+    ttnn.linear,
+]
+
+TTNN_DATAMOVE_OPS = [
+    ttnn.reshape,
+    ttnn.permute,
+    #  ttnn.repeat,  in target_wrapper
+    ttnn.concat,
+    #ttnn.split,  # ttnn has no split, remote the comment in the future when it has
+]
+
+TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
+
+TTNN_NORM_OPS = [
+    ttnn.group_norm,
+    ttnn.layer_norm,
+]
+
+
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
 def is_tt_compute(node) -> bool:
     if not is_function_call(node):
         return False
+
+    # if node is the built-in function "getitme", the result of split
+    # we have to check the input of split
+    if node.op == "call_function" and node.target.__name__ == "getitem":
+        return is_tt_compute(node.args[0])
+
     return node.target in set(
+        TTNN_POINTWISE_UNARY_OPS
+        + TTNN_POINTWISE_BINARY_OPS
+        + TTNN_POINTWISE_TRINARY_OPS
+        + TTNN_MATRIX_MULPIPLICATION_OPS
+        + TTNN_TARGET_WRAPPERS
+        + TTNN_DATAMOVE_OPS
+        + TTNN_NORM_OPS
+        +
         [
             ttnn.add,
             ttnn.matmul,
