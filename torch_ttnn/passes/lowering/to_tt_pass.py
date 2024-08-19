@@ -155,6 +155,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.add.Tensor:
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
 
+        if target == torch.ops.aten.atan2.default:
+            return self.call_function_prop_meta(ttnn.atan2, args, kwargs)
+
         if target == torch.ops.aten.eq.Tensor:
             return self.call_function_prop_meta(ttnn.eq, args, kwargs)
 
