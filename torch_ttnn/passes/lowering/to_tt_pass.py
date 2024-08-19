@@ -117,17 +117,46 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.tanh.default:
             return self.call_function_prop_meta(ttnn.tanh, args, kwargs)
         ############################################################
-        # Other ops
+        # Bivariate functions
         ############################################################
-        if target == torch.ops.aten.sub.Tensor:
-            return self.call_function_prop_meta(ttnn.sub, args, kwargs)
+        if target == torch.ops.aten.add.Tensor:
+            return self.call_function_prop_meta(ttnn.add, args, kwargs)
+        if target == torch.ops.aten.eq.Tensor:
+            return self.call_function_prop_meta(ttnn.eq, args, kwargs)
+        if target == torch.ops.aten.gt.Tensor:
+            return self.call_function_prop_meta(ttnn.gt, args, kwargs)
+        if target == torch.ops.aten.logical_and.default:
+            return self.call_function_prop_meta(ttnn.logical_and, args, kwargs)
+        if target == torch.ops.aten.logical_or.default:
+            return self.call_function_prop_meta(ttnn.logical_or, args, kwargs)
+        if target == torch.ops.aten.logical_xor.default:
+            return self.call_function_prop_meta(ttnn.logical_xor, args, kwargs)
+        if target == torch.ops.aten.lt.Tensor:
+            return self.call_function_prop_meta(ttnn.lt, args, kwargs)
+        if target == torch.ops.aten.maximum.default:
+            return self.call_function_prop_meta(ttnn.maximum, args, kwargs)
+        if target == torch.ops.aten.minimum.default:
+            return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
+        if target == torch.ops.aten.mul.Tensor:
+            return self.call_function_prop_meta(ttnn.mul, args, kwargs)
+        if target == torch.ops.aten.ne.Tensor:
+            return self.call_function_prop_meta(ttnn.ne, args, kwargs)
+        if target == torch.ops.aten.pow.Tensor_Tensor:
+            return self.call_function_prop_meta(ttnn.pow, args, kwargs)
+        if target == torch.ops.aten.pow.Tensor_Scalar:
+            return self.call_function_prop_meta(ttnn.pow, args, kwargs)
         if target == torch.ops.aten.rsub.Tensor:
             # TODO(kevinwuMCW): handle alpha parameter if exists
             return self.call_function_prop_meta(
                 ttnn.sub, (args[1], args[0]), kwargs
             )
-        if target == torch.ops.aten.mul.Tensor:
-            return self.call_function_prop_meta(ttnn.mul, args, kwargs)
+        if target == torch.ops.aten.sub.Tensor:
+            return self.call_function_prop_meta(ttnn.sub, args, kwargs)
+        if target == torch.ops.aten.xlogy.Tensor:
+            return self.call_function_prop_meta(ttnn.xlogy, args, kwargs)
+        ############################################################
+        # Other ops
+        ############################################################
         if target == torch.ops.aten._softmax.default:
             return self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
         
@@ -147,8 +176,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
         if target == torch.ops.aten.tril.default:
             return self.call_function_prop_meta(ttnn.tril, args, kwargs)
-        if target == torch.ops.aten.logical_not.default:
-            return self.call_function_prop_meta(ttnn.logical_not, args, kwargs)
         if target == torch.ops.aten.zeros_like.default:
             return self.call_function_prop_meta(ttnn.zeros_like, args, {})
         if target == torch.ops.aten.mean.dim:
@@ -156,12 +183,8 @@ class ReplaceMoreTt(torch.fx.Transformer):
             new_args = list(args)
             new_args[1] = tuple(args[1]) if len(args[1]) > 1 else args[1][0]
             return self.call_function_prop_meta(ttnn.mean, tuple(new_args), kwargs)
-        if target == torch.ops.aten.add.Tensor:
-            return self.call_function_prop_meta(ttnn.add, args, kwargs)
         if target == torch.ops.aten.mm.default:
             return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
-        if target == torch.ops.aten.pow.Tensor_Scalar:
-            return self.call_function_prop_meta(ttnn.pow, args, kwargs)
         if target == torch.ops.aten._adaptive_avg_pool2d.default:
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(
@@ -174,8 +197,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             if args[1] == 0:
                 return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
             return self.call_function_prop_meta(target, args, kwargs)
-        if target == torch.ops.aten.lt.Tensor:
-            return self.call_function_prop_meta(ttnn.lt, args, kwargs)
         if target == torch.ops.aten.min.default:
             return self.call_function_prop_meta(ttnn.min, args, kwargs)
 
