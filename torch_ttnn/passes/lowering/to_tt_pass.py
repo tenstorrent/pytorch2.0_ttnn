@@ -49,6 +49,76 @@ class ReplaceMoreTt(torch.fx.Transformer):
     def call_function(self, target, args, kwargs):
         if are_args_from_int_output_ops(args):
             call_func = self.call_function_prop_meta(target, args, kwargs)
+        ############################################################
+        # Univariate functions
+        ############################################################
+        elif target == torch.ops.aten.abs.default:
+            call_func = self.call_function_prop_meta(ttnn.abs, args, kwargs)
+        elif target == torch.ops.aten.acos.default:
+            call_func = self.call_function_prop_meta(ttnn.acos, args, kwargs)
+        elif target == torch.ops.aten.acosh.default:
+            call_func = self.call_function_prop_meta(ttnn.acosh, args, kwargs)
+        elif target == torch.ops.aten.asin.default:
+            call_func = self.call_function_prop_meta(ttnn.asin, args, kwargs)
+        elif target == torch.ops.aten.asinh.default:
+            call_func = self.call_function_prop_meta(ttnn.asinh, args, kwargs)
+        elif target == torch.ops.aten.atan.default:
+            call_func = self.call_function_prop_meta(ttnn.atan, args, kwargs)
+        elif target == torch.ops.aten.atanh.default:
+            call_func = self.call_function_prop_meta(ttnn.atanh, args, kwargs)
+        elif target == torch.ops.aten.cos.default:
+            call_func = self.call_function_prop_meta(ttnn.cos, args, kwargs)
+        elif target == torch.ops.aten.cosh.default:
+            call_func = self.call_function_prop_meta(ttnn.cosh, args, kwargs)
+        elif target == torch.ops.aten.erf.default:
+            call_func = self.call_function_prop_meta(ttnn.erf, args, kwargs)
+        elif target == torch.ops.aten.exp.default:
+            call_func = self.call_function_prop_meta(ttnn.exp, args, kwargs)
+        elif target == torch.ops.aten.expm1.default:
+            call_func = self.call_function_prop_meta(ttnn.expm1, args, kwargs)
+        elif target == torch.ops.aten.gelu.default:
+            call_func = self.call_function_prop_meta(ttnn.gelu, args, kwargs)
+        elif target == torch.ops.aten.isinf.default:
+            call_func = self.call_function_prop_meta(ttnn.isinf, args, kwargs)
+        elif target == torch.ops.aten.isnan.default:
+            call_func = self.call_function_prop_meta(ttnn.isnan, args, kwargs)
+        elif target == torch.ops.aten.log.default:
+            call_func = self.call_function_prop_meta(ttnn.log, args, kwargs)
+        elif target == torch.ops.aten.log10.default:
+            call_func = self.call_function_prop_meta(ttnn.log10, args, kwargs)
+        elif target == torch.ops.aten.log1p.default:
+            call_func = self.call_function_prop_meta(ttnn.log1p, args, kwargs)
+        elif target == torch.ops.aten.log2.default:
+            call_func = self.call_function_prop_meta(ttnn.log2, args, kwargs)
+        elif target == torch.ops.aten.logical_not.default:
+            call_func = self.call_function_prop_meta(ttnn.logical_not, args, kwargs)
+        elif target == torch.ops.aten.neg.default:
+            call_func = self.call_function_prop_meta(ttnn.neg, args, kwargs)
+        elif target == torch.ops.aten.reciprocal.default:
+            call_func = self.call_function_prop_meta(ttnn.reciprocal, args, kwargs)
+        elif target == torch.ops.aten.relu.default:
+            call_func = self.call_function_prop_meta(ttnn.relu, args, kwargs)
+        elif target == torch.ops.aten.rsqrt.default:
+            call_func = self.call_function_prop_meta(ttnn.rsqrt, args, kwargs)
+        elif target == torch.ops.aten.sigmoid.default:
+            call_func = self.call_function_prop_meta(ttnn.sigmoid, args, kwargs)
+        elif target == torch.ops.aten.sign.default:
+            call_func = self.call_function_prop_meta(ttnn.sign, args, kwargs)
+        elif target == torch.ops.aten.sin.default:
+            call_func = self.call_function_prop_meta(ttnn.sin, args, kwargs)
+        elif target == torch.ops.aten.sinh.default:
+            call_func = self.call_function_prop_meta(ttnn.sinh, args, kwargs)
+        elif target == torch.ops.aten.silu.default:
+            call_func = self.call_function_prop_meta(ttnn.silu, args, kwargs)
+        elif target == torch.ops.aten.sqrt.default:
+            call_func = self.call_function_prop_meta(ttnn.sqrt, args, kwargs)
+        elif target == torch.ops.aten.tan.default:
+            call_func = self.call_function_prop_meta(ttnn.tan, args, kwargs)
+        elif target == torch.ops.aten.tanh.default:
+            call_func = self.call_function_prop_meta(ttnn.tanh, args, kwargs)
+        ############################################################
+        # Other ops
+        ############################################################
         elif target == torch.ops.aten.sub.Tensor:
             call_func = self.call_function_prop_meta(ttnn.sub, args, kwargs)
         elif target == torch.ops.aten.rsub.Tensor:
@@ -60,8 +130,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func = self.call_function_prop_meta(ttnn.mul, args, kwargs)
         elif target == torch.ops.aten._softmax.default:
             call_func = self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
-        elif target == torch.ops.aten.tanh.default:
-            call_func = self.call_function_prop_meta(ttnn.tanh, args, kwargs)
+        
         elif target == torch.ops.aten.view.default:
             # aten.reshape is more stable if the input nodes have changed
             call_func = self.call_function_prop_meta(
@@ -69,18 +138,13 @@ class ReplaceMoreTt(torch.fx.Transformer):
             )
         elif target == torch.ops.aten.permute.default:
             call_func = self.call_function_prop_meta(ttnn.permute, args, kwargs)
-        elif target == torch.ops.aten.relu.default:
-            call_func = self.call_function_prop_meta(ttnn.relu, args, kwargs)
+        
         elif target == torch.ops.aten.addmm.default:
             # TODO(kevinwuMCW): include beta, alpha, and optional args
             mm = self.call_function_prop_meta(ttnn.matmul, (args[1], args[2]), kwargs)
             call_func = self.call_function_prop_meta(ttnn.add, (args[0], mm), kwargs)
         elif target == torch.ops.aten.bmm.default:
             call_func = self.call_function_prop_meta(ttnn.matmul, args, kwargs)
-        elif target == torch.ops.aten.gelu.default:
-            call_func = self.call_function_prop_meta(ttnn.gelu, args, kwargs)
-        elif target == torch.ops.aten.neg.default:
-            call_func = self.call_function_prop_meta(ttnn.neg, args, kwargs)
         elif target == torch.ops.aten.tril.default:
             call_func = self.call_function_prop_meta(ttnn.tril, args, kwargs)
         elif target == torch.ops.aten.logical_not.default:
@@ -98,10 +162,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             call_func = self.call_function_prop_meta(ttnn.matmul, args, kwargs)
         elif target == torch.ops.aten.pow.Tensor_Scalar:
             call_func = self.call_function_prop_meta(ttnn.pow, args, kwargs)
-        elif target == torch.ops.aten.rsqrt.default:
-            call_func = self.call_function_prop_meta(ttnn.rsqrt, args, kwargs)
-        elif target == torch.ops.aten.silu.default:
-            call_func = self.call_function_prop_meta(ttnn.silu, args, kwargs)
         elif target == torch.ops.aten._adaptive_avg_pool2d.default:
             # assumes output size is (1, 1)
             call_func = self.call_function_prop_meta(
@@ -117,10 +177,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 call_func = self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
         elif target == torch.ops.aten.lt.Tensor:
             call_func = self.call_function_prop_meta(ttnn.lt, args, kwargs)
-        elif target == torch.ops.aten.cos.default:
-            call_func = self.call_function_prop_meta(ttnn.cos, args, kwargs)
-        elif target == torch.ops.aten.sigmoid.default:
-            call_func = self.call_function_prop_meta(ttnn.sigmoid, args, kwargs)
         elif target == torch.ops.aten.min.default:
             call_func = self.call_function_prop_meta(ttnn.min, args, kwargs)
         else:
