@@ -91,6 +91,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.gelu.default:
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
+        
+        if target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
+            return self.call_function_prop_meta(ttnn.clip, args, kwargs)
 
         if target == torch.ops.aten.isinf.default:
             return self.call_function_prop_meta(ttnn.isinf, args, kwargs)
