@@ -1,21 +1,17 @@
 import torch
 import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
-from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
+from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_compute
 
 from torch_ttnn.mem_utils import *
 
-import json
-import os
-from pathlib import Path
 
 
 def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-
     mm = MemoryManager(device_name, cores, L1_mem, circular_buffer)
 
     op_registry = OpRegistry()
-
+    mm.logs += "Track memory footprint for each of the ops:\n"
     print("Track memory footprint for each of the ops:")
     nodes = list(gm.graph.nodes)
 
@@ -51,6 +47,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     #     print(f"Node: {key} - {value}")
 
     # Tracks the total compute memory of the model
+    mm.logs += f"Total tt compute nodes: {tt_compute_count}\n"
     print(f"Total tt compute nodes: {tt_compute_count}")
     i = 0
     overflow_ops = []
@@ -59,6 +56,9 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
         on_device = False
         # Has to be a ttnn op
         if is_tt_compute(node):
+            mm.logs += "---------------------------------------------------\n"
+            print("\n---------------------------------------------------")
+            mm.logs += f"tt compute node numbered: {i}\n"
             print(f"tt compute node numbered: {i}")
             i += 1
             # Exception: Full node has no input
@@ -128,16 +128,20 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if (tid, output_size) not in on_device_meta:
                     on_device_meta.append((tid, output_size))
 
-                data_points[(node.name, tid, "to_device")] = on_device_meta.copy()
+                data_points[(node.name, tid)] = on_device_meta.copy()
 
                 if mm.used_sram >= SRAM_LIMIT:
                     overflow_ops.append(node)
 
-                print("\n---------------------------------------------------")
+                mm.logs += f"op execution on device: {node.name}\n"
+                mm.logs += f"input size: {total_input_size} bytes\n"
+                mm.logs += f"output size: {output_size} bytes\n"
+                mm.logs += f"total SRAM usage: {mm.used_sram} bytes\n"
+
                 print(f"op execution on device: {node.name}")
                 print(f"input size: {total_input_size} bytes")
                 print(f"output size: {output_size} bytes")
-                print(f"total compute memory parked in L1: {mm.used_sram} bytes")
+                print(f"total SRAM usage: {mm.used_sram} bytes")
 
                 # This part of code is to assess whether we can swap out output tensor from device
                 node_users = list(node.users.keys())
@@ -163,9 +167,13 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                     on_device_meta.remove((tid, output_size))
 
+                    mm.logs += f"op removed from device: {node.name}\n"
+                    mm.logs += f"output size: {output_size} bytes\n"
+                    mm.logs += f"total SRAM usage: {mm.used_sram} bytes\n"
+
                     print(f"op removed from device: {node.name}")
                     print(f"output size: {output_size} bytes")
-                    print(f"total compute memory parked in L1: {mm.used_sram} bytes")
+                    print(f"total SRAM usage: {mm.used_sram} bytes")
                 # Once current node's input & output tensor processing is over, mark it as computed
                 computed_nodes.append(node)
                 # Swap out input tensors from device if its usage is completed
@@ -190,31 +198,37 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         mm.tensors_on_device.remove(tid)
                         on_device_meta.remove((tid, input_size))
 
+                        mm.logs += f"input tensor removed from device: {input_size} bytes\n"
+                        mm.logs += f"total SRAM usage: {mm.used_sram} bytes\n"
+
                         print(f"input tensor removed from device: {input_size} bytes")
                         print(
-                            f"total compute memory parked in L1: {mm.used_sram} bytes"
+                            f"total SRAM usage: {mm.used_sram} bytes"
                         )
 
                 # data_points[(node.name, "from_device")] = on_device_meta.copy()
 
+    mm.logs += f"Tensor IDs to address map in SRAM:\n"
+    mm.logs += f"{mm.tid_to_addr_map_in_sram}\n"
+    mm.logs += f"----------------------------------------------------------------\n"
+    mm.logs += f"These ttnn ops overflow the SRAM buffer:\n"
+
     print(f"Tensor IDs to address map in SRAM:")
     print(f"{mm.tid_to_addr_map_in_sram}")
     print(f"----------------------------------------------------------------")
-    print(f"These ttnn ops overflow the L1 buffer:")
+    print(f"These ttnn ops overflow the SRAM buffer:")
     for op in overflow_ops:
+        mm.logs += f"{op}, "
         print(op)
+    mm.logs += f"Data captured for plotting on a chart:\n"
     print(f"Data captured for plotting on a chart:")
     for key, value in data_points.items():
+        mm.logs += f"{key}: {value}\n"
         print(f"{key}: {value}")
-    # Save the data points to a file
-    p = Path(f"data/memory")
-    os.makedirs(p, exist_ok=True)
+    
     # Convert dictionary keys to strings
     data_str_keys = {str(key): value for key, value in data_points.items()}
     mm.data_points = data_str_keys
-
-    with open("./data/memory/memory_footprint.txt", "w") as f:
-        json.dump(data_str_keys, f)
 
     return gm, mm
 

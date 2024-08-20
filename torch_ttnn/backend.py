@@ -107,8 +107,9 @@ def aten_backend(
         PermuteReshapeTuple(),
     ]
 
+    mem_pass = MemoryPass()
     if option.run_mem_analysis:
-        passes.append(MemoryPass())
+        passes.append(mem_pass)
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
@@ -136,9 +137,7 @@ def aten_backend(
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
-        for p in passes:
-            if isinstance(p, MemoryPass):
-                option._memory_manager = p.memory_manager
+        option._memory_manager = mem_pass.memory_manager
 
     # Run eviction opt pass if enabled
     if option.run_eviction_opt == True:

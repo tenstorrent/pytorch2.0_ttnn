@@ -9,7 +9,6 @@ from torch_ttnn.mem_utils import *
 def evict_tensors_from_device(
     gm: torch.fx.GraphModule, mm: MemoryManager, guilty_op: str, tensors_to_evict: list
 ) -> torch.fx.GraphModule:
-
     assert len(tensors_to_evict) != 0, "Tensors to be evicted list must not be empty."
     topo_sorted_nodelist = list(gm.graph.nodes)
     print(topo_sorted_nodelist)

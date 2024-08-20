@@ -101,6 +101,19 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 compiled_memory_metric = {"fits_in_memory": "No"}
             else:
                 compiled_memory_metric = {"fits_in_memory": "Yes"}
+
+            # These are for plotting charts for later inspection
+            from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart
+
+            bar_chart_file = f"metrics/{model_name}/bar_chart.png"
+            line_chart_file = f"metrics/{model_name}/line_chart.png"
+            plot_bar_chart(mm.data_points, bar_chart_file)
+            plot_line_chart(mm.data_points, line_chart_file)
+
+            log_file = f"metrics/{model_name}/memory_footprint.txt"
+            with open(log_file, "w") as f:
+                f.write(mm.logs)
+
             memory_analysis_flag = True
 
     except Exception as e:

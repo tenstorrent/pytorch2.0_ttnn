@@ -2,10 +2,7 @@ import matplotlib.pyplot as plt
 import json
 
 
-def plot_bar_chart(src_file, dest_file):
-    # Load the data points from the file
-    with open(src_file, "r") as f:
-        data_points = json.load(f)
+def plot_bar_chart(data_points, dest_file):
     # Convert the keys back to tuples
     data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)
@@ -86,10 +83,7 @@ def plot_bar_chart(src_file, dest_file):
     plt.show()
 
 
-def plot_line_chart(src_file, dest_file):
-    # Load the data points from the file
-    with open(src_file, "r") as f:
-        data_points = json.load(f)
+def plot_line_chart(data_points, dest_file):
     # Convert the keys back to tuples
     data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)

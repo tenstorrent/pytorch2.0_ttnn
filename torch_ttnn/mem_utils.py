@@ -32,6 +32,7 @@ class MemoryManager:
         self.ops_mem_usage = {}
         self.tid_to_addr_map_in_sram = {}
         self.data_points = {}
+        self.logs = ""
 
     def has_sram_overflow(self):
         for node_name, sram_usage in self.sram_usage_at.items():
