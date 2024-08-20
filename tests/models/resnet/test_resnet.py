@@ -19,6 +19,3 @@ def test_resnet(record_property):
 
     # Check inference result
     record_property("torch_ttnn", (model, input_batch, output))
-
-    # Memory analysis
-    record_property("memory_analysis", (model, input_batch))

@@ -57,9 +57,6 @@ def test_mnist_train(record_property):
 
     record_property("torch_ttnn", (m, test_input, outputs))
 
-    # Memory analysis
-    record_property("memory_analysis", (m, test_input))
-
 
 def test_mnist_eval(record_property):
     record_property("model_name", "Mnist (Eval)")
@@ -81,6 +78,3 @@ def test_mnist_eval(record_property):
         outputs = m(test_input)
 
     record_property("torch_ttnn", (m, test_input, outputs))
-
-    # Memory analysis
-    record_property("memory_analysis", (m, test_input))

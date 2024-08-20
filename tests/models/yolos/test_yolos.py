@@ -62,6 +62,3 @@ def test_yolos(record_property):
     )
 
     record_property("torch_ttnn", (m, inputs, outputs))
-
-    # Memory analysis
-    record_property("memory_analysis", (m, inputs))
