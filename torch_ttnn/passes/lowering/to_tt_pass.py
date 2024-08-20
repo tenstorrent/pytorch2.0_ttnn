@@ -146,12 +146,28 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
+
+
+# Assumptions:
+# layout: TILE_LAYOUT
+# dtype: bfloat16
+# buffer: interleaved
+# TILE_W: TILE_WIDTH * TILE_HEIGHT = 32 * 32 = 1024
 def has_valid_page_size(shape):
     assert len(shape) > 0, f"has_valid_page_size requires rank of {shape} > 0"
-    return len(shape) >= 2 and (
-        (shape[-1] > 1 and shape[-1] < 31)
-        or (shape[-1] >= 32 and (shape[-1] % 32 == 0))
-    )
+    size = np.prod(shape) * 2  # sizeof(bfloat16) == 2
+    page_size = 1024
+    valid_page_size = size % page_size == 0
+    return valid_page_size
+
+
+# Assumptions:
+# layout: ROW_MAJOR_LAYOUT
+# dtype: bfloat16
+def has_valid_page_size_row_major(shape):
+    assert len(shape) > 0, f"has_valid_page_size_row_major requires rank of {shape} > 0"
+    page_size = shape[-1] * 2  # sizeof(bfloat16) == 2
+    return page_size % 4 == 0  # sizeof(uint32_t) == 4
 
 
 # override some functions from torch.fx.graph.Graph
@@ -316,7 +332,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and has_valid_page_size_row_major(shape):
                     # NOTE(kevinwuTT): Only bfloat16 seems to work for now
                     # TODO(kevinwuTT): Use ttnn.full instead of aten
                     new_kwargs = {
@@ -342,7 +358,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and has_valid_page_size_row_major(shape):
                     if isinstance(args[1], float):
                         new_kwargs = {
                             "fill_value": args[1],
