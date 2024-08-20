@@ -268,12 +268,8 @@ if __name__ == "__main__":
         # Load run time metrics
         original_runtime_metrics_path = model_path / "original-run_time_metrics.pickle"
         compiled_runtime_metrics_path = model_path / "compiled-run_time_metrics.pickle"
-        compiled_memory_metrics_path = model_path / "compiled_memory_metrics.pickle"
-        peak_sram_usage_metrics_path = model_path / "peak_sram_usage_metrics.pickle"
         original_runtime_metrics = load_pickle(original_runtime_metrics_path)
         compiled_runtime_metrics = load_pickle(compiled_runtime_metrics_path)
-        compiled_memory_metrics = load_pickle(compiled_memory_metrics_path)
-        peak_sram_usage_metrics = load_pickle(peak_sram_usage_metrics_path)
         # Both run time files should exist
         assert (
             original_runtime_metrics
@@ -281,8 +277,6 @@ if __name__ == "__main__":
         assert (
             compiled_runtime_metrics
         ), f"{compiled_runtime_metrics_path} file not found"
-        assert compiled_memory_metrics, f"{compiled_memory_metrics_path} file not found"
-        assert peak_sram_usage_metrics, f"{peak_sram_usage_metrics_path} file not found"
         # Add links that point to the directory of the model in the model name
         assert (
             "model_path" in original_runtime_metrics
@@ -385,9 +379,9 @@ if __name__ == "__main__":
             compiled_runtime_metrics["success"]
         ]
 
-        pydantic_model.fit_in_memory = compiled_memory_metrics["fits_in_memory"]
+        pydantic_model.fit_in_memory = compiled_runtime_metrics["fits_in_memory"]
 
-        pydantic_model.peak_sram_usage = peak_sram_usage_metrics["peak_sram_usage"]
+        pydantic_model.peak_sram_usage = compiled_runtime_metrics["peak_sram_usage"]
 
         # Concatenate all the metrics together
         cat_metrics = {
@@ -396,8 +390,6 @@ if __name__ == "__main__":
             **ops_metrics,
             **accuracy_metric,
             **model_metric,
-            **compiled_memory_metrics,
-            **peak_sram_usage_metrics,
         }
         # Remap original keys with header descriptions to prepare for markdown table
         cat_metrics_remapped = {}

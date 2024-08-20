@@ -79,15 +79,14 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             # Memory analysis
             mm = option.memory_manager
-            compiled_memory_metric = {}
             # Convert bytes to MB
             peak_usage = mm.peak_sram_usage / 1048576
-            peak_sram_usage_metric = {"peak_sram_usage": peak_usage}
+            comp_runtime_metrics["peak_sram_usage"] = peak_usage
 
             if mem_utils.check_sram_overflow(mm) is True:
-                compiled_memory_metric = {"fits_in_memory": "No"}
+                comp_runtime_metrics["fits_in_memory"] = "No"
             else:
-                compiled_memory_metric = {"fits_in_memory": "Yes"}
+                comp_runtime_metrics["fits_in_memory"] = "Yes"
 
             # These are for plotting charts for later inspection
             from tools.plot_chart import (
@@ -105,9 +104,11 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 f.write(mm.logs)
 
         except Exception as e:
-            comp_runtime_metrics = {"success": False}
-            compiled_memory_metric = {"fits_in_memory": "N/A"}
-            peak_sram_usage_metric = {"peak_sram_usage": 0}
+            comp_runtime_metrics = {
+                "success": False,
+                "fits_in_memory": "N/A",
+                "peak_sram_usage": 0,
+            }
             print(f"{model_name} compiled failed to run. Raised exception: {e}")
             raise
 
@@ -115,9 +116,3 @@ def compile_and_run(device, reset_torch_dynamo, request):
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
-            compiled_memory_metrics_path = p / f"compiled_memory_metrics.pickle"
-            with open(compiled_memory_metrics_path, "wb") as f:
-                pickle.dump(compiled_memory_metric, f)
-            peak_sram_usage_metric_path = p / f"peak_sram_usage_metrics.pickle"
-            with open(peak_sram_usage_metric_path, "wb") as f:
-                pickle.dump(peak_sram_usage_metric, f)
