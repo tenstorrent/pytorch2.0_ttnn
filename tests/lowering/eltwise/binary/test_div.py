@@ -15,7 +15,7 @@ class DivModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)], [(64, 128), (64, 128)]],
+    (((32, 32), (32, 32)), ((64,), (32, 64)), ((64, 32), (64, 1)), ((64, 1), (1, 64))),
 )
 def test_div(device, input_shapes):
     m = DivModule()

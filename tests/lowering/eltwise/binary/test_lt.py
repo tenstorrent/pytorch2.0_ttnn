@@ -16,7 +16,7 @@ class LtModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    (((4, 4), (4, 4)), ((1, 8), (8, 1))),
+    (((32, 32), (32, 32)), ((64,), (32, 64)), ((64, 32), (64, 1)), ((64, 1), (1, 64))),
 )
 def test_lt_tensor(device, input_shapes):
     m = LtModule()
@@ -67,4 +67,4 @@ def test_lt_scalar(device, input_shapes):
         if node.target == ttnn.full:
             assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
-    assert_with_pcc(result_before, result_after)
+    assert torch.allclose(result_before, result_after)

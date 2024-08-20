@@ -3,7 +3,6 @@ import torch
 import torch_ttnn
 import pytest
 import ttnn
-from tests.utils import assert_with_pcc
 
 class MinimumModule(torch.nn.Module):
     def __init__(self):
@@ -15,7 +14,7 @@ class MinimumModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    (((4, 4), (4, 4)), ((1, 8), (8, 1))),
+    (((32, 32), (32, 32)), ((64,), (32, 64)), ((64, 32), (64, 1)), ((64, 1), (1, 64))),
 )
 def test_minimum(device, input_shapes):
     m = MinimumModule()
@@ -33,4 +32,4 @@ def test_minimum(device, input_shapes):
     assert [node.target for node in nodes].count(ttnn.minimum) == 1
 
     # Check inference result
-    assert_with_pcc(result_before, result_after)
+    assert torch.allclose(result_before, result_after)

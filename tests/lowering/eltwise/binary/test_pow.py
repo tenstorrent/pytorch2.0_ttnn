@@ -15,7 +15,7 @@ class PowModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    (((4, 4), (4, 4)), ((1, 8), (8, 1))),
+    (((4, 4), (4, 4)), ((8, 1), (8, 8)), ((1, 8), (8, 1))),
 )
 def test_pow(device, input_shapes):
     m = PowModule()
