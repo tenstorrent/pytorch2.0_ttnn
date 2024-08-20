@@ -16,13 +16,20 @@ torch._dynamo.config.verbose = True
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device, gen_graphviz=False, metrics_path=""):
+    def __init__(
+        self,
+        device: ttnn.Device,
+        gen_graphviz=False,
+        run_mem_analysis=False,
+        run_eviction_opt=False,
+        metrics_path="",
+    ):
         self.device = device
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
-        self._memory_manager = None
-        self.run_mem_analysis = False
-        self.run_eviction_opt = False
+        self.memory_manager = None
+        self.run_mem_analysis = run_mem_analysis
+        self.run_eviction_opt = run_eviction_opt
 
         if metrics_path:
             p = Path(f"metrics/{metrics_path}")
@@ -137,7 +144,7 @@ def aten_backend(
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
-        option._memory_manager = mem_pass.memory_manager
+        option.memory_manager = mem_pass.memory_manager
 
     # Run eviction opt pass if enabled
     if option.run_eviction_opt == True:
@@ -146,12 +153,17 @@ def aten_backend(
         ), "Eviction pass depends on memory analysis pass!"
         from torch_ttnn.passes.eviction_pass import EvictionPass
 
-        mm = option._memory_manager
         nth_eviction = 1
+        max_evictions_limit = option.memory_manager.max_evictions_required()
+
         # See if SRAM overflows and eviction is required
-        while mem_utils.check_sram_overflow(mm) is True:
-            # if check_sram_overflow(mm) is True:
-            guilty_op, tensors_to_evict = mem_utils.which_tensors_to_evict(mm)
+        while mem_utils.check_sram_overflow(option.memory_manager) is True:
+            if nth_eviction > max_evictions_limit:
+                assert False, "Max evictions done, still model doesn't fit in memory!"
+
+            guilty_op, tensors_to_evict = mem_utils.which_tensors_to_evict(
+                option.memory_manager
+            )
             # This indicates splitting is required
             if tensors_to_evict == -1:
                 break
@@ -159,10 +171,11 @@ def aten_backend(
             # This pass only evicts tensors for a single ttnn op which overflows the SRAM
             # Multiple overflows require multiple run of this pass
 
+            mem_pass = MemoryPass()
             passes = [
-                EvictionPass(mm, guilty_op, tensors_to_evict),
+                EvictionPass(option.memory_manager, guilty_op, tensors_to_evict),
                 GraphvizPass(f"eviction-pass-{nth_eviction}"),
-                MemoryPass(),
+                mem_pass,
             ]
             pm = PassManager(passes=passes)
             gm, modified = pm(gm)
@@ -171,10 +184,7 @@ def aten_backend(
             gm.recompile()
 
             # Get the memory manager object for memory analysis
-            for p in passes:
-                if isinstance(p, MemoryPass):
-                    option._memory_manager = p.memory_manager
-                    mm = p.memory_manager
+            option.memory_manager = mem_pass.memory_manager
             nth_eviction += 1
 
     if option.metrics_path:

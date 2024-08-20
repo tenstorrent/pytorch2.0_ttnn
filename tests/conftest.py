@@ -56,9 +56,11 @@ def compile_and_run(device, reset_torch_dynamo, request):
             assert "forward" in dir(model), f"forward() not implemented in {model_name}"
             # Compile model with ttnn backend
             option = torch_ttnn.TorchTtnnOption(
-                device=device, gen_graphviz=True, metrics_path=model_name
+                device=device,
+                gen_graphviz=True,
+                run_mem_analysis=True,
+                metrics_path=model_name,
             )
-            option.run_mem_analysis = True
             m = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
             start = time.perf_counter() * 1000
@@ -76,8 +78,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 comp_runtime_metrics["accuracy"] = accuracy
 
             # Memory analysis
-            mm = option._memory_manager
+            mm = option.memory_manager
             compiled_memory_metric = {}
+            # Convert bytes to MB
             peak_usage = mm.peak_sram_usage / 1048576
             peak_sram_usage_metric = {"peak_sram_usage": peak_usage}
 
@@ -87,12 +90,15 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 compiled_memory_metric = {"fits_in_memory": "Yes"}
 
             # These are for plotting charts for later inspection
-            from tools.plot_chart import plot_bar_chart, plot_line_chart
+            from tools.plot_chart import (
+                plot_mem_footprint_bar_chart,
+                plot_mem_footprint_line_chart,
+            )
 
             bar_chart_file = f"metrics/{model_name}/bar_chart.png"
             line_chart_file = f"metrics/{model_name}/line_chart.png"
-            plot_bar_chart(mm.data_points, bar_chart_file)
-            plot_line_chart(mm.data_points, line_chart_file)
+            plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
+            plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
 
             log_file = f"metrics/{model_name}/memory_footprint.txt"
             with open(log_file, "w") as f:

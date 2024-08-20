@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
-import json
 
 
-def plot_bar_chart(data_points, dest_file):
+def plot_mem_footprint_bar_chart(data_points, dest_file):
     # Convert the keys back to tuples
     data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)
@@ -77,13 +76,13 @@ def plot_bar_chart(data_points, dest_file):
     plt.tight_layout()
 
     # Save the plot as a JPEG or PNG file
-    plt.savefig(dest_file, format="png", dpi=300)
+    plt.savefig(dest_file, format="png", dpi=100)
 
     # Show the plot
     plt.show()
 
 
-def plot_line_chart(data_points, dest_file):
+def plot_mem_footprint_line_chart(data_points, dest_file):
     # Convert the keys back to tuples
     data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)
@@ -129,7 +128,7 @@ def plot_line_chart(data_points, dest_file):
     plt.tight_layout()
 
     # Save the plot as a JPEG or PNG file
-    plt.savefig(dest_file, format="png", dpi=300)
+    plt.savefig(dest_file, format="png", dpi=100)
 
     # Show the plot
     plt.show()

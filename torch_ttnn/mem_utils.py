@@ -6,9 +6,9 @@ import torch
 # Configs
 device_name = "wormhole"
 cores = 120
-SRAM_LIMIT = 104857600  # 100 * 1024 * 1024 bytes (100 MB)
 L1_mem = 1048576  # 1 MB
 circular_buffer = 20 * 1048576  # 20 MB
+# SRAM_LIMIT = cores * L1_mem - circular_buffer (100 MB in this case)
 
 
 # This will manage all memory related operations & data
@@ -36,7 +36,7 @@ class MemoryManager:
         self.logs = ""
 
     def has_sram_overflow(self):
-        for node_name, sram_usage in self.sram_usage_at.items():
+        for _, sram_usage in self.sram_usage_at.items():
             if sram_usage >= self.usable_sram_limit:
                 return True
         return False
@@ -47,6 +47,13 @@ class MemoryManager:
             if sram_usage > peak_sram_usage:
                 peak_sram_usage = sram_usage
         self.peak_sram_usage = peak_sram_usage
+
+    def max_evictions_required(self):
+        max_evictions = 0
+        for _, sram_usage in self.sram_usage_at.items():
+            if sram_usage >= self.usable_sram_limit:
+                max_evictions += 1
+        return max_evictions
 
 
 # This holds op related information one can query from

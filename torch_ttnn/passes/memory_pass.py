@@ -129,7 +129,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 data_points[(node.name, tid)] = on_device_meta.copy()
 
-                if mm.used_sram >= SRAM_LIMIT:
+                if mm.used_sram >= mm.usable_sram_limit:
                     overflow_ops.append(node)
 
                 mm.logs += f"op execution on device: {node.name}\n"
