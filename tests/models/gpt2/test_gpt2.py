@@ -1,11 +1,9 @@
 import torch
-import pytest
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
-@pytest.mark.xfail
 def test_gpt2(record_property):
     record_property("model_name", "GPT-2")
 
@@ -21,7 +19,13 @@ def test_gpt2(record_property):
 
     # Set up sample input
     test_input = "This is a sample text from "
-    inputs = tokenizer(test_input, return_tensors="pt")
+    inputs = tokenizer(
+        test_input,
+        return_tensors="pt",
+        max_length=32,
+        padding="max_length",
+        truncation=True,
+    )
 
     # Run inference with the original model
     with torch.no_grad():
