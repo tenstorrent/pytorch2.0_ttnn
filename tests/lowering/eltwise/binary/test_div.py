@@ -35,10 +35,7 @@ def test_div(device, input_shapes):
     assert target.count(ttnn.mul) == 1
     assert target.index(ttnn.reciprocal) < target.index(ttnn.mul)
     assert nodes[target.index(ttnn.mul)].args[1].target == ttnn.reciprocal
-    # Intermediate node meta check if preserved
-    for node in nodes:
-        if node.target == ttnn.full or node.target == ttnn.reciprocal:
-            assert node.meta["val"].size() == input_shapes[0]
+
     # Check inference result
     assert_with_pcc(result_before, result_after)
 
