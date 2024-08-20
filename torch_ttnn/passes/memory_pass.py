@@ -6,7 +6,6 @@ from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_compute
 from torch_ttnn.mem_utils import *
 
 
-
 def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     mm = MemoryManager(device_name, cores, L1_mem, circular_buffer)
 
@@ -198,13 +197,13 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         mm.tensors_on_device.remove(tid)
                         on_device_meta.remove((tid, input_size))
 
-                        mm.logs += f"input tensor removed from device: {input_size} bytes\n"
+                        mm.logs += (
+                            f"input tensor removed from device: {input_size} bytes\n"
+                        )
                         mm.logs += f"total SRAM usage: {mm.used_sram} bytes\n"
 
                         print(f"input tensor removed from device: {input_size} bytes")
-                        print(
-                            f"total SRAM usage: {mm.used_sram} bytes"
-                        )
+                        print(f"total SRAM usage: {mm.used_sram} bytes")
 
                 # data_points[(node.name, "from_device")] = on_device_meta.copy()
 
@@ -212,6 +211,8 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     mm.logs += f"{mm.tid_to_addr_map_in_sram}\n"
     mm.logs += f"----------------------------------------------------------------\n"
     mm.logs += f"These ttnn ops overflow the SRAM buffer:\n"
+
+    mm.set_peak_sram_usage()
 
     print(f"Tensor IDs to address map in SRAM:")
     print(f"{mm.tid_to_addr_map_in_sram}")
@@ -225,7 +226,7 @@ def memory_footprint(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     for key, value in data_points.items():
         mm.logs += f"{key}: {value}\n"
         print(f"{key}: {value}")
-    
+
     # Convert dictionary keys to strings
     data_str_keys = {str(key): value for key, value in data_points.items()}
     mm.data_points = data_str_keys

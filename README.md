@@ -8,17 +8,17 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |
-|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|:-----------------|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    30.89 | 487.81                   | 99.53          | Yes              |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   111.93 | 3630.83                  | 92.42          | Yes              |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  1995.27 | 11020.53                 | 99.99          | Yes              |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 26534.7  | 66222.71                 | 43.08          | No               |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  2166.85 | 43201.61                 | 71.05          | Yes              |
-| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           |                    2 |                161972    | 165600.87                | 100.0          | Yes              |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 63364.9  | 61110.02                 | 99.17          | Yes              |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 39476.5  | N/A                      | N/A            | N/A              |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 329 (12)                        |                  644 |                  1861.64 | N/A                      | N/A            | N/A              |
+| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |   Peak SRAM usage (in MB) |
+|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|:-----------------|--------------------------:|
+| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    31.3  | 861.33                   | 100.0          | Yes              |                    4.5    |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   109.95 | 5338.26                  | 57.38          | Yes              |                    4.5    |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  2013.65 | 12054.95                 | 99.99          | Yes              |                    3.0625 |
+| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 27260.9  | 69308.25                 | 43.08          | No               |                 1470      |
+| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1246.73 | 44352.61                 | 71.05          | Yes              |                   12.2124 |
+| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           |                    2 |                167341    | 166444.26                | 100.0          | Yes              |                    0      |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 63305.1  | 60648.47                 | 99.17          | Yes              |                   60.114  |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 46605.6  | N/A                      | N/A            | N/A              |                    0      |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 329 (12)                        |                  644 |                  1851.25 | N/A                      | N/A            | N/A              |                    0      |
 
 ### Explanation of Metrics
 
@@ -31,6 +31,7 @@ The table below summarizes the results of running various ML models through our 
 **Compiled Run Time (ms)**: Execution time (in seconds) of the model after conversion.  
 **Accuracy (%)**: Model accuracy on a predefined test dataset after conversion.  
 **Fits in memory**: Whether a model is estimated to fit in SRAM memory.  
+**Peak SRAM usage (in MB)**: What is the peak SRAM usage for a model during its execution phase.  
 ***
 **NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  
 

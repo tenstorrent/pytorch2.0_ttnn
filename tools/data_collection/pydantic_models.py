@@ -57,3 +57,7 @@ class ModelRun(BaseModel):
         "N/A", description="Link to the visual chart of memory footprint of the model."
     )
     fit_in_memory: str = Field(None, description="Whether model fits in SRAM.")
+    peak_sram_usage: float = Field(
+        None,
+        description="What is the peak SRAM usage for a model during its execution phase.",
+    )

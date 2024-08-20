@@ -49,16 +49,16 @@ def compile_and_run(device, reset_torch_dynamo, request):
             with open(original_metrics_path, "wb") as f:
                 pickle.dump(runtime_metrics, f)
 
-    try:
-        torch_ttnn_flag = False
-        if "torch_ttnn" in record:
-            model, inputs, outputs = record["torch_ttnn"]
+    if "torch_ttnn" in record:
+        model, inputs, outputs = record["torch_ttnn"]
+        try:
             # check that model contains a forward function
             assert "forward" in dir(model), f"forward() not implemented in {model_name}"
             # Compile model with ttnn backend
             option = torch_ttnn.TorchTtnnOption(
                 device=device, gen_graphviz=True, metrics_path=model_name
             )
+            option.run_mem_analysis = True
             m = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
             start = time.perf_counter() * 1000
@@ -74,36 +74,20 @@ def compile_and_run(device, reset_torch_dynamo, request):
             accuracy = calculate_accuracy(outputs, outputs_after)
             if accuracy:
                 comp_runtime_metrics["accuracy"] = accuracy
-            torch_ttnn_flag = True
 
-        memory_analysis_flag = False
-        if "memory_analysis" in record:
-            model, inputs = record["memory_analysis"]
-            # check that model contains a forward function
-            assert "forward" in dir(model), f"forward() not implemented in {model_name}"
-            # Compile model with ttnn backend
-            option = torch_ttnn.TorchTtnnOption(
-                device=device, gen_graphviz=True, metrics_path=model_name
-            )
-            option.run_mem_analysis = True
-            m = torch.compile(model, backend=torch_ttnn.backend, options=option)
-
-            if isinstance(inputs, collections.Mapping):
-                outputs_after = m(**inputs)
-            elif isinstance(inputs, collections.Sequence):
-                outputs_after = m(*inputs)
-            else:
-                outputs_after = m(inputs)
-
+            # Memory analysis
             mm = option._memory_manager
             compiled_memory_metric = {}
+            peak_usage = mm.peak_sram_usage / 1048576
+            peak_sram_usage_metric = {"peak_sram_usage": peak_usage}
+
             if mem_utils.check_sram_overflow(mm) is True:
                 compiled_memory_metric = {"fits_in_memory": "No"}
             else:
                 compiled_memory_metric = {"fits_in_memory": "Yes"}
 
             # These are for plotting charts for later inspection
-            from tools.memory_models.plot_chart import plot_bar_chart, plot_line_chart
+            from tools.plot_chart import plot_bar_chart, plot_line_chart
 
             bar_chart_file = f"metrics/{model_name}/bar_chart.png"
             line_chart_file = f"metrics/{model_name}/line_chart.png"
@@ -114,22 +98,20 @@ def compile_and_run(device, reset_torch_dynamo, request):
             with open(log_file, "w") as f:
                 f.write(mm.logs)
 
-            memory_analysis_flag = True
-
-    except Exception as e:
-        if not (torch_ttnn_flag is True and memory_analysis_flag is False):
+        except Exception as e:
             comp_runtime_metrics = {"success": False}
-        compiled_memory_metric = {"fits_in_memory": "N/A"}
-        print(f"{model_name} compiled failed to run. Raised exception: {e}")
-        raise
+            compiled_memory_metric = {"fits_in_memory": "N/A"}
+            peak_sram_usage_metric = {"peak_sram_usage": 0}
+            print(f"{model_name} compiled failed to run. Raised exception: {e}")
+            raise
 
-    finally:
-        # For tests with no calls to record_property
-        if record == {}:
-            return
-        compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
-        with open(compiled_metrics_path, "wb") as f:
-            pickle.dump(comp_runtime_metrics, f)
-        compiled_memory_metrics_path = p / f"compiled_memory_metrics.pickle"
-        with open(compiled_memory_metrics_path, "wb") as f:
-            pickle.dump(compiled_memory_metric, f)
+        finally:
+            compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
+            with open(compiled_metrics_path, "wb") as f:
+                pickle.dump(comp_runtime_metrics, f)
+            compiled_memory_metrics_path = p / f"compiled_memory_metrics.pickle"
+            with open(compiled_memory_metrics_path, "wb") as f:
+                pickle.dump(compiled_memory_metric, f)
+            peak_sram_usage_metric_path = p / f"peak_sram_usage_metrics.pickle"
+            with open(peak_sram_usage_metric_path, "wb") as f:
+                pickle.dump(peak_sram_usage_metric, f)

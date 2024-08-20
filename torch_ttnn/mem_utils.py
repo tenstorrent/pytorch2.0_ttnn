@@ -31,6 +31,7 @@ class MemoryManager:
         self.node_to_tid_map = {}
         self.ops_mem_usage = {}
         self.tid_to_addr_map_in_sram = {}
+        self.peak_sram_usage = 0
         self.data_points = {}
         self.logs = ""
 
@@ -39,6 +40,13 @@ class MemoryManager:
             if sram_usage >= self.usable_sram_limit:
                 return True
         return False
+
+    def set_peak_sram_usage(self):
+        peak_sram_usage = 0
+        for _, sram_usage in self.sram_usage_at.items():
+            if sram_usage > peak_sram_usage:
+                peak_sram_usage = sram_usage
+        self.peak_sram_usage = peak_sram_usage
 
 
 # This holds op related information one can query from
