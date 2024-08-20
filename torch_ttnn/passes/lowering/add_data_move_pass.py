@@ -83,6 +83,16 @@ def is_tt_data_move(node) -> bool:
     ]
 
 
+# For non-tiled shapes, these ttnn ops require layout changes
+layout_change_ops = set(
+    [
+        ttnn.repeat,
+        ttnn.reshape,
+        ttnn.embedding,
+    ]
+)
+
+
 def is_tt(node):
     return is_tt_compute(node) or is_tt_data_move(node)
 
@@ -181,7 +191,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["layout"] = TtnnTileLayout()
 
-        if dst_node.target != ttnn.embedding:
+        if dst_node.target not in layout_change_ops:
             kwargs["dtype"] = TtnnBfloat16()
 
         # For reshape only put tensor on device if rank is 4
@@ -194,14 +204,6 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
-
-
-layout_change_ops = set(
-    [
-        ttnn.repeat,
-        ttnn.reshape,
-    ]
-)
 
 
 def try_add_layout_change_before_node(
