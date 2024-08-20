@@ -15,7 +15,7 @@ class NeModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    (((4, 4), (4, 4)), ((1, 8), (8, 1))),
 )
 def test_ne(device, input_shapes):
     m = NeModule()

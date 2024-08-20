@@ -15,7 +15,7 @@ class Atan2Module(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    (((4, 4), (4, 4)), ((1, 8), (8, 1))),
 )
 def test_atan2(device, input_shapes):
     m = Atan2Module()

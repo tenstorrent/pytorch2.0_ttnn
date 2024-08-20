@@ -15,7 +15,7 @@ class XlogyModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    (((4, 4), (4, 4)), ((1, 8), (8, 1))),
 )
 def test_xlogy(device, input_shapes):
     m = XlogyModule()

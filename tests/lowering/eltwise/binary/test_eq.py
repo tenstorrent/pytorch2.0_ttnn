@@ -14,7 +14,7 @@ class EqModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    (((4, 4), (4, 4)), ((1, 8), (8, 1))),
 )
 def test_eq_tensor(device, input_shapes):
     m = EqModule()
