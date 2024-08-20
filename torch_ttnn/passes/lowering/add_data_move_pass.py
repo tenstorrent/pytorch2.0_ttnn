@@ -195,8 +195,14 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             kwargs["dtype"] = TtnnBfloat16()
 
         # For reshape only put tensor on device if rank is 4
-        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
-            dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
+        if (
+            (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape)
+            or (dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4)
+            or (
+                dst_node.target == ttnn.reshape
+                and len(dst_node.args[1]) == 2
+                and dst_node.args[1][0] == 1
+            )
         ):
             kwargs["device"] = device
 
