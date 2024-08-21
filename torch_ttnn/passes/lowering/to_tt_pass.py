@@ -192,29 +192,11 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.atan2.default:
             return self.call_function_prop_meta(ttnn.atan2, args, kwargs)
-
-        if target == torch.ops.aten.eq.Tensor:
-            return self.call_function_prop_meta(ttnn.eq, args, kwargs)
-
-        if target == torch.ops.aten.gt.Tensor:
-            return self.call_function_prop_meta(ttnn.gt, args, kwargs)
         
         if target == torch.ops.aten.leaky_relu.default:
             if len(args) < 2:
                 args = (args[0], 0.01)
             return self.call_function_prop_meta(ttnn.leaky_relu, args, kwargs)
-
-        if target == torch.ops.aten.logical_and.default:
-            return self.call_function_prop_meta(ttnn.logical_and, args, kwargs)
-
-        if target == torch.ops.aten.logical_or.default:
-            return self.call_function_prop_meta(ttnn.logical_or, args, kwargs)
-
-        if target == torch.ops.aten.logical_xor.default:
-            return self.call_function_prop_meta(ttnn.logical_xor, args, kwargs)
-
-        if target == torch.ops.aten.lt.Tensor:
-            return self.call_function_prop_meta(ttnn.lt, args, kwargs)
 
         if target == torch.ops.aten.maximum.default:
             return self.call_function_prop_meta(ttnn.maximum, args, kwargs)
@@ -224,12 +206,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.mul.Tensor:
             return self.call_function_prop_meta(ttnn.mul, args, kwargs)
-
-        if target == torch.ops.aten.ne.Tensor:
-            return self.call_function_prop_meta(ttnn.ne, args, kwargs)
-
-        if target == torch.ops.aten.pow.Tensor_Tensor:
-            return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
         if target == torch.ops.aten.pow.Tensor_Scalar:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
