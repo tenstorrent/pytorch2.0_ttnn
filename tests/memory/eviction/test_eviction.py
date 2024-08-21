@@ -50,10 +50,11 @@ def test_eviction(device, test_name, input_shape):
 
     # Compile the model again this time with eviction opt turned ON
 
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
     option = torch_ttnn.TorchTtnnOption(
         device=device, run_mem_analysis=True, run_eviction_opt=True, gen_graphviz=True
     )
-
     m = Module()
     m = m.to(torch.bfloat16)
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)

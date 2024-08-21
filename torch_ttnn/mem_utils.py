@@ -55,42 +55,24 @@ class MemoryManager:
                 max_evictions += 1
         return max_evictions
 
+    def log(self, message: str):
+        self.logs += message
+
 
 # This holds op related information one can query from
 class OpRegistry:
-    def get_size(self, shape, dtype):
-        size = 1
-        if dtype is torch.bfloat16:
-            size = 2
-        for val in list(shape):
-            size = val * size
-        return size
-
-    def get_shape(self, node):
+    def get_tensor_shape_and_dtype(self, node):
         if is_tt_data_move(node):
             assert (
                 len(node.all_input_nodes) == 1
             ), "Data movement operators can't have more than one input!"
-            return self.get_shape(node.all_input_nodes[0])
+            return self.get_tensor_shape_and_dtype(node.all_input_nodes[0])
         else:
             # TODO: What if meta of nth output of the node is requested?
             if isinstance(node.meta["val"], tuple):
-                return node.meta["val"][0].size()
+                return (node.meta["val"][0].size(), node.meta["val"][0].dtype)
             else:
-                return node.meta["val"].size()
-
-    def get_dtype(self, node):
-        if is_tt_data_move(node):
-            assert (
-                len(node.all_input_nodes) == 1
-            ), "Data movement operators can't have more than one input!"
-            return self.get_dtype(node.all_input_nodes[0])
-        else:
-            # TODO: What if meta of nth output of the node is requested?
-            if isinstance(node.meta["val"], tuple):
-                return node.meta["val"][0].dtype
-            else:
-                return node.meta["val"].dtype
+                return (node.meta["val"].size(), node.meta["val"].dtype)
 
     def is_input_tensor_on_device(self, node):
         if node.target == ttnn.from_torch:
@@ -156,3 +138,21 @@ def which_tensors_to_evict(mm: MemoryManager) -> tuple:
                 break
 
     return (node_name, tensors_to_evict)
+
+
+def get_dtype_size(dtype):
+    if dtype in [torch.float, torch.float32, torch.int, torch.int32]:
+        return 4
+    elif dtype in [torch.float64, torch.double, torch.int64, torch.long]:
+        return 8
+    elif dtype in [torch.float16, torch.half, torch.bfloat16, torch.int16, torch.short]:
+        return 2
+    else:
+        assert False, "Invalid datatype! This is not supported yet."
+
+
+def get_tensor_size(shape, dtype):
+    size = get_dtype_size(dtype)
+    for val in list(shape):
+        size = val * size
+    return size
