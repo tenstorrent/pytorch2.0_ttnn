@@ -51,7 +51,30 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(target, args, kwargs)
 
         ############################################################
-        # Univariate functions
+        # Tensor creation
+        ############################################################
+        if target == torch.ops.aten.zeros_like.default:
+            return self.call_function_prop_meta(ttnn.zeros_like, args, {})
+
+        ############################################################
+        # Matrix multiplication
+        ############################################################
+        if target == torch.ops.aten.addmm.default:
+            # TODO(kevinwuMCW): include beta, alpha, and optional args
+            mm = self.call_function_prop_meta(ttnn.matmul, (args[1], args[2]), kwargs)
+            return self.call_function_prop_meta(ttnn.add, (args[0], mm), kwargs)
+
+        if target == torch.ops.aten.bmm.default:
+            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+
+        if target == torch.ops.aten.linear.default:
+            return self.call_function_prop_meta(ttnn.linear, args, kwargs)
+
+        if target == torch.ops.aten.mm.default:
+            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+
+        ############################################################
+        # Pointwise unary
         ############################################################
         if target == torch.ops.aten.abs.default:
             return self.call_function_prop_meta(ttnn.abs, args, kwargs)
@@ -73,6 +96,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.atanh.default:
             return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
+        
+        if target == torch.ops.aten.clamp.default:
+            return self.call_function_prop_meta(ttnn.clip, args, kwargs)
 
         if target == torch.ops.aten.cos.default:
             return self.call_function_prop_meta(ttnn.cos, args, kwargs)
@@ -143,6 +169,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.silu.default:
             return self.call_function_prop_meta(ttnn.silu, args, kwargs)
 
+        if target == torch.ops.aten._softmax.default:
+            return self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
+
         if target == torch.ops.aten.sqrt.default:
             return self.call_function_prop_meta(ttnn.sqrt, args, kwargs)
 
@@ -151,9 +180,12 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.tanh.default:
             return self.call_function_prop_meta(ttnn.tanh, args, kwargs)
+    
+        if target == torch.ops.aten.tril.default:
+            return self.call_function_prop_meta(ttnn.tril, args, kwargs)
 
         ############################################################
-        # Bivariate functions
+        # Pointwise binary
         ############################################################
         if target == torch.ops.aten.add.Tensor:
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
@@ -215,39 +247,33 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.xlogy, args, kwargs)
 
         ############################################################
-        # Matrix multiplication
+        # Pointwise ternary
         ############################################################
-        if target == torch.ops.aten.addmm.default:
-            # TODO(kevinwuMCW): include beta, alpha, and optional args
-            mm = self.call_function_prop_meta(ttnn.matmul, (args[1], args[2]), kwargs)
-            return self.call_function_prop_meta(ttnn.add, (args[0], mm), kwargs)
+        if target == torch.ops.aten.addcdiv.default:
+            value = kwargs.pop("value", 1.0)
+            return self.call_function_prop_meta(ttnn.addcdiv, args + (value,), kwargs)
 
-        if target == torch.ops.aten.bmm.default:
-            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+        if target == torch.ops.aten.addcmul.default:
+            value = kwargs.pop("value", 1.0)
+            return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
+    
+        ############################################################
+        # Reduction
+        ############################################################
+        if target == torch.ops.aten.mean.dim:
+            # change dim parameter to tuple
+            new_args = list(args)
+            new_args[1] = tuple(args[1]) if len(args[1]) > 1 else args[1][0]
+            return self.call_function_prop_meta(ttnn.mean, tuple(new_args), kwargs)
 
-        if target == torch.ops.aten.linear.default:
-            return self.call_function_prop_meta(ttnn.linear, args, kwargs)
-
-        if target == torch.ops.aten.mm.default:
-            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+        if target == torch.ops.aten.min.default:
+            return self.call_function_prop_meta(ttnn.min, args, kwargs)
 
         ############################################################
-        # Tensor creation
-        ############################################################
-        if target == torch.ops.aten.zeros_like.default:
-            return self.call_function_prop_meta(ttnn.zeros_like, args, {})
-
-        ############################################################
-        # Tensor manipulation
+        # Data movement
         ############################################################
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
-
-        if target == torch.ops.aten.squeeze.dim:
-            # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
-            if args[1] == 0:
-                return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
-            return self.call_function_prop_meta(target, args, kwargs)
 
         if target == torch.ops.aten.view.default:
             # aten.reshape is more stable if the input nodes have changed
@@ -258,37 +284,17 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Other ops
         ############################################################
-        if target == torch.ops.aten.addcdiv.default:
-            value = kwargs.pop("value", 1.0)
-            return self.call_function_prop_meta(ttnn.addcdiv, args + (value,), kwargs)
-
-        if target == torch.ops.aten.addcmul.default:
-            value = kwargs.pop("value", 1.0)
-            return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
-
         if target == torch.ops.aten._adaptive_avg_pool2d.default:
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(
                 ttnn.global_avg_pool2d, (args[0],), kwargs
             )
-
-        if target == torch.ops.aten.clamp.default:
-            return self.call_function_prop_meta(ttnn.clip, args, kwargs)
-
-        if target == torch.ops.aten.mean.dim:
-            # change dim parameter to tuple
-            new_args = list(args)
-            new_args[1] = tuple(args[1]) if len(args[1]) > 1 else args[1][0]
-            return self.call_function_prop_meta(ttnn.mean, tuple(new_args), kwargs)
-
-        if target == torch.ops.aten.min.default:
-            return self.call_function_prop_meta(ttnn.min, args, kwargs)
-
-        if target == torch.ops.aten._softmax.default:
-            return self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
-
-        if target == torch.ops.aten.tril.default:
-            return self.call_function_prop_meta(ttnn.tril, args, kwargs)
+        
+        if target == torch.ops.aten.squeeze.dim:
+            # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
+            if args[1] == 0:
+                return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
+            return self.call_function_prop_meta(target, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 
