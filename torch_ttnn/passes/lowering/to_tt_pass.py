@@ -242,7 +242,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     new_nodes.append(new_node)
             if node.target == torch.ops.aten.arange.start_step:
                 # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
-                if args[0] >= 2:
+                # ttnn.arange also doesn't support negative steps
+                if args[0] >= 2 and args[2] > 0:
                     new_args = (args[0],)
                     new_kwargs = {
                         "end": args[1],
