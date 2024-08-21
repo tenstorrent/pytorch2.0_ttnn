@@ -60,6 +60,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 gen_graphviz=True,
                 run_mem_analysis=True,
                 metrics_path=model_name,
+                verbose=True,
             )
             m = torch.compile(model, backend=torch_ttnn.backend, options=option)
 

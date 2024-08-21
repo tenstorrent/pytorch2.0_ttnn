@@ -23,6 +23,7 @@ class TorchTtnnOption:
         run_mem_analysis=False,
         run_eviction_opt=False,
         metrics_path="",
+        verbose=True,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -30,6 +31,7 @@ class TorchTtnnOption:
         self.memory_manager = None
         self.run_mem_analysis = run_mem_analysis
         self.run_eviction_opt = run_eviction_opt
+        self.verbose = verbose
 
         if metrics_path:
             p = Path(f"metrics/{metrics_path}")
@@ -114,7 +116,7 @@ def aten_backend(
         PermuteReshapeTuple(),
     ]
 
-    mem_pass = MemoryPass()
+    mem_pass = MemoryPass(option.verbose)
     if option.run_mem_analysis:
         passes.append(mem_pass)
 
@@ -171,7 +173,7 @@ def aten_backend(
             # This pass only evicts tensors for a single ttnn op which overflows the SRAM
             # Multiple overflows require multiple run of this pass
 
-            mem_pass = MemoryPass()
+            mem_pass = MemoryPass(option.verbose)
             passes = [
                 EvictionPass(option.memory_manager, guilty_op, tensors_to_evict),
                 GraphvizPass(f"eviction-pass-{nth_eviction}"),
