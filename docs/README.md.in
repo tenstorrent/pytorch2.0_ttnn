@@ -102,7 +102,7 @@ Then you can upload the `.whl` file to the PyPI (Python Package Index).
 ## Run transformer models
 To run transformer model with ttnn backend, run:
 ```
-PYTHONPATH=${TT_METAL_HOME}:$(pwd) python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
+PYTHONPATH="$TT_METAL_HOME:$(pwd)" python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
 ```
 
 You can also substitute the backend with `torch_stat` to run a reference comparison.
