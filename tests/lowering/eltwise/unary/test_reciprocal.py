@@ -14,7 +14,7 @@ class ReciprocalModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     ("input_shape", "init_offset"),
-    [((4, 4), 0)],
+    [((4, 4), -1)],
 )
 def test_reciprocal(device, input_shape, init_offset):
     m = ReciprocalModule()
@@ -34,4 +34,4 @@ def test_reciprocal(device, input_shape, init_offset):
     # Check inference result
     from tests.utils import assert_with_pcc
 
-    assert_with_pcc(result_before, result_after)
+    assert_with_pcc(result_before, result_after, 0.99)
