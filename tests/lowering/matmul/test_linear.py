@@ -14,9 +14,7 @@ class LinearModule(torch.nn.Module):
         return torch.nn.functional.linear(input, weight)
 
 
-@pytest.mark.xfail(
-    reason="cannot lower to ttnn.linear because it turns to ttnn.permute and ttnn.matmul first"
-)
+@pytest.mark.xfail(reason="cannot lower to ttnn.linear (#66)")
 @pytest.mark.parametrize(
     "input_shapes",
     [[(4, 8), (6, 8)]],
