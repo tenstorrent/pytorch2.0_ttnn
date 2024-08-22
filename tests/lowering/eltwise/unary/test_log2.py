@@ -32,4 +32,4 @@ def test_log2(device, input_shape, init_offset):
     assert [node.target for node in nodes].count(ttnn.log2) == 1
 
     # Check inference result
-    assert torch.allclose(result_before, result_after, rtol=0.2)
+    assert torch.allclose(result_before, result_after, rtol=0.05, atol=0.01)
