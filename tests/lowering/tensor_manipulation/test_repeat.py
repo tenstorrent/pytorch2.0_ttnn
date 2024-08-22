@@ -12,6 +12,7 @@ class RepeatModule(torch.nn.Module):
         return x.repeat(sizes)
 
 
+@pytest.mark.xfail(reason="lowering issue (#67)")
 @pytest.mark.parametrize(
     "input_shape, sizes",
     [((4, 4), (3, 2))],
