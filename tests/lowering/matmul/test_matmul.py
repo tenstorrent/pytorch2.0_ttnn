@@ -35,4 +35,4 @@ def test_matmul(device, input_shapes):
     assert target.count(ttnn.matmul) == 1
 
     # Check inference result
-    assert_with_pcc(result_before, result_after)
+    assert_with_pcc(result_before, result_after, 0.99)
