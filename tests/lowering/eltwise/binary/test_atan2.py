@@ -18,7 +18,10 @@ class Atan2Module(torch.nn.Module):
     (
         ((4, 4), (4, 4)),
         ((8, 1), (8, 8)),
-        pytest.param(((1, 8), (8, 1)), marks=pytest.mark.xfail(reason='broadcasting issues (#64)')),
+        pytest.param(
+            ((1, 8), (8, 1)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+        ),
     ),
 )
 def test_atan2(device, input_shapes):

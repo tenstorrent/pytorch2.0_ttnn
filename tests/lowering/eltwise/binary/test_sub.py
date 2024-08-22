@@ -36,7 +36,10 @@ class RSubScalarModule(torch.nn.Module):
         ((32, 32), (32, 32)),
         ((64,), (32, 64)),
         ((64, 32), (64, 1)),
-        pytest.param(((64, 1), (1, 64)), marks=pytest.mark.xfail(reason='broadcasting issues (#64)'))
+        pytest.param(
+            ((64, 1), (1, 64)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+        ),
     ),
 )
 def test_sub(device, input_shapes):
@@ -63,7 +66,10 @@ def test_sub(device, input_shapes):
         ((32, 32), (32, 32)),
         ((64,), (32, 64)),
         ((64, 32), (64, 1)),
-        pytest.param(((64, 1), (1, 64)), marks=pytest.mark.xfail(reason='broadcasting issues (#64)'))
+        pytest.param(
+            ((64, 1), (1, 64)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+        ),
     ),
 )
 def test_rsub(device, input_shapes):
