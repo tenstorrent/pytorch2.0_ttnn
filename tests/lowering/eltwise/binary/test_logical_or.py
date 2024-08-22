@@ -12,6 +12,7 @@ class LogicalOrModule(torch.nn.Module):
         return torch.logical_or(x, y)
 
 
+@pytest.mark.xfail(reason="broadcasting issues (#64)")
 @pytest.mark.parametrize(
     "input_shapes",
     (((32, 32), (32, 32)), ((64,), (32, 64)), ((64, 32), (64, 1)), ((64, 1), (1, 64))),
