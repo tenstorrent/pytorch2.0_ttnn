@@ -1,9 +1,9 @@
-
 import torch
 import torch_ttnn
 import pytest
 import ttnn
 from tests.utils import assert_with_pcc
+
 
 class PowModule(torch.nn.Module):
     def __init__(self):

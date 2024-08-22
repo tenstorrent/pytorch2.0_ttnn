@@ -15,6 +15,7 @@ class GroupNormModule(torch.nn.Module):
             embedding, num_groups=num_groups, weight=weight, bias=bias
         )
 
+
 @pytest.mark.parametrize(
     "num_groups, batch, sentence_length, embedding_dim",
     [(3, 20, 6, 10)],

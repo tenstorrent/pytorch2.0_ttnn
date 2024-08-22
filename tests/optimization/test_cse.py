@@ -13,6 +13,7 @@ class CseModule(torch.nn.Module):
     def forward(self, x):
         return x + x
 
+
 @pytest.mark.parametrize(
     "input_shape",
     [(4, 4)],

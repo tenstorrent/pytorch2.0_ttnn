@@ -1,8 +1,8 @@
-
 import torch
 import torch_ttnn
 import pytest
 import ttnn
+
 
 class HardtanhModule(torch.nn.Module):
     def __init__(self):
@@ -34,4 +34,5 @@ def test_hardtanh(device, input_shape, init_offset):
 
     # Check inference result
     from tests.utils import assert_with_pcc
+
     assert_with_pcc(result_before, result_after)

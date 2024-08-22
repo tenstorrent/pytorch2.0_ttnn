@@ -11,6 +11,7 @@ from torch_ttnn.utils import (
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
 
+
 class _Kwarg:
     def __init__(self, key, value):
         self.key = key
@@ -95,8 +96,8 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.pow,
     ttnn.sub,
     ttnn.xlogy,
-    #ttnn.add_and_apply_activation,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
-    #ttnn.add_and_apply_activation_,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
+    # ttnn.add_and_apply_activation,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
+    # ttnn.add_and_apply_activation_,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
 ]
 
 TTNN_POINTWISE_TRINARY_OPS = [
@@ -116,7 +117,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.permute,
     #  ttnn.repeat,  in target_wrapper
     ttnn.concat,
-    #ttnn.split,  # ttnn has no split, remote the comment in the future when it has
+    # ttnn.split,  # ttnn has no split, remote the comment in the future when it has
 ]
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
@@ -146,8 +147,7 @@ def is_tt_compute(node) -> bool:
         + TTNN_TARGET_WRAPPERS
         + TTNN_DATAMOVE_OPS
         + TTNN_NORM_OPS
-        +
-        [
+        + [
             ttnn.embedding,
             ttnn.ones,
             ttnn.tril,

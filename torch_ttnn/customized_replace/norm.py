@@ -85,9 +85,7 @@ def layer_norm_rep(gm: torch.fx.GraphModule):
             "bias": n.args[3],
             "eps": n.args[4],
         }
-        ttnn_kwargs = {
-            "normalized_shape": n_kwargs["normalized_shape"]
-        }
+        ttnn_kwargs = {"normalized_shape": n_kwargs["normalized_shape"]}
         if n_kwargs["weight"] is not None:
             ttnn_kwargs["weight"] = n_kwargs["weight"]
         if n_kwargs["bias"] is not None:
@@ -109,4 +107,4 @@ def layer_norm_rep(gm: torch.fx.GraphModule):
 customized_rep_list = [
     group_norm_rep,
     # layer_norm_rep
-    ]
+]

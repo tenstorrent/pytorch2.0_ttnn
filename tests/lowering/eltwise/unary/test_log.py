@@ -1,8 +1,8 @@
-
 import torch
 import torch_ttnn
 import pytest
 import ttnn
+
 
 class LogModule(torch.nn.Module):
     def __init__(self):

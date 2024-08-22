@@ -97,7 +97,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.atanh.default:
             return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
-        
+
         if target == torch.ops.aten.clamp.default:
             return self.call_function_prop_meta(ttnn.clip, args, kwargs)
 
@@ -118,8 +118,12 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.gelu.default:
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
-        
-        if target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
+
+        if (
+            target == torch.ops.aten.hardtanh.default
+            and args[1] == -1.0
+            and args[2] == 1.0
+        ):
             return self.call_function_prop_meta(ttnn.clip, args, kwargs)
 
         if target == torch.ops.aten.isinf.default:
@@ -181,7 +185,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.tanh.default:
             return self.call_function_prop_meta(ttnn.tanh, args, kwargs)
-    
+
         if target == torch.ops.aten.tril.default:
             return self.call_function_prop_meta(ttnn.tril, args, kwargs)
 
@@ -193,7 +197,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.atan2.default:
             return self.call_function_prop_meta(ttnn.atan2, args, kwargs)
-        
+
         if target == torch.ops.aten.leaky_relu.default:
             if len(args) < 2:
                 args = (args[0], 0.01)
@@ -213,9 +217,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.rsub.Tensor:
             # TODO(kevinwuMCW): handle alpha parameter if exists
-            return self.call_function_prop_meta(
-                ttnn.sub, (args[1], args[0]), kwargs
-            )
+            return self.call_function_prop_meta(ttnn.sub, (args[1], args[0]), kwargs)
 
         if target == torch.ops.aten.sub.Tensor:
             return self.call_function_prop_meta(ttnn.sub, args, kwargs)
@@ -233,7 +235,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.addcmul.default:
             value = kwargs.pop("value", 1.0)
             return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
-    
+
         ############################################################
         # Reduction
         ############################################################
@@ -266,7 +268,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(
                 ttnn.global_avg_pool2d, (args[0],), kwargs
             )
-        
+
         if target == torch.ops.aten.squeeze.dim:
             # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
             if args[1] == 0:
@@ -542,7 +544,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     multiplier = np.array([1 if i == -1 else i for i in multiplier])
 
                     if np.prod(multiplier) != 1:
-                        new_node = g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
+                        new_node = g.call_function(
+                            target_wrappers.repeat, args=(args[0], multiplier.tolist())
+                        )
                         new_nodes.append(new_node)
                     else:
                         node.replace_all_uses_with(
