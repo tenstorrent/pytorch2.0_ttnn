@@ -312,9 +312,9 @@ if __name__ == "__main__":
             aten_ops_before, aten_ops_unique_before = len(aten_ops_before_list), len(
                 set(aten_ops_before_list)
             )
-            ops_metrics["torch_ops_total_unique_before"] = (
-                f"{aten_ops_before} ({aten_ops_unique_before})"
-            )
+            ops_metrics[
+                "torch_ops_total_unique_before"
+            ] = f"{aten_ops_before} ({aten_ops_unique_before})"
 
             # Populate schemas for each op for original graph
             pydantic_model.ops_original = serialize_schema_metrics_to_operations(
@@ -336,9 +336,9 @@ if __name__ == "__main__":
                 aten_ops_remain, aten_ops_unique_remain = len(
                     aten_ops_remain_list
                 ), len(set(aten_ops_remain_list))
-                ops_metrics["torch_ops_total_unique_remain"] = (
-                    f"{aten_ops_remain} ({aten_ops_unique_remain})"
-                )
+                ops_metrics[
+                    "torch_ops_total_unique_remain"
+                ] = f"{aten_ops_remain} ({aten_ops_unique_remain})"
 
                 device_op_list = [
                     node["opname"]
