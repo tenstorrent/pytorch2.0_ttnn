@@ -16,8 +16,6 @@ class MemoryPass(PassBase):
             mem_utils.circular_buffer,
         )
         self.op_registry = mem_utils.OpRegistry()
-        
-
 
     # Tensor IDs allocation for ttnn ops input & output
     def assign_tensor_ids(self, gm: torch.fx.GraphModule):
@@ -43,11 +41,8 @@ class MemoryPass(PassBase):
             self.mm.log(f"Node: {key} - {value}\n")
         return tt_compute_count
 
-
     def allocate(self, node: torch.fx.node.Node):
-        tensor_shape, tensor_dtype = self.op_registry.get_tensor_shape_and_dtype(
-            node
-        )
+        tensor_shape, tensor_dtype = self.op_registry.get_tensor_shape_and_dtype(node)
         tensor_size = mem_utils.get_tensor_size(tensor_shape, tensor_dtype)
 
         assert (
@@ -68,7 +63,6 @@ class MemoryPass(PassBase):
             self.mm.tensors_on_device.append(tid)
         return (tid, tensor_size)
 
-
     def deallocate(self, node: torch.fx.node.Node):
         (
             tensor_shape,
@@ -84,8 +78,9 @@ class MemoryPass(PassBase):
         self.mm.tensors_on_device.remove(tid)
         return (tid, tensor_size)
 
-
-    def memory_footprint(self, gm: torch.fx.GraphModule, verbose=True) -> torch.fx.GraphModule:
+    def memory_footprint(
+        self, gm: torch.fx.GraphModule, verbose=True
+    ) -> torch.fx.GraphModule:
         self.mm = mem_utils.MemoryManager(
             mem_utils.device_name,
             mem_utils.cores,
@@ -140,7 +135,9 @@ class MemoryPass(PassBase):
                     self.mm.ops_mem_usage[node.name] = total_input_size + output_size
                     ttnn_ops_tids.append(tid)
                     self.mm.ttnn_ops_tids[node.name] = ttnn_ops_tids
-                    self.mm.tids_in_sram_at[node.name] = self.mm.tensors_on_device.copy()
+                    self.mm.tids_in_sram_at[
+                        node.name
+                    ] = self.mm.tensors_on_device.copy()
                     self.mm.sram_usage_at[node.name] = self.mm.used_sram
 
                     if (tid, output_size) not in on_device_meta:
@@ -201,7 +198,9 @@ class MemoryPass(PassBase):
                             self.mm.log(
                                 f"input tensor removed from device: {tensor_size} bytes\n"
                             )
-                            self.mm.log(f"total SRAM usage: {self.mm.used_sram} bytes\n")
+                            self.mm.log(
+                                f"total SRAM usage: {self.mm.used_sram} bytes\n"
+                            )
 
                     # data_points[(node.name, "from_device")] = on_device_meta.copy()
 
@@ -209,7 +208,9 @@ class MemoryPass(PassBase):
 
         self.mm.log(f"Tensor IDs to address map in SRAM:\n")
         self.mm.log(f"{self.mm.tid_to_addr_map_in_sram}\n")
-        self.mm.log(f"----------------------------------------------------------------\n")
+        self.mm.log(
+            f"----------------------------------------------------------------\n"
+        )
         self.mm.log(f"These ttnn ops overflow the SRAM buffer:\n")
         for op in overflow_ops:
             self.mm.log(f"{op}, ")
@@ -226,8 +227,6 @@ class MemoryPass(PassBase):
             print(self.mm.logs)
 
         return gm
-
-
 
     def call(self, gm: torch.fx.GraphModule):
         gm = self.memory_footprint(gm, self.verbose)
