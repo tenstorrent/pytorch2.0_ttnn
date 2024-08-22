@@ -8,17 +8,17 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |   Peak SRAM usage (in MB) |
-|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|:-----------------|--------------------------:|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    31.8  | 460.84                   | 99.79          | Yes              |                    4.5    |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                    95.05 | 3484.97                  | 92.08          | Yes              |                    4.5    |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  1979.71 | 10529.71                 | 99.99          | Yes              |                    3.0625 |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 27537.6  | 65676.96                 | 43.08          | No               |                 1470      |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1343.17 | 44613.53                 | 71.05          | Yes              |                   12.2124 |
-| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           |                    2 |                166315    | 164626.25                | 100.0          | Yes              |                    0      |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 63348.1  | 60027.07                 | 99.17          | Yes              |                   60.114  |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 46258    | N/A                      | N/A            | N/A              |                    0      |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 329 (12)                        |                  644 |                  1876.53 | N/A                      | N/A            | N/A              |                    0      |
+| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |   Peak SRAM usage (in MB) |
+|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------|:---------------|:-----------------|--------------------------:|
+| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           | 16                   |                    26.82 | 472.17                   | 99.32          | Yes              |                    4.5    |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           | 14                   |                    75.33 | 3423.53                  | 70.3           | Yes              |                    4.5    |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          | 47                   |                  1949.11 | 12043.34                 | 99.99          | Yes              |                    3.0625 |
+| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        | 1379                 |                 26469.2  | 66611.06                 | 43.08          | No               |                 1470      |
+| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        | 919                  |                  1026.26 | 43414.86                 | 71.05          | Yes              |                   48.8494 |
+| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           | 2                    |                165109    | 164608.39                | 100.0          | Yes              |                    0      |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         | 1513                 |                 63233.6  | 60150.26                 | 99.17          | Yes              |                   60.1157 |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           | 5                    |                 45087.5  | N/A                      | N/A            | N/A              |                    0      |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | N/A                             | N/A                  |                  1807.15 | N/A                      | N/A            | N/A              |                    0      |
 
 ### Explanation of Metrics
 
@@ -171,40 +171,6 @@ The table below summarizes the results of running various ML models through our 
 | aten.arange.start      | ✘        |       1 |
 | aten.embedding.default | ✅       |       1 |
 | aten.unsqueeze.default | ✅       |       1 |
-#### GPT-2
-| aten ops                       | status   |   count |
-|:-------------------------------|:---------|--------:|
-| aten._softmax.default          | ✅       |      12 |
-| aten._to_copy.default          | ✘        |       2 |
-| aten.add.Tensor                | ✅       |      61 |
-| aten.addmm.default             | ✅       |      48 |
-| aten.arange.default            | ✘        |       1 |
-| aten.arange.start              | ✘        |       1 |
-| aten.argmax.default            | ✘        |       1 |
-| aten.bmm.default               | ✅       |      24 |
-| aten.clone.default             | ✅       |      49 |
-| aten.div.Tensor                | ✅       |      12 |
-| aten.embedding.default         | ✅       |       2 |
-| aten.eq.Scalar                 | ✅       |       1 |
-| aten.expand.default            | ✅       |      48 |
-| aten.full.default              | ✘        |      24 |
-| aten.index.Tensor              | ✘        |       1 |
-| aten.mm.default                | ✅       |       1 |
-| aten.mul.Tensor                | ✅       |      49 |
-| aten.native_layer_norm.default | ✅       |      25 |
-| aten.permute.default           | ✅       |      48 |
-| aten.pow.Tensor_Scalar         | ✅       |      12 |
-| aten.remainder.Scalar          | ✘        |       1 |
-| aten.rsub.Scalar               | ✅       |       1 |
-| aten.slice.Tensor              | ✘        |      50 |
-| aten.split.Tensor              | ✘        |      12 |
-| aten.sub.Tensor                | ✘        |       1 |
-| aten.t.default                 | ✅       |       1 |
-| aten.tanh.default              | ✅       |      12 |
-| aten.transpose.int             | ✅       |      12 |
-| aten.unsqueeze.default         | ✅       |       3 |
-| aten.view.default              | ✅       |     221 |
-| aten.where.self                | ✘        |      12 |
 
 
 ## Quickstart

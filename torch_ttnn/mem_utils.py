@@ -14,6 +14,7 @@ circular_buffer = 20 * 1048576  # 20 MB
 # This will manage all memory related operations & data
 class MemoryManager:
     def __init__(self, device, cores, L1_mem, circular_buffer):
+        # Config
         self.device = device
         self.cores = cores
         self.L1_mem = L1_mem
@@ -23,16 +24,30 @@ class MemoryManager:
         self.free_sram = self.total_sram_limit - self.circular_buffer
         self.usable_sram_limit = self.total_sram_limit - self.circular_buffer
         self.used_sram = 0
+
+        # Tensor memory address allocation tracker
+        self.last_assigned_addr = 0
+        # Tracks tensors currently in SRAM memory
         self.tensors_on_device = []
+        # Each ttnn op's input & output tensor ids
         self.ttnn_ops_tids = {}
+        # Current usage of SRAM memory at each step of ttnn op execution timeline
         self.sram_usage_at = {}
+        # Keep tally of tensors in SRAM memory at each step of ttnn op execution timeline
         self.tids_in_sram_at = {}
+        # Tensor size of respective tensors
         self.tensor_size_of = {}
+        # Map of each node with its output tensor id
         self.node_to_tid_map = {}
+        # Sum of input & output tensor sizes for each ttnn op
         self.ops_mem_usage = {}
+        # Memory address of each tensor id in SRAM
         self.tid_to_addr_map_in_sram = {}
+        # Maximum usage of SRAM during lifetime of model execution
         self.peak_sram_usage = 0
+        # Data for plotting on a chart
         self.data_points = {}
+        # Logs generated during memory analysis
         self.logs = ""
 
     def has_sram_overflow(self):

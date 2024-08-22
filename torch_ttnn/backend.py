@@ -146,7 +146,7 @@ def aten_backend(
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
-        option.memory_manager = mem_pass.memory_manager
+        option.memory_manager = mem_pass.mm
 
     # Run eviction opt pass if enabled
     if option.run_eviction_opt == True:
@@ -186,7 +186,7 @@ def aten_backend(
             gm.recompile()
 
             # Get the memory manager object for memory analysis
-            option.memory_manager = mem_pass.memory_manager
+            option.memory_manager = mem_pass.mm
             nth_eviction += 1
 
     if option.metrics_path:

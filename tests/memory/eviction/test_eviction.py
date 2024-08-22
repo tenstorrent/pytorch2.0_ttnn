@@ -32,6 +32,18 @@ def test_eviction(device, test_name, input_shape):
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result = m.forward(input)
 
+    mm = option.memory_manager
+    # These are for plotting charts for later inspection
+    from tools.plot_chart import (
+        plot_mem_footprint_bar_chart,
+        plot_mem_footprint_line_chart,
+    )
+
+    bar_chart_file = f"tests/memory/eviction/before_eviction_bar_chart.png"
+    line_chart_file = f"tests/memory/eviction/before_eviction_line_chart.png"
+    plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
+    plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
+
     # From the memory footprint, this checks whether the model fits in memory or not
     model_fits_in_memory = not option.memory_manager.has_sram_overflow()
 
@@ -62,6 +74,22 @@ def test_eviction(device, test_name, input_shape):
 
     # From the memory footprint, this checks whether the model fits in memory or not
     model_fits_in_memory = not option.memory_manager.has_sram_overflow()
+
+    mm = option.memory_manager
+    # These are for plotting charts for later inspection
+    from tools.plot_chart import (
+        plot_mem_footprint_bar_chart,
+        plot_mem_footprint_line_chart,
+    )
+
+    bar_chart_file = f"tests/memory/eviction/after_eviction_bar_chart.png"
+    line_chart_file = f"tests/memory/eviction/after_eviction_line_chart.png"
+    plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
+    plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
+
+    log_file = f"tests/memory/eviction/memory_footprint.txt"
+    with open(log_file, "w") as f:
+        f.write(mm.logs)
 
     assert model_fits_in_memory == True, "After eviction, model should fit in memory"
     assert (
