@@ -10,15 +10,15 @@ The table below summarizes the results of running various ML models through our 
 
 | Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
 |:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    38.64 | 501.5                    | 99.85          |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   136.38 | 2709.01                  | 66.84          |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  2131.05 | 9985.44                  | 99.99          |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 28892.3  | 68470.67                 | 45.77          |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1410.28 | 45328.58                 | 71.71          |
-| [Llama](tests/models/llama)         | ✅            | 5 (4)                           | 3 (2)                           |                    3 |                206771    | 187910.29                | 45.46          |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 67347.3  | 60024.8                  | 98.64          |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 51366.6  | N/A                      | N/A            |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 316 (12)                        |                  569 |                  5711.32 | N/A                      | N/A            |
+| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    35.53 | 556.63                   | 99.72          |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   114.16 | 3076.17                  | 76.59          |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   44 |                  2023.95 | 10673.42                 | 99.99          |
+| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1378 |                 28504    | 68025.6                  | 45.77          |
+| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 320 (11)                        |                  825 |                  1340.21 | 46101.1                  | 71.71          |
+| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           |                    2 |                164063    | 166348.21                | 100.0          |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 491 (5)                         |                 1465 |                 63591.6  | 55096.44                 | 98.64          |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 46268.6  | N/A                      | N/A            |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 307 (12)                        |                  644 |                  1793.52 | N/A                      | N/A            |
 
 ### Explanation of Metrics
 
@@ -135,12 +135,10 @@ The table below summarizes the results of running various ML models through our 
 | aten.unsqueeze.default         | ✅       |       1 |
 | aten.view.default              | ✅       |     283 |
 #### Llama
-| aten ops              | status   |   count |
-|:----------------------|:---------|--------:|
-| aten._to_copy.default | ✘        |       1 |
-| aten.mm.default       | ✅       |       1 |
-| aten.t.default        | ✅       |       1 |
-| aten.view.default     | ✅       |       2 |
+| aten ops               | status   |   count |
+|:-----------------------|:---------|--------:|
+| aten.slice.Tensor      | ✘        |       1 |
+| aten.unsqueeze.default | ✘        |       2 |
 #### BERT
 | aten ops                       | status   |   count |
 |:-------------------------------|:---------|--------:|
@@ -291,7 +289,7 @@ Then you can upload the `.whl` file to the PyPI (Python Package Index).
 ## Run transformer models
 To run transformer model with ttnn backend, run:
 ```
-PYTHONPATH=${TT_METAL_HOME}:$(pwd) python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
+PYTHONPATH="$TT_METAL_HOME:$(pwd)" python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
 ```
 
 You can also substitute the backend with `torch_stat` to run a reference comparison.
@@ -319,3 +317,4 @@ def test_model_name(record_property):
     # Can be set once all three objects for the tuple are defined
     record_property("torch_ttnn", (model, test_input(s), outputs))
 ```
+
