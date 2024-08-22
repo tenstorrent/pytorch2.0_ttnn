@@ -13,6 +13,7 @@ from typing import Tuple
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
+from . import target_wrappers
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -330,9 +331,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 arg_metadata = node.meta["val"]
                 ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                new_node = g.call_function(
-                    ttnn.clone, args=(args[0], TtnnDramMemoryConfig(), ttnn_dtype)
-                )
+                new_node = g.call_function(target_wrappers.clone, args=(args[0],))
                 new_nodes.append(new_node)
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(
@@ -543,12 +542,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     multiplier = np.array([1 if i == -1 else i for i in multiplier])
 
                     if np.prod(multiplier) != 1:
-                        shape_node = g.call_function(
-                            ttnn.Shape, (multiplier.tolist(),), {}
-                        )
-                        new_node = g.call_function(
-                            ttnn.repeat, (args[0], shape_node), {}
-                        )
+                        new_node = g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
                         new_nodes.append(new_node)
                     else:
                         node.replace_all_uses_with(

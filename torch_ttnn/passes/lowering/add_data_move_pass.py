@@ -48,6 +48,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.log1p,
     ttnn.log2,
     ttnn.logical_not,
+    ttnn.min,
     ttnn.neg,
     ttnn.reciprocal,
     ttnn.relu,
@@ -268,7 +269,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             dst_node.target == ttnn.reshape
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
-            or dst_node.target == ttnn.repeat
+            or dst_node.target == target_wrappers.repeat
         ):
             kwargs["layout"] = TtnnRowMajorLayout()
         else:
@@ -291,7 +292,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
 
 layout_change_ops = set(
     [
-        ttnn.repeat,
+        target_wrappers.repeat,
         ttnn.reshape,
     ]
 )

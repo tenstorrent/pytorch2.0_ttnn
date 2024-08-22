@@ -9,4 +9,4 @@ def clone(t):
 
 @torch.fx.wrap
 def repeat(t, sizes):
-    return ttnn.repeat(t, ttnn.Size(sizes))
+    return ttnn.repeat(t, ttnn.Shape(sizes))
