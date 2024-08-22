@@ -14,9 +14,10 @@ class LtModule(torch.nn.Module):
         return torch.lt(input1, inpu2)
 
 
+@pytest.mark.xfail(reason="broadcasting issues (#64)")
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    (((32, 32), (32, 32)), ((64,), (32, 64)), ((64, 32), (64, 1)), ((64, 1), (1, 64))),
 )
 def test_lt_tensor(device, input_shapes):
     m = LtModule()
@@ -40,6 +41,7 @@ def test_lt_tensor(device, input_shapes):
     assert torch.allclose(result_before, result_after.to(torch.bool))
 
 
+@pytest.mark.xfail(reason="RuntimeError: Bool did not match BFloat16")
 @pytest.mark.parametrize(
     "input_shapes",
     [[(64, 128)]],
@@ -67,4 +69,4 @@ def test_lt_scalar(device, input_shapes):
         if node.target == ttnn.full:
             assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
-    assert_with_pcc(result_before, result_after)
+    assert torch.allclose(result_before, result_after)

@@ -1,10 +1,9 @@
 import graphviz
 import torch
+import ttnn
 import os
 import math
 from collections import defaultdict
-
-import ttnn
 
 
 def _tensor_weight(t):
