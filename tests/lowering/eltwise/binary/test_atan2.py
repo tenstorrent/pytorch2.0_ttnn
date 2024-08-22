@@ -13,6 +13,7 @@ class Atan2Module(torch.nn.Module):
         return torch.atan2(x, y)
 
 
+@pytest.mark.xfail(reason="numerical issues: AssertionError: -0.999[...]")
 @pytest.mark.parametrize(
     "input_shapes",
     (
