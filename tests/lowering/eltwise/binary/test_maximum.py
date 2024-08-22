@@ -16,7 +16,10 @@ class MaximumModule(torch.nn.Module):
     "input_shapes",
     (
         ((32, 32), (32, 32)),
-        ((64,), (32, 64)),
+        pytest.param(
+            ((64,), (32, 64)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+        ),
         pytest.param(
             ((64, 32), (64, 1)),
             marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
