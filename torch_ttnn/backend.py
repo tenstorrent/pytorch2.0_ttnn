@@ -1,12 +1,13 @@
 import torch.linalg
 import torch
-from typing import List
 import torch._dynamo
+from typing import List, Optional, Union, Mapping, Any
 from functorch.compile import make_boxed_func
 import ttnn
 import pickle
 from pathlib import Path
 import os
+from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
 import torch_ttnn.metrics as metrics
 
 torch._dynamo.config.suppress_errors = False
@@ -15,10 +16,17 @@ torch._dynamo.config.verbose = True
 
 # The option for torch_ttnn.backend
 class TorchTtnnOption:
-    def __init__(self, device: ttnn.Device, gen_graphviz=False, metrics_path=""):
+    def __init__(
+        self,
+        device: ttnn.Device,
+        gen_graphviz=False,
+        metrics_path="",
+        tracer_option=None,
+    ):
         self.device = device
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
+        self.tracer_option = tracer_option
 
         if metrics_path:
             p = Path(f"metrics/{metrics_path}")
@@ -56,11 +64,12 @@ def register_ttnn_objects(option: TorchTtnnOption):
 
 
 # The backend for torch.compile that converts a graph to use ttnn.
-# The "option" parameter is a dict that contains one key "torch_ttnn_option".
-# The value of "torch_ttnn_option" is a TorchTtnnOption object.
+# The "option" parameter is a TorchTtnnOption object
 # See document for detail.
 def aten_backend(
-    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], options: dict
+    gm: torch.fx.GraphModule,
+    example_inputs: List[torch.Tensor],
+    options: TorchTtnnOption,
 ) -> torch.fx.GraphModule:
     """
     The backend for torch.compile that converts a graph to use ttnn.
@@ -68,13 +77,12 @@ def aten_backend(
     trace into low level ATen ops not only high level torch ops.
     """
 
+    option: TorchTtnnOption = options
+
     # Clone ops used for input aliasing workaround are no longer needed at this point
     from .handle_input_aliasing import remove_clones_for_input_aliasing
 
     gm = remove_clones_for_input_aliasing(gm)
-
-    option: TorchTtnnOption = options["torch_ttnn_option"]
-
     # Save the number of aten ops before compilation
     if option.metrics_path:
         original_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
@@ -87,34 +95,32 @@ def aten_backend(
 
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
+    from torch.fx.passes.dialect.common.cse_pass import CSEPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
+    from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
-    from torch_ttnn.passes.lowering.eliminate_data_move_pass import (
-        EliminateDataMovePass,
-    )
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
 
     passes = [
         ToTtPass(),
         AddDataMovePass(),
-        EliminateDataMovePass(),
+        EliminateCoreopsPass(),
+        CSEPass(),
         PermuteReshapeTuple(),
     ]
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
-        graphviz_filenames = [
-            "00.origin",
-            "01.to-tt",
-            "02.add-data-move",
-            "03.elimate-data-move",
-            "04.permute-reshape-tuple",
-        ]
-        assert len(graphviz_filenames) == len(passes) + 1
-        for idx in range(len(graphviz_filenames)):
-            p = Path(f"metrics/{option.metrics_path}/{graphviz_filenames[idx]}")
-            passes.insert(idx * 2, GraphvizPass(p))
+        passes_with_graphviz = [GraphvizPass("00.origin")]
+        for idx in range(len(passes)):
+            passes_with_graphviz.append(passes[idx])
+            passes_with_graphviz.append(
+                GraphvizPass(
+                    f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}"
+                )
+            )
+        passes = passes_with_graphviz
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
@@ -136,19 +142,38 @@ from torch._dynamo.backends.common import aot_autograd
 from functools import partial
 
 
-from .handle_input_aliasing import insert_clones_for_input_aliasing
-
-
-# The wrapper of aot_autograd that takes a TorchTtnnOption as options.
-def backend(
-    gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor], **kwargs
+# The backend for torch.compile that converts a graph to use ttnn.
+# The "option" parameter is a TorchTtnnOption object
+# See document for detail.
+# This function is a wrapper of aten_backend, and is used by torch.compile.
+# This function is also registered as a backend for torch.compile.
+def ttnn_backend(
+    gm: torch.fx.GraphModule,
+    example_inputs: List[torch.Tensor],
+    options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
-    if options := kwargs.get("options"):
-        options = {"torch_ttnn_option": options}
-    else:
-        raise RuntimeError("TorchTtnnOption missing")
+    tracer_option = options.tracer_option
+    if tracer_option is not None:
+        from ..tracer import Tracer
 
-    gm = insert_clones_for_input_aliasing(gm)
-    return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
-        gm, example_inputs
-    )
+        out_prefix = f"fw_{tracer_option['model_name']}"
+        out_folder = tracer_option["out_folder"]
+        trace_orig = (
+            tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
+        )
+        trace_modi = (
+            tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
+        )
+        fw_compiler = Tracer(
+            partial(aten_backend, options=options),
+            out_prefix,
+            out_folder,
+            trace_orig,
+            trace_modi,
+        )
+        return aot_autograd(fw_compiler=fw_compiler)(gm, example_inputs)
+    else:
+        gm = insert_clones_for_input_aliasing(gm)
+        return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
+            gm, example_inputs
+        )

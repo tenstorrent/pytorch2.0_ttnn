@@ -10,15 +10,15 @@ The table below summarizes the results of running various ML models through our 
 
 | Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
 |:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    27.04 | 464.96                   | 99.79          |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                  3692.28 | 2564.0                   | 62.08          |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  1931.37 | 9488.77                  | 99.99          |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 30444.4  | 66413.35                 | 43.81          |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1003.69 | 43330.85                 | 72.41          |
-| [Llama](tests/models/llama)         | ✅            | 5 (4)                           | 3 (2)                           |                    3 |                161816    | 181828.79                | 26.51          |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 63431.4  | 58273.89                 | 98.98          |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 44745.5  | N/A                      | N/A            |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 329 (12)                        |                  644 |                  1723.17 | N/A                      | N/A            |
+| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    35.53 | 556.63                   | 99.72          |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   114.16 | 3076.17                  | 76.59          |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   44 |                  2023.95 | 10673.42                 | 99.99          |
+| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1378 |                 28504    | 68025.6                  | 45.77          |
+| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 320 (11)                        |                  825 |                  1340.21 | 46101.1                  | 71.71          |
+| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           |                    2 |                164063    | 166348.21                | 100.0          |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 491 (5)                         |                 1465 |                 63591.6  | 55096.44                 | 98.64          |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 46268.6  | N/A                      | N/A            |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 307 (12)                        |                  644 |                  1793.52 | N/A                      | N/A            |
 
 ### Explanation of Metrics
 
@@ -135,12 +135,10 @@ The table below summarizes the results of running various ML models through our 
 | aten.unsqueeze.default         | ✅       |       1 |
 | aten.view.default              | ✅       |     283 |
 #### Llama
-| aten ops              | status   |   count |
-|:----------------------|:---------|--------:|
-| aten._to_copy.default | ✘        |       1 |
-| aten.mm.default       | ✅       |       1 |
-| aten.t.default        | ✅       |       1 |
-| aten.view.default     | ✅       |       2 |
+| aten ops               | status   |   count |
+|:-----------------------|:---------|--------:|
+| aten.slice.Tensor      | ✘        |       1 |
+| aten.unsqueeze.default | ✘        |       2 |
 #### BERT
 | aten ops                       | status   |   count |
 |:-------------------------------|:---------|--------:|
@@ -216,7 +214,7 @@ import torch
 import torch_ttnn
 
 # A torch Module
-class FooModule(torch.Module):
+class FooModule(torch.nn.Module):
     ...
 # Create a module
 module = FooModule()
@@ -235,7 +233,7 @@ The tracer dump the information of fx graph such as node's op_name and shape.
 
 For example, you can run this script to parse the information
 ```
-PYTHONPATH=$(pwd) python3 tools/run_torchvision.py --backend torch_stat --backward --profile
+PYTHONPATH=$(pwd) python3 tools/stat_models.py --trace_orig --backward --profile
 ls stat/raw
 ```
 
@@ -263,10 +261,35 @@ The `*_total_*_size_dist/` statistics the `op_type`'s input/output_size distribu
 
 [The `profile/` is the tools provided by pytorch](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html), you can open it by the url: chrome://tracing
 
+
+# For developers
+
+## Install torch-ttnn with editable mode
+
+During development, you may want to use the torch-ttnn package for testing.
+In order to do that, you can install the torch-ttnn package in "editable"
+mode with
+
+```shell
+pip install -e .
+```
+
+Now, you can utilize `torch_ttnn` in your Python code. Any modifications you make to the `torch_ttnn` package will take effect immediately, eliminating the need for constant reinstallation via pip.
+
+## Build wheel file
+
+For developers want to deploy the wheel, you can build the wheel file with
+
+```shell
+python -m build
+```
+
+Then you can upload the `.whl` file to the PyPI (Python Package Index).
+
 ## Run transformer models
 To run transformer model with ttnn backend, run:
 ```
-PYTHONPATH=${TT_METAL_HOME}:$(pwd) python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
+PYTHONPATH="$TT_METAL_HOME:$(pwd)" python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
 ```
 
 You can also substitute the backend with `torch_stat` to run a reference comparison.

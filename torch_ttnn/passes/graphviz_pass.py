@@ -1,8 +1,6 @@
 import torch
 from torch_ttnn import fx_graphviz
 
-import ttnn
-
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 
 

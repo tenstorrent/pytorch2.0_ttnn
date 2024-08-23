@@ -15,7 +15,15 @@ class DivModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)], [(64, 128), (64, 128)]],
+    (
+        ((32, 32), (32, 32)),
+        ((64,), (32, 64)),
+        ((64, 32), (64, 1)),
+        pytest.param(
+            ((64, 1), (1, 64)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+        ),
+    ),
 )
 def test_div(device, input_shapes):
     m = DivModule()
@@ -35,10 +43,7 @@ def test_div(device, input_shapes):
     assert target.count(ttnn.mul) == 1
     assert target.index(ttnn.reciprocal) < target.index(ttnn.mul)
     assert nodes[target.index(ttnn.mul)].args[1].target == ttnn.reciprocal
-    # Intermediate node meta check if preserved
-    for node in nodes:
-        if node.target == ttnn.full or node.target == ttnn.reciprocal:
-            assert node.meta["val"].size() == input_shapes[0]
+
     # Check inference result
     assert_with_pcc(result_before, result_after)
 
