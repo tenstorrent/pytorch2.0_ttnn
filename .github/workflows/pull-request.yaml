@@ -10,7 +10,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run pre-commit hooks (check only)
-        run:
+        run: |
           python3 -m venv venv
           source venv/bin/activate          
           pip install pre-commit
