@@ -10,8 +10,9 @@ def test_resnet(record_property):
 
     # Load the ResNet-50 model with updated API
     weights = models.ResNet50_Weights.DEFAULT
-    model = models.resnet50(weights=weights)
+    model = models.resnet50(weights=weights)    
     model.eval()  # Set the model to evaluation mode
+    model = model.to(torch.bfloat16)
 
     # Define a transformation to preprocess the input image using the weights transforms
     preprocess = weights.transforms()
