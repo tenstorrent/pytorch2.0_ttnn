@@ -61,9 +61,7 @@ class Tracer:
 
         def get_tensor_info(t):
             def no_symInt_in_list(the_list):
-                return not any(
-                    isinstance(element, torch.SymInt) for element in the_list
-                )
+                return not any(isinstance(element, torch.SymInt) for element in the_list)
 
             # Only record if the tensor is torch.Tensor
             # some shape is referenced by a variable, like [2, 256, s0, s1]

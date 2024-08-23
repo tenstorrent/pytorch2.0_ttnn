@@ -54,9 +54,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             # check that model contains a forward function
             assert "forward" in dir(model), f"forward() not implemented in {model_name}"
             # Compile model with ttnn backend
-            option = torch_ttnn.TorchTtnnOption(
-                device=device, gen_graphviz=True, metrics_path=model_name
-            )
+            option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True, metrics_path=model_name)
             m = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
             start = time.perf_counter() * 1000

@@ -77,9 +77,7 @@ def generate_total_size(stat_dict, size_dir, key):
                     name = f"{op_type}_{idx}"
                     tensor_info = op_info[key][idx]
                     if "shape" in tensor_info.keys() and "dtype" in tensor_info.keys():
-                        size = math.prod(tensor_info["shape"]) * sizeof(
-                            tensor_info["dtype"]
-                        )
+                        size = math.prod(tensor_info["shape"]) * sizeof(tensor_info["dtype"])
                         op_sizes.setdefault(name, [])
                         op_sizes[name].append(size)
 
@@ -106,9 +104,7 @@ if __name__ == "__main__":
         titles, stat_dict = parse_status_json_files(raw, prefix)
         if titles == []:
             return
-        generate_node_count(
-            titles, stat_dict, os.path.join(out, f"{prefix}node_count.csv")
-        )
+        generate_node_count(titles, stat_dict, os.path.join(out, f"{prefix}node_count.csv"))
         generate_total_size(
             stat_dict,
             os.path.join(out, f"{prefix}total_input_size_dist/"),

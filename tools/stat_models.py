@@ -6,9 +6,7 @@ import torchvision
 from utils import get_model, model_example_inputs, do_model_backward
 
 
-def get_ttnn_backend(
-    model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device
-):
+def get_ttnn_backend(model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device):
     use_tracer = trace_orig or trace_modi
     if use_tracer:
         tracer_option = {
@@ -81,13 +79,9 @@ def run_model(
         m.eval()
 
     if use_torch_ttnn:
-        backend = get_ttnn_backend(
-            model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device
-        )
+        backend = get_ttnn_backend(model_name, trace_orig, trace_modi, backward, out_folder, graphviz, device)
     else:
-        backend = get_dummy_backend(
-            model_name, trace_orig, trace_modi, backward, out_folder
-        )
+        backend = get_dummy_backend(model_name, trace_orig, trace_modi, backward, out_folder)
     m = torch.compile(m, backend=backend)
 
     inputs = model_example_inputs(model_name, backward)
@@ -113,9 +107,7 @@ def run_model(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--out_folder", "-o", type=str, default=os.path.join(os.getcwd(), "stat")
-    )
+    parser.add_argument("--out_folder", "-o", type=str, default=os.path.join(os.getcwd(), "stat"))
     parser.add_argument("--use_torch_ttnn", action="store_true")
     parser.add_argument("--trace_orig", action="store_true")
     parser.add_argument("--trace_modi", action="store_true")

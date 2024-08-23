@@ -9,12 +9,8 @@ def test_bert(record_property):
 
     # Download model from cloud
     model_name = "phiyodr/bert-large-finetuned-squad2"
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name, padding_side="left", torch_dtype=torch.bfloat16
-    )
-    m = AutoModelForQuestionAnswering.from_pretrained(
-        model_name, torch_dtype=torch.bfloat16
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
+    m = AutoModelForQuestionAnswering.from_pretrained(model_name, torch_dtype=torch.bfloat16)
     m.eval()
 
     # Set up sample input

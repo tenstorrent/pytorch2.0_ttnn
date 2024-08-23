@@ -131,11 +131,7 @@ def serialize_schema_metrics_to_operations(metrics):
         op_schema_string = serialize_schema_metrics_to_string(
             node["schema"], node["input_shapes"], node["input_values"]
         )
-        operations.append(
-            pydantic_models.Operation(
-                op_name=node["opname"], op_schema=op_schema_string
-            )
-        )
+        operations.append(pydantic_models.Operation(op_name=node["opname"], op_schema=op_schema_string))
     return operations
 
 
@@ -169,16 +165,12 @@ def write_input_variation_metrics_to_csv(all_input_var_metrics):
         # holds the variations of input string
         input_var_list = []
         for shapes, values in zip(val["input_shapes"], val["input_values"]):
-            input_string_list = serialize_schema_metrics_to_string(
-                val["schema"], shapes, values
-            )
+            input_string_list = serialize_schema_metrics_to_string(val["schema"], shapes, values)
             input_var_list.append(", ".join(input_string_list))
 
         input_var_list_for_csv[val["opname"]] = input_var_list
 
-    df = pd.DataFrame(
-        {key: pd.Series(value) for key, value in input_var_list_for_csv.items()}
-    )
+    df = pd.DataFrame({key: pd.Series(value) for key, value in input_var_list_for_csv.items()})
     df.to_csv("input_variations.csv", encoding="utf-8", index=False)
     print(f"Data written to input_variations.csv")
 
@@ -191,9 +183,7 @@ def write_to_readme(all_metrics, aten_ops_per_model):
     * Writes a series of tables of each model containing the statuses of ops used.
     """
     # Create an explanation section for the headers
-    explanations_md = "\n".join(
-        [f"**{val[0]}**: {val[1]}  " for val in csv_header_mappings.values()]
-    )
+    explanations_md = "\n".join([f"**{val[0]}**: {val[1]}  " for val in csv_header_mappings.values()])
     # FIXME: Remove this once metrics generation and collection work for multiple graphs
     explanations_md += "\n***\n**NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  "
 
@@ -248,9 +238,7 @@ if __name__ == "__main__":
             └── compiled-schema_list.pickle
     """
     if not os.path.isdir("metrics"):
-        raise ValueError(
-            "metrics directory not found. Please run models to generate metrics first."
-        )
+        raise ValueError("metrics directory not found. Please run models to generate metrics first.")
     for model in os.listdir("metrics"):
         model_path = Path("metrics") / Path(model)
 
@@ -263,17 +251,11 @@ if __name__ == "__main__":
         original_runtime_metrics = load_pickle(original_runtime_metrics_path)
         compiled_runtime_metrics = load_pickle(compiled_runtime_metrics_path)
         # Both run time files should exist
-        assert (
-            original_runtime_metrics
-        ), f"{original_runtime_metrics_path} file not found"
-        assert (
-            compiled_runtime_metrics
-        ), f"{compiled_runtime_metrics_path} file not found"
+        assert original_runtime_metrics, f"{original_runtime_metrics_path} file not found"
+        assert compiled_runtime_metrics, f"{compiled_runtime_metrics_path} file not found"
 
         # Add links that point to the directory of the model in the model name
-        assert (
-            "model_path" in original_runtime_metrics
-        ), "model_path key not in original_runtime_metrics"
+        assert "model_path" in original_runtime_metrics, "model_path key not in original_runtime_metrics"
         path_in_repo = original_runtime_metrics["model_path"]
         model_metric = {"model": f"[{model}]({path_in_repo})"}
 
@@ -305,59 +287,37 @@ if __name__ == "__main__":
         }
         if original_schema_metrics:
             aten_ops_before_list = [
-                node["opname"]
-                for node in original_schema_metrics
-                if node["opname"].startswith("aten.")
+                node["opname"] for node in original_schema_metrics if node["opname"].startswith("aten.")
             ]
-            aten_ops_before, aten_ops_unique_before = len(aten_ops_before_list), len(
-                set(aten_ops_before_list)
-            )
-            ops_metrics[
-                "torch_ops_total_unique_before"
-            ] = f"{aten_ops_before} ({aten_ops_unique_before})"
+            aten_ops_before, aten_ops_unique_before = len(aten_ops_before_list), len(set(aten_ops_before_list))
+            ops_metrics["torch_ops_total_unique_before"] = f"{aten_ops_before} ({aten_ops_unique_before})"
 
             # Populate schemas for each op for original graph
-            pydantic_model.ops_original = serialize_schema_metrics_to_operations(
-                original_schema_metrics
-            )
+            pydantic_model.ops_original = serialize_schema_metrics_to_operations(original_schema_metrics)
 
             # Populate schemas for each op for compiled graph
-            pydantic_model.ops_compiled = serialize_schema_metrics_to_operations(
-                compiled_schema_metrics
-            )
+            pydantic_model.ops_compiled = serialize_schema_metrics_to_operations(compiled_schema_metrics)
 
             # Count numer of aten ops remaning after conversion
             if compiled_schema_metrics:
                 aten_ops_remain_list = [
-                    node["opname"]
-                    for node in compiled_schema_metrics
-                    if node["opname"].startswith("aten.")
+                    node["opname"] for node in compiled_schema_metrics if node["opname"].startswith("aten.")
                 ]
-                aten_ops_remain, aten_ops_unique_remain = len(
-                    aten_ops_remain_list
-                ), len(set(aten_ops_remain_list))
-                ops_metrics[
-                    "torch_ops_total_unique_remain"
-                ] = f"{aten_ops_remain} ({aten_ops_unique_remain})"
+                aten_ops_remain, aten_ops_unique_remain = len(aten_ops_remain_list), len(set(aten_ops_remain_list))
+                ops_metrics["torch_ops_total_unique_remain"] = f"{aten_ops_remain} ({aten_ops_unique_remain})"
 
                 device_op_list = [
                     node["opname"]
                     for node in compiled_schema_metrics
-                    if node["opname"].startswith("ttnn.to")
-                    or node["opname"].startswith("ttnn.from")
+                    if node["opname"].startswith("ttnn.to") or node["opname"].startswith("ttnn.from")
                 ]
                 ops_metrics["to_from_device_ops"] = f"{len(device_op_list)}"
 
                 # Compile list of aten ops per model used for README
-                aten_ops_per_model[model] = create_aten_op_dict(
-                    aten_ops_before_list, aten_ops_remain_list
-                )
+                aten_ops_per_model[model] = create_aten_op_dict(aten_ops_before_list, aten_ops_remain_list)
 
         # Get accuracy metric. Will not exist if test failed.
-        if (
-            "accuracy" in compiled_runtime_metrics
-            and compiled_runtime_metrics["accuracy"] is not None
-        ):
+        if "accuracy" in compiled_runtime_metrics and compiled_runtime_metrics["accuracy"] is not None:
             acc = round(compiled_runtime_metrics["accuracy"] * 100, 2)
             accuracy_metric = {"accuracy": acc}
             pydantic_model.accuracy = acc
@@ -368,9 +328,7 @@ if __name__ == "__main__":
         pydantic_model.run_success = compiled_runtime_metrics["success"]
         # Remap bool to emoji
         emoji_map = {True: "✅", False: "✘"}
-        compiled_runtime_metrics["success"] = emoji_map[
-            compiled_runtime_metrics["success"]
-        ]
+        compiled_runtime_metrics["success"] = emoji_map[compiled_runtime_metrics["success"]]
 
         # Concatenate all the metrics together
         cat_metrics = {

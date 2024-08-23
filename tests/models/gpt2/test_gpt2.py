@@ -11,12 +11,8 @@ def test_gpt2(record_property):
 
     # Download model from cloud
     model_name = "mnoukhov/gpt2-imdb-sentiment-classifier"
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name, padding_side="left", torch_dtype=torch.bfloat16
-    )
-    m = AutoModelForSequenceClassification.from_pretrained(
-        model_name, torch_dtype=torch.bfloat16
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
+    m = AutoModelForSequenceClassification.from_pretrained(model_name, torch_dtype=torch.bfloat16)
     m.eval()
 
     # Set up sample input
