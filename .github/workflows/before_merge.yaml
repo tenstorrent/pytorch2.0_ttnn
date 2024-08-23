@@ -3,6 +3,11 @@ name: "Tests"
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      commit_report:
+        description: 'Commit generated report files: None, Readme, All'
+        required: false
+        default: 'None'
   merge_group:
 
 permissions:
@@ -65,11 +70,21 @@ jobs:
           source venv/bin/activate          
           python3 tools/collect_metrics.py
           git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config user.email "actions@github.com"          
           git status
-          git add README.md
-          git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
-          git push
-          git add README.md
-          git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
-          git push
+          
+          if [ "${{ github.event.inputs.commit_option }}" == "All" ]; then
+            git add .
+          elif [ "${{ github.event.inputs.commit_option }}" == "Readme" ]; then
+            git add README.md
+          elif [ "${{ github.event.inputs.commit_option }}" == "None" ]; then
+            echo "No files will be committed"
+            exit 0
+          fi
+          
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit"
+          else
+            git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
+            git push
+          fi
