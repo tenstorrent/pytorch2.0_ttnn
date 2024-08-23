@@ -50,15 +50,11 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, requires_grad=True) for shape in input_shapes]
 
-        aot_backend = aot_autograd(
-            fw_compiler=Tracer(self.dummy_backend, "fw_conv", self.out_folder)
-        )
+        aot_backend = aot_autograd(fw_compiler=Tracer(self.dummy_backend, "fw_conv", self.out_folder))
         m = torch.compile(m, backend=aot_backend)
         _ = m.forward(*inputs)
 
-        fw_result_json_path = os.path.join(
-            self.out_folder, "raw", "fw_conv_orig_0.json"
-        )
+        fw_result_json_path = os.path.join(self.out_folder, "raw", "fw_conv_orig_0.json")
         self.assertTrue(os.path.isfile(fw_result_json_path))
 
     def test_conv_with_backward(self):
@@ -74,12 +70,8 @@ class TestModules(unittest.TestCase):
         result = m.forward(*inputs)
         result.backward(torch.ones_like(result))
 
-        fw_result_json_path = os.path.join(
-            self.out_folder, "raw", "fw_conv_orig_0.json"
-        )
-        bw_result_json_path = os.path.join(
-            self.out_folder, "raw", "bw_conv_orig_0.json"
-        )
+        fw_result_json_path = os.path.join(self.out_folder, "raw", "fw_conv_orig_0.json")
+        bw_result_json_path = os.path.join(self.out_folder, "raw", "bw_conv_orig_0.json")
         self.assertTrue(os.path.isfile(fw_result_json_path))
         self.assertTrue(os.path.isfile(bw_result_json_path))
 
@@ -88,19 +80,11 @@ class TestModules(unittest.TestCase):
         input_shapes = m.input_shapes()
         inputs = [torch.rand(shape, requires_grad=True) for shape in input_shapes]
 
-        aot_backend = aot_autograd(
-            fw_compiler=Tracer(
-                self.dummy_backend, "fw_conv", self.out_folder, trace_modi=True
-            )
-        )
+        aot_backend = aot_autograd(fw_compiler=Tracer(self.dummy_backend, "fw_conv", self.out_folder, trace_modi=True))
         m = torch.compile(m, backend=aot_backend)
         _ = m.forward(*inputs)
 
-        fw_result_json_path = os.path.join(
-            self.out_folder, "raw", "fw_conv_orig_0.json"
-        )
-        fw_modi_result_json_path = os.path.join(
-            self.out_folder, "raw", "fw_conv_modi_0.json"
-        )
+        fw_result_json_path = os.path.join(self.out_folder, "raw", "fw_conv_orig_0.json")
+        fw_modi_result_json_path = os.path.join(self.out_folder, "raw", "fw_conv_modi_0.json")
         self.assertTrue(os.path.isfile(fw_result_json_path))
         self.assertTrue(os.path.isfile(fw_modi_result_json_path))

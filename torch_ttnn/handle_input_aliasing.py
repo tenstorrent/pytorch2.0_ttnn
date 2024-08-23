@@ -41,9 +41,7 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
         Somehow the argument list will get truncated.
         """
         with gm.graph.inserting_after(input_nodes[-1]):
-            clone_node = gm.graph.call_function(
-                torch.ops.aten.clone.default, args=(node,)
-            )
+            clone_node = gm.graph.call_function(torch.ops.aten.clone.default, args=(node,))
             node.replace_all_uses_with(
                 clone_node,
                 delete_user_cb=lambda node: node != clone_node,

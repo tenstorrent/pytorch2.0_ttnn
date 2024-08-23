@@ -33,9 +33,7 @@ def test_yolos(record_property):
     # Helper function to decode output to human-readable text
     def decode_output(outputs):
         target_sizes = torch.tensor([image.size[::-1]])
-        results = image_processor.post_process_object_detection(
-            outputs, threshold=0.9, target_sizes=target_sizes
-        )[0]
+        results = image_processor.post_process_object_detection(outputs, threshold=0.9, target_sizes=target_sizes)[0]
         return results
 
     decoded_output = decode_output(outputs)

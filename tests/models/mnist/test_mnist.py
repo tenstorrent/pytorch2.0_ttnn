@@ -39,9 +39,7 @@ def test_mnist_train(record_property):
 
     transform = transforms.Compose([transforms.ToTensor()])
 
-    train_dataset = datasets.MNIST(
-        root="./data", train=True, transform=transform, download=True
-    )
+    train_dataset = datasets.MNIST(root="./data", train=True, transform=transform, download=True)
     dataloader = DataLoader(train_dataset, batch_size=1)
 
     m = MnistModel()
@@ -63,9 +61,7 @@ def test_mnist_eval(record_property):
 
     transform = transforms.Compose([transforms.ToTensor()])
 
-    test_dataset = datasets.MNIST(
-        root="./data", train=False, transform=transform, download=True
-    )
+    test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
     dataloader = DataLoader(test_dataset, batch_size=1)
 
     m = MnistModel()
