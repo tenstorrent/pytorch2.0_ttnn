@@ -43,9 +43,7 @@ def register_ttnn_objects(option: TorchTtnnOption):
     """
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
 
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
-    )
+    torch.fx.graph._register_custom_builtin("ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT)
     torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
 
     torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
@@ -86,9 +84,7 @@ def aten_backend(
     # Save the number of aten ops before compilation
     if option.metrics_path:
         original_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
-        metrics.save_pickle(
-            original_schema_list, option.metrics_path, "original-schema_list"
-        )
+        metrics.save_pickle(original_schema_list, option.metrics_path, "original-schema_list")
 
     # Register ttnn objects as graph globals
     register_ttnn_objects(option)
@@ -116,9 +112,7 @@ def aten_backend(
         for idx in range(len(passes)):
             passes_with_graphviz.append(passes[idx])
             passes_with_graphviz.append(
-                GraphvizPass(
-                    f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}"
-                )
+                GraphvizPass(f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}")
             )
         passes = passes_with_graphviz
 
@@ -130,9 +124,7 @@ def aten_backend(
 
     if option.metrics_path:
         compiled_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
-        metrics.save_pickle(
-            compiled_schema_list, option.metrics_path, "compiled-schema_list"
-        )
+        metrics.save_pickle(compiled_schema_list, option.metrics_path, "compiled-schema_list")
 
     option._out_fx_graphs.append(gm.graph)
     return make_boxed_func(gm)
@@ -158,12 +150,8 @@ def ttnn_backend(
 
         out_prefix = f"fw_{tracer_option['model_name']}"
         out_folder = tracer_option["out_folder"]
-        trace_orig = (
-            tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
-        )
-        trace_modi = (
-            tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
-        )
+        trace_orig = tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
+        trace_modi = tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
         fw_compiler = Tracer(
             partial(aten_backend, options=options),
             out_prefix,
@@ -174,6 +162,4 @@ def ttnn_backend(
         return aot_autograd(fw_compiler=fw_compiler)(gm, example_inputs)
     else:
         gm = insert_clones_for_input_aliasing(gm)
-        return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
-            gm, example_inputs
-        )
+        return aot_autograd(fw_compiler=partial(aten_backend, options=options))(gm, example_inputs)

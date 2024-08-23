@@ -47,16 +47,8 @@ def collect_schema_from_nodes(nodes: list):
             node_stats["opname"] = str(node.target)
 
             # Get schema from op
-            pos_args = [
-                (str(arg.type), str(arg.name))
-                for arg in node.target._schema.arguments
-                if not arg.kwarg_only
-            ]
-            kw_args = {
-                str(arg.name): str(arg.type)
-                for arg in node.target._schema.arguments
-                if arg.kwarg_only
-            }
+            pos_args = [(str(arg.type), str(arg.name)) for arg in node.target._schema.arguments if not arg.kwarg_only]
+            kw_args = {str(arg.name): str(arg.type) for arg in node.target._schema.arguments if arg.kwarg_only}
             op_schema = {"args": pos_args, "kwargs": kw_args}
             node_stats["schema"] = op_schema
 
