@@ -5,7 +5,7 @@ from torchvision import transforms
 from PIL import Image
 
 
-def test_mobilenet(record_property):
+def test_MobileNetV2(record_property):
     record_property("model_name", "MobileNetV2")
 
     # Load the MobileNetV2 model with updated API
@@ -40,4 +40,4 @@ def empty_record_property(a, b):
 
 # Main
 if __name__ == "__main__":
-    test_mobilenet(empty_record_property)
+    test_MobileNetV2(empty_record_property)
