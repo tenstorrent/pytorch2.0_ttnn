@@ -177,6 +177,16 @@ def is_tt_data_move(node) -> bool:
     ]
 
 
+# For non-tiled shapes, these ttnn ops require layout changes
+layout_change_ops = set(
+    [
+        target_wrappers.repeat,
+        ttnn.reshape,
+        ttnn.embedding,
+    ]
+)
+
+
 def is_tt(node):
     return is_tt_compute(node) or is_tt_data_move(node)
 
@@ -196,15 +206,9 @@ def call_to_torch_with_meta(g, src_node):
 
 
 def should_add_data_move_in(src_node, dst_node) -> bool:
-    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(
-        src_node, torch.fx.node.Node
-    ):
+    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return False
-    return (
-        is_tt_compute(dst_node)
-        and not is_tt(src_node)
-        and not (dst_node.target == ttnn.as_tensor)
-    )
+    return is_tt_compute(dst_node) and not is_tt(src_node) and not (dst_node.target == ttnn.as_tensor)
 
 
 def should_add_data_move_out(src_node, dst_node) -> bool:
@@ -275,12 +279,14 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["layout"] = TtnnTileLayout()
 
-        if dst_node.target != ttnn.embedding:
+        if dst_node.target not in layout_change_ops:
             kwargs["dtype"] = TtnnBfloat16()
 
         # For reshape only put tensor on device if rank is 4
-        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
-            dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
+        if (
+            (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape)
+            or (dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4)
+            or (dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 2 and dst_node.args[1][0] == 1)
         ):
             kwargs["device"] = device
 
@@ -290,21 +296,9 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     return new_nodes[-1]
 
 
-layout_change_ops = set(
-    [
-        target_wrappers.repeat,
-        ttnn.reshape,
-    ]
-)
-
-
-def try_add_layout_change_before_node(
-    src_node, dst_idx, dst_node
-) -> torch.fx.node.Node:
+def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
-    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(
-        src_node, torch.fx.node.Node
-    ):
+    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return None
     if not is_function_call(dst_node):
         return None
@@ -324,11 +318,7 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.no
     # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
     if not is_function_call(src_node):
         return None
-    if (
-        src_node.target not in layout_change_ops
-        or not is_tt_compute(dst_node)
-        or dst_node.target == ttnn.embedding
-    ):
+    if src_node.target not in layout_change_ops or not is_tt_compute(dst_node) or dst_node.target == ttnn.embedding:
         return None
 
     g = dst_node.graph
@@ -368,17 +358,13 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(
-            call_to_torch_with_meta(g, new_nodes[-1] if new_nodes else src_node)
-        )
+        new_nodes.append(call_to_torch_with_meta(g, new_nodes[-1] if new_nodes else src_node))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
 
 
-def try_add_data_move_out_for_layer_norm(
-    src_node, dst_idx, dst_node
-) -> torch.fx.node.Node:
+def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     if not should_add_data_move_out(src_node, dst_node):
         return None
 
@@ -422,11 +408,7 @@ class AddDataMovePass(PassBase):
         data_move_out_hash = {}
         for node in nodes:
             args = node.args[0] if node.op == "output" else node.args
-            kwargs = tuple(
-                _Kwarg(k, v)
-                for k, v in node.kwargs.items()
-                if isinstance(v, torch.fx.node.Node)
-            )
+            kwargs = tuple(_Kwarg(k, v) for k, v in node.kwargs.items() if isinstance(v, torch.fx.node.Node))
             if isinstance(args, tuple):
                 args += kwargs
 
@@ -455,9 +437,7 @@ class AddDataMovePass(PassBase):
                     new_arg[idx] = data_move_out_hash[arg]
                     node.update_arg(0, tuple(new_arg))
                     i += 1
-                elif (node.target != ttnn.layer_norm) and (
-                    to_torch := try_add_data_move_out(arg, idx, node)
-                ):
+                elif (node.target != ttnn.layer_norm) and (to_torch := try_add_data_move_out(arg, idx, node)):
                     data_move_out_hash[arg] = to_torch
                     i += 1
                 elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
@@ -484,6 +464,4 @@ class AddDataMovePass(PassBase):
                             (node,),
                             {"dtype": torch.int64},
                         )
-                        node.replace_all_uses_with(
-                            new_node, delete_user_cb=lambda node: node != new_node
-                        )
+                        node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
