@@ -15,4 +15,8 @@ jobs:
           source venv/bin/activate          
           pip install pre-commit
           pre-commit install
-          pre-commit run --all-files --check
+          pre-commit run --all-files
+          if ! git diff --exit-code; then
+            echo "Pre-commit hooks made changes, please commit them."
+            exit 1
+          fi
