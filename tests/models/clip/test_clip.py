@@ -1,5 +1,6 @@
 from PIL import Image
 import requests
+import torch
 
 from transformers import CLIPProcessor, CLIPModel
 
