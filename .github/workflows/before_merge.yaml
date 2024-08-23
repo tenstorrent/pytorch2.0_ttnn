@@ -58,7 +58,7 @@ jobs:
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ -s
       - name: Collect Metrics Report
-        if: ${{ github.event_name == 'merge_group' && steps.lowering_tests.outcome == 'success' && steps.model_tests.outcome == 'success' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && steps.lowering_tests.outcome == 'success' && steps.model_tests.outcome == 'success' }}
         env: 
           PYTHONPATH: ${{ github.workspace }}
         run: | 
