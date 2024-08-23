@@ -10,15 +10,15 @@ The table below summarizes the results of running various ML models through our 
 
 | Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
 |:------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    38.64 | 501.5                    | 99.85          |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                   136.38 | 2709.01                  | 66.84          |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  2131.05 | 9985.44                  | 99.99          |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 28892.3  | 68470.67                 | 45.77          |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1410.28 | 45328.58                 | 71.71          |
-| [Llama](tests/models/llama)         | ✅            | 5 (4)                           | 3 (2)                           |                    3 |                206771    | 187910.29                | 45.46          |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 67347.3  | 60024.8                  | 98.64          |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 51366.6  | N/A                      | N/A            |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 316 (12)                        |                  569 |                  5711.32 | N/A                      | N/A            |
+| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           |                   16 |                    27.04 | 464.96                   | 99.79          |
+| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           |                   14 |                  3692.28 | 2564.0                   | 62.08          |
+| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          |                   47 |                  1931.37 | 9488.77                  | 99.99          |
+| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        |                 1379 |                 30444.4  | 66413.35                 | 43.81          |
+| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        |                  919 |                  1003.69 | 43330.85                 | 72.41          |
+| [Llama](tests/models/llama)         | ✅            | 5 (4)                           | 3 (2)                           |                    3 |                161816    | 181828.79                | 26.51          |
+| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         |                 1513 |                 63431.4  | 58273.89                 | 98.98          |
+| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           |                    5 |                 44745.5  | N/A                      | N/A            |
+| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | 329 (12)                        |                  644 |                  1723.17 | N/A                      | N/A            |
 
 ### Explanation of Metrics
 
