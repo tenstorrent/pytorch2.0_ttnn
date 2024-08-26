@@ -53,7 +53,6 @@ def test_arange(device, input_shapes):
     assert torch.allclose(result_before, result_after)
 
 
-@pytest.mark.xfail(reason="argument mismatch (#65)")
 @pytest.mark.parametrize(
     "input_shapes",
     [[2, 100]],
@@ -75,7 +74,6 @@ def test_arange_start(device, input_shapes):
     assert torch.allclose(result_before, result_after)
 
 
-@pytest.mark.xfail(reason="argument mismatch (#65)")
 @pytest.mark.parametrize(
     "input_shapes",
     [[4, 100, 3]],
