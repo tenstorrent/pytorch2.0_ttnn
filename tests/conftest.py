@@ -73,7 +73,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
         except Exception as e:
             comp_runtime_metrics = {"success": False}
             print(f"{model_name} compiled failed to run. Raised exception: {e}")
-            raise
+            if request.node.get_closest_marker("torch_only"):
+                pytest.xfail()
+            else:
+                raise
         finally:
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
