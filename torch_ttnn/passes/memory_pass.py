@@ -8,7 +8,6 @@ from torch_ttnn import mem_utils
 
 class MemoryPass(PassBase):
     def __init__(self, verbose=True):
-        
         self.mm = mem_utils.MemoryManager(
             mem_utils.device_name,
             mem_utils.cores,
@@ -46,9 +45,7 @@ class MemoryPass(PassBase):
         tensor_shape, tensor_dtype = self.op_registry.get_tensor_shape_and_dtype(node)
         tensor_size = mem_utils.get_tensor_size(tensor_shape, tensor_dtype)
 
-        assert (
-            node in self.mm.node_to_tid_map
-        ), "Tensor ID is not assigned for one of the inputs of ttnn op!"
+        assert node in self.mm.node_to_tid_map, "Tensor ID is not assigned for one of the inputs of ttnn op!"
 
         tid = self.mm.node_to_tid_map[node]
         self.mm.tensor_size_of[tid] = tensor_size
@@ -79,9 +76,7 @@ class MemoryPass(PassBase):
         self.mm.tensors_on_device.remove(tid)
         return (tid, tensor_size)
 
-    def memory_footprint(
-        self, gm: torch.fx.GraphModule
-    ) -> torch.fx.GraphModule:
+    def memory_footprint(self, gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
         self.mm.log("Track memory footprint for each of the ops:\n")
 
         # List of already executed nodes on device
@@ -129,9 +124,7 @@ class MemoryPass(PassBase):
                     self.mm.ops_mem_usage[node.name] = total_input_size + output_size
                     ttnn_ops_tids.append(tid)
                     self.mm.ttnn_ops_tids[node.name] = ttnn_ops_tids
-                    self.mm.tids_in_sram_at[
-                        node.name
-                    ] = self.mm.tensors_on_device.copy()
+                    self.mm.tids_in_sram_at[node.name] = self.mm.tensors_on_device.copy()
                     self.mm.sram_usage_at[node.name] = self.mm.used_sram
 
                     if (tid, output_size) not in on_device_meta:
@@ -156,9 +149,7 @@ class MemoryPass(PassBase):
                     for user in node_users:
                         if is_tt_compute(user):
                             is_follow_up_tt_compute = True
-                        if user.target in set(
-                            [ttnn.from_device, ttnn.to_torch, ttnn.to_layout]
-                        ):
+                        if user.target in set([ttnn.from_device, ttnn.to_torch, ttnn.to_layout]):
                             is_follow_up_from_device = True
 
                     # If no follow up ttnn op using the output of current node
@@ -189,12 +180,8 @@ class MemoryPass(PassBase):
                             tid, tensor_size = self.deallocate(input_node)
                             on_device_meta.remove((tid, tensor_size))
 
-                            self.mm.log(
-                                f"input tensor removed from device: {tensor_size} bytes\n"
-                            )
-                            self.mm.log(
-                                f"total SRAM usage: {self.mm.used_sram} bytes\n"
-                            )
+                            self.mm.log(f"input tensor removed from device: {tensor_size} bytes\n")
+                            self.mm.log(f"total SRAM usage: {self.mm.used_sram} bytes\n")
 
                     # data_points[(node.name, "from_device")] = on_device_meta.copy()
 
@@ -202,9 +189,7 @@ class MemoryPass(PassBase):
 
         self.mm.log(f"Tensor IDs to address map in SRAM:\n")
         self.mm.log(f"{self.mm.tid_to_addr_map_in_sram}\n")
-        self.mm.log(
-            f"----------------------------------------------------------------\n"
-        )
+        self.mm.log(f"----------------------------------------------------------------\n")
         self.mm.log(f"These ttnn ops overflow the SRAM buffer:\n")
         for op in overflow_ops:
             self.mm.log(f"{op}, ")

@@ -40,7 +40,7 @@ def test_clone_from_arg(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.clone) == 1
+    assert [node.target for node in nodes].count(torch_ttnn.target_wrappers.clone) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
 
@@ -63,10 +63,8 @@ def test_clone_from_node(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(ttnn.clone) == 1
-    clone_arg_0 = nodes[target.index(ttnn.clone)].args[0].target
-    assert isinstance(clone_arg_0, ttnn.decorators.FastOperation) or isinstance(
-        clone_arg_0, ttnn.decorators.Operation
-    )
+    assert target.count(torch_ttnn.target_wrappers.clone) == 1
+    clone_arg_0 = nodes[target.index(torch_ttnn.target_wrappers.clone)].args[0].target
+    assert isinstance(clone_arg_0, ttnn.decorators.FastOperation) or isinstance(clone_arg_0, ttnn.decorators.Operation)
     # Check inference result
     assert torch.allclose(result_before, result_after)

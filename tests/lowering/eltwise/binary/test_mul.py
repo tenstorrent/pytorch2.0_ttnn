@@ -14,7 +14,15 @@ class MulModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    (
+        ((32, 32), (32, 32)),
+        ((64,), (32, 64)),
+        ((64, 32), (64, 1)),
+        pytest.param(
+            ((64, 1), (1, 64)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+        ),
+    ),
 )
 def test_mul(device, input_shapes):
     m = MulModule()

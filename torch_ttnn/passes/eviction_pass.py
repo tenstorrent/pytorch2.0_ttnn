@@ -33,13 +33,9 @@ def evict_tensors_from_device(
 
             with g.inserting_after(node):
                 device = TtnnDevice()
-                to_device_node = g.call_function(
-                    ttnn.to_device, (from_device_node, device)
-                )
+                to_device_node = g.call_function(ttnn.to_device, (from_device_node, device))
 
-            assert (
-                evict_node is not None and evict_node_users != []
-            ), "Evicted node should be there."
+            assert evict_node is not None and evict_node_users != [], "Evicted node should be there."
             # For users of evict node, if it topologically comes after the evict node:
             # then update the user's argument (input) to be "to_device node"
             for user in evict_node_users:
@@ -62,7 +58,5 @@ class EvictionPass(PassBase):
         self.tensors_to_evict = tensors_to_evict
 
     def call(self, gm: torch.fx.GraphModule):
-        gm = evict_tensors_from_device(
-            gm, self.mm, self.guilty_op, self.tensors_to_evict
-        )
+        gm = evict_tensors_from_device(gm, self.mm, self.guilty_op, self.tensors_to_evict)
         return PassResult(gm, True)

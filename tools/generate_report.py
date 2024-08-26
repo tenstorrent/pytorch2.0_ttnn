@@ -30,9 +30,12 @@ def parse_status_json_files(status_folder, prefix="fw_"):
 
 def generate_node_count(titles, stat_dict, node_count_csv):
     def get_op_cnt(op_type, op_infos):
+        if op_type == "_TOTAL_":
+            return len(op_infos)
         op_types = [op_info["op_type"] for op_info in op_infos]
         return op_types.count(op_type)
 
+    titles = ["_TOTAL_"] + titles
     rows = [["model_name"] + titles]
     for model_name in sorted(stat_dict.keys()):
         stat = stat_dict[model_name]
@@ -74,9 +77,7 @@ def generate_total_size(stat_dict, size_dir, key):
                     name = f"{op_type}_{idx}"
                     tensor_info = op_info[key][idx]
                     if "shape" in tensor_info.keys() and "dtype" in tensor_info.keys():
-                        size = math.prod(tensor_info["shape"]) * sizeof(
-                            tensor_info["dtype"]
-                        )
+                        size = math.prod(tensor_info["shape"]) * sizeof(tensor_info["dtype"])
                         op_sizes.setdefault(name, [])
                         op_sizes[name].append(size)
 
@@ -103,9 +104,7 @@ if __name__ == "__main__":
         titles, stat_dict = parse_status_json_files(raw, prefix)
         if titles == []:
             return
-        generate_node_count(
-            titles, stat_dict, os.path.join(out, f"{prefix}node_count.csv")
-        )
+        generate_node_count(titles, stat_dict, os.path.join(out, f"{prefix}node_count.csv"))
         generate_total_size(
             stat_dict,
             os.path.join(out, f"{prefix}total_input_size_dist/"),

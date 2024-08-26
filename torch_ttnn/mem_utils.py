@@ -80,9 +80,7 @@ class MemoryManager:
 class OpRegistry:
     def get_tensor_shape_and_dtype(self, node):
         if is_tt_data_move(node):
-            assert (
-                len(node.all_input_nodes) == 1
-            ), "Data movement operators can't have more than one input!"
+            assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
             return self.get_tensor_shape_and_dtype(node.all_input_nodes[0])
         else:
             # TODO: What if meta of nth output of the node is requested?
@@ -93,9 +91,7 @@ class OpRegistry:
 
     def is_input_tensor_on_device(self, node):
         if node.target == ttnn.from_torch:
-            if "device" in node.kwargs and isinstance(
-                node.kwargs["device"], TtnnDevice
-            ):
+            if "device" in node.kwargs and isinstance(node.kwargs["device"], TtnnDevice):
                 return True
         if node.target is ttnn.to_device or is_tt_compute(node):
             return True
@@ -134,9 +130,7 @@ def which_tensors_to_evict(mm: MemoryManager) -> tuple:
                     potential_tensors_to_evict.remove(tid)
 
             # Convert list of potential tensors to evict to dict with tensor's memory size
-            potential_tensors_to_evict = {
-                tid: mm.tensor_size_of[tid] for tid in potential_tensors_to_evict
-            }
+            potential_tensors_to_evict = {tid: mm.tensor_size_of[tid] for tid in potential_tensors_to_evict}
             # Sort the dict as per tensor memory size (in decreasing order)
             potential_tensors_to_evict = {
                 k: v

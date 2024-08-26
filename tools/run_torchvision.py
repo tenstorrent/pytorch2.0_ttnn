@@ -72,9 +72,7 @@ def run_model(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--out_path", "-o", type=str, default=os.path.join(os.getcwd(), "stat")
-    )
+    parser.add_argument("--out_path", "-o", type=str, default=os.path.join(os.getcwd(), "stat"))
     parser.add_argument("--backend", type=str)
     parser.add_argument("--graphviz", action="store_true")
     parser.add_argument("--backward", action="store_true")
@@ -91,11 +89,7 @@ if __name__ == "__main__":
 
     models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
 
-    device = (
-        torch_ttnn.ttnn.open_device(device_id=0)
-        if args.backend == "torch_ttnn"
-        else None
-    )
+    device = torch_ttnn.ttnn.open_device(device_id=0) if args.backend == "torch_ttnn" else None
     for m in models:
         try:
             run_model(

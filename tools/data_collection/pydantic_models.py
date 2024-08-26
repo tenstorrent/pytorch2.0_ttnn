@@ -24,38 +24,20 @@ class ModelRun(BaseModel):
     """
 
     name: str = Field("N/A", description="Name of the model.")
-    path_in_repo: str = Field(
-        "N/A", description="Link to the relative path of the model files in repo."
-    )
+    path_in_repo: str = Field("N/A", description="Link to the relative path of the model files in repo.")
     run_success: bool = Field(None, description="Success status of the run.")
-    original_run_time: float = Field(
-        None, description="Run time in ms of the original model run before conversions."
-    )
-    compile_time: float = Field(
-        None, description="Time spent in ms compiling the model."
-    )
-    compiled_run_time: float = Field(
-        None, description="Run time in ms of the compiled model run after conversions."
-    )
+    original_run_time: float = Field(None, description="Run time in ms of the original model run before conversions.")
+    compile_time: float = Field(None, description="Time spent in ms compiling the model.")
+    compiled_run_time: float = Field(None, description="Run time in ms of the compiled model run after conversions.")
     accuracy: float = Field(
         None,
         description="Accuracy in %% between the original and compiled model outputs.",
     )
-    ops_original: List[Operation] = Field(
-        None, description="List of Operations of original model before conversion."
-    )
-    ops_compiled: List[Operation] = Field(
-        None, description="List of Operations of compiled model after conversion."
-    )
-    graph_before: str = Field(
-        "N/A", description="Link to the visual graph of model before conversions."
-    )
-    graph_after: str = Field(
-        "N/A", description="Link to the visual graph of model after conversions."
-    )
-    memory_footprint: str = Field(
-        "N/A", description="Link to the visual chart of memory footprint of the model."
-    )
+    ops_original: List[Operation] = Field(None, description="List of Operations of original model before conversion.")
+    ops_compiled: List[Operation] = Field(None, description="List of Operations of compiled model after conversion.")
+    graph_before: str = Field("N/A", description="Link to the visual graph of model before conversions.")
+    graph_after: str = Field("N/A", description="Link to the visual graph of model after conversions.")
+    memory_footprint: str = Field("N/A", description="Link to the visual chart of memory footprint of the model.")
     fit_in_memory: str = Field(None, description="Whether model fits in SRAM.")
     peak_sram_usage: float = Field(
         None,

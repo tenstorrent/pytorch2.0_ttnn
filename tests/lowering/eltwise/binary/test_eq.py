@@ -12,15 +12,14 @@ class EqModule(torch.nn.Module):
         return torch.eq(input1, input2)
 
 
+@pytest.mark.xfail(reason="broadcasting issues (#64)")
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4), (4, 4)]],
+    (((32, 32), (32, 32)), ((64,), (32, 64)), ((64, 32), (64, 1)), ((64, 1), (1, 64))),
 )
 def test_eq_tensor(device, input_shapes):
     m = EqModule()
-    inputs = [
-        torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes
-    ]
+    inputs = [torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes]
     result_before = m.forward(*inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
@@ -46,9 +45,7 @@ def test_eq_tensor(device, input_shapes):
 )
 def test_eq_scalar(device, input_shapes):
     m = EqModule()
-    inputs = [
-        torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes
-    ]
+    inputs = [torch.randint(0, 2, shape, dtype=torch.bfloat16) for shape in input_shapes]
     scalar = torch.randint(0, 2, (1,)).item()
     result_before = m.forward(inputs[0], scalar)
     option = torch_ttnn.TorchTtnnOption(device=device)

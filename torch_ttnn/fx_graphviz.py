@@ -1,10 +1,9 @@
 import graphviz
 import torch
+import ttnn
 import os
 import math
 from collections import defaultdict
-
-import ttnn
 
 
 def _tensor_weight(t):
@@ -131,9 +130,7 @@ def to_svg(g: torch.fx.Graph, filename: str):
     for op_idx, node in enumerate(g.nodes):
         map_node_idx[node] = op_idx
         map_idx_node[op_idx] = node
-        dot.node(
-            node_name(node), label=node_label(node), fillcolor=node_fillcolor(node)
-        )
+        dot.node(node_name(node), label=node_label(node), fillcolor=node_fillcolor(node))
 
     # setup edges
     edge_color_table = [

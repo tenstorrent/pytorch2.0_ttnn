@@ -5,10 +5,7 @@ def plot_mem_footprint_bar_chart(data_points, dest_file):
     # Convert the keys back to tuples
     data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)
-    data_points_mb = [
-        [(tid, size / (1024 * 1024)) for tid, size in value]
-        for key, value in data_points.items()
-    ]
+    data_points_mb = [[(tid, size / (1024 * 1024)) for tid, size in value] for key, value in data_points.items()]
 
     # Adjust the figure size
     plt.figure(figsize=(18, 8))
@@ -86,10 +83,7 @@ def plot_mem_footprint_line_chart(data_points, dest_file):
     # Convert the keys back to tuples
     data_points = {eval(key): value for key, value in data_points.items()}
     # Convert tensor sizes from bytes to megabytes (1 MB = 1024 * 1024 bytes)
-    data_points_mb = [
-        [(tid, size / (1024 * 1024)) for tid, size in value]
-        for key, value in data_points.items()
-    ]
+    data_points_mb = [[(tid, size / (1024 * 1024)) for tid, size in value] for key, value in data_points.items()]
 
     # Calculate the total tensor size for each entry
     total_sizes = [sum(size for _, size in tensors) for tensors in data_points_mb]
@@ -98,9 +92,7 @@ def plot_mem_footprint_line_chart(data_points, dest_file):
     plt.figure(figsize=(18, 8))
 
     # Plot the line chart
-    plt.plot(
-        range(len(total_sizes)), total_sizes, marker="o", linestyle="-", color="blue"
-    )
+    plt.plot(range(len(total_sizes)), total_sizes, marker="o", linestyle="-", color="blue")
 
     # Draw horizontal line for SRAM memory limit (1 MB)
     sram_limit_mb = 100

@@ -31,9 +31,7 @@ def test_scenario(device, test_name, input_shape, model_fits_in_memory):
     m = Module()
     m = m.to(torch.bfloat16)
     input = torch.rand(input_shape, dtype=torch.bfloat16)
-    option = torch_ttnn.TorchTtnnOption(
-        device=device, gen_graphviz=True, run_mem_analysis=True, run_eviction_opt=True
-    )
+    option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True, run_mem_analysis=True, run_eviction_opt=True)
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result = m.forward(input)
 
@@ -51,15 +49,9 @@ def test_scenario(device, test_name, input_shape, model_fits_in_memory):
     # From the memory footprint, this checks whether the model fits in memory or not
     can_fit_in_memory = not option.memory_manager.has_sram_overflow()
 
-    assert (
-        can_fit_in_memory == model_fits_in_memory
-    ), "Expected fit & actual fit of model is different"
-    assert (
-        option.memory_manager.used_sram == 0
-    ), "There are still tensors on device after model execution"
+    assert can_fit_in_memory == model_fits_in_memory, "Expected fit & actual fit of model is different"
+    assert option.memory_manager.used_sram == 0, "There are still tensors on device after model execution"
     assert (
         option.memory_manager.free_sram == option.memory_manager.usable_sram_limit
     ), "Tensors still occupy space on sram after model execution"
-    assert (
-        option.memory_manager.tensors_on_device == []
-    ), "All tensors should be removed post model execution"
+    assert option.memory_manager.tensors_on_device == [], "All tensors should be removed post model execution"

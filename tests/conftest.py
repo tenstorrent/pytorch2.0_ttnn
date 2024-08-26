@@ -12,6 +12,7 @@ from torch_ttnn import mem_utils
 
 mb_in_bytes = 1048576
 
+
 @pytest.fixture(scope="session")
 def device():
     device = ttnn.open_device(device_id=0)
