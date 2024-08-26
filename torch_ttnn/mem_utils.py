@@ -13,13 +13,13 @@ circular_buffer = 20 * 1048576  # 20 MB
 
 # This will manage all memory related operations & data
 class MemoryManager:
-    def __init__(self, device, cores, L1_mem, circular_buffer):
+    def __init__(self, device, cores, L1_mem, circular_buffer, verbose=True):
         # Config
         self.device = device
         self.cores = cores
         self.L1_mem = L1_mem
         self.circular_buffer = circular_buffer
-
+        self.verbose = verbose
         self.total_sram_limit = self.cores * self.L1_mem
         self.free_sram = self.total_sram_limit - self.circular_buffer
         self.usable_sram_limit = self.total_sram_limit - self.circular_buffer
@@ -72,6 +72,8 @@ class MemoryManager:
 
     def log(self, message: str):
         self.logs += message
+        if self.verbose:
+            print(message)
 
 
 # This holds op related information one can query from
@@ -114,6 +116,7 @@ def check_sram_overflow(mm: MemoryManager) -> bool:
 def which_tensors_to_evict(mm: MemoryManager) -> tuple:
     sram_usage = 0
     tensors_to_evict = []
+    potential_tensors_to_evict = []
     for node_name, sram_used in mm.sram_usage_at.items():
         if sram_used >= mm.usable_sram_limit:
             sram_usage = sram_used

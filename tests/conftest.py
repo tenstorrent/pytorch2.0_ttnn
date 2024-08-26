@@ -10,6 +10,7 @@ import os
 import pickle
 from torch_ttnn import mem_utils
 
+mb_in_bytes = 1048576
 
 @pytest.fixture(scope="session")
 def device():
@@ -81,7 +82,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             # Memory analysis
             mm = option.memory_manager
             # Convert bytes to MB
-            peak_usage = mm.peak_sram_usage / 1048576
+            peak_usage = mm.peak_sram_usage / mb_in_bytes
             comp_runtime_metrics["peak_sram_usage"] = peak_usage
 
             if mem_utils.check_sram_overflow(mm) is True:

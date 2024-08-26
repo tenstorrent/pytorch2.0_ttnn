@@ -8,12 +8,13 @@ from torch_ttnn import mem_utils
 
 class MemoryPass(PassBase):
     def __init__(self, verbose=True):
-        self.verbose = verbose
+        
         self.mm = mem_utils.MemoryManager(
             mem_utils.device_name,
             mem_utils.cores,
             mem_utils.L1_mem,
             mem_utils.circular_buffer,
+            verbose,
         )
         self.op_registry = mem_utils.OpRegistry()
 
@@ -79,15 +80,8 @@ class MemoryPass(PassBase):
         return (tid, tensor_size)
 
     def memory_footprint(
-        self, gm: torch.fx.GraphModule, verbose=True
+        self, gm: torch.fx.GraphModule
     ) -> torch.fx.GraphModule:
-        self.mm = mem_utils.MemoryManager(
-            mem_utils.device_name,
-            mem_utils.cores,
-            mem_utils.L1_mem,
-            mem_utils.circular_buffer,
-        )
-        op_registry = mem_utils.OpRegistry()
         self.mm.log("Track memory footprint for each of the ops:\n")
 
         # List of already executed nodes on device
@@ -120,7 +114,7 @@ class MemoryPass(PassBase):
                 ttnn_ops_tids = []
                 for input_node in node.all_input_nodes:
                     # If input tensor on device or coming as output from another ttnn on device op
-                    if op_registry.is_input_tensor_on_device(input_node):
+                    if self.op_registry.is_input_tensor_on_device(input_node):
                         on_device = True
                         tid, tensor_size = self.allocate(input_node)
 
@@ -223,11 +217,8 @@ class MemoryPass(PassBase):
         data_str_keys = {str(key): value for key, value in data_points.items()}
         self.mm.data_points = data_str_keys
 
-        if verbose:
-            print(self.mm.logs)
-
         return gm
 
     def call(self, gm: torch.fx.GraphModule):
-        gm = self.memory_footprint(gm, self.verbose)
+        gm = self.memory_footprint(gm)
         return PassResult(gm, True)

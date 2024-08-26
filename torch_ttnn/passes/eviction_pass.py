@@ -16,7 +16,6 @@ def evict_tensors_from_device(
     for node in topo_sorted_nodelist:
         # The node whose output tensor needs to be evicted
         tid = -1  # For init
-        # breakpoint()
         if node in mm.node_to_tid_map:
             tid = mm.node_to_tid_map[node]
         if tid in tensors_to_evict:
