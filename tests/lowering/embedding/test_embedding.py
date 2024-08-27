@@ -53,14 +53,10 @@ def test_embedding(device, input_shapes):
         (8, 384, 250880, 1024),
     ],
 )
-def test_embedding_tile_layout(
-    device, batch_size, sentence_size, vocabulary_size, hidden_embedding_dim
-):
+def test_embedding_tile_layout(device, batch_size, sentence_size, vocabulary_size, hidden_embedding_dim):
     m = EmbeddingTileLayoutModule()
     input = torch.randint(batch_size, vocabulary_size - 1, (batch_size, sentence_size))
-    weights = torch.zeros(
-        (vocabulary_size, hidden_embedding_dim), dtype=torch.bfloat16
-    ).uniform_(-0.1, 0.1)
+    weights = torch.zeros((vocabulary_size, hidden_embedding_dim), dtype=torch.bfloat16).uniform_(-0.1, 0.1)
     result_before = m.forward(input, weights)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True

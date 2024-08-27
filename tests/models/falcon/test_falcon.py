@@ -5,15 +5,13 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
-@pytest.mark.xfail
+@pytest.mark.compilation_xfail
 def test_falcon(record_property):
     record_property("model_name", "Falcon")
 
     # Download model from cloud
     model_name = "tiiuae/falcon-7b-instruct"
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name, padding_side="left", torch_dtype=torch.bfloat16
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
     m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
     m.eval()
 

@@ -6,9 +6,7 @@ def get_model(model_name):
     if model_name == "dinov2_vits14":
         m = torch.hub.load("facebookresearch/dinov2", model_name)
     elif model_name == "detr_resnet50":
-        m = torch.hub.load(
-            "facebookresearch/detr:main", "detr_resnet50", pretrained=True
-        )
+        m = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True)
     else:
         try:
             m = torchvision.models.get_model(model_name, pretrained=True)
@@ -66,9 +64,7 @@ def model_example_inputs(model_name, backward):
             "ssdlite320_mobilenet_v3_large",
         ]:
             batch_size = 2
-            images, boxes = torch.rand(batch_size, 3, 224, 224), torch.rand(
-                batch_size, 11, 4
-            )
+            images, boxes = torch.rand(batch_size, 3, 224, 224), torch.rand(batch_size, 11, 4)
             boxes[:, :, 2:4] = boxes[:, :, 0:2] + boxes[:, :, 2:4]
             labels = torch.randint(1, 91, (batch_size, 11))
             images = list(image for image in images)
@@ -110,9 +106,7 @@ def model_example_inputs(model_name, backward):
 def do_model_backward(model_name, result):
     if model_name in ["inception_v3"]:
         result.logits.backward(torch.ones_like(result.logits), retain_graph=True)
-        result.aux_logits.backward(
-            torch.ones_like(result.aux_logits), retain_graph=True
-        )
+        result.aux_logits.backward(torch.ones_like(result.aux_logits), retain_graph=True)
     elif isinstance(result, dict):
         for k in result.keys():
             if model_name in [

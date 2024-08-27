@@ -54,9 +54,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             # check that model contains a forward function
             assert "forward" in dir(model), f"forward() not implemented in {model_name}"
             # Compile model with ttnn backend
-            option = torch_ttnn.TorchTtnnOption(
-                device=device, gen_graphviz=True, metrics_path=model_name
-            )
+            option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True, metrics_path=model_name)
             m = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
             start = time.perf_counter() * 1000
@@ -75,7 +73,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
         except Exception as e:
             comp_runtime_metrics = {"success": False}
             print(f"{model_name} compiled failed to run. Raised exception: {e}")
-            raise
+            if request.node.get_closest_marker("compilation_xfail"):
+                pytest.xfail()
+            else:
+                raise
         finally:
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
