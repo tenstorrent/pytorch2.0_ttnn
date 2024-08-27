@@ -340,7 +340,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.arange.default:
                 # start = 0, step = 1
                 new_args = (0,)
-                new_kwargs = {"stop": args[0], "step": 1, "device": TtnnDevice()}
+                new_kwargs = {"end": args[0], "step": 1, "device": TtnnDevice()}
                 new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
                 new_nodes.append(new_node)
             """
@@ -349,7 +349,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if args[0] >= 2:
                     # step = 1
                     new_args = (args[0],)
-                    new_kwargs = {"stop": args[1], "step": 1, "device": TtnnDevice()}
+                    new_kwargs = {"end": args[1], "step": 1, "device": TtnnDevice()}
                     new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
                     new_nodes.append(new_node)
             if node.target == torch.ops.aten.arange.start_step:
@@ -357,7 +357,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if args[0] >= 2:
                     new_args = (args[0],)
                     new_kwargs = {
-                        "stop": args[1],
+                        "end": args[1],
                         "step": args[2],
                         "device": TtnnDevice(),
                     }
