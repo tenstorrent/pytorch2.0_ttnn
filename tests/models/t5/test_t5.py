@@ -3,7 +3,7 @@ import pytest
 
 
 @pytest.mark.parametrize("model_name", ["t5-small", "t5-base", "t5-large"])
-@pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_t5(record_property, model_name):
     record_property("model_name", model_name)
 
