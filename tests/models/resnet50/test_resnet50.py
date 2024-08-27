@@ -6,13 +6,14 @@ from PIL import Image
 
 import pytest
 
+
 @pytest.mark.torch_only
 def test_resnet(record_property):
     record_property("model_name", "ResNet50")
 
     # Load the ResNet-50 model with updated API
     weights = models.ResNet50_Weights.DEFAULT
-    model = models.resnet50(weights=weights)    
+    model = models.resnet50(weights=weights)
     model.eval()  # Set the model to evaluation mode
     model = model.to(torch.bfloat16)
 
