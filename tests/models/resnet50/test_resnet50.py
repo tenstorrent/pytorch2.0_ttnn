@@ -7,7 +7,7 @@ from PIL import Image
 import pytest
 
 
-@pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_resnet(record_property):
     record_property("model_name", "ResNet50")
 
