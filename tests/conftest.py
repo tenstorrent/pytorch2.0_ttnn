@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 import os
 import pickle
+import torch_ttnn.metrics as metrics
 
 
 @pytest.fixture(scope="session")
@@ -70,7 +71,21 @@ def compile_and_run(device, reset_torch_dynamo, request):
             accuracy = calculate_accuracy(outputs, outputs_after)
             if accuracy:
                 comp_runtime_metrics["accuracy"] = accuracy
+
+            # dump compiled aten schemas
+            metrics.save_pickle(option.compiled_schema_list, option.metrics_path, "compiled-schema_list")
         except Exception as e:
+            # Rerun with bypass option to collect aten op metrics
+            torch._dynamo.reset()
+            option.bypass = True
+            m = torch.compile(model, backend=torch_ttnn.backend, options=option)
+            if isinstance(inputs, collections.Mapping):
+                outputs = m(**inputs)
+            elif isinstance(inputs, collections.Sequence):
+                outputs = m(*inputs)
+            else:
+                outputs = m(inputs)
+
             comp_runtime_metrics = {"success": False}
             print(f"{model_name} compiled failed to run. Raised exception: {e}")
             if request.node.get_closest_marker("compilation_xfail"):
@@ -78,6 +93,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
             else:
                 raise
         finally:
+            # dump original aten schemas
+            metrics.save_pickle(option.original_schema_list, option.metrics_path, "original-schema_list")
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
