@@ -366,6 +366,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
+                # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
                 if has_valid_page_size(arg_metadata.size()):
                     new_kwargs = {
