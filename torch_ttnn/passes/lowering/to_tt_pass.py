@@ -18,6 +18,10 @@ from . import target_wrappers
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
     torch.ops.aten.lt.Scalar: ttnn.lt,
+    torch.ops.aten.le.Scalar: ttnn.le,
+    torch.ops.aten.gt.Scalar: ttnn.gt,
+    torch.ops.aten.ge.Scalar: ttnn.ge,
+    torch.ops.aten.ne.Scalar: ttnn.ne,
 }
 
 # Workaround: If an arg of the model output is argmax then skip conversion
