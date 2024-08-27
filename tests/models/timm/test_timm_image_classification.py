@@ -25,7 +25,7 @@ import pytest
         "xception71.tf_in1k",
     ],
 )
-@pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_timm_image_classification(record_property, model_name):
     record_property("model_name", model_name)
 
