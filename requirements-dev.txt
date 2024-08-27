@@ -6,3 +6,5 @@ transformers==4.38.0
 pandas==2.0.3
 Pillow==10.3.0
 pydantic==2.8.2
+sentencepiece==0.2.0
+protobuf==5.27.3
