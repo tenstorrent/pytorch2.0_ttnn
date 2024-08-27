@@ -33,4 +33,4 @@ def test_ne(device, input_shapes):
     assert [node.target for node in nodes].count(ttnn.ne) == 1
 
     # Check inference result
-    assert torch.allclose(result_before, result_after)
+    assert torch.allclose(result_before, result_after.to(torch.bool))
