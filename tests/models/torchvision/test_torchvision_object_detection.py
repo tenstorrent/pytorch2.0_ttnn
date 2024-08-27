@@ -15,7 +15,7 @@ import pytest
     ],
 )
 @pytest.mark.torch_only
-def test_torchvision_image_classification(record_property, model_info):
+def test_torchvision_object_detection(record_property, model_info):
     model_name, weights_name = model_info
 
     record_property("model_name", model_name)
