@@ -4,7 +4,9 @@ import torchvision.models as models
 from torchvision import transforms
 from PIL import Image
 
+import pytest
 
+@pytest.mark.torch_only
 def test_MobileNetV2(record_property):
     record_property("model_name", "MobileNetV2")
 
