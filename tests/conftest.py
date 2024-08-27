@@ -73,7 +73,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
         except Exception as e:
             comp_runtime_metrics = {"success": False}
             print(f"{model_name} compiled failed to run. Raised exception: {e}")
-            if request.node.get_closest_marker("torch_only"):
+            if request.node.get_closest_marker("compilation_xfail"):
                 pytest.xfail()
             else:
                 raise

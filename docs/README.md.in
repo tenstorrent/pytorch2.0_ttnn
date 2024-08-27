@@ -116,8 +116,8 @@ def Model(torch.nn.Module):
         # ...
         return outputs
 
-# Add torch_only marker if torch/CPU runs, but compiled version is xfail
-@pytest.mark.torch_only
+# Add compilation_xfail marker if torch/CPU runs, but compiled version is xfail
+@pytest.mark.compilation_xfail
 # Add "record_property" parameter
 def test_model_name(record_property):
     # Should be set as early as possible
