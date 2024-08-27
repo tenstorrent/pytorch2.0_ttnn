@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.mark.parametrize("model_name", ["microsoft/beit-base-patch16-224", "microsoft/beit-large-patch16-224"])
-@pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_beit_image_classification(record_property, model_name):
     record_property("model_name", model_name)
 
