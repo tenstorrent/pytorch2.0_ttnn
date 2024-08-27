@@ -5,7 +5,7 @@ from transformers import CLIPProcessor, CLIPModel
 import pytest
 
 
-@pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_clip(record_property):
     record_property("model_name", "CLIP")
 
