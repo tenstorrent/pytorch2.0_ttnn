@@ -5,7 +5,7 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
-@pytest.mark.xfail
+@pytest.mark.compilation_xfail
 def test_falcon(record_property):
     record_property("model_name", "Falcon")
 
