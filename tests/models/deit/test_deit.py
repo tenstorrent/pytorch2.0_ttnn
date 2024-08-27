@@ -8,7 +8,7 @@ import pytest
 
 
 @pytest.mark.parametrize("model_name", ["facebook/deit-base-patch16-224"])
-@pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_deit(record_property, model_name):
     record_property("model_name", model_name)
 
