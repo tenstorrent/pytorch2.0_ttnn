@@ -20,11 +20,7 @@ def group_norm_rep(gm: torch.fx.GraphModule):
             continue
 
         next_n = next(iter(n.users))
-        if not (
-            isinstance(next_n, torch.fx.node.Node)
-            and next_n.op == "call_function"
-            and is_getitem(next_n)
-        ):
+        if not (isinstance(next_n, torch.fx.node.Node) and next_n.op == "call_function" and is_getitem(next_n)):
             continue
 
         n_kwargs = {
@@ -48,9 +44,7 @@ def group_norm_rep(gm: torch.fx.GraphModule):
 
         g = gm.graph
         with g.inserting_after(next_n):
-            ttnn_node = g.call_function(
-                ttnn.group_norm, (n_kwargs["input"],), ttnn_kwargs
-            )
+            ttnn_node = g.call_function(ttnn.group_norm, (n_kwargs["input"],), ttnn_kwargs)
             next_n.replace_all_uses_with(ttnn_node)
         changed = True
 
@@ -71,11 +65,7 @@ def layer_norm_rep(gm: torch.fx.GraphModule):
             continue
 
         next_n = next(iter(n.users))
-        if not (
-            isinstance(next_n, torch.fx.node.Node)
-            and next_n.op == "call_function"
-            and is_getitem(next_n)
-        ):
+        if not (isinstance(next_n, torch.fx.node.Node) and next_n.op == "call_function" and is_getitem(next_n)):
             continue
 
         n_kwargs = {
@@ -93,9 +83,7 @@ def layer_norm_rep(gm: torch.fx.GraphModule):
 
         g = gm.graph
         with g.inserting_after(next_n):
-            ttnn_node = g.call_function(
-                ttnn.layer_norm, (n_kwargs["input"],), ttnn_kwargs
-            )
+            ttnn_node = g.call_function(ttnn.layer_norm, (n_kwargs["input"],), ttnn_kwargs)
             next_n.replace_all_uses_with(ttnn_node)
         changed = True
 

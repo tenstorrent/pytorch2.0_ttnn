@@ -65,8 +65,6 @@ def test_clone_from_node(device, input_shapes):
     target = [node.target for node in nodes]
     assert target.count(torch_ttnn.target_wrappers.clone) == 1
     clone_arg_0 = nodes[target.index(torch_ttnn.target_wrappers.clone)].args[0].target
-    assert isinstance(clone_arg_0, ttnn.decorators.FastOperation) or isinstance(
-        clone_arg_0, ttnn.decorators.Operation
-    )
+    assert isinstance(clone_arg_0, ttnn.decorators.FastOperation) or isinstance(clone_arg_0, ttnn.decorators.Operation)
     # Check inference result
     assert torch.allclose(result_before, result_after)

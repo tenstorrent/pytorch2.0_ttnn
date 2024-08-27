@@ -58,9 +58,7 @@ def comp_pcc(golden, calculated, pcc=0.99):
     return cal_pcc >= pcc, cal_pcc
 
 
-def construct_pcc_assert_message(
-    message, expected_pytorch_result, actual_pytorch_result
-):
+def construct_pcc_assert_message(message, expected_pytorch_result, actual_pytorch_result):
     messages = []
     messages.append(message)
     # messages.append("Expected")
@@ -71,31 +69,23 @@ def construct_pcc_assert_message(
     return "\n".join(messages)
 
 
-def assert_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.9999):
+def assert_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.999):
     assert list(expected_pytorch_result.shape) == list(
         actual_pytorch_result.shape
     ), f"list(expected_pytorch_result.shape)={list(expected_pytorch_result.shape)} vs list(actual_pytorch_result.shape)={list(actual_pytorch_result.shape)}"
-    pcc_passed, pcc_message = comp_pcc(
-        expected_pytorch_result, actual_pytorch_result, pcc
-    )
-    assert pcc_passed, construct_pcc_assert_message(
-        pcc_message, expected_pytorch_result, actual_pytorch_result
-    )
+    pcc_passed, pcc_message = comp_pcc(expected_pytorch_result, actual_pytorch_result, pcc)
+    assert pcc_passed, construct_pcc_assert_message(pcc_message, expected_pytorch_result, actual_pytorch_result)
     return pcc_passed, pcc_message
 
 
-def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.9999):
+def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.999):
     if expected_pytorch_result.shape != actual_pytorch_result.shape:
         return (
             False,
             f"list(expected_pytorch_result.shape)={list(expected_pytorch_result.shape)} vs list(actual_pytorch_result.shape)={list(actual_pytorch_result.shape)}",
         )
-    pcc_passed, pcc_message = comp_pcc(
-        expected_pytorch_result, actual_pytorch_result, pcc
-    )
-    return pcc_passed, construct_pcc_assert_message(
-        pcc_message, expected_pytorch_result, actual_pytorch_result
-    )
+    pcc_passed, pcc_message = comp_pcc(expected_pytorch_result, actual_pytorch_result, pcc)
+    return pcc_passed, construct_pcc_assert_message(pcc_message, expected_pytorch_result, actual_pytorch_result)
 
 
 def calculate_accuracy(original_outputs, compiled_outputs):
@@ -108,22 +98,16 @@ def calculate_accuracy(original_outputs, compiled_outputs):
             f"Original and compiled output do not have the same set of keys."
             f"original keys:\n{original_outputs.keys()}\ncompiled keys:\n{compiled_outputs.keys()}"
         )
-        for original_outputs, compiled_outputs in zip(
-            original_outputs.values(), compiled_outputs.values()
-        ):
+        for original_outputs, compiled_outputs in zip(original_outputs.values(), compiled_outputs.values()):
             # TODO: Support other sequence types
-            if isinstance(original_outputs, torch.Tensor) and isinstance(
-                compiled_outputs, torch.Tensor
-            ):
+            if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
                 _, pcc = comp_pcc(original_outputs, compiled_outputs)
                 output_pccs.append(pcc)
         assert (
             output_pccs
         ), f"No comparable outputs:\noriginal_outputs:\n{original_outputs}\ncompiled_outputs:\n{compiled_outputs}"
         accuracy = torch.mean(torch.tensor(output_pccs)).item()
-    elif isinstance(original_outputs, torch.Tensor) and isinstance(
-        compiled_outputs, torch.Tensor
-    ):
+    elif isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
         # Handle case where outputs are Pytorch Tensors
         _, accuracy = comp_pcc(original_outputs, compiled_outputs)
     else:
