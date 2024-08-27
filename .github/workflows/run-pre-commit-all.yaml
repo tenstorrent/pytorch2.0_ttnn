@@ -1,4 +1,4 @@
-name: Run pre-commit All
+name: Reformat Code in PR
 
 on:
   workflow_dispatch:
@@ -22,16 +22,23 @@ jobs:
 
       - name: Run pre-commit hooks
         run: |
+          source venv/bin/activate
           pre-commit install
-          pre-commit run --all-files
+          pre-commit run --all-files || true
 
       - name: Configure git
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
-      - name: Commit and push changes
+      - name: Check for changes
+        id: check_changes
         run: |
-          git add .
-          git commit -m "[auto] Pre-commit run on all files" || echo "No changes to commit"
-          git push || echo "No changes to push"
+          git diff --quiet || echo "changes_detected=true" >> $GITHUB_ENV
+
+      - name: Commit and push changes
+        if: env.changes_detected == 'true'
+        run: |
+          git add --all
+          git commit -m "[auto] Pre-commit run on all files"
+          git push
