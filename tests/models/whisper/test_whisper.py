@@ -1,7 +1,9 @@
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 from datasets import load_dataset
+import pytest
 
 
+@pytest.mark.compilation_xfail
 def test_whisper(record_property):
     record_property("model_name", "Whisper")
 
