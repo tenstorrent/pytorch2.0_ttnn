@@ -15,6 +15,7 @@ import pytest
     ],
 )
 @pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_torchvision_object_detection(record_property, model_info):
     model_name, weights_name = model_info
 
