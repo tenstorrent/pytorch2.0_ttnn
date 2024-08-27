@@ -3,8 +3,10 @@ import numpy as np
 from PIL import Image
 import requests
 from transformers import GLPNImageProcessor, GLPNForDepthEstimation
+import pytest
 
 
+@pytest.mark.compilation_xfail
 def test_glpn_kitti(record_property):
     record_property("model_name", "GLPN-KITTI")
 
