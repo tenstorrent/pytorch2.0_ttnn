@@ -10,9 +10,7 @@ def test_bloom(record_property):
 
     # Download model from cloud
     model_name = "bigscience/bloom-1b1"
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name, padding_side="left", torch_dtype=torch.bfloat16
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
     m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
     m.eval()
 
