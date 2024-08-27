@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.mark.parametrize("model_name", ["albert/albert-base-v2"])
-@pytest.mark.torch_only
+@pytest.mark.compilation_xfail
 def test_albert_token_classification(record_property, model_name):
     record_property("model_name", model_name)
 
