@@ -127,3 +127,43 @@ def test_rsub_scalar(device, input_shapes):
             assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.999)
+
+
+@pytest.mark.parametrize("input_shape", [(4, 4)])
+def test_sub_scalar(device, input_shape):
+    m = SubModule()
+    inputs = (torch.randint(1, 5, input_shape).type(torch.bfloat16), -2.25)
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.sub) == 1
+
+    # Check inference result
+    assert torch.allclose(result_before, result_after)
+
+
+@pytest.mark.parametrize("input_shape", [(4, 4)])
+def test_sub_scalar_tensor(device, input_shape):
+    m = SubModule()
+    inputs = (-2.25, torch.randint(1, 5, input_shape).type(torch.bfloat16))
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.sub) == 1
+
+    # Check inference result
+    assert torch.allclose(result_before, result_after)
