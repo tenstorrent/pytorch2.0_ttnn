@@ -25,4 +25,4 @@ def test_whisper(record_property):
     # decode token ids to text
     transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
 
-    record_property("torch_ttnn", (model, input_features, transcription))
+    record_property("torch_ttnn", (model.generate, input_features, transcription))
