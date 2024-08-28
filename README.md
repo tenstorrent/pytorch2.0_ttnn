@@ -28,7 +28,7 @@ The table below summarizes the results of running various ML models through our 
 | [facebook/deit-base-patch16-224](<docs/models/facebook/deit-base-patch16-224>)     | ✅            | 685 (17)                        | 258 (6)                         | 723                  |                  1208.31 | 22984.19                 | 96.01          |
 | [microsoft/beit-base-patch16-224](<docs/models/microsoft/beit-base-patch16-224>)   | ✘             | 793 (21)                        | N/A                             | N/A                  |                  1260.03 | N/A                      | N/A            |
 | [microsoft/beit-large-patch16-224](<docs/models/microsoft/beit-large-patch16-224>) | ✘             | 1573 (21)                       | N/A                             | N/A                  |                  2530.8  | N/A                      | N/A            |
-| [textattack/albert-base-v2-imdb](<docs/models/textattack/albert-base-v2-imdb>)     | ✘             | 782 (22)                        | N/A                             | N/A                  |                   443.62 | N/A                      | N/A            |
+| [textattack/albert-base-v2-imdb](<docs/models/textattack/albert-base-v2-imdb>)     | ✘             | 782 (22)                        | N/A                             | N/A                  |                   443.63 | N/A                      | N/A            |
 
 ### Explanation of Metrics
 
