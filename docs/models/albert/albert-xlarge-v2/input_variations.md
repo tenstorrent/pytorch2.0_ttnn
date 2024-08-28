@@ -51,8 +51,8 @@
 ### aten.clone.default
 |    | ATen Input Variations                                                                      | Status   |
 |---:|:-------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 9, 16, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Unknown  |
-|  1 | Tensor<[1, 9, 128]> self = ?                                                               | Unknown  |
+|  0 | Tensor<[1, 9, 128]> self = ?                                                               | Unknown  |
+|  1 | Tensor<[1, 9, 16, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Unknown  |
 ### aten.div.Tensor
 |    | ATen Input Variations                                                | Status   |
 |---:|:---------------------------------------------------------------------|:---------|
@@ -66,15 +66,15 @@
 |    | ATen Input Variations                                                 | Status   |
 |---:|:----------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 16, 128, 9]> self = ?,<br>List[int] size = [1, 16, 128, 9] | Unknown  |
-|  1 | Tensor<[1, 16, 9, 9]> self = ?,<br>List[int] size = [1, 16, 9, 9]     | Unknown  |
-|  2 | Tensor<[1, 16, 9, 128]> self = ?,<br>List[int] size = [1, 16, 9, 128] | Unknown  |
+|  1 | Tensor<[1, 16, 9, 128]> self = ?,<br>List[int] size = [1, 16, 9, 128] | Unknown  |
+|  2 | Tensor<[1, 16, 9, 9]> self = ?,<br>List[int] size = [1, 16, 9, 9]     | Unknown  |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                    | Status   |
 |---:|:-------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1, 1, 9]> self = ?,<br>Tensor other = -3.4028234663852886e+38 | Unknown  |
-|  1 | Tensor<[1, 9, 8192]> self = ?,<br>Tensor<[1, 9, 8192]> other = ?         | Unknown  |
-|  2 | Tensor<[1, 9, 128]> self = ?,<br>Tensor other = 0.044715                 | Unknown  |
-|  3 | Tensor<[1, 9, 8192]> self = ?,<br>Tensor other = 0.5                     | Unknown  |
+|  1 | Tensor<[1, 9, 128]> self = ?,<br>Tensor other = 0.044715                 | Unknown  |
+|  2 | Tensor<[1, 9, 8192]> self = ?,<br>Tensor other = 0.5                     | Unknown  |
+|  3 | Tensor<[1, 9, 8192]> self = ?,<br>Tensor<[1, 9, 8192]> other = ?         | Unknown  |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                      | Status   |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
@@ -116,16 +116,16 @@
 ### aten.view.default
 |    | ATen Input Variations                                              | Status   |
 |---:|:-------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 9, 8192]> self = ?,<br>List[int] size = [9, 8192]       | Unknown  |
+|  0 | Tensor<[1, 16, 128, 9]> self = ?,<br>List[int] size = [16, 128, 9] | Unknown  |
 |  1 | Tensor<[1, 16, 9, 128]> self = ?,<br>List[int] size = [16, 9, 128] | Unknown  |
-|  2 | Tensor<[16, 9, 9]> self = ?,<br>List[int] size = [1, 16, 9, 9]     | Unknown  |
-|  3 | Tensor<[9, 30000]> self = ?,<br>List[int] size = [1, 9, 30000]     | Unknown  |
-|  4 | Tensor<[1, 9, 128]> self = ?,<br>List[int] size = [9, 128]         | Unknown  |
-|  5 | Tensor<[9, 8192]> self = ?,<br>List[int] size = [1, 9, 8192]       | Unknown  |
+|  2 | Tensor<[1, 16, 9, 9]> self = ?,<br>List[int] size = [16, 9, 9]     | Unknown  |
+|  3 | Tensor<[1, 9, 128]> self = ?,<br>List[int] size = [9, 128]         | Unknown  |
+|  4 | Tensor<[1, 9, 2048]> self = ?,<br>List[int] size = [9, 2048]       | Unknown  |
+|  5 | Tensor<[1, 9, 8192]> self = ?,<br>List[int] size = [9, 8192]       | Unknown  |
 |  6 | Tensor<[16, 9, 128]> self = ?,<br>List[int] size = [1, 16, 9, 128] | Unknown  |
-|  7 | Tensor<[1, 9, 2048]> self = ?,<br>List[int] size = [9, 2048]       | Unknown  |
-|  8 | Tensor<[1, 16, 128, 9]> self = ?,<br>List[int] size = [16, 128, 9] | Unknown  |
+|  7 | Tensor<[16, 9, 9]> self = ?,<br>List[int] size = [1, 16, 9, 9]     | Unknown  |
+|  8 | Tensor<[9, 128]> self = ?,<br>List[int] size = [1, 9, 128]         | Unknown  |
 |  9 | Tensor<[9, 2048]> self = ?,<br>List[int] size = [1, 9, 2048]       | Unknown  |
-| 10 | Tensor<[1, 16, 9, 9]> self = ?,<br>List[int] size = [16, 9, 9]     | Unknown  |
-| 11 | Tensor<[9, 128]> self = ?,<br>List[int] size = [1, 9, 128]         | Unknown  |
+| 10 | Tensor<[9, 30000]> self = ?,<br>List[int] size = [1, 9, 30000]     | Unknown  |
+| 11 | Tensor<[9, 8192]> self = ?,<br>List[int] size = [1, 9, 8192]       | Unknown  |
 

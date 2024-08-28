@@ -38,8 +38,8 @@
 ### aten.clone.default
 |    | ATen Input Variations                                                                      | Status   |
 |---:|:-------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 16, 768]> self = ?                                                              | Unknown  |
-|  1 | Tensor<[1, 16, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Unknown  |
+|  0 | Tensor<[1, 16, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Unknown  |
+|  1 | Tensor<[1, 16, 768]> self = ?                                                              | Unknown  |
 ### aten.div.Tensor
 |    | ATen Input Variations                                   | Status   |
 |---:|:--------------------------------------------------------|:---------|
@@ -56,9 +56,9 @@
 ### aten.expand.default
 |    | ATen Input Variations                                                 | Status   |
 |---:|:----------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 12, 64, 16]> self = ?,<br>List[int] size = [1, 12, 64, 16] | Unknown  |
-|  1 | Tensor<[1, 1, 1, 16]> self = ?,<br>List[int] size = [1, 12, 16, 16]   | Unknown  |
-|  2 | Tensor<[1, 12, 16, 64]> self = ?,<br>List[int] size = [1, 12, 16, 64] | Unknown  |
+|  0 | Tensor<[1, 1, 1, 16]> self = ?,<br>List[int] size = [1, 12, 16, 16]   | Unknown  |
+|  1 | Tensor<[1, 12, 16, 64]> self = ?,<br>List[int] size = [1, 12, 16, 64] | Unknown  |
+|  2 | Tensor<[1, 12, 64, 16]> self = ?,<br>List[int] size = [1, 12, 64, 16] | Unknown  |
 ### aten.gelu.default
 |    | ATen Input Variations          | Status   |
 |---:|:-------------------------------|:---------|
@@ -92,14 +92,14 @@
 |    | ATen Input Variations                                              | Status   |
 |---:|:-------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 12, 16, 16]> self = ?,<br>List[int] size = [12, 16, 16] | Unknown  |
-|  1 | Tensor<[1, 16, 3072]> self = ?,<br>List[int] size = [16, 3072]     | Unknown  |
-|  2 | Tensor<[12, 16, 16]> self = ?,<br>List[int] size = [1, 12, 16, 16] | Unknown  |
-|  3 | Tensor<[12, 16, 64]> self = ?,<br>List[int] size = [1, 12, 16, 64] | Unknown  |
-|  4 | Tensor<[1, 16, 12, 64]> self = ?,<br>List[int] size = [1, -1, 768] | Unknown  |
-|  5 | Tensor<[1, 12, 64, 16]> self = ?,<br>List[int] size = [12, 64, 16] | Unknown  |
-|  6 | Tensor<[1, 16, 768]> self = ?,<br>List[int] size = [16, 768]       | Unknown  |
-|  7 | Tensor<[16, 3072]> self = ?,<br>List[int] size = [1, 16, 3072]     | Unknown  |
-|  8 | Tensor<[1, 16]> self = ?,<br>List[int] size = [1, 1, 1, 16]        | Unknown  |
-|  9 | Tensor<[1, 12, 16, 64]> self = ?,<br>List[int] size = [12, 16, 64] | Unknown  |
+|  1 | Tensor<[1, 12, 16, 64]> self = ?,<br>List[int] size = [12, 16, 64] | Unknown  |
+|  2 | Tensor<[1, 12, 64, 16]> self = ?,<br>List[int] size = [12, 64, 16] | Unknown  |
+|  3 | Tensor<[1, 16, 12, 64]> self = ?,<br>List[int] size = [1, -1, 768] | Unknown  |
+|  4 | Tensor<[1, 16, 3072]> self = ?,<br>List[int] size = [16, 3072]     | Unknown  |
+|  5 | Tensor<[1, 16, 768]> self = ?,<br>List[int] size = [16, 768]       | Unknown  |
+|  6 | Tensor<[1, 16]> self = ?,<br>List[int] size = [1, 1, 1, 16]        | Unknown  |
+|  7 | Tensor<[12, 16, 16]> self = ?,<br>List[int] size = [1, 12, 16, 16] | Unknown  |
+|  8 | Tensor<[12, 16, 64]> self = ?,<br>List[int] size = [1, 12, 16, 64] | Unknown  |
+|  9 | Tensor<[16, 3072]> self = ?,<br>List[int] size = [1, 16, 3072]     | Unknown  |
 | 10 | Tensor<[16, 768]> self = ?,<br>List[int] size = [1, 16, 768]       | Unknown  |
 

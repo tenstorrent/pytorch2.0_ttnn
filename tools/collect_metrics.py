@@ -45,32 +45,6 @@ csv_header_mappings = {
 }
 
 
-class ConversionStatus(Enum):
-    DONE = (1,)
-    FALLBACK = (2,)
-    BUG = (3,)
-    UNKNOWN = (4,)
-
-
-class InputVariation:
-    def __init__(self, schema: str, status: ConversionStatus):
-        self.schema = schema
-        self.status = status
-
-    def __eq__(self, other):
-        return self.schema == other.schema and self.status == other.status
-
-    def __hash__(self):
-        return hash((self.schema, self.status))
-
-
-def convert_list_input_var_to_dict(input_vars):
-    return {
-        "ATen Input Variations": [x.schema for x in input_vars],
-        "Status": [string.capwords(x.status.name) for x in input_vars],
-    }
-
-
 # Load a pickle file from path and return an object or None
 def load_pickle(path: str):
     if os.path.isfile(path):
@@ -86,6 +60,39 @@ def load_pt(path: str):
         return torch.load(path)
     else:
         return None
+
+
+# This class labels the conversion status of an Op
+class ConversionStatus(Enum):
+    DONE = (1,)  # Conversion is successful
+    FALLBACK = (2,)  # Only some are converted successfully
+    BUG = (3,)  # Known issue with conversion
+    NONE = (4,)  # No conversion at all
+    UNKNOWN = (5,)  # Op was not processed, so status is unknown
+
+
+# Class to organize each input variation with the conversion status
+class InputVariation:
+    def __init__(self, schema: str, status: ConversionStatus):
+        self.schema = schema
+        self.status = status
+
+    def __eq__(self, other):
+        return self.schema == other.schema and self.status == other.status
+
+    def __lt__(self, other):
+        return self.schema < other.schema
+
+    def __hash__(self):
+        return hash((self.schema, self.status))
+
+
+def convert_list_input_var_to_dict(input_vars: InputVariation):
+    """Convert list of InputVariations to markdown-compatible dict"""
+    return {
+        "ATen Input Variations": [x.schema for x in input_vars],
+        "Status": [string.capwords(x.status.name) for x in input_vars],
+    }
 
 
 def collect_input_variations_from_nodes(schemas: list):
@@ -193,6 +200,12 @@ def write_to_readme(all_metrics, aten_ops_per_model):
     # FIXME: Remove this once metrics generation and collection work for multiple graphs
     explanations_md += "\n***\n**NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  "
 
+    # Create a series of tables showing the status of converted ops per model
+    aten_ops_md = ""
+    for key, val in aten_ops_per_model.items():
+        aten_ops_md += f"#### {key}\n"
+        aten_ops_md += pd.DataFrame(val).to_markdown(index=False) + "\n"
+
     # Load README.in as an f-string and substitute the variables
     with open("docs/README.md.in", "r") as text_file:
         readme_in = text_file.read()
@@ -207,8 +220,7 @@ def write_to_readme(all_metrics, aten_ops_per_model):
 
     # Write to README file
     readme_md = readme_comment + readme_in.format(
-        metrics_md=metrics_md,
-        explanations_md=explanations_md,
+        metrics_md=metrics_md, explanations_md=explanations_md, aten_ops_md=aten_ops_md
     )
     with open("README.md", "w") as text_file:
         print(readme_md, file=text_file)
@@ -216,7 +228,11 @@ def write_to_readme(all_metrics, aten_ops_per_model):
 
 
 def stringify_input_variation_per_op(input_var_metrics):
-    # Collect input variations for each ops first
+    """Convert input schema into strings and organize them into with InputVariation class.
+
+    Returns:
+        dict: `{opname: set(class InputVariation)}`
+    """
     input_var_per_op = {}
     for metric in input_var_metrics.values():
         opname = metric["opname"]
@@ -231,6 +247,7 @@ def stringify_input_variation_per_op(input_var_metrics):
 
 
 def generate_md_for_input_variations(input_var_per_op):
+    """Generate markdown from a dict: `{opname: set(class InputVariation)}`."""
     # Create a high level table of each op first
     high_level_op_status = defaultdict(list)
     for opname, input_vars in input_var_per_op.items():
@@ -244,7 +261,7 @@ def generate_md_for_input_variations(input_var_per_op):
     md += "***\n"
 
     for opname, input_vars in input_var_per_op.items():
-        input_vars_dict = convert_list_input_var_to_dict(input_vars)
+        input_vars_dict = convert_list_input_var_to_dict(sorted(input_vars))
         md += f"### {opname}\n"
         md += pd.DataFrame(input_vars_dict).to_markdown(index=True) + "\n"
 
@@ -252,6 +269,7 @@ def generate_md_for_input_variations(input_var_per_op):
 
 
 def write_md_for_input_variations(basedir: Path, filename: Path, input_var_per_op: dict):
+    """Convert a dict: `{opname: set(class InputVariation)} into markdown and write to file."""
     input_var_per_op = dict(sorted(input_var_per_op.items()))
 
     md = generate_md_for_input_variations(input_var_per_op)
@@ -288,7 +306,7 @@ if __name__ == "__main__":
         raise ValueError("metrics directory not found. Please run models to generate metrics first.")
 
     # Support subdirectories
-    all_model_paths = [Path(dirpath) for dirpath, dirnames, filenames in os.walk("metrics") if not dirnames]
+    all_model_paths = sorted([Path(dirpath) for dirpath, dirnames, filenames in os.walk("metrics") if not dirnames])
 
     for model_path in all_model_paths:
         # Remove the "metrics" root directory and convert to string
@@ -303,13 +321,8 @@ if __name__ == "__main__":
         assert original_runtime_metrics, f"{original_runtime_metrics_path} file not found"
         assert compiled_runtime_metrics, f"{compiled_runtime_metrics_path} file not found"
 
-        # Add links that point to the directory of the model info
-        assert "model_path" in original_runtime_metrics, "model_path key not in original_runtime_metrics"
-        path_in_repo = original_runtime_metrics["model_path"]
-        model_metric = {"model": f"[{model}]({path_in_repo})"}
-
         # Initialize the Pydantic model
-        pydantic_model = pydantic_models.ModelRun(name=model, path_in_repo=path_in_repo)
+        pydantic_model = pydantic_models.ModelRun(name=model)
 
         # Rename run_time keys to distinguish between original or compiled
         if "run_time" in original_runtime_metrics:
@@ -383,8 +396,11 @@ if __name__ == "__main__":
         input_var_metrics = collect_input_variations_from_nodes(original_schema_metrics)
         input_var_per_op = stringify_input_variation_per_op(input_var_metrics)
         model_info_dir = Path("docs") / Path("models") / Path(model)
-        model_metric = {"model": f"[{model}]({model_info_dir})"}
         write_md_for_input_variations(model_info_dir, Path("input_variations.md"), input_var_per_op)
+
+        # Add links that point to the directory of the model info
+        model_metric = {"model": f"[{model}](<{model_info_dir}>)"}
+        pydantic_model.path_in_repo = str(model_info_dir)
 
         # Collect cumulative input variations
         for key, val in input_var_per_op.items():

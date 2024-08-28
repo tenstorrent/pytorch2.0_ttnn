@@ -22,18 +22,20 @@ class TorchTtnnOption:
         gen_graphviz=False,
         metrics_path="",
         tracer_option=None,
-        bypass=False,
+        bypass_compile=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
         self.tracer_option = tracer_option
 
-        if metrics_path:
-            p = Path(f"metrics/{metrics_path}")
-            os.makedirs(p, exist_ok=True)
         self.metrics_path = metrics_path
-        self.bypass = bypass
+        self.bypass_compile = bypass_compile
+        self.original_schema_list = list()
+        self.compiled_schema_list = list()
+
+    def reset_containers(self):
+        self._out_fx_graphs = list()
         self.original_schema_list = list()
         self.compiled_schema_list = list()
 
@@ -89,7 +91,7 @@ def aten_backend(
         option.original_schema_list.extend(metrics.collect_schema_from_nodes(gm.graph.nodes))
 
     # Do not continue with compilation if bypass
-    if option.bypass:
+    if option.bypass_compile:
         option._out_fx_graphs.append(gm.graph)
         return make_boxed_func(gm)
 
