@@ -68,7 +68,11 @@ def collect_schema_from_nodes(nodes: list):
 
                 # Collect the input shapes from the metadata if possible.
                 if hasattr(arg, "meta") and "val" in arg.meta:
-                    arg_shapes.append(str(list(arg.meta["val"].size())))
+                    val = arg.meta["val"]
+                    if isinstance(val, torch._subclasses.fake_tensor.FakeTensor):
+                        arg_shapes.append(str(list(val.size())))
+                    else:
+                        arg_shapes.append(str(val))
                 else:
                     arg_shapes.append("")
 

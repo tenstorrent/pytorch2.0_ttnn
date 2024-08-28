@@ -52,8 +52,6 @@ def compile_and_run(device, reset_torch_dynamo, request):
     if "torch_ttnn" in record:
         model, inputs, outputs = record["torch_ttnn"]
         try:
-            # check that model contains a forward function
-            assert "forward" in dir(model), f"forward() not implemented in {model_name}"
             # Compile model with ttnn backend
             option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True, metrics_path=model_name)
             m = torch.compile(model, backend=torch_ttnn.backend, options=option)
@@ -70,19 +68,23 @@ def compile_and_run(device, reset_torch_dynamo, request):
             # dump compiled aten schemas
             metrics.save_pickle(option.compiled_schema_list, option.metrics_path, "compiled-schema_list")
         except Exception as e:
-            # Rerun with bypass option to collect aten op metrics
-            torch._dynamo.reset()
-            option.bypass_compile = True
-            option.reset_containers()
-            m = torch.compile(model, backend=torch_ttnn.backend, options=option)
-            run_model(m, inputs)
-
             comp_runtime_metrics = {"success": False}
-            print(f"{model_name} compiled failed to run. Raised exception: {e}")
-            if request.node.get_closest_marker("compilation_xfail"):
-                pytest.xfail()
+            try:
+                # Rerun with bypass option to collect aten op metrics
+                torch._dynamo.reset()
+                option.bypass_compile = True
+                option.reset_containers()
+                m = torch.compile(model, backend=torch_ttnn.backend, options=option)
+                run_model(m, inputs)
+            except Exception as e2:
+                err_msg = f"{model_name} - Torch run with bypass compilation failed. "
+                err_msg += "Please check whether `model` or `model.generate` is passed to `record_property`."
+                raise TypeError(err_msg) from e2
             else:
-                raise
+                if request.node.get_closest_marker("compilation_xfail"):
+                    pytest.xfail()
+                else:
+                    raise TypeError(f"{model_name} compiled failed to run.") from e
         finally:
             # dump original aten schemas
             metrics.save_pickle(option.original_schema_list, option.metrics_path, "original-schema_list")
