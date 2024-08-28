@@ -8,17 +8,17 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model                               | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |   Peak SRAM usage (in MB) |
-|:------------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------|:---------------|:-----------------|--------------------------:|
-| [Mnist (Eval)](tests/models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           | 16                   |                    26.82 | 472.17                   | 99.32          | Yes              |                    4.5    |
-| [Mnist (Train)](tests/models/mnist) | ✅            | 14 (8)                          | 7 (5)                           | 14                   |                    75.33 | 3423.53                  | 70.3           | Yes              |                    4.5    |
-| [ResNet18](tests/models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          | 47                   |                  1949.11 | 12043.34                 | 99.99          | Yes              |                    3.0625 |
-| [Bloom](tests/models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        | 1379                 |                 26469.2  | 66611.06                 | 43.08          | No               |                 1470      |
-| [YOLOS](tests/models/yolos)         | ✅            | 964 (28)                        | 409 (11)                        | 919                  |                  1026.26 | 43414.86                 | 71.05          | Yes              |                   48.8494 |
-| [Llama](tests/models/llama)         | ✅            | 3 (2)                           | 2 (2)                           | 2                    |                165109    | 164608.39                | 100.0          | Yes              |                    0      |
-| [BERT](tests/models/bert)           | ✅            | 1393 (21)                       | 539 (5)                         | 1513                 |                 63233.6  | 60150.26                 | 99.17          | Yes              |                   60.1157 |
-| [Falcon](tests/models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           | 5                    |                 45087.5  | N/A                      | N/A            | N/A              |                    0      |
-| [GPT-2](tests/models/gpt2)          | ✘             | 748 (31)                        | N/A                             | N/A                  |                  1807.15 | N/A                      | N/A            | N/A              |                    0      |
+| Model                         | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |   Peak SRAM usage (in MB) |
+|:------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------|:---------------|:-----------------|--------------------------:|
+| [Mnist (Eval)](models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           | 16                   |                    43.93 | 506.61                   | 99.1           | Yes              |                    4.5    |
+| [Mnist (Train)](models/mnist) | ✅            | 14 (8)                          | 7 (5)                           | 14                   |                   103.33 | 3599.48                  | 92.54          | Yes              |                    4.5    |
+| [ResNet18](models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          | 44                   |                  1950.28 | 11637.34                 | 99.99          | Yes              |                    3.0625 |
+| [Bloom](models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        | 1378                 |                 26692.3  | 73013.02                 | 43.81          | No               |                 1470      |
+| [YOLOS](models/yolos)         | ✅            | 964 (28)                        | 320 (11)                        | 825                  |                  1224.54 | 48541.8                  | 72.41          | Yes              |                   48.8494 |
+| [Llama](models/llama)         | ✘             | 6 (6)                           | 7 (5)                           | 5                    |                161975    | N/A                      | N/A            | N/A              |                    0      |
+| [BERT](models/bert)           | ✅            | 1393 (21)                       | 491 (5)                         | 1465                 |                 63601.4  | 63400.58                 | 98.98          | Yes              |                   60.1157 |
+| [Falcon](models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           | 5                    |                 47862.8  | N/A                      | N/A            | N/A              |                    0      |
+| [GPT-2](models/gpt2)          | ✘             | 748 (31)                        | N/A                             | N/A                  |                  1843.13 | N/A                      | N/A            | N/A              |                    0      |
 
 ### Explanation of Metrics
 
@@ -137,10 +137,14 @@ The table below summarizes the results of running various ML models through our 
 | aten.unsqueeze.default         | ✅       |       1 |
 | aten.view.default              | ✅       |     283 |
 #### Llama
-| aten ops               | status   |   count |
-|:-----------------------|:---------|--------:|
-| aten.slice.Tensor      | ✘        |       1 |
-| aten.unsqueeze.default | ✘        |       2 |
+| aten ops                 | status   |   count |
+|:-------------------------|:---------|--------:|
+| aten.all.dim             | ✅       |       1 |
+| aten.bitwise_not.default | ✅       |       1 |
+| aten.eq.Tensor           | ✅       |       1 |
+| aten.min.default         | ✅       |       1 |
+| aten.mul.Tensor          | ✅       |       1 |
+| aten.unsqueeze.default   | ✅       |       1 |
 #### BERT
 | aten ops                       | status   |   count |
 |:-------------------------------|:---------|--------:|
