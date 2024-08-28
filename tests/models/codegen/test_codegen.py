@@ -18,4 +18,4 @@ def test_codegen(record_property):
 
     print(tokenizer.decode(completion[0]))
 
-    record_property("torch_ttnn", (model, inputs, completion))
+    record_property("torch_ttnn", (model.generate, inputs, completion))
