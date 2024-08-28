@@ -316,7 +316,7 @@ You can also substitute the backend with `torch_stat` to run a reference compari
 
 # Add a model test
 If you want to record run time metrics for a model or test, include a Pytest fixture named `record_property` as a parameter and set the "model_name" key.  
-If you also want to compile the model with torch_ttnn backend, set the "torch_ttnn" key to a tuple in this order `(model, test_inputs, outputs)`. "model_name" still needs to be set. See the example code snippet below. Currently, only `torch.nn.Module` models with a `forward` function are supported.
+If you also want to compile the model with torch_ttnn backend, set the "torch_ttnn" key to a tuple in this order `(model, test_inputs, outputs)`. "model_name" still needs to be set. See the example code snippet below. `torch.nn.Module` models with `generate` method is supported.
 ```python
 def Model(torch.nn.Module):
     def forward(self, x):
@@ -340,3 +340,4 @@ def test_model_name(record_property):
     record_property("torch_ttnn", (model, test_input(s), outputs))
 ```
 
+If `model.generate(inputs)` is used, pass in `model.generate` instead of `model` to `record_property`.
