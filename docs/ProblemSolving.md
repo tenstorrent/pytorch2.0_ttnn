@@ -1,23 +1,24 @@
 # Solving Errors in Models / Ops
 
 ## Prerequisites
-Know
+### Know
 * TT-NN operations and their Python bindings are located here <br>
 https://github.com/tenstorrent/tt-metal/tree/main/ttnn/cpp/ttnn/operations
-*  TT-Metal repo contains lots of examples of TT-NN operations usage in Tests and Models.
+*  The TT-Metal repository contains numerous examples of TT-NN operations usage in Tests and Models.
 
-Don't be scared to search across two main repositories 
+### Don't be scared
+Search across the two main repositories 
 * https://github.com/tenstorrent/tt-metal/
 * https://github.com/tenstorrent/pytorch2.0_ttnn
 
 
-## Incompatible function arguments
-You see something like this in the test output. What do you do?
+## Incompatible Function Arguments
+If you see an error in the test output like this:
 ```
 ERROR tests/models/bert/test_bert.py::test_bert - TypeError: __call__(): incompatible function arguments. The following argument types are supported:
 ```
 ### Read he Problem
-See log above the error message. It includes a detailed log like this
+Examine the log above the error message. It includes detailed information, for example:
 ```
 self = FastOperation(python_fully_qualified_name='ttnn.clone', function=<ttnn._ttnn.operations.data_movement.clone_t object a...<function default_postprocess_golden_function_outputs at 0x7f31a9cf7a60>, is_cpp_operation=True, is_experimental=False)
 function_args = (ttnn.Tensor(<buffer is not allocated>, shape=Shape([1, 256, 1024]), dtype=DataType::BFLOAT16, layout=Layout::TILE), M...y_layout=TensorMemoryLayout::INTERLEAVED,buffer_type=BufferType::DRAM,shard_spec=std::nullopt), <DataType.BFLOAT16: 0>)
@@ -42,14 +43,13 @@ E       when compiling your pybind11 module.
 ../tt-metal/ttnn/ttnn/decorators.py:327: TypeError
 ```
 
-First part with `self = FastOperation` tells you which Operation compiler tried to call. In this case it is `ttnn.clone`. 
-Then log specifies how it was called. In this case the call is
+The first part with `self = FastOperation` indicates which operation the compiler tried to call, in this case, `ttnn.clone`. The log specifies how it was called:
 ```
 ttnn.clone(ttnn.Tensor([1, 256, 1024], bfloat16, tile), MemoryConfig, bfloat16)
 ```
 
 ### Finding the cause
-Now lets compare with python binding for ttnn.clone in tt-metal:
+Now, compare with the Python binding for `ttnn.clone` in TT-Metal:
 https://github.com/tenstorrent/tt-metal/blob/main/ttnn/cpp/ttnn/operations/data_movement/copy/copy_pybind.cpp#L93-L110
 ```
 bind_registered_operation(
@@ -71,9 +71,9 @@ bind_registered_operation(
             py::arg("queue_id") = 0}
 );
 ```
-Spot the `py::kw_only()` call. It separates positional and key-value only arguments in the binding.
+Notice the `py::kw_only()` call, which separates positional and keyword-only arguments in the binding.
 
-Now lets look how `ttnn.clone` is used in tt-metal tests/models
+Next, check how `ttnn.clone` is used in the TT-Metal tests/models:
 https://github.com/search?q=repo%3Atenstorrent%2Ftt-metal%20ttnn.clone&type=code
 Here is a sample search result
 ```
@@ -86,5 +86,6 @@ if tt_tensors_device.layout == ttnn.TILE_LAYOUT:
 ```
 
 ### Fix
-Find where the lowering for a given operation is located and fix to make sure arguments match an expected signature.
-In this case, make sure that memory config and dtype are passed as kw args.
+Find where the lowering for the given operation is located and ensure that the arguments match the expected signature. 
+In this case, make sure that memory_config and dtype are passed as keyword arguments.
+
