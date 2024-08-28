@@ -23,6 +23,8 @@ import pytest
         "mobilenetv1_100.ra4_e3600_r224_in1k",
         "ese_vovnet19b_dw.ra_in1k",
         "xception71.tf_in1k",
+        "dla34.in1k",
+        "hrnet_w18.ms_aug_in1k",
     ],
 )
 @pytest.mark.compilation_xfail
