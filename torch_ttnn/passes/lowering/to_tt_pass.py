@@ -15,6 +15,13 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
 
+arithmetic_scalar_ops = {
+    torch.ops.aten.add.Scalar: ttnn.add,
+    torch.ops.aten.div.Scalar: ttnn.div,
+    torch.ops.aten.mul.Scalar: ttnn.mul,
+    torch.ops.aten.sub.Scalar: ttnn.sub,
+}
+
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
     torch.ops.aten.lt.Scalar: ttnn.lt,
@@ -363,6 +370,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     }
                     new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
                     new_nodes.append(new_node)
+            if node.target in arithmetic_scalar_ops:
+                new_kwargs = {
+                    "fill_value": args[1],
+                    "layout": TtnnTileLayout(),
+                }
+                full_node = g.call_function(ttnn.full, args=((1,),), kwargs=new_kwargs)
+                new_node = g.call_function(
+                    relational_scalar_ops[node.target],
+                    args=(args[0], full_node),
+                    kwargs={},
+                )
+                new_nodes.append(new_node)
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
