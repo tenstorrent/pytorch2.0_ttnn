@@ -8,6 +8,7 @@ from pathlib import Path
 # Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
 def save_pickle(obj, base_path, filename):
     p = Path(f"metrics/{base_path}")
+    p.mkdir(parents=True, exist_ok=True)
     pickle_out_path = p / f"{filename}.pickle"
     with open(pickle_out_path, "wb") as f:
         pickle.dump(obj, f)
