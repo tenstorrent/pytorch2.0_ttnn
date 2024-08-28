@@ -15,4 +15,4 @@ def test_flan_t5(record_property):
     outputs = model.generate(**inputs)
     results = tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    record_property("torch_ttnn", (model, inputs, outputs))
+    record_property("torch_ttnn", (model.generate, inputs, outputs))
