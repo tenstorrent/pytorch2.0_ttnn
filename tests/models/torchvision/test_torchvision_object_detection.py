@@ -14,7 +14,6 @@ import pytest
         ("retinanet_resnet50_fpn_v2", "RetinaNet_ResNet50_FPN_V2_Weights"),
     ],
 )
-@pytest.mark.torch_only
 @pytest.mark.compilation_xfail
 def test_torchvision_object_detection(record_property, model_info):
     model_name, weights_name = model_info
