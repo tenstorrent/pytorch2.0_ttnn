@@ -15,7 +15,6 @@ def test_resnet(record_property):
     weights = models.ResNet50_Weights.DEFAULT
     model = models.resnet50(weights=weights)
     model.eval()  # Set the model to evaluation mode
-    model = model.to(torch.bfloat16)
 
     # Define a transformation to preprocess the input image using the weights transforms
     preprocess = weights.transforms()
@@ -25,6 +24,9 @@ def test_resnet(record_property):
     image = Image.open(requests.get(url, stream=True).raw)
     img_t = preprocess(image)
     batch_t = torch.unsqueeze(img_t, 0)
+
+    model = model.to(torch.bfloat16)
+    batch_t = batch_t.to(torch.bfloat16)
 
     # Perform inference
     with torch.no_grad():
