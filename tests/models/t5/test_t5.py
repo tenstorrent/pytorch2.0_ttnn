@@ -19,4 +19,4 @@ def test_t5(record_property, model_name):
 
     print(f"Model: {model_name} | Input: {input_text} | Output: {output_text}")
 
-    record_property("torch_ttnn", (model, input_ids, output_ids))
+    record_property("torch_ttnn", (model.generate, input_ids, output_ids))
