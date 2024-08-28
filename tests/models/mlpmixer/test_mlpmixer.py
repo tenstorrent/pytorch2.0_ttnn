@@ -5,7 +5,7 @@ import pytest
 
 @pytest.mark.compilation_xfail
 def test_mlpmixer(record_property):
-    record_property("model_name", "MLPMIxer")
+    record_property("model_name", "MLPMixer")
 
     """
     https://github.com/lucidrains/mlp-mixer-pytorch
