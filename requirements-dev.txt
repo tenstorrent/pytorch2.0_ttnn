@@ -9,3 +9,4 @@ pydantic==2.8.2
 requests>=2.31
 sentencepiece==0.2.0
 protobuf==5.27.3
+mlp-mixer-pytorch==0.1.1
