@@ -13,6 +13,7 @@ import torch_ttnn.metrics as metrics
 
 mb_in_bytes = 1048576
 
+
 @pytest.fixture(scope="session")
 def device():
     device = ttnn.open_device(device_id=0)
@@ -32,9 +33,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
     # Initialize early to ensure it's defined
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
     comp_runtime_metrics = {
-                "success": False,
-                "fits_in_memory": "N/A",
-                "peak_sram_usage": 0,
+        "success": False,
+        "fits_in_memory": "N/A",
+        "peak_sram_usage": 0,
     }
     try:
         start = time.perf_counter() * 1000
@@ -81,7 +82,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 comp_runtime_metrics["accuracy"] = accuracy
             # dump compiled aten schemas
             metrics.save_pickle(option.compiled_schema_list, option.metrics_path, "compiled-schema_list")
-        
+
             # Memory analysis
             mm = option.memory_manager
             # Convert bytes to MB
@@ -113,7 +114,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 "success": False,
                 "fits_in_memory": "N/A",
                 "peak_sram_usage": 0,
-            }            
+            }
             try:
                 # Rerun with bypass option to collect aten op metrics
                 torch._dynamo.reset()
