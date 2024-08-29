@@ -62,7 +62,7 @@ def test_mul_scalar(device, input_shape):
     assert torch.allclose(result_before, result_after)
 
 
-@pytest.mark.xfail(reason="Scalar on the left side is not supported?")
+@pytest.mark.xfail(reason="#110 scalar on the left side is not supported")
 @pytest.mark.parametrize("input_shape", [(4, 4)])
 def test_rmul_scalar(device, input_shape):
     m = MulModule()
