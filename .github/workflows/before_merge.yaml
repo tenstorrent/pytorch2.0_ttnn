@@ -24,9 +24,11 @@ jobs:
     runs-on: ["in-service", "n150"]
     steps:
       - name: Collect Workflow Telemetry
-        uses: catchpoint/workflow-telemetry-action@v2        
+        uses: catchpoint/workflow-telemetry-action@v2
+        
       - name: Checkout Repo
         uses: actions/checkout@v4
+        
       - name: Install dependencies
         run: |
           python3 -m venv venv
@@ -35,13 +37,15 @@ jobs:
           python3 -m pip install --upgrade pip                    
           python3 -m pip install -r requirements-dev.txt
           python3 -m pip install pytest-github-report
+          
       - name: Run Tools Tests
         env:
           pytest_verbosity: 2
           pytest_report_title: "⭐️ Tools Tests"
         run: | 
           source venv/bin/activate
-          python3 -m pytest --github-report tests/tools/ -s      
+          python3 -m pytest --github-report tests/tools/ -s
+          
       - name: Run Lowering Tests
         id: lowering_tests
         env:
@@ -50,6 +54,7 @@ jobs:
         run: | 
           source venv/bin/activate
           python3 -m pytest --github-report tests/lowering/ -s
+          
       - name: Check runner debug
         if: ${{ runner.debug == '1' }}
         run: |
@@ -67,6 +72,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 1 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 2
         if: steps.lowering_tests.outcome == 'success'
@@ -76,6 +84,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 2 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 3
         if: steps.lowering_tests.outcome == 'success'
@@ -85,6 +96,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 3 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 4
         if: steps.lowering_tests.outcome == 'success'
@@ -94,6 +108,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 4 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 5
         if: steps.lowering_tests.outcome == 'success'
@@ -103,6 +120,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 5 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 6
         if: steps.lowering_tests.outcome == 'success'
@@ -112,6 +132,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 6 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 7
         if: steps.lowering_tests.outcome == 'success'
@@ -121,6 +144,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 7 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 8
         if: steps.lowering_tests.outcome == 'success'
@@ -130,6 +156,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 8 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 9
         if: steps.lowering_tests.outcome == 'success'
@@ -139,6 +168,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 9 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       - name: Run Model Tests Group 10
         if: steps.lowering_tests.outcome == 'success'
@@ -148,6 +180,9 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --split 10 --group 10 -s
+          huggingface-cli delete-cache
+          rm -rf ~/.torch/models
+          free -h
 
       # Collect Metrics
       - name: Collect Metrics Report
