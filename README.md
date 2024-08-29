@@ -8,42 +8,17 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model                                                                              | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
-|:-----------------------------------------------------------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------|:---------------|
-| [BERT](<docs/models/BERT>)                                                         | ✅            | 1393 (21)                       | 491 (5)                         | 1465                 |                 62961.9  | 215513.07                | 99.04          |
-| [Bloom](<docs/models/Bloom>)                                                       | ✘             | 1407 (29)                       | N/A                             | N/A                  |                 27040.8  | N/A                      | N/A            |
-| [CLIP](<docs/models/CLIP>)                                                         | ✘             | 1397 (30)                       | N/A                             | N/A                  |                  5416.64 | N/A                      | N/A            |
-| [DETR](<docs/models/DETR>)                                                         | ✘             | 1685 (42)                       | N/A                             | N/A                  |                  2806.55 | N/A                      | N/A            |
-| [DPR](<docs/models/DPR>)                                                           | ✘             | 720 (22)                        | N/A                             | N/A                  |                   795.03 | N/A                      | N/A            |
-| [FLAN-T5](<docs/models/FLAN-T5>)                                                   | ✘             | 19680 (38)                      | N/A                             | N/A                  |                 12386.5  | N/A                      | N/A            |
-| [Falcon](<docs/models/Falcon>)                                                     | ✘             | 2698 (30)                       | N/A                             | N/A                  |                 47683.1  | N/A                      | N/A            |
-| [GLPN-KITTI](<docs/models/GLPN-KITTI>)                                             | ✘             | 3064 (30)                       | N/A                             | N/A                  |                  2505.99 | N/A                      | N/A            |
-| [GPT-2](<docs/models/GPT-2>)                                                       | ✘             | 748 (31)                        | N/A                             | N/A                  |                  1751.32 | N/A                      | N/A            |
-| [Llama](<docs/models/Llama>)                                                       | ✅            | 104 (5)                         | 70 (5)                          | 72                   |                170484    | 164977.28                | 100.0          |
-| [MLPMixer](<docs/models/MLPMixer>)                                                 | ✘             | 255 (11)                        | N/A                             | N/A                  |                   225.89 | N/A                      | N/A            |
-| [Mnist (Eval)](<docs/models/Mnist (Eval)>)                                         | ✅            | 14 (8)                          | 5 (4)                           | 16                   |                    26.1  | 1028.42                  | 100.0          |
-| [Mnist (Train)](<docs/models/Mnist (Train)>)                                       | ✅            | 14 (8)                          | 7 (5)                           | 14                   |                  3672.6  | 3813.96                  | 87.57          |
-| [MobileNetV2](<docs/models/MobileNetV2>)                                           | ✘             | 154 (9)                         | N/A                             | N/A                  |                   374.4  | N/A                      | N/A            |
-| [ResNet18](<docs/models/ResNet18>)                                                 | ✅            | 70 (9)                          | 42 (4)                          | 44                   |                  1990.06 | 13034.01                 | 99.99          |
-| [ResNet50](<docs/models/ResNet50>)                                                 | ✅            | 176 (9)                         | 108 (4)                         | 108                  |                  4394.29 | 29410.49                 | 99.98          |
-| [RoBERTa](<docs/models/RoBERTa>)                                                   | ✘             | 719 (21)                        | N/A                             | N/A                  |                  3653.23 | N/A                      | N/A            |
-| [SegFormer](<docs/models/SegFormer>)                                               | ✘             | 760 (27)                        | N/A                             | N/A                  |                   798.19 | N/A                      | N/A            |
-| [SqueezeBERT](<docs/models/SqueezeBERT>)                                           | ✘             | 518 (21)                        | N/A                             | N/A                  |                   756.47 | N/A                      | N/A            |
-| [Whisper](<docs/models/Whisper>)                                                   | ✘             | 4294 (19)                       | N/A                             | N/A                  |                  7475.64 | N/A                      | N/A            |
-| [albert/albert-base-v2](<docs/models/albert/albert-base-v2>)                       | ✘             | 779 (21)                        | N/A                             | N/A                  |                   412.54 | N/A                      | N/A            |
-| [albert/albert-large-v2](<docs/models/albert/albert-large-v2>)                     | ✘             | 1547 (21)                       | N/A                             | N/A                  |                   953.05 | N/A                      | N/A            |
-| [albert/albert-xlarge-v2](<docs/models/albert/albert-xlarge-v2>)                   | ✘             | 1547 (21)                       | N/A                             | N/A                  |                   892.62 | N/A                      | N/A            |
-| [albert/albert-xxlarge-v2](<docs/models/albert/albert-xxlarge-v2>)                 | ✘             | 791 (21)                        | N/A                             | N/A                  |                  2010.9  | N/A                      | N/A            |
-| [codegen](<docs/models/codegen>)                                                   | ✘             | 9114 (37)                       | N/A                             | N/A                  |                 20084.3  | N/A                      | N/A            |
-| [distilbert-base-uncased](<docs/models/distilbert-base-uncased>)                   | ✘             | 367 (17)                        | N/A                             | N/A                  |                   549.52 | N/A                      | N/A            |
-| [facebook/deit-base-patch16-224](<docs/models/facebook/deit-base-patch16-224>)     | ✘             | 685 (17)                        | N/A                             | N/A                  |                  1161.66 | N/A                      | N/A            |
-| [microsoft/beit-base-patch16-224](<docs/models/microsoft/beit-base-patch16-224>)   | ✘             | 793 (21)                        | N/A                             | N/A                  |                  1078.79 | N/A                      | N/A            |
-| [microsoft/beit-large-patch16-224](<docs/models/microsoft/beit-large-patch16-224>) | ✘             | 1573 (21)                       | N/A                             | N/A                  |                  2177.02 | N/A                      | N/A            |
-| [t5-base](<docs/models/t5-base>)                                                   | ✘             | 13550 (38)                      | N/A                             | N/A                  |                  2836.9  | N/A                      | N/A            |
-| [t5-large](<docs/models/t5-large>)                                                 | ✘             | 20891 (38)                      | N/A                             | N/A                  |                  2748.52 | N/A                      | N/A            |
-| [t5-small](<docs/models/t5-small>)                                                 | ✘             | 5681 (38)                       | N/A                             | N/A                  |                  1177.06 | N/A                      | N/A            |
-| [textattack/albert-base-v2-imdb](<docs/models/textattack/albert-base-v2-imdb>)     | ✘             | 782 (22)                        | N/A                             | N/A                  |                   404.89 | N/A                      | N/A            |
-| [twmkn9/albert-base-v2-squad2](<docs/models/twmkn9/albert-base-v2-squad2>)         | ✘             | 783 (23)                        | N/A                             | N/A                  |                   518.95 | N/A                      | N/A            |
+| Model                         | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |   Peak SRAM usage (in MB) |
+|:------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------|:---------------|:-----------------|--------------------------:|
+| [Mnist (Eval)](models/mnist)  | ✅            | 14 (8)                          | 5 (4)                           | 16                   |                    43.93 | 506.61                   | 99.1           | Yes              |                    4.5    |
+| [Mnist (Train)](models/mnist) | ✅            | 14 (8)                          | 7 (5)                           | 14                   |                   103.33 | 3599.48                  | 92.54          | Yes              |                    4.5    |
+| [ResNet18](models/resnet)     | ✅            | 70 (9)                          | 42 (4)                          | 44                   |                  1950.28 | 11637.34                 | 99.99          | Yes              |                    3.0625 |
+| [Bloom](models/bloom)         | ✅            | 1407 (29)                       | 626 (11)                        | 1378                 |                 26692.3  | 73013.02                 | 43.81          | No               |                 1470      |
+| [YOLOS](models/yolos)         | ✅            | 964 (28)                        | 320 (11)                        | 825                  |                  1224.54 | 48541.8                  | 72.41          | Yes              |                   48.8494 |
+| [Llama](models/llama)         | ✘             | 6 (6)                           | 7 (5)                           | 5                    |                161975    | N/A                      | N/A            | N/A              |                    0      |
+| [BERT](models/bert)           | ✅            | 1393 (21)                       | 491 (5)                         | 1465                 |                 63601.4  | 63400.58                 | 98.98          | Yes              |                   60.1157 |
+| [Falcon](models/falcon)       | ✘             | 3 (3)                           | 2 (2)                           | 5                    |                 47862.8  | N/A                      | N/A            | N/A              |                    0      |
+| [GPT-2](models/gpt2)          | ✘             | 748 (31)                        | N/A                             | N/A                  |                  1843.13 | N/A                      | N/A            | N/A              |                    0      |
 
 ### Explanation of Metrics
 
@@ -55,6 +30,8 @@ The table below summarizes the results of running various ML models through our 
 **Original Run Time (ms)**: Execution time (in seconds) of the model before conversion.  
 **Compiled Run Time (ms)**: Execution time (in seconds) of the model after conversion.  
 **Accuracy (%)**: Model accuracy on a predefined test dataset after conversion.  
+**Fits in memory**: Whether a model is estimated to fit in SRAM memory.  
+**Peak SRAM usage (in MB)**: What is the peak SRAM usage for a model during its execution phase.  
 ***
 **NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  
 
@@ -128,18 +105,108 @@ The table below summarizes the results of running various ML models through our 
 | aten.relu.default                                 | ✅       |      17 |
 | aten.t.default                                    | ✅       |       1 |
 | aten.view.default                                 | ✅       |       1 |
-#### ResNet50
-| aten ops                                          | status   |   count |
-|:--------------------------------------------------|:---------|--------:|
-| aten._native_batch_norm_legit_no_training.default | ✘        |      53 |
-| aten.add.Tensor                                   | ✅       |      16 |
-| aten.addmm.default                                | ✅       |       1 |
-| aten.convolution.default                          | ✘        |      53 |
-| aten.max_pool2d_with_indices.default              | ✘        |       1 |
-| aten.mean.dim                                     | ✅       |       1 |
-| aten.relu.default                                 | ✅       |      49 |
-| aten.t.default                                    | ✅       |       1 |
-| aten.view.default                                 | ✅       |       1 |
+#### Bloom
+| aten ops                       | status   |   count |
+|:-------------------------------|:---------|--------:|
+| aten._softmax.default          | ✅       |      24 |
+| aten._to_copy.default          | ✘        |      54 |
+| aten._unsafe_view.default      | ✘        |      24 |
+| aten.add.Tensor                | ✅       |      96 |
+| aten.addmm.default             | ✅       |      96 |
+| aten.arange.start              | ✘        |       1 |
+| aten.baddbmm.default           | ✅       |      24 |
+| aten.bmm.default               | ✅       |      24 |
+| aten.clone.default             | ✅       |      96 |
+| aten.cumsum.default            | ✘        |       1 |
+| aten.embedding.default         | ✅       |       1 |
+| aten.expand.default            | ✅       |       2 |
+| aten.full.default              | ✅       |       1 |
+| aten.lift_fresh_copy.default   | ✘        |       1 |
+| aten.masked_fill.Scalar        | ✘        |      26 |
+| aten.mm.default                | ✅       |       1 |
+| aten.mul.Tensor                | ✅       |     146 |
+| aten.native_layer_norm.default | ✅       |      50 |
+| aten.permute.default           | ✅       |      48 |
+| aten.pow.Tensor_Tensor         | ✘        |       1 |
+| aten.rsub.Scalar               | ✅       |       1 |
+| aten.select.int                | ✘        |      72 |
+| aten.slice.Tensor              | ✘        |      78 |
+| aten.sub.Tensor                | ✅       |       1 |
+| aten.t.default                 | ✅       |      97 |
+| aten.tanh.default              | ✅       |      24 |
+| aten.transpose.int             | ✅       |      48 |
+| aten.unsqueeze.default         | ✘        |       6 |
+| aten.view.default              | ✅       |     363 |
+#### YOLOS
+| aten ops                       | status   |   count |
+|:-------------------------------|:---------|--------:|
+| aten._softmax.default          | ✅       |      12 |
+| aten._to_copy.default          | ✘        |       2 |
+| aten._unsafe_index.Tensor      | ✘        |      16 |
+| aten.add.Tensor                | ✅       |      71 |
+| aten.addmm.default             | ✅       |      78 |
+| aten.arange.default            | ✘        |       4 |
+| aten.bmm.default               | ✅       |      24 |
+| aten.cat.default               | ✘        |       2 |
+| aten.clamp.default             | ✅       |      32 |
+| aten.clone.default             | ✅       |      50 |
+| aten.convolution.default       | ✘        |       1 |
+| aten.div.Tensor                | ✘        |      12 |
+| aten.expand.default            | ✅       |      50 |
+| aten.floor.default             | ✘        |       2 |
+| aten.gelu.default              | ✅       |      12 |
+| aten.mul.Tensor                | ✅       |      82 |
+| aten.native_layer_norm.default | ✅       |      25 |
+| aten.permute.default           | ✅       |      48 |
+| aten.relu.default              | ✅       |       4 |
+| aten.rsub.Scalar               | ✘        |      10 |
+| aten.select.int                | ✘        |       1 |
+| aten.sigmoid.default           | ✅       |       1 |
+| aten.slice.Tensor              | ✘        |      12 |
+| aten.sub.Tensor                | ✅       |      36 |
+| aten.t.default                 | ✅       |      78 |
+| aten.transpose.int             | ✅       |      15 |
+| aten.unsqueeze.default         | ✅       |       1 |
+| aten.view.default              | ✅       |     283 |
+#### Llama
+| aten ops                 | status   |   count |
+|:-------------------------|:---------|--------:|
+| aten.all.dim             | ✅       |       1 |
+| aten.bitwise_not.default | ✅       |       1 |
+| aten.eq.Tensor           | ✅       |       1 |
+| aten.min.default         | ✅       |       1 |
+| aten.mul.Tensor          | ✅       |       1 |
+| aten.unsqueeze.default   | ✅       |       1 |
+#### BERT
+| aten ops                       | status   |   count |
+|:-------------------------------|:---------|--------:|
+| aten._softmax.default          | ✅       |      24 |
+| aten._to_copy.default          | ✘        |       1 |
+| aten.add.Tensor                | ✅       |      74 |
+| aten.addmm.default             | ✅       |     145 |
+| aten.bmm.default               | ✅       |      48 |
+| aten.clone.default             | ✅       |      99 |
+| aten.div.Tensor                | ✅       |      24 |
+| aten.embedding.default         | ✅       |       3 |
+| aten.expand.default            | ✅       |      96 |
+| aten.gelu.default              | ✅       |      24 |
+| aten.mul.Tensor                | ✅       |       1 |
+| aten.native_layer_norm.default | ✅       |      49 |
+| aten.permute.default           | ✅       |      96 |
+| aten.rsub.Scalar               | ✅       |       1 |
+| aten.slice.Tensor              | ✘        |       4 |
+| aten.split.Tensor              | ✘        |       1 |
+| aten.squeeze.dim               | ✘        |       2 |
+| aten.t.default                 | ✅       |     145 |
+| aten.transpose.int             | ✅       |      24 |
+| aten.unsqueeze.default         | ✅       |       2 |
+| aten.view.default              | ✅       |     530 |
+#### Falcon
+| aten ops               | status   |   count |
+|:-----------------------|:---------|--------:|
+| aten.arange.start      | ✘        |       1 |
+| aten.embedding.default | ✅       |       1 |
+| aten.unsqueeze.default | ✅       |       1 |
 
 
 ## Quickstart
