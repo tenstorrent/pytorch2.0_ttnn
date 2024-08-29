@@ -26,4 +26,4 @@ def test_opt(record_property):
 
     tokenizer.batch_decode(generated_ids)[0]
 
-    record_property("torch_ttnn", (model, model_inputs, generated_ids))
+    record_property("torch_ttnn", (model.generate, model_inputs, generated_ids))
