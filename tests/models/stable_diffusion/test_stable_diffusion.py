@@ -4,7 +4,7 @@ import torch
 import pytest
 
 
-@pytest.mark.compilation_xfail
+@pytest.mark.skip(reason="runwayml/stable-diffusion-v1-5 is no longer available to download from huggingface")
 def test_stable_diffusion(record_property):
     record_property("model_name", "Stable Diffusion")
 

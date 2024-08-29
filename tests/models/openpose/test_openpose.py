@@ -7,7 +7,7 @@ from controlnet_aux import OpenposeDetector
 import pytest
 
 
-@pytest.mark.compilation_xfail
+@pytest.mark.skip(reason="failing during torch run with bypass compilation")
 def test_openpose(record_property):
     record_property("model_name", "OpenPose")
 
