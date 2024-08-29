@@ -567,7 +567,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     "return_indices": True,
                     **node.kwargs,
                 }
-                new_node = g.call_function(ttnn.max_pool2d, operand, kwargs)
+                new_node = g.call_function(ttnn.max_pool2d, (operand,), kwargs)
 
             if new_nodes:
                 node.replace_all_uses_with(
