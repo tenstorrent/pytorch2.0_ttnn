@@ -8,7 +8,10 @@ import time
 from pathlib import Path
 import os
 import pickle
+from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
+
+mb_in_bytes = 1048576
 
 
 @pytest.fixture(scope="session")
@@ -27,8 +30,13 @@ def reset_torch_dynamo():
 
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
+    # Initialize early to ensure it's defined
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
-    comp_runtime_metrics = {"success": False}  # Initialize compiled metrics
+    comp_runtime_metrics = {
+        "success": False,
+        "fits_in_memory": "N/A",
+        "peak_sram_usage": 0,
+    }
     try:
         start = time.perf_counter() * 1000
         yield
@@ -55,7 +63,13 @@ def compile_and_run(device, reset_torch_dynamo, request):
         model, inputs, outputs = record["torch_ttnn"]
         try:
             # Compile model with ttnn backend
-            option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True, metrics_path=model_name)
+            option = torch_ttnn.TorchTtnnOption(
+                device=device,
+                gen_graphviz=True,
+                run_mem_analysis=True,
+                metrics_path=model_name,
+                verbose=True,
+            )
             m = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
             start = time.perf_counter() * 1000
@@ -66,11 +80,41 @@ def compile_and_run(device, reset_torch_dynamo, request):
             accuracy = calculate_accuracy(outputs, outputs_after)
             if accuracy:
                 comp_runtime_metrics["accuracy"] = accuracy
-
             # dump compiled aten schemas
             metrics.save_pickle(option.compiled_schema_list, option.metrics_path, "compiled-schema_list")
+
+            # Memory analysis
+            mm = option.memory_manager
+            # Convert bytes to MB
+            peak_usage = mm.peak_sram_usage / mb_in_bytes
+            comp_runtime_metrics["peak_sram_usage"] = peak_usage
+
+            if mem_utils.check_sram_overflow(mm) is True:
+                comp_runtime_metrics["fits_in_memory"] = "No"
+            else:
+                comp_runtime_metrics["fits_in_memory"] = "Yes"
+
+            # These are for plotting charts for later inspection
+            from tools.plot_chart import (
+                plot_mem_footprint_bar_chart,
+                plot_mem_footprint_line_chart,
+            )
+
+            bar_chart_file = f"metrics/{model_name}/bar_chart.png"
+            line_chart_file = f"metrics/{model_name}/line_chart.png"
+            plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
+            plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
+
+            log_file = f"metrics/{model_name}/memory_footprint.txt"
+            with open(log_file, "w") as f:
+                f.write(mm.logs)
+
         except Exception as e:
-            comp_runtime_metrics = {"success": False}
+            comp_runtime_metrics = {
+                "success": False,
+                "fits_in_memory": "N/A",
+                "peak_sram_usage": 0,
+            }
             try:
                 # Rerun with bypass option to collect aten op metrics
                 torch._dynamo.reset()
