@@ -650,7 +650,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     "return_indices": True,
                     **node.kwargs,
                 }
-                return g.call_function(ttnn.max_pool2d, operand, kwargs)
+                return g.call_function(ttnn.max_pool2d, (operand,), kwargs)
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
