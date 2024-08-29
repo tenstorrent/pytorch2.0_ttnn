@@ -8,6 +8,7 @@ from pathlib import Path
 # Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
 def save_pickle(obj, base_path, filename):
     p = Path(f"metrics/{base_path}")
+    p.mkdir(parents=True, exist_ok=True)
     pickle_out_path = p / f"{filename}.pickle"
     with open(pickle_out_path, "wb") as f:
         pickle.dump(obj, f)
@@ -67,7 +68,11 @@ def collect_schema_from_nodes(nodes: list):
 
                 # Collect the input shapes from the metadata if possible.
                 if hasattr(arg, "meta") and "val" in arg.meta:
-                    arg_shapes.append(str(list(arg.meta["val"].size())))
+                    val = arg.meta["val"]
+                    if isinstance(val, torch._subclasses.fake_tensor.FakeTensor):
+                        arg_shapes.append(str(list(val.size())))
+                    else:
+                        arg_shapes.append(str(val))
                 else:
                     arg_shapes.append("")
 
