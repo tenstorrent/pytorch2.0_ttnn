@@ -565,7 +565,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     "kernel_h": args[1][0],
                     "kernel_w": args[1][1],
                     "return_indices": True,
-                    **node.kwargs
+                    **node.kwargs,
                 }
                 new_node = g.call_function(ttnn.max_pool2d, operand, kwargs)
 
