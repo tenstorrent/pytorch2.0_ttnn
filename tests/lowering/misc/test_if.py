@@ -38,7 +38,7 @@ def test_if(device, input_shape):
     nodes_0 = list(option._out_fx_graphs[0].nodes)
     target_0 = [node.target for node in nodes_0]
     assert target_0.count(torch.ops.aten.sum.default) == 1
-    assert target_0.count(torch.ops.aten.gt.Scalar) == 1
+    assert target_0.count(ttnn.gt) == 1
     nodes_1 = list(option._out_fx_graphs[1].nodes)
     target_1 = [node.target for node in nodes_1]
     assert target_1.count(ttnn.add) == 1
