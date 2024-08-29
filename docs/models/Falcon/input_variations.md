@@ -59,7 +59,7 @@
 ### aten.cat.default
 |    | ATen Input Variations                                  | Status   |
 |---:|:-------------------------------------------------------|:---------|
-|  0 | List[Tensor] tensors = [neg, slice_1],<br>int dim = -1 | Unknown  |
+|  0 | List[Tensor] tensors = [neg, slice_7],<br>int dim = -1 | Unknown  |
 ### aten.clone.default
 |    | ATen Input Variations                                                                     | Status   |
 |---:|:------------------------------------------------------------------------------------------|:---------|
@@ -87,7 +87,7 @@
 |    | ATen Input Variations                                                                              | Status   |
 |---:|:---------------------------------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 7, 73, 64]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, lift_fresh_copy] | Unknown  |
-|  1 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [primals_2]                          | Unknown  |
+|  1 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [primals_260]                        | Unknown  |
 ### aten.lift_fresh_copy.default
 |    | ATen Input Variations   | Status   |
 |---:|:------------------------|:---------|
