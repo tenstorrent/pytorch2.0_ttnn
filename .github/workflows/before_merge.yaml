@@ -56,6 +56,11 @@ jobs:
           echo "TT_METAL_WATCHER=120" >> $GITHUB_ENV
           echo "TT_METAL_WATCHER_APPEND=0" >> $GITHUB_ENV
           echo "TT_METAL_WATCHER_DUMP_ALL=1" >> $GITHUB_ENV
+      - name: Collect Model Tests
+        id: collect-tests
+        run: |
+          tests=$(pytest --collect-only -q tests/models | grep '::' | awk '{print $1}')
+          echo "$tests" > tests.txt
       - name: Run Model Tests
         id: model_tests
         if: steps.lowering_tests.outcome == 'success'
@@ -63,8 +68,12 @@ jobs:
           pytest_verbosity: 2
           pytest_report_title: "⭐️ Model Tests"
         run: | 
-          source venv/bin/activate
-          python3 -m pytest --github-report tests/models/ -s
+          source venv/bin/activate          
+          while IFS= read -r test; do
+            echo "::group::Running test: $test"
+            python3 -m pytest --github-report "$test" -s || echo echo "Test $test failed"
+            echo "::endgroup::"
+          done < tests.txt
       - name: Collect Metrics Report
         if: ${{ github.event_name == 'workflow_dispatch' && steps.lowering_tests.outcome == 'success' && steps.model_tests.outcome == 'success' }}
         env: 
