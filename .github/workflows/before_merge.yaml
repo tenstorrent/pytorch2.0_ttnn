@@ -15,6 +15,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  pull-requests: write
 
 jobs:
   validate-pr:
@@ -22,6 +23,8 @@ jobs:
       ARCH_NAME: wormhole_b0
     runs-on: ["in-service", "n150"]
     steps:
+      - name: Collect Workflow Telemetry
+        uses: catchpoint/workflow-telemetry-action@v2        
       - name: Checkout Repo
         uses: actions/checkout@v4
       - name: Install dependencies
