@@ -27,6 +27,8 @@ def reset_torch_dynamo():
 
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
+    runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
+    comp_runtime_metrics = {"success": False}  # Initialize compiled metrics
     try:
         start = time.perf_counter() * 1000
         yield
