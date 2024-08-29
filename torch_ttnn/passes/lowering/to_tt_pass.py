@@ -303,10 +303,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
-        if target == torch.ops.aten.max_pool2d_with_indices.default:
-            new_kwargs = {"return_indices": True, **kwargs}
-            return self.call_function_prop_meta(ttnn.max_pool2d, args, new_kwargs)
-
         if target == torch.ops.aten.squeeze.dim:
             # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
             if args[1] == 0:
@@ -552,12 +548,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
-                input_tensor_shape = args[0].meta["val"].size()
+                operand_shape = args[0].meta["val"].size()
                 # Repeat fails if last dimension of input is 1
-                if input_tensor_shape[-1] != 1:
+                if operand_shape[-1] != 1:
                     output_shape = torch.Size(args[1])
 
-                    multiplier = np.array(output_shape) // np.array(input_tensor_shape)
+                    multiplier = np.array(output_shape) // np.array(operand_shape)
                     # -1 // positive non-zero number will always be -1
                     # Convert -1 to 1
                     multiplier = np.array([1 if i == -1 else i for i in multiplier])
@@ -641,6 +637,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            if node.target == torch.ops.aten.max_pool2d_with_indices.default:
+                operand = args[0]
+                operand_shape = operand.meta["val"].size()
+                kwargs = {
+                    "in_n": operand_shape[0],
+                    "in_h": operand_shape[2],
+                    "in_w": operand_shape[3],
+                    "kernel_h": args[1][0],
+                    "kernel_w": args[1][1],
+                    "return_indices": True,
+                    **node.kwargs,
+                }
+                return g.call_function(ttnn.max_pool2d, operand, kwargs)
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
