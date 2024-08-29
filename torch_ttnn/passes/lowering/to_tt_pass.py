@@ -262,8 +262,8 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
         if target == torch.ops.aten.max_pool2d_with_indices.default:
-            kwargs["return_indices"] = True
-            return self.call_function_prop_meta(ttnn.max_pool2d, args, kwargs)
+            new_kwargs = {"return_indices": True, **kwargs}
+            return self.call_function_prop_meta(ttnn.max_pool2d, args, new_kwargs)
 
         if target == torch.ops.aten.squeeze.dim:
             # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
