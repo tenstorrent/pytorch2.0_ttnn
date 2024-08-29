@@ -39,6 +39,38 @@ The table below summarizes the results of running various ML models through our 
 
 ### Op conversion status per model
 
+#### BERT
+| aten ops                       | status   |   count |
+|:-------------------------------|:---------|--------:|
+| aten._softmax.default          | ✅       |      24 |
+| aten._to_copy.default          | ✘        |       1 |
+| aten.add.Tensor                | ✅       |      74 |
+| aten.addmm.default             | ✅       |     145 |
+| aten.bmm.default               | ✅       |      48 |
+| aten.clone.default             | ✅       |      99 |
+| aten.div.Tensor                | ✅       |      24 |
+| aten.embedding.default         | ✅       |       3 |
+| aten.expand.default            | ✅       |      96 |
+| aten.gelu.default              | ✅       |      24 |
+| aten.mul.Tensor                | ✅       |       1 |
+| aten.native_layer_norm.default | ✅       |      49 |
+| aten.permute.default           | ✅       |      96 |
+| aten.rsub.Scalar               | ✅       |       1 |
+| aten.slice.Tensor              | ✘        |       4 |
+| aten.split.Tensor              | ✘        |       1 |
+| aten.squeeze.dim               | ✘        |       2 |
+| aten.t.default                 | ✅       |     145 |
+| aten.transpose.int             | ✅       |      24 |
+| aten.unsqueeze.default         | ✅       |       2 |
+| aten.view.default              | ✅       |     530 |
+#### Llama
+| aten ops               | status   |   count |
+|:-----------------------|:---------|--------:|
+| aten.arange.start      | ✘        |       1 |
+| aten.embedding.default | ✅       |       1 |
+| aten.repeat.default    | ✘        |       1 |
+| aten.slice.Tensor      | ✘        |      34 |
+| aten.unsqueeze.default | ✘        |      67 |
 #### Mnist (Eval)
 | aten ops                             | status   |   count |
 |:-------------------------------------|:---------|--------:|
@@ -268,7 +300,7 @@ You can also substitute the backend with `torch_stat` to run a reference compari
 
 # Add a model test
 If you want to record run time metrics for a model or test, include a Pytest fixture named `record_property` as a parameter and set the "model_name" key.  
-If you also want to compile the model with torch_ttnn backend, set the "torch_ttnn" key to a tuple in this order `(model, test_inputs, outputs)`. "model_name" still needs to be set. See the example code snippet below. Currently, only `torch.nn.Module` models with a `forward` function are supported.
+If you also want to compile the model with torch_ttnn backend, set the "torch_ttnn" key to a tuple in this order `(model, test_inputs, outputs)`. "model_name" still needs to be set. See the example code snippet below. `torch.nn.Module` models with `generate` method is supported.
 ```python
 def Model(torch.nn.Module):
     def forward(self, x):
@@ -291,4 +323,6 @@ def test_model_name(record_property):
     # Can be set once all three objects for the tuple are defined
     record_property("torch_ttnn", (model, test_input(s), outputs))
 ```
+
+If `model.generate(inputs)` is used, pass in `model.generate` instead of `model` to `record_property`.
 

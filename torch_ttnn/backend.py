@@ -26,6 +26,7 @@ class TorchTtnnOption:
         verbose=True,
         metrics_path="",
         tracer_option=None,
+        bypass_compile=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -36,11 +37,15 @@ class TorchTtnnOption:
         self.verbose = verbose
         self.tracer_option = tracer_option
 
-        if metrics_path:
-            p = Path(f"metrics/{metrics_path}")
-            os.makedirs(p, exist_ok=True)
         self.metrics_path = metrics_path
-        self._metrics = dict()
+        self.bypass_compile = bypass_compile
+        self.original_schema_list = list()
+        self.compiled_schema_list = list()
+
+    def reset_containers(self):
+        self._out_fx_graphs = list()
+        self.original_schema_list = list()
+        self.compiled_schema_list = list()
 
 
 def register_ttnn_objects(option: TorchTtnnOption):
@@ -91,8 +96,12 @@ def aten_backend(
     gm = remove_clones_for_input_aliasing(gm)
     # Save the number of aten ops before compilation
     if option.metrics_path:
-        original_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
-        metrics.save_pickle(original_schema_list, option.metrics_path, "original-schema_list")
+        option.original_schema_list.extend(metrics.collect_schema_from_nodes(gm.graph.nodes))
+
+    # Do not continue with compilation if bypass
+    if option.bypass_compile:
+        option._out_fx_graphs.append(gm.graph)
+        return make_boxed_func(gm)
 
     # Register ttnn objects as graph globals
     register_ttnn_objects(option)
@@ -177,8 +186,7 @@ def aten_backend(
             nth_eviction += 1
 
     if option.metrics_path:
-        compiled_schema_list = metrics.collect_schema_from_nodes(gm.graph.nodes)
-        metrics.save_pickle(compiled_schema_list, option.metrics_path, "compiled-schema_list")
+        option.compiled_schema_list.extend(metrics.collect_schema_from_nodes(gm.graph.nodes))
 
     option._out_fx_graphs.append(gm.graph)
     return make_boxed_func(gm)
