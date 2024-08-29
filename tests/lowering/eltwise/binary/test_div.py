@@ -80,7 +80,7 @@ def test_div_scalar_denominator(device, input_shapes):
     assert_with_pcc(result_before, result_after)
 
 
-@pytest.mark.xfail(reason="Scalar on the left side is not supported?")
+@pytest.mark.xfail(reason="#110 scalar on the left side is not supported")
 @pytest.mark.parametrize(
     "input_shapes",
     [[(4, 4)], [(32, 32)]],
