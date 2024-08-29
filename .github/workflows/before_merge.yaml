@@ -72,7 +72,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 1 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -84,7 +84,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 2 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -96,7 +96,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 3 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -108,7 +108,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 4 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -120,7 +120,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 5 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -132,7 +132,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 6 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -144,7 +144,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 7 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -156,7 +156,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 8 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -168,7 +168,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 9 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
@@ -180,7 +180,7 @@ jobs:
         run: |
           source venv/bin/activate
           python3 -m pytest --github-report tests/models/ --splits 10 --group 10 -s
-          huggingface-cli delete-cache
+          python3 tools/huggingface_delete_cache.py
           rm -rf ~/.torch/models
           free -h
 
