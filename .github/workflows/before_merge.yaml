@@ -24,7 +24,8 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service", "n150"]
-    steps:
+    steps:      
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
       - name: Run Tools Tests 
@@ -38,6 +39,7 @@ jobs:
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
     runs-on: ["in-service", "n150"]
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
       - name: Run Lowering Tests 
@@ -56,6 +58,7 @@ jobs:
       pytest_verbosity: 1
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Tests
@@ -76,6 +79,7 @@ jobs:
     env: 
       PYTHONPATH: ${{ github.workspace }}
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
       
       - name: Download Metrics Artifacts
