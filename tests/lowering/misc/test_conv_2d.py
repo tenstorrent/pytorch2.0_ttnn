@@ -16,7 +16,10 @@ class Conv2dModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [((1, 2, 5, 5), (4, 2, 3, 3))],
+    (
+        ((1, 2, 5, 5), (4, 2, 3, 3)),
+        ((1, 1, 5, 5), (1, 1, 3, 3)),
+    ),
 )
 def test_conv_2d(device, input_shapes):
     m = Conv2dModule()
