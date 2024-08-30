@@ -1,4 +1,5 @@
-# Reference: https://huggingface.co/facebook/sam2-hiera-tiny
+# Reference: https://github.com/facebookresearch/segment-anything-2
+# Hugging Face version: https://huggingface.co/facebook/sam2-hiera-tiny
 
 import torch
 from sam2.sam2_image_predictor import SAM2ImagePredictor
