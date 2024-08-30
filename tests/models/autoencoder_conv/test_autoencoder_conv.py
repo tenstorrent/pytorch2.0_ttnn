@@ -3,7 +3,7 @@ from diffusers import DiffusionPipeline, AutoencoderTiny
 import pytest
 
 
-@pytest.mark.compilation_xfail
+@pytest.mark.skip(reason="PyTorch compilation flow cannot accept pipeline.")
 def test_autoencoder_conv(record_property):
     record_property("model_name", "Autoencoder (convolutional)")
 
