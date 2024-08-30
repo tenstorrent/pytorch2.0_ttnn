@@ -642,7 +642,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         "batch_size": input_shape[0],
                         "input_height": input_shape[2],
                         "input_width": input_shape[3],
-                        "kernel_size": weight_shape[2:],
+                        "kernel_size": [*weight_shape[2:]],
                         "device": TtnnDevice(),
                         **node.kwargs,
                     }
