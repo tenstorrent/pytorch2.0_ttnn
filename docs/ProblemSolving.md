@@ -143,7 +143,7 @@ Retrieve the source of the error:
 -> raise RuntimeError("Unable to represent lambda") from e
 ```
 
-## Incompatible Function Arguments
+## Mismatch Between Torch and TTNN Tensor Types
 If you see the following error:
 
 ```
