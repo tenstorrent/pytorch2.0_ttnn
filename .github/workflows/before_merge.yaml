@@ -25,7 +25,7 @@ jobs:
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service", "n150"]
     steps:
-      - uses: ./.github/actions/common_repo_setup.yaml
+      - uses: ./.github/actions/common_repo_setup
 
       - name: Run Tools Tests 
         run: |
@@ -38,7 +38,7 @@ jobs:
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
     runs-on: ["in-service", "n150"]
     steps:
-      - uses: ./.github/actions/common_repo_setup.yaml
+      - uses: ./.github/actions/common_repo_setup
 
       - name: Run Lowering Tests 
         run: |
@@ -56,13 +56,13 @@ jobs:
       pytest_verbosity: 1
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
     steps:
-      - uses: ./.github/actions/common_repo_setup.yaml
+      - uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Tests
         run: |
           python3 -m pytest --github-report tests/models/ --splits ${{ inputs.num_groups }} --group ${{ matrix.group }} -s
       
-      - uses: ./.github/actions/common_cleanup.yaml
+      - uses: ./.github/actions/common_cleanup
 
       - uses: actions/upload-artifact@v3
         with:
@@ -76,7 +76,7 @@ jobs:
     env: 
       PYTHONPATH: ${{ github.workspace }}
     steps:
-      - uses: ./.github/actions/common_repo_setup.yaml
+      - uses: ./.github/actions/common_repo_setup
       
       - name: Download Metrics Artifacts
         run: |
