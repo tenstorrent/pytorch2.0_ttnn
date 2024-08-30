@@ -67,7 +67,7 @@ jobs:
       - name: Run Model Tests Group 1
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 1"
         run: |
           source venv/bin/activate
@@ -79,7 +79,7 @@ jobs:
       - name: Run Model Tests Group 2
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 2"
         run: |
           source venv/bin/activate
@@ -91,7 +91,7 @@ jobs:
       - name: Run Model Tests Group 3
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 3"
         run: |
           source venv/bin/activate
@@ -103,7 +103,7 @@ jobs:
       - name: Run Model Tests Group 4
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 4"
         run: |
           source venv/bin/activate
@@ -115,7 +115,7 @@ jobs:
       - name: Run Model Tests Group 5
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 5"
         run: |
           source venv/bin/activate
@@ -127,7 +127,7 @@ jobs:
       - name: Run Model Tests Group 6
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 6"
         run: |
           source venv/bin/activate
@@ -139,7 +139,7 @@ jobs:
       - name: Run Model Tests Group 7
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 7"
         run: |
           source venv/bin/activate
@@ -151,7 +151,7 @@ jobs:
       - name: Run Model Tests Group 8
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 8"
         run: |
           source venv/bin/activate
@@ -163,7 +163,7 @@ jobs:
       - name: Run Model Tests Group 9
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 9"
         run: |
           source venv/bin/activate
@@ -175,7 +175,7 @@ jobs:
       - name: Run Model Tests Group 10
         if: steps.lowering_tests.outcome == 'success'
         env:
-          pytest_verbosity: 2
+          pytest_verbosity: 1
           pytest_report_title: "⭐️ Model Tests - Group 10"
         run: |
           source venv/bin/activate
