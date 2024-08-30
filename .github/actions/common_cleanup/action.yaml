@@ -4,6 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: Cleanup model cache
+      shell: bash
       run: |
         python3 tools/huggingface_delete_cache.py
         rm -rf ~/.torch/models
