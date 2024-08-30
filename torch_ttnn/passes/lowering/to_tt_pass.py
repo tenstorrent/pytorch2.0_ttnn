@@ -624,8 +624,29 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
             if node.target == torch.ops.aten.convolution.default:
-                if len(node.meta["val"].size()) == 4:
-                    return g.call_function(ttnn.conv2d, args, node.kwargs)
+                output_shape = node.meta["val"].size()
+                input_shape = args[0].meta["val"].size()
+                weight_shape = args[1].meta["val"].size()
+
+                if len(input_shape) == 4:
+                    kwargs = {
+                        "input_tensor": args[0],
+                        "weight_tensor": args[1],
+                        "bias_tensor": args[2],
+                        "stride": args[3],
+                        "padding": args[4],
+                        "dilation": args[5],
+                        "groups": args[8],
+                        "in_channels": input_shape[1],
+                        "out_channels": output_shape[1],
+                        "batch_size": input_shape[0],
+                        "input_height": input_shape[2],
+                        "input_width": input_shape[3],
+                        "kernel_size": weight_shape[2:],
+                        "device": TtnnDevice(),
+                        **node.kwargs,
+                    }
+                    return g.call_function(ttnn.conv2d, (), kwargs)
                 return None
 
         with g.inserting_before(node):
