@@ -104,9 +104,9 @@ jobs:
       - name: Download Metrics Artifacts
         run: |
           mkdir -p tests/metrics
-          for i in $(seq 1 ${{ inputs.num_groups }}); do
+          for i in $(seq 1 20); do
             echo "Downloading metrics for Group $i"
-            gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --path tests/metrics/
+            gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir tests/metrics/
           done
 
       - name: Collect Metrics Report
