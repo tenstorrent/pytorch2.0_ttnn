@@ -40,14 +40,14 @@ jobs:
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
     strategy:
       matrix: # Need to find a way to replace this with a generator
-        group: [1, 2, 3]
+        group: [1, 2]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
       - name: Run Lowering Tests 
         run: |
-          python3 -m pytest --github-report tests/lowering/ --splits 3 --group ${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/lowering/ --splits 2 --group ${{ matrix.group }} -s
 
   model-tests:
     needs: lowering-tests
