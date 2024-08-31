@@ -4,6 +4,7 @@
 import torch
 import requests
 from PIL import Image
+import pytest
 
 
 @pytest.mark.skip(
