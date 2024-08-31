@@ -11,7 +11,7 @@ from PIL import Image
 )
 def test_segment_anything(record_property):
     from sam2.sam2_image_predictor import SAM2ImagePredictor
-    
+
     record_property("model_name", "segment-anything")
 
     predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2-hiera-small")
