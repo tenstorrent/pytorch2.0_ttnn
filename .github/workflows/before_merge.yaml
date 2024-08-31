@@ -116,9 +116,10 @@ jobs:
           git config user.email "actions@github.com"
           
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
-            git add .
+            git add --all
           elif [ "${{ github.event.inputs.commit_report }}" == "Readme" ]; then
             git add README.md
+            git add docs/
           elif [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
             echo "No files will be committed"
             exit 0
