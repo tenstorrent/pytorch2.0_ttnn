@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       commit_report:
-        description: 'Commit generated report files: None, Readme, All'
+        description: 'Commit generated report files: None, Docs, All'
         required: false
         default: 'None'
   merge_group:
@@ -63,8 +63,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
-
+      
       - name: Run Model Tests
+        if: env.existing_artifact_exit_code == '1'  # Only run if there are no existing artifacts        
         run: |
           set +e
           python3 -m pytest --github-report tests/models/ --splits 20 --group ${{ matrix.group }} -s
@@ -83,17 +84,17 @@ jobs:
           fi
           echo "Success: Tests passed!";
           exit 0;
-      
-      - uses: ./.github/actions/common_cleanup
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload Metrics Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v3
         with:
-          name: model-tests-metrics-group-${{ matrix.group }}
+          name: model-tests-metrics-group-${{ matrix.group }}  # Tie artifact to commit hash
           path: tests/metrics/
 
   collect-metrics:
     needs: model-tests
-    if: ${{ github.event_name == 'workflow_dispatch' && needs.lowering-tests.outputs.outcome == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch'
     runs-on: ["in-service", "n150"]
     env: 
       PYTHONPATH: ${{ github.workspace }}
@@ -117,7 +118,7 @@ jobs:
           
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
             git add --all
-          elif [ "${{ github.event.inputs.commit_report }}" == "Readme" ]; then
+          elif [ "${{ github.event.inputs.commit_report }}" == "Docs" ]; then
             git add README.md
             git add docs/
           elif [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
