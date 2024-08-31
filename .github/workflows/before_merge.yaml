@@ -58,7 +58,7 @@ jobs:
 
     env:
       ARCH_NAME: wormhole_b0
-      pytest_verbosity: 1
+      pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
     steps:
       - uses: actions/checkout@v4
