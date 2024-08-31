@@ -4,7 +4,7 @@ from transformers import AutoProcessor, MusicgenForConditionalGeneration
 import pytest
 
 
-@pytest.mark.compilation_xfail
+@pytest.mark.skip("torch run with bypass compilation is stalling")
 def test_musicgen_small(record_property):
     record_property("model_name", "musicgen_small")
 
