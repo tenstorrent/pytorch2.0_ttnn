@@ -42,6 +42,14 @@ csv_header_mappings = {
         "Accuracy (%)",
         "Model accuracy on a predefined test dataset after conversion.",
     ),
+    "fits_in_memory": (
+        "Fits in memory",
+        "Whether a model is estimated to fit in SRAM memory.",
+    ),
+    "peak_sram_usage": (
+        "Peak SRAM usage (in MB)",
+        "What is the peak SRAM usage for a model during its execution phase.",
+    ),
 }
 
 
@@ -391,6 +399,9 @@ if __name__ == "__main__":
         # Remap bool to emoji
         emoji_map = {True: "✅", False: "✘"}
         compiled_runtime_metrics["success"] = emoji_map[compiled_runtime_metrics["success"]]
+
+        pydantic_model.fit_in_memory = compiled_runtime_metrics["fits_in_memory"]
+        pydantic_model.peak_sram_usage = compiled_runtime_metrics["peak_sram_usage"]
 
         # Process input variations per model
         input_var_metrics = collect_input_variations_from_nodes(original_schema_metrics)
