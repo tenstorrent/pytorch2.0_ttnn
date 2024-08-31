@@ -66,6 +66,7 @@ jobs:
 
       - name: Run Model Tests
         run: |
+          set +e
           python3 -m pytest --github-report tests/models/ --splits 20 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code      
           if [ $exit_code -eq 5 ]; then
@@ -80,6 +81,8 @@ jobs:
             echo "Failure: Tests failed with exit code $exit_code.";
             exit 1;  # Fail the workflow for other errors
           fi
+          echo "Success: Tests passed!";
+          exit 0;
       
       - uses: ./.github/actions/common_cleanup
 
