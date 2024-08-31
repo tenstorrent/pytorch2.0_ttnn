@@ -63,7 +63,7 @@ jobs:
 
       - name: Run Model Tests
         run: |
-          python3 -m pytest --github-report tests/models/ --splits ${{ inputs.num_groups }} --group ${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/models/ --splits 20 --group ${{ matrix.group }} -s
       
       - uses: ./.github/actions/common_cleanup
 
