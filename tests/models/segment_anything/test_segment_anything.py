@@ -2,7 +2,6 @@
 # Hugging Face version: https://huggingface.co/facebook/sam2-hiera-tiny
 
 import torch
-from sam2.sam2_image_predictor import SAM2ImagePredictor
 import requests
 from PIL import Image
 
@@ -11,6 +10,8 @@ from PIL import Image
     reason="Failed to install sam2. sam2 requires Python >=3.10.0 but the default version on Ubuntu 20.04 is 3.8. We found no other pytorch implementation of segment-anything."
 )
 def test_segment_anything(record_property):
+    from sam2.sam2_image_predictor import SAM2ImagePredictor
+    
     record_property("model_name", "segment-anything")
 
     predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2-hiera-small")
