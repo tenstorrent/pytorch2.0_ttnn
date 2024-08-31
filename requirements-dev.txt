@@ -17,3 +17,5 @@ datasets
 diffusers
 controlnet_aux
 pytorchcv
+librosa
+soundfile
