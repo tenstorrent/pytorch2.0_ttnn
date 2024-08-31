@@ -1,4 +1,4 @@
-# Solving Errors in Models / Ops
+# Solving Errors in Models / Operations
 
 ## Prerequisites
 ### Know
@@ -143,7 +143,7 @@ Retrieve the source of the error:
 -> raise RuntimeError("Unable to represent lambda") from e
 ```
 
-## Mismatch Between Torch and TTNN Tensor Types
+## Mismatch Between Torch and TT-NN Tensor Types
 If you see the following error:
 
 ```
