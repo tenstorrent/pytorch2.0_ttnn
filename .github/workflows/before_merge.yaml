@@ -33,18 +33,21 @@ jobs:
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
+    runs-on: ["in-service", "n150"]
     env:
       ARCH_NAME: wormhole_b0
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
-    runs-on: ["in-service", "n150"]
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
       - name: Run Lowering Tests 
         run: |
-          python3 -m pytest --github-report tests/lowering/ -s
+          python3 -m pytest --github-report tests/lowering/ --splits 3 --group ${{ matrix.group }} -s
 
   model-tests:
     needs: lowering-tests
