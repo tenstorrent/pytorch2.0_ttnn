@@ -77,9 +77,10 @@ jobs:
           git status
           
           if [ "${{ github.event.inputs.commit_option }}" == "All" ]; then
-            git add .
-          elif [ "${{ github.event.inputs.commit_option }}" == "Readme" ]; then
+            git add --all
+          elif [ "${{ github.event.inputs.commit_option }}" == "Docs" ]; then
             git add README.md
+            git add docs/
           elif [ "${{ github.event.inputs.commit_option }}" == "None" ]; then
             echo "No files will be committed"
             exit 0
