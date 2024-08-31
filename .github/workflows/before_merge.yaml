@@ -65,7 +65,6 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       
       - name: Run Model Tests
-        if: env.existing_artifact_exit_code == '1'  # Only run if there are no existing artifacts        
         run: |
           set +e
           python3 -m pytest --github-report tests/models/ --splits 20 --group ${{ matrix.group }} -s
