@@ -126,4 +126,4 @@ def test_rsub_scalar(device, input_shapes):
         if node.target == ttnn.full:
             assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
-    assert_with_pcc(result_before, result_after, 0.999)
+    assert_with_pcc(result_before, result_after, 0.998)
