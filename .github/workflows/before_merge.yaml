@@ -67,6 +67,19 @@ jobs:
       - name: Run Model Tests
         run: |
           python3 -m pytest --github-report tests/models/ --splits 20 --group ${{ matrix.group }} -s
+          exit_code=$?  # Capture the exit code      
+          if [ $exit_code -eq 5 ]; then
+            if [ ${{ matrix.group }} -eq 0 ]; then
+              echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
+              exit 1;  # Fail the workflow
+            else
+              echo "Success: pytest returned exit code 5 (No tests to run). This is acceptable for groups greater than 0.";
+              exit 0;  # Success
+            fi
+          elif [ $exit_code -ne 0 ]; then
+            echo "Failure: Tests failed with exit code $exit_code.";
+            exit 1;  # Fail the workflow for other errors
+          fi
       
       - uses: ./.github/actions/common_cleanup
 
