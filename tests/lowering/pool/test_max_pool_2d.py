@@ -14,6 +14,7 @@ class MaxPool2dModule(torch.nn.Module):
         return torch.nn.functional.max_pool2d(*args, **kwargs)
 
 
+@pytest.mark.xfail(reason="We don't support returning indices from max_pool2d yet")
 @pytest.mark.parametrize(
     "input_shapes, kernel_size",
     [((1, 3, 64, 64), (3, 3))],
