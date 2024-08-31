@@ -88,7 +88,7 @@ jobs:
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v3
         with:
-          name: model-tests-metrics-group-${{ matrix.group }}  # Tie artifact to commit hash
+          name: model-tests-metrics-group-${{ matrix.group }}
           path: tests/metrics/
 
   collect-metrics:
