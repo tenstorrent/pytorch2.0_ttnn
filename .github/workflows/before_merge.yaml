@@ -93,7 +93,7 @@ jobs:
 
   collect-metrics:
     needs: model-tests
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != "None"}}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service", "n150"]
     env: 
       PYTHONPATH: ${{ github.workspace }}
