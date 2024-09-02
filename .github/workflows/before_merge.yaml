@@ -93,7 +93,7 @@ jobs:
 
   collect-metrics:
     needs: model-tests
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != "None"}}
     runs-on: ["in-service", "n150"]
     env: 
       PYTHONPATH: ${{ github.workspace }}
@@ -102,9 +102,12 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       
       - name: Download Metrics Artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           mkdir -p tests/metrics
-          for i in $(seq 1 20); do
+          for i in $(seq 1 40); do
             echo "Downloading metrics for Group $i"
             gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir tests/metrics/
           done
