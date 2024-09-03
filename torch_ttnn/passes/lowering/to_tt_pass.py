@@ -555,6 +555,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
                     new_nodes.append(new_node)
+            elif node.target == torch.ops.aten.mean.default:
+                tensor, = args
+                rank = len(tensor.meta["val"].size())
+                new_node = g.call_function(ttnn.mean, (tensor, range(1 - rank, 0)))
+                #NOTE(jdh8): we only support squeeze(dim=0)
+                for _ in range(rank):
+                    new_node = g.call_function(ttnn.squeeze, (new_node, 0))
+                new_nodes.append(new_node)
 
             if new_nodes:
                 node.replace_all_uses_with(
