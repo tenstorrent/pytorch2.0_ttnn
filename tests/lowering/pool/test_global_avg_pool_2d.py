@@ -6,7 +6,7 @@ import ttnn
 from tests.utils import assert_with_pcc
 
 
-class AdaptiveAvgPool2dModule(torch.nn.Module):
+class GlobalAvgPool2dModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -18,8 +18,8 @@ class AdaptiveAvgPool2dModule(torch.nn.Module):
     "input_shapes",
     [(1, 2048, 7, 7)],
 )
-def test_adaptive_avg_pool_2d(device, input_shapes):
-    m = AdaptiveAvgPool2dModule()
+def test_global_avg_pool_2d(device, input_shapes):
+    m = GlobalAvgPool2dModule()
     inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
     result_before = m.forward(inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
