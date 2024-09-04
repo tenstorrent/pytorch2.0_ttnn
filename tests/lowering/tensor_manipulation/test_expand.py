@@ -35,7 +35,6 @@ class ExpandBetweenOpsModule(torch.nn.Module):
         return torch.add(ex, ex)
 
 
-@pytest.mark.xfail(reason="lowering issue (#67)")
 @pytest.mark.parametrize(
     "input_shape, new_shape",
     [
@@ -63,7 +62,6 @@ def test_expand(device, input_shape, new_shape):
     assert torch.allclose(result_before, result_after, rtol=0.2)
 
 
-@pytest.mark.xfail(reason="lowering issue (#67)")
 @pytest.mark.parametrize(
     "input_shape, new_shape",
     [
@@ -95,7 +93,6 @@ def test_expand_after_op(device, input_shape, new_shape):
     assert torch.allclose(result_before, result_after, rtol=0.2)
 
 
-@pytest.mark.xfail(reason="lowering issue (#67)")
 @pytest.mark.parametrize(
     "input_shape, new_shape",
     [
@@ -139,7 +136,6 @@ def test_expand_before_op(device, input_shape, new_shape):
     assert torch.allclose(result_before, result_after, rtol=0.2)
 
 
-@pytest.mark.xfail(reason="lowering issue (#67)")
 @pytest.mark.parametrize(
     "input_shape, new_shape",
     [
