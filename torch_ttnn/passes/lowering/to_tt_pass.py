@@ -232,6 +232,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             value = kwargs.pop("value", 1.0)
             return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
 
+        if target == torch.ops.aten.where.self:
+            return self.call_function_prop_meta(ttnn.where, args, kwargs)
+
         ############################################################
         # Reduction
         ############################################################
