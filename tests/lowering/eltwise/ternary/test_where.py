@@ -25,7 +25,7 @@ class WhereModule(torch.nn.Module):
         ),
     ),
 )
-def test_add(device, input_shapes):
+def test_where(device, input_shapes):
     m = WhereModule()
     inputs = [torch.randint(0, 2, shape).type(torch.bfloat16) for shape in input_shapes]
     inputs[0] = inputs[0].to(torch.bool)
