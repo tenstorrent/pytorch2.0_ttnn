@@ -57,4 +57,4 @@ def test_mean_default(device, input_shape):
     # Check inference result
     print(result_before)
     print(result_after)
-    #assert_with_pcc(result_before, result_after)
+    # assert_with_pcc(result_before, result_after)
