@@ -595,6 +595,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
 
+            if node.target == torch.ops.aten.masked_fill.Scalar:
+                new_kwargs = {
+                    "fill_value": args[2],
+                    "device": TtnnDevice(),
+                }
+                value_node = g.call_function(ttnn.full, args=((1,),), kwargs=new_kwargs)
+                return g.call_function(ttnn.where, args=(args[1], args[0], value_node))
+
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
