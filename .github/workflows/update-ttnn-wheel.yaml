@@ -50,7 +50,7 @@ jobs:
           
       - name: Trigger Pull Request Validation Workflow
         if: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: gh workflow run "Pull Request Validation" --ref "${{ steps.create-pr.outputs.pull-request-branch }}"
+        run: gh workflow run "Pull Request Validation" --ref "${{ steps.create-pr.outputs.pull-request-branch }}"  -f pr_number=${{ steps.create-pr.outputs.pull-request-number }}
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           
