@@ -31,7 +31,6 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         id: create-pr
         with:
-          token: ${{ secrets.GH_TOKEN }}
           branch: update-dependency
           branch-suffix: timestamp
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
