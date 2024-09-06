@@ -34,6 +34,6 @@ def test_select(device, input_shape, dim, index):
 
     # Check the graph has been rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    #assert [node.target for node in nodes].count(ttnn.slice) == 1
+    # assert [node.target for node in nodes].count(ttnn.slice) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
