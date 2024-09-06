@@ -590,8 +590,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 tensor, dim, index = args
                 starts = np.array((0,) * len(tensor.meta["val"].size()))
                 starts[dim] = index
-                ends = starts + 1
-                new_node = g.call_function(ttnn.slice, args=(tensor, [*starts], [*ends]))
+                starts = [*starts]
+                new_node = g.call_function(ttnn.slice, args=(tensor, starts, starts))
                 new_node = g.call_function(ttnn.squeeze, args=(new_node, 0))
                 new_nodes.append(new_node)
 
