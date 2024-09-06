@@ -33,6 +33,8 @@ jobs:
       - name: Get SHA from PR number (manual runs only)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: get-sha
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           pr_number=${{ github.event.inputs.pr_number }}
           echo "Fetching SHA for PR number: $pr_number"
@@ -42,6 +44,8 @@ jobs:
           
       - name: Create Check with gh CLI (manual runs only)
         if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           pr_number=${{ github.event.inputs.pr_number }}
           sha=${{ steps.get-sha.outputs.sha }}
