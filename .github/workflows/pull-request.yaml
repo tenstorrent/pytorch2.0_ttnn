@@ -54,11 +54,14 @@ jobs:
             outcome="success"
           fi
           echo "Reporting $outcome for PR #$pr_number and SHA $sha"
-          gh api repos/${{ github.repository }}/check-runs \
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            repos/${{ github.repository }}/check-runs \
             -f name='validate-pr' \
             -f head_sha=$sha \
             -f status='completed' \
             -f conclusion=$outcome \
-            -f output.title='Run PR Validation' \
-            -f output.summary="PR Validated with result: $outcome" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"
+            -f output[title]='Run PR Validation' \
+            -f output[summary]="PR Validated with result: $outcome"
