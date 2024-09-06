@@ -247,6 +247,23 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Data movement
         ############################################################
+        if target == torch.ops.aten.col2im.default:
+            #FIXME(jdh8): how to handle kernel_size?
+            tensor, output_size, kernel_size, dilation, padding, stride = args
+
+            if any(x != 1 for x in dilation):
+                return self.call_function_prop_meta(target, args, kwargs)
+
+            kwargs = {
+                "output_shape": output_size,
+                "stride_h": stride[0],
+                "stride_w": stride[1],
+                "pad_h": padding[0],
+                "pad_w": padding[1],
+                **kwargs,
+            }
+            return self.call_function_prop_meta(ttnn.fold, (tensor,), kwargs)
+
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 

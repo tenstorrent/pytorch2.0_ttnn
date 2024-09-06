@@ -113,6 +113,7 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
 ]
 
 TTNN_DATAMOVE_OPS = [
+    ttnn.fold,
     ttnn.reshape,
     ttnn.permute,
     #  ttnn.repeat,  in target_wrapper
