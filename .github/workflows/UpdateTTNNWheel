@@ -1,0 +1,44 @@
+name: Update TT-NN wheel
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  fetch-release-and-create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Fetch Latest Pre-release from Another Repo
+        id: fetch_release
+        run: |
+          # Fetch the latest pre-release tag from the target repository
+          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
+          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
+          latest_version="${latest_pre_release#v}"
+          echo "::set-output name=release::$latest_version"
+
+      - name: Update dependencies.txt
+        run: |
+          latest_version=${{ steps.fetch_release.outputs.release }}
+          # Replace the old version with the new pre-release version in dependencies.txt
+          sed -i "s|https://github.com/tenstorrent/tt-metal/releases/download/v[0-9\.]*/metal_libs-[^+]*+wormhole\.b0-cp38-cp38-linux_x86_64\.whl|https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$latest_version+wormhole.b0-cp38-cp38-linux_x86_64.whl|" dependencies.txt
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "action@github.com"
+          git checkout -b update-dependency
+          git add dependencies.txt
+          git commit -m "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
+          git push origin update-dependency
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update-dependency
+          base: main
+          title: "Update Dependencies to ${{ steps.fetch_release.outputs.release }}"
+          body: "This PR updates the dependencies to the latest pre-release version."
