@@ -2,14 +2,23 @@ name: Pull Request Validation
 
 on:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "The pull request number to validate"
+        required: true
+        type: string
 
 jobs:
   validate-pr:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Run pre-commit hooks (check only)
+        id: tests-step
         run: |
           python3 -m venv venv
           source venv/bin/activate          
@@ -20,3 +29,39 @@ jobs:
             echo "Pre-commit hooks made changes, please commit them."
             exit 1
           fi
+
+      - name: Get SHA from PR number (manual runs only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: get-sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number=${{ github.event.inputs.pr_number }}
+          echo "Fetching SHA for PR number: $pr_number"
+          sha=$(gh pr view $pr_number --json headRefOid -q '.headRefOid')
+          echo "SHA: $sha"
+          echo "sha=$sha" >> $GITHUB_OUTPUT
+          
+      - name: Create Check with gh CLI (manual runs only)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number=${{ github.event.inputs.pr_number }}
+          sha=${{ steps.get-sha.outputs.sha }}
+          outcome="failure"
+          if [[ ${{ steps.tests-step.outcome }} == "success" ]]; then
+            outcome="success"
+          fi
+          echo "Reporting $outcome for PR #$pr_number and SHA $sha"
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            repos/${{ github.repository }}/check-runs \
+            -f name='validate-pr' \
+            -f head_sha=$sha \
+            -f status='completed' \
+            -f conclusion=$outcome \
+            -f output[title]='Run PR Validation' \
+            -f output[summary]="PR Validated with result: $outcome"
