@@ -45,7 +45,6 @@ class TorchTtnnOption:
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
-        self.compiled_schema_list = list()
 
 
 def register_ttnn_objects(option: TorchTtnnOption):
@@ -96,7 +95,7 @@ def aten_backend(
     gm = remove_clones_for_input_aliasing(gm)
     # Save the number of aten ops before compilation
     if option.metrics_path:
-        option.original_schema_list.extend(metrics.collect_schema_from_nodes(gm.graph.nodes))
+        option.original_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
 
     # Do not continue with compilation if bypass
     if option.bypass_compile:
@@ -186,7 +185,7 @@ def aten_backend(
             nth_eviction += 1
 
     if option.metrics_path:
-        option.compiled_schema_list.extend(metrics.collect_schema_from_nodes(gm.graph.nodes))
+        option.compiled_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
 
     option._out_fx_graphs.append(gm.graph)
     return make_boxed_func(gm)
