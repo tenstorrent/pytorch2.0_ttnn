@@ -599,6 +599,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_kwargs = {
                     "fill_value": args[2],
                     "device": TtnnDevice(),
+                    "dtype": torch_dtype_to_ttnn_dtype(node.meta["val"].dtype),
                 }
                 value_node = g.call_function(ttnn.full, args=((1,),), kwargs=new_kwargs)
                 return g.call_function(ttnn.where, args=(args[1], args[0], value_node))
