@@ -34,8 +34,8 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           branch: update-dependency
           branch-suffix: timestamp
-          committer: github-actions[bot]@users.noreply.github.com
-          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           base: main
           commit-message: "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
           title: "Update TT-NN to ${{ steps.fetch_release.outputs.release }}"
