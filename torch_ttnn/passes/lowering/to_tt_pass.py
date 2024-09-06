@@ -248,7 +248,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
         # Data movement
         ############################################################
         if target == torch.ops.aten.col2im.default:
-            #FIXME(jdh8): how to handle kernel_size?
+            # FIXME(jdh8): how to handle kernel_size?
             tensor, output_size, kernel_size, dilation, padding, stride = args
 
             if any(x != 1 for x in dilation):

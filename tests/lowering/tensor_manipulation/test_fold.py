@@ -13,10 +13,7 @@ class FoldModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_size, output_size, kernel_size, dilation, padding, stride",
-    (
-        ((36, 36), (8, 8), (3, 3), 1, 0, 1),
-    )
+    "input_size, output_size, kernel_size, dilation, padding, stride", (((36, 36), (8, 8), (3, 3), 1, 0, 1),)
 )
 def test_fold(device, input_size, output_size, kernel_size, dilation, padding, stride):
     m = FoldModule()
@@ -36,4 +33,3 @@ def test_fold(device, input_size, output_size, kernel_size, dilation, padding, s
 
     # Check inference result
     assert torch.allclose(result_before, result_after)
-    
