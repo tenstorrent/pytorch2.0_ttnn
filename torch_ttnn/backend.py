@@ -189,6 +189,14 @@ def aten_backend(
         option.compiled_schema_list.extend(metrics.collect_schema_from_nodes(gm.graph.nodes))
 
     option._out_fx_graphs.append(gm.graph)
+
+    for node in gm.graph.nodes:
+        if node.op == "placeholder":
+            print(f"{node.name}: {node.meta}")
+
+    for number, line in enumerate(gm.code.splitlines()):
+        print(f"{number + 1}: {line}")
+
     return make_boxed_func(gm)
 
 
