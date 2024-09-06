@@ -22,15 +22,15 @@ jobs:
       - name: Update dependencies.txt
         run: |
           latest_version=${{ steps.fetch_release.outputs.release }}
-          # Replace the old version with the new pre-release version in dependencies.txt
-          sed -i "s|https://github.com/tenstorrent/tt-metal/releases/download/v[0-9\.]*/metal_libs-[^+]*+wormhole\.b0-cp38-cp38-linux_x86_64\.whl|https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$latest_version+wormhole.b0-cp38-cp38-linux_x86_64.whl|" dependencies.txt
+          # Replace the old version with the new pre-release version in requirements.txt
+          sed -i "s|https://github.com/tenstorrent/tt-metal/releases/download/v[0-9\.]*/metal_libs-[^+]*+wormhole\.b0-cp38-cp38-linux_x86_64\.whl|https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$latest_version+wormhole.b0-cp38-cp38-linux_x86_64.whl|" requirements.txt
 
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "action@github.com"
           git checkout -b update-dependency
-          git add dependencies.txt
+          git add requirements.txt
           git commit -m "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
           git push origin update-dependency
 
