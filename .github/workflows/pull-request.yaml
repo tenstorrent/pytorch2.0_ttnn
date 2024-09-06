@@ -28,6 +28,7 @@ jobs:
           if ! git diff --exit-code; then
             echo "Pre-commit hooks made changes, please commit them."
             exit 1
+          fi
 
       - name: Get SHA from PR number (manual runs only)
         if: ${{ github.event_name == 'workflow_dispatch' }}
