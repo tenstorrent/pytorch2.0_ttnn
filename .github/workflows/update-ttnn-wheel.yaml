@@ -1,0 +1,62 @@
+name: Create PR with Dependency Update
+
+on:
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  fetch-release-and-create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Latest Pre-release from Another Repo
+        id: fetch_release
+        run: |
+          # Fetch the latest pre-release tag from the target repository
+          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
+          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
+          latest_version="${latest_pre_release#v}"
+          # Set the output using the new environment file
+          echo "release=$latest_version" >> $GITHUB_OUTPUT
+
+      - name: Update requirements.txt
+        id: update-requirements
+        run: |
+          latest_version=${{ steps.fetch_release.outputs.release }}
+          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
+          # Replace the old version with the new pre-release version in requirements.txt
+          sed -i "s|https://github.com/tenstorrent/tt-metal/releases/download/v[0-9\.]*/metal_libs-[0-9\.]*-[^+]*+wormhole\.b0-cp38-cp38-linux_x86_64\.whl|https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$(echo $latest_version | sed 's/-rc/rc/')+wormhole.b0-cp38-cp38-linux_x86_64.whl|" requirements.txt
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        id: create-pr
+        with:
+          branch: update-dependency
+          branch-suffix: timestamp
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          base: main
+          commit-message: "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
+          title: "Update TT-NN to ${{ steps.fetch_release.outputs.release }}"
+          body: "This PR updates TT-NN wheel to the latest pre-release version."          
+          labels: ttnn-wheel-update
+          delete-branch: true
+          
+      - name: Check outputs
+        if: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"
+          
+      - name: Trigger Pull Request Validation Workflow
+        if: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: gh workflow run "Pull Request Validation" --ref "${{ steps.create-pr.outputs.pull-request-branch }}"  -f pr_number=${{ steps.create-pr.outputs.pull-request-number }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          
+      - name: Enable Pull Request Automerge
+        if: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: gh pr merge --merge --auto "${{ steps.create-pr.outputs.pull-request-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
