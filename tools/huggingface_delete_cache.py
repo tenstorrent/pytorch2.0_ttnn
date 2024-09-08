@@ -10,6 +10,6 @@ try:
 
     delete_strategy.execute()
     print("Cache deletion done.")
-    
+
 except Exception as e:
     print(f"Error: {e}. No cache directory found, skipping cache deletion.")
