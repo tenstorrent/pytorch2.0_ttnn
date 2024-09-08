@@ -559,20 +559,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
                     new_nodes.append(new_node)
-            elif node.target == torch.ops.aten.max_pool2d_with_indices.default:
-                operand = args[0]
-                operand_shape = operand.meta["val"].size()
-                kwargs = {
-                    "in_n": operand_shape[0],
-                    "in_h": operand_shape[2],
-                    "in_w": operand_shape[3],
-                    "kernel_h": args[1][0],
-                    "kernel_w": args[1][1],
-                    "return_indices": True,
-                    **node.kwargs,
-                }
-                new_node = g.call_function(ttnn.max_pool2d, (operand,), kwargs)
-                new_nodes.append(new_node)
 
             if new_nodes:
                 node.replace_all_uses_with(

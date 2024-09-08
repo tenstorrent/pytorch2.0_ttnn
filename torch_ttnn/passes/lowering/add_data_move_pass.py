@@ -127,11 +127,6 @@ TTNN_NORM_OPS = [
     ttnn.layer_norm,
 ]
 
-TTNN_GETITEM_0_OPS = (
-    ttnn.layer_norm,
-    ttnn.max_pool2d,
-)
-
 
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
@@ -164,7 +159,6 @@ def is_tt_compute(node) -> bool:
             ttnn.squeeze,
             ttnn.full,
             ttnn.as_tensor,
-            ttnn.max_pool2d,
         ]
     )
 
@@ -366,14 +360,14 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     return new_nodes[-1]
 
 
-def try_add_data_move_out_for_getitem_0(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
+def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     if not should_add_data_move_out(src_node, dst_node):
         return None
 
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        if is_tt_compute(src_node) and src_node.target in TTNN_GETITEM_0_OPS:
+        if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
             new_nodes.append(call_to_torch_with_meta(g, src_node))
 
     # Workaround to output the same layer_norm output
@@ -439,10 +433,10 @@ class AddDataMovePass(PassBase):
                     new_arg[idx] = data_move_out_hash[arg]
                     node.update_arg(0, tuple(new_arg))
                     i += 1
-                elif node.target not in TTNN_GETITEM_0_OPS and (to_torch := try_add_data_move_out(arg, idx, node)):
+                elif (node.target != ttnn.layer_norm) and (to_torch := try_add_data_move_out(arg, idx, node)):
                     data_move_out_hash[arg] = to_torch
                     i += 1
-                elif to_torch := try_add_data_move_out_for_getitem_0(arg, idx, node):
+                elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
                     data_move_out_hash[arg] = to_torch
                     i += 1
                 elif to_torch := try_add_data_move_out_for_list_args(arg, idx, node):
