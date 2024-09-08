@@ -91,7 +91,7 @@ jobs:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: tests/metrics/
 
-  validate-pr: # collect metrics | called validate-pr to update commit status
+  collect-metrics:
     needs: model-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service", "n150"]
