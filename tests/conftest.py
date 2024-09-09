@@ -10,6 +10,8 @@ import os
 import pickle
 from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
+import subprocess
+import sys
 
 mb_in_bytes = 1048576
 
@@ -146,3 +148,13 @@ def run_model(model, inputs):
         return model(*inputs)
     else:
         return model(inputs)
+
+
+@pytest.fixture(scope="module")
+def manage_dependencies(request):
+    dependencies = getattr(request.module, "dependencies", [])
+    # Install dependencies
+    subprocess.check_call([sys.executable, "-m", "pip", "install"] + dependencies)
+    yield
+    # Uninstall dependencies
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies)
