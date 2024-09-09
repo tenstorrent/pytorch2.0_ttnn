@@ -194,7 +194,6 @@ class InputVarPerOp(defaultdict):
                         self[original_opname][original_inputs] = ConversionStatus.DONE
         elif compiled_schema_metrics:
             # if only compiled_schema exists, initialize dict with those values
-            print(compiled_schema_metrics)
             for op in compiled_schema_metrics:
                 opname = op["opname"]
                 # FIXME: input variations are not saved for ttnn ops, saving aten schema instead
@@ -329,8 +328,6 @@ if __name__ == "__main__":
             "to_from_device_ops": "N/A",
         }
         if original_schema_metrics:
-            print(*original_schema_metrics, sep="\n")
-
             aten_ops_before_list = [
                 node["opname"] for node in original_schema_metrics if node["opname"].startswith("aten.")
             ]
@@ -339,8 +336,6 @@ if __name__ == "__main__":
 
             # Count number of aten ops remaning after conversion
             if compiled_schema_metrics:
-                print("compiled:")
-                print(*compiled_schema_metrics, sep="\n")
                 aten_ops_remain_list = [
                     node["opname"] for node in compiled_schema_metrics if node["opname"].startswith("aten.")
                 ]
