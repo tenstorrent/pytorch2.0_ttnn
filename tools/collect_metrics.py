@@ -70,37 +70,6 @@ def load_pt(path: str):
         return None
 
 
-def join_str_list_with_delim(str_list: list, delim: str):
-    return delim.join(str_list)
-
-
-def join_br(str_list: list):
-    return join_str_list_with_delim(str_list, ",<br>")
-
-
-# This class labels the conversion status of an Op
-class ConversionStatus(Enum):
-    DONE = (1,)  # Conversion is successful
-    FALLBACK = (2,)  # Only some are converted successfully
-    BUG = (3,)  # Known issue with conversion
-    NONE = (4,)  # No conversion at all
-    UNKNOWN = (5,)  # Op was not processed, so status is unknown
-
-
-def serialize_schema_metrics_to_operations(metrics):
-    """Transform schema information to a list of `class Operation` pydantic models."""
-    operations = []
-    for node in metrics:
-        if "original_inputs" in node:
-            # This might not be right
-            operations.append(
-                pydantic_models.Operation(op_name=node["opname"], op_schema=join_br(node["original_inputs"]["inputs"]))
-            )
-        else:
-            operations.append(pydantic_models.Operation(op_name=node["opname"], op_schema=join_br(node["inputs"])))
-    return operations
-
-
 def create_aten_op_dict(aten_ops_before_list, aten_ops_remain_list):
     """Take a before and after list of ops and return a table of information
 
@@ -161,55 +130,97 @@ def write_to_readme(all_metrics, aten_ops_per_model):
     print("Data written to README.md")
 
 
-class InputVarStatus(defaultdict):
-    def __init__(self):
-        super(InputVarStatus, self).__init__(lambda: ConversionStatus.UNKNOWN)
-
-    def get_conversion_status_count_for(self, status: ConversionStatus) -> int:
-        count = 0
-        for input in self.values():
-            if input == status:
-                count += 1
-        return count
-
-    def get_list_input_var_to_dict(self):
-        sort_by_opname = dict(sorted(self.items()))
-        """Convert list of InputVariations to markdown-compatible dict"""
-        return {
-            "ATen Input Variations": [x for x in sort_by_opname.keys()],
-            "Status": [string.capwords(x.name) for x in sort_by_opname.values()],
-        }
+# This class labels the conversion status of an Op
+class ConversionStatus(Enum):
+    DONE = (1,)  # Conversion is successful
+    FALLBACK = (2,)  # Only some are converted successfully
+    BUG = (3,)  # Known issue with conversion
+    NONE = (4,)  # No conversion at all
+    UNKNOWN = (5,)  # Op was not processed, so status is unknown
 
 
 class InputVarPerOp(defaultdict):
+    """
+    2-D nested dict where `["opname"]["input_variation"] = status`
+    """
+
+    class InputVarStatus(defaultdict):
+        """
+        Holds the status of each input variation `["input_variation"] = status`
+        """
+
+        def __init__(self):
+            super(InputVarPerOp.InputVarStatus, self).__init__(lambda: ConversionStatus.UNKNOWN)
+
+        def get_conversion_status_count_for(self, status: ConversionStatus) -> int:
+            """
+            Get the count of a type of ConversionStatus
+            """
+            count = 0
+            for input in self.values():
+                if input == status:
+                    count += 1
+            return count
+
+        def get_list_input_var_to_dict(self):
+            """
+            Convert list of InputVariations to markdown-compatible dict
+            """
+            sort_by_opname = dict(sorted(self.items()))
+            return {
+                "ATen Input Variations": [x for x in sort_by_opname.keys()],
+                "Status": [string.capwords(x.name) for x in sort_by_opname.values()],
+            }
+
     def __init__(self, original_schema_metrics={}, compiled_schema_metrics={}):
-        super(InputVarPerOp, self).__init__(InputVarStatus)
+        super(InputVarPerOp, self).__init__(self.InputVarStatus)
 
-        if original_schema_metrics and compiled_schema_metrics:
-            self.classify_input_variation_per_op(original_schema_metrics)
-            self.map_op_conversions(compiled_schema_metrics)
+        def _join_br(str_list: list):
+            # Separate each input with a line-break, <br>
+            return ",<br>".join(str_list)
 
-    def accumulate(self, other):
+        if original_schema_metrics:
+            # classify each input variation with the op
+            for op in original_schema_metrics:
+                opname = op["opname"]
+                inputs = _join_br(op["inputs"])
+                self[opname][inputs]
+            if compiled_schema_metrics:
+                # If exist, map converted ops to the original op
+                for op in compiled_schema_metrics:
+                    if "original_inputs" in op:
+                        original_opname = op["original_inputs"]["opname"]
+                        original_inputs = _join_br(op["original_inputs"]["inputs"])
+                        self[original_opname][original_inputs] = ConversionStatus.DONE
+        elif compiled_schema_metrics:
+            # if only compiled_schema exists, initialize dict with those values
+            print(compiled_schema_metrics)
+            for op in compiled_schema_metrics:
+                opname = op["opname"]
+                # FIXME: input variations are not saved for ttnn ops, saving aten schema instead
+                if "original_inputs" in op:
+                    inputs = _join_br(op["original_inputs"]["inputs"])
+                else:
+                    inputs = _join_br(op["inputs"])
+                self[opname][inputs]
+        # else this will be an empty dict with defaults
+
+    def merge(self, other: "InputVarPerOp"):
+        """
+        Method to merge another InputVarPerOp object to this.
+        """
         for opname, input_var in other.items():
             for input, status in input_var.items():
                 self[opname][input] = status
 
-    def classify_input_variation_per_op(self, original_schema_metrics):
-        for op in original_schema_metrics:
-            opname = op["opname"]
-            inputs = join_br(op["inputs"])
-            self[opname][inputs]
+    def generate_md_for_input_variations(self) -> str:
+        """
+        Convert current dict to a markdown string that consists of a high level table of
+        each op and individual tables of each op and their input variation statuses.
 
-    def map_op_conversions(self, compiled_schema_metrics):
-        print(*self.items(), sep="\n")
-        for op in compiled_schema_metrics:
-            if "original_inputs" in op:
-                original_opname = op["original_inputs"]["opname"]
-                original_inputs = join_br(op["original_inputs"]["inputs"])
-                self[original_opname][original_inputs] = ConversionStatus.DONE
-
-    def generate_md_for_input_variations(self):
-        """Generate markdown from a dict: `{opname: set(class InputVariation)}`."""
+        Returns:
+            Markdown string
+        """
         # Create a high level table of each op first
         high_level_op_status = defaultdict(list)
         sort_by_opname = dict(sorted(self.items()))
@@ -232,11 +243,22 @@ class InputVarPerOp(defaultdict):
         return md
 
     def write_md_for_input_variations(self, basedir: Path, filename: Path):
+        """
+        Convert to a markdown string and write to a file.
+        """
         md = self.generate_md_for_input_variations()
         basedir.mkdir(parents=True, exist_ok=True)
         with open(basedir / filename, "w") as text_file:
             print(md, file=text_file)
         print(f"Data written to {basedir / filename}")
+
+    def serialize_to_pydantic_operations(self):
+        """Transform schema information to a list of `class Operation` pydantic models."""
+        operations = []
+        for opname, inputs in self.items():
+            for input_var in inputs.keys():
+                operations.append(pydantic_models.Operation(op_name=opname, op_schema=input_var))
+        return operations
 
 
 if __name__ == "__main__":
@@ -307,20 +329,18 @@ if __name__ == "__main__":
             "to_from_device_ops": "N/A",
         }
         if original_schema_metrics:
+            print(*original_schema_metrics, sep="\n")
+
             aten_ops_before_list = [
                 node["opname"] for node in original_schema_metrics if node["opname"].startswith("aten.")
             ]
             aten_ops_before, aten_ops_unique_before = len(aten_ops_before_list), len(set(aten_ops_before_list))
             ops_metrics["torch_ops_total_unique_before"] = f"{aten_ops_before} ({aten_ops_unique_before})"
 
-            # Populate schemas for each op for original graph
-            pydantic_model.ops_original = serialize_schema_metrics_to_operations(original_schema_metrics)
-
-            # Populate schemas for each op for compiled graph
-            pydantic_model.ops_compiled = serialize_schema_metrics_to_operations(compiled_schema_metrics)
-
             # Count number of aten ops remaning after conversion
             if compiled_schema_metrics:
+                print("compiled:")
+                print(*compiled_schema_metrics, sep="\n")
                 aten_ops_remain_list = [
                     node["opname"] for node in compiled_schema_metrics if node["opname"].startswith("aten.")
                 ]
@@ -359,12 +379,19 @@ if __name__ == "__main__":
         model_info_dir = Path("docs") / Path("models") / Path(model)
         input_var_per_op.write_md_for_input_variations(model_info_dir, Path("input_variations.md"))
 
+        # Populate schemas for each op for original graph
+        pydantic_model.ops_original = input_var_per_op.serialize_to_pydantic_operations()
+
+        # Populate schemas for each op for compiled graph
+        compiled_input_var_per_op = InputVarPerOp(compiled_schema_metrics=compiled_schema_metrics)
+        pydantic_model.ops_compiled = compiled_input_var_per_op.serialize_to_pydantic_operations()
+
         # Add links that point to the directory of the model info
         model_metric = {"model": f"[{model}](<{model_info_dir}>)"}
         pydantic_model.path_in_repo = str(model_info_dir)
 
         # Collect cumulative input variations
-        cumulative_input_vars.accumulate(input_var_per_op)
+        cumulative_input_vars.merge(input_var_per_op)
 
         # Concatenate all the metrics together
         cat_metrics = {
