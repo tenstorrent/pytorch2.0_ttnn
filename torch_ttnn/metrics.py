@@ -1,8 +1,6 @@
 from typing import List
 import torch
 import pickle
-import time
-import os
 from pathlib import Path
 
 
@@ -13,17 +11,6 @@ def save_pickle(obj, base_path, filename):
     pickle_out_path = p / f"{filename}.pickle"
     with open(pickle_out_path, "wb") as f:
         pickle.dump(obj, f)
-
-
-# Save the number of to/from device ops in current graph
-def count_to_from_device_ops(nodes: list):
-    to_from_device_ops = [
-        node.target.__name__
-        for node in nodes
-        if node.op in ["call_function", "call_method"]
-        and ("ttnn.to" in node.target.__name__ or "ttnn.from" in node.target.__name__)
-    ]
-    return len(to_from_device_ops)
 
 
 def _get_shape_from_fake_tensor(faketensor):
@@ -55,19 +42,15 @@ class Inputs:
         self.dtype = dtype
         self.name = name
         self.shape = shape
-        self.value = value
+
+        shape = _get_shape_from_fake_tensor(shape) if shape is not None else ""
+        self.shape = f"<{str(shape)}>"
+
+        value = _sanitize_value(value) if value is not None else "?"
+        self.value = f"{str(value)}"
 
     def __repr__(self):
-        # This isn't really setting it as shape, but only used for shape. Maybe change this to something else instead of self.shape?
-        if self.shape is not None:
-            shape = _get_shape_from_fake_tensor(self.shape)
-        shape = f"<{str(shape)}>" if self.shape is not None else ""
-
-        if self.value is not None:
-            value = _sanitize_value(self.value)
-
-        value = f"{str(value)}" if self.value is not None else "?"
-        return f"{str(self.dtype)}{shape} {str(self.name)} = {value}"
+        return f"{str(self.dtype)}{self.shape} {str(self.name)} = {self.value}"
 
 
 class InputVariation:
@@ -98,7 +81,13 @@ class ConvertedInput:
         return {"opname": str(self.opname), "original_inputs": self.original_input_variation.dict()}
 
 
-def collect_input_variations(target, args, kwargs):
+def collect_input_variation(target, args, kwargs):
+    """
+    Collect the input variation from schema of a target function if exists
+
+    Returns:
+        InputVariation class or None
+    """
     if hasattr(target, "_schema"):
         # Get schema list for this op
         schema_pos_args = [arg for arg in target._schema.arguments if not arg.kwarg_only]
@@ -143,7 +132,14 @@ def collect_input_variations(target, args, kwargs):
         return None
 
 
-def collect_input_variations_from_node(node):
+def collect_input_variation_from_node(node: torch.fx.Node):
+    """
+    Collection input variation from a torch.fx.Node. If the node consists of a TTNN op, then
+    also process the schema from the original aten op.
+
+    Returns:
+        class InputVariation or class ConvertedInput
+    """
     if node.op in [
         "call_function",
         "call_method",
@@ -153,15 +149,19 @@ def collect_input_variations_from_node(node):
             assert isinstance(original_input_variations, InputVariation)
             return ConvertedInput(node.target.__name__, original_input_variations)
     else:
-        return collect_input_variations(node.target, node.args, node.kwargs)
+        return collect_input_variation(node.target, node.args, node.kwargs)
 
 
-def collect_input_variations_from_list_nodes(nodes: list):
+def collect_input_variations_from_list_nodes(nodes: List[torch.fx.Node]):
+    """
+    Collect all the input variations from a list of torch.fx.Nodes.
+
+    Returns:
+        List of InputVariation or ConvertedInput class objects.
+    """
     collection = []
     for node in nodes:
-        if (input_variations := collect_input_variations_from_node(node)) is not None:
-            print("INPUT_VARIATIONS:", input_variations)
+        if (input_variations := collect_input_variation_from_node(node)) is not None:
             collection.append(input_variations)
 
-    print("COLLECTION:", collection)
     return collection
