@@ -4,6 +4,8 @@ import torch
 from PIL import Image
 from torchvision import transforms
 import requests
+from pathlib import Path
+import tempfile
 import pytest
 
 from tests.models.yolov3.holli_src.yolov3 import *
@@ -15,16 +17,21 @@ def test_yolov3(record_property):
 
     # Download model weights
     url = "https://www.ollihuotari.com/data/yolov3_pytorch/yolov3_coco_01.h5"
-    load_path = "./" + url.split("/")[-1]
-    response = requests.get(url, stream=True)
-    with open(load_path, "wb") as f:
-        f.write(response.content)
+
+    download_dir = Path(tempfile.gettempdir() + "/torch_ttnn_test_material")
+    download_dir.mkdir(parents=True, exist_ok=True)
+
+    load_path = download_dir / url.split("/")[-1]
+    if not load_path.exists():
+        response = requests.get(url, stream=True)
+        with open(str(load_path), "wb") as f:
+            f.write(response.content)
 
     # Load model
     model = Yolov3(num_classes=80)
     model.load_state_dict(
         torch.load(
-            load_path,
+            str(load_path),
             map_location=torch.device("cpu"),
         )
     )
