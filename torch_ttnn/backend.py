@@ -9,6 +9,7 @@ from pathlib import Path
 import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
 import torch_ttnn.metrics as metrics
+from torch_ttnn import mem_utils
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -20,6 +21,9 @@ class TorchTtnnOption:
         self,
         device: ttnn.Device,
         gen_graphviz=False,
+        run_mem_analysis=False,
+        run_eviction_opt=False,
+        verbose=True,
         metrics_path="",
         tracer_option=None,
         bypass_compile=False,
@@ -27,6 +31,10 @@ class TorchTtnnOption:
         self.device = device
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
+        self.memory_manager = None
+        self.run_mem_analysis = run_mem_analysis
+        self.run_eviction_opt = run_eviction_opt
+        self.verbose = verbose
         self.tracer_option = tracer_option
 
         self.metrics_path = metrics_path
@@ -106,6 +114,7 @@ def aten_backend(
     from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
+    from torch_ttnn.passes.memory_pass import MemoryPass
 
     passes = [
         ToTtPass(),
@@ -114,6 +123,10 @@ def aten_backend(
         CSEPass(),
         PermuteReshapeTuple(),
     ]
+
+    mem_pass = MemoryPass(option.verbose)
+    if option.run_mem_analysis:
+        passes.append(mem_pass)
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
@@ -131,10 +144,59 @@ def aten_backend(
     gm.graph.lint()
     gm.recompile()
 
+    # Get the memory manager object for memory analysis
+    if option.run_mem_analysis:
+        option.memory_manager = mem_pass.mm
+
+    # Run eviction opt pass if enabled
+    if option.run_eviction_opt == True:
+        assert option.run_mem_analysis == True, "Eviction pass depends on memory analysis pass!"
+        from torch_ttnn.passes.eviction_pass import EvictionPass
+
+        nth_eviction = 1
+        max_evictions_limit = option.memory_manager.max_evictions_required()
+
+        # See if SRAM overflows and eviction is required
+        while mem_utils.check_sram_overflow(option.memory_manager) is True:
+            if nth_eviction > max_evictions_limit:
+                assert False, "Max evictions done, still model doesn't fit in memory!"
+
+            guilty_op, tensors_to_evict = mem_utils.which_tensors_to_evict(option.memory_manager)
+            # This indicates splitting is required
+            if tensors_to_evict == -1:
+                break
+            # Run a eviction pass to remove tensors from device
+            # This pass only evicts tensors for a single ttnn op which overflows the SRAM
+            # Multiple overflows require multiple run of this pass
+
+            mem_pass = MemoryPass(option.verbose)
+            passes = [
+                EvictionPass(option.memory_manager, guilty_op, tensors_to_evict),
+                GraphvizPass(f"eviction-pass-{nth_eviction}"),
+                mem_pass,
+            ]
+            pm = PassManager(passes=passes)
+            gm, modified = pm(gm)
+
+            gm.graph.lint()
+            gm.recompile()
+
+            # Get the memory manager object for memory analysis
+            option.memory_manager = mem_pass.mm
+            nth_eviction += 1
+
     if option.metrics_path:
         option.compiled_schema_list.extend(metrics.collect_schema_from_nodes(gm.graph.nodes))
 
     option._out_fx_graphs.append(gm.graph)
+
+    for node in gm.graph.nodes:
+        if node.op == "placeholder":
+            print(f"{node.name}: {node.meta}")
+
+    for number, line in enumerate(gm.code.splitlines()):
+        print(f"{number + 1}: {line}")
+
     return make_boxed_func(gm)
 
 
