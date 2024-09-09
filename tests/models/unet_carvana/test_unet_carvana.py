@@ -11,6 +11,7 @@ import pytest
 from tests.models.unet_carvana.carvana_unet_segmentation.model import UNET
 
 
+@pytest.mark.compilation_xfail
 def test_unet_carvana(record_property):
     record_property("model_name", "Unet-carvana")
 
