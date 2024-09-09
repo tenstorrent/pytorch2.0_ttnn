@@ -447,6 +447,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_kwargs = {"layout": TtnnTileLayout()}
                 new_node = g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
                 new_nodes.append(new_node)
+            if node.target == torch.ops.aten._log_softmax.default:
+                softmax_node = g.call_function(ttnn.softmax, args[:2], node.kwargs)
+                new_node = g.call_function(ttnn.log, (softmax_node,), node.kwargs)
+                new_nodes.append(new_node)
             if node.target == torch.ops.aten.rsub.Scalar:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full

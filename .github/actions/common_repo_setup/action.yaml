@@ -12,7 +12,7 @@ runs:
         python-version: '3.8'
         cache: 'pip'
         cache-dependency-path: |
-          requirements-dev.txt          
+          requirements-dev.txt       
 
     - name: Install Dependencies
       shell: bash
@@ -20,3 +20,5 @@ runs:
         python3 -m pip install --upgrade pip                    
         python3 -m pip install -r requirements-dev.txt
         python3 -m pip install pytest-github-report
+
+    - uses: ./.github/actions/common_cleanup
