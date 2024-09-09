@@ -58,16 +58,18 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if meta is not None:
             call_func.node.meta = meta
             if hasattr(self.old_target, "_schema"):
-                call_func.node.meta["original_input_variations"] = metrics.collect_input_variations(
+                call_func.node.meta["original_input_variations"] = metrics.collect_input_variation(
                     self.old_target, self.old_args, self.old_kwargs
                 )
 
         return call_func
 
     def call_function(self, target, args, kwargs):
+        # FIXME: `call_function_prop_meta` should be moved to an inner function here instead of using member variables
         self.old_target = target
         self.old_args = args
         self.old_kwargs = kwargs
+
         if are_args_from_int_output_ops(args):
             return self.call_function_prop_meta(target, args, kwargs)
 
@@ -320,7 +322,7 @@ class GraphWrapper:
         new_node = self.g.call_function(target, args, kwargs)
         new_node.meta = self.node.meta
         if hasattr(self.node.target, "_schema"):
-            new_node.meta["original_input_variations"] = metrics.collect_input_variations_from_node(self.node)
+            new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
         if target == ttnn.layer_norm:
             new_node.meta["val"] = new_node.meta["val"][0]
         return new_node
