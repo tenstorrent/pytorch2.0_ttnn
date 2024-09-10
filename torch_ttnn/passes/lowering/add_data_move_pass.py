@@ -39,6 +39,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.erf,
     ttnn.exp,
     ttnn.expm1,
+    ttnn.floor,
     ttnn.gelu,
     ttnn.hardtanh,
     ttnn.isinf,

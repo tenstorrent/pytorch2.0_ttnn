@@ -24,8 +24,9 @@ jobs:
         id: update-requirements
         run: |
           latest_version=${{ steps.fetch_release.outputs.release }}
+          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
           # Replace the old version with the new pre-release version in requirements.txt
-          sed -i "s|https://github.com/tenstorrent/tt-metal/releases/download/v[0-9\.]*/metal_libs-[^+]*+wormhole\.b0-cp38-cp38-linux_x86_64\.whl|https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$latest_version+wormhole.b0-cp38-cp38-linux_x86_64.whl|" requirements.txt
+          sed -i "s|https://github.com/tenstorrent/tt-metal/releases/download/v[0-9\.]*/metal_libs-[0-9\.]*-[^+]*+wormhole\.b0-cp38-cp38-linux_x86_64\.whl|https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$(echo $latest_version | sed 's/-rc/rc/')+wormhole.b0-cp38-cp38-linux_x86_64.whl|" requirements.txt
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
