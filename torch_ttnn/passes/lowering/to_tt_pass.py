@@ -138,6 +138,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.expm1.default:
             return self.call_function_prop_meta(ttnn.expm1, args, kwargs)
 
+        if target == torch.ops.aten.floor.default:
+            return self.call_function_prop_meta(ttnn.floor, args, kwargs)
+
         if target == torch.ops.aten.gelu.default:
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
 
