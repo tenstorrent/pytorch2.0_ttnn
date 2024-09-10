@@ -315,7 +315,7 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
 def has_valid_page_size(shape):
-    return len(shape) >= 2 and ((shape[-1] > 1 and shape[-1] < 31) or (shape[-1] >= 32 and (shape[-1] % 32 == 0)))
+    return len(shape) >= 2 and shape[-1] > 0 and shape[-1] % 32 == 0
 
 
 # override some functions from torch.fx.graph.Graph
