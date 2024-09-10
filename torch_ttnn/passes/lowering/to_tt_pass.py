@@ -120,7 +120,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.atanh.default:
             return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
 
-        if target == torch.ops.aten.clamp.default:
+        if target == torch.ops.aten.clamp.default or target == torch.ops.aten.clamp.Tensor:
             return self.call_function_prop_meta(ttnn.clip, args, kwargs)
 
         if target == torch.ops.aten.cos.default:
