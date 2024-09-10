@@ -594,6 +594,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
+            if node.target == torch.ops.aten.constant_pad_nd.default:
+                input, pad, value = args
+                # # The order of pad from pytorch is reversed.
+                pad = [(pad[i], pad[i + 1]) for i in range(0, len(pad), 2)][::-1]
+                new_node = g.call_function(ttnn.pad, args=(input, pad, value))
+                new_nodes.append(new_node)
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
