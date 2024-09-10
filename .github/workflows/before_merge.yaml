@@ -30,8 +30,8 @@ jobs:
       - uses: LouisBrunner/checks-action@v2.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: validate-pr
-          conclusion: in_progress
+          check_id: validate-pr
+          status: in_progress
           output: |
             {"summary":"Tests started"}            
       - name: Run Tools Tests 
