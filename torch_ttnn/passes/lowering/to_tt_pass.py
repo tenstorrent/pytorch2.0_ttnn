@@ -10,6 +10,7 @@ from torch_ttnn.utils import (
 )
 import numpy as np
 from typing import Tuple
+import torch_ttnn.metrics as metrics
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
@@ -40,14 +41,35 @@ def create_call_function(transformer, target, args, kwargs):
 
 
 class ReplaceMoreTt(torch.fx.Transformer):
+    def __init__(self, module):
+        super().__init__(module)
+        self._input_node_meta = {node.name: node.meta for node in self.module.graph.nodes if node.op == "placeholder"}
+
+    def placeholder(self, target, args, kwargs):
+        # Restore original metadata for placeholder nodes
+        proxy = super().placeholder(target, args, kwargs)
+        if proxy.node.name in self._input_node_meta:
+            proxy.node.meta = self._input_node_meta[proxy.node.name]
+        return proxy
+
     def call_function_prop_meta(self, target, args=(), kwargs={}):
         call_func = super().call_function(target, args, kwargs)
         meta = fx_traceback.get_current_meta()
         if meta is not None:
             call_func.node.meta = meta
+            if hasattr(self.old_target, "_schema"):
+                call_func.node.meta["original_input_variations"] = metrics.collect_input_variation(
+                    self.old_target, self.old_args, self.old_kwargs
+                )
+
         return call_func
 
     def call_function(self, target, args, kwargs):
+        # FIXME: `call_function_prop_meta` should be moved to an inner function here instead of using member variables
+        self.old_target = target
+        self.old_args = args
+        self.old_kwargs = kwargs
+
         if are_args_from_int_output_ops(args):
             return self.call_function_prop_meta(target, args, kwargs)
 
@@ -302,6 +324,8 @@ class GraphWrapper:
     def call_function(self, target, args=(), kwargs={}):
         new_node = self.g.call_function(target, args, kwargs)
         new_node.meta = self.node.meta
+        if hasattr(self.node.target, "_schema"):
+            new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
         if target == ttnn.layer_norm:
             new_node.meta["val"] = new_node.meta["val"][0]
         return new_node
@@ -427,6 +451,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
                 new_kwargs = {"layout": TtnnTileLayout()}
                 new_node = g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
+                new_nodes.append(new_node)
+            if node.target == torch.ops.aten._log_softmax.default:
+                softmax_node = g.call_function(ttnn.softmax, args[:2], node.kwargs)
+                new_node = g.call_function(ttnn.log, (softmax_node,), node.kwargs)
                 new_nodes.append(new_node)
             if node.target == torch.ops.aten.rsub.Scalar:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
@@ -571,22 +599,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 class ToTtPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
-        # TODO(kevinwuTT): transform() removes metadata from Placeholder (input argument) nodes.
-        # Reversing the order will not work either because of the already converted ttnn.ops under
-        # ReplaceMoreTtManually. Might need to consider consolidating these methods.
-
-        # Save Placeholder metadata before calling transform()
-        input_nodes = {node.name: node.meta for node in gm.graph.nodes if node.op == "placeholder"}
-
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm).transform()
-
-        # We won't use torch.fx.Transformer because metadata is removed after .transform()
-
-        # Restore metadata for Placeholder nodes
-        for node in gm.graph.nodes:
-            if node.op == "placeholder":
-                node.meta = input_nodes[node.name]
 
         # Replace patterns manually
         gm = ReplaceMoreTtManually(gm)
