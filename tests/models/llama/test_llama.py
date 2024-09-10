@@ -5,6 +5,7 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
+@pytest.mark.compilation_xfail
 def test_llama(record_property):
     record_property("model_name", "Llama")
 

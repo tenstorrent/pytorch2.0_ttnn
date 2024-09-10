@@ -1,0 +1,80 @@
+Track memory footprint for each of the ops:
+Tensor IDs for nodes on device:
+Node: ttnn_from_torch - 1
+Node: ttnn_relu - 2
+Node: ttnn_silu - 3
+Node: ttnn_gelu - 4
+Node: ttnn_tanh - 5
+Node: ttnn_to_device - 6
+Node: ttnn_add - 7
+Node: ttnn_to_device_1 - 8
+Node: ttnn_add_1 - 9
+Total tt compute nodes: 6
+---------------------------------------------------
+tt compute node numbered: 0
+op execution on device: ttnn_relu
+input size: 30105600 bytes
+output size: 30105600 bytes
+total SRAM usage: 60211200 bytes
+input tensor removed from device: 30105600 bytes
+total SRAM usage: 30105600 bytes
+---------------------------------------------------
+tt compute node numbered: 1
+op execution on device: ttnn_silu
+input size: 30105600 bytes
+output size: 30105600 bytes
+total SRAM usage: 60211200 bytes
+---------------------------------------------------
+tt compute node numbered: 2
+op execution on device: ttnn_gelu
+input size: 30105600 bytes
+output size: 30105600 bytes
+total SRAM usage: 90316800 bytes
+input tensor removed from device: 30105600 bytes
+total SRAM usage: 60211200 bytes
+---------------------------------------------------
+tt compute node numbered: 3
+op execution on device: ttnn_tanh
+input size: 30105600 bytes
+output size: 30105600 bytes
+total SRAM usage: 90316800 bytes
+op removed from device: ttnn_tanh
+output size: 30105600 bytes
+total SRAM usage: 60211200 bytes
+input tensor removed from device: 30105600 bytes
+total SRAM usage: 30105600 bytes
+---------------------------------------------------
+tt compute node numbered: 4
+op execution on device: ttnn_add
+input size: 60211200 bytes
+output size: 30105600 bytes
+total SRAM usage: 90316800 bytes
+input tensor removed from device: 30105600 bytes
+total SRAM usage: 60211200 bytes
+input tensor removed from device: 30105600 bytes
+total SRAM usage: 30105600 bytes
+---------------------------------------------------
+tt compute node numbered: 5
+op execution on device: ttnn_add_1
+input size: 60211200 bytes
+output size: 30105600 bytes
+total SRAM usage: 90316800 bytes
+op removed from device: ttnn_add_1
+output size: 30105600 bytes
+total SRAM usage: 60211200 bytes
+input tensor removed from device: 30105600 bytes
+total SRAM usage: 30105600 bytes
+input tensor removed from device: 30105600 bytes
+total SRAM usage: 0 bytes
+Tensor IDs to address map in SRAM:
+{1: (0, 30105600), 2: (120422400, 150528000), 3: (270950400, 301056000), 4: (180633600, 210739200), 5: (210739200, 240844800), 6: (240844800, 270950400), 7: (331161600, 361267200), 8: (361267200, 391372800), 9: (391372800, 421478400)}
+----------------------------------------------------------------
+These ttnn ops overflow the SRAM buffer:
+
+Data captured for plotting on a chart:
+('ttnn_relu', 2): [(1, 30105600), (2, 30105600)]
+('ttnn_silu', 3): [(2, 30105600), (3, 30105600)]
+('ttnn_gelu', 4): [(2, 30105600), (3, 30105600), (4, 30105600)]
+('ttnn_tanh', 5): [(3, 30105600), (4, 30105600), (5, 30105600)]
+('ttnn_add', 7): [(3, 30105600), (6, 30105600), (7, 30105600)]
+('ttnn_add_1', 9): [(7, 30105600), (8, 30105600), (9, 30105600)]
