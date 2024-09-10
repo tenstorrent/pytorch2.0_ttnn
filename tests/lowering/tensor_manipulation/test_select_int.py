@@ -15,7 +15,7 @@ class SelectModule(torch.nn.Module):
 @pytest.mark.parametrize(
     "input_shape, dim, index",
     (
-        ((4, 32, 16, 2), 0, 2),
+        pytest.param((4, 32, 16, 2), 0, 2, marks=pytest.mark.xfail(reason="Buffer size and page size should be larger than 0 bytes!")),
         pytest.param((4, 32, 16), 0, 2, marks=pytest.mark.xfail(reason="ttnn.slice only supports 4D tensors")),
         pytest.param((4, 32, 16, 2), 1, 15, marks=pytest.mark.xfail(reason="ttnn.squeeze only supports dim=0")),
         pytest.param((4, 32, 16, 2), 2, 10, marks=pytest.mark.xfail(reason="ttnn.squeeze only supports dim=0")),
