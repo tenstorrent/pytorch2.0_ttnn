@@ -20,5 +20,6 @@ runs:
         python3 -m pip install --upgrade pip                    
         python3 -m pip install -r requirements-dev.txt
         python3 -m pip install pytest-github-report
+        df -h
 
     - uses: ./.github/actions/common_cleanup

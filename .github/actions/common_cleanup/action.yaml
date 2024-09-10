@@ -9,3 +9,4 @@ runs:
         python3 tools/huggingface_delete_cache.py
         rm -rf ~/.torch/models
         free -h
+        df -h
