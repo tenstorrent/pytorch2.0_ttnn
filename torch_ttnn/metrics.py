@@ -27,7 +27,7 @@ def _sanitize_value(value):
     elif isinstance(value, list):
         val_list = []
         for val in value:
-            if isinstance(val, torch.fx.node.Node):
+            if isinstance(val, torch.fx.node.Node) and "val" in val.meta:
                 val_shape = _get_shape_from_fake_tensor(val.meta["val"])
                 val_list.append(f"torch.Size({val_shape})")
             else:
