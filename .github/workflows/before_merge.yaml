@@ -26,14 +26,7 @@ jobs:
     runs-on: ["in-service", "n150"]
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-      - uses: LouisBrunner/checks-action@v2.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          check_id: validate-pr
-          status: in_progress
-          output: |
-            {"summary":"Tests started"}            
+      - uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
