@@ -27,6 +27,7 @@ import pytest
         "hrnet_w18.ms_aug_in1k",
     ],
 )
+@pytest.mark.skip(reason="Failing during torch run, raising a RuntimeError('Unknown model")
 @pytest.mark.compilation_xfail
 def test_timm_image_classification(record_property, model_name):
     record_property("model_name", model_name)
