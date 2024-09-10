@@ -12,6 +12,7 @@ class FloorModule(torch.nn.Module):
         return torch.floor(x)
 
 
+@pytest.mark.skip_platform("grayskull")
 @pytest.mark.parametrize(
     "input_shape",
     [(4, 4)],
