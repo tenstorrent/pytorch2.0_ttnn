@@ -26,8 +26,7 @@ jobs:
     runs-on: ["in-service", "n150"]
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-
+      - uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
