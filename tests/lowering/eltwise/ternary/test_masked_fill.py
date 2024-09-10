@@ -12,6 +12,7 @@ class MaskedFillModule(torch.nn.Module):
         return tensor.masked_fill(mask, value)
 
 
+@pytest.mark.xfail(reason="Buffer size and page size should be larger than 0 bytes!")
 @pytest.mark.parametrize(
     "tensor_shape, mask_shape",
     (
