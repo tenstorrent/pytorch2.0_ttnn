@@ -29,6 +29,15 @@ int_output_ops = [
 ]
 
 
+ops_incompatible_with_grayskull = {
+    torch.ops.aten.floor.default,
+}
+
+
+def is_target_incompatible_with_grayskull(target, device):
+    return ttnn.device.is_grayskull(device) and target in ops_incompatible_with_grayskull
+
+
 def are_args_from_int_output_ops(args):
     for arg in args:
         if isinstance(arg, torch.fx.proxy.Proxy):
@@ -41,9 +50,10 @@ def create_call_function(transformer, target, args, kwargs):
 
 
 class ReplaceMoreTt(torch.fx.Transformer):
-    def __init__(self, module):
+    def __init__(self, module, device):
         super().__init__(module)
         self._input_node_meta = {node.name: node.meta for node in self.module.graph.nodes if node.op == "placeholder"}
+        self.device = device
 
     def placeholder(self, target, args, kwargs):
         # Restore original metadata for placeholder nodes
@@ -70,7 +80,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
         self.old_args = args
         self.old_kwargs = kwargs
 
-        if are_args_from_int_output_ops(args):
+        if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
             return self.call_function_prop_meta(target, args, kwargs)
 
         ############################################################
@@ -594,9 +604,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 
 class ToTtPass(PassBase):
+    def __init__(self, device):
+        self.device = device
+
     def call(self, gm: torch.fx.GraphModule):
         # Replace more patterns with torch.fx.Transformer
-        gm = ReplaceMoreTt(gm).transform()
+        gm = ReplaceMoreTt(gm, self.device).transform()
 
         # Replace patterns manually
         gm = ReplaceMoreTtManually(gm)
