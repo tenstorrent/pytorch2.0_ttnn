@@ -31,7 +31,7 @@ class ArangeStartStepModule(torch.nn.Module):
 
 
 # NOTE(kevinwuTT) This test fails because ttnn.arange does not support start value of 0.
-@pytest.mark.xfail
+@pytest.mark.xfail(reason="ttnn.arange does not support start value of 0")
 @pytest.mark.parametrize(
     "input_shapes",
     [[100]],
