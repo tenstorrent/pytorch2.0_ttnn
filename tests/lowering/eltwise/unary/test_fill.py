@@ -21,6 +21,7 @@ class FillScalarModule(torch.nn.Module):
         (2, 32, 64),
         (32, 1),
         (1, 32),
+        (16, 64),
     ],
 )
 def test_fill_scalar(device, input_shape):

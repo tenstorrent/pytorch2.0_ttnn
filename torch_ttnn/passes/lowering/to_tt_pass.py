@@ -322,7 +322,7 @@ def has_valid_page_size(shape, strict=False):
         return False
     if not strict and shape[-1] < 32:
         return True
-    return shape[-2] % 32 == 0 and shape[-1] % 32 == 0
+    return shape[-2] % ttnn.TILE_SIZE == 0 and shape[-1] % ttnn.TILE_SIZE == 0
 
 
 # override some functions from torch.fx.graph.Graph
@@ -441,6 +441,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if node_user.target == torch.ops.aten.div.Tensor:
                         node_user.update_arg(1, args[1])
                 return None
+
             if node.target == torch.ops.aten.fill.Scalar:
                 shape = tuple(node.meta["val"].size())
                 if has_valid_page_size(shape, strict=True):
@@ -454,6 +455,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         args=(shape,),
                         kwargs=new_kwargs,
                     )
+
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
                 # if beta is 0, input is ignored, and nan and inf in it will not be propogated
