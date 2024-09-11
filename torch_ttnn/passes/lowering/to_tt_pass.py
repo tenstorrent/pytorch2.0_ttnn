@@ -261,6 +261,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             value = kwargs.pop("value", 1.0)
             return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
 
+        if target == torch.ops.aten.where.self:
+            return self.call_function_prop_meta(ttnn.where, args, kwargs)
+
         ############################################################
         # Reduction
         ############################################################
@@ -371,29 +374,22 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             # NOTE(kevinwuTT): aten.arange.default starts with 0 which is unsupported by ttnn.arange at the moment
             if node.target == torch.ops.aten.arange.default:
                 # start = 0, step = 1
-                new_args = (0,)
-                new_kwargs = {"end": args[0], "step": 1, "device": TtnnDevice()}
-                new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                new_args = (0, args[0], 1)
+                new_node = g.call_function(ttnn.arange, args=new_args)
                 new_nodes.append(new_node)
             """
             if node.target == torch.ops.aten.arange.start:
                 # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
                 if args[0] >= 2:
                     # step = 1
-                    new_args = (args[0],)
-                    new_kwargs = {"end": args[1], "step": 1, "device": TtnnDevice()}
-                    new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                    new_args = (args[0], args[1], 1)
+                    new_node = g.call_function(ttnn.arange, args=new_args)
                     new_nodes.append(new_node)
             if node.target == torch.ops.aten.arange.start_step:
                 # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
                 if args[0] >= 2:
-                    new_args = (args[0],)
-                    new_kwargs = {
-                        "end": args[1],
-                        "step": args[2],
-                        "device": TtnnDevice(),
-                    }
-                    new_node = g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
+                    new_args = (args[0], args[1], args[2])
+                    new_node = g.call_function(ttnn.arange, args=new_args)
                     new_nodes.append(new_node)
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
