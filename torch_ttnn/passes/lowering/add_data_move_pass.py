@@ -118,7 +118,8 @@ TTNN_DATAMOVE_OPS = [
     ttnn.permute,
     #  ttnn.repeat,  in target_wrapper
     ttnn.concat,
-    # ttnn.split,  # ttnn has no split, remote the comment in the future when it has
+    # ttnn.split,  # ttnn has no split, remove the comment in the future when it has
+    ttnn.slice,
 ]
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
