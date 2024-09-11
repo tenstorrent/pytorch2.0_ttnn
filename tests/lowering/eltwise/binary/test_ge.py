@@ -2,14 +2,15 @@ import torch
 import torch_ttnn
 import pytest
 import ttnn
+from tests.utils import assert_with_pcc
 
 
-class NeModule(torch.nn.Module):
+class GeModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, x, y):
-        return torch.ne(x, y)
+        return torch.ge(x, y)
 
 
 @pytest.mark.xfail(reason="broadcasting issues (#64)")
@@ -17,8 +18,8 @@ class NeModule(torch.nn.Module):
     "input_shapes",
     (((32, 32), (32, 32)), ((64,), (32, 64)), ((64, 32), (64, 1)), ((64, 1), (1, 64))),
 )
-def test_ne(device, input_shapes):
-    m = NeModule()
+def test_ge(device, input_shapes):
+    m = GeModule()
     inputs = [torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes]
     result_before = m.forward(*inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
@@ -30,7 +31,7 @@ def test_ne(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.ne) == 1
+    assert [node.target for node in nodes].count(ttnn.ge) == 1
 
     # Check inference result
     assert torch.allclose(result_before, result_after.to(torch.bool))
@@ -40,8 +41,8 @@ def test_ne(device, input_shapes):
     "input_shapes",
     [[(64, 128)]],
 )
-def test_ne_scalar(device, input_shapes):
-    m = NeModule()
+def test_ge_scalar(device, input_shapes):
+    m = GeModule()
     inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
     scalar = inputs[0][0][0].item()
     result_before = m.forward(inputs[0], scalar)
@@ -56,8 +57,8 @@ def test_ne_scalar(device, input_shapes):
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
     assert target.count(ttnn.full) == 1
-    assert target.count(ttnn.ne) == 1
-    assert target.index(ttnn.full) < target.index(ttnn.ne)
+    assert target.count(ttnn.ge) == 1
+    assert target.index(ttnn.full) < target.index(ttnn.ge)
     # Intermediate node meta check if preserved
     for node in nodes:
         if node.target == ttnn.full:

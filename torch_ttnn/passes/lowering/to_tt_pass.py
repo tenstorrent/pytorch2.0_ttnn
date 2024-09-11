@@ -19,6 +19,10 @@ from . import target_wrappers
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
     torch.ops.aten.lt.Scalar: ttnn.lt,
+    torch.ops.aten.le.Scalar: ttnn.le,
+    torch.ops.aten.gt.Scalar: ttnn.gt,
+    torch.ops.aten.ge.Scalar: ttnn.ge,
+    torch.ops.aten.ne.Scalar: ttnn.ne,
 }
 
 # Workaround: If an arg of the model output is argmax then skip conversion
@@ -313,9 +317,10 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
-def has_valid_page_size(shape):
-    assert len(shape) > 0, f"has_valid_page_size requires rank of {shape} > 0"
-    return len(shape) >= 2 and ((shape[-1] > 1 and shape[-1] < 31) or (shape[-1] >= 32 and (shape[-1] % 32 == 0)))
+def has_valid_page_size(shape, strict=False):
+    if len(shape) >= 2 and shape[-1] > 0:
+        return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
+    return False
 
 
 # override some functions from torch.fx.graph.Graph
@@ -389,8 +394,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
+                # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if has_valid_page_size(arg_metadata.size()):
+                if has_valid_page_size(arg_metadata.size(), strict=True):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
