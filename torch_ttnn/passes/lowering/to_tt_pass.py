@@ -318,9 +318,11 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
 def has_valid_page_size(shape, strict=False):
-    if len(shape) >= 2 and shape[-1] > 0:
-        return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
-    return False
+    if len(shape) < 2 or shape[-1] == 0:
+        return False
+    if not strict and shape[-1] < 32:
+        return True
+    return shape[-2] % 32 == 0 and shape[-1] % 32 == 0
 
 
 # override some functions from torch.fx.graph.Graph
@@ -439,7 +441,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if node_user.target == torch.ops.aten.div.Tensor:
                         node_user.update_arg(1, args[1])
                 return None
-
+            if node.target == torch.ops.aten.fill.Scalar:
+                shape = tuple(node.meta["val"].size())
+                if has_valid_page_size(shape, strict=True):
+                    new_kwargs = {
+                        "fill_value": args[1],
+                        "device": TtnnDevice(),
+                        "layout": TtnnTileLayout(),
+                    }
+                    return g.call_function(
+                        ttnn.full,
+                        args=(shape,),
+                        kwargs=new_kwargs,
+                    )
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
                 # if beta is 0, input is ignored, and nan and inf in it will not be propogated
