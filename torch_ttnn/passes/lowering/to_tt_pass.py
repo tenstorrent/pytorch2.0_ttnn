@@ -349,6 +349,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
         def rewrite_node(node):
             args = node.args
+            kwargs = node.kwargs
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
@@ -440,7 +441,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return None
 
             if node.target == torch.ops.aten.baddbmm.default:
-                kwargs = node.kwargs
                 # out = beta * input + alpha * (batch1 @ batch2)
                 # if beta is 0, input is ignored, and nan and inf in it will not be propogated
                 new_node = g.call_function(ttnn.matmul, args=(args[1], args[2]))
@@ -465,8 +465,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
 
             if node.target == torch.ops.aten._log_softmax.default:
-                softmax_node = g.call_function(ttnn.softmax, args[:2], node.kwargs)
-                return g.call_function(ttnn.log, (softmax_node,), node.kwargs)
+                softmax_node = g.call_function(ttnn.softmax, args[:2], kwargs)
+                return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.rsub.Scalar:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
@@ -517,7 +517,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return None
 
             if node.target == torch.ops.aten._to_copy.default:
-                kwargs = node.kwargs
                 if kwargs["dtype"] == torch.float32:
                     new_kwargs = {"dtype": torch.bfloat16}
                     return g.call_function(torch.ops.aten._to_copy.default, args, new_kwargs)
