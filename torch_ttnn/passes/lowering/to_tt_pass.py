@@ -346,17 +346,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
         g = GraphWrapper(node)
-        args = node.args
 
-        new_nodes = []
-        with g.inserting_before(node):
-            # TODO (kevinwuTT): consolidate and simplify these statements?
+        def rewrite_node(node):
+            args = node.args
+
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
                 ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
                 new_node = g.call_function(target_wrappers.clone, args=(args[0],))
-                new_nodes.append(new_node)
+                return new_node
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(
                     ttnn.layer_norm,
@@ -367,16 +366,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 node_users = list(new_node.users.keys())
                 for node_user in node_users:
                     node_user.replace_all_uses_with(new_node)
+                return None
             if node.target == torch.ops.aten.ones.default:
                 new_node = g.call_function(ttnn.ones, args=args, kwargs={"device": TtnnDevice()})
-                new_nodes.append(new_node)
+                return new_node
             """
             # NOTE(kevinwuTT): aten.arange.default starts with 0 which is unsupported by ttnn.arange at the moment
             if node.target == torch.ops.aten.arange.default:
                 # start = 0, step = 1
                 new_args = (0, args[0], 1)
                 new_node = g.call_function(ttnn.arange, args=new_args)
-                new_nodes.append(new_node)
+                return new_node
             """
             if node.target == torch.ops.aten.arange.start:
                 # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
@@ -384,13 +384,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     # step = 1
                     new_args = (args[0], args[1], 1)
                     new_node = g.call_function(ttnn.arange, args=new_args)
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
             if node.target == torch.ops.aten.arange.start_step:
                 # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
                 if args[0] >= 2:
                     new_args = (args[0], args[1], args[2])
                     new_node = g.call_function(ttnn.arange, args=new_args)
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
@@ -408,7 +410,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         args=(args[0], full_node),
                         kwargs={},
                     )
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
             if node.target == torch.ops.aten.eq.Tensor:
                 # Combine this with relational_scalar_ops
                 if np.prod(args[1].meta["val"].size()) != 1:
@@ -417,7 +420,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         args=args,
                         kwargs={},
                     )
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
             if node.target == torch.ops.aten.full.default:
                 # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
                 if args[0]:
@@ -427,7 +431,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         "layout": TtnnTileLayout(),
                     }
                     new_node = g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
-                    new_nodes.append(new_node)
+                    return new_node
                 else:
                     # Replace op with scalar for eltwise ops
                     # TODO: Generalize this to support all eltwise ops
@@ -435,6 +439,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     for node_user in node_users:
                         if node_user.target == torch.ops.aten.div.Tensor:
                             node_user.update_arg(1, args[1])
+                    return None
             if node.target == torch.ops.aten.baddbmm.default:
                 kwargs = node.kwargs
                 # out = beta * input + alpha * (batch1 @ batch2)
@@ -448,16 +453,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         new_node = g.call_function(ttnn.add, args=(beta_node, new_node))
                 else:
                     new_node = g.call_function(ttnn.add, args=(args[0], new_node))
-                new_nodes.append(new_node)
+                return new_node
             if node.target == torch.ops.aten.embedding.default:
                 # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
                 new_kwargs = {"layout": TtnnTileLayout()}
                 new_node = g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
-                new_nodes.append(new_node)
+                return new_node
             if node.target == torch.ops.aten._log_softmax.default:
                 softmax_node = g.call_function(ttnn.softmax, args[:2], node.kwargs)
                 new_node = g.call_function(ttnn.log, (softmax_node,), node.kwargs)
-                new_nodes.append(new_node)
+                return new_node
             if node.target == torch.ops.aten.rsub.Scalar:
                 # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
@@ -479,7 +484,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     )
                     to_layout = g.call_function(ttnn.to_layout, (full,), {"layout": TtnnTileLayout()})
                     new_node = g.call_function(ttnn.sub, args=(to_layout, args[0]), kwargs={})
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
             if node.target == torch.ops.aten.div.Tensor:
                 # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
                 # TODO(kevinwuTT): Use a ttnn equivalent
@@ -503,13 +509,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     else:
                         recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     new_node = g.call_function(ttnn.mul, (args[0], recip), {})
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
             if node.target == torch.ops.aten._to_copy.default:
                 kwargs = node.kwargs
                 if kwargs["dtype"] == torch.float32:
                     new_kwargs = {"dtype": torch.bfloat16}
                     new_node = g.call_function(torch.ops.aten._to_copy.default, args, new_kwargs)
-                    new_nodes.append(new_node)
+                    return new_node
                 """
                 # NOTE(kevinwuTT): aten._to_copy is used to cast dtypes. Should combine this with other ops.
                 ttnn_dtype = torch_dtype_to_ttnn_dtype(kwargs["dtype"])
@@ -521,8 +528,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     "memory_config": TtnnDramMemoryConfig(),
                 }
                 new_node = g.call_function(ttnn.as_tensor, args, new_kwargs)
-                new_nodes.append(new_node)
+                return new_node
                 """
+                return None
             if node.target == torch.ops.aten.expand.default:
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
@@ -539,18 +547,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                     if np.prod(multiplier) != 1:
                         new_node = g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
-                        new_nodes.append(new_node)
-                    else:
-                        node.replace_all_uses_with(
-                            args[0],
-                            delete_user_cb=lambda node: node != args[0],
-                        )
+                        return new_node
+                    return args[0]
+                return None
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
                 if output_size[-1] == args[0].meta["val"].size()[-1]:
                     new_node = g.call_function(ttnn.reshape, args=(args[0], output_size))
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
             if node.target == torch.ops.aten.transpose.int:
                 dim0 = args[1]
                 dim1 = args[2]
@@ -575,11 +581,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                             )
                         )
                     new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
-
-                node.replace_all_uses_with(
-                    new_nodes[-1],
-                    delete_user_cb=lambda node: node != new_nodes[-1],
-                )
+                return new_nodes[-1]
             if node.target == torch.ops.aten.t.default:
                 permutation = list()
                 rank = len(node.meta["val"].size())
@@ -587,12 +589,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if rank == 2:
                     permutation = [1, 0]
                     new_node = g.call_function(ttnn.permute, args=(args[0], permutation))
-                    new_nodes.append(new_node)
+                    return new_node
+                return None
 
-            if new_nodes:
+        with g.inserting_before(node):
+            new_node = rewrite_node(node)
+            if new_node is not None:
                 node.replace_all_uses_with(
-                    new_nodes[-1],
-                    delete_user_cb=lambda node: node != new_nodes[-1],
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
                 )
 
     gm = GraphCleanup(gm)
