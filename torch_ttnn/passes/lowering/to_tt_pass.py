@@ -560,8 +560,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if step != 1 or dim >= len(input_size):
                         return None
 
-                    #NOTE(jdh8): is there a way to skip a no-op?
-                    #if start == 0 and end >= input_size[dim]:
+                    # NOTE(jdh8): is there a way to skip a no-op?
+                    # if start == 0 and end >= input_size[dim]:
                     #    return tensor
 
                     if len(input_size) != 4:
