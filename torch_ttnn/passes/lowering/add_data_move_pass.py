@@ -120,6 +120,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.concat,
     ttnn.split,
     ttnn.slice,
+    ttnn.to_layout,
 ]
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
