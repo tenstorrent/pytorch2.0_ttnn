@@ -30,7 +30,7 @@ def test_floor(device, input_shape):
     # This test will fallback to torch.ops.aten.floor.default
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    if ttnn.device.is_grayskull:
+    if ttnn.device.is_grayskull(device):
         assert target.count(ttnn.floor) == 0
         assert target.count(torch.ops.aten.floor.default) == 1
     else:
