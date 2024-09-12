@@ -279,6 +279,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Data movement
         ############################################################
+        if target == torch.ops.aten.cat.default:
+            return self.call_function_prop_meta(ttnn.concat, args, kwargs)
+
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 

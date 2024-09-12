@@ -12,7 +12,6 @@ class ConcatModule(torch.nn.Module):
         return torch.cat((x1, x2), dim)
 
 
-@pytest.mark.xfail(reason="lowering issue (#67)")
 @pytest.mark.parametrize(
     "input_shapes, dim",
     [
