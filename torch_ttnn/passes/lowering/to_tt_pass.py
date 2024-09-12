@@ -554,29 +554,27 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return None
 
             if node.target == torch.ops.aten.slice.Tensor:
+                tensor, dim, start, end, *step = args
+                [step] = step or [1]
+                input_size = tensor.meta["val"].size()
 
-                def callback(tensor, dim, start, end, step=1):
-                    input_size = tensor.meta["val"].size()
+                if step != 1 or dim >= len(input_size):
+                    return None
 
-                    if step != 1 or dim >= len(input_size):
-                        return None
+                if start == 0 and end >= input_size[dim]:
+                    return tensor
 
-                    if start == 0 and end >= input_size[dim]:
-                        return tensor
+                if len(input_size) != 4:
+                    return None
 
-                    if len(input_size) != 4:
-                        return None
+                slice_start = np.zeros(len(input_size), dtype=int)
+                slice_end = np.array(input_size)
 
-                    slice_start = np.zeros(len(input_size), dtype=int)
-                    slice_end = np.array(input_size)
+                slice_start[dim] = start
+                slice_end[dim] = min(end, input_size[dim])
+                slice_end -= 1
 
-                    slice_start[dim] = start
-                    slice_end[dim] = min(end, input_size[dim])
-                    slice_end -= 1
-
-                    return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
-
-                return callback(*args)
+                return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
