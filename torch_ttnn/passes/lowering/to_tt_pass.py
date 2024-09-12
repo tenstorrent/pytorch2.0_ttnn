@@ -554,15 +554,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return None
 
             if node.target == torch.ops.aten.slice.Tensor:
+
                 def callback(tensor, dim, start, end, step=1):
                     input_size = tensor.meta["val"].size()
 
                     if step != 1 or dim >= len(input_size):
                         return None
 
-                    # NOTE(jdh8): is there a way to skip a no-op?
-                    # if start == 0 and end >= input_size[dim]:
-                    #    return tensor
+                    if start == 0 and end >= input_size[dim]:
+                        return tensor
 
                     if len(input_size) != 4:
                         return None
