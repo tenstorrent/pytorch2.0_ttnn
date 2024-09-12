@@ -602,18 +602,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # The order of pad from pytorch is reversed
                 full_pad += [(pad[i], pad[i + 1]) for i in range(0, len(pad), 2)][::-1]
                 # Front padding isn't well supported so skip for now
-                if rank <= 4 and all(f == 0 for f, _ in full_pad):
-                    # Change layout to row-major for non tile-size-aligned tensor
-                    if not (
-                        rank >= 2
-                        and input_shape[-1] % ttnn.TILE_SIZE == 0
-                        and input_shape[-2] % ttnn.TILE_SIZE == 0
-                        and full_pad[-1][1] % ttnn.TILE_SIZE == 0
-                        and full_pad[-2][1] % ttnn.TILE_SIZE == 0
-                    ):
-                        new_nodes.append(g.call_function(ttnn.to_layout, (input,), {"layout": TtnnRowMajorLayout()}))
-                        input = new_nodes[-1]
-                    new_nodes.append(g.call_function(ttnn.pad, args=(input, full_pad, value)))
+                if rank > 4 or (not all(f == 0 for f, _ in full_pad)):
+                    return None
+                # Change layout to row-major for non tile-size-aligned tensor
+                if not (
+                    rank >= 2
+                    and input_shape[-1] % ttnn.TILE_SIZE == 0
+                    and input_shape[-2] % ttnn.TILE_SIZE == 0
+                    and full_pad[-1][1] % ttnn.TILE_SIZE == 0
+                    and full_pad[-2][1] % ttnn.TILE_SIZE == 0
+                ):
+                    input = g.call_function(ttnn.to_layout, (input,), {"layout": TtnnRowMajorLayout()})
+                return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
