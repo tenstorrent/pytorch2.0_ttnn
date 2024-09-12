@@ -8,4 +8,5 @@ runs:
       run: |
         python3 tools/huggingface_delete_cache.py
         rm -rf ~/.torch/models
+        rm -rf ~/.cache/custom_weights
         free -h
