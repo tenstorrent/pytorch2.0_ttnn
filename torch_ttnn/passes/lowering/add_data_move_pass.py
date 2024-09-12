@@ -116,9 +116,8 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
 TTNN_DATAMOVE_OPS = [
     ttnn.reshape,
     ttnn.permute,
-    #  ttnn.repeat,  in target_wrapper
     ttnn.concat,
-    # ttnn.split,  # ttnn has no split, remove the comment in the future when it has
+    ttnn.split,
     ttnn.slice,
 ]
 
