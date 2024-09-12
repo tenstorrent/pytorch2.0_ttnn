@@ -39,6 +39,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.erf,
     ttnn.exp,
     ttnn.expm1,
+    ttnn.floor,
     ttnn.gelu,
     ttnn.hardtanh,
     ttnn.isinf,
@@ -115,9 +116,9 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
 TTNN_DATAMOVE_OPS = [
     ttnn.reshape,
     ttnn.permute,
-    #  ttnn.repeat,  in target_wrapper
     ttnn.concat,
-    # ttnn.split,  # ttnn has no split, remote the comment in the future when it has
+    ttnn.split,
+    ttnn.slice,
 ]
 
 TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
