@@ -292,9 +292,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 
-        if target == torch.ops.aten.view.default:
+        if target in (torch.ops.aten.reshape.default, torch.ops.aten.view.default):
             # aten.reshape is more stable if the input nodes have changed
-            return self.call_function_prop_meta(torch.ops.aten.reshape.default, args, kwargs)
+            return self.call_function_prop_meta(ttnn.reshape, args, kwargs)
 
         ############################################################
         # Other ops
