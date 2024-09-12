@@ -5,7 +5,6 @@ from PIL import Image
 from torchvision import transforms
 import requests
 from pathlib import Path
-import tempfile
 import pytest
 
 from tests.models.yolov3.holli_src.yolov3 import *
@@ -18,7 +17,7 @@ def test_yolov3(record_property):
     # Download model weights
     url = "https://www.ollihuotari.com/data/yolov3_pytorch/yolov3_coco_01.h5"
 
-    download_dir = Path(tempfile.gettempdir() + "/torch_ttnn_test_material")
+    download_dir = Path.home() / ".cache/custom_weights"
     download_dir.mkdir(parents=True, exist_ok=True)
 
     load_path = download_dir / url.split("/")[-1]
