@@ -16,13 +16,6 @@ class RepeatModule(torch.nn.Module):
 @pytest.mark.parametrize(
     "input_shape, sizes",
     (
-        pytest.param(
-            (4, 4),
-            (3, 2),
-            marks=pytest.mark.xfail(
-                reason="Current repeat implementation requires aligned last dim when repeating on last dim"
-            ),
-        ),
         ((1, 1, 1), (1, 1, 1)),
         ((1, 1, 2048, 2048), (1, 1, 1, 1)),
         ((1, 1, 256), (1, 1, 1)),
@@ -38,6 +31,14 @@ class RepeatModule(torch.nn.Module):
         ((6, 2), (4, 1)),
         ((6, 2), (400, 1)),
         ((6, 2), (9, 1)),
+        pytest.param(
+            (4, 4),
+            (3, 2),
+            marks=pytest.mark.xfail(
+                reason="Current repeat implementation requires aligned last dim when repeating on last dim"
+            ),
+        ),
+        ((5, 16), (2, 3)),
     ),
 )
 def test_repeat(device, input_shape, sizes):

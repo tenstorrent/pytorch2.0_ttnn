@@ -570,11 +570,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if np.prod(sizes) == 1:
                     return tensor
 
-                # Repeat fails if last dimension of input is 1
-                if shape[-1] == 1:
-                    return None
+                # Current repeat implementation requires aligned last dim when repeating on last dim
+                if sizes[-1] == 1 or shape[-1] % 16 == 0:
+                    return g.call_function(target_wrappers.repeat, args)
 
-                return g.call_function(target_wrappers.repeat, args=(tensor, sizes))
+                return None
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
