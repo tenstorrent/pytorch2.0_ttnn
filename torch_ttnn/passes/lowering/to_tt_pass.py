@@ -604,6 +604,26 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
+            if node.target == torch.ops.aten.constant_pad_nd.default:
+                input, pad, value = args
+                input_shape = input.meta["val"].size()
+                rank = len(input_shape)
+                full_pad = [(0, 0)] * (rank - len(pad))
+                # The order of pad from pytorch is reversed
+                full_pad += [(pad[i], pad[i + 1]) for i in range(0, len(pad), 2)][::-1]
+                # TODO(#192): Front padding isn't well supported so skip for now
+                if rank > 4 or (not all(f == 0 for f, _ in full_pad)):
+                    return None
+                # Change layout to row-major for non-tile-size-aligned tensor
+                if (
+                    rank < 2
+                    or input_shape[-1] % ttnn.TILE_SIZE != 0
+                    or input_shape[-2] % ttnn.TILE_SIZE != 0
+                    or full_pad[-1][1] % ttnn.TILE_SIZE != 0
+                    or full_pad[-2][1] % ttnn.TILE_SIZE != 0
+                ):
+                    input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
+                return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
