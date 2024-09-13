@@ -585,7 +585,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 slice_end -= 1
 
                 return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
-              
+
             if node.target == torch.ops.aten.repeat.default:
                 tensor, sizes = args
                 shape = tensor.meta["val"].size()
@@ -640,6 +640,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
+
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad, value = args
                 input_shape = input.meta["val"].size()
@@ -660,6 +661,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
