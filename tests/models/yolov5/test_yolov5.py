@@ -4,7 +4,7 @@ from torchvision import transforms
 import requests
 import pytest
 
-dependencies = ["ultralytics", "ultralytics-thop"]
+dependencies = ["ultralytics==8.2.92", "ultralytics-thop==2.0.6", "opencv-python-headless==4.8.0.74"]
 
 
 @pytest.mark.usefixtures("manage_dependencies")
