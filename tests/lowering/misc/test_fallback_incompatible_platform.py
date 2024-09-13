@@ -12,7 +12,6 @@ class FloorModule(torch.nn.Module):
         return torch.floor(x)
 
 
-@pytest.mark.skip_platform("grayskull")
 @pytest.mark.parametrize(
     "input_shape",
     [(4, 4)],
@@ -28,9 +27,15 @@ def test_floor(device, input_shape):
     result_after = m.forward(input)
     option._out_fx_graphs[0].print_tabular()
 
-    # Check the graph has be rewritten and contain ttnn ops
+    # This test will fallback to torch.ops.aten.floor.default
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.floor) == 1
+    target = [node.target for node in nodes]
+    if ttnn.device.is_grayskull(device):
+        assert target.count(ttnn.floor) == 0
+        assert target.count(torch.ops.aten.floor.default) == 1
+    else:
+        assert target.count(ttnn.floor) == 1
+        assert target.count(torch.ops.aten.floor.default) == 0
 
     # Check inference result
     from tests.utils import assert_with_pcc
