@@ -31,6 +31,26 @@ def reset_torch_dynamo():
 
 
 @pytest.fixture(autouse=True)
+def skip_by_platform(request, device):
+    platforms = {
+        "grayskull": ttnn.device.is_grayskull(device),
+        "wormhole_b0": ttnn.device.is_wormhole_b0(device),
+    }
+    if skip_platform := request.node.get_closest_marker("skip_platform"):
+        if skip_platform.args:
+            arch = skip_platform.args[0]
+            if current_platform := platforms.get(arch):
+                pytest.skip(f"Skipped on {arch}")
+            elif current_platform == None:
+                raise ValueError(f'pytest.skip_platform arch: "{arch}" not valid.')
+            # if false, then continue with test
+        else:
+            raise ValueError(
+                f'pytest.skip_platform missing arch argument string, i.e. pytest.skip_platform("grayskull")'
+            )
+
+
+@pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
     # Initialize early to ensure it's defined
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined

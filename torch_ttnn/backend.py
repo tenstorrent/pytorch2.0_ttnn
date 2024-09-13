@@ -116,7 +116,7 @@ def aten_backend(
     from torch_ttnn.passes.memory_pass import MemoryPass
 
     passes = [
-        ToTtPass(),
+        ToTtPass(option.device),
         AddDataMovePass(),
         EliminateCoreopsPass(),
         CSEPass(),
