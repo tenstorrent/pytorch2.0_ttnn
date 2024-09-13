@@ -570,7 +570,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 def callback(t):
                     y, x = t
-                    return y // x if y != -1 else 1
+                    return abs(y) if x == 1 else 1
 
                 prefix = output_shape[:kernel_dims]
                 suffix = map(callback, zip(output_shape[kernel_dims:], input_shape))
