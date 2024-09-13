@@ -31,6 +31,26 @@ def reset_torch_dynamo():
 
 
 @pytest.fixture(autouse=True)
+def skip_by_platform(request, device):
+    platforms = {
+        "grayskull": ttnn.device.is_grayskull(device),
+        "wormhole_b0": ttnn.device.is_wormhole_b0(device),
+    }
+    if skip_platform := request.node.get_closest_marker("skip_platform"):
+        if skip_platform.args:
+            arch = skip_platform.args[0]
+            if current_platform := platforms.get(arch):
+                pytest.skip(f"Skipped on {arch}")
+            elif current_platform == None:
+                raise ValueError(f'pytest.skip_platform arch: "{arch}" not valid.')
+            # if false, then continue with test
+        else:
+            raise ValueError(
+                f'pytest.skip_platform missing arch argument string, i.e. pytest.skip_platform("grayskull")'
+            )
+
+
+@pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
     # Initialize early to ensure it's defined
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
@@ -83,7 +103,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
             if accuracy:
                 comp_runtime_metrics["accuracy"] = accuracy
             # dump compiled aten schemas
-            metrics.save_pickle(option.compiled_schema_list, option.metrics_path, "compiled-schema_list")
+            metrics.save_pickle(
+                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+            )
 
             # Memory analysis
             mm = option.memory_manager
@@ -135,10 +157,16 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     raise TypeError(f"{model_name} compiled failed to run.") from e
         finally:
             # dump original aten schemas
-            metrics.save_pickle(option.original_schema_list, option.metrics_path, "original-schema_list")
+            metrics.save_pickle(
+                [x.dict() for x in option.original_schema_list], option.metrics_path, "original-schema_list"
+            )
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
+            # dump compiled aten schemas
+            metrics.save_pickle(
+                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+            )
 
 
 def run_model(model, inputs):
