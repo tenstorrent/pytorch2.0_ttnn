@@ -576,6 +576,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 return None
 
+            if node.target == torch.ops.aten.split.Tensor:
+                tensor, split_size, dim = args
+                if 2 * split_size == tensor.meta["val"].size()[dim]:
+                    return g.call_function(ttnn.split, args=(tensor, 2, dim))
+                return None
+
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
