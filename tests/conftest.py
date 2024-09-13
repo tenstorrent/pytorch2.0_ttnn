@@ -10,6 +10,8 @@ import os
 import pickle
 from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
+import subprocess
+import sys
 
 mb_in_bytes = 1048576
 
@@ -26,6 +28,26 @@ def reset_torch_dynamo():
     # PyTorch caches models. Start a fresh compile for each parameter of the test case.
     torch._dynamo.reset()
     yield
+
+
+@pytest.fixture(autouse=True)
+def skip_by_platform(request, device):
+    platforms = {
+        "grayskull": ttnn.device.is_grayskull(device),
+        "wormhole_b0": ttnn.device.is_wormhole_b0(device),
+    }
+    if skip_platform := request.node.get_closest_marker("skip_platform"):
+        if skip_platform.args:
+            arch = skip_platform.args[0]
+            if current_platform := platforms.get(arch):
+                pytest.skip(f"Skipped on {arch}")
+            elif current_platform == None:
+                raise ValueError(f'pytest.skip_platform arch: "{arch}" not valid.')
+            # if false, then continue with test
+        else:
+            raise ValueError(
+                f'pytest.skip_platform missing arch argument string, i.e. pytest.skip_platform("grayskull")'
+            )
 
 
 @pytest.fixture(autouse=True)
@@ -154,3 +176,13 @@ def run_model(model, inputs):
         return model(*inputs)
     else:
         return model(inputs)
+
+
+@pytest.fixture(scope="module")
+def manage_dependencies(request):
+    dependencies = getattr(request.module, "dependencies", [])
+    # Install dependencies
+    subprocess.check_call([sys.executable, "-m", "pip", "install"] + dependencies)
+    yield
+    # Uninstall dependencies
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies)
