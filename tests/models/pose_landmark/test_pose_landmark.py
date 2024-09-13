@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+from pathlib import Path
 import pytest
 
 dependencies = ["mediapipe"]
@@ -30,19 +31,23 @@ def test_pose_landmark(record_property):
     one afterward to ensure it is being used. This is the most efficient
     workaround I can think of.
     """
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-contrib-python"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "opencv-python-headless==4.8.0.74"])
 
     import mediapipe as mp
     from mediapipe.tasks import python
     from mediapipe.tasks.python import vision
 
-    base_options = python.BaseOptions(model_asset_path="pose_landmarker_lite.task")
+    model_asset_path = Path(__file__).parent / "pose_landmarker_lite.task"
+
+    base_options = python.BaseOptions(model_asset_path=str(model_asset_path))
     options = vision.PoseLandmarkerOptions(base_options=base_options, output_segmentation_masks=True)
     detector = vision.PoseLandmarker.create_from_options(options)
 
     subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python-headless"])
 
-    image = mp.Image.create_from_file("test_image.jpg")
+    image_path = Path(__file__).parent / "test_image.jpg"
+    image = mp.Image.create_from_file(str(image_path))
 
     detection_result = detector.detect(image)
 
