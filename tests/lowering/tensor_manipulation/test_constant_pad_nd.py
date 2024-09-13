@@ -13,7 +13,7 @@ class ConstantPadNdModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape, pad, convert",
+    "input_shape, pad, converted",
     [
         ((1, 1, 32, 32), [0, 64, 0, 32, 0, 4], True),
         ((64, 32), [0, 32, 0, 64], True),
@@ -23,13 +23,13 @@ class ConstantPadNdModule(torch.nn.Module):
         ((16, 16), [0, 16, 0, 0], True),
         ((4,), [0, 16], True),
         [(1, 14, 14, 384), [0, 0, 0, 0, 0, 0], True],
-        # Not supported: more than 4 dims
+        # Not converted: more than 4 dims
         ((1, 1, 1, 32, 32), [0, 32], False),
-        # Not supported: front padding
+        # Not converted: front padding (#192)
         ((32, 32), [32, 0, 32, 0], False),
     ],
 )
-def test_constant_pad_nd(device, input_shape, pad, convert):
+def test_constant_pad_nd(device, input_shape, pad, converted):
     m = ConstantPadNdModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16)
     value = 0.5
@@ -43,6 +43,6 @@ def test_constant_pad_nd(device, input_shape, pad, convert):
 
     # Check the graph has be rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.pad) == (1 if convert else 0)
+    assert [node.target for node in nodes].count(ttnn.pad) == (1 if converted else 0)
     # Check inference result
     assert torch.allclose(result_before, result_after)

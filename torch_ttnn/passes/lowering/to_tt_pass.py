@@ -601,10 +601,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 full_pad = [(0, 0)] * (rank - len(pad))
                 # The order of pad from pytorch is reversed
                 full_pad += [(pad[i], pad[i + 1]) for i in range(0, len(pad), 2)][::-1]
-                # Front padding isn't well supported so skip for now
+                # TODO(#192): Front padding isn't well supported so skip for now
                 if rank > 4 or (not all(f == 0 for f, _ in full_pad)):
                     return None
-                # Change layout to row-major for non tile-size-aligned tensor
+                # Change layout to row-major for non-tile-size-aligned tensor
                 if (
                     rank < 2
                     or input_shape[-1] % ttnn.TILE_SIZE != 0
