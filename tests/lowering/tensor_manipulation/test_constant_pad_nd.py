@@ -22,6 +22,7 @@ class ConstantPadNdModule(torch.nn.Module):
         ((1, 32), [0, 32, 0, 0], True),
         ((16, 16), [0, 16, 0, 0], True),
         ((4,), [0, 16], True),
+        [(1, 14, 14, 384), [0, 0, 0, 0, 0, 0], True],
         # Not supported: more than 4 dims
         ((1, 1, 1, 32, 32), [0, 32], False),
         # Not supported: front padding
