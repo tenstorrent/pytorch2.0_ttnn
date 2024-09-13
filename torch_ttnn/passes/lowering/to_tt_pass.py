@@ -38,6 +38,7 @@ int_output_ops = [
 
 
 ops_incompatible_with_grayskull = {
+    torch.ops.aten.ceil.default,
     torch.ops.aten.floor.default,
 }
 
@@ -190,6 +191,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.atanh.default:
             return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
+
+        if target == torch.ops.aten.ceil.default:
+            return self.call_function_prop_meta(ttnn.ceil, args, kwargs)
 
         if target == torch.ops.aten.clamp.default:
             # aten.clamp args are positional but ttnn.clip uses kw args
