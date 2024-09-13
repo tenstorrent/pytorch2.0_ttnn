@@ -463,4 +463,5 @@ class AddDataMovePass(PassBase):
                             (node,),
                             {"dtype": torch.int64},
                         )
+                        new_node.meta = node.meta
                         node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
