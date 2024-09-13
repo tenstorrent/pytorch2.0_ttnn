@@ -318,11 +318,9 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
 def has_valid_page_size(shape, strict=False):
-    if len(shape) < 2 or shape[-1] == 0:
-        return False
-    if not strict and shape[-1] < 32:
-        return True
-    return shape[-2] % ttnn.TILE_SIZE == 0 and shape[-1] % ttnn.TILE_SIZE == 0
+    if len(shape) >= 2 and shape[-1] > 0:
+        return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
+    return False
 
 
 # override some functions from torch.fx.graph.Graph
@@ -443,18 +441,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return None
 
             if node.target == torch.ops.aten.fill.Scalar:
-                shape = tuple(node.meta["val"].size())
-                if has_valid_page_size(shape, strict=True):
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                    }
-                    return g.call_function(
-                        ttnn.full,
-                        args=(shape,),
-                        kwargs=new_kwargs,
-                    )
+                shape = list(node.meta["val"].size())
+                if len(shape) < 2 or len(shape) > 4:
+                    return None
+                aligned_shape = shape[:-2] + [
+                    (dim + ttnn.TILE_SIZE - 1) // ttnn.TILE_SIZE * ttnn.TILE_SIZE for dim in shape[-2:]
+                ]
+                new_node = g.call_function(
+                    ttnn.full,
+                    args=(aligned_shape,),
+                    kwargs={"fill_value": args[1], "device": TtnnDevice(), "layout": TtnnTileLayout()},
+                )
+                bounds = [(0, dim) for dim in shape]
+                return g.call_function(target_wrappers.getitem, args=(new_node, bounds))
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)

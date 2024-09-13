@@ -10,3 +10,8 @@ def clone(t):
 @torch.fx.wrap
 def repeat(t, sizes):
     return ttnn.repeat(t, ttnn.Shape(sizes))
+
+
+@torch.fx.wrap
+def getitem(t, bounds):
+    return t[[slice(lower, upper) for lower, upper in bounds]]

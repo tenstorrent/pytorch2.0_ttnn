@@ -13,21 +13,24 @@ class FillScalarModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape",
+    "input_shape, value, converted",
     [
-        (64,),
-        (32, 32),
-        (1, 64, 32),
-        (2, 32, 64),
-        (32, 1),
-        (1, 32),
-        (16, 64),
+        ((32, 32), 0.5, True),
+        ((32, 1), 114, True),
+        ((1, 32), 120, True),
+        ((4, 4), 32, True),
+        ((1, 2, 100, 100), 16, True),
+        ((1, 1, 1, 1), 61, True),
+        ((2, 1, 1, 1), 64, True),
+        ((1, 1, 2, 1), 8, True),
+        # Not supported: dims > 4 or < 2
+        ((1, 1, 1, 2, 2), 1.0, False),
+        ((64,), 1.0, False),
     ],
 )
-def test_fill_scalar(device, input_shape):
+def test_fill_scalar(device, input_shape, value, converted):
     m = FillScalarModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16)
-    value = 0.125
     result_before = m.forward(input, value)
 
     option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True)
@@ -38,10 +41,6 @@ def test_fill_scalar(device, input_shape):
 
     # Check the graph has be rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    # Currently only tensor sizes divisible by 32x32 are converted.
-    if len(input_shape) > 1 and input_shape[-1] % ttnn.TILE_SIZE == 0 and input_shape[-2] % ttnn.TILE_SIZE == 0:
-        assert [node.target for node in nodes].count(ttnn.full) == 1
-    else:
-        assert [node.target for node in nodes].count(ttnn.full) == 0
+    assert [node.target for node in nodes].count(ttnn.full) == (1 if converted else 0)
     # Check inference result
     assert torch.allclose(result_before, result_after)
