@@ -3,11 +3,13 @@
 
 from urllib.request import urlopen
 from PIL import Image
-import timm
 import torch
 import pytest
 
+dependencies = ["timm==1.0.9"]
 
+
+@pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.parametrize(
     "model_name",
     [
@@ -27,7 +29,6 @@ import pytest
         "hrnet_w18.ms_aug_in1k",
     ],
 )
-@pytest.mark.skip(reason="Failing during torch run, raising a RuntimeError('Unknown model")
 @pytest.mark.compilation_xfail
 def test_timm_image_classification(record_property, model_name):
     record_property("model_name", model_name)
@@ -35,6 +36,8 @@ def test_timm_image_classification(record_property, model_name):
     img = Image.open(
         urlopen("https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/beignets-task-guide.png")
     )
+
+    import timm
 
     model = timm.create_model(model_name, pretrained=True)
     model = model.eval()

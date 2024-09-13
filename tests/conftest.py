@@ -10,6 +10,8 @@ import os
 import pickle
 from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
+import subprocess
+import sys
 
 mb_in_bytes = 1048576
 
@@ -81,7 +83,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
             if accuracy:
                 comp_runtime_metrics["accuracy"] = accuracy
             # dump compiled aten schemas
-            metrics.save_pickle(option.compiled_schema_list, option.metrics_path, "compiled-schema_list")
+            metrics.save_pickle(
+                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+            )
 
             # Memory analysis
             mm = option.memory_manager
@@ -133,10 +137,16 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     raise TypeError(f"{model_name} compiled failed to run.") from e
         finally:
             # dump original aten schemas
-            metrics.save_pickle(option.original_schema_list, option.metrics_path, "original-schema_list")
+            metrics.save_pickle(
+                [x.dict() for x in option.original_schema_list], option.metrics_path, "original-schema_list"
+            )
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
+            # dump compiled aten schemas
+            metrics.save_pickle(
+                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+            )
 
 
 def run_model(model, inputs):
@@ -146,3 +156,13 @@ def run_model(model, inputs):
         return model(*inputs)
     else:
         return model(inputs)
+
+
+@pytest.fixture(scope="module")
+def manage_dependencies(request):
+    dependencies = getattr(request.module, "dependencies", [])
+    # Install dependencies
+    subprocess.check_call([sys.executable, "-m", "pip", "install"] + dependencies)
+    yield
+    # Uninstall dependencies
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies)
