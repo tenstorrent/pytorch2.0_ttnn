@@ -26,8 +26,7 @@ jobs:
     runs-on: ["in-service", "n150"]
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-
+      - uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
@@ -90,7 +89,23 @@ jobs:
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: tests/metrics/
+  
+  
+  validate-pr:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Final Model Test Results
+    needs: [model-tests]
+    steps:
+      - run: |
+          result="${{ needs.model-tests.result }}"
+          if [[ $result == "success" || $result == "skipped" ]]; then
+            exit 0
+          else
+            exit 1
+          fi
 
+          
   collect-metrics:
     needs: model-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}

@@ -38,6 +38,7 @@ def test_if(device, input_shape):
     nodes_0 = list(option._out_fx_graphs[0].nodes)
     target_0 = [node.target for node in nodes_0]
     assert target_0.count(torch.ops.aten.sum.default) == 1
+    # This `gt` is not converted yet because its shape does not fit tiled layout
     assert target_0.count(torch.ops.aten.gt.Scalar) == 1
     nodes_1 = list(option._out_fx_graphs[1].nodes)
     target_1 = [node.target for node in nodes_1]
