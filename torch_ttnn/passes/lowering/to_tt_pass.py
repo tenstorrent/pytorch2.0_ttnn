@@ -292,9 +292,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 
-        if target == torch.ops.aten.repeat.default:
-            return self.call_function_prop_meta(target_wrappers.repeat, args, kwargs)
-
         if target == torch.ops.aten.view.default:
             # aten.reshape is more stable if the input nodes have changed
             return self.call_function_prop_meta(torch.ops.aten.reshape.default, args, kwargs)
@@ -565,6 +562,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
                     return args[0]
                 return None
+
+            if node.target == torch.ops.aten.repeat.default:
+                tensor, sizes = args
+                shape = tensor.meta["val"].size()
+
+                if np.prod(sizes) == 1:
+                    return tensor
+
+                # Repeat fails if last dimension of input is 1
+                if shape[-1] == 1:
+                    return None
+
+                return g.call_function(target_wrappers.repeat, args=(tensor, sizes))
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()

@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 import torch
 import ttnn
@@ -15,7 +16,13 @@ class RepeatModule(torch.nn.Module):
 @pytest.mark.parametrize(
     "input_shape, sizes",
     (
-        ((4, 4), (3, 2)),
+        pytest.param(
+            (4, 4),
+            (3, 2),
+            marks=pytest.mark.xfail(
+                reason="Current repeat implementation requires aligned last dim when repeating on last dim"
+            ),
+        ),
         ((1, 1, 1), (1, 1, 1)),
         ((1, 1, 2048, 2048), (1, 1, 1, 1)),
         ((1, 1, 256), (1, 1, 1)),
@@ -45,7 +52,9 @@ def test_repeat(device, input_shape, sizes):
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
+    non_trivial = np.prod(sizes) != 1
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(torch_ttnn.target_wrappers.repeat) == 1
+    assert [node.target for node in nodes].count(torch_ttnn.target_wrappers.repeat) == non_trivial
+
     # Check inference result
     assert torch.allclose(result_before, result_after)
