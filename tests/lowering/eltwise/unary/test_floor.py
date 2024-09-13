@@ -21,6 +21,7 @@ class FloorModule(torch.nn.Module):
         (1, 1, 32, 1),
         (4, 4),
         (4, 32),
+        (1066,),
     ),
 )
 def test_floor(device, input_shape):
