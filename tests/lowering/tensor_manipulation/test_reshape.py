@@ -14,7 +14,7 @@ class ReshapeModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shape, new_shape",
-    [((3 * 5, 7), (7 * 3, 5))],
+    (((3 * 5, 7), (7 * 3, 5)), ((1, 512, 1, 1), (1, 512))),
 )
 def test_reshape(device, input_shape, new_shape):
     m = ReshapeModule()
