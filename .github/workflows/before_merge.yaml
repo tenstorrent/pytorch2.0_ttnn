@@ -20,7 +20,6 @@ permissions:
 jobs:
   tools-tests:
     env:
-      ARCH_NAME: wormhole_b0
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service", "n150"]
@@ -34,7 +33,6 @@ jobs:
   lowering-tests:
     runs-on: ["in-service", "n150"]
     env:
-      ARCH_NAME: wormhole_b0
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
     strategy:
@@ -55,8 +53,7 @@ jobs:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
 
-    env:
-      ARCH_NAME: wormhole_b0
+    env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
     steps:
