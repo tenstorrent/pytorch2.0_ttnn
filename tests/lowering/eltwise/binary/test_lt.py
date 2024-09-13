@@ -41,7 +41,6 @@ def test_lt_tensor(device, input_shapes):
     assert torch.allclose(result_before, result_after.to(torch.bool))
 
 
-@pytest.mark.xfail(reason="RuntimeError: Bool did not match BFloat16")
 @pytest.mark.parametrize(
     "input_shapes",
     [[(64, 128)]],
@@ -69,4 +68,4 @@ def test_lt_scalar(device, input_shapes):
         if node.target == ttnn.full:
             assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
-    assert torch.allclose(result_before, result_after)
+    assert torch.allclose(result_before, result_after.to(torch.bool))
