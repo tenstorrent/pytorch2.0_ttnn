@@ -12,6 +12,7 @@ def repeat(t, sizes):
     return ttnn.repeat(t, ttnn.Shape(sizes))
 
 
+# Perform symbolic crop operation `t[0:a, 0:b, ...]`, which results in the shape `(a[x], b[y], ...)`
 @torch.fx.wrap
-def getitem(t, bounds):
-    return t[[slice(lower, upper) for lower, upper in bounds]]
+def crop(t, sizes):
+    return t[[slice(0, size) for size in sizes]]

@@ -444,16 +444,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = list(node.meta["val"].size())
                 if len(shape) < 2 or len(shape) > 4:
                     return None
-                aligned_shape = shape[:-2] + [
-                    (dim + ttnn.TILE_SIZE - 1) // ttnn.TILE_SIZE * ttnn.TILE_SIZE for dim in shape[-2:]
-                ]
+                # Align the last 2 dims to ttnn.TILE_SIZE
+                aligned_shape = shape[:-2] + [((dim - 1) // ttnn.TILE_SIZE + 1) * ttnn.TILE_SIZE for dim in shape[-2:]]
                 new_node = g.call_function(
                     ttnn.full,
                     args=(aligned_shape,),
                     kwargs={"fill_value": args[1], "device": TtnnDevice(), "layout": TtnnTileLayout()},
                 )
-                bounds = [(0, dim) for dim in shape]
-                return g.call_function(target_wrappers.getitem, args=(new_node, bounds))
+                # Crop back to the original size
+                return g.call_function(target_wrappers.crop, args=(new_node, shape))
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
