@@ -605,14 +605,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if rank > 4 or (not all(f == 0 for f, _ in full_pad)):
                     return None
                 # Change layout to row-major for non tile-size-aligned tensor
-                if not (
-                    rank >= 2
-                    and input_shape[-1] % ttnn.TILE_SIZE == 0
-                    and input_shape[-2] % ttnn.TILE_SIZE == 0
-                    and full_pad[-1][1] % ttnn.TILE_SIZE == 0
-                    and full_pad[-2][1] % ttnn.TILE_SIZE == 0
+                if (
+                    rank < 2
+                    or input_shape[-1] % ttnn.TILE_SIZE != 0
+                    or input_shape[-2] % ttnn.TILE_SIZE != 0
+                    or full_pad[-1][1] % ttnn.TILE_SIZE != 0
+                    or full_pad[-2][1] % ttnn.TILE_SIZE != 0
                 ):
-                    input = g.call_function(ttnn.to_layout, (input,), {"layout": TtnnRowMajorLayout()})
+                    input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
         with g.inserting_before(node):
