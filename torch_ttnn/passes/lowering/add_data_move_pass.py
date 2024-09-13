@@ -33,9 +33,8 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.asin,
     ttnn.asinh,
     ttnn.atan,
-    ttnn.atan2,  # binary
     ttnn.atanh,
-    #  ttnn.clone,  in target_wrappers
+    ttnn.ceil,
     ttnn.cos,
     ttnn.cosh,
     ttnn.erf,
@@ -72,6 +71,7 @@ TTNN_POINTWISE_UNARY_OPS = [
 
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
+    ttnn.atan2,
     ttnn.eqz,
     ttnn.gez,
     ttnn.ge,
