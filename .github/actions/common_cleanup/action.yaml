@@ -10,5 +10,6 @@ runs:
         python3 -m pip cache purge
         python3 tools/huggingface_delete_cache.py
         rm -rf ~/.torch/models
+        rm -rf ~/.cache/custom_weights
         free -h
         df -h
