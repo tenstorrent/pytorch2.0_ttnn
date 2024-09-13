@@ -544,27 +544,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 """
                 return None
 
-            if node.target == torch.ops.aten.expand.default:
-                # aten.expand and ttnn.repeat has different meaning for their `shape` argument
-                # aten.expand: the desired output shape, where respective singleton dims are broadcasted
-                # ttnn.repeat: the number of times to repeat a respective singleton dim
-                input_tensor_shape = args[0].meta["val"].size()
-                # Repeat fails if last dimension of input is 1
-                if input_tensor_shape[-1] != 1:
-                    output_shape = torch.Size(args[1])
-
-                    multiplier = np.array(output_shape) // np.array(input_tensor_shape)
-                    # -1 // positive non-zero number will always be -1
-                    # Convert -1 to 1
-                    multiplier = np.array([1 if i == -1 else i for i in multiplier])
-
-                    if np.prod(multiplier) != 1:
-                        return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
-                    return args[0]
-                return None
-
-            if node.target == torch.ops.aten.repeat.default:
-                tensor, sizes = args
+            def convert_repeat(tensor, sizes):
                 shape = tensor.meta["val"].size()
 
                 if np.prod(sizes) == 1:
@@ -572,9 +552,29 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 # Current repeat implementation requires aligned last dim when repeating on last dim
                 if sizes[-1] == 1 or shape[-1] % 16 == 0:
-                    return g.call_function(target_wrappers.repeat, args)
+                    return g.call_function(target_wrappers.repeat, (tensor, sizes))
 
                 return None
+
+            if node.target == torch.ops.aten.repeat.default:
+                return convert_repeat(*args)
+
+            if node.target == torch.ops.aten.expand.default:
+                tensor, output_shape = args
+                input_shape = tensor.meta["val"].size()
+                kernel_dims = len(output_shape) - len(input_shape)
+
+                # Expand can't decrease rank
+                if kernel_dims < 0:
+                    return None
+
+                def callback(t):
+                    y, x = t
+                    return y // x if y != -1 else 1
+
+                prefix = output_shape[:kernel_dims]
+                suffix = map(callback, zip(output_shape[kernel_dims:], input_shape))
+                return convert_repeat(tensor, (*prefix, *suffix))
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
@@ -617,6 +617,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
+
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad, value = args
                 input_shape = input.meta["val"].size()
@@ -637,6 +638,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
