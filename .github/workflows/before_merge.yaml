@@ -20,7 +20,6 @@ permissions:
 jobs:
   tools-tests:
     env:
-      ARCH_NAME: wormhole_b0
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service", "n150"]
@@ -34,7 +33,6 @@ jobs:
   lowering-tests:
     runs-on: ["in-service", "n150"]
     env:
-      ARCH_NAME: wormhole_b0
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
     strategy:
@@ -55,12 +53,13 @@ jobs:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
 
-    env:
-      ARCH_NAME: wormhole_b0
+    env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true          
       - uses: ./.github/actions/common_repo_setup
       
       - name: Run Model Tests
@@ -81,31 +80,20 @@ jobs:
             exit 1;  # Fail the workflow for other errors
           fi
           echo "Success: Tests passed!";
+          ls -l
+          cd metrics
+          ls -l
+          cd ..
           exit 0;
 
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
-          path: tests/metrics/
-  
-  
-  validate-pr:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    name: Final Model Test Results
-    needs: [model-tests]
-    steps:
-      - run: |
-          result="${{ needs.model-tests.result }}"
-          if [[ $result == "success" || $result == "skipped" ]]; then
-            exit 0
-          else
-            exit 1
-          fi
+          path: metrics/
 
-          
+            
   collect-metrics:
     needs: model-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
@@ -115,17 +103,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
-      
-      - name: Download Metrics Artifacts
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          mkdir -p tests/metrics
-          for i in $(seq 1 40); do
-            echo "Downloading metrics for Group $i"
-            gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir tests/metrics/
-          done
+
+      - name: Download All Metrics Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-metrics-group-*
+          merge-multiple: true
+          path: metrics/
+      # - name: Download Metrics Artifacts
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     GH_REPO: ${{ github.repository }}
+      #   run: |
+      #     mkdir -p metrics
+      #     for i in $(seq 1 40); do
+      #       echo "Downloading metrics for Group $i"
+      #       gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
+      #       cd metrics
+      #       ls -l
+      #       cd ..
+      #     done
 
       - name: Collect Metrics Report
         run: | 
@@ -148,4 +145,18 @@ jobs:
           else
             git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
             git push
+          fi
+
+  validate-pr:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Final Model Test Results
+    needs: [model-tests, collect-metrics]
+    steps:
+      - run: |
+          result="${{ needs.model-tests.result}}"
+          if [[ $result == "success" || $result == "skipped" ]]; then
+            exit 0
+          else
+            exit 1
           fi
