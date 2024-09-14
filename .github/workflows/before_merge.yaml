@@ -78,7 +78,7 @@ jobs:
             exit 1;  # Fail the workflow for other errors
           fi
           echo "Success: Tests passed!";
-          python3 tools/collect_metrics.py
+          PYTHONPATH=$(pwd) python3 tools/collect_metrics.py
           exit 0;
 
       - name: Upload Metrics Artifact
