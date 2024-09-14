@@ -78,7 +78,6 @@ jobs:
             exit 1;  # Fail the workflow for other errors
           fi
           echo "Success: Tests passed!";
-          PYTHONPATH=$(pwd) python3 tools/collect_metrics.py
           exit 0;
 
       - name: Upload Metrics Artifact
@@ -86,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
-          path: tests/metrics/
+          path: metrics/
   
   
   validate-pr:
@@ -122,7 +121,7 @@ jobs:
           mkdir -p tests/metrics
           for i in $(seq 1 40); do
             echo "Downloading metrics for Group $i"
-            gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir tests/metrics/
+            gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
           done
 
       - name: Collect Metrics Report
