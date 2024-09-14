@@ -1,5 +1,8 @@
 # Reference: https://colab.research.google.com/github/googlesamples/mediapipe/blob/main/examples/hand_landmarker/python/hand_landmarker.ipynb
 
+import subprocess
+import sys
+from pathlib import Path
 import pytest
 
 dependencies = ["mediapipe"]
@@ -10,15 +13,49 @@ dependencies = ["mediapipe"]
 def test_hand_landmark(record_property):
     record_property("model_name", "Hand Landmark")
 
+    """
+    Workaround!
+    -----------
+    We decided to install the Python package below within the test, rather than
+    using the typical approach with the `dependencies` variable mentioned above.
+    The reason is that we want to overwrite the dependencies installed by the
+    standard method and ensure we are using the exact package specified below.
+    If we don't, we may unintentionally use a package that requires GPU support.
+
+    Here's the background: this test uses the Hand Landmark model from the `mediapipe`
+    package, which we need to install. However, installing this package also
+    pulls in a dependent package, `opencv-python`, which unfortunately requires
+    GPU support. Fortunately, we found a lightweight alternative,
+    `opencv-python-headless`, that does not require GPU support. Since we can't
+    prevent the installation of the undesired package, we install the preferred
+    one afterward to ensure it is being used. This is the most efficient
+    workaround I can think of.
+    """
+    # Uninstall the GPU version of opencv packages.
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python", "opencv-contrib-python"])
+    # Install the CPU version of opencv package.
+    # Need `--force-reinstall` to handle the case that this CPU opencv has been
+    # installed before this test, which leads to the ignorance of the following
+    # installation if without `--force-reinstall`.
+    # However, this package actually becomes broken and needs reinstallation
+    # because some of the common dependencies between GPU and CPU opencv were
+    # uninstalled by the above uninstallation of GPU opencv.
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "--force-reinstall", "opencv-python-headless==4.8.0.74"]
+    )
+
     import mediapipe as mp
     from mediapipe.tasks import python
     from mediapipe.tasks.python import vision
 
-    base_options = python.BaseOptions(model_asset_path="hand_landmarker.task")
+    model_asset_path = Path(__file__).parent / "hand_landmarker.task"
+
+    base_options = python.BaseOptions(model_asset_path=str(model_asset_path))
     options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
     detector = vision.HandLandmarker.create_from_options(options)
 
-    image = mp.Image.create_from_file("woman_hands.jpg")
+    image_path = Path(__file__).parent / "woman_hands.jpg"
+    image = mp.Image.create_from_file(str(image_path))
 
     detection_result = detector.detect(image)
 
