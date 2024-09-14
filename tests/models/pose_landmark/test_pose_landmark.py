@@ -31,8 +31,18 @@ def test_pose_landmark(record_property):
     one afterward to ensure it is being used. This is the most efficient
     workaround I can think of.
     """
-    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-contrib-python"])
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "opencv-python-headless==4.8.0.74"])
+    # Uninstall the GPU version of opencv packages.
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python", "opencv-contrib-python"])
+    # Install the CPU version of opencv package.
+    # Need `--force-reinstall` to handle the case that this CPU opencv has been
+    # installed before this test, which leads to the ignorance of the following
+    # installation if without `--force-reinstall`.
+    # However, this package actually becomes broken and needs reinstallation
+    # because some of the common dependencies between GPU and CPU opencv were
+    # uninstalled by the above uninstallation of GPU opencv.
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "--force-reinstall", "opencv-python-headless==4.8.0.74"]
+    )
 
     import mediapipe as mp
     from mediapipe.tasks import python
