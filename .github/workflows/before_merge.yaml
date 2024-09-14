@@ -88,7 +88,7 @@ jobs:
 
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
@@ -105,7 +105,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           pattern: model-tests-metrics-group-*
           merge-multiple: true
