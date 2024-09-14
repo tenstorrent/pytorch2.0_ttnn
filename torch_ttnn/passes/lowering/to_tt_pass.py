@@ -629,8 +629,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 weight_shape = args[1].meta["val"].size()
 
                 if len(input_shape) == 4:
+                    input_nhwc = g.call_function(ttnn.permute, (args[0], (0, 2, 3, 1)))
                     kwargs = {
-                        "input_tensor": args[0],
+                        "input_tensor": input_nhwc,
                         "weight_tensor": args[1],
                         "bias_tensor": args[2],
                         "stride": args[3],
@@ -644,10 +645,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         "input_width": input_shape[3],
                         "kernel_size": [*weight_shape[2:]],
                         "device": TtnnDevice(),
-                        **node.kwargs,
+                        **kwargs,
                     }
-                    return g.call_function(ttnn.conv2d, (), kwargs)
+                    output_nhwc = g.call_function(ttnn.conv2d, (), kwargs)
+                    return g.call_function(ttnn.permute, (output_nhwc, (0, 3, 1, 2)))
                 return None
+
+            return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
