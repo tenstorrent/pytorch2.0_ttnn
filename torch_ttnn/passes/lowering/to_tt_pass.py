@@ -629,7 +629,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 weight_shape = args[1].meta["val"].size()
 
                 if len(input_shape) == 4:
+                    in_n, in_c, in_h, in_w = input_shape
+                    out_n, out_c, out_h, out_w = output_shape
                     input_nhwc = g.call_function(ttnn.permute, (args[0], (0, 2, 3, 1)))
+                    input_nhwc = g.call_function(ttnn.reshape, (input_nhwc, (in_n * in_h * in_w, in_c)))
                     kwargs = {
                         "input_tensor": input_nhwc,
                         "weight_tensor": args[1],
@@ -638,16 +641,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         "padding": args[4],
                         "dilation": args[5],
                         "groups": args[8],
-                        "in_channels": input_shape[1],
-                        "out_channels": output_shape[1],
-                        "batch_size": input_shape[0],
-                        "input_height": input_shape[2],
-                        "input_width": input_shape[3],
+                        "in_channels": in_c,
+                        "out_channels": out_c,
+                        "batch_size": in_n,
+                        "input_height": in_h,
+                        "input_width": in_w,
                         "kernel_size": [*weight_shape[2:]],
                         "device": TtnnDevice(),
                         **kwargs,
                     }
                     output_nhwc = g.call_function(ttnn.conv2d, (), kwargs)
+                    output_nhwc = g.call_function(ttnn.reshape, (output_nhwc, (out_n, out_h, out_w, out_c)))
                     return g.call_function(ttnn.permute, (output_nhwc, (0, 3, 1, 2)))
                 return None
 
