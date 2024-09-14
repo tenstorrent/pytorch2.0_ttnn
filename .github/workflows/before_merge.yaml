@@ -58,6 +58,8 @@ jobs:
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true          
       - uses: ./.github/actions/common_repo_setup
       
       - name: Run Model Tests
@@ -78,6 +80,10 @@ jobs:
             exit 1;  # Fail the workflow for other errors
           fi
           echo "Success: Tests passed!";
+          ls -l
+          cd metrics
+          ls -l
+          cd ..
           exit 0;
 
       - name: Upload Metrics Artifact
