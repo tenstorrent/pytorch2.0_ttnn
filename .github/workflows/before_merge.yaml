@@ -124,10 +124,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          mkdir -p tests/metrics
+          mkdir -p metrics
           for i in $(seq 1 40); do
             echo "Downloading metrics for Group $i"
             gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
+            cd metrics
+            ls -l
           done
 
       - name: Collect Metrics Report
