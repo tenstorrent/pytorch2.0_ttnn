@@ -118,20 +118,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
-      
-      - name: Download Metrics Artifacts
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          mkdir -p metrics
-          for i in $(seq 1 40); do
-            echo "Downloading metrics for Group $i"
-            gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
-            cd metrics
-            ls -l
-            cd ..
-          done
+
+      - name: Download All Metrics Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: model-tests-metrics-group-*
+          path: metrics/
+      # - name: Download Metrics Artifacts
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     GH_REPO: ${{ github.repository }}
+      #   run: |
+      #     mkdir -p metrics
+      #     for i in $(seq 1 40); do
+      #       echo "Downloading metrics for Group $i"
+      #       gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
+      #       cd metrics
+      #       ls -l
+      #       cd ..
+      #     done
 
       - name: Collect Metrics Report
         run: | 
