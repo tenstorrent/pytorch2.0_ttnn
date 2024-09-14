@@ -130,6 +130,7 @@ jobs:
             gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
             cd metrics
             ls -l
+            cd ..
           done
 
       - name: Collect Metrics Report
