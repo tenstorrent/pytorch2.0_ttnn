@@ -92,23 +92,8 @@ jobs:
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
-  
-  
-  validate-pr:
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    name: Final Model Test Results
-    needs: [model-tests]
-    steps:
-      - run: |
-          result="${{ needs.model-tests.result }}"
-          if [[ $result == "success" || $result == "skipped" ]]; then
-            exit 0
-          else
-            exit 1
-          fi
 
-          
+            
   collect-metrics:
     needs: model-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
@@ -122,7 +107,8 @@ jobs:
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v3
         with:
-          name: model-tests-metrics-group-*
+          pattern: model-tests-metrics-group-*
+          merge-multiple: true
           path: metrics/
       # - name: Download Metrics Artifacts
       #   env:
@@ -159,4 +145,18 @@ jobs:
           else
             git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
             git push
+          fi
+
+  validate-pr:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Final Model Test Results
+    needs: [model-tests, collect-metrics]
+    steps:
+      - run: |
+          result="${{ needs.model-tests.result}}"
+          if [[ $result == "success" || $result == "skipped" ]]; then
+            exit 0
+          else
+            exit 1
           fi
