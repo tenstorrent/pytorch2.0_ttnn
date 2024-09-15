@@ -4,6 +4,7 @@ from torchvision import transforms
 import requests
 import subprocess
 import sys
+import os
 import pytest
 
 dependencies = ["ultralytics==8.2.92", "ultralytics-thop==2.0.6"]
@@ -51,6 +52,27 @@ def test_yolov5(record_property):
 
     # Model
     model = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True, autoshape=False, device="cpu")
+
+    # Remove the downloaded pretrained weight file.
+    """
+    * Safe to remove: The weight file is an intermediate step of loading
+        weights. Finally it has a copy in memory, and the file is no longer
+        necessary.
+    * Not in `.cache/`: Downloaded files like this one are supposed to store
+        at directory `~/.cache/`, where temporary and downloaded files are
+        collected together during testing, and we can easily do the cleaning
+        after testing. Actually, function `torch.hub.load` you can see above
+        is supposed to follow this convention. However, this test is an
+        exception. The model YOLOv5 does not come directly from Torch Hub.
+        In fact, it comes from another package `ultralytics`. Unfortunately,
+        `ultralytics` does not follow the cache convention. It saves
+        downloaded files at where the test is run, which is not good and may
+        leave garbage files everywhere. Therefore, we decided to clean it by
+        the test itself.
+    """
+    downloaded_file = "yolov5s.pt"
+    if os.path.exists(downloaded_file):
+        os.remove(downloaded_file)
 
     subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python-headless"])
 
