@@ -316,6 +316,3 @@ def test_model_name(record_property):
 
 If `model.generate(inputs)` is used, pass in `model.generate` instead of `model` to `record_property`.
 
-If your test includes not only Python test functions but also binary files, such as model objects or images, make sure to commit the binary files using Git LFS.
-
-It also means you need to install Git LFS to run such tests successfully.
