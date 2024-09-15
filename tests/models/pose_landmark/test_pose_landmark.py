@@ -3,6 +3,7 @@
 import subprocess
 import sys
 from pathlib import Path
+import os
 import pytest
 
 dependencies = ["mediapipe"]
@@ -12,6 +13,11 @@ dependencies = ["mediapipe"]
 @pytest.mark.compilation_xfail
 def test_pose_landmark(record_property):
     record_property("model_name", "Pose Landmark")
+
+    """
+    Forcely do `git lfs pull` to make sure the LFS files needed by this test are available.
+    """
+    subprocess.run(["git", "lfs", "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     """
     Workaround!
@@ -49,6 +55,8 @@ def test_pose_landmark(record_property):
     from mediapipe.tasks.python import vision
 
     model_asset_path = Path(__file__).parent / "pose_landmarker_lite.task"
+    file_size = os.path.getsize(str(model_asset_path))
+    print(f"File size of pose_landmarker_lite.task is {file_size} bytes.")
 
     base_options = python.BaseOptions(model_asset_path=str(model_asset_path))
     options = vision.PoseLandmarkerOptions(base_options=base_options, output_segmentation_masks=True)
