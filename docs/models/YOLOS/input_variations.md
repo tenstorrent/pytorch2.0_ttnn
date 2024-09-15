@@ -14,7 +14,7 @@
 | 10 | aten.convolution.default       |                  1 |           0 |
 | 11 | aten.div.Tensor                |                  1 |           0 |
 | 12 | aten.expand.default            |                  5 |           0 |
-| 13 | aten.floor.default             |                  2 |           0 |
+| 13 | aten.floor.default             |                  2 |           2 |
 | 14 | aten.gelu.default              |                  1 |           1 |
 | 15 | aten.mul.Tensor                |                 10 |          10 |
 | 16 | aten.native_layer_norm.default |                  1 |           1 |
@@ -114,8 +114,8 @@
 ### aten.floor.default
 |    | ATen Input Variations          | Status   |
 |---:|:-------------------------------|:---------|
-|  0 | Tensor<[1, 1, 1, 42]> self = ? | Unknown  |
-|  1 | Tensor<[1, 1, 32, 1]> self = ? | Unknown  |
+|  0 | Tensor<[1, 1, 1, 42]> self = ? | Done     |
+|  1 | Tensor<[1, 1, 32, 1]> self = ? | Done     |
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   |
 |---:|:--------------------------------|:---------|
