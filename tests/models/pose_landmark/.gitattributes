@@ -1,2 +1,0 @@
-pose_landmarker_lite.task filter=lfs diff=lfs merge=lfs -text
-test_image.jpg filter=lfs diff=lfs merge=lfs -text
