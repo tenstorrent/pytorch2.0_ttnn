@@ -10,3 +10,4 @@ stat
 *.pt
 metrics
 data
+.ttnn_runtime_artifacts
