@@ -15,6 +15,8 @@ import torch_ttnn.metrics as metrics
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
+import math
+import operator
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -617,6 +619,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
+
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad, value = args
                 input_shape = input.meta["val"].size()
@@ -637,6 +640,37 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            if node.target == torch.ops.aten.topk.default:
+                input = args[0]
+                k = args[1]
+                dim = args[2] if len(args) >= 3 else -1
+                largest = args[3] if len(args) >= 4 else True
+                sorted = args[4] if len(args) >= 5 else True
+                # Currently unsupported by ttnn.topk
+                if k > 32 or dim != -1 or (not largest) or (not sorted):
+                    return None
+
+                input_shape = list(input.meta["val"].size())
+                shape_4d = [1, 1, math.prod(input_shape[:-1]), input_shape[-1]]
+                input = g.call_function(ttnn.reshape, args=(input, shape_4d))
+
+                next_pow_of_2 = max(1 << (input_shape[-1] - 1).bit_length(), 64)
+                input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
+                input = g.call_function(ttnn.pad, args=(input, [(0, next_pow_of_2 - input_shape[-1])], -math.inf))
+                input = g.call_function(ttnn.to_layout, args=(input, TtnnTileLayout()))
+
+                output = g.call_function(ttnn.topk, args=(input, 32, dim, largest, sorted))
+
+                values = g.call_function(operator.getitem, args=(output, 0))
+                indices = g.call_function(operator.getitem, args=(output, 1))
+                values = g.call_function(target_wrappers.crop, args=(values, shape_4d[:-1] + [k]))
+                indices = g.call_function(target_wrappers.crop, args=(indices, shape_4d[:-1] + [k]))
+
+                output_shape = input_shape[:-1] + [k]
+                values = g.call_function(ttnn.reshape, args=(values, output_shape))
+                indices = g.call_function(ttnn.reshape, args=(indices, output_shape))
+                return g.call_function(tuple, args=((values, indices),))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)

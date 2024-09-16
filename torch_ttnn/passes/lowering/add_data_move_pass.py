@@ -123,7 +123,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.to_layout,
 ]
 
-TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
+TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.crop, target_wrappers.repeat]
 
 TTNN_NORM_OPS = [
     ttnn.group_norm,
@@ -141,6 +141,12 @@ def is_tt_compute(node) -> bool:
     # we have to check the input of split
     if node.op == "call_function" and node.target.__name__ == "getitem":
         return is_tt_compute(node.args[0])
+
+    if node.op == "call_function" and node.target.__name__ == "tuple":
+        checks = [is_tt_compute(arg) for arg in node.args[0]]
+        all_tt = all(check for check in checks)
+        assert all_tt or all(not check for check in checks), "only support pure tt/non-tt tuple"
+        return all_tt
 
     return node.target in set(
         TTNN_POINTWISE_UNARY_OPS
@@ -162,6 +168,7 @@ def is_tt_compute(node) -> bool:
             ttnn.squeeze,
             ttnn.full,
             ttnn.as_tensor,
+            ttnn.topk,
         ]
     )
 
