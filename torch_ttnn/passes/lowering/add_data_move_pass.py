@@ -54,6 +54,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.neg,
     ttnn.reciprocal,
     ttnn.relu,
+    ttnn.remainder,
     ttnn.rsqrt,
     ttnn.sigmoid,
     ttnn.softmax,
