@@ -647,17 +647,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 except:
                     return None
 
-                in_n, in_c, in_h, in_w = args[0].meta["val"].size()
+                def supply_args(input, kernel_size, stride=[1, 1], padding=[0, 0], dilation=[1, 1]):
+                    return input, kernel_size, stride, padding, dilation
+
+                input, kernel_size, stride, padding, dilation = supply_args(*args)
+                in_n, in_c, in_h, in_w = input.meta["val"].size()
                 out_n, out_c, out_h, out_w = node.meta["val"][0].size()
-                input_nhwc = g.call_function(ttnn.permute, (args[0], (0, 2, 3, 1)))
+                input_nhwc = g.call_function(ttnn.permute, (input, (0, 2, 3, 1)))
                 input_nhwc = g.call_function(ttnn.reshape, (input_nhwc, (-1, in_c)))
-                kwargs = {
-                    "stride": (1, 1),
-                    "padding": (0, 0),
-                    "dilation": (1, 1),
-                    **node.kwargs,
-                }
-                output_nhwc = g.call_function(ttnn.max_pool2d, (input_nhwc, in_n, in_h, in_w, in_c, args[1]), kwargs)
+                output_nhwc = g.call_function(
+                    ttnn.max_pool2d, (input_nhwc, in_n, in_h, in_w, in_c, kernel_size, stride, padding, dilation)
+                )
                 output_nhwc = g.call_function(ttnn.reshape, (output_nhwc, (out_n, out_h, out_w, out_c)))
                 output = g.call_function(ttnn.permute, (output_nhwc, (0, 3, 1, 2)))
                 user.replace_all_uses_with(output)
