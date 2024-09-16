@@ -29,12 +29,12 @@ def test_remainder(device, input_shape, mod, converted):
     # print(torch.export.export(m, args=(input, mod)))
 
     option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True)
-    # # The compilation is lazy, so we need to run forward once to trigger the compilation
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m.forward(input, mod)
     option._out_fx_graphs[0].print_tabular()
 
-    # # Check the graph has be rewritten and contains ttnn ops
+    # Check the graph has be rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.remainder) == (1 if converted else 0)
     # Check inference result
