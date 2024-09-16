@@ -14,6 +14,11 @@ def test_hand_landmark(record_property):
     record_property("model_name", "Hand Landmark")
 
     """
+     Forcely do `git lfs pull` to make sure the LFS files needed by this test are available.
+    """
+    subprocess.run(["git", "lfs", "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    """
     Workaround!
     -----------
     We decided to install the Python package below within the test, rather than
