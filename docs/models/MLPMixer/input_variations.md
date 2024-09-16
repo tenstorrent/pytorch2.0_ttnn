@@ -11,7 +11,7 @@
 |  7 | aten.native_layer_norm.default |                  1 |           1 |
 |  8 | aten.permute.default           |                  2 |           2 |
 |  9 | aten.t.default                 |                  4 |           4 |
-| 10 | aten.view.default              |                  8 |           0 |
+| 10 | aten.view.default              |                  6 |           0 |
 ***
 ### aten._unsafe_view.default
 |    | ATen Input Variations                                                        | Status   |
@@ -48,7 +48,7 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                              | Status   |
 |---:|:-------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 256, 512]> self = ?,<br>Optional[List[int]]<> dim = [1] | Done     |
+|  0 | Tensor<[1, 512, 256]> self = ?,<br>Optional[List[int]]<> dim = [2] | Done     |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                        | Status   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
@@ -56,8 +56,8 @@
 ### aten.permute.default
 |    | ATen Input Variations                                                             | Status   |
 |---:|:----------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 3, 16, 16, 16, 16]> self = ?,<br>List[int]<> dims = [0, 2, 4, 3, 5, 1] | Done     |
-|  1 | Tensor<[1, 512]> self = ?,<br>List[int]<> dims = [0, 1]                           | Done     |
+|  0 | Tensor<[1, 256, 512]> self = ?,<br>List[int]<> dims = [0, 2, 1]                   | Done     |
+|  1 | Tensor<[1, 3, 16, 16, 16, 16]> self = ?,<br>List[int]<> dims = [0, 2, 4, 3, 5, 1] | Done     |
 ### aten.t.default
 |    | ATen Input Variations        | Status   |
 |---:|:-----------------------------|:---------|
@@ -69,11 +69,9 @@
 |    | ATen Input Variations                                                           | Status   |
 |---:|:--------------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 256, 256]> self = ?,<br>List[int]<> size = [256, 256]                | Unknown  |
-|  1 | Tensor<[1, 256, 512]> self = ?,<br>List[int]<> size = [1, 256, 512]             | Unknown  |
-|  2 | Tensor<[1, 256, 512]> self = ?,<br>List[int]<> size = [256, 512]                | Unknown  |
-|  3 | Tensor<[1, 256, 768]> self = ?,<br>List[int]<> size = [256, 768]                | Unknown  |
-|  4 | Tensor<[1, 3, 256, 256]> self = ?,<br>List[int]<> size = [1, 3, 16, 16, 16, 16] | Unknown  |
-|  5 | Tensor<[1, 512]> self = ?,<br>List[int]<> size = [1, 512]                       | Unknown  |
-|  6 | Tensor<[256, 256]> self = ?,<br>List[int]<> size = [1, 256, 256]                | Unknown  |
-|  7 | Tensor<[256, 512]> self = ?,<br>List[int]<> size = [1, 256, 512]                | Unknown  |
+|  1 | Tensor<[1, 256, 512]> self = ?,<br>List[int]<> size = [256, 512]                | Unknown  |
+|  2 | Tensor<[1, 256, 768]> self = ?,<br>List[int]<> size = [256, 768]                | Unknown  |
+|  3 | Tensor<[1, 3, 256, 256]> self = ?,<br>List[int]<> size = [1, 3, 16, 16, 16, 16] | Unknown  |
+|  4 | Tensor<[256, 256]> self = ?,<br>List[int]<> size = [1, 256, 256]                | Unknown  |
+|  5 | Tensor<[256, 512]> self = ?,<br>List[int]<> size = [1, 256, 512]                | Unknown  |
 

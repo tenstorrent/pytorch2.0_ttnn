@@ -24,7 +24,7 @@
 | 20 | aten.new_full.default                |                  1 |           0 |
 | 21 | aten.permute.default                 |                 12 |          12 |
 | 22 | aten.relu.default                    |                 14 |          14 |
-| 23 | aten.repeat.default                  |                  6 |           0 |
+| 23 | aten.repeat.default                  |                  6 |           5 |
 | 24 | aten.rsub.Scalar                     |                  2 |           0 |
 | 25 | aten.select.int                      |                  6 |           0 |
 | 26 | aten.slice.Tensor                    |                 12 |           0 |
@@ -282,11 +282,11 @@
 |    | ATen Input Variations                                       | Status   |
 |---:|:------------------------------------------------------------|:---------|
 |  0 | Tensor<[4, 2]> self = ?,<br>List[int]<> repeats = [1, 1]    | Unknown  |
-|  1 | Tensor<[4, 2]> self = ?,<br>List[int]<> repeats = [1444, 1] | Unknown  |
-|  2 | Tensor<[4, 2]> self = ?,<br>List[int]<> repeats = [9, 1]    | Unknown  |
-|  3 | Tensor<[6, 2]> self = ?,<br>List[int]<> repeats = [100, 1]  | Unknown  |
-|  4 | Tensor<[6, 2]> self = ?,<br>List[int]<> repeats = [25, 1]   | Unknown  |
-|  5 | Tensor<[6, 2]> self = ?,<br>List[int]<> repeats = [361, 1]  | Unknown  |
+|  1 | Tensor<[4, 2]> self = ?,<br>List[int]<> repeats = [1444, 1] | Done     |
+|  2 | Tensor<[4, 2]> self = ?,<br>List[int]<> repeats = [9, 1]    | Done     |
+|  3 | Tensor<[6, 2]> self = ?,<br>List[int]<> repeats = [100, 1]  | Done     |
+|  4 | Tensor<[6, 2]> self = ?,<br>List[int]<> repeats = [25, 1]   | Done     |
+|  5 | Tensor<[6, 2]> self = ?,<br>List[int]<> repeats = [361, 1]  | Done     |
 ### aten.rsub.Scalar
 |    | ATen Input Variations                              | Status   |
 |---:|:---------------------------------------------------|:---------|
