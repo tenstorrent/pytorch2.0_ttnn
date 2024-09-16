@@ -16,20 +16,23 @@ class MaxPool2dModule(torch.nn.Module):
 
 @pytest.mark.xfail(reason="We don't support returning indices from max_pool2d yet")
 @pytest.mark.parametrize(
-    "input_shapes, kernel_size",
-    [((1, 3, 64, 64), (3, 3))],
+    "input_shapes, kernel_size, stride, padding, dilation",
+    (
+        ((1, 1024, 17, 17), (3, 3), 2, 0, 1),
+        ((1, 128, 112, 112), (2, 2), 2, 0, 1),
+        ((1, 192, 28, 28), (3, 3), 1, 1, 1),  # ceil_mode=True?
+        ((1, 512, 19, 19), (3, 3), 1, 1, 1),
+    ),
 )
-def test_max_pool_2d_plain(device, input_shapes, kernel_size):
+def test_max_pool_2d_plain(device, input_shapes, kernel_size, stride, padding, dilation):
     m = MaxPool2dModule()
-    inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
-    result_before = m.forward(inputs, kernel_size)
+    input_tensor = torch.rand(input_shapes, dtype=torch.bfloat16)
+    result_before = m.forward(input_tensor, kernel_size, stride, padding, dilation)
     option = torch_ttnn.TorchTtnnOption(device=device)
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     # ttnn operates on channels-last tensors
-    input_tensor = torch.permute(inputs, (0, 2, 3, 1))
-    result_after = m.forward(input_tensor, kernel_size)
-    result_after = torch.permute(result_after, (0, 3, 1, 2))
+    result_after = m.forward(input_tensor, kernel_size, stride, padding, dilation)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
