@@ -11,12 +11,12 @@ class MaxPool2dModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.nn.functional.max_pool2d(*args, **kwargs)
+        return torch.nn.functional.max_pool2d(*args, **kwargs, stride=2)
 
 
 @pytest.mark.parametrize(
     "input_shapes, kernel_size",
-    [((1, 3, 64, 64), (3, 3))],
+    [((1, 16, 64, 64), (3, 3))],
 )
 def test_max_pool_2d_plain(device, input_shapes, kernel_size):
     m = MaxPool2dModule()
