@@ -23,9 +23,10 @@ class FillScalarModule(torch.nn.Module):
         ((1, 1, 1, 1), 61, True),
         ((2, 1, 1, 1), 64, True),
         ((1, 1, 2, 1), 8, True),
-        # Not supported: dims > 4 or < 2
-        ((1, 1, 1, 2, 2), 1.0, False),
-        ((64,), 1.0, False),
+        ((1, 1, 1, 2, 2), 1.0, True),
+        ((64,), 1.0, True),
+        # Unsupported: scalar
+        ((), 1.0, False),
     ],
 )
 def test_fill_scalar(device, input_shape, value, converted):

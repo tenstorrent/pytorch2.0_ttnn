@@ -442,14 +442,23 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
             if node.target == torch.ops.aten.fill.Scalar:
                 shape = list(node.meta["val"].size())
-                if len(shape) < 2 or len(shape) > 4:
+                # Scalar is currently unsupported
+                if len(shape) == 0:
                     return None
+                value = args[1]
+                # Fallback to ROW_MAJOR layout for tile unsupported cases
+                if len(shape) < 2 or len(shape) > 4:
+                    return g.call_function(
+                        ttnn.full,
+                        args=(shape,),
+                        kwargs={"fill_value": value, "device": TtnnDevice(), "layout": TtnnRowMajorLayout()},
+                    )
                 # Align the last 2 dims to ttnn.TILE_SIZE
                 aligned_shape = shape[:-2] + [((dim - 1) // ttnn.TILE_SIZE + 1) * ttnn.TILE_SIZE for dim in shape[-2:]]
                 new_node = g.call_function(
                     ttnn.full,
                     args=(aligned_shape,),
-                    kwargs={"fill_value": args[1], "device": TtnnDevice(), "layout": TtnnTileLayout()},
+                    kwargs={"fill_value": value, "device": TtnnDevice(), "layout": TtnnTileLayout()},
                 )
                 # Crop back to the original size
                 return g.call_function(target_wrappers.crop, args=(new_node, shape))
