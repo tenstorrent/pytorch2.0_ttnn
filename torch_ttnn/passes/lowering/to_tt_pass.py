@@ -247,7 +247,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.mul.Tensor:
             return self.call_function_prop_meta(ttnn.mul, args, kwargs)
 
-        if target == torch.ops.aten.pow.Tensor_Scalar:
+        if target == torch.ops.aten.pow.Tensor_Scalar or target == torch.ops.aten.pow.Tensor_Tensor:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
         if target == torch.ops.aten.rsub.Tensor:
