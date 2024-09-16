@@ -574,16 +574,38 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if start == 0 and end >= input_size[dim]:
                     return tensor
 
-                if len(input_size) != 4:
-                    return None
+                # This is for handling non 4D tensors
+                to_4d_shape = input_size
+                if len(input_size) == 1:
+                    dim += 3
+                    to_4d_shape = [1, 1, 1, input_size[0]]
+                elif len(input_size) == 2:
+                    to_4d_shape = [1, 1, input_size[0], input_size[1]]
+                    dim += 2
+                elif len(input_size) == 3:
+                    to_4d_shape = tensor, [1, input_size[0], input_size[1], input_size[2]]
+                    dim += 1
+                
+                slice_start = np.zeros(len(to_4d_shape), dtype=int)
+                slice_end = np.array(to_4d_shape)
 
-                slice_start = np.zeros(len(input_size), dtype=int)
-                slice_end = np.array(input_size)
+                # For negative end values
+                if end < 0:
+                    end = end + to_4d_shape[dim] + 1
 
                 slice_start[dim] = start
-                slice_end[dim] = min(end, input_size[dim])
+                slice_end[dim] = min(end, to_4d_shape[dim])
                 slice_end -= 1
 
+                # For handling non-4D slice inputs
+                if len(input_size) < 4:
+                    reshape_to_4d_node = g.call_function(ttnn.reshape, args=(tensor, to_4d_shape))
+                    to_layout = g.call_function(ttnn.to_layout, (reshape_to_4d_node, TtnnRowMajorLayout()))
+                    slice_node = g.call_function(ttnn.slice, (to_layout, [*slice_start], [*slice_end]))
+                    reshape_to_original_shape = node.meta["val"].size()
+                    reshape_to_original_node = g.call_function(ttnn.reshape, args=(slice_node, reshape_to_original_shape))
+                    return reshape_to_original_node
+                
                 return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
 
             if node.target == torch.ops.aten.repeat.default:
