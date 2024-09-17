@@ -189,12 +189,13 @@ def aten_backend(
 
     option._out_fx_graphs.append(gm.graph)
 
-    for node in gm.graph.nodes:
-        if node.op == "placeholder":
-            print(f"{node.name}: {node.meta}")
+    if option.verbose:
+        for node in gm.graph.nodes:
+            if node.op == "placeholder":
+                print(f"{node.name}: {node.meta}")
 
-    for number, line in enumerate(gm.code.splitlines()):
-        print(f"{number + 1}: {line}")
+        for number, line in enumerate(gm.code.splitlines()):
+            print(f"{number + 1}: {line}")
 
     return make_boxed_func(gm)
 

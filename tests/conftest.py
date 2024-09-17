@@ -98,7 +98,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
             outputs_after = run_model(m, inputs)
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
-            option._out_fx_graphs[0].print_tabular()
+            if option.verbose:
+                option._out_fx_graphs[0].print_tabular()
             accuracy = calculate_accuracy(outputs, outputs_after)
             if accuracy:
                 comp_runtime_metrics["accuracy"] = accuracy
