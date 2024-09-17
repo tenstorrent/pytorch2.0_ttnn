@@ -17,7 +17,7 @@
 | 13 | aten.rsub.Scalar               |                  1 |           1 |
 | 14 | aten.slice.Tensor              |                  4 |           0 |
 | 15 | aten.split.Tensor              |                  1 |           0 |
-| 16 | aten.squeeze.dim               |                  1 |           0 |
+| 16 | aten.squeeze.dim               |                  1 |           1 |
 | 17 | aten.t.default                 |                  4 |           4 |
 | 18 | aten.transpose.int             |                  1 |           1 |
 | 19 | aten.unsqueeze.default         |                  2 |           2 |
@@ -106,7 +106,7 @@
 ### aten.squeeze.dim
 |    | ATen Input Variations                           | Status   |
 |---:|:------------------------------------------------|:---------|
-|  0 | Tensor<[1, 256, 1]> self = ?,<br>int<> dim = -1 | Unknown  |
+|  0 | Tensor<[1, 256, 1]> self = ?,<br>int<> dim = -1 | Done     |
 ### aten.t.default
 |    | ATen Input Variations         | Status   |
 |---:|:------------------------------|:---------|

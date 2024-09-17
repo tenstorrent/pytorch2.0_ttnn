@@ -265,7 +265,6 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         kwargs = {}
         if (
             dst_node.target == ttnn.reshape
-            or dst_node.target == ttnn.squeeze
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat
@@ -325,8 +324,10 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.no
     g = dst_node.graph
     with g.inserting_before(dst_node):
         to_layout = g.call_function(ttnn.to_layout, (dst_node, TtnnTileLayout()))
+    with g.inserting_before(dst_node):
+        to_device = g.call_function(ttnn.to_device, (to_layout, TtnnDevice())) 
 
-    insert_node_between(src_node, dst_idx, dst_node, [to_layout])
+    insert_node_between(src_node, dst_idx, dst_node, [to_layout, to_device])
 
     return to_layout
 
