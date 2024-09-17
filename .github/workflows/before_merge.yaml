@@ -149,8 +149,7 @@ jobs:
 
   validate-pr:
     if: ${{ always() }}
-    runs-on: ubuntu-latest
-    name: Final Model Test Results
+    runs-on: ubuntu-latest    
     needs: [model-tests, collect-metrics]
     steps:
       - run: |
