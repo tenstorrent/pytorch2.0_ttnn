@@ -191,6 +191,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.relu.default:
             return self.call_function_prop_meta(ttnn.relu, args, kwargs)
 
+        if target == torch.ops.aten.remainder.Scalar:
+            return self.call_function_prop_meta(ttnn.remainder, args, kwargs)
+
         if target == torch.ops.aten.rsqrt.default:
             return self.call_function_prop_meta(ttnn.rsqrt, args, kwargs)
 
@@ -524,24 +527,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     else:
                         recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     return g.call_function(ttnn.mul, (args[0], recip), {})
-                return None
-
-            if node.target == torch.ops.aten._to_copy.default:
-                if kwargs["dtype"] == torch.float32:
-                    new_kwargs = {"dtype": torch.bfloat16}
-                    return g.call_function(torch.ops.aten._to_copy.default, args, new_kwargs)
-                """
-                # NOTE(kevinwuTT): aten._to_copy is used to cast dtypes. Should combine this with other ops.
-                ttnn_dtype = torch_dtype_to_ttnn_dtype(kwargs["dtype"])
-                # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                new_kwargs = {
-                    "dtype": ttnn_dtype,
-                    "layout": TtnnTileLayout(),
-                    "device": TtnnDevice(),
-                    "memory_config": TtnnDramMemoryConfig(),
-                }
-                return g.call_function(ttnn.as_tensor, args, new_kwargs)
-                """
                 return None
 
             if node.target == torch.ops.aten.expand.default:
