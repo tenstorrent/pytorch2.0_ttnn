@@ -632,7 +632,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     in_n, in_c, in_h, in_w = input_shape
                     out_n, out_c, out_h, out_w = output_shape
                     input_nhwc = g.call_function(ttnn.permute, (args[0], (0, 2, 3, 1)))
-                    input_nhwc = g.call_function(ttnn.reshape, (input_nhwc, (in_n * in_h * in_w, in_c)))
+                    input_nhwc = g.call_function(ttnn.reshape, (input_nhwc, (1, 1, in_n * in_h * in_w, in_c)))
                     kwargs = {
                         "input_tensor": input_nhwc,
                         "weight_tensor": args[1],
