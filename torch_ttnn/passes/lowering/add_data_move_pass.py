@@ -265,6 +265,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         kwargs = {}
         if (
             dst_node.target == ttnn.reshape
+            or dst_node.target == ttnn.slice
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat
