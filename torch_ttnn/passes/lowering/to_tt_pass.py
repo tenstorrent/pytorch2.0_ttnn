@@ -191,6 +191,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.relu.default:
             return self.call_function_prop_meta(ttnn.relu, args, kwargs)
 
+        if target == torch.ops.aten.remainder.Scalar:
+            return self.call_function_prop_meta(ttnn.remainder, args, kwargs)
+
         if target == torch.ops.aten.rsqrt.default:
             return self.call_function_prop_meta(ttnn.rsqrt, args, kwargs)
 
