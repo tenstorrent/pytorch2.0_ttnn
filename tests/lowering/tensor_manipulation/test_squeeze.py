@@ -17,6 +17,8 @@ class SqueezeDimModule(torch.nn.Module):
     (
         ((1, 32, 16), 0),
         ((1, 256, 1), 2),
+        ((1, 1, 256), 2),
+        ((1, 256), 1),
     ),
 )
 def test_squeeze_dim(device, input_shapes, dim):
