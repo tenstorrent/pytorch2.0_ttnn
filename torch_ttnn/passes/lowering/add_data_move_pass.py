@@ -325,7 +325,7 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.no
     with g.inserting_before(dst_node):
         to_layout = g.call_function(ttnn.to_layout, (dst_node, TtnnTileLayout()))
     with g.inserting_before(dst_node):
-        to_device = g.call_function(ttnn.to_device, (to_layout, TtnnDevice())) 
+        to_device = g.call_function(ttnn.to_device, (to_layout, TtnnDevice()))
 
     insert_node_between(src_node, dst_idx, dst_node, [to_layout, to_device])
 
