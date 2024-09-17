@@ -21,9 +21,9 @@ class ToCopyWithOpAfterModule(torch.nn.Module):
         return torch.add(to, to)
 
 
-# aten.to_copy is used to convert a dtype to another.
+# aten._to_copy is used to convert a dtype to another.
+# If there is no ttnn.from_torch that follows aten._to_copy, then leave alone.
 # TODO: Will need to re-evaluate the conversion.
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "input_shapes",
     [[(4, 4)]],
@@ -41,12 +41,13 @@ def test_to_copy(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.as_tensor) == 1
+    assert [node.target for node in nodes].count(torch.ops.aten._to_copy.default) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after, rtol=0.2)
 
 
-@pytest.mark.xfail
+# aten._to_copy is used to convert a dtype to another.
+# If there is a ttnn.from_torch that follows aten._to_copy and is casting to bfloat, then convert.
 @pytest.mark.parametrize(
     "input_shapes",
     [[(4, 4)]],
@@ -65,10 +66,7 @@ def test_to_copy_with_op_after(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(ttnn.as_tensor) == 1
+    assert target.count(torch.ops.aten._to_copy.default) == 0
     assert target.count(ttnn.add) == 1
-    add_node = nodes[target.index(ttnn.add)]
-    assert add_node.args[0].target == ttnn.as_tensor
-    assert add_node.args[1].target == ttnn.as_tensor
     # Check inference result
     assert torch.allclose(result_before, result_after, rtol=0.2)
