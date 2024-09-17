@@ -62,7 +62,7 @@ def test_slice2(device, input_shape, dim, start, end):
     input_tensor = torch.randn(input_shape, dtype=torch.bfloat16)
     result_before = m.forward(input_tensor, dim, start, end)
     option = torch_ttnn.TorchTtnnOption(device=device)
-    
+
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m.forward(input_tensor, dim, start, end)
     option._out_fx_graphs[0].print_tabular()
