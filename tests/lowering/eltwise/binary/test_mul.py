@@ -40,3 +40,44 @@ def test_mul(device, input_shapes):
     assert [node.target for node in nodes].count(ttnn.mul) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
+
+
+@pytest.mark.parametrize("input_shape", [(4, 4)])
+def test_mul_scalar(device, input_shape):
+    m = MulModule()
+    inputs = (torch.randint(1, 5, input_shape).type(torch.bfloat16), -2.25)
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.mul) == 1
+
+    # Check inference result
+    assert torch.allclose(result_before, result_after)
+
+
+@pytest.mark.xfail(reason="#110 scalar on the left side is not supported")
+@pytest.mark.parametrize("input_shape", [(4, 4)])
+def test_rmul_scalar(device, input_shape):
+    m = MulModule()
+    inputs = (-2.25, torch.randint(1, 5, input_shape).type(torch.bfloat16))
+    result_before = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.mul) == 1
+
+    # Check inference result
+    assert torch.allclose(result_before, result_after)
