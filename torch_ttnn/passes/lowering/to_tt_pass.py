@@ -347,7 +347,7 @@ class GraphWrapper:
         new_node.meta = self.node.meta
         if hasattr(self.node.target, "_schema"):
             new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
-        if target == ttnn.layer_norm:
+        if target in (ttnn.layer_norm, ttnn.max_pool2d):
             new_node.meta["val"] = new_node.meta["val"][0]
         return new_node
 
@@ -622,6 +622,31 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            # NOTE(jdh8): We only convert max_pool2d without indices
+            if node.target == torch.ops.aten.max_pool2d_with_indices.default:
+                try:
+                    (user,) = node.users.keys()
+                    assert user.target.__name__ == "getitem"
+                    assert user.args == (node, 0)
+                except:
+                    return None
+
+                def supply_args(input, kernel_size, stride=[1, 1], padding=[0, 0], dilation=[1, 1]):
+                    return input, kernel_size, stride, padding, dilation
+
+                input, kernel_size, stride, padding, dilation = supply_args(*args)
+                in_n, in_c, in_h, in_w = input.meta["val"].size()
+                out_n, out_c, out_h, out_w = node.meta["val"][0].size()
+                input_nhwc = g.call_function(ttnn.permute, (input, (0, 2, 3, 1)))
+                input_nhwc = g.call_function(ttnn.reshape, (input_nhwc, (-1, in_c)))
+                output_nhwc = g.call_function(
+                    ttnn.max_pool2d, (input_nhwc, in_n, in_h, in_w, in_c, kernel_size, stride, padding, dilation)
+                )
+                output_nhwc = g.call_function(ttnn.reshape, (output_nhwc, (out_n, out_h, out_w, out_c)))
+                output = g.call_function(ttnn.permute, (output_nhwc, (0, 3, 1, 2)))
+                user.replace_all_uses_with(output)
+                return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
