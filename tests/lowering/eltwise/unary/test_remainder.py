@@ -13,16 +13,16 @@ class RemainderModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape, mod, converted",
-    [
-        ((32, 32), 7, True),
-        ((1, 32), 3, True),
-        ((16, 16), 5, True),
-        ((4,), 1, True),
-        ((1, 2, 3, 6, 4), 1, True),
-    ],
+    "input_shape, mod",
+    (
+        ((32, 32), 7),
+        ((1, 32), 3),
+        ((16, 16), 5),
+        ((4,), 1),
+        ((1, 2, 3, 6, 4), 1),
+    ),
 )
-def test_remainder(device, input_shape, mod, converted):
+def test_remainder(device, input_shape, mod):
     m = RemainderModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16) * (mod * 3)
     result_before = m.forward(input, mod)
@@ -36,6 +36,6 @@ def test_remainder(device, input_shape, mod, converted):
 
     # Check the graph has be rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.remainder) == (1 if converted else 0)
+    assert [node.target for node in nodes].count(ttnn.remainder) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
