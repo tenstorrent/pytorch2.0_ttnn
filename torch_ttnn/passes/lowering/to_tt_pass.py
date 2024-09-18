@@ -647,14 +647,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 dim = args[2] if len(args) >= 3 else -1
                 largest = args[3] if len(args) >= 4 else True
                 sorted = args[4] if len(args) >= 5 else True
-                # Currently unsupported by ttnn.topk
+                # TODO(#215): Currently unsupported by ttnn.topk
                 if k > 32 or dim != -1 or (not largest) or (not sorted):
                     return None
 
                 input_shape = list(input.meta["val"].size())
+                # ttnn.topk requires 4-d input shape, so simply collapse them into (1, 1, x, y)
                 shape_4d = [1, 1, math.prod(input_shape[:-1]), input_shape[-1]]
                 input = g.call_function(ttnn.reshape, args=(input, shape_4d))
-
+                # ttnn.topk requires the last dim >= 64 and to be a power of 2
                 next_pow_of_2 = max(1 << (input_shape[-1] - 1).bit_length(), 64)
                 input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 input = g.call_function(ttnn.pad, args=(input, [(0, next_pow_of_2 - input_shape[-1])], -math.inf))
@@ -662,11 +663,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 output = g.call_function(ttnn.topk, args=(input, 32, dim, largest, sorted))
 
+                # Unpack the results and crop out the padding
                 values = g.call_function(operator.getitem, args=(output, 0))
                 indices = g.call_function(operator.getitem, args=(output, 1))
                 values = g.call_function(target_wrappers.crop, args=(values, shape_4d[:-1] + [k]))
                 indices = g.call_function(target_wrappers.crop, args=(indices, shape_4d[:-1] + [k]))
 
+                # Reshape and pack the results back to a pair
                 output_shape = input_shape[:-1] + [k]
                 values = g.call_function(ttnn.reshape, args=(values, output_shape))
                 indices = g.call_function(ttnn.reshape, args=(indices, output_shape))

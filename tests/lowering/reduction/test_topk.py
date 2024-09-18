@@ -17,10 +17,8 @@ class TopKModule(torch.nn.Module):
     [
         ((1, 1, 4, 32), 32, -1, True, True, True),
         ((1, 16), 8, -1, True, True, True),
-        ((128,), 24, -1, True, True, True),
-        pytest.param(
-            (1, 2, 3, 4, 64), 32, -1, True, True, True, marks=pytest.mark.xfail(reason="wrong indices (#TODO)")
-        ),
+        ((256,), 24, -1, True, True, True),
+        pytest.param((24, 64), 32, -1, True, True, True, marks=pytest.mark.xfail(reason="incorrect indices (#216)")),
         # Unsupported: k > 32
         ((128,), 50, -1, True, True, False),
         # Unsupported: largest = false
