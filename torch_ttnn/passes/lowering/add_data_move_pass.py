@@ -54,7 +54,6 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.neg,
     ttnn.reciprocal,
     ttnn.relu,
-    ttnn.remainder,
     ttnn.rsqrt,
     ttnn.sigmoid,
     ttnn.softmax,
@@ -71,6 +70,7 @@ TTNN_POINTWISE_UNARY_OPS = [
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
     ttnn.eqz,
+    ttnn.fmod,
     ttnn.gez,
     ttnn.ge,
     ttnn.gtz,
@@ -96,6 +96,7 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.mul,
     ttnn.ne,
     ttnn.pow,
+    ttnn.remainder,
     ttnn.sub,
     ttnn.xlogy,
     # ttnn.add_and_apply_activation,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has

@@ -236,6 +236,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.atan2.default:
             return self.call_function_prop_meta(ttnn.atan2, args, kwargs)
 
+        if target in (torch.ops.aten.fmod.Scalar, torch.ops.aten.fmod.Tensor):
+            return self.call_function_prop_meta(ttnn.fmod, args, kwargs)
+
         if target == torch.ops.aten.leaky_relu.default:
             if len(args) < 2:
                 args = (args[0], 0.01)
