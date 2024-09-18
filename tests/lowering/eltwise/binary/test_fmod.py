@@ -74,4 +74,4 @@ def test_fmod_tensor(device, input_shapes):
 
     # Check inference result
     if not torch.allclose(result_before, result_after, 0.2, 0.2):
-        warnings.warn("Numerical issue")
+        warnings.warn("Numerical issue (tenstorrent/tt-metal#12835)")
