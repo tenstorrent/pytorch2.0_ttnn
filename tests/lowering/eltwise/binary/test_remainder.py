@@ -20,6 +20,9 @@ class RemainderModule(torch.nn.Module):
         ((16, 16), (16, 16)),
         ((4,), (4,)),
         ((1, 2, 3, 6, 4), (1, 2, 3, 6, 4)),
+        pytest.param(((32, 32), (1, 32)), marks=pytest.mark.xfail(reason="broadcasting issues (#64)")),
+        pytest.param(((32, 32), (32, 1)), marks=pytest.mark.xfail(reason="broadcasting issues (#64)")),
+        pytest.param(((1, 32), (32, 1)), marks=pytest.mark.xfail(reason="broadcasting issues (#64)")),
     ),
 )
 def test_remainder_tensor(device, input_shapes):
