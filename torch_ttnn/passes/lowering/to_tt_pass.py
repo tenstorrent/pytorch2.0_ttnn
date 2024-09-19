@@ -312,6 +312,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
             return self.call_function_prop_meta(target, args, kwargs)
 
+        if target == torch.ops.aten.alias.default:
+            # alias is no-op
+            return args[0]
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
