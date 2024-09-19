@@ -292,6 +292,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Data movement
         ############################################################
+        if target == torch.ops.aten.clone.default:
+            return args[0]
+
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 
@@ -363,12 +366,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
         def rewrite_node(node):
             args = node.args
             kwargs = node.kwargs
-
-            if node.target == torch.ops.aten.clone.default:
-                arg_metadata = node.meta["val"]
-                ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
-                # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(
