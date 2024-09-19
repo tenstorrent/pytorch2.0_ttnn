@@ -239,6 +239,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.bitwise_and.Scalar:
             return self.call_function_prop_meta(ttnn.bitwise_and, args, kwargs)
 
+        if target == torch.ops.aten.bitwise_or.Scalar:
+            return self.call_function_prop_meta(ttnn.bitwise_or, args, kwargs)
+
         if target == torch.ops.aten.leaky_relu.default:
             if len(args) < 2:
                 args = (args[0], 0.01)
