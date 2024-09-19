@@ -153,9 +153,11 @@ def is_tt_compute(node) -> bool:
         + TTNN_NORM_OPS
         + [
             ttnn.embedding,
+            ttnn.embedding_bw,
             ttnn.ones,
             ttnn.tril,
             ttnn.arange,
+            ttnn.zeros,
             ttnn.zeros_like,
             ttnn.mean,
             ttnn.global_avg_pool2d,
