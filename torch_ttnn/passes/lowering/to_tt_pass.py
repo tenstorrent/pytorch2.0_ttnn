@@ -623,6 +623,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
+            if node.target == torch.ops.aten.var.correction:
+                new_args = list(args)
+                if len(new_args) >= 2 and not isinstance(new_args[1], int):
+                    dim = new_args[1]
+                    new_args[1] = tuple(dim) if len(dim) > 0 else None
+                new_kwargs = dict(kwargs)
+                if new_kwargs.pop("correction", 0) != 0:
+                    return None
+                return g.call_function(ttnn.var, args=tuple(new_args), kwargs=new_kwargs)
+
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
