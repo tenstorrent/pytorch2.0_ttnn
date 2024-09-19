@@ -289,6 +289,11 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.min.default:
             return self.call_function_prop_meta(ttnn.min, args, kwargs)
 
+        if target == torch.ops.aten.prod.dim_int:
+            # Args: input, all_dimensions=false, dim
+            new_args = (args[0], False, args[1])
+            return self.call_function_prop_meta(ttnn.prod, new_args, kwargs)
+
         ############################################################
         # Data movement
         ############################################################
