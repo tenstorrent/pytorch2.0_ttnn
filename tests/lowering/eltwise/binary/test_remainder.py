@@ -27,8 +27,6 @@ def test_remainder_scalar(device, input_shape, mod):
     m = RemainderModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16) * (mod * 3)
     result_before = m.forward(input, mod)
-    # print(torch.export.export(m, args=(input, mod)))
-
     option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True)
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
@@ -60,8 +58,6 @@ def test_remainder_tensor(device, input_shapes):
     numerator = torch.rand(input_shapes[0], dtype=torch.bfloat16) * 6 - 3
     denominator = torch.rand(input_shapes[1], dtype=torch.bfloat16) - 2
     result_before = m.forward(numerator, denominator)
-    # print(torch.export.export(m, args=(input, mod)))
-
     option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True)
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
