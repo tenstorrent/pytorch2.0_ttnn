@@ -90,6 +90,7 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.logical_and,
     ttnn.logical_or,
     ttnn.logical_xor,
+    ttnn.bitwise_and,
     ttnn.lt,
     ttnn.maximum,
     ttnn.minimum,
