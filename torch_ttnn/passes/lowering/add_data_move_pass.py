@@ -33,7 +33,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.atan,
     ttnn.atan2,  # binary
     ttnn.atanh,
-    #  ttnn.clone,  in target_wrappers
+    ttnn.bitwise_not,
     ttnn.cos,
     ttnn.cosh,
     ttnn.erf,
