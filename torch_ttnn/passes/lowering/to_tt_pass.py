@@ -338,6 +338,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
+        if target == torch.ops.aten.clone.default:
+            return args[0]
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
@@ -382,12 +385,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
         def rewrite_node(node):
             args = node.args
             kwargs = node.kwargs
-
-            if node.target == torch.ops.aten.clone.default:
-                arg_metadata = node.meta["val"]
-                ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
-                # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(

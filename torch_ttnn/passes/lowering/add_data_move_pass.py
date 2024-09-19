@@ -35,7 +35,6 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.atan,
     ttnn.atan2,  # binary
     ttnn.atanh,
-    #  ttnn.clone,  in target_wrappers
     ttnn.cos,
     ttnn.cosh,
     ttnn.erf,
@@ -126,7 +125,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.to_layout,
 ]
 
-TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
+TTNN_TARGET_WRAPPERS = [target_wrappers.repeat]
 
 TTNN_NORM_OPS = [
     ttnn.group_norm,
