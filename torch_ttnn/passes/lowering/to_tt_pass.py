@@ -280,6 +280,13 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Reduction
         ############################################################
+        if target == torch.ops.aten.amax.default:
+            new_args = list(args)
+            if len(new_args) >= 2 and not isinstance(new_args[1], int):
+                dim = new_args[1]
+                new_args[1] = tuple(dim) if len(dim) > 0 else None
+            return self.call_function_prop_meta(ttnn.max, tuple(new_args), kwargs)
+
         if target == torch.ops.aten.mean.dim:
             # change dim parameter to tuple
             new_args = list(args)

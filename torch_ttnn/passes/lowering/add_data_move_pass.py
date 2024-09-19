@@ -50,7 +50,6 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.log1p,
     ttnn.log2,
     ttnn.logical_not,
-    ttnn.min,
     ttnn.neg,
     ttnn.reciprocal,
     ttnn.relu,
@@ -109,6 +108,12 @@ TTNN_POINTWISE_TRINARY_OPS = [
     ttnn.where,
 ]
 
+TTNN_REDUCTION_OPS = [
+    ttnn.max,
+    ttnn.mean,
+    ttnn.min,
+]
+
 TTNN_MATRIX_MULPIPLICATION_OPS = [
     ttnn.matmul,
     ttnn.linear,
@@ -148,6 +153,7 @@ def is_tt_compute(node) -> bool:
         + TTNN_POINTWISE_BINARY_OPS
         + TTNN_POINTWISE_TRINARY_OPS
         + TTNN_MATRIX_MULPIPLICATION_OPS
+        + TTNN_REDUCTION_OPS
         + TTNN_TARGET_WRAPPERS
         + TTNN_DATAMOVE_OPS
         + TTNN_NORM_OPS
@@ -157,7 +163,6 @@ def is_tt_compute(node) -> bool:
             ttnn.tril,
             ttnn.arange,
             ttnn.zeros_like,
-            ttnn.mean,
             ttnn.global_avg_pool2d,
             ttnn.clip,
             ttnn.squeeze,
