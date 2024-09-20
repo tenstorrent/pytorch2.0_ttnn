@@ -295,6 +295,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 
+        if target == torch.ops.aten.view.default:
+            # aten.reshape is more stable if the input nodes have changed
+            return self.call_function_prop_meta(torch.ops.aten.reshape.default, args, kwargs)
+
         ############################################################
         # Other ops
         ############################################################
@@ -618,56 +622,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
-
-            if node.target == torch.ops.aten.view.default:
-                source_shape = args[0].meta["val"].size()
-                out_shape = args[1]
-                source_rank = len(source_shape)
-                out_rank = len(out_shape)
-
-                # Allow lowering by default
-                can_reshape = True
-
-                # Unsupported:
-                # (1) -> (1, 1) or (1, 1, 1), etc
-                if (source_rank == 1) and (np.prod(source_shape) == 1):
-                    can_reshape = False
-                elif not has_valid_page_size(source_shape):
-                    can_reshape = False
-                # Same as ttnn.squeeze with dim = 0
-                # Supported:
-                # (1, 16, 256, 256) -> (16, 256, 256)
-                # (1, 256, 256) - > (256, 256)
-                elif (source_rank != 1) and (out_rank == (source_rank - 1)) and (source_shape[0] == 1):
-                    for i in range(0, out_rank):
-                        if source_shape[i + 1] != out_shape[i]:
-                            can_reshape = False
-                            break
-
-                # Same as ttnn.unsqueeze_to_4D
-                # Supported:
-                # (16, 256, 256) -> (1, 16, 256, 256)
-                # (256, 256) -> (1, 1, 256, 256)
-                elif (out_rank > 1) and (out_rank <= 4) and (source_rank > 0) and (source_rank <= 4):
-                    for i in range(0, out_rank):
-                        si = i + (source_rank - out_rank)
-                        if si < 0:
-                            if out_shape[i] != 1:
-                                can_reshape = False
-                                break
-                        else:
-                            if out_shape[i] != source_shape[si]:
-                                can_reshape = False
-                                break
-                else:
-                    can_reshape = False
-
-                # Transform to ttnn.reshape if possible
-                if can_reshape:
-                    return g.call_function(ttnn.reshape, (args[0], args[1]), {})
-                else:
-                    # Fallback: aten.reshape is more stable if the input nodes have changed
-                    return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)

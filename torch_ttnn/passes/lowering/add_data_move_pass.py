@@ -132,11 +132,6 @@ TTNN_NORM_OPS = [
 ]
 
 
-def can_be_tilized(node):
-    size = node.meta["val"].size()
-    return len(size) >= 2 and size[-1] % 32 == 0 and size[-2] % 32 == 0
-
-
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
 def is_tt_compute(node) -> bool:
@@ -269,7 +264,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     with g.inserting_before(dst_node):
         kwargs = {}
         if (
-            (dst_node.target == ttnn.reshape and not can_be_tilized(dst_node))
+            dst_node.target == ttnn.reshape
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat
@@ -282,7 +277,9 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             kwargs["dtype"] = TtnnBfloat16()
 
         # For reshape only put tensor on device if rank is 4
-        if is_tt_compute(dst_node):
+        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
+            dst_node.target == ttnn.reshape and len(dst_node.args[1]) == 4
+        ):
             kwargs["device"] = device
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
@@ -305,12 +302,7 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.n
         return None
     if not is_function_call(dst_node):
         return None
-    if (
-        dst_node.target not in layout_change_ops
-        or dst_idx != 0
-        or not is_tt(src_node)
-        or (dst_node.target == ttnn.reshape and can_be_tilized(dst_node))
-    ):
+    if dst_node.target not in layout_change_ops or dst_idx != 0 or not is_tt(src_node):
         return None
 
     g = dst_node.graph
@@ -326,12 +318,7 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.no
     # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
     if not is_function_call(src_node):
         return None
-    if (
-        src_node.target not in layout_change_ops
-        or not is_tt_compute(dst_node)
-        or dst_node.target == ttnn.embedding
-        or (src_node.target == ttnn.reshape and can_be_tilized(src_node))
-    ):
+    if src_node.target not in layout_change_ops or not is_tt_compute(dst_node) or dst_node.target == ttnn.embedding:
         return None
 
     g = dst_node.graph
