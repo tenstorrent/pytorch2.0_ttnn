@@ -20,9 +20,9 @@ class VarModule(torch.nn.Module):
         ((16, 32, 32), 1, True, 0, True),
         ((16, 32, 32), [2], True, 0, True),
         ((16, 32, 32), [1, 2], True, 0, True),
-        # TODO(TODO): Not support correction != 0
+        # TODO(#242): Not support correction != 0
         ((32, 32), [1], True, 1, False),
-        # TODO(TODO): Unsupported reduction operation
+        # TODO(#242): Unsupported reduction operation
         ((32, 32), [], True, 0, False),
         # TODO(#240): keepdim = false is not supported
         ((32, 32), [1], False, 0, False),

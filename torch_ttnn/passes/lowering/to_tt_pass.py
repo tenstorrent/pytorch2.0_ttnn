@@ -629,7 +629,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # TODO(#240): Not support keepdim = false (default value)
                 if new_kwargs.get("keepdim", False) == False:
                     return None
-                # TODO(TODO): Not support correction != 0
+                # TODO(#242): Not support correction != 0
                 if new_kwargs.pop("correction", 0) != 0:
                     return None
                 # TODO(#240): Not support rank < 2 or non-tile-size-aligned tensor
@@ -644,7 +644,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if any(idx < len(input_shape) - 2 for idx in dim):
                         return None
                     new_args[1] = dim if len(dim) > 0 else None
-                # TODO(TODO): Not support all reduction
+                # TODO(#242): Not support all-dimension reduction
                 if len(dim) == 0:
                     return None
                 return g.call_function(ttnn.var, tuple(new_args), new_kwargs)
