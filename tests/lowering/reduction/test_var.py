@@ -51,7 +51,6 @@ def test_var(device, input_shape, dim, keepdim, correction, converted):
 
     # Check the graph has be rewritten
     nodes = list(option._out_fx_graphs[0].nodes)
-    # There should be no op
     assert [node.target for node in nodes].count(ttnn.var) == (1 if converted else 0)
     # Check inference result
     assert result_before.shape == result_after.shape
