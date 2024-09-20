@@ -633,12 +633,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     return None
                 # Change indices to row-major layout to support non-tile-aligned shape
                 indices = g.call_function(ttnn.to_layout, args=(indices, TtnnRowMajorLayout()))
-                # Reconstruct the weight tensor solely for vocabulary size
                 grad_shape = grad_output.meta["val"].size()
                 embedding_dim = grad_shape[-1]
-                weights = g.call_function(
-                    ttnn.zeros, args=((num_weights, embedding_dim),), kwargs={"device": TtnnDevice()}
-                )
+                # Reconstruct a fake weight tensor solely for vocabulary size (dim 0)
+                weights = g.call_function(ttnn.zeros, args=((num_weights, 32),), kwargs={"device": TtnnDevice()})
                 # Pack grad_output into (1, 1, x, embedding dim)
                 new_grad_shape = (1, 1, math.prod(grad_shape[:-1]), embedding_dim)
                 grad_output = g.call_function(ttnn.reshape, args=(grad_output, new_grad_shape))
