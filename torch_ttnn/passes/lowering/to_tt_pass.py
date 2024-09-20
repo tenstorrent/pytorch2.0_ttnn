@@ -626,7 +626,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
             if node.target == torch.ops.aten.embedding_dense_backward.default:
                 grad_output, indices, num_weights, padding_idx, scale_grad_by_freq = args
-                # TODO(TODO): Not support padding_idx and scale_grad_by_freq
+                # TODO(#248): Not support padding_idx and scale_grad_by_freq
                 if padding_idx != -1 or scale_grad_by_freq:
                     return None
                 if num_weights > 256:

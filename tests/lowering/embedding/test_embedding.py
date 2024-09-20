@@ -77,7 +77,7 @@ def test_embedding_tile_layout(device, batch_size, sentence_size, vocabulary_siz
     [
         (1, 384, 160, 1024, True),
         (8, 384, 256, 512, True),
-        # TODO(TODO): Not support vocabulary size > 256
+        # TODO(#248): Not support vocabulary size > 256
         (8, 384, 512, 1024, False),
     ],
 )
