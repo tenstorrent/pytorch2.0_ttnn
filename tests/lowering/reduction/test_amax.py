@@ -22,17 +22,17 @@ class AmaxModule(torch.nn.Module):
         ((16, 32, 32), 1, True, True),
         ((16, 32, 32), [2], True, True),
         ((16, 32, 32), [1, 2], True, True),
-        # TODO(TODO): keepdim = false is not supported
+        # TODO(#240): keepdim = false is not supported
         ((32, 32), [1], False, False),
-        # TODO(TODO): Unsupport reduction on < rank - 2 dims
+        # TODO(#240): Unsupport reduction on < rank - 2 dims
         ((16, 32, 32), [0], True, False),
         ((32, 32, 32), [0, 1, 2], True, False),
-        # TODO(TODO): Unexpected output shape (1, 1) instead of (1)
+        # TODO(#240): Unexpected output shape (1, 1) instead of (1)
         ((32,), [], True, False),
-        # TODO(TODO): Need -inf padding value
+        # TODO(#240): Need -inf padding value
         ((1, 32), [], True, False),
         ((32, 1), [], True, False),
-        # TODO(TODO): Output reshape inside generic reduction can't handle non-tile-aligned size
+        # TODO(#240): Output reshape inside generic reduction can't handle non-tile-aligned size
         ((1, 32), [1], True, False),
     ],
 )
