@@ -623,6 +623,29 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
+            if node.target in [torch.ops.aten.amin.default, torch.ops.aten.amax.default]:
+                input_shape = args[0].meta["val"].size()
+                # TODO(#240): Not support keepdim = false (default value)
+                if len(args) < 3 or args[2] == False:
+                    return None
+                # TODO(#240): Not support rank < 2 or non-tile-size-aligned tensor
+                if len(input_shape) < 2 or any(size % ttnn.TILE_SIZE != 0 for size in input_shape[-2:]):
+                    return None
+                new_args = list(args)
+                # Convert dim int/list to tuple
+                if len(args) >= 2:
+                    dim = args[1]
+                    dim = (dim,) if isinstance(dim, int) else tuple(dim)
+                    # TODO(#240): Not support reduction on < rank - 2 dims
+                    if any(idx < len(input_shape) - 2 for idx in dim):
+                        return None
+                    new_args[1] = dim if len(dim) > 0 else None
+                return g.call_function(
+                    ttnn.min if node.target == torch.ops.aten.amin.default else ttnn.max,
+                    tuple(new_args),
+                    kwargs,
+                )
+
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
