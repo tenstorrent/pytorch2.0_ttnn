@@ -13,24 +13,32 @@ class VarModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape, dim, keepdim, correction",
+    "input_shape, dim, keepdim, correction, converted",
     [
-        # pytest.param((32, 32), [], False, marks=pytest.mark.xfail(reason="keepdim = false not supported (#TODO)")),
-        # ((32, 32), [], True, True), # dim = [], Unsupported reduction operation
-        ((32, 32), [1], True, 0),
-        # ((32, 32), [1], True, 1), # Not support correction
-        # ((16, 32, 32), [0], True),  #Output size cannot fit input with offset
-        ((16, 32, 32), [1], True, 0),
-        ((16, 32, 32), [2], True, 0),
-        ((16, 32, 32), [1, 2], True, 0),
-        # ((16, 32, 32), [0, 1, 2], True),  Unsupported dim
-        # ((1, 32), [], True), 0.0 padding issue
-        # ((32, 1), [], True), 0.0 padding issue
-        # ((16,), [], True), #assert torch.Size([1]) == torch.Size([1, 1])
-        # ((4, 16, 32), [2], True), #Unable to reshape a tensor in TILE_LAYOUT to non-tile height and width! Please convert the tensor to ROW_MAJOR_LAYOUT first.
+        ((32, 32), [1], True, 0, True),
+        ((16, 32, 32), [1], True, 0, True),
+        ((16, 32, 32), 1, True, 0, True),
+        ((16, 32, 32), [2], True, 0, True),
+        ((16, 32, 32), [1, 2], True, 0, True),
+        # TODO(TODO): Not support correction != 0
+        ((32, 32), [1], True, 1, False),
+        # TODO(TODO): Unsupported reduction operation
+        ((32, 32), [], True, 0, False),
+        # TODO(#240): keepdim = false is not supported
+        ((32, 32), [1], False, 0, False),
+        # TODO(#240): Not ssupport reduction on < rank - 2 dims
+        ((16, 32, 32), [0], True, 0, False),
+        ((32, 32, 32), [0, 1, 2], True, 0, False),
+        # TODO(#240): Unexpected output shape (1, 1) instead of (1)
+        ((32,), [], True, 0, False),
+        # TODO(#240): Need -inf padding value
+        ((1, 32), [], True, 0, False),
+        ((32, 1), [], True, 0, False),
+        # TODO(#240): Output reshape inside generic reduction can't handle non-tile-aligned size
+        ((1, 32), [1], True, 0, False),
     ],
 )
-def test_var(device, input_shape, dim, keepdim, correction):
+def test_var(device, input_shape, dim, keepdim, correction, converted):
     m = VarModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16)
     result_before = m.forward(input, dim, keepdim, correction)
@@ -44,7 +52,8 @@ def test_var(device, input_shape, dim, keepdim, correction):
     # Check the graph has be rewritten
     nodes = list(option._out_fx_graphs[0].nodes)
     # There should be no op
-    assert [node.target for node in nodes].count(ttnn.var) == 1
+    assert [node.target for node in nodes].count(ttnn.var) == (1 if converted else 0)
     # Check inference result
     assert result_before.shape == result_after.shape
+    # Multiple float multiplications needs higher tolerance
     assert torch.allclose(result_before, result_after, rtol=0.2)
