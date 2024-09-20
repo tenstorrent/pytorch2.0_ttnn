@@ -4,7 +4,7 @@ import pytest
 import ttnn
 
 
-class ProdDimModule(torch.nn.Module):
+class ProdDimIntModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -32,8 +32,8 @@ class ProdDimModule(torch.nn.Module):
         ((32, 32), 1, True, False),
     ],
 )
-def test_prod_dim(device, input_shape, dim, keep_dim, converted):
-    m = ProdDimModule()
+def test_prod_dim_int(device, input_shape, dim, keep_dim, converted):
+    m = ProdDimIntModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16) + 0.5
     result_before = m.forward(input, dim, keep_dim)
 
