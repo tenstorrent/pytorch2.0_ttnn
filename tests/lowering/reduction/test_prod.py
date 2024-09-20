@@ -13,20 +13,26 @@ class ProdDimModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape, dim, keep_dim",
+    "input_shape, dim, keep_dim, converted",
     [
-        ((1, 2, 32, 32), -1, True),
-        # ((1, 2, 32, 32), -1, False), # Not support keep_dim = False
-        ((1, 1, 32, 32), 2, True),
-        ((1, 2, 32, 32), 1, True),
-        ((2, 1, 32, 32), 0, True),
-        # ((2, 1, 1, 32, 32), -1, True), # Output size cannot fit input with offset
-        # ((1, 1, 32, 16), -1, True), # Need 1.0 padding
-        # ((1, 1, 16, 32), -1, True), # Need to crop
-        # ((32, 32), -1, True), # Need 4d shape
+        ((1, 2, 32, 32), 3, True, True),
+        ((1, 1, 32, 32), 2, True, True),
+        ((1, 2, 32, 32), 1, True, True),
+        ((2, 1, 32, 32), 0, True, True),
+        ((2, 1, 32, 32), 0, True, True),
+        # TODO(TODO): Cannot get the device from a tensor with host storage
+        ((1, 1, 1, 32, 32), 3, True, False),
+        # TODO(TODO): Not support keep_dim = False
+        ((1, 2, 32, 32), 3, False, False),
+        # TODO(TODO): dim >= -4 && dim <= 3 && "Dimension out of range (expected to be in range of [-4, 3]
+        ((1, 1, 1, 32, 32), 4, True, False),
+        # TODO(TODO): Need to pad with 1.0 instead of 0
+        ((1, 1, 32, 16), -1, True, False),
+        # TODO(TODO): Need 4d shape
+        ((32, 32), 1, True, False),
     ],
 )
-def test_prod_dim(device, input_shape, dim, keep_dim):
+def test_prod_dim(device, input_shape, dim, keep_dim, converted):
     m = ProdDimModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16) + 0.5
     result_before = m.forward(input, dim, keep_dim)
@@ -40,7 +46,7 @@ def test_prod_dim(device, input_shape, dim, keep_dim):
     # Check the graph has be rewritten
     nodes = list(option._out_fx_graphs[0].nodes)
     # There should be no op
-    assert [node.target for node in nodes].count(ttnn.prod) == 1
+    assert [node.target for node in nodes].count(ttnn.prod) == (1 if converted else 0)
     # Check inference result
     assert result_before.shape == result_after.shape
     # Give higher tolerance for product as it's not associative with float

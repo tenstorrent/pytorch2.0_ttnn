@@ -289,11 +289,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.min.default:
             return self.call_function_prop_meta(ttnn.min, args, kwargs)
 
-        if target == torch.ops.aten.prod.dim_int:
-            # Args: input, all_dimensions=false, dim
-            new_args = (args[0], False, args[1])
-            return self.call_function_prop_meta(ttnn.prod, new_args, kwargs)
-
         ############################################################
         # Data movement
         ############################################################
@@ -627,6 +622,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            if node.target == torch.ops.aten.prod.dim_int:
+                input_shape = args[0].meta["val"].size()
+                if len(input_shape) != 4:
+                    return None
+                # TODO(TODO): Not support keepdim = False (default value)
+                if len(args) < 3 or args[2] == False:
+                    return None
+                # TODO(TODO): Not support non-tile-aligned shape
+                if len(input_shape) < 2 or any(size % ttnn.TILE_SIZE != 0 for size in input_shape[-2:]):
+                    return None
+                # Args: input, all_dimensions=false, dim
+                new_args = (args[0], False, args[1])
+                return g.call_function(ttnn.prod, new_args, kwargs)
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
