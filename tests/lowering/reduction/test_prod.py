@@ -20,15 +20,15 @@ class ProdDimModule(torch.nn.Module):
         ((1, 2, 32, 32), 1, True, True),
         ((2, 1, 32, 32), 0, True, True),
         ((2, 1, 32, 32), 0, True, True),
-        # TODO(TODO): Cannot get the device from a tensor with host storage
-        ((1, 1, 1, 32, 32), 3, True, False),
-        # TODO(TODO): Not support keep_dim = False
+        # TODO(#244): Unexpected output shape [1, 1, 2, 1]
+        ((1, 1, 2, 32, 32), -1, True, False),
+        # TODO(#244): Not support keep_dim = False
         ((1, 2, 32, 32), 3, False, False),
-        # TODO(TODO): dim >= -4 && dim <= 3 && "Dimension out of range (expected to be in range of [-4, 3]
+        # TODO(#244): dim >= -4 && dim <= 3 && "Dimension out of range (expected to be in range of [-4, 3]"
         ((1, 1, 1, 32, 32), 4, True, False),
-        # TODO(TODO): Need to pad with 1.0 instead of 0
+        # TODO(#244): Need to pad with 1.0 instead of 0
         ((1, 1, 32, 16), -1, True, False),
-        # TODO(TODO): Need 4d shape
+        # TODO(#244): Input rank can't < 4
         ((32, 32), 1, True, False),
     ],
 )

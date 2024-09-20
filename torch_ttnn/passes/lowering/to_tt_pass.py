@@ -627,10 +627,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 input_shape = args[0].meta["val"].size()
                 if len(input_shape) != 4:
                     return None
-                # TODO(TODO): Not support keepdim = False (default value)
+                # TODO(#244): Not support keepdim = False (default value)
                 if len(args) < 3 or args[2] == False:
                     return None
-                # TODO(TODO): Not support non-tile-aligned shape
+                # TODO(#244): Not support non-tile-aligned shape
                 if len(input_shape) < 2 or any(size % ttnn.TILE_SIZE != 0 for size in input_shape[-2:]):
                     return None
                 # Args: input, all_dimensions=false, dim
