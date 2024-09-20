@@ -5,6 +5,7 @@ from torch_ttnn.utils import (
     TtnnTileLayout,
     TtnnDevice,
     TtnnBfloat16,
+    HasValidPageSize,
 )
 
 
@@ -190,13 +191,6 @@ def is_tt(node):
     return is_tt_compute(node) or is_tt_data_move(node)
 
 
-def is_reshape_rank_4(node):
-    if node.target == ttnn.reshape:
-        return len(node.args[1]) == 4
-    else:
-        return False
-
-
 def call_to_torch_with_meta(g, src_node):
     call_func = g.call_function(ttnn.to_torch, (src_node,))
     if src_node.meta is not None:
@@ -281,8 +275,9 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         if dst_node.target != ttnn.embedding:
             kwargs["dtype"] = TtnnBfloat16()
 
-        # For reshape only put tensor on device if rank is 4
-        if is_tt_compute(dst_node):
+        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
+            dst_node.target == ttnn.reshape and HasValidPageSize(src_node.meta["val"].size(), strict=True)
+        ):
             kwargs["device"] = device
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
@@ -315,14 +310,15 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.n
 
     g = dst_node.graph
     with g.inserting_before(dst_node):
-        to_layout = g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout()))
+        from_device = g.call_function(ttnn.from_device, (src_node,))
+        to_layout = g.call_function(ttnn.to_layout, (from_device, TtnnRowMajorLayout()))
 
-    insert_node_between(src_node, dst_idx, dst_node, [to_layout])
+    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_layout])
 
     return to_layout
 
 
-def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
+def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
     # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
     if not is_function_call(src_node):
         return None
@@ -336,9 +332,10 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node) -> torch.fx.no
 
     g = dst_node.graph
     with g.inserting_before(dst_node):
-        to_layout = g.call_function(ttnn.to_layout, (dst_node, TtnnTileLayout()))
+        from_device = g.call_function(ttnn.to_device, (src_node,), {"device": device})
+        to_layout = g.call_function(ttnn.to_layout, (from_device, TtnnTileLayout()))
 
-    insert_node_between(src_node, dst_idx, dst_node, [to_layout])
+    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_layout])
 
     return to_layout
 
@@ -440,7 +437,7 @@ class AddDataMovePass(PassBase):
                 elif to_layout := try_add_layout_change_before_node(arg, idx, node):
                     data_move_in_hash[arg] = to_layout
                     i += 1
-                elif to_layout := try_add_layout_change_after_node(arg, idx, node):
+                elif to_layout := try_add_layout_change_after_node(arg, idx, node, device):
                     data_move_in_hash[arg] = to_layout
                     i += 1
 

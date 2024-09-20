@@ -7,6 +7,7 @@ from torch_ttnn.utils import (
     TtnnTileLayout,
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
+    HasValidPageSize,
 )
 import numpy as np
 from typing import Tuple
@@ -323,15 +324,6 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
         raise RuntimeError(f"Missing conversion from torch.dtype: {dtype} to Ttnn dtype.")
 
 
-# Certain ops don't support certain shapes and will emit a valid_page_size error
-# RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
-# For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
-def has_valid_page_size(shape, strict=False):
-    if len(shape) >= 2 and shape[-1] > 0:
-        return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
-    return False
-
-
 # override some functions from torch.fx.graph.Graph
 class GraphWrapper:
     def __init__(self, node):
@@ -408,7 +400,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if has_valid_page_size(arg_metadata.size(), strict=True):
+                if HasValidPageSize(arg_metadata.size(), strict=True):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
@@ -484,7 +476,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and HasValidPageSize(shape):
                     # NOTE(kevinwuTT): Only bfloat16 seems to work for now
                     # TODO(kevinwuTT): Use ttnn.full instead of aten
                     new_kwargs = {
@@ -507,7 +499,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and HasValidPageSize(shape):
                     if isinstance(args[1], float):
                         new_kwargs = {
                             "fill_value": args[1],
@@ -632,7 +624,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # (1) -> (1, 1) or (1, 1, 1), etc
                 if (source_rank == 1) and (np.prod(source_shape) == 1):
                     can_reshape = False
-                elif not has_valid_page_size(source_shape):
+                elif not HasValidPageSize(source_shape):
                     can_reshape = False
                 # Same as ttnn.squeeze with dim = 0
                 # Supported:
