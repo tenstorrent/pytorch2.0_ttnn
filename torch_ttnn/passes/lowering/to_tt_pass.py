@@ -8,10 +8,10 @@ from torch_ttnn.utils import (
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
 )
+import math
 import numpy as np
 from typing import Tuple
 import torch_ttnn.metrics as metrics
-import math
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
