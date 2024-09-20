@@ -212,6 +212,9 @@ class InputVarPerOp(defaultdict):
             for input, status in input_var.items():
                 self[opname][input] = status
 
+    def sorted(self):
+        return dict(sorted(self.items()))
+
     def generate_md_for_input_variations(self) -> str:
         """
         Convert current dict to a markdown string that consists of a high level table of
@@ -220,11 +223,23 @@ class InputVarPerOp(defaultdict):
         Returns:
             Markdown string
         """
-        # Create a high level table of each op first
+        md = self.generate_md_for_high_level_table()
+        md += "***\n"
+
+        for opname, input_vars in self.sorted().items():
+            input_vars_dict = input_vars.get_list_input_var_to_dict()
+            md += f"### {opname}\n"
+            md += pd.DataFrame(input_vars_dict).to_markdown(index=True) + "\n"
+
+        return md
+
+    def generate_md_for_high_level_table(self, links_to_ops=False):
+        # Create a high level table for the main page
         high_level_op_status = defaultdict(list)
-        sort_by_opname = dict(sorted(self.items()))
+        sort_by_opname = self.sorted()
         for opname, input_vars in sort_by_opname.items():
-            high_level_op_status["Operations"].append(opname)
+            ops = f"[{opname}](_ops/{opname}.md)" if links_to_ops else opname
+            high_level_op_status["Operations"].append(ops)
             high_level_op_status["Input Variations"].append(len(input_vars))
             high_level_op_status["Converted"].append(input_vars.get_conversion_status_count_for(ConversionStatus.DONE))
 
@@ -232,24 +247,37 @@ class InputVarPerOp(defaultdict):
         md += f"# High Level Operations Status\n"
         md += pd.DataFrame(high_level_op_status).to_markdown(index=True) + "\n"
 
-        md += "***\n"
-
-        for opname, input_vars in sort_by_opname.items():
-            input_vars_dict = input_vars.get_list_input_var_to_dict()
-            md += f"### {opname}\n"
-            md += pd.DataFrame(input_vars_dict).to_markdown(index=True) + "\n"
-
         return md
+
+    def write_md(self, md: str, basedir: Path, filename: Path):
+        basedir.mkdir(parents=True, exist_ok=True)
+        with open(basedir / filename, "w") as text_file:
+            print(md, file=text_file)
+        print(f"Data written to {basedir / filename}")
+
+    def write_md_for_cumulative_report(self):
+        md = self.generate_md_for_high_level_table()
+
+        basedir = Path("docs")
+        self.write_md(md, basedir, Path("cumulative_input_variations.md"))
+
+        # Create a new page for each op
+        cumulative_ops_dir = Path("_ops")
+        cumulative_ops_dir.mkdir(parents=True, exist_ok=True)
+
+        for opname, input_vars in self.sorted().items():
+            op_md = ""
+            input_vars_dict = input_vars.get_list_input_var_to_dict()
+            op_md += f"### {opname}\n"
+            op_md += pd.DataFrame(input_vars_dict).to_markdown(index=True) + "\n"
+            self.write_md(op_md, basedir / Path("_ops"), Path(f"{opname}.md"))
 
     def write_md_for_input_variations(self, basedir: Path, filename: Path):
         """
         Convert to a markdown string and write to a file.
         """
         md = self.generate_md_for_input_variations()
-        basedir.mkdir(parents=True, exist_ok=True)
-        with open(basedir / filename, "w") as text_file:
-            print(md, file=text_file)
-        print(f"Data written to {basedir / filename}")
+        self.write_md(md, basedir, filename)
 
     def serialize_to_pydantic_operations(self):
         """Transform schema information to a list of `class Operation` pydantic models."""
@@ -423,7 +451,8 @@ if __name__ == "__main__":
         print(f"Data written to {model_run_filename}")
 
     # Write cumulative input variations to file
-    cumulative_input_vars.write_md_for_input_variations(Path("docs"), Path("cumulative_input_variations.md"))
+    # cumulative_input_vars.write_md_for_input_variations(Path("docs"), Path("cumulative_input_variations.md"))
+    cumulative_input_vars.write_md_for_cumulative_report()
 
     # Write collected metrics to README
     write_to_readme(all_metrics, aten_ops_per_model)
