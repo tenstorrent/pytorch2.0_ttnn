@@ -8,6 +8,7 @@ from torch_ttnn.utils import (
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
 )
+import math
 import numpy as np
 from typing import Tuple
 import torch_ttnn.metrics as metrics
@@ -622,6 +623,26 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            if node.target == torch.ops.aten.embedding_dense_backward.default:
+                grad_output, indices, num_weights, padding_idx, scale_grad_by_freq = args
+                # TODO(#248): Not support padding_idx and scale_grad_by_freq
+                if padding_idx != -1 or scale_grad_by_freq:
+                    return None
+                if num_weights > 256:
+                    return None
+                # Change indices to row-major layout to support non-tile-aligned shape
+                indices = g.call_function(ttnn.to_layout, args=(indices, TtnnRowMajorLayout()))
+                grad_shape = grad_output.meta["val"].size()
+                embedding_dim = grad_shape[-1]
+                # Reconstruct a fake weight tensor solely for vocabulary size (dim 0)
+                weights = g.call_function(ttnn.zeros, args=((num_weights, 32),), kwargs={"device": TtnnDevice()})
+                # Pack grad_output into (1, 1, x, embedding dim)
+                new_grad_shape = (1, 1, math.prod(grad_shape[:-1]), embedding_dim)
+                grad_output = g.call_function(ttnn.reshape, args=(grad_output, new_grad_shape))
+
+                result = g.call_function(ttnn.embedding_bw, args=(indices, weights, grad_output))
+                return g.call_function(ttnn.reshape, args=(result, node.meta["val"].size()))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
