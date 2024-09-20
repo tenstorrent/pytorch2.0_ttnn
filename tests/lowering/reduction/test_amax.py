@@ -24,7 +24,7 @@ class AmaxModule(torch.nn.Module):
         ((16, 32, 32), [1, 2], True, True),
         # TODO(#240): keepdim = false is not supported
         ((32, 32), [1], False, False),
-        # TODO(#240): Unsupport reduction on < rank - 2 dims
+        # TODO(#240): Not support reduction on < rank - 2 dims
         ((16, 32, 32), [0], True, False),
         ((32, 32, 32), [0, 1, 2], True, False),
         # TODO(#240): Unexpected output shape (1, 1) instead of (1)
@@ -49,7 +49,6 @@ def test_amax(device, sign, input_shape, dim, keepdim, converted):
 
     # Check the graph has be rewritten
     nodes = list(option._out_fx_graphs[0].nodes)
-    # There should be no op
     assert [node.target for node in nodes].count(ttnn.max) == (1 if converted else 0)
     # Check inference result
     assert result_before.shape == result_after.shape
