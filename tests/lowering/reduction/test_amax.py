@@ -12,25 +12,33 @@ class AmaxModule(torch.nn.Module):
         return torch.amax(input, dim=dim, keepdim=keepdim)
 
 
+@pytest.mark.parametrize("sign", [1, -1])
 @pytest.mark.parametrize(
-    "input_shape, dim, keepdim",
+    "input_shape, dim, keepdim, converted",
     [
-        # pytest.param((32, 32), [], False, marks=pytest.mark.xfail(reason="keepdim = false not supported (#TODO)")),
-        # ((32, 32), [], True),
-        # ((16, 32, 32), [0], True),  Output size cannot fit input with offset
-        ((16, 32, 32), [1], True),
-        ((16, 32, 32), [2], True),
-        ((16, 32, 32), [1, 2], True),
-        # ((16, 32, 32), [0, 1, 2], True),  Unsupported dim
-        ((1, 32), [], True),
-        ((32, 1), [], True),
-        # ((16,), [], True), assert torch.Size([1]) == torch.Size([1, 1])
-        # ((4, 16, 32), [2], True), Unable to reshape a tensor in TILE_LAYOUT to non-tile height and width! Please convert the tensor to ROW_MAJOR_LAYOUT first.
+        ((32, 32), [], True, True),
+        ((16, 32, 32), [], True, True),
+        ((16, 32, 32), [1], True, True),
+        ((16, 32, 32), 1, True, True),
+        ((16, 32, 32), [2], True, True),
+        ((16, 32, 32), [1, 2], True, True),
+        # TODO(TODO): keepdim = false is not supported
+        ((32, 32), [1], False, False),
+        # TODO(TODO): Unsupport reduction on < rank - 2 dims
+        ((16, 32, 32), [0], True, False),
+        ((32, 32, 32), [0, 1, 2], True, False),
+        # TODO(TODO): Unexpected output shape (1, 1) instead of (1)
+        ((32,), [], True, False),
+        # TODO(TODO): Need -inf padding value
+        ((1, 32), [], True, False),
+        ((32, 1), [], True, False),
+        # TODO(TODO): Output reshape inside generic reduction can't handle non-tile-aligned size
+        ((1, 32), [1], True, False),
     ],
 )
-def test_amax(device, input_shape, dim, keepdim):
+def test_amax(device, sign, input_shape, dim, keepdim, converted):
     m = AmaxModule()
-    input = torch.rand(input_shape, dtype=torch.bfloat16)
+    input = torch.rand(input_shape, dtype=torch.bfloat16) * sign
     result_before = m.forward(input, dim, keepdim)
 
     option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True)
@@ -42,7 +50,7 @@ def test_amax(device, input_shape, dim, keepdim):
     # Check the graph has be rewritten
     nodes = list(option._out_fx_graphs[0].nodes)
     # There should be no op
-    assert [node.target for node in nodes].count(ttnn.max) == 1
+    assert [node.target for node in nodes].count(ttnn.max) == (1 if converted else 0)
     # Check inference result
     assert result_before.shape == result_after.shape
     assert torch.allclose(result_before, result_after)

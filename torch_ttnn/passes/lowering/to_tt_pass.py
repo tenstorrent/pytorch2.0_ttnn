@@ -280,20 +280,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Reduction
         ############################################################
-        if target == torch.ops.aten.amax.default:
-            new_args = list(args)
-            if len(new_args) >= 2 and not isinstance(new_args[1], int):
-                dim = new_args[1]
-                new_args[1] = tuple(dim) if len(dim) > 0 else None
-            return self.call_function_prop_meta(ttnn.max, tuple(new_args), kwargs)
-
-        if target == torch.ops.aten.amin.default:
-            new_args = list(args)
-            if len(new_args) >= 2 and not isinstance(new_args[1], int):
-                dim = new_args[1]
-                new_args[1] = tuple(dim) if len(dim) > 0 else None
-            return self.call_function_prop_meta(ttnn.min, tuple(new_args), kwargs)
-
         if target == torch.ops.aten.mean.dim:
             # change dim parameter to tuple
             new_args = list(args)
@@ -636,6 +622,29 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            if node.target in [torch.ops.aten.amin.default, torch.ops.aten.amax.default]:
+                input_shape = args[0].meta["val"].size()
+                # TODO(TODO): Unsupport keepdim = false (default value)
+                if len(args) < 3 or args[2] == False:
+                    return None
+                # TODO(TODO): Unsupport rank < 2 or non-tile-size-aligned tensor
+                if len(input_shape) < 2 or any(size % ttnn.TILE_SIZE != 0 for size in input_shape[-2:]):
+                    return None
+                new_args = list(args)
+                # Convert dim int/list to tuple
+                if len(args) >= 2:
+                    dim = args[1]
+                    dim = (dim,) if isinstance(dim, int) else tuple(dim)
+                    # TODO(TODO): Unsupport reduction on < rank - 2 dims
+                    if any(idx < len(input_shape) - 2 for idx in dim):
+                        return None
+                    new_args[1] = dim if len(dim) > 0 else None
+                return g.call_function(
+                    ttnn.min if node.target == torch.ops.aten.amin.default else ttnn.max,
+                    tuple(new_args),
+                    kwargs,
+                )
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
