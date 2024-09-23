@@ -13,21 +13,22 @@ class TopKModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape, k, dim, largest, sorted, converted",
+    "input_shape, k, dim, largest, sorted",
     [
-        ((1, 1, 4, 32), 32, -1, True, True, True),
-        ((1, 16), 8, -1, True, True, True),
-        ((256,), 24, -1, True, True, True),
-        pytest.param((24, 64), 32, -1, True, True, True, marks=pytest.mark.xfail(reason="incorrect indices (#216)")),
-        # Unsupported: k > 32
-        ((128,), 50, -1, True, True, False),
-        # Unsupported: largest = false
-        ((128,), 32, -1, False, True, False),
-        # Unsupported: sorted = false
-        ((128,), 32, -1, True, False, False),
+        ((1, 1, 4, 32), 32, -1, True, True),
+        ((1, 16), 8, -1, True, True),
+        ((256,), 24, -1, True, True),
+        # TODO(#216): Incorrect indices
+        pytest.param((24, 64), 32, -1, True, True, marks=pytest.mark.xfail(reason="Incorrect indices (#216)")),
+        # TODO(#215): Not support k > 32
+        pytest.param((128,), 50, -1, True, True, marks=pytest.mark.xfail(reason="Not support k > 32 (#215)")),
+        # TODO(#215): Not support largest = false
+        pytest.param((128,), 32, -1, False, True, marks=pytest.mark.xfail(reason="Not support largest = false (#215)")),
+        # TODO(#215): Not support sorted = false
+        pytest.param((128,), 32, -1, True, False, marks=pytest.mark.xfail(reason="Not support sorted = false (#215)")),
     ],
 )
-def test_topk(device, input_shape, k, dim, largest, sorted, converted):
+def test_topk(device, input_shape, k, dim, largest, sorted):
     m = TopKModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16)
     exp = torch.rand(input_shape, dtype=torch.bfloat16)
@@ -42,7 +43,7 @@ def test_topk(device, input_shape, k, dim, largest, sorted, converted):
 
     # Check the graph has be rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.topk) == (1 if converted else 0)
+    assert [node.target for node in nodes].count(ttnn.topk) == 1
     # Check inference result
     assert torch.allclose(values_before, values_after)
     # Only check if the indices work as expected because precision error can result in big differences
