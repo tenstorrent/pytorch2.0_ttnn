@@ -5,7 +5,7 @@
 |  1 | aten.add.Tensor                                  |                  1 |           1 |
 |  2 | aten.addmm.default                               |                  5 |           5 |
 |  3 | aten.cat.default                                 |                  1 |           0 |
-|  4 | aten.clone.default                               |                  3 |           3 |
+|  4 | aten.clone.default                               |                  3 |           2 |
 |  5 | aten.convolution.default                         |                  1 |           0 |
 |  6 | aten.expand.default                              |                  1 |           0 |
 |  7 | aten.gelu.default                                |                  1 |           1 |
@@ -17,7 +17,7 @@
 | 13 | aten.t.default                                   |                  5 |           5 |
 | 14 | aten.transpose.int                               |                  4 |           4 |
 | 15 | aten.unsqueeze.default                           |                  1 |           1 |
-| 16 | aten.view.default                                |                 12 |           0 |
+| 16 | aten.view.default                                |                 12 |           5 |
 ***
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                       | Status   |
@@ -42,7 +42,7 @@
 ### aten.clone.default
 |    | ATen Input Variations                                                                        | Status   |
 |---:|:---------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 50, 3072]> self = ?                                                               | Done     |
+|  0 | Tensor<[1, 50, 3072]> self = ?                                                               | Unknown  |
 |  1 | Tensor<[1, 50, 768]> self = ?                                                                | Done     |
 |  2 | Tensor<[3, 50, 1, 768]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format | Done     |
 ### aten.convolution.default
@@ -103,16 +103,16 @@
 ### aten.view.default
 |    | ATen Input Variations                                                 | Status   |
 |---:|:----------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 50, 3072]> self = ?,<br>List[int]<> size = [50, 3072]      | Unknown  |
-|  1 | Tensor<[1, 50, 768]> self = ?,<br>List[int]<> size = [50, 768]        | Unknown  |
+|  0 | Tensor<[1, 50, 3072]> self = ?,<br>List[int]<> size = [50, 3072]      | Done     |
+|  1 | Tensor<[1, 50, 768]> self = ?,<br>List[int]<> size = [50, 768]        | Done     |
 |  2 | Tensor<[1, 768, 7, 7]> self = ?,<br>List[int]<> size = [1, 768, 49]   | Unknown  |
-|  3 | Tensor<[12, 50, 64]> self = ?,<br>List[int]<> size = [1, 12, 50, 64]  | Unknown  |
+|  3 | Tensor<[12, 50, 64]> self = ?,<br>List[int]<> size = [1, 12, 50, 64]  | Done     |
 |  4 | Tensor<[50, 1, 12, 64]> self = ?,<br>List[int]<> size = [50, 768]     | Unknown  |
 |  5 | Tensor<[50, 1, 2304]> self = ?,<br>List[int]<> size = [50, 1, 3, 768] | Unknown  |
 |  6 | Tensor<[50, 1, 768]> self = ?,<br>List[int]<> size = [50, 12, 64]     | Unknown  |
 |  7 | Tensor<[50, 1, 768]> self = ?,<br>List[int]<> size = [50, 768]        | Unknown  |
 |  8 | Tensor<[50, 2304]> self = ?,<br>List[int]<> size = [50, 1, 2304]      | Unknown  |
-|  9 | Tensor<[50, 3072]> self = ?,<br>List[int]<> size = [1, 50, 3072]      | Unknown  |
-| 10 | Tensor<[50, 768]> self = ?,<br>List[int]<> size = [1, 50, 768]        | Unknown  |
+|  9 | Tensor<[50, 3072]> self = ?,<br>List[int]<> size = [1, 50, 3072]      | Done     |
+| 10 | Tensor<[50, 768]> self = ?,<br>List[int]<> size = [1, 50, 768]        | Done     |
 | 11 | Tensor<[50, 768]> self = ?,<br>List[int]<> size = [50, 1, 768]        | Unknown  |
 

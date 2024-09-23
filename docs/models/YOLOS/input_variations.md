@@ -14,7 +14,7 @@
 | 10 | aten.convolution.default       |                  1 |           0 |
 | 11 | aten.div.Tensor                |                  1 |           0 |
 | 12 | aten.expand.default            |                  5 |           0 |
-| 13 | aten.floor.default             |                  2 |           2 |
+| 13 | aten.floor.default             |                  2 |           0 |
 | 14 | aten.gelu.default              |                  1 |           1 |
 | 15 | aten.mul.Tensor                |                 10 |          10 |
 | 16 | aten.native_layer_norm.default |                  1 |           1 |
@@ -28,7 +28,7 @@
 | 24 | aten.t.default                 |                  5 |           5 |
 | 25 | aten.transpose.int             |                  3 |           3 |
 | 26 | aten.unsqueeze.default         |                  1 |           1 |
-| 27 | aten.view.default              |                 21 |           0 |
+| 27 | aten.view.default              |                 21 |           9 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                                   | Status   |
@@ -114,8 +114,8 @@
 ### aten.floor.default
 |    | ATen Input Variations          | Status   |
 |---:|:-------------------------------|:---------|
-|  0 | Tensor<[1, 1, 1, 42]> self = ? | Done     |
-|  1 | Tensor<[1, 1, 32, 1]> self = ? | Done     |
+|  0 | Tensor<[1, 1, 1, 42]> self = ? | Unknown  |
+|  1 | Tensor<[1, 1, 32, 1]> self = ? | Unknown  |
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   |
 |---:|:--------------------------------|:---------|
@@ -209,25 +209,25 @@
 ### aten.view.default
 |    | ATen Input Variations                                                      | Status   |
 |---:|:---------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 100, 192]> self = ?,<br>List[int]<> size = [100, 192]           | Unknown  |
+|  0 | Tensor<[1, 100, 192]> self = ?,<br>List[int]<> size = [100, 192]           | Done     |
 |  1 | Tensor<[1, 1445, 192]> self = ?,<br>List[int]<> size = [1, 1445, 3, 64]    | Unknown  |
-|  2 | Tensor<[1, 1445, 192]> self = ?,<br>List[int]<> size = [1445, 192]         | Unknown  |
+|  2 | Tensor<[1, 1445, 192]> self = ?,<br>List[int]<> size = [1445, 192]         | Done     |
 |  3 | Tensor<[1, 1445, 3, 64]> self = ?,<br>List[int]<> size = [1, 1445, 192]    | Unknown  |
-|  4 | Tensor<[1, 1445, 768]> self = ?,<br>List[int]<> size = [1445, 768]         | Unknown  |
+|  4 | Tensor<[1, 1445, 768]> self = ?,<br>List[int]<> size = [1445, 768]         | Done     |
 |  5 | Tensor<[1, 192, 32, 42]> self = ?,<br>List[int]<> size = [1, 192, 1344]    | Unknown  |
 |  6 | Tensor<[1, 192, 4150]> self = ?,<br>List[int]<> size = [1, 192, 50, 83]    | Unknown  |
 |  7 | Tensor<[1, 3, 1445, 1445]> self = ?,<br>List[int]<> size = [3, 1445, 1445] | Unknown  |
-|  8 | Tensor<[1, 3, 1445, 64]> self = ?,<br>List[int]<> size = [3, 1445, 64]     | Unknown  |
+|  8 | Tensor<[1, 3, 1445, 64]> self = ?,<br>List[int]<> size = [3, 1445, 64]     | Done     |
 |  9 | Tensor<[1, 3, 64, 1445]> self = ?,<br>List[int]<> size = [3, 64, 1445]     | Unknown  |
-| 10 | Tensor<[100, 192]> self = ?,<br>List[int]<> size = [1, 100, 192]           | Unknown  |
-| 11 | Tensor<[100, 4]> self = ?,<br>List[int]<> size = [1, 100, 4]               | Unknown  |
+| 10 | Tensor<[100, 192]> self = ?,<br>List[int]<> size = [1, 100, 192]           | Done     |
+| 11 | Tensor<[100, 4]> self = ?,<br>List[int]<> size = [1, 100, 4]               | Done     |
 | 12 | Tensor<[100, 92]> self = ?,<br>List[int]<> size = [1, 100, 92]             | Unknown  |
-| 13 | Tensor<[1445, 192]> self = ?,<br>List[int]<> size = [1, 1445, 192]         | Unknown  |
-| 14 | Tensor<[1445, 768]> self = ?,<br>List[int]<> size = [1, 1445, 768]         | Unknown  |
+| 13 | Tensor<[1445, 192]> self = ?,<br>List[int]<> size = [1, 1445, 192]         | Done     |
+| 14 | Tensor<[1445, 768]> self = ?,<br>List[int]<> size = [1, 1445, 768]         | Done     |
 | 15 | Tensor<[192]> self = ?,<br>List[int]<> size = [1, 192, 1, 1]               | Unknown  |
 | 16 | Tensor<[1]> self = ?,<br>List[int]<> size = [1, 1, 1, 1]                   | Unknown  |
 | 17 | Tensor<[3, 1445, 1445]> self = ?,<br>List[int]<> size = [1, 3, 1445, 1445] | Unknown  |
-| 18 | Tensor<[3, 1445, 64]> self = ?,<br>List[int]<> size = [1, 3, 1445, 64]     | Unknown  |
+| 18 | Tensor<[3, 1445, 64]> self = ?,<br>List[int]<> size = [1, 3, 1445, 64]     | Done     |
 | 19 | Tensor<[32]> self = ?,<br>List[int]<> size = [1, 1, 32, 1]                 | Unknown  |
 | 20 | Tensor<[42]> self = ?,<br>List[int]<> size = [1, 1, 1, 42]                 | Unknown  |
 
