@@ -303,8 +303,8 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
-        if target == torch.ops.aten.squeeze.dim:            
-            return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)            
+        if target == torch.ops.aten.squeeze.dim:
+            return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 
