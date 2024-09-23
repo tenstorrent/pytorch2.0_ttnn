@@ -107,7 +107,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=True,
-                run_mem_analysis=True,
+                run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
             )
@@ -157,34 +157,37 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 comp_runtime_metrics["accuracy"] = accuracy
             # dump compiled aten schemas
             metrics.save_pickle(
-                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+                [x.dict() for x in option.compiled_schema_list],
+                option.metrics_path,
+                "compiled-schema_list",
             )
 
-            # Memory analysis
-            mm = option.memory_manager
-            # Convert bytes to MB
-            peak_usage = mm.peak_sram_usage / mb_in_bytes
-            comp_runtime_metrics["peak_sram_usage"] = peak_usage
+            # # Memory analysis
+            # TODO: re-enable memory analysis
+            # mm = option.memory_manager
+            # # Convert bytes to MB
+            # peak_usage = mm.peak_sram_usage / mb_in_bytes
+            # comp_runtime_metrics["peak_sram_usage"] = peak_usage
 
-            if mem_utils.check_sram_overflow(mm) is True:
-                comp_runtime_metrics["fits_in_memory"] = "No"
-            else:
-                comp_runtime_metrics["fits_in_memory"] = "Yes"
+            # if mem_utils.check_sram_overflow(mm) is True:
+            #     comp_runtime_metrics["fits_in_memory"] = "No"
+            # else:
+            #     comp_runtime_metrics["fits_in_memory"] = "Yes"
 
-            # These are for plotting charts for later inspection
-            from tools.plot_chart import (
-                plot_mem_footprint_bar_chart,
-                plot_mem_footprint_line_chart,
-            )
+            # # These are for plotting charts for later inspection
+            # from tools.plot_chart import (
+            #     plot_mem_footprint_bar_chart,
+            #     plot_mem_footprint_line_chart,
+            # )
 
-            bar_chart_file = f"metrics/{model_name}/bar_chart.png"
-            line_chart_file = f"metrics/{model_name}/line_chart.png"
-            plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
-            plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
+            # bar_chart_file = f"metrics/{model_name}/bar_chart.png"
+            # line_chart_file = f"metrics/{model_name}/line_chart.png"
+            # plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
+            # plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
 
-            log_file = f"metrics/{model_name}/memory_footprint.txt"
-            with open(log_file, "w") as f:
-                f.write(mm.logs)
+            # log_file = f"metrics/{model_name}/memory_footprint.txt"
+            # with open(log_file, "w") as f:
+            #     f.write(mm.logs)
 
         except Exception as e:
             comp_runtime_metrics = {
@@ -211,14 +214,18 @@ def compile_and_run(device, reset_torch_dynamo, request):
         finally:
             # dump original aten schemas
             metrics.save_pickle(
-                [x.dict() for x in option.original_schema_list], option.metrics_path, "original-schema_list"
+                [x.dict() for x in option.original_schema_list],
+                option.metrics_path,
+                "original-schema_list",
             )
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
             # dump compiled aten schemas
             metrics.save_pickle(
-                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+                [x.dict() for x in option.compiled_schema_list],
+                option.metrics_path,
+                "compiled-schema_list",
             )
 
 
@@ -238,4 +245,6 @@ def manage_dependencies(request):
     subprocess.check_call([sys.executable, "-m", "pip", "install"] + dependencies)
     yield
     # Uninstall dependencies
-    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies)
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies
+    )
