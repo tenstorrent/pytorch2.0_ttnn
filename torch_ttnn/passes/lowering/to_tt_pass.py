@@ -1,5 +1,6 @@
 import torch
 import ttnn
+import math
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
@@ -660,6 +661,24 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 else:
                     # Fallback: aten.reshape is more stable if the input nodes have changed
                     return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
+            if node.target == torch.ops.aten.split.Tensor:
+                # convert input tensopr to ROW MAJOR layout for split
+                to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
+                
+                # convert relative split dim to absolute
+                if args[2] >= 0:
+                    split_dim = args[0]
+                else:
+                    split_dim = len(args[0].meta["val"].size())+args[2]
+                
+                # convert from PyTorch size of chunk to ttnn number of chunks
+                if isinstance(args[1], int):
+                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim]/args[1])
+                else:
+                    raise RuntimeError(f"ttnn.split only supports chunks of same size.")
+
+                new_args = (to_layout, num_chunks, split_dim)
+                return g.call_function(ttnn.split, args=new_args)
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
