@@ -73,15 +73,14 @@ def test_embedding_tile_layout(device, batch_size, sentence_size, vocabulary_siz
 
 
 @pytest.mark.parametrize(
-    "batch, sentence_size, vocabulary_size, hidden_embedding_dim, converted",
+    "batch, sentence_size, vocabulary_size, hidden_embedding_dim",
     [
-        (1, 384, 160, 1024, True),
-        (8, 384, 256, 512, True),
-        # TODO(#248): Not support vocabulary size > 256
-        (8, 384, 512, 1024, False),
+        (1, 384, 160, 1024),
+        (8, 384, 256, 512),
+        pytest.param(8, 384, 512, 1024, marks=pytest.mark.xfail(reason="Not support vocabulary size > 256 (#248)")),
     ],
 )
-def test_embedding_backward_tile_layout(device, batch, sentence_size, vocabulary_size, hidden_embedding_dim, converted):
+def test_embedding_backward_tile_layout(device, batch, sentence_size, vocabulary_size, hidden_embedding_dim):
     m = EmbeddingTileLayoutModule()
     input = torch.randint(0, vocabulary_size, (batch, sentence_size), dtype=torch.int64)
     weights = torch.rand((vocabulary_size, hidden_embedding_dim), dtype=torch.bfloat16)
@@ -98,7 +97,7 @@ def test_embedding_backward_tile_layout(device, batch, sentence_size, vocabulary
 
     # Check the graph has be rewritten
     nodes = list(option._out_fx_graphs[-1].nodes)
-    assert [node.target for node in nodes].count(ttnn.embedding_bw) == (1 if converted else 0)
+    assert [node.target for node in nodes].count(ttnn.embedding_bw) == 1
     # Check inference result
     assert weights_before.grad.shape == weights_after.grad.shape
     # Multiple float multiplications needs a higher tolerance
