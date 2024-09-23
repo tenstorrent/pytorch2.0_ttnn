@@ -174,6 +174,7 @@ class InputVarPerOp(defaultdict):
 
     def __init__(self, original_schema_metrics={}, compiled_schema_metrics={}):
         super(InputVarPerOp, self).__init__(self.InputVarStatus)
+        self.ops_dir = "operations"
 
         def _join_br(str_list: list):
             # Separate each input with a line-break, <br>
@@ -238,7 +239,7 @@ class InputVarPerOp(defaultdict):
         high_level_op_status = defaultdict(list)
         sort_by_opname = self.sorted()
         for opname, input_vars in sort_by_opname.items():
-            ops = f"[{opname}](_ops/{opname}.md)" if links_to_ops else opname
+            ops = f"[{opname}]({self.ops_dir}/{opname}.md)" if links_to_ops else opname
             high_level_op_status["Operations"].append(ops)
             high_level_op_status["Input Variations"].append(len(input_vars))
             high_level_op_status["Converted"].append(input_vars.get_conversion_status_count_for(ConversionStatus.DONE))
@@ -259,10 +260,10 @@ class InputVarPerOp(defaultdict):
         md = self.generate_md_for_high_level_table()
 
         basedir = Path("docs")
-        self.write_md(md, basedir, Path("cumulative_input_variations.md"))
+        self.write_md(md, basedir, Path("OperationsReport.md"))
 
         # Create a new page for each op
-        cumulative_ops_dir = Path("_ops")
+        cumulative_ops_dir = Path(self.ops_dir)
         cumulative_ops_dir.mkdir(parents=True, exist_ok=True)
 
         for opname, input_vars in self.sorted().items():
@@ -270,7 +271,7 @@ class InputVarPerOp(defaultdict):
             input_vars_dict = input_vars.get_list_input_var_to_dict()
             op_md += f"### {opname}\n"
             op_md += pd.DataFrame(input_vars_dict).to_markdown(index=True) + "\n"
-            self.write_md(op_md, basedir / Path("_ops"), Path(f"{opname}.md"))
+            self.write_md(op_md, basedir / cumulative_ops_dir, Path(f"{opname}.md"))
 
     def write_md_for_input_variations(self, basedir: Path, filename: Path):
         """
@@ -451,7 +452,6 @@ if __name__ == "__main__":
         print(f"Data written to {model_run_filename}")
 
     # Write cumulative input variations to file
-    # cumulative_input_vars.write_md_for_input_variations(Path("docs"), Path("cumulative_input_variations.md"))
     cumulative_input_vars.write_md_for_cumulative_report()
 
     # Write collected metrics to README

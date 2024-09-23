@@ -1,11 +1,11 @@
 # High Level Operations Status
 |    | Operations                                        |   Input Variations |   Converted |
 |---:|:--------------------------------------------------|-------------------:|------------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 12 |           1 |
+|  0 | aten._native_batch_norm_legit_no_training.default |                 12 |           0 |
 |  1 | aten.add.Tensor                                   |                  7 |           0 |
 |  2 | aten.cat.default                                  |                 10 |           0 |
 |  3 | aten.clone.default                                |                  3 |           0 |
-|  4 | aten.convolution.default                          |                 28 |           1 |
+|  4 | aten.convolution.default                          |                 28 |           0 |
 |  5 | aten.mul.Tensor                                   |                  9 |           0 |
 |  6 | aten.permute.default                              |                  3 |           0 |
 |  7 | aten.pow.Tensor_Scalar                            |                  3 |           0 |
@@ -23,7 +23,7 @@
 |  2 | Tensor<[1, 256, ((s1 - 1)//2) + 1, ((s2 - 1)//2) + 1]> input = ?,<br>Optional[Tensor]<[256]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>Tensor<[256]> running_mean = ?,<br>Tensor<[256]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001 | Unknown  |
 |  3 | Tensor<[1, 256, s0, s1]> input = ?,<br>Optional[Tensor]<[256]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>Tensor<[256]> running_mean = ?,<br>Tensor<[256]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001                               | Unknown  |
 |  4 | Tensor<[1, 256, s1, s2]> input = ?,<br>Optional[Tensor]<[256]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>Tensor<[256]> running_mean = ?,<br>Tensor<[256]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001                               | Unknown  |
-|  5 | Tensor<[1, 32, 256, 256]> input = ?,<br>Optional[Tensor]<[32]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>Tensor<[32]> running_mean = ?,<br>Tensor<[32]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001                                  | Done     |
+|  5 | Tensor<[1, 32, 256, 256]> input = ?,<br>Optional[Tensor]<[32]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>Tensor<[32]> running_mean = ?,<br>Tensor<[32]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001                                  | Unknown  |
 |  6 | Tensor<[1, 32, s0, s1]> input = ?,<br>Optional[Tensor]<[32]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>Tensor<[32]> running_mean = ?,<br>Tensor<[32]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001                                    | Unknown  |
 |  7 | Tensor<[1, 512, ((s1 - 1)//2) + 1, ((s2 - 1)//2) + 1]> input = ?,<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>Tensor<[512]> running_mean = ?,<br>Tensor<[512]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001 | Unknown  |
 |  8 | Tensor<[1, 512, s1, s2]> input = ?,<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>Tensor<[512]> running_mean = ?,<br>Tensor<[512]> running_var = ?,<br>float<> momentum = 0.03,<br>float<> eps = 0.001                               | Unknown  |
@@ -76,7 +76,7 @@
 | 11 | Tensor<[1, 256, s1, s2]> input = ?,<br>Tensor<[256, 256, 3, 3]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [2, 2],<br>List[int]<> padding = [1, 1],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1      | Unknown  |
 | 12 | Tensor<[1, 256, s1, s2]> input = ?,<br>Tensor<[512, 256, 3, 3]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [2, 2],<br>List[int]<> padding = [1, 1],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1      | Unknown  |
 | 13 | Tensor<[1, 256, s1, s2]> input = ?,<br>Tensor<[64, 256, 1, 1]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [1, 1],<br>List[int]<> padding = [0, 0],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1       | Unknown  |
-| 14 | Tensor<[1, 3, 512, 512]> input = ?,<br>Tensor<[32, 3, 6, 6]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [2, 2],<br>List[int]<> padding = [2, 2],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1         | Done     |
+| 14 | Tensor<[1, 3, 512, 512]> input = ?,<br>Tensor<[32, 3, 6, 6]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [2, 2],<br>List[int]<> padding = [2, 2],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1         | Unknown  |
 | 15 | Tensor<[1, 32, s0, s1]> input = ?,<br>Tensor<[32, 32, 1, 1]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [1, 1],<br>List[int]<> padding = [0, 0],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1         | Unknown  |
 | 16 | Tensor<[1, 32, s0, s1]> input = ?,<br>Tensor<[32, 32, 3, 3]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [1, 1],<br>List[int]<> padding = [1, 1],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1         | Unknown  |
 | 17 | Tensor<[1, 32, s1, s2]> input = ?,<br>Tensor<[64, 32, 3, 3]> weight = ?,<br>Optional[Tensor]<> bias = ?,<br>List[int]<> stride = [2, 2],<br>List[int]<> padding = [1, 1],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1         | Unknown  |

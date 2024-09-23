@@ -22,7 +22,7 @@
 | 18 | aten.permute.default           |                  2 |           0 |
 | 19 | aten.rsub.Scalar               |                  2 |           0 |
 | 20 | aten.select.int                |                  6 |           0 |
-| 21 | aten.slice.Tensor              |                 18 |           2 |
+| 21 | aten.slice.Tensor              |                 18 |           0 |
 | 22 | aten.stack.default             |                  1 |           0 |
 | 23 | aten.sum.dim_IntList           |                  2 |           0 |
 | 24 | aten.t.default                 |                  5 |           0 |
@@ -178,8 +178,8 @@
 | 12 | Tensor<[1, 201, 768]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Unknown  |
 | 13 | Tensor<[1, 201]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1          | Unknown  |
 | 14 | Tensor<[1, 384, 512]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Unknown  |
-| 15 | Tensor<[1, 40]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1           | Done     |
-| 16 | Tensor<[1, 40]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 8            | Done     |
+| 15 | Tensor<[1, 40]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1           | Unknown  |
+| 16 | Tensor<[1, 40]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 8            | Unknown  |
 | 17 | Tensor<[192, 2]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1          | Unknown  |
 ### aten.stack.default
 |    | ATen Input Variations                                                                        | Status   |

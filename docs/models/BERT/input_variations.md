@@ -6,7 +6,7 @@
 |  2 | aten.add.Tensor                |                  2 |           2 |
 |  3 | aten.addmm.default             |                  4 |           4 |
 |  4 | aten.bmm.default               |                  2 |           2 |
-|  5 | aten.clone.default             |                  4 |           4 |
+|  5 | aten.clone.default             |                  4 |           2 |
 |  6 | aten.div.Tensor                |                  1 |           1 |
 |  7 | aten.embedding.default         |                  3 |           3 |
 |  8 | aten.expand.default            |                  3 |           0 |
@@ -15,13 +15,13 @@
 | 11 | aten.native_layer_norm.default |                  1 |           1 |
 | 12 | aten.permute.default           |                  2 |           2 |
 | 13 | aten.rsub.Scalar               |                  1 |           1 |
-| 14 | aten.slice.Tensor              |                  4 |           4 |
-| 15 | aten.split.Tensor              |                  1 |           1 |
-| 16 | aten.squeeze.dim               |                  1 |           1 |
+| 14 | aten.slice.Tensor              |                  4 |           0 |
+| 15 | aten.split.Tensor              |                  1 |           0 |
+| 16 | aten.squeeze.dim               |                  1 |           0 |
 | 17 | aten.t.default                 |                  4 |           4 |
 | 18 | aten.transpose.int             |                  1 |           1 |
 | 19 | aten.unsqueeze.default         |                  2 |           2 |
-| 20 | aten.view.default              |                 12 |          12 |
+| 20 | aten.view.default              |                 12 |          10 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                                  | Status   |
@@ -51,8 +51,8 @@
 ### aten.clone.default
 |    | ATen Input Variations                                                                         | Status   |
 |---:|:----------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 16, 256, 256]> self = ?                                                            | Done     |
-|  1 | Tensor<[1, 256, 1024]> self = ?                                                               | Done     |
+|  0 | Tensor<[1, 16, 256, 256]> self = ?                                                            | Unknown  |
+|  1 | Tensor<[1, 256, 1024]> self = ?                                                               | Unknown  |
 |  2 | Tensor<[1, 256, 16, 64]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format | Done     |
 |  3 | Tensor<[1, 256]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format         | Done     |
 ### aten.div.Tensor
@@ -95,18 +95,18 @@
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                        | Status   |
 |---:|:-------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 1, 256]> self = ?,<br>int<> dim = 3,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1 | Done     |
-|  1 | Tensor<[1, 256]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1       | Done     |
-|  2 | Tensor<[1, 512]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1       | Done     |
-|  3 | Tensor<[1, 512]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 256      | Done     |
+|  0 | Tensor<[1, 1, 1, 256]> self = ?,<br>int<> dim = 3,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1 | Unknown  |
+|  1 | Tensor<[1, 256]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1       | Unknown  |
+|  2 | Tensor<[1, 512]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1       | Unknown  |
+|  3 | Tensor<[1, 512]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 256      | Unknown  |
 ### aten.split.Tensor
 |    | ATen Input Variations                                                    | Status   |
 |---:|:-------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 256, 2]> self = ?,<br>int<> split_size = 1,<br>int<> dim = -1 | Done     |
+|  0 | Tensor<[1, 256, 2]> self = ?,<br>int<> split_size = 1,<br>int<> dim = -1 | Unknown  |
 ### aten.squeeze.dim
 |    | ATen Input Variations                           | Status   |
 |---:|:------------------------------------------------|:---------|
-|  0 | Tensor<[1, 256, 1]> self = ?,<br>int<> dim = -1 | Done     |
+|  0 | Tensor<[1, 256, 1]> self = ?,<br>int<> dim = -1 | Unknown  |
 ### aten.t.default
 |    | ATen Input Variations         | Status   |
 |---:|:------------------------------|:---------|
@@ -129,9 +129,9 @@
 |  0 | Tensor<[1, 16, 256, 256]> self = ?,<br>List[int]<> size = [16, 256, 256] | Done     |
 |  1 | Tensor<[1, 16, 256, 64]> self = ?,<br>List[int]<> size = [16, 256, 64]   | Done     |
 |  2 | Tensor<[1, 16, 64, 256]> self = ?,<br>List[int]<> size = [16, 64, 256]   | Done     |
-|  3 | Tensor<[1, 256, 1024]> self = ?,<br>List[int]<> size = [1, 256, 16, 64]  | Done     |
+|  3 | Tensor<[1, 256, 1024]> self = ?,<br>List[int]<> size = [1, 256, 16, 64]  | Unknown  |
 |  4 | Tensor<[1, 256, 1024]> self = ?,<br>List[int]<> size = [256, 1024]       | Done     |
-|  5 | Tensor<[1, 256, 16, 64]> self = ?,<br>List[int]<> size = [1, 256, 1024]  | Done     |
+|  5 | Tensor<[1, 256, 16, 64]> self = ?,<br>List[int]<> size = [1, 256, 1024]  | Unknown  |
 |  6 | Tensor<[1, 256, 4096]> self = ?,<br>List[int]<> size = [256, 4096]       | Done     |
 |  7 | Tensor<[16, 256, 256]> self = ?,<br>List[int]<> size = [1, 16, 256, 256] | Done     |
 |  8 | Tensor<[16, 256, 64]> self = ?,<br>List[int]<> size = [1, 16, 256, 64]   | Done     |
