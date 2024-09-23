@@ -1,13 +1,13 @@
 # High Level Operations Status
 |    | Operations                                       |   Input Variations |   Converted |
 |---:|:-------------------------------------------------|-------------------:|------------:|
-|  0 | aten._scaled_dot_product_flash_attention.default |                 18 |           0 |
+|  0 | aten._scaled_dot_product_flash_attention.default |                 18 |           3 |
 |  1 | aten.add.Tensor                                  |                  6 |           4 |
 |  2 | aten.addmm.default                               |                  9 |           6 |
-|  3 | aten.argmax.default                              |                  1 |           0 |
+|  3 | aten.argmax.default                              |                  1 |           1 |
 |  4 | aten.cat.default                                 |                 26 |           0 |
-|  5 | aten.clone.default                               |                  8 |           3 |
-|  6 | aten.convolution.default                         |                  2 |           0 |
+|  5 | aten.clone.default                               |                  8 |           5 |
+|  6 | aten.convolution.default                         |                  2 |           2 |
 |  7 | aten.embedding.default                           |                  2 |           1 |
 |  8 | aten.gelu.default                                |                  5 |           4 |
 |  9 | aten.mm.default                                  |                  5 |           3 |
@@ -15,17 +15,17 @@
 | 11 | aten.native_layer_norm.default                   |                  3 |           2 |
 | 12 | aten.ones.default                                |                  1 |           1 |
 | 13 | aten.permute.default                             |                  1 |           1 |
-| 14 | aten.select.int                                  |                  2 |           0 |
-| 15 | aten.slice.Tensor                                |                  7 |           0 |
+| 14 | aten.select.int                                  |                  2 |           1 |
+| 15 | aten.slice.Tensor                                |                  7 |           4 |
 | 16 | aten.t.default                                   |                  4 |           4 |
 | 17 | aten.transpose.int                               |                  6 |           4 |
-| 18 | aten.view.default                                |                 25 |           0 |
+| 18 | aten.view.default                                |                 25 |          16 |
 ***
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                                                                            | Status   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                         | Unknown  |
-|  1 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                                   | Unknown  |
+|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                         | Done     |
+|  1 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                                   | Done     |
 |  2 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 5, 64]> key = ?,<br>Tensor<[1, 12, 5, 64]> value = ?                                                         | Unknown  |
 |  3 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s10 + 1, 64]> key = ?,<br>Tensor<[1, 12, s11 + 1, 64]> value = ?                                             | Unknown  |
 |  4 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s12 + 1, 64]> key = ?,<br>Tensor<[1, 12, s13 + 1, 64]> value = ?                                             | Unknown  |
@@ -39,7 +39,7 @@
 | 12 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s4 + 1, 64]> key = ?,<br>Tensor<[1, 12, s5 + 1, 64]> value = ?                                               | Unknown  |
 | 13 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s6 + 1, 64]> key = ?,<br>Tensor<[1, 12, s7 + 1, 64]> value = ?                                               | Unknown  |
 | 14 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s8 + 1, 64]> key = ?,<br>Tensor<[1, 12, s9 + 1, 64]> value = ?                                               | Unknown  |
-| 15 | Tensor<[1, 12, 1500, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                                | Unknown  |
+| 15 | Tensor<[1, 12, 1500, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                                | Done     |
 | 16 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                                   | Unknown  |
 | 17 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 4, 64]> key = ?,<br>Tensor<[1, 12, 4, 64]> value = ?,<br>float<> dropout_p = 0.0,<br>bool<> is_causal = True | Unknown  |
 ### aten.add.Tensor
@@ -66,7 +66,7 @@
 ### aten.argmax.default
 |    | ATen Input Variations                                    | Status   |
 |---:|:---------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 51865]> self = ?,<br>Optional[int]<> dim = -1 | Unknown  |
+|  0 | Tensor<[1, 51865]> self = ?,<br>Optional[int]<> dim = -1 | Done     |
 ### aten.cat.default
 |    | ATen Input Variations                                                                                                                | Status   |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------|:---------|
@@ -100,18 +100,18 @@
 |    | ATen Input Variations                                                                          | Status   |
 |---:|:-----------------------------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1, 3072]> self = ?                                                                  | Done     |
-|  1 | Tensor<[1, 1, 768]> self = ?                                                                   | Unknown  |
+|  1 | Tensor<[1, 1, 768]> self = ?                                                                   | Done     |
 |  2 | Tensor<[1, 12, 1500, 64]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format | Done     |
 |  3 | Tensor<[1, 12, 4, 64]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format    | Unknown  |
 |  4 | Tensor<[1, 1500, 3072]> self = ?                                                               | Done     |
-|  5 | Tensor<[1, 1500, 768]> self = ?                                                                | Unknown  |
+|  5 | Tensor<[1, 1500, 768]> self = ?                                                                | Done     |
 |  6 | Tensor<[1, 4, 3072]> self = ?                                                                  | Unknown  |
 |  7 | Tensor<[1, 4, 768]> self = ?                                                                   | Unknown  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                        | Status   |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 768, 3000]> input = ?,<br>Tensor<[768, 768, 3]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>List[int]<> stride = [2],<br>List[int]<> padding = [1],<br>List[int]<> dilation = [1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0],<br>int<> groups = 1 | Unknown  |
-|  1 | Tensor<[1, 80, 3000]> input = ?,<br>Tensor<[768, 80, 3]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>List[int]<> stride = [1],<br>List[int]<> padding = [1],<br>List[int]<> dilation = [1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0],<br>int<> groups = 1   | Unknown  |
+|  0 | Tensor<[1, 768, 3000]> input = ?,<br>Tensor<[768, 768, 3]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>List[int]<> stride = [2],<br>List[int]<> padding = [1],<br>List[int]<> dilation = [1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0],<br>int<> groups = 1 | Done     |
+|  1 | Tensor<[1, 80, 3000]> input = ?,<br>Tensor<[768, 80, 3]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>List[int]<> stride = [1],<br>List[int]<> padding = [1],<br>List[int]<> dilation = [1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0],<br>int<> groups = 1   | Done     |
 ### aten.embedding.default
 |    | ATen Input Variations                                                                        | Status   |
 |---:|:---------------------------------------------------------------------------------------------|:---------|
@@ -157,15 +157,15 @@
 ### aten.select.int
 |    | ATen Input Variations                                                 | Status   |
 |---:|:----------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 51865]> self = ?,<br>int<> dim = 1,<br>int<> index = -1 | Unknown  |
+|  0 | Tensor<[1, 1, 51865]> self = ?,<br>int<> dim = 1,<br>int<> index = -1 | Done     |
 |  1 | Tensor<[1]> self = ?,<br>int<> dim = 0,<br>int<> index = 0            | Unknown  |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                           | Status   |
 |---:|:----------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 51865]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Unknown  |
-|  1 | Tensor<[1, 80, 3000]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Unknown  |
-|  2 | Tensor<[1, 80, 3000]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Unknown  |
-|  3 | Tensor<[448, 768]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 1         | Unknown  |
+|  0 | Tensor<[1, 1, 51865]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Done     |
+|  1 | Tensor<[1, 80, 3000]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Done     |
+|  2 | Tensor<[1, 80, 3000]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1     | Done     |
+|  3 | Tensor<[448, 768]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 1         | Done     |
 |  4 | Tensor<[448, 768]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 4         | Unknown  |
 |  5 | Tensor<[448, 768]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 4,<br>Optional[int]<> end = 5         | Unknown  |
 |  6 | Tensor<[448, 768]> self = ?,<br>int<> dim = 0,<br>Optional[int]<s2> start = ?,<br>Optional[int]<s2 + 1> end = ? | Unknown  |
@@ -188,28 +188,28 @@
 ### aten.view.default
 |    | ATen Input Variations                                                    | Status   |
 |---:|:-------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 12, 64]> self = ?,<br>List[int]<> size = [1, 1, 768]       | Unknown  |
-|  1 | Tensor<[1, 1, 3072]> self = ?,<br>List[int]<> size = [1, 3072]           | Unknown  |
-|  2 | Tensor<[1, 1, 768]> self = ?,<br>List[int]<> size = [1, -1, 12, 64]      | Unknown  |
-|  3 | Tensor<[1, 1, 768]> self = ?,<br>List[int]<> size = [1, 1, 12, 64]       | Unknown  |
-|  4 | Tensor<[1, 1, 768]> self = ?,<br>List[int]<> size = [1, 768]             | Unknown  |
-|  5 | Tensor<[1, 1500, 12, 64]> self = ?,<br>List[int]<> size = [1, 1500, 768] | Unknown  |
-|  6 | Tensor<[1, 1500, 3072]> self = ?,<br>List[int]<> size = [1500, 3072]     | Unknown  |
-|  7 | Tensor<[1, 1500, 768]> self = ?,<br>List[int]<> size = [1, -1, 12, 64]   | Unknown  |
-|  8 | Tensor<[1, 1500, 768]> self = ?,<br>List[int]<> size = [1, 1500, 12, 64] | Unknown  |
-|  9 | Tensor<[1, 1500, 768]> self = ?,<br>List[int]<> size = [1500, 768]       | Unknown  |
-| 10 | Tensor<[1, 1]> self = ?,<br>List[int]<> size = [-1, 1]                   | Unknown  |
-| 11 | Tensor<[1, 3072]> self = ?,<br>List[int]<> size = [1, 1, 3072]           | Unknown  |
+|  0 | Tensor<[1, 1, 12, 64]> self = ?,<br>List[int]<> size = [1, 1, 768]       | Done     |
+|  1 | Tensor<[1, 1, 3072]> self = ?,<br>List[int]<> size = [1, 3072]           | Done     |
+|  2 | Tensor<[1, 1, 768]> self = ?,<br>List[int]<> size = [1, -1, 12, 64]      | Done     |
+|  3 | Tensor<[1, 1, 768]> self = ?,<br>List[int]<> size = [1, 1, 12, 64]       | Done     |
+|  4 | Tensor<[1, 1, 768]> self = ?,<br>List[int]<> size = [1, 768]             | Done     |
+|  5 | Tensor<[1, 1500, 12, 64]> self = ?,<br>List[int]<> size = [1, 1500, 768] | Done     |
+|  6 | Tensor<[1, 1500, 3072]> self = ?,<br>List[int]<> size = [1500, 3072]     | Done     |
+|  7 | Tensor<[1, 1500, 768]> self = ?,<br>List[int]<> size = [1, -1, 12, 64]   | Done     |
+|  8 | Tensor<[1, 1500, 768]> self = ?,<br>List[int]<> size = [1, 1500, 12, 64] | Done     |
+|  9 | Tensor<[1, 1500, 768]> self = ?,<br>List[int]<> size = [1500, 768]       | Done     |
+| 10 | Tensor<[1, 1]> self = ?,<br>List[int]<> size = [-1, 1]                   | Done     |
+| 11 | Tensor<[1, 3072]> self = ?,<br>List[int]<> size = [1, 1, 3072]           | Done     |
 | 12 | Tensor<[1, 4, 12, 64]> self = ?,<br>List[int]<> size = [1, 4, 768]       | Unknown  |
 | 13 | Tensor<[1, 4, 3072]> self = ?,<br>List[int]<> size = [4, 3072]           | Unknown  |
 | 14 | Tensor<[1, 4, 768]> self = ?,<br>List[int]<> size = [1, -1, 12, 64]      | Unknown  |
 | 15 | Tensor<[1, 4, 768]> self = ?,<br>List[int]<> size = [1, 4, 12, 64]       | Unknown  |
 | 16 | Tensor<[1, 4, 768]> self = ?,<br>List[int]<> size = [4, 768]             | Unknown  |
 | 17 | Tensor<[1, 4]> self = ?,<br>List[int]<> size = [-1, 4]                   | Unknown  |
-| 18 | Tensor<[1, 51865]> self = ?,<br>List[int]<> size = [1, 1, 51865]         | Unknown  |
-| 19 | Tensor<[1, 768]> self = ?,<br>List[int]<> size = [1, 1, 768]             | Unknown  |
-| 20 | Tensor<[1500, 3072]> self = ?,<br>List[int]<> size = [1, 1500, 3072]     | Unknown  |
-| 21 | Tensor<[1500, 768]> self = ?,<br>List[int]<> size = [1, 1500, 768]       | Unknown  |
+| 18 | Tensor<[1, 51865]> self = ?,<br>List[int]<> size = [1, 1, 51865]         | Done     |
+| 19 | Tensor<[1, 768]> self = ?,<br>List[int]<> size = [1, 1, 768]             | Done     |
+| 20 | Tensor<[1500, 3072]> self = ?,<br>List[int]<> size = [1, 1500, 3072]     | Done     |
+| 21 | Tensor<[1500, 768]> self = ?,<br>List[int]<> size = [1, 1500, 768]       | Done     |
 | 22 | Tensor<[4, 3072]> self = ?,<br>List[int]<> size = [1, 4, 3072]           | Unknown  |
 | 23 | Tensor<[4, 51865]> self = ?,<br>List[int]<> size = [1, 4, 51865]         | Unknown  |
 | 24 | Tensor<[4, 768]> self = ?,<br>List[int]<> size = [1, 4, 768]             | Unknown  |

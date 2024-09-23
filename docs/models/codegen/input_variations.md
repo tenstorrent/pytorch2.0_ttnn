@@ -9,12 +9,12 @@
 |  5 | aten.bmm.default               |                  6 |           0 |
 |  6 | aten.cat.default               |                  6 |           0 |
 |  7 | aten.clone.default             |                 10 |           0 |
-|  8 | aten.cumsum.default            |                  2 |           0 |
+|  8 | aten.cumsum.default            |                  2 |           1 |
 |  9 | aten.div.Tensor                |                  3 |           0 |
 | 10 | aten.embedding.default         |                  2 |           0 |
-| 11 | aten.eq.Scalar                 |                  1 |           0 |
+| 11 | aten.eq.Scalar                 |                  1 |           1 |
 | 12 | aten.expand.default            |                 12 |           0 |
-| 13 | aten.gt.Scalar                 |                  1 |           0 |
+| 13 | aten.gt.Scalar                 |                  1 |           1 |
 | 14 | aten.index.Tensor              |                  2 |           0 |
 | 15 | aten.lift_fresh_copy.default   |                  1 |           0 |
 | 16 | aten.mm.default                |                  4 |           0 |
@@ -25,12 +25,12 @@
 | 21 | aten.permute.default           |                  4 |           0 |
 | 22 | aten.pow.Tensor_Scalar         |                  2 |           0 |
 | 23 | aten.rsub.Scalar               |                  3 |           0 |
-| 24 | aten.select.int                |                  1 |           0 |
-| 25 | aten.slice.Tensor              |                 45 |           0 |
+| 24 | aten.select.int                |                  1 |           1 |
+| 25 | aten.slice.Tensor              |                 45 |           1 |
 | 26 | aten.split.Tensor              |                  4 |           0 |
 | 27 | aten.stack.default             |                  2 |           0 |
 | 28 | aten.sub.Tensor                |                  2 |           1 |
-| 29 | aten.sum.default               |                  1 |           0 |
+| 29 | aten.sum.default               |                  1 |           1 |
 | 30 | aten.sym_size.int              |                  2 |           0 |
 | 31 | aten.t.default                 |                  5 |           0 |
 | 32 | aten.tanh.default              |                  2 |           0 |
@@ -113,7 +113,7 @@
 ### aten.cumsum.default
 |    | ATen Input Variations                       | Status   |
 |---:|:--------------------------------------------|:---------|
-|  0 | Tensor<[1, 5]> self = ?,<br>int<> dim = -1  | Unknown  |
+|  0 | Tensor<[1, 5]> self = ?,<br>int<> dim = -1  | Done     |
 |  1 | Tensor<[1, s0]> self = ?,<br>int<> dim = -1 | Unknown  |
 ### aten.div.Tensor
 |    | ATen Input Variations                                         | Status   |
@@ -129,7 +129,7 @@
 ### aten.eq.Scalar
 |    | ATen Input Variations                           | Status   |
 |---:|:------------------------------------------------|:---------|
-|  0 | Tensor<[1]> self = ?,<br>number<> other = 50256 | Unknown  |
+|  0 | Tensor<[1]> self = ?,<br>number<> other = 50256 | Done     |
 ### aten.expand.default
 |    | ATen Input Variations                                                                           | Status   |
 |---:|:------------------------------------------------------------------------------------------------|:---------|
@@ -148,7 +148,7 @@
 ### aten.gt.Scalar
 |    | ATen Input Variations                      | Status   |
 |---:|:-------------------------------------------|:---------|
-|  0 | Tensor<[]> self = ?,<br>number<> other = 0 | Unknown  |
+|  0 | Tensor<[]> self = ?,<br>number<> other = 0 | Done     |
 ### aten.index.Tensor
 |    | ATen Input Variations                                                                     | Status   |
 |---:|:------------------------------------------------------------------------------------------|:---------|
@@ -217,7 +217,7 @@
 ### aten.select.int
 |    | ATen Input Variations                                          | Status   |
 |---:|:---------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 5]> self = ?,<br>int<> dim = 1,<br>int<> index = -1 | Unknown  |
+|  0 | Tensor<[1, 5]> self = ?,<br>int<> dim = 1,<br>int<> index = -1 | Done     |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                           | Status   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------|:---------|
@@ -258,7 +258,7 @@
 | 34 | Tensor<[1, 5, 16, 64]> self = ?,<br>int<> dim = 3,<br>Optional[int]<> start = 32,<br>Optional[int]<> end = -1                   | Unknown  |
 | 35 | Tensor<[1, 5, 16]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1                        | Unknown  |
 | 36 | Tensor<[1, 5, 16]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1                        | Unknown  |
-| 37 | Tensor<[1, 5]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1                            | Unknown  |
+| 37 | Tensor<[1, 5]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1                            | Done     |
 | 38 | Tensor<[1, 6]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1                            | Unknown  |
 | 39 | Tensor<[1, 6]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 5,<br>Optional[int]<> end = -1                            | Unknown  |
 | 40 | Tensor<[1, s0]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1                           | Unknown  |
@@ -286,7 +286,7 @@
 ### aten.sum.default
 |    | ATen Input Variations   | Status   |
 |---:|:------------------------|:---------|
-|  0 | Tensor<[1]> self = ?    | Unknown  |
+|  0 | Tensor<[1]> self = ?    | Done     |
 ### aten.sym_size.int
 |    | ATen Input Variations                                   | Status   |
 |---:|:--------------------------------------------------------|:---------|

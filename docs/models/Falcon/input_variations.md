@@ -5,7 +5,7 @@
 |  1 | aten._unsafe_view.default      |                  1 |           0 |
 |  2 | aten.add.Tensor                |                  4 |           0 |
 |  3 | aten.all.default               |                  1 |           0 |
-|  4 | aten.arange.start              |                  1 |           0 |
+|  4 | aten.arange.start              |                  1 |           1 |
 |  5 | aten.bmm.default               |                  2 |           0 |
 |  6 | aten.cat.default               |                  2 |           0 |
 |  7 | aten.clone.default             |                  2 |           0 |
@@ -54,7 +54,7 @@
 ### aten.arange.start
 |    | ATen Input Variations                                                                                                                                       | Status   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | number<> start = 0,<br>number<> end = 7,<br>Optional[int]<> dtype = torch.int64,<br>Optional[Device]<> device = cpu,<br>Optional[bool]<> pin_memory = False | Unknown  |
+|  0 | number<> start = 0,<br>number<> end = 7,<br>Optional[int]<> dtype = torch.int64,<br>Optional[Device]<> device = cpu,<br>Optional[bool]<> pin_memory = False | Done     |
 ### aten.bmm.default
 |    | ATen Input Variations                                         | Status   |
 |---:|:--------------------------------------------------------------|:---------|

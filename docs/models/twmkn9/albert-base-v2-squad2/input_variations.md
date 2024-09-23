@@ -2,12 +2,12 @@
 |    | Operations                     |   Input Variations |   Converted |
 |---:|:-------------------------------|-------------------:|------------:|
 |  0 | aten._softmax.default          |                  1 |           1 |
-|  1 | aten._to_copy.default          |                  1 |           0 |
-|  2 | aten._unsafe_view.default      |                  1 |           0 |
+|  1 | aten._to_copy.default          |                  1 |           1 |
+|  2 | aten._unsafe_view.default      |                  1 |           1 |
 |  3 | aten.add.Tensor                |                  5 |           5 |
 |  4 | aten.addmm.default             |                  5 |           5 |
 |  5 | aten.bmm.default               |                  2 |           2 |
-|  6 | aten.clone.default             |                  5 |           4 |
+|  6 | aten.clone.default             |                  5 |           5 |
 |  7 | aten.div.Tensor                |                  1 |           1 |
 |  8 | aten.embedding.default         |                  3 |           3 |
 |  9 | aten.expand.default            |                  3 |           0 |
@@ -16,14 +16,14 @@
 | 12 | aten.permute.default           |                  1 |           1 |
 | 13 | aten.pow.Tensor_Scalar         |                  1 |           1 |
 | 14 | aten.rsub.Scalar               |                  1 |           1 |
-| 15 | aten.slice.Tensor              |                  2 |           0 |
-| 16 | aten.split.Tensor              |                  1 |           0 |
-| 17 | aten.squeeze.dim               |                  1 |           0 |
+| 15 | aten.slice.Tensor              |                  2 |           2 |
+| 16 | aten.split.Tensor              |                  1 |           1 |
+| 17 | aten.squeeze.dim               |                  1 |           1 |
 | 18 | aten.t.default                 |                  5 |           5 |
 | 19 | aten.tanh.default              |                  1 |           1 |
 | 20 | aten.transpose.int             |                  2 |           2 |
 | 21 | aten.unsqueeze.default         |                  2 |           2 |
-| 22 | aten.view.default              |                 12 |           0 |
+| 22 | aten.view.default              |                 12 |          12 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                                | Status   |
@@ -32,11 +32,11 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                                    | Status   |
 |---:|:-------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 1, 14]> self = ?,<br>Optional[int]<> dtype = torch.float32 | Unknown  |
+|  0 | Tensor<[1, 1, 1, 14]> self = ?,<br>Optional[int]<> dtype = torch.float32 | Done     |
 ### aten._unsafe_view.default
 |    | ATen Input Variations                                                | Status   |
 |---:|:---------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 14, 12, 64]> self = ?,<br>List[int]<> size = [1, 14, 768] | Unknown  |
+|  0 | Tensor<[1, 14, 12, 64]> self = ?,<br>List[int]<> size = [1, 14, 768] | Done     |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                | Status   |
 |---:|:---------------------------------------------------------------------|:---------|
@@ -64,7 +64,7 @@
 |  0 | Tensor<[1, 12, 14, 14]> self = ?                                                             | Done     |
 |  1 | Tensor<[1, 14, 12, 64]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format | Done     |
 |  2 | Tensor<[1, 14, 128]> self = ?                                                                | Done     |
-|  3 | Tensor<[1, 14, 768]> self = ?                                                                | Unknown  |
+|  3 | Tensor<[1, 14, 768]> self = ?                                                                | Done     |
 |  4 | Tensor<[1, 14]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format         | Done     |
 ### aten.div.Tensor
 |    | ATen Input Variations                                     | Status   |
@@ -110,16 +110,16 @@
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                  | Status   |
 |---:|:-------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 512]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1 | Unknown  |
-|  1 | Tensor<[1, 512]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 14 | Unknown  |
+|  0 | Tensor<[1, 512]> self = ?,<br>int<> dim = 0,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = -1 | Done     |
+|  1 | Tensor<[1, 512]> self = ?,<br>int<> dim = 1,<br>Optional[int]<> start = 0,<br>Optional[int]<> end = 14 | Done     |
 ### aten.split.Tensor
 |    | ATen Input Variations                                                   | Status   |
 |---:|:------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 14, 2]> self = ?,<br>int<> split_size = 1,<br>int<> dim = -1 | Unknown  |
+|  0 | Tensor<[1, 14, 2]> self = ?,<br>int<> split_size = 1,<br>int<> dim = -1 | Done     |
 ### aten.squeeze.dim
 |    | ATen Input Variations                          | Status   |
 |---:|:-----------------------------------------------|:---------|
-|  0 | Tensor<[1, 14, 1]> self = ?,<br>int<> dim = -1 | Unknown  |
+|  0 | Tensor<[1, 14, 1]> self = ?,<br>int<> dim = -1 | Done     |
 ### aten.t.default
 |    | ATen Input Variations        | Status   |
 |---:|:-----------------------------|:---------|
@@ -145,16 +145,16 @@
 ### aten.view.default
 |    | ATen Input Variations                                                | Status   |
 |---:|:---------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 12, 14, 14]> self = ?,<br>List[int]<> size = [12, 14, 14] | Unknown  |
-|  1 | Tensor<[1, 12, 14, 64]> self = ?,<br>List[int]<> size = [12, 14, 64] | Unknown  |
-|  2 | Tensor<[1, 12, 64, 14]> self = ?,<br>List[int]<> size = [12, 64, 14] | Unknown  |
-|  3 | Tensor<[1, 14, 128]> self = ?,<br>List[int]<> size = [14, 128]       | Unknown  |
-|  4 | Tensor<[1, 14, 3072]> self = ?,<br>List[int]<> size = [14, 3072]     | Unknown  |
-|  5 | Tensor<[1, 14, 768]> self = ?,<br>List[int]<> size = [1, 14, 12, 64] | Unknown  |
-|  6 | Tensor<[1, 14, 768]> self = ?,<br>List[int]<> size = [14, 768]       | Unknown  |
-|  7 | Tensor<[12, 14, 14]> self = ?,<br>List[int]<> size = [1, 12, 14, 14] | Unknown  |
-|  8 | Tensor<[12, 14, 64]> self = ?,<br>List[int]<> size = [1, 12, 14, 64] | Unknown  |
-|  9 | Tensor<[14, 2]> self = ?,<br>List[int]<> size = [1, 14, 2]           | Unknown  |
-| 10 | Tensor<[14, 3072]> self = ?,<br>List[int]<> size = [1, 14, 3072]     | Unknown  |
-| 11 | Tensor<[14, 768]> self = ?,<br>List[int]<> size = [1, 14, 768]       | Unknown  |
+|  0 | Tensor<[1, 12, 14, 14]> self = ?,<br>List[int]<> size = [12, 14, 14] | Done     |
+|  1 | Tensor<[1, 12, 14, 64]> self = ?,<br>List[int]<> size = [12, 14, 64] | Done     |
+|  2 | Tensor<[1, 12, 64, 14]> self = ?,<br>List[int]<> size = [12, 64, 14] | Done     |
+|  3 | Tensor<[1, 14, 128]> self = ?,<br>List[int]<> size = [14, 128]       | Done     |
+|  4 | Tensor<[1, 14, 3072]> self = ?,<br>List[int]<> size = [14, 3072]     | Done     |
+|  5 | Tensor<[1, 14, 768]> self = ?,<br>List[int]<> size = [1, 14, 12, 64] | Done     |
+|  6 | Tensor<[1, 14, 768]> self = ?,<br>List[int]<> size = [14, 768]       | Done     |
+|  7 | Tensor<[12, 14, 14]> self = ?,<br>List[int]<> size = [1, 12, 14, 14] | Done     |
+|  8 | Tensor<[12, 14, 64]> self = ?,<br>List[int]<> size = [1, 12, 14, 64] | Done     |
+|  9 | Tensor<[14, 2]> self = ?,<br>List[int]<> size = [1, 14, 2]           | Done     |
+| 10 | Tensor<[14, 3072]> self = ?,<br>List[int]<> size = [1, 14, 3072]     | Done     |
+| 11 | Tensor<[14, 768]> self = ?,<br>List[int]<> size = [1, 14, 768]       | Done     |
 

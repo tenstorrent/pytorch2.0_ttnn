@@ -4,11 +4,11 @@
 |  0 | aten._log_softmax.default            |                  1 |           1 |
 |  1 | aten.addmm.default                   |                  2 |           2 |
 |  2 | aten.clone.default                   |                  2 |           2 |
-|  3 | aten.convolution.default             |                  2 |           0 |
-|  4 | aten.max_pool2d_with_indices.default |                  1 |           0 |
+|  3 | aten.convolution.default             |                  2 |           2 |
+|  4 | aten.max_pool2d_with_indices.default |                  1 |           1 |
 |  5 | aten.relu.default                    |                  3 |           3 |
 |  6 | aten.t.default                       |                  2 |           2 |
-|  7 | aten.view.default                    |                  1 |           0 |
+|  7 | aten.view.default                    |                  1 |           1 |
 ***
 ### aten._log_softmax.default
 |    | ATen Input Variations                                                       | Status   |
@@ -27,12 +27,12 @@
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                     | Status   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>List[int]<> stride = [1, 1],<br>List[int]<> padding = [0, 0],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1   | Unknown  |
-|  1 | Tensor<[1, 32, 26, 26]> input = ?,<br>Tensor<[64, 32, 3, 3]> weight = ?,<br>Optional[Tensor]<[64]> bias = ?,<br>List[int]<> stride = [1, 1],<br>List[int]<> padding = [0, 0],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1 | Unknown  |
+|  0 | Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>List[int]<> stride = [1, 1],<br>List[int]<> padding = [0, 0],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1   | Done     |
+|  1 | Tensor<[1, 32, 26, 26]> input = ?,<br>Tensor<[64, 32, 3, 3]> weight = ?,<br>Optional[Tensor]<[64]> bias = ?,<br>List[int]<> stride = [1, 1],<br>List[int]<> padding = [0, 0],<br>List[int]<> dilation = [1, 1],<br>bool<> transposed = False,<br>List[int]<> output_padding = [0, 0],<br>int<> groups = 1 | Done     |
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                                 | Status   |
 |---:|:----------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 64, 24, 24]> self = ?,<br>List[int]<> kernel_size = [2, 2] | Unknown  |
+|  0 | Tensor<[1, 64, 24, 24]> self = ?,<br>List[int]<> kernel_size = [2, 2] | Done     |
 ### aten.relu.default
 |    | ATen Input Variations            | Status   |
 |---:|:---------------------------------|:---------|
@@ -47,5 +47,5 @@
 ### aten.view.default
 |    | ATen Input Variations                                             | Status   |
 |---:|:------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 64, 12, 12]> self = ?,<br>List[int]<> size = [1, 9216] | Unknown  |
+|  0 | Tensor<[1, 64, 12, 12]> self = ?,<br>List[int]<> size = [1, 9216] | Done     |
 
