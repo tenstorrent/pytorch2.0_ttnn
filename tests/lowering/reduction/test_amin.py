@@ -14,29 +14,45 @@ class AminModule(torch.nn.Module):
 
 @pytest.mark.parametrize("sign", [1, -1])
 @pytest.mark.parametrize(
-    "input_shape, dim, keepdim, converted",
+    "input_shape, dim, keepdim",
     [
-        ((32, 32), [], True, True),
-        ((16, 32, 32), [], True, True),
-        ((16, 32, 32), 1, True, True),
-        ((16, 32, 32), [1], True, True),
-        ((16, 32, 32), [2], True, True),
-        ((16, 32, 32), [1, 2], True, True),
+        ((32, 32), [], True),
+        ((16, 32, 32), [], True),
+        ((16, 32, 32), 1, True),
+        ((16, 32, 32), [1], True),
+        ((16, 32, 32), [2], True),
+        ((16, 32, 32), [1, 2], True),
         # TODO(#240): keepdim = false is not supported
-        ((32, 32), [1], False, False),
+        pytest.param((32, 32), [1], False, marks=pytest.mark.xfail(reason="keepdim = false is not supported (#240)")),
         # TODO(#240): Not support reduction on < rank - 2 dims
-        ((16, 32, 32), [0], True, False),
-        ((32, 32, 32), [0, 1, 2], True, False),
+        pytest.param(
+            (16, 32, 32), [0], True, marks=pytest.mark.xfail(reason="Not support reduction on < rank - 2 dims (#240)")
+        ),
+        pytest.param(
+            (32, 32, 32),
+            [0, 1, 2],
+            True,
+            marks=pytest.mark.xfail(reason="Not support reduction on < rank - 2 dims (#240)"),
+        ),
         # TODO(#240): Unexpected output shape (1, 1) instead of (1)
-        ((32,), [], True, False),
+        pytest.param(
+            (32,), [], True, marks=pytest.mark.xfail(reason="Unexpected output shape (1, 1) instead of (1) (#240)")
+        ),
         # TODO(#240): Need inf padding value
-        ((1, 32), [], True, False),
-        ((32, 1), [], True, False),
+        pytest.param((1, 32), [], True, marks=pytest.mark.xfail(reason="Need inf padding value (#240)")),
+        pytest.param((32, 1), [], True, marks=pytest.mark.xfail(reason="Need inf padding value (#240)")),
         # TODO(#240): Output reshape inside generic reduction can't handle non-tile-aligned size
-        ((1, 32), [1], True, False),
+        pytest.param(
+            (1, 32),
+            [1],
+            True,
+            marks=pytest.mark.xfail(
+                reason="Output reshape inside generic reduction can't handle non-tile-aligned size (#240)"
+            ),
+        ),
     ],
 )
-def test_amin(device, sign, input_shape, dim, keepdim, converted):
+def test_amin(device, sign, input_shape, dim, keepdim):
     m = AminModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16) * sign
     result_before = m.forward(input, dim, keepdim)
@@ -49,7 +65,7 @@ def test_amin(device, sign, input_shape, dim, keepdim, converted):
 
     # Check the graph has be rewritten
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.min) == (1 if converted else 0)
+    assert [node.target for node in nodes].count(ttnn.min) == 1
     # Check inference result
     assert result_before.shape == result_after.shape
     assert torch.allclose(result_before, result_after)
