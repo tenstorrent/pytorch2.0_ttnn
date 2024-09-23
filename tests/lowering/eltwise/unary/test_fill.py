@@ -13,23 +13,23 @@ class FillScalarModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape, value, converted",
+    "input_shape, value",
     [
-        ((32, 32), 0.5, True),
-        ((32, 1), 114, True),
-        ((1, 32), 120, True),
-        ((4, 4), 32, True),
-        ((1, 2, 100, 100), 16, True),
-        ((1, 1, 1, 1), 61, True),
-        ((2, 1, 1, 1), 64, True),
-        ((1, 1, 2, 1), 8, True),
-        ((1, 1, 1, 2, 2), 1.0, True),
-        ((64,), 1.0, True),
-        # Unsupported: scalar
-        ((), 1.0, False),
+        ((32, 32), 0.5),
+        ((32, 1), 114),
+        ((1, 32), 120),
+        ((4, 4), 32),
+        ((1, 2, 100, 100), 16),
+        ((1, 1, 1, 1), 61),
+        ((2, 1, 1, 1), 64),
+        ((1, 1, 2, 1), 8),
+        ((1, 1, 1, 2, 2), 1.0),
+        ((64,), 1.0),
+        # TODO(#256): Not support scalar tensor
+        pytest.param((), 1.0, marks=pytest.mark.xfail(reason="Not support scalar tensor (#256)")),
     ],
 )
-def test_fill_scalar(device, input_shape, value, converted):
+def test_fill_scalar(device, input_shape, value):
     m = FillScalarModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16)
     result_before = m.forward(input, value)
@@ -42,6 +42,6 @@ def test_fill_scalar(device, input_shape, value, converted):
 
     # Check the graph has be rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.full) == (1 if converted else 0)
+    assert [node.target for node in nodes].count(ttnn.full) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
