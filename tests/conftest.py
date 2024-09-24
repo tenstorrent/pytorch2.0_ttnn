@@ -245,6 +245,4 @@ def manage_dependencies(request):
     subprocess.check_call([sys.executable, "-m", "pip", "install"] + dependencies)
     yield
     # Uninstall dependencies
-    subprocess.check_call(
-        [sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies
-    )
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies)

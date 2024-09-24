@@ -664,16 +664,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.split.Tensor:
                 # convert input tensopr to ROW MAJOR layout for split
                 to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
-                
+
                 # convert relative split dim to absolute
                 if args[2] >= 0:
                     split_dim = args[0]
                 else:
-                    split_dim = len(args[0].meta["val"].size())+args[2]
-                
+                    split_dim = len(args[0].meta["val"].size()) + args[2]
+
                 # convert from PyTorch size of chunk to ttnn number of chunks
                 if isinstance(args[1], int):
-                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim]/args[1])
+                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
                 else:
                     raise RuntimeError(f"ttnn.split only supports chunks of same size.")
 
