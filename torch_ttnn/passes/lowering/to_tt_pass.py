@@ -539,42 +539,25 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.slice.Tensor:
                 tensor, dim, start, end, *step = args
                 [step] = step or [1]
-                input_size = tensor.meta["val"].size()
+                input_size = list(tensor.meta["val"].size())
+                rank = len(input_size)
 
-                if step != 1 or dim >= len(input_size):
+                if step != 1 or dim >= rank:
                     return None
 
-                if start == 0 and end >= input_size[dim]:
+                # Check if no-op, just return the input tensor
+                if start == 0 and (end >= input_size[dim] or end == -1):
                     return tensor
 
-                # This is for handling non 4D tensors
-                rank = len(input_size)
-                # Padding the input_size to make it 4D
-                to_4d_shape = [1] * (4 - rank) + list(input_size)
-                # Adjust dim
-                dim += 4 - rank
-
-                slice_start = np.zeros(len(to_4d_shape), dtype=int)
-                slice_end = np.array(to_4d_shape)
+                slice_start = np.zeros(rank, dtype=int)
+                slice_end = input_size
 
                 # For negative end values
                 if end < 0:
-                    end = end + to_4d_shape[dim] + 1
+                    end = end + input_size[dim] + 1
 
                 slice_start[dim] = start
-                slice_end[dim] = min(end, to_4d_shape[dim])
-                slice_end -= 1
-
-                # For handling non-4D slice inputs
-                if len(input_size) < 4:
-                    reshape_to_4d_node = g.call_function(ttnn.reshape, args=(tensor, to_4d_shape))
-                    to_layout = g.call_function(ttnn.to_layout, (reshape_to_4d_node, TtnnRowMajorLayout()))
-                    slice_node = g.call_function(ttnn.slice, (to_layout, [*slice_start], [*slice_end]))
-                    reshape_to_original_shape = node.meta["val"].size()
-                    reshape_to_original_node = g.call_function(
-                        ttnn.reshape, args=(slice_node, reshape_to_original_shape)
-                    )
-                    return reshape_to_original_node
+                slice_end[dim] = min(end, input_size[dim])
 
                 return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
 
@@ -632,7 +615,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
-
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad, value = args
                 input_shape = input.meta["val"].size()
@@ -703,8 +685,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 else:
                     # Fallback: aten.reshape is more stable if the input nodes have changed
                     return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
-
-            return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
