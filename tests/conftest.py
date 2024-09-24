@@ -96,9 +96,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             # serves as an indicator for the health of all other gradients.
             # Based on the "chain rule", the input gradient depends on all other
             # gradients, so any incorrect gradient computation should reflect here.
-            is_backward_checked = (
-                True if model.training and inputs.requires_grad else False
-            )
+            is_backward_checked = True if model.training and inputs.requires_grad else False
         except Exception as e:
             # Exception to handle unsupported case of multiple model inputs.
             # Currently, we assume the model has a single input for backward pass checks.
@@ -247,6 +245,4 @@ def manage_dependencies(request):
     subprocess.check_call([sys.executable, "-m", "pip", "install"] + dependencies)
     yield
     # Uninstall dependencies
-    subprocess.check_call(
-        [sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies
-    )
+    subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y"] + dependencies)
