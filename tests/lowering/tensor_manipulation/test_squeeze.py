@@ -14,11 +14,11 @@ class SqueezeDimModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes, dim",
-    (        
+    (
         ((1, 1, 24576), 0),
         ((1, 1, 480, 640), 1),
         ((1, 14, 1), -1),
-        #((1, 19), 0),
+        # ((1, 19), 0),
         ((1, 25, 1), -1),
         ((1, 256, 1), -1),
         ((1, 32, 16), 0),
