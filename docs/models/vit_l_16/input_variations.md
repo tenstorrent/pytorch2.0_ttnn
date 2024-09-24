@@ -5,7 +5,7 @@
 |  1 | aten.add.Tensor                                  |                  1 |           1 |
 |  2 | aten.addmm.default                               |                  5 |           5 |
 |  3 | aten.cat.default                                 |                  1 |           0 |
-|  4 | aten.clone.default                               |                  3 |           3 |
+|  4 | aten.clone.default                               |                  3 |           2 |
 |  5 | aten.convolution.default                         |                  1 |           0 |
 |  6 | aten.expand.default                              |                  1 |           0 |
 |  7 | aten.gelu.default                                |                  1 |           1 |
@@ -17,7 +17,7 @@
 | 13 | aten.t.default                                   |                  5 |           5 |
 | 14 | aten.transpose.int                               |                  4 |           4 |
 | 15 | aten.unsqueeze.default                           |                  1 |           1 |
-| 16 | aten.view.default                                |                 12 |           0 |
+| 16 | aten.view.default                                |                 12 |           5 |
 ***
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                          | Status   |
@@ -43,7 +43,7 @@
 |    | ATen Input Variations                                                                          | Status   |
 |---:|:-----------------------------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 197, 1024]> self = ?                                                                | Done     |
-|  1 | Tensor<[1, 197, 4096]> self = ?                                                                | Done     |
+|  1 | Tensor<[1, 197, 4096]> self = ?                                                                | Unknown  |
 |  2 | Tensor<[3, 197, 1, 1024]> self = ?,<br>Optional[int]<> memory_format = torch.contiguous_format | Done     |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                             | Status   |
@@ -104,15 +104,15 @@
 |    | ATen Input Variations                                                    | Status   |
 |---:|:-------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1024, 14, 14]> self = ?,<br>List[int]<> size = [1, 1024, 196] | Unknown  |
-|  1 | Tensor<[1, 197, 1024]> self = ?,<br>List[int]<> size = [197, 1024]       | Unknown  |
-|  2 | Tensor<[1, 197, 4096]> self = ?,<br>List[int]<> size = [197, 4096]       | Unknown  |
-|  3 | Tensor<[16, 197, 64]> self = ?,<br>List[int]<> size = [1, 16, 197, 64]   | Unknown  |
+|  1 | Tensor<[1, 197, 1024]> self = ?,<br>List[int]<> size = [197, 1024]       | Done     |
+|  2 | Tensor<[1, 197, 4096]> self = ?,<br>List[int]<> size = [197, 4096]       | Done     |
+|  3 | Tensor<[16, 197, 64]> self = ?,<br>List[int]<> size = [1, 16, 197, 64]   | Done     |
 |  4 | Tensor<[197, 1, 1024]> self = ?,<br>List[int]<> size = [197, 1024]       | Unknown  |
 |  5 | Tensor<[197, 1, 1024]> self = ?,<br>List[int]<> size = [197, 16, 64]     | Unknown  |
 |  6 | Tensor<[197, 1, 16, 64]> self = ?,<br>List[int]<> size = [197, 1024]     | Unknown  |
 |  7 | Tensor<[197, 1, 3072]> self = ?,<br>List[int]<> size = [197, 1, 3, 1024] | Unknown  |
-|  8 | Tensor<[197, 1024]> self = ?,<br>List[int]<> size = [1, 197, 1024]       | Unknown  |
+|  8 | Tensor<[197, 1024]> self = ?,<br>List[int]<> size = [1, 197, 1024]       | Done     |
 |  9 | Tensor<[197, 1024]> self = ?,<br>List[int]<> size = [197, 1, 1024]       | Unknown  |
 | 10 | Tensor<[197, 3072]> self = ?,<br>List[int]<> size = [197, 1, 3072]       | Unknown  |
-| 11 | Tensor<[197, 4096]> self = ?,<br>List[int]<> size = [1, 197, 4096]       | Unknown  |
+| 11 | Tensor<[197, 4096]> self = ?,<br>List[int]<> size = [1, 197, 4096]       | Done     |
 

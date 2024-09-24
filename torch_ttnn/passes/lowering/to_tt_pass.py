@@ -7,6 +7,7 @@ from torch_ttnn.utils import (
     TtnnTileLayout,
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
+    HasValidPageSize,
 )
 import numpy as np
 from typing import Tuple
@@ -295,10 +296,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 
-        if target == torch.ops.aten.view.default:
-            # aten.reshape is more stable if the input nodes have changed
-            return self.call_function_prop_meta(torch.ops.aten.reshape.default, args, kwargs)
-
         ############################################################
         # Other ops
         ############################################################
@@ -325,15 +322,6 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
         return dtype_map.get(dtype)
     else:
         raise RuntimeError(f"Missing conversion from torch.dtype: {dtype} to Ttnn dtype.")
-
-
-# Certain ops don't support certain shapes and will emit a valid_page_size error
-# RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
-# For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
-def has_valid_page_size(shape, strict=False):
-    if len(shape) >= 2 and shape[-1] > 0:
-        return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
-    return False
 
 
 # override some functions from torch.fx.graph.Graph
@@ -412,7 +400,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if has_valid_page_size(arg_metadata.size(), strict=True):
+                if HasValidPageSize(arg_metadata.size(), strict=True):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
@@ -488,7 +476,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and HasValidPageSize(shape):
                     # NOTE(kevinwuTT): Only bfloat16 seems to work for now
                     # TODO(kevinwuTT): Use ttnn.full instead of aten
                     new_kwargs = {
@@ -511,7 +499,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and HasValidPageSize(shape):
                     if isinstance(args[1], float):
                         new_kwargs = {
                             "fill_value": args[1],
@@ -665,6 +653,56 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            if node.target == torch.ops.aten.view.default:
+                source_shape = args[0].meta["val"].size()
+                out_shape = args[1]
+                source_rank = len(source_shape)
+                out_rank = len(out_shape)
+
+                # Allow lowering by default
+                can_reshape = True
+
+                # Unsupported:
+                # (1) -> (1, 1) or (1, 1, 1), etc
+                if (source_rank == 1) and (np.prod(source_shape) == 1):
+                    can_reshape = False
+                elif not HasValidPageSize(source_shape):
+                    can_reshape = False
+                # Same as ttnn.squeeze with dim = 0
+                # Supported:
+                # (1, 16, 256, 256) -> (16, 256, 256)
+                # (1, 256, 256) - > (256, 256)
+                elif (source_rank != 1) and (out_rank == (source_rank - 1)) and (source_shape[0] == 1):
+                    for i in range(0, out_rank):
+                        if source_shape[i + 1] != out_shape[i]:
+                            can_reshape = False
+                            break
+
+                # Same as ttnn.unsqueeze_to_4D
+                # Supported:
+                # (16, 256, 256) -> (1, 16, 256, 256)
+                # (256, 256) -> (1, 1, 256, 256)
+                elif (out_rank > 1) and (out_rank <= 4) and (source_rank > 0) and (source_rank <= 4):
+                    for i in range(0, out_rank):
+                        si = i + (source_rank - out_rank)
+                        if si < 0:
+                            if out_shape[i] != 1:
+                                can_reshape = False
+                                break
+                        else:
+                            if out_shape[i] != source_shape[si]:
+                                can_reshape = False
+                                break
+                else:
+                    can_reshape = False
+
+                # Transform to ttnn.reshape if possible
+                if can_reshape:
+                    return g.call_function(ttnn.reshape, (args[0], args[1]), {})
+                else:
+                    # Fallback: aten.reshape is more stable if the input nodes have changed
+                    return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
 
             return None
 
