@@ -17,6 +17,9 @@ class SliceModule2(torch.nn.Module):
         super().__init__()
 
     def forward(self, input, dim, start, end):
+        # NOTE: aten.slice treats 9223372036854775807 (64-bit max int) as the last index
+        if end == -1:
+            end = 9223372036854775807
         return torch.ops.aten.slice.Tensor(input, dim, start, end)
 
 
@@ -33,7 +36,7 @@ def test_slice(device, input_shape, start, end):
     input_tensor = torch.randn(input_shape, dtype=torch.bfloat16)
     result_before = m.forward(input_tensor, start, end)
     option = torch_ttnn.TorchTtnnOption(device=device)
-    # option.gen_graphviz = True
+    option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m.forward(input_tensor, start, end)
@@ -43,9 +46,7 @@ def test_slice(device, input_shape, start, end):
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.slice) == 1
     # Check inference result
-    print(f"result_before_shape:{result_before.shape}\nresult_after_shape:{result_after.shape}")
-    print(f"result_before:{result_before}\nresult_after:{result_after}")
-    assert torch.allclose(result_before, result_after)
+    assert torch.equal(result_before, result_after)
 
 
 @pytest.mark.parametrize(
@@ -73,5 +74,4 @@ def test_slice2(device, input_shape, dim, start, end):
         assert [node.target for node in nodes].count(ttnn.slice) == 1
     # Check inference result
     print(f"torch_result_shape:{result_before.shape}\nttnn_result_shape:{result_after.shape}")
-    # print(f"result_before:{result_before}\nresult_after:{result_after}")
-    # assert torch.allclose(result_before, result_after)
+    assert torch.equal(result_before, result_after)
