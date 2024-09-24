@@ -164,6 +164,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             # # Memory analysis
             # TODO: re-enable memory analysis
+
             # mm = option.memory_manager
             # # Convert bytes to MB
             # peak_usage = mm.peak_sram_usage / mb_in_bytes
