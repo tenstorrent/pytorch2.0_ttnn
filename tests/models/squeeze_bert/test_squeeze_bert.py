@@ -9,12 +9,14 @@ def test_squeeze_bert(record_property):
     record_property("model_name", "SqueezeBERT")
 
     tokenizer = AutoTokenizer.from_pretrained("squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16)
-    model = AutoModelForSequenceClassification.from_pretrained("squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        "squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16
+    )
 
     inputs = tokenizer.encode_plus(
         "Hello, my dog is cute",
         add_special_tokens=True,
-        return_tensors='pt',
+        return_tensors="pt",
         max_length=256,
         padding="max_length",
         truncation=True,
