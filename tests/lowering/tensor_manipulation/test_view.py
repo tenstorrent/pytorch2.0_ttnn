@@ -40,6 +40,19 @@ class ViewBetweenOpModule(torch.nn.Module):
         return torch.abs(reshape)
 
 
+# Most ttnn computation ops use tile layout, but reshape sometimes doesn't.
+# This tests the interactions between them.
+class ViewShareOpModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x, new_shape):
+        abs = torch.abs(x)
+        reshape = torch.reshape(x, new_shape)
+        reshape2 = torch.reshape(abs, new_shape)
+        return reshape + reshape2
+
+
 @pytest.mark.parametrize(
     "module",
     [
@@ -47,6 +60,7 @@ class ViewBetweenOpModule(torch.nn.Module):
         ViewAfterOpModule(),
         ViewBeforeOpModule(),
         ViewBetweenOpModule(),
+        ViewShareOpModule(),
     ],
 )
 @pytest.mark.parametrize(
@@ -79,6 +93,6 @@ def test_reshape(device, input_shape, new_shape, module):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.reshape) == 1
+    assert [node.target for node in nodes].count(ttnn.reshape) >= 1
     # Check inference result
     assert torch.allclose(result_before, result_after)

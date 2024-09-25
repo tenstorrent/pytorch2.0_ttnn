@@ -537,6 +537,33 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     return args[0]
                 return None
 
+            if node.target == torch.ops.aten.slice.Tensor:
+                tensor, dim, start, end, *step = args
+                [step] = step or [1]
+                input_size = list(tensor.meta["val"].size())
+                rank = len(input_size)
+
+                if step != 1 or dim >= rank:
+                    return None
+
+                # Check if no-op, just return the input tensor
+                if start == 0 and end >= input_size[dim]:
+                    return tensor
+
+                slice_start = np.zeros(rank, dtype=int)
+                slice_end = input_size
+
+                # For negative end values
+                if end < 0:
+                    end = input_size[dim] + end
+                else:
+                    end = np.clip(end, a_min=None, a_max=input_size[dim])
+
+                slice_start[dim] = start
+                slice_end[dim] = end
+
+                return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
+
             if node.target == torch.ops.aten.repeat.default:
                 tensor, sizes = args
                 shape = tensor.meta["val"].size()

@@ -5,6 +5,7 @@ from torch_ttnn.utils import (
     TtnnTileLayout,
     TtnnDevice,
     TtnnBfloat16,
+    TtnnUint32,
     HasValidPageSize,
 )
 
@@ -132,6 +133,13 @@ TTNN_NORM_OPS = [
     ttnn.layer_norm,
 ]
 
+TTNN_LAYOUT_CHANGE_OPS = set(
+    [
+        ttnn.reshape,
+        ttnn.slice,
+    ]
+)
+
 
 def can_be_tilized(node):
     size = node.meta["val"].size()
@@ -236,6 +244,27 @@ def insert_node_between_kwarg(src_node, key, dst_node, new_nodes):
     dst_node.update_kwarg(key, new_nodes[-1])
 
 
+def is_target_a_user_of_curr_node(curr_node, target):
+    """
+    Trace the users of the current node to check if a target is found.
+
+    Returns true is so or returns false if the end of the graph is reached.
+    """
+    if curr_node.target == target:
+        return True
+
+    # Only trace certain nodes that support different layouts
+    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS:
+        return False
+
+    for user in list(curr_node.users.keys()):
+        if is_target_a_user_of_curr_node(user, target):
+            return True
+
+    # Target is not found
+    return False
+
+
 def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.node.Node:
     if not isinstance(src_node_kwarg, _Kwarg):
         return None
@@ -263,7 +292,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     with g.inserting_before(dst_node):
         kwargs = {}
         if (
-            (dst_node.target == ttnn.reshape and not can_be_tilized(dst_node))
+            (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and not can_be_tilized(dst_node))
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat
@@ -272,11 +301,13 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["layout"] = TtnnTileLayout()
 
-        if dst_node.target != ttnn.embedding:
+        if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
+            kwargs["dtype"] = TtnnUint32()
+        else:
             kwargs["dtype"] = TtnnBfloat16()
 
-        if (is_tt_compute(dst_node) and dst_node.target != ttnn.reshape) or (
-            dst_node.target == ttnn.reshape and HasValidPageSize(src_node.meta["val"].size(), strict=True)
+        if (is_tt_compute(dst_node) and dst_node.target not in TTNN_LAYOUT_CHANGE_OPS) or (
+            dst_node.target in TTNN_LAYOUT_CHANGE_OPS and HasValidPageSize(src_node.meta["val"].size(), strict=True)
         ):
             kwargs["device"] = device
 
@@ -286,14 +317,6 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     return new_nodes[-1]
 
 
-layout_change_ops = set(
-    [
-        target_wrappers.repeat,
-        ttnn.reshape,
-    ]
-)
-
-
 def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
     if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
@@ -301,10 +324,10 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.n
     if not is_function_call(dst_node):
         return None
     if (
-        dst_node.target not in layout_change_ops
+        dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
         or dst_idx != 0
         or not is_tt(src_node)
-        or (dst_node.target == ttnn.reshape and can_be_tilized(dst_node))
+        or (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and can_be_tilized(dst_node))
     ):
         return None
 
@@ -323,21 +346,23 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     if not is_function_call(src_node):
         return None
     if (
-        src_node.target not in layout_change_ops
+        src_node.target not in TTNN_LAYOUT_CHANGE_OPS
         or not is_tt_compute(dst_node)
         or dst_node.target == ttnn.embedding
-        or (src_node.target == ttnn.reshape and can_be_tilized(src_node))
+        or (src_node.target in TTNN_LAYOUT_CHANGE_OPS and can_be_tilized(src_node))
     ):
         return None
 
     g = dst_node.graph
+    new_nodes = []
     with g.inserting_before(dst_node):
-        from_device = g.call_function(ttnn.to_device, (src_node,), {"device": device})
-        to_layout = g.call_function(ttnn.to_layout, (from_device, TtnnTileLayout()))
+        new_nodes.append(g.call_function(ttnn.to_device, (src_node,), {"device": device}))
+        if dst_node.target != target_wrappers.repeat:
+            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout())))
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_layout])
+    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 
-    return to_layout
+    return new_nodes[-1]
 
 
 def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
@@ -429,6 +454,9 @@ class AddDataMovePass(PassBase):
                     arg in data_move_in_hash
                     and not isinstance(node.target, torch._ops.OpOverload)
                     and node.op != "output"
+                    # TODO: Multiple ops with different layout requirements can have the same input
+                    # There should be a better implementation than skipping certain ops
+                    and node.target not in TTNN_LAYOUT_CHANGE_OPS
                 ):
                     node.update_arg(idx, data_move_in_hash[arg])
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
