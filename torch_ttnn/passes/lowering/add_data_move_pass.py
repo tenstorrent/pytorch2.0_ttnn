@@ -190,6 +190,7 @@ def is_tt_compute(node) -> bool:
             ttnn.arange,
             ttnn.zeros,
             ttnn.zeros_like,
+            ttnn.sum,
             ttnn.mean,
             ttnn.moreh_cumsum,
             ttnn.clip,
