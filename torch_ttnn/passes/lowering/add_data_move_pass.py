@@ -244,6 +244,27 @@ def insert_node_between_kwarg(src_node, key, dst_node, new_nodes):
     dst_node.update_kwarg(key, new_nodes[-1])
 
 
+def is_target_a_user_of_curr_node(curr_node, target):
+    """
+    Trace the users of the current node to check if a target is found.
+
+    Returns true is so or returns false if the end of the graph is reached.
+    """
+    if curr_node.target == target:
+        return True
+
+    # Only trace certain nodes that support different layouts
+    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS:
+        return False
+
+    for user in list(curr_node.users.keys()):
+        if is_target_a_user_of_curr_node(user, target):
+            return True
+
+    # Target is not found
+    return False
+
+
 def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.node.Node:
     if not isinstance(src_node_kwarg, _Kwarg):
         return None
@@ -280,9 +301,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["layout"] = TtnnTileLayout()
 
-        if (
-            dst_node.target == ttnn.embedding or dst_node.target in TTNN_LAYOUT_CHANGE_OPS
-        ) and not torch.is_floating_point(src_node.meta["val"]):
+        if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
             kwargs["dtype"] = TtnnUint32()
         else:
             kwargs["dtype"] = TtnnBfloat16()
@@ -335,13 +354,15 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
         return None
 
     g = dst_node.graph
+    new_nodes = []
     with g.inserting_before(dst_node):
-        from_device = g.call_function(ttnn.to_device, (src_node,), {"device": device})
-        to_layout = g.call_function(ttnn.to_layout, (from_device, TtnnTileLayout()))
+        new_nodes.append(g.call_function(ttnn.to_device, (src_node,), {"device": device}))
+        if dst_node.target != target_wrappers.repeat:
+            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout())))
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_layout])
+    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 
-    return to_layout
+    return new_nodes[-1]
 
 
 def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
@@ -433,6 +454,9 @@ class AddDataMovePass(PassBase):
                     arg in data_move_in_hash
                     and not isinstance(node.target, torch._ops.OpOverload)
                     and node.op != "output"
+                    # TODO: Multiple ops with different layout requirements can have the same input
+                    # There should be a better implementation than skipping certain ops
+                    and node.target not in TTNN_LAYOUT_CHANGE_OPS
                 ):
                     node.update_arg(idx, data_move_in_hash[arg])
                 elif to_device := try_add_data_move_in(arg, idx, node, device):
