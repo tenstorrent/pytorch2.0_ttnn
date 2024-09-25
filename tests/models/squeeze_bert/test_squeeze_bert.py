@@ -5,14 +5,21 @@ import torch
 import pytest
 
 
-@pytest.mark.compilation_xfail
 def test_squeeze_bert(record_property):
     record_property("model_name", "SqueezeBERT")
 
-    tokenizer = AutoTokenizer.from_pretrained("squeezebert/squeezebert-mnli")
-    model = AutoModelForSequenceClassification.from_pretrained("squeezebert/squeezebert-mnli")
+    tokenizer = AutoTokenizer.from_pretrained("squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16)
+    model = AutoModelForSequenceClassification.from_pretrained("squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16)
 
-    inputs = tokenizer("Hello, my dog is cute", return_tensors="pt")
+    inputs = tokenizer.encode_plus(
+        "Hello, my dog is cute",
+        add_special_tokens=True,
+        return_tensors='pt',
+        max_length=256,
+        padding="max_length",
+        truncation=True,
+    )
+
     with torch.no_grad():
         outputs = model(**inputs)
         logits = outputs.logits
