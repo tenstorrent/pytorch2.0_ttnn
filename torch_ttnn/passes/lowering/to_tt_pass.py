@@ -547,7 +547,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     return None
 
                 # Check if no-op, just return the input tensor
-                if start == 0 and (end >= input_size[dim] or end == -1):
+                if start == 0 and end >= input_size[dim]:
                     return tensor
 
                 slice_start = np.zeros(rank, dtype=int)
@@ -555,10 +555,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 # For negative end values
                 if end < 0:
-                    end = end + input_size[dim] + 1
+                    end = input_size[dim] + end
+                else:
+                    end = np.clip(end, a_min=None, a_max=input_size[dim])
 
                 slice_start[dim] = start
-                slice_end[dim] = min(end, input_size[dim])
+                slice_end[dim] = end
 
                 return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
 
