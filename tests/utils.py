@@ -113,3 +113,63 @@ def calculate_accuracy(original_outputs, compiled_outputs):
     else:
         accuracy = None
     return accuracy
+
+
+def run_for_train_mode(model, inputs, as_ttnn=False):
+    # Fixing the random seed for reproducibility to ease debugging.
+    #
+    # Training processes involve more randomness compared to evaluation,
+    # such as random initialization of weights.
+    # Setting a fixed random seed is crucial for consistent testing
+    # and debugging during the training process.
+    torch.manual_seed(99)
+    model = model.to(torch.bfloat16)
+    model.train()
+
+    # Eliminating randomness from Dropout to ensure consistent results.
+    #
+    # This is necessary for comparing the two training rounds:
+    # one using PyTorch native code and the other using the PyTorch Dynamo TT backend.
+    # Without this, the results would differ, making it impossible to compare the two implementations.
+    for layer in model.modules():
+        if isinstance(layer, torch.nn.Dropout):
+            layer.p = 0  # Set dropout probability to 0
+
+    if type(inputs) == dict:
+        inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
+        # Setting input tensor's `requires_grad` attribute to true.
+        #
+        # This allows us to use the gradient of the input as the golden result for the training process.
+        # For further details, refer to the file `conftest.py` regarding the rationale behind.
+        inputs = {k: v.requires_grad_(True) for k, v in inputs.items()}
+        outputs = model(**inputs)
+    else:
+        inputs = inputs.to(torch.bfloat16)
+        inputs.requires_grad_(True)
+        outputs = model(inputs)
+
+    if type(outputs) == dict:
+        pass
+    else:
+        loss = torch.mean(outputs)
+        loss.backward()
+
+    # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
+    if type(inputs) == dict:
+        results = {k: v.grad for k, v in inputs.items()}
+    else:
+        results = inputs.grad
+    return results
+
+
+@torch.no_grad()
+def run_for_eval_mode(model, inputs, as_ttnn=False):
+    model = model.to(torch.bfloat16)
+    model.eval()
+    if type(inputs) == dict:
+        inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
+        results = model(**inputs)
+    else:
+        inputs = inputs.to(torch.bfloat16)
+        results = model(inputs)
+    return results

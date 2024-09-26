@@ -2,6 +2,7 @@ import torch
 import pytest
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
+from tests.utils import run_for_train_mode, run_for_eval_mode
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,47 +38,21 @@ class MnistModel(torch.nn.Module):
 def test_mnist_train(record_property):
     record_property("model_name", "Mnist (Train)")
 
-    # Fixing the random seed for reproducibility to ease debugging.
-    #
-    # Training processes involve more randomness compared to evaluation,
-    # such as random initialization of weights.
-    # Setting a fixed random seed is crucial for consistent testing
-    # and debugging during the training process.
-    torch.manual_seed(99)
-
     transform = transforms.Compose([transforms.ToTensor()])
 
     train_dataset = datasets.MNIST(root="./data", train=True, transform=transform, download=True)
     dataloader = DataLoader(train_dataset, batch_size=1)
 
     m = MnistModel()
-    m = m.to(torch.bfloat16)
-    m.train()
-
-    # Eliminating randomness from Dropout to ensure consistent results.
-    #
-    # This is necessary for comparing the two training rounds:
-    # one using PyTorch native code and the other using the PyTorch Dynamo TT backend.
-    # Without this, the results would differ, making it impossible to compare the two implementations.
-    for layer in m.modules():
-        if isinstance(layer, nn.Dropout):
-            layer.p = 0  # Set dropout probability to 0
 
     test_input, _ = next(iter(dataloader))
+
+    results = run_for_train_mode(m, test_input)
+
+    m.train()
+    m = m.to(torch.bfloat16)
     test_input = test_input.to(torch.bfloat16)
-
-    # Setting input tensor's `requires_grad` attribute to true.
-    #
-    # This allows us to use the gradient of the input as the golden result for the training process.
-    # For further details, refer to the file `conftest.py` regarding the rationale behind.
-    test_input.requires_grad = True
-
-    outputs = m(test_input)  # Forward pass
-    loss = torch.mean(outputs)  # Loss function
-    loss.backward()  # Backward pass
-
-    # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
-    record_property("torch_ttnn", (m, test_input, test_input.grad))
+    record_property("torch_ttnn", (m, test_input, results))
 
 
 def test_mnist_eval(record_property):
@@ -89,12 +64,12 @@ def test_mnist_eval(record_property):
     dataloader = DataLoader(test_dataset, batch_size=1)
 
     m = MnistModel()
-    m = m.to(torch.bfloat16)
-    m.eval()
 
     test_input, _ = next(iter(dataloader))
-    test_input = test_input.to(torch.bfloat16)
-    with torch.no_grad():
-        outputs = m(test_input)
 
-    record_property("torch_ttnn", (m, test_input, outputs))
+    results = run_for_eval_mode(m, test_input)
+
+    m.eval()
+    m = m.to(torch.bfloat16)
+    test_input = test_input.to(torch.bfloat16)
+    record_property("torch_ttnn", (m, test_input, results))
