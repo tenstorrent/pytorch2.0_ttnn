@@ -115,7 +115,7 @@ def calculate_accuracy(original_outputs, compiled_outputs):
     return accuracy
 
 
-def run_for_train_mode(model, inputs, as_ttnn=False):
+def run_for_train_mode(model_name, model, inputs, as_ttnn=False, device=None):
     # Fixing the random seed for reproducibility to ease debugging.
     #
     # Training processes involve more randomness compared to evaluation,
@@ -125,6 +125,7 @@ def run_for_train_mode(model, inputs, as_ttnn=False):
     torch.manual_seed(99)
     model = model.to(torch.bfloat16)
     model.train()
+    model.zero_grad()
 
     # Eliminating randomness from Dropout to ensure consistent results.
     #
@@ -134,6 +135,20 @@ def run_for_train_mode(model, inputs, as_ttnn=False):
     for layer in model.modules():
         if isinstance(layer, torch.nn.Dropout):
             layer.p = 0  # Set dropout probability to 0
+
+    option = None
+    if as_ttnn == True:
+        import torch_ttnn
+
+        # Compile model with ttnn backend
+        option = torch_ttnn.TorchTtnnOption(
+            device=device,
+            gen_graphviz=True,
+            run_mem_analysis=False,
+            metrics_path=model_name,
+            verbose=True,
+        )
+        model = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
     if type(inputs) == dict:
         inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
@@ -159,17 +174,32 @@ def run_for_train_mode(model, inputs, as_ttnn=False):
         results = {k: v.grad for k, v in inputs.items()}
     else:
         results = inputs.grad
-    return results
+    return results, option
 
 
 @torch.no_grad()
-def run_for_eval_mode(model, inputs, as_ttnn=False):
+def run_for_eval_mode(model_name, model, inputs, as_ttnn=False, device=None):
     model = model.to(torch.bfloat16)
     model.eval()
+
+    option = None
+    if as_ttnn == True:
+        import torch_ttnn
+
+        # Compile model with ttnn backend
+        option = torch_ttnn.TorchTtnnOption(
+            device=device,
+            gen_graphviz=True,
+            run_mem_analysis=False,
+            metrics_path=model_name,
+            verbose=True,
+        )
+        model = torch.compile(model, backend=torch_ttnn.backend, options=option)
+
     if type(inputs) == dict:
         inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
         results = model(**inputs)
     else:
         inputs = inputs.to(torch.bfloat16)
         results = model(inputs)
-    return results
+    return results, option

@@ -47,11 +47,9 @@ def test_mnist_train(record_property):
 
     test_input, _ = next(iter(dataloader))
 
-    results = run_for_train_mode(m, test_input)
+    results, _ = run_for_train_mode("Mnist (Train)", m, test_input)
 
     m.train()
-    m = m.to(torch.bfloat16)
-    test_input = test_input.to(torch.bfloat16)
     record_property("torch_ttnn", (m, test_input, results))
 
 
@@ -67,9 +65,7 @@ def test_mnist_eval(record_property):
 
     test_input, _ = next(iter(dataloader))
 
-    results = run_for_eval_mode(m, test_input)
+    results, _ = run_for_eval_mode("Mnist (Eval)", m, test_input)
 
     m.eval()
-    m = m.to(torch.bfloat16)
-    test_input = test_input.to(torch.bfloat16)
     record_property("torch_ttnn", (m, test_input, results))

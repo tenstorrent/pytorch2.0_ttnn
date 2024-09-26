@@ -3,6 +3,7 @@ import ttnn
 import torch
 import torch_ttnn
 import collections
+from tests.utils import run_for_train_mode, run_for_eval_mode
 from tests.utils import calculate_accuracy
 import time
 from pathlib import Path
@@ -103,51 +104,56 @@ def compile_and_run(device, reset_torch_dynamo, request):
             is_backward_checked = False
 
         try:
-            # Compile model with ttnn backend
-            option = torch_ttnn.TorchTtnnOption(
-                device=device,
-                gen_graphviz=True,
-                run_mem_analysis=False,
-                metrics_path=model_name,
-                verbose=True,
-            )
-            m = torch.compile(model, backend=torch_ttnn.backend, options=option)
+            # # Compile model with ttnn backend
+            # option = torch_ttnn.TorchTtnnOption(
+            #     device=device,
+            #     gen_graphviz=True,
+            #     run_mem_analysis=False,
+            #     metrics_path=model_name,
+            #     verbose=True,
+            # )
+            # m = torch.compile(model, backend=torch_ttnn.backend, options=option)
 
             start = time.perf_counter() * 1000
 
             if is_backward_checked:
-                # Reset gradients before each backward pass.
-                #
-                # Gradients are accumulated by default.
-                # Without resetting, two backward passes with the same input values
-                # may yield different gradients, making it impossible to compare against
-                # the expected (golden) results.
-                inputs.grad = None
-                m.zero_grad()
-
-                # Forward pass
-                forward_output = m(inputs)
-
-                # Using `torch.mean` as the loss function for testing purposes.
-                #
-                # Loss functions typically produce a scalar loss, and `torch.mean`
-                # is one valid option in this category. While it may not be the best
-                # choice for training effective models, it simplifies our testing process.
-                #
-                # Since our goal is to verify gradient computation rather than to
-                # train a high-performing model, applying `torch.mean` uniformly
-                # across all models under test eases the testing procedure.
-                loss = torch.mean(forward_output)
-
-                # Backward pass
-                loss.backward()
-
-                # Using the gradient of the model input as the output data for comparison.
-                # This gradient serves as the basis for comparing against the golden values,
-                # helping to verify the correctness of gradient computations during testing.
-                outputs_after = inputs.grad
+                outputs_after, option = run_for_train_mode(model_name, model, inputs, as_ttnn=True, device=device)
             else:
-                outputs_after = run_model(m, inputs)
+                outputs_after, option = run_for_eval_mode(model_name, model, inputs, as_ttnn=True, device=device)
+
+            # if is_backward_checked:
+            #     # Reset gradients before each backward pass.
+            #     #
+            #     # Gradients are accumulated by default.
+            #     # Without resetting, two backward passes with the same input values
+            #     # may yield different gradients, making it impossible to compare against
+            #     # the expected (golden) results.
+            #     inputs.grad = None
+            #     m.zero_grad()
+
+            #     # Forward pass
+            #     forward_output = m(inputs)
+
+            #     # Using `torch.mean` as the loss function for testing purposes.
+            #     #
+            #     # Loss functions typically produce a scalar loss, and `torch.mean`
+            #     # is one valid option in this category. While it may not be the best
+            #     # choice for training effective models, it simplifies our testing process.
+            #     #
+            #     # Since our goal is to verify gradient computation rather than to
+            #     # train a high-performing model, applying `torch.mean` uniformly
+            #     # across all models under test eases the testing procedure.
+            #     loss = torch.mean(forward_output)
+
+            #     # Backward pass
+            #     loss.backward()
+
+            #     # Using the gradient of the model input as the output data for comparison.
+            #     # This gradient serves as the basis for comparing against the golden values,
+            #     # helping to verify the correctness of gradient computations during testing.
+            #     outputs_after = inputs.grad
+            # else:
+            #     outputs_after = run_model(m, inputs)
 
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
