@@ -84,76 +84,17 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
     if "torch_ttnn" in record:
         model, inputs, outputs = record["torch_ttnn"]
+        mode = record["mode"] if "mode" in record else "eval"
 
         try:
-            # Why `inputs.requires_grad`?
-            #
-            # Backward pass computes gradients for all trainable weight tensors.
-            # However, verifying every gradient can be costly, especially for
-            # large models with many parameters.
-            #
-            # Instead of checking each gradient, we check the gradient
-            # of the "model input" tensor only. Computing the input gradient
-            # serves as an indicator for the health of all other gradients.
-            # Based on the "chain rule", the input gradient depends on all other
-            # gradients, so any incorrect gradient computation should reflect here.
-            is_backward_checked = True if model.training and inputs.requires_grad else False
-        except Exception as e:
-            # Exception to handle unsupported case of multiple model inputs.
-            # Currently, we assume the model has a single input for backward pass checks.
-            is_backward_checked = False
-
-        try:
-            # # Compile model with ttnn backend
-            # option = torch_ttnn.TorchTtnnOption(
-            #     device=device,
-            #     gen_graphviz=True,
-            #     run_mem_analysis=False,
-            #     metrics_path=model_name,
-            #     verbose=True,
-            # )
-            # m = torch.compile(model, backend=torch_ttnn.backend, options=option)
-
             start = time.perf_counter() * 1000
 
-            if is_backward_checked:
+            if mode == "train":
                 outputs_after, option = run_for_train_mode(model_name, model, inputs, as_ttnn=True, device=device)
-            else:
+            elif mode == "eval":
                 outputs_after, option = run_for_eval_mode(model_name, model, inputs, as_ttnn=True, device=device)
-
-            # if is_backward_checked:
-            #     # Reset gradients before each backward pass.
-            #     #
-            #     # Gradients are accumulated by default.
-            #     # Without resetting, two backward passes with the same input values
-            #     # may yield different gradients, making it impossible to compare against
-            #     # the expected (golden) results.
-            #     inputs.grad = None
-            #     m.zero_grad()
-
-            #     # Forward pass
-            #     forward_output = m(inputs)
-
-            #     # Using `torch.mean` as the loss function for testing purposes.
-            #     #
-            #     # Loss functions typically produce a scalar loss, and `torch.mean`
-            #     # is one valid option in this category. While it may not be the best
-            #     # choice for training effective models, it simplifies our testing process.
-            #     #
-            #     # Since our goal is to verify gradient computation rather than to
-            #     # train a high-performing model, applying `torch.mean` uniformly
-            #     # across all models under test eases the testing procedure.
-            #     loss = torch.mean(forward_output)
-
-            #     # Backward pass
-            #     loss.backward()
-
-            #     # Using the gradient of the model input as the output data for comparison.
-            #     # This gradient serves as the basis for comparing against the golden values,
-            #     # helping to verify the correctness of gradient computations during testing.
-            #     outputs_after = inputs.grad
-            # else:
-            #     outputs_after = run_model(m, inputs)
+            else:
+                raise ValueError(f"Invalid mode: {mode}")
 
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}

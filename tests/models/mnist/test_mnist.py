@@ -35,8 +35,13 @@ class MnistModel(torch.nn.Module):
         return output
 
 
-def test_mnist_train(record_property):
-    record_property("model_name", "Mnist (Train)")
+@pytest.mark.parametrize(
+    "mode",
+    ["train", "eval"],
+)
+def test_mnist_train(record_property, mode):
+    model_name = f"Mnist ({mode})"
+    record_property("model_name", model_name)
 
     transform = transforms.Compose([transforms.ToTensor()])
 
@@ -47,25 +52,12 @@ def test_mnist_train(record_property):
 
     test_input, _ = next(iter(dataloader))
 
-    results, _ = run_for_train_mode("Mnist (Train)", m, test_input)
+    if mode == "train":
+        results = run_for_train_mode(model_name, m, test_input)
+    elif mode == "eval":
+        results = run_for_eval_mode(model_name, m, test_input)
+    else:
+        raise ValueError(f"Invalid mode: {mode}")
 
-    m.train()
-    record_property("torch_ttnn", (m, test_input, results))
-
-
-def test_mnist_eval(record_property):
-    record_property("model_name", "Mnist (Eval)")
-
-    transform = transforms.Compose([transforms.ToTensor()])
-
-    test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
-    dataloader = DataLoader(test_dataset, batch_size=1)
-
-    m = MnistModel()
-
-    test_input, _ = next(iter(dataloader))
-
-    results, _ = run_for_eval_mode("Mnist (Eval)", m, test_input)
-
-    m.eval()
+    record_property("mode", mode)
     record_property("torch_ttnn", (m, test_input, results))

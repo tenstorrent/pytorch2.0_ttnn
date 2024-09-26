@@ -136,7 +136,6 @@ def run_for_train_mode(model_name, model, inputs, as_ttnn=False, device=None):
         if isinstance(layer, torch.nn.Dropout):
             layer.p = 0  # Set dropout probability to 0
 
-    option = None
     if as_ttnn == True:
         import torch_ttnn
 
@@ -169,12 +168,28 @@ def run_for_train_mode(model_name, model, inputs, as_ttnn=False, device=None):
         loss = torch.mean(outputs)
         loss.backward()
 
-    # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
+    # Why `inputs.requires_grad`?
+    #
+    # Backward pass computes gradients for all trainable weight tensors.
+    # However, verifying every gradient can be costly, especially for
+    # large models with many parameters.
+    #
+    # Instead of checking each gradient, we check the gradient
+    # of the "model input" tensor only. Computing the input gradient
+    # serves as an indicator for the health of all other gradients.
+    # Based on the "chain rule", the input gradient depends on all other
+    # gradients, so any incorrect gradient computation should reflect here.
+
     if type(inputs) == dict:
         results = {k: v.grad for k, v in inputs.items()}
     else:
         results = inputs.grad
-    return results, option
+
+    # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
+    if as_ttnn == True:
+        return results, option
+    else:
+        return results
 
 
 @torch.no_grad()
@@ -182,7 +197,6 @@ def run_for_eval_mode(model_name, model, inputs, as_ttnn=False, device=None):
     model = model.to(torch.bfloat16)
     model.eval()
 
-    option = None
     if as_ttnn == True:
         import torch_ttnn
 
@@ -202,4 +216,8 @@ def run_for_eval_mode(model_name, model, inputs, as_ttnn=False, device=None):
     else:
         inputs = inputs.to(torch.bfloat16)
         results = model(inputs)
-    return results, option
+
+    if as_ttnn == True:
+        return results, option
+    else:
+        return results
