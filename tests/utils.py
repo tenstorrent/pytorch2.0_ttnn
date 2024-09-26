@@ -123,20 +123,23 @@ def run_for_train_mode(model_name, model, inputs, as_ttnn=False, device=None):
     # Setting a fixed random seed is crucial for consistent testing
     # and debugging during the training process.
     torch.manual_seed(99)
-    model = model.to(torch.bfloat16)
-    model.train()
-    model.zero_grad()
 
-    # Eliminating randomness from Dropout to ensure consistent results.
-    #
-    # This is necessary for comparing the two training rounds:
-    # one using PyTorch native code and the other using the PyTorch Dynamo TT backend.
-    # Without this, the results would differ, making it impossible to compare the two implementations.
-    for layer in model.modules():
-        if isinstance(layer, torch.nn.Dropout):
-            layer.p = 0  # Set dropout probability to 0
+    def _set_model(model):
+        model = model.to(torch.bfloat16)
+        model.train()
+        model.zero_grad()
 
-    if as_ttnn == True:
+        # Eliminating randomness from Dropout to ensure consistent results.
+        #
+        # This is necessary for comparing the two training rounds:
+        # one using PyTorch native code and the other using the PyTorch Dynamo TT backend.
+        # Without this, the results would differ, making it impossible to compare the two implementations.
+        for layer in model.modules():
+            if isinstance(layer, torch.nn.Dropout):
+                layer.p = 0  # Set dropout probability to 0
+        return model
+
+    def _compile_model(model):
         import torch_ttnn
 
         # Compile model with ttnn backend
@@ -148,42 +151,65 @@ def run_for_train_mode(model_name, model, inputs, as_ttnn=False, device=None):
             verbose=True,
         )
         model = torch.compile(model, backend=torch_ttnn.backend, options=option)
+        return model, option
 
-    if type(inputs) == dict:
-        inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
-        # Setting input tensor's `requires_grad` attribute to true.
+    def _set_inputs(inputs):
+        if type(inputs) == torch.Tensor:
+            inputs = inputs.to(torch.bfloat16)
+            # Setting input tensor's `requires_grad` attribute to true.
+            #
+            # This allows us to use the gradient of the input as the golden result for the training process.
+            # For further details, refer to the file `conftest.py` regarding the rationale behind.
+            inputs.requires_grad_(True)
+        elif type(inputs) == dict:
+            inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
+            inputs = {k: v.requires_grad_(True) for k, v in inputs.items()}
+        else:
+            raise ValueError(f"Current inputs type is not supported: {type(inputs)}")
+        return inputs
+
+    def _run_model(model, inputs):
+        if type(inputs) == dict:
+            outputs = model(**inputs)
+        else:
+            outputs = model(inputs)
+        return outputs
+
+    def _append_fake_loss_function(outputs):
+        if str(type(outputs)) in ["<class 'torch.Tensor'>", "<class 'core.TorchTensor'>"]:
+            loss = torch.mean(outputs)
+        else:
+            raise ValueError(f"Current outputs type is not supported: {type(outputs)}")
+        return loss
+
+    def _get_results(inputs):
+        # Why `inputs.requires_grad`?
         #
-        # This allows us to use the gradient of the input as the golden result for the training process.
-        # For further details, refer to the file `conftest.py` regarding the rationale behind.
-        inputs = {k: v.requires_grad_(True) for k, v in inputs.items()}
-        outputs = model(**inputs)
-    else:
-        inputs = inputs.to(torch.bfloat16)
-        inputs.requires_grad_(True)
-        outputs = model(inputs)
+        # Backward pass computes gradients for all trainable weight tensors.
+        # However, verifying every gradient can be costly, especially for
+        # large models with many parameters.
+        #
+        # Instead of checking each gradient, we check the gradient
+        # of the "model input" tensor only. Computing the input gradient
+        # serves as an indicator for the health of all other gradients.
+        # Based on the "chain rule", the input gradient depends on all other
+        # gradients, so any incorrect gradient computation should reflect here.
+        if type(inputs) == torch.Tensor:
+            results = inputs.grad
+        elif type(inputs) == dict:
+            results = {k: v.grad for k, v in inputs.items()}
+        else:
+            raise ValueError(f"Current inputs type is not supported: {type(inputs)}")
+        return results
 
-    if type(outputs) == dict:
-        pass
-    else:
-        loss = torch.mean(outputs)
-        loss.backward()
-
-    # Why `inputs.requires_grad`?
-    #
-    # Backward pass computes gradients for all trainable weight tensors.
-    # However, verifying every gradient can be costly, especially for
-    # large models with many parameters.
-    #
-    # Instead of checking each gradient, we check the gradient
-    # of the "model input" tensor only. Computing the input gradient
-    # serves as an indicator for the health of all other gradients.
-    # Based on the "chain rule", the input gradient depends on all other
-    # gradients, so any incorrect gradient computation should reflect here.
-
-    if type(inputs) == dict:
-        results = {k: v.grad for k, v in inputs.items()}
-    else:
-        results = inputs.grad
+    model = _set_model(model)
+    if as_ttnn == True:
+        model, option = _compile_model(model)
+    inputs = _set_inputs(inputs)
+    outputs = _run_model(model, inputs)
+    loss = _append_fake_loss_function(outputs)
+    loss.backward()
+    results = _get_results(inputs)
 
     # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
     if as_ttnn == True:
@@ -194,10 +220,12 @@ def run_for_train_mode(model_name, model, inputs, as_ttnn=False, device=None):
 
 @torch.no_grad()
 def run_for_eval_mode(model_name, model, inputs, as_ttnn=False, device=None):
-    model = model.to(torch.bfloat16)
-    model.eval()
+    def _set_model(model):
+        model = model.to(torch.bfloat16)
+        model.eval()
+        return model
 
-    if as_ttnn == True:
+    def _compile_model(model):
         import torch_ttnn
 
         # Compile model with ttnn backend
@@ -209,13 +237,29 @@ def run_for_eval_mode(model_name, model, inputs, as_ttnn=False, device=None):
             verbose=True,
         )
         model = torch.compile(model, backend=torch_ttnn.backend, options=option)
+        return model, option
 
-    if type(inputs) == dict:
-        inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
-        results = model(**inputs)
-    else:
-        inputs = inputs.to(torch.bfloat16)
-        results = model(inputs)
+    def _set_inputs(inputs):
+        if type(inputs) == torch.Tensor:
+            inputs = inputs.to(torch.bfloat16)
+        elif type(inputs) == dict:
+            inputs = {k: v.to(torch.bfloat16) for k, v in inputs.items()}
+        else:
+            raise ValueError(f"Current inputs type is not supported: {type(inputs)}")
+        return inputs
+
+    def _run_model(model, inputs):
+        if type(inputs) == dict:
+            results = model(**inputs)
+        else:
+            results = model(inputs)
+        return results
+
+    model = _set_model(model)
+    if as_ttnn == True:
+        model, option = _compile_model(model)
+    inputs = _set_inputs(inputs)
+    results = _run_model(model, inputs)
 
     if as_ttnn == True:
         return results, option
