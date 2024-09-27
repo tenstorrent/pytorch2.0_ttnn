@@ -17,7 +17,7 @@
 | 13 | aten.slice.Tensor              |                  2 |           0 |
 | 14 | aten.t.default                 |                  4 |           4 |
 | 15 | aten.transpose.int             |                  2 |           2 |
-| 16 | aten.view.default              |                 12 |           0 |
+| 16 | aten.view.default              |                 12 |           6 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                                  | Status   |
@@ -102,15 +102,15 @@
 |    | ATen Input Variations                                                    | Status   |
 |---:|:-------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 12, 197, 197]> self = ?,<br>List[int]<> size = [12, 197, 197] | Unknown  |
-|  1 | Tensor<[1, 12, 197, 64]> self = ?,<br>List[int]<> size = [12, 197, 64]   | Unknown  |
+|  1 | Tensor<[1, 12, 197, 64]> self = ?,<br>List[int]<> size = [12, 197, 64]   | Done     |
 |  2 | Tensor<[1, 12, 64, 197]> self = ?,<br>List[int]<> size = [12, 64, 197]   | Unknown  |
 |  3 | Tensor<[1, 197, 12, 64]> self = ?,<br>List[int]<> size = [1, 197, 768]   | Unknown  |
-|  4 | Tensor<[1, 197, 3072]> self = ?,<br>List[int]<> size = [197, 3072]       | Unknown  |
+|  4 | Tensor<[1, 197, 3072]> self = ?,<br>List[int]<> size = [197, 3072]       | Done     |
 |  5 | Tensor<[1, 197, 768]> self = ?,<br>List[int]<> size = [1, 197, 12, 64]   | Unknown  |
-|  6 | Tensor<[1, 197, 768]> self = ?,<br>List[int]<> size = [197, 768]         | Unknown  |
+|  6 | Tensor<[1, 197, 768]> self = ?,<br>List[int]<> size = [197, 768]         | Done     |
 |  7 | Tensor<[1, 768, 14, 14]> self = ?,<br>List[int]<> size = [1, 768, 196]   | Unknown  |
 |  8 | Tensor<[12, 197, 197]> self = ?,<br>List[int]<> size = [1, 12, 197, 197] | Unknown  |
-|  9 | Tensor<[12, 197, 64]> self = ?,<br>List[int]<> size = [1, 12, 197, 64]   | Unknown  |
-| 10 | Tensor<[197, 3072]> self = ?,<br>List[int]<> size = [1, 197, 3072]       | Unknown  |
-| 11 | Tensor<[197, 768]> self = ?,<br>List[int]<> size = [1, 197, 768]         | Unknown  |
+|  9 | Tensor<[12, 197, 64]> self = ?,<br>List[int]<> size = [1, 12, 197, 64]   | Done     |
+| 10 | Tensor<[197, 3072]> self = ?,<br>List[int]<> size = [1, 197, 3072]       | Done     |
+| 11 | Tensor<[197, 768]> self = ?,<br>List[int]<> size = [1, 197, 768]         | Done     |
 

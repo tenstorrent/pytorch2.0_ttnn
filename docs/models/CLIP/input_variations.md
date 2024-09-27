@@ -30,7 +30,7 @@
 | 26 | aten.t.default                  |                  9 |           9 |
 | 27 | aten.transpose.int              |                  7 |           7 |
 | 28 | aten.unsqueeze.default          |                  4 |           4 |
-| 29 | aten.view.default               |                 20 |           0 |
+| 29 | aten.view.default               |                 20 |           5 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                             | Status   |
@@ -215,12 +215,12 @@
 |    | ATen Input Variations                                                | Status   |
 |---:|:---------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 12, 50, 64]> self = ?,<br>List[int]<> size = [12, -1, 64] | Unknown  |
-|  1 | Tensor<[1, 50, 3072]> self = ?,<br>List[int]<> size = [50, 3072]     | Unknown  |
+|  1 | Tensor<[1, 50, 3072]> self = ?,<br>List[int]<> size = [50, 3072]     | Done     |
 |  2 | Tensor<[1, 50, 768]> self = ?,<br>List[int]<> size = [1, -1, 12, 64] | Unknown  |
 |  3 | Tensor<[1, 50, 768]> self = ?,<br>List[int]<> size = [1, 50, 12, 64] | Unknown  |
-|  4 | Tensor<[1, 50, 768]> self = ?,<br>List[int]<> size = [50, 768]       | Unknown  |
+|  4 | Tensor<[1, 50, 768]> self = ?,<br>List[int]<> size = [50, 768]       | Done     |
 |  5 | Tensor<[1, 768, 7, 7]> self = ?,<br>List[int]<> size = [1, 768, 49]  | Unknown  |
-|  6 | Tensor<[12, 50, 64]> self = ?,<br>List[int]<> size = [1, 12, 50, 64] | Unknown  |
+|  6 | Tensor<[12, 50, 64]> self = ?,<br>List[int]<> size = [1, 12, 50, 64] | Done     |
 |  7 | Tensor<[14, 2048]> self = ?,<br>List[int]<> size = [2, 7, 2048]      | Unknown  |
 |  8 | Tensor<[14, 512]> self = ?,<br>List[int]<> size = [2, 7, 512]        | Unknown  |
 |  9 | Tensor<[16, 7, 64]> self = ?,<br>List[int]<> size = [2, 8, 7, 64]    | Unknown  |
@@ -232,6 +232,6 @@
 | 15 | Tensor<[2, 7]> self = ?,<br>List[int]<> size = [-1, 7]               | Unknown  |
 | 16 | Tensor<[2, 8, 7, 64]> self = ?,<br>List[int]<> size = [16, -1, 64]   | Unknown  |
 | 17 | Tensor<[2, 8, 7, 7]> self = ?,<br>List[int]<> size = [16, 7, 7]      | Unknown  |
-| 18 | Tensor<[50, 3072]> self = ?,<br>List[int]<> size = [1, 50, 3072]     | Unknown  |
-| 19 | Tensor<[50, 768]> self = ?,<br>List[int]<> size = [1, 50, 768]       | Unknown  |
+| 18 | Tensor<[50, 3072]> self = ?,<br>List[int]<> size = [1, 50, 3072]     | Done     |
+| 19 | Tensor<[50, 768]> self = ?,<br>List[int]<> size = [1, 50, 768]       | Done     |
 

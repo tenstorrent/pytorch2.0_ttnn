@@ -1,0 +1,41 @@
+### aten._unsafe_index.Tensor
+|    | ATen Input Variations                                                                                                                                                                         | Status   |
+|---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
+|  0 | Tensor<[1, 1, 384, 512]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([12, 1])', 'torch.Size([16])']                                                              | Unknown  |
+|  1 | Tensor<[1, 1, 720, 1280]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([23, 1])', 'torch.Size([40])']                                                             | Unknown  |
+|  2 | Tensor<[1, 120, 14, 14]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([28, 1])', 'torch.Size([28])']                                                              | Unknown  |
+|  3 | Tensor<[1, 128, 32, 32]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([64, 1])', 'torch.Size([64])']                                                              | Unknown  |
+|  4 | Tensor<[1, 1280, 16, 16]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([32, 1])', 'torch.Size([32])']                                                             | Unknown  |
+|  5 | Tensor<[1, 1280, 8, 8]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([16, 1])', 'torch.Size([16])']                                                               | Unknown  |
+|  6 | Tensor<[1, 18, 14, 14]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([56, 1])', 'torch.Size([56])']                                                               | Unknown  |
+|  7 | Tensor<[1, 18, 28, 28]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([56, 1])', 'torch.Size([56])']                                                               | Unknown  |
+|  8 | Tensor<[1, 18, 7, 7]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([56, 1])', 'torch.Size([56])']                                                                 | Unknown  |
+|  9 | Tensor<[1, 184, 7, 7]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([14, 1])', 'torch.Size([14])']                                                                | Unknown  |
+| 10 | Tensor<[1, 192, 50, 83]> self = ?,<br>List[Optional[Tensor]]<> indices = ['torch.Size([1, 1, 1, 1])', 'torch.Size([1, 192, 1, 1])', 'torch.Size([1, 1, 32, 1])', 'torch.Size([1, 1, 1, 42])'] | Unknown  |
+| 11 | Tensor<[1, 200, 7, 7]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([14, 1])', 'torch.Size([14])']                                                                | Unknown  |
+| 12 | Tensor<[1, 240, 14, 14]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([28, 1])', 'torch.Size([28])']                                                              | Unknown  |
+| 13 | Tensor<[1, 256, 128, 128]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([128, 1])', 'torch.Size([128])']                                                          | Unknown  |
+| 14 | Tensor<[1, 256, 16, 16]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([128, 1])', 'torch.Size([128])']                                                            | Unknown  |
+| 15 | Tensor<[1, 256, 16, 16]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([32, 1])', 'torch.Size([32])']                                                              | Unknown  |
+| 16 | Tensor<[1, 256, 25, 34]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([50, 1])', 'torch.Size([68])']                                                              | Unknown  |
+| 17 | Tensor<[1, 256, 32, 32]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([128, 1])', 'torch.Size([128])']                                                            | Unknown  |
+| 18 | Tensor<[1, 256, 50, 68]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([100, 1])', 'torch.Size([136])']                                                            | Unknown  |
+| 19 | Tensor<[1, 256, 64, 64]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([128, 1])', 'torch.Size([128])']                                                            | Unknown  |
+| 20 | Tensor<[1, 3, 320, 320]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([320, 1])', 'torch.Size([320])']                                                            | Unknown  |
+| 21 | Tensor<[1, 3, 480, 640]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([300, 1])', 'torch.Size([300])']                                                            | Unknown  |
+| 22 | Tensor<[1, 3, 480, 640]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([320, 1])', 'torch.Size([320])']                                                            | Unknown  |
+| 23 | Tensor<[1, 3, 480, 640]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([800, 1])', 'torch.Size([1066])']                                                           | Unknown  |
+| 24 | Tensor<[1, 36, 14, 14]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([28, 1])', 'torch.Size([28])']                                                               | Unknown  |
+| 25 | Tensor<[1, 36, 7, 7]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([28, 1])', 'torch.Size([28])']                                                                 | Unknown  |
+| 26 | Tensor<[1, 480, 7, 7]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([14, 1])', 'torch.Size([14])']                                                                | Unknown  |
+| 27 | Tensor<[1, 64, 120, 160]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([240, 1])', 'torch.Size([320])']                                                           | Unknown  |
+| 28 | Tensor<[1, 64, 15, 20]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([30, 1])', 'torch.Size([40])']                                                               | Unknown  |
+| 29 | Tensor<[1, 64, 240, 320]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([480, 1])', 'torch.Size([640])']                                                           | Unknown  |
+| 30 | Tensor<[1, 64, 30, 40]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([60, 1])', 'torch.Size([80])']                                                               | Unknown  |
+| 31 | Tensor<[1, 64, 60, 80]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([120, 1])', 'torch.Size([160])']                                                             | Unknown  |
+| 32 | Tensor<[1, 640, 32, 32]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([64, 1])', 'torch.Size([64])']                                                              | Unknown  |
+| 33 | Tensor<[1, 672, 7, 7]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([14, 1])', 'torch.Size([14])']                                                                | Unknown  |
+| 34 | Tensor<[1, 72, 28, 28]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([56, 1])', 'torch.Size([56])']                                                               | Unknown  |
+| 35 | Tensor<[1, 72, 7, 7]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([14, 1])', 'torch.Size([14])']                                                                 | Unknown  |
+| 36 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]]<> indices = [None, None, 'torch.Size([7, 1])', 'torch.Size([7])']                                                                  | Unknown  |
+

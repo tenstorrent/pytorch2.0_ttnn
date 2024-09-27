@@ -1,5 +1,6 @@
 import torch
 import ttnn
+import math
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
@@ -458,9 +459,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return g.call_function(ttnn.add, args=(beta_node, new_node))
 
             if node.target == torch.ops.aten.embedding.default:
-                # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
-                new_kwargs = {"layout": TtnnTileLayout()}
-                return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
+                if args[1].meta["val"].size()[-1] % ttnn.TILE_SIZE == 0:
+                    # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
+                    new_kwargs = {"layout": TtnnTileLayout()}
+                    return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
+                else:
+                    # TODO: remove fallback to torch when ttnn supports embedding inputs with any size of last dim not just TILE_SIZE multiples
+                    return g.call_function(torch.ops.aten.embedding.default, args, kwargs)
 
             if node.target == torch.ops.aten._log_softmax.default:
                 softmax_node = g.call_function(ttnn.softmax, args[:2], kwargs)
@@ -532,6 +537,33 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
                     return args[0]
                 return None
+
+            if node.target == torch.ops.aten.slice.Tensor:
+                tensor, dim, start, end, *step = args
+                [step] = step or [1]
+                input_size = list(tensor.meta["val"].size())
+                rank = len(input_size)
+
+                if step != 1 or dim >= rank:
+                    return None
+
+                # Check if no-op, just return the input tensor
+                if start == 0 and end >= input_size[dim]:
+                    return tensor
+
+                slice_start = np.zeros(rank, dtype=int)
+                slice_end = input_size
+
+                # For negative end values
+                if end < 0:
+                    end = input_size[dim] + end
+                else:
+                    end = np.clip(end, a_min=None, a_max=input_size[dim])
+
+                slice_start[dim] = start
+                slice_end[dim] = end
+
+                return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
 
             if node.target == torch.ops.aten.repeat.default:
                 tensor, sizes = args
@@ -657,6 +689,24 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 else:
                     # Fallback: aten.reshape is more stable if the input nodes have changed
                     return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
+            if node.target == torch.ops.aten.split.Tensor:
+                # convert input tensopr to ROW MAJOR layout for split
+                to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
+
+                # convert relative split dim to absolute
+                if args[2] >= 0:
+                    split_dim = args[0]
+                else:
+                    split_dim = len(args[0].meta["val"].size()) + args[2]
+
+                # convert from PyTorch size of chunk to ttnn number of chunks
+                if isinstance(args[1], int):
+                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
+                else:
+                    raise RuntimeError(f"ttnn.split only supports chunks of same size.")
+
+                new_args = (to_layout, num_chunks, split_dim)
+                return g.call_function(ttnn.split, args=new_args)
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
