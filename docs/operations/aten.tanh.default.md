@@ -2,13 +2,13 @@
 |    | ATen Input Variations          | Status   |
 |---:|:-------------------------------|:---------|
 |  0 | Tensor<[1, 1, 1024]> self = ?  | Unknown  |
-|  1 | Tensor<[1, 1, 25088]> self = ? | Unknown  |
+|  1 | Tensor<[1, 1, 24576]> self = ? | Unknown  |
 |  2 | Tensor<[1, 1, 3072]> self = ?  | Unknown  |
 |  3 | Tensor<[1, 1, 4096]> self = ?  | Unknown  |
 |  4 | Tensor<[1, 12, 3072]> self = ? | Done     |
 |  5 | Tensor<[1, 14, 3072]> self = ? | Done     |
 |  6 | Tensor<[1, 15, 1024]> self = ? | Done     |
-|  7 | Tensor<[1, 256, 98]> self = ?  | Unknown  |
+|  7 | Tensor<[1, 256, 96]> self = ?  | Unknown  |
 |  8 | Tensor<[1, 32, 6144]> self = ? | Done     |
 |  9 | Tensor<[1, 45, 3072]> self = ? | Unknown  |
 | 10 | Tensor<[1, 5, 4096]> self = ?  | Unknown  |

@@ -208,7 +208,7 @@
 | 204 | Tensor<[8, s0 + 1, s0 + 1]> self = ?,<br>int dim = 0  | Unknown  |
 | 205 | Tensor<[800]> self = ?,<br>int dim = 1                | Unknown  |
 | 206 | Tensor<[8732]> self = ?,<br>int dim = 1               | Unknown  |
-| 207 | Tensor<[98, 80]> self = ?,<br>int dim = 0             | Unknown  |
+| 207 | Tensor<[96, 80]> self = ?,<br>int dim = 0             | Unknown  |
 | 208 | Tensor<[s0 + 1]> self = ?,<br>int dim = 0             | Unknown  |
 | 209 | Tensor<[s0 + 1]> self = ?,<br>int dim = 1             | Unknown  |
 | 210 | Tensor<[s0, 256]> self = ?,<br>int dim = 0            | Unknown  |

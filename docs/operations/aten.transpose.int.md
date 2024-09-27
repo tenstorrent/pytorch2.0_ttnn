@@ -86,7 +86,7 @@
 |  82 | Tensor<[1, 24, 49, 32]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2        | Done     |
 |  83 | Tensor<[1, 24, 64, 32]> self = ?,<br>int dim0 = -2,<br>int dim1 = -1      | Done     |
 |  84 | Tensor<[1, 24, 64, 32]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2        | Done     |
-|  85 | Tensor<[1, 25088]> self = ?,<br>int dim0 = 1,<br>int dim1 = 0             | Unknown  |
+|  85 | Tensor<[1, 24576]> self = ?,<br>int dim0 = 1,<br>int dim1 = 0             | Unknown  |
 |  86 | Tensor<[1, 256, 1024]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2         | Done     |
 |  87 | Tensor<[1, 256, 19200]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2        | Done     |
 |  88 | Tensor<[1, 256, 256]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2          | Done     |
@@ -147,12 +147,12 @@
 | 143 | Tensor<[1, 8, 4096, 40]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2       | Done     |
 | 144 | Tensor<[1, 8, 64, 160]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2        | Done     |
 | 145 | Tensor<[1, 8, s0 + 1, 64]> self = ?,<br>int dim0 = 3,<br>int dim1 = 2     | Unknown  |
-| 146 | Tensor<[1, 80, 98]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2            | Unknown  |
+| 146 | Tensor<[1, 80, 96]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2            | Unknown  |
 | 147 | Tensor<[1, 9, 8, 160]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2         | Done     |
 | 148 | Tensor<[1, 9, 8, 40]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2          | Done     |
 | 149 | Tensor<[1, 9, 8, 80]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2          | Done     |
-| 150 | Tensor<[1, 98, 80]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2            | Unknown  |
-| 151 | Tensor<[1, 98, 80]> self = ?,<br>int dim0 = 2,<br>int dim1 = 1            | Unknown  |
+| 150 | Tensor<[1, 96, 80]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2            | Unknown  |
+| 151 | Tensor<[1, 96, 80]> self = ?,<br>int dim0 = 2,<br>int dim1 = 1            | Unknown  |
 | 152 | Tensor<[100, 8, 32]> self = ?,<br>int dim0 = 0,<br>int dim1 = 1           | Unknown  |
 | 153 | Tensor<[12, 1, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2            | Unknown  |
 | 154 | Tensor<[12, 2, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2            | Unknown  |
