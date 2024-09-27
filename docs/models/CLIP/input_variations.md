@@ -13,7 +13,7 @@
 |  9 | aten.clone.default              |                  6 |           6 |         0 |          0 | ✅          |               1    |
 | 10 | aten.convolution.default        |                  1 |           0 |         0 |          0 | ✘           |               0    |
 | 11 | aten.div.Tensor                 |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 12 | aten.embedding.default          |                  3 |           3 |         0 |          0 | ✅          |               1    |
+| 12 | aten.embedding.default          |                  3 |           0 |         0 |          0 | ✘           |               0    |
 | 13 | aten.exp.default                |                  1 |           1 |         0 |          0 | ✅          |               1    |
 | 14 | aten.expand.default             |                  3 |           3 |         0 |          0 | ✅          |               1    |
 | 15 | aten.full.default               |                  1 |           1 |         0 |          0 | ✅          |               1    |
@@ -106,9 +106,9 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                          | Status   |
 |---:|:---------------------------------------------------------------|:---------|
-|  0 | Tensor<[49408, 512]> weight = ?,<br>Tensor<[2, 7]> indices = ? | Done     |
-|  1 | Tensor<[50, 768]> weight = ?,<br>Tensor<[1, 50]> indices = ?   | Done     |
-|  2 | Tensor<[77, 512]> weight = ?,<br>Tensor<[1, 7]> indices = ?    | Done     |
+|  0 | Tensor<[49408, 512]> weight = ?,<br>Tensor<[2, 7]> indices = ? | None     |
+|  1 | Tensor<[50, 768]> weight = ?,<br>Tensor<[1, 50]> indices = ?   | None     |
+|  2 | Tensor<[77, 512]> weight = ?,<br>Tensor<[1, 7]> indices = ?    | None     |
 ### aten.exp.default
 |    | ATen Input Variations   | Status   |
 |---:|:------------------------|:---------|

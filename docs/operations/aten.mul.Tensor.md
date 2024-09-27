@@ -25,7 +25,7 @@
 |  21 | Tensor<[1, 1, 1, 5]> self = ?,<br>Tensor other = -3.4028234663852886e+38       | Unknown  |
 |  22 | Tensor<[1, 1, 1, 6]> self = ?,<br>Tensor other = -3.4028234663852886e+38       | Unknown  |
 |  23 | Tensor<[1, 1, 1, 7]> self = ?,<br>Tensor other = -3.3895313892515355e+38       | Unknown  |
-|  24 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.4028234663852886e+38       | Done     |
+|  24 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38       | Done     |
 |  25 | Tensor<[1, 1, 1, 9]> self = ?,<br>Tensor other = -3.4028234663852886e+38       | Done     |
 |  26 | Tensor<[1, 1, 1, s0 + 1]> self = ?,<br>Tensor other = -3.4028234663852886e+38  | Unknown  |
 |  27 | Tensor<[1, 1, 1, s0 + 1]> self = ?,<br>Tensor<[1, 1, 1, s0 + 1]> other = ?     | Unknown  |
@@ -297,7 +297,7 @@
 | 293 | Tensor<[128]> self = ?,<br>Tensor other = 0.5                                  | Done     |
 | 294 | Tensor<[128]> self = ?,<br>Tensor other = 1.0                                  | Done     |
 | 295 | Tensor<[128]> self = ?,<br>Tensor other = 2                                    | Unknown  |
-| 296 | Tensor<[12]> self = ?,<br>Tensor other = 32.0                                  | Unknown  |
+| 296 | Tensor<[12]> self = ?,<br>Tensor other = 32.0                                  | Done     |
 | 297 | Tensor<[12]> self = ?,<br>Tensor<[]> other = ?                                 | Unknown  |
 | 298 | Tensor<[136]> self = ?,<br>Tensor other = 0.5                                  | Unknown  |
 | 299 | Tensor<[136]> self = ?,<br>Tensor<[]> other = ?                                | Unknown  |
@@ -313,7 +313,7 @@
 | 309 | Tensor<[160]> self = ?,<br>Tensor other = -9.210340371976184                   | Done     |
 | 310 | Tensor<[160]> self = ?,<br>Tensor other = 0.5                                  | Done     |
 | 311 | Tensor<[16]> self = ?,<br>Tensor other = 0.5                                   | Done     |
-| 312 | Tensor<[16]> self = ?,<br>Tensor other = 32.0                                  | Unknown  |
+| 312 | Tensor<[16]> self = ?,<br>Tensor other = 32.0                                  | Done     |
 | 313 | Tensor<[17, 17]> self = ?,<br>Tensor other = 16                                | Unknown  |
 | 314 | Tensor<[17]> self = ?,<br>Tensor<[]> other = ?                                 | Unknown  |
 | 315 | Tensor<[1]> self = ?,<br>Tensor<[1]> other = ?                                 | Unknown  |

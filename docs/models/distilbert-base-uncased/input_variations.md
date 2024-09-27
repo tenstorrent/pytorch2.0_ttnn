@@ -7,7 +7,7 @@
 |  3 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |               1    |
 |  4 | aten.clone.default             |                  3 |           3 |         0 |          0 | ✅          |               1    |
 |  5 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  6 | aten.embedding.default         |                  2 |           2 |         0 |          0 | ✅          |               1    |
+|  6 | aten.embedding.default         |                  2 |           0 |         0 |          0 | ✘           |               0    |
 |  7 | aten.eq.Scalar                 |                  1 |           0 |         0 |          0 | ✘           |               0    |
 |  8 | aten.expand.default            |                  4 |           1 |         0 |          0 | 🚧          |               0.25 |
 |  9 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |               1    |
@@ -51,8 +51,8 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                   | Status   |
 |---:|:----------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[30522, 768]> weight = ?,<br>Tensor<[1, 16]> indices = ?,<br>int padding_idx = 0 | Done     |
-|  1 | Tensor<[512, 768]> weight = ?,<br>Tensor<[1, 16]> indices = ?                           | Done     |
+|  0 | Tensor<[30522, 768]> weight = ?,<br>Tensor<[1, 16]> indices = ?,<br>int padding_idx = 0 | None     |
+|  1 | Tensor<[512, 768]> weight = ?,<br>Tensor<[1, 16]> indices = ?                           | None     |
 ### aten.eq.Scalar
 |    | ATen Input Variations                         | Status   |
 |---:|:----------------------------------------------|:---------|

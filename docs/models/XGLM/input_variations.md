@@ -11,7 +11,7 @@
 |  7 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |                1   |
 |  8 | aten.clone.default             |                  5 |           5 |         0 |          0 | ✅          |                1   |
 |  9 | aten.detach.default            |                  1 |           0 |         0 |          0 | ✘           |                0   |
-| 10 | aten.embedding.default         |                  1 |           1 |         0 |          0 | ✅          |                1   |
+| 10 | aten.embedding.default         |                  1 |           0 |         0 |          0 | ✘           |                0   |
 | 11 | aten.expand.default            |                  2 |           1 |         0 |          0 | 🚧          |                0.5 |
 | 12 | aten.full.default              |                  1 |           1 |         0 |          0 | ✅          |                1   |
 | 13 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |                1   |
@@ -85,7 +85,7 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                     | Status   |
 |---:|:------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[256008, 1024]> weight = ?,<br>Tensor<[1, 19]> indices = ?,<br>int padding_idx = 1 | Done     |
+|  0 | Tensor<[256008, 1024]> weight = ?,<br>Tensor<[1, 19]> indices = ?,<br>int padding_idx = 1 | None     |
 ### aten.expand.default
 |    | ATen Input Variations                                               | Status   |
 |---:|:--------------------------------------------------------------------|:---------|

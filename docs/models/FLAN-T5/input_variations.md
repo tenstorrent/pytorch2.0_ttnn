@@ -10,7 +10,7 @@
 |  6 | aten.cat.default        |                  7 |           0 |         0 |          0 | ✘           |               0    |
 |  7 | aten.clone.default      |                 11 |           4 |         0 |          0 | 🚧          |               0.36 |
 |  8 | aten.div.Tensor         |                 10 |           2 |         0 |          0 | 🚧          |               0.2  |
-|  9 | aten.embedding.default  |                  7 |           2 |         0 |          0 | 🚧          |               0.29 |
+|  9 | aten.embedding.default  |                  7 |           0 |         0 |          0 | ✘           |               0    |
 | 10 | aten.expand.default     |                 16 |           0 |         0 |          0 | ✘           |               0    |
 | 11 | aten.full_like.default  |                  5 |           0 |         0 |          0 | ✘           |               0    |
 | 12 | aten.gt.Scalar          |                  1 |           0 |         0 |          0 | ✘           |               0    |
@@ -167,11 +167,11 @@
 |    | ATen Input Variations                                               | Status   |
 |---:|:--------------------------------------------------------------------|:---------|
 |  0 | Tensor<[32, 6]> weight = ?,<br>Tensor<[1, 1]> indices = ?           | Unknown  |
-|  1 | Tensor<[32, 6]> weight = ?,<br>Tensor<[15, 15]> indices = ?         | Done     |
+|  1 | Tensor<[32, 6]> weight = ?,<br>Tensor<[15, 15]> indices = ?         | None     |
 |  2 | Tensor<[32, 6]> weight = ?,<br>Tensor<[17, 17]> indices = ?         | Unknown  |
 |  3 | Tensor<[32, 6]> weight = ?,<br>Tensor<[2, 2]> indices = ?           | Unknown  |
 |  4 | Tensor<[32, 6]> weight = ?,<br>Tensor<[s0 + 1, s0 + 1]> indices = ? | Unknown  |
-|  5 | Tensor<[32128, 512]> weight = ?,<br>Tensor<[1, 15]> indices = ?     | Done     |
+|  5 | Tensor<[32128, 512]> weight = ?,<br>Tensor<[1, 15]> indices = ?     | None     |
 |  6 | Tensor<[32128, 512]> weight = ?,<br>Tensor<[1, 1]> indices = ?      | Unknown  |
 ### aten.expand.default
 |    | ATen Input Variations                                                         | Status   |

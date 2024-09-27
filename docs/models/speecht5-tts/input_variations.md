@@ -15,7 +15,7 @@
 | 11 | aten.clone.default                                |                 19 |           5 |         0 |          0 | 🚧          |               0.26 |
 | 12 | aten.convolution.default                          |                 45 |           0 |         0 |          0 | ✘           |               0    |
 | 13 | aten.div.Tensor                                   |                  8 |           0 |         0 |          0 | ✘           |               0    |
-| 14 | aten.embedding.default                            |                  2 |           2 |         0 |          0 | ✅          |               1    |
+| 14 | aten.embedding.default                            |                  2 |           0 |         0 |          0 | ✘           |               0    |
 | 15 | aten.eq.Scalar                                    |                  2 |           0 |         0 |          0 | ✘           |               0    |
 | 16 | aten.expand.default                               |                  7 |           1 |         0 |          0 | 🚧          |               0.14 |
 | 17 | aten.gelu.default                                 |                  2 |           1 |         0 |          0 | 🚧          |               0.5  |
@@ -234,8 +234,8 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                | Status   |
 |---:|:-------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[320, 64]> weight = ?,<br>Tensor<[24, 24]> indices = ?                        | Done     |
-|  1 | Tensor<[81, 768]> weight = ?,<br>Tensor<[1, 24]> indices = ?,<br>int padding_idx = 1 | Done     |
+|  0 | Tensor<[320, 64]> weight = ?,<br>Tensor<[24, 24]> indices = ?                        | None     |
+|  1 | Tensor<[81, 768]> weight = ?,<br>Tensor<[1, 24]> indices = ?,<br>int padding_idx = 1 | None     |
 ### aten.eq.Scalar
 |    | ATen Input Variations                              | Status   |
 |---:|:---------------------------------------------------|:---------|

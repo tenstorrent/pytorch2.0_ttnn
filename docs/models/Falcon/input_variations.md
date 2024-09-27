@@ -9,7 +9,7 @@
 |  5 | aten.bmm.default               |                  2 |           0 |         0 |          0 | ✘           |                0   |
 |  6 | aten.cat.default               |                  2 |           0 |         0 |          0 | ✘           |                0   |
 |  7 | aten.clone.default             |                  2 |           0 |         0 |          0 | ✘           |                0   |
-|  8 | aten.embedding.default         |                  1 |           1 |         0 |          0 | ✅          |                1   |
+|  8 | aten.embedding.default         |                  1 |           0 |         0 |          0 | ✘           |                0   |
 |  9 | aten.eq.Scalar                 |                  1 |           0 |         0 |          0 | ✘           |                0   |
 | 10 | aten.expand.default            |                  4 |           0 |         0 |          0 | ✘           |                0   |
 | 11 | aten.gelu.default              |                  1 |           0 |         0 |          0 | ✘           |                0   |
@@ -20,7 +20,7 @@
 | 16 | aten.mm.default                |                  5 |           0 |         0 |          0 | ✘           |                0   |
 | 17 | aten.mul.Scalar                |                  2 |           0 |         0 |          0 | ✘           |                0   |
 | 18 | aten.mul.Tensor                |                  2 |           0 |         0 |          0 | ✘           |                0   |
-| 19 | aten.native_layer_norm.default |                  1 |           0 |         0 |          0 | ✘           |                0   |
+| 19 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |                1   |
 | 20 | aten.neg.default               |                  2 |           0 |         0 |          0 | ✘           |                0   |
 | 21 | aten.ones.default              |                  1 |           0 |         0 |          0 | ✘           |                0   |
 | 22 | aten.permute.default           |                  5 |           0 |         0 |          0 | ✘           |                0   |
@@ -50,7 +50,7 @@
 ### aten.all.default
 |    | ATen Input Variations   | Status   |
 |---:|:------------------------|:---------|
-|  0 | Tensor<[1, 7]> self = ? | Unknown  |
+|  0 | Tensor<[1, 7]> self = ? | None     |
 ### aten.arange.start
 |    | ATen Input Variations                                                                                                                             | Status   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
@@ -73,11 +73,11 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                           | Status   |
 |---:|:----------------------------------------------------------------|:---------|
-|  0 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ? | Done     |
+|  0 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ? | None     |
 ### aten.eq.Scalar
 |    | ATen Input Variations                        | Status   |
 |---:|:---------------------------------------------|:---------|
-|  0 | Tensor<[1, 7]> self = ?,<br>number other = 1 | Unknown  |
+|  0 | Tensor<[1, 7]> self = ?,<br>number other = 1 | None     |
 ### aten.expand.default
 |    | ATen Input Variations                                               | Status   |
 |---:|:--------------------------------------------------------------------|:---------|
@@ -127,7 +127,7 @@
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                      | Status   |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 7, 4544]> input = ?,<br>List[int] normalized_shape = [4544],<br>Optional[Tensor]<[4544]> weight = ?,<br>Optional[Tensor]<[4544]> bias = ?,<br>float eps = 1e-05 | Unknown  |
+|  0 | Tensor<[1, 7, 4544]> input = ?,<br>List[int] normalized_shape = [4544],<br>Optional[Tensor]<[4544]> weight = ?,<br>Optional[Tensor]<[4544]> bias = ?,<br>float eps = 1e-05 | Done     |
 ### aten.neg.default
 |    | ATen Input Variations           | Status   |
 |---:|:--------------------------------|:---------|

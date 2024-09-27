@@ -10,7 +10,7 @@
 |  6 | aten.cat.default        |                  4 |           0 |         0 |          0 | ✘           |               0    |
 |  7 | aten.clone.default      |                 10 |           4 |         0 |          0 | 🚧          |               0.4  |
 |  8 | aten.div.Tensor         |                  8 |           2 |         0 |          0 | 🚧          |               0.25 |
-|  9 | aten.embedding.default  |                  6 |           2 |         0 |          0 | 🚧          |               0.33 |
+|  9 | aten.embedding.default  |                  6 |           0 |         0 |          0 | ✘           |               0    |
 | 10 | aten.expand.default     |                 13 |           0 |         0 |          0 | ✘           |               0    |
 | 11 | aten.full_like.default  |                  4 |           0 |         0 |          0 | ✘           |               0    |
 | 12 | aten.gt.Scalar          |                  1 |           0 |         0 |          0 | ✘           |               0    |
@@ -147,10 +147,10 @@
 |    | ATen Input Variations                                                | Status   |
 |---:|:---------------------------------------------------------------------|:---------|
 |  0 | Tensor<[32, 16]> weight = ?,<br>Tensor<[1, 1]> indices = ?           | Unknown  |
-|  1 | Tensor<[32, 16]> weight = ?,<br>Tensor<[10, 10]> indices = ?         | Done     |
+|  1 | Tensor<[32, 16]> weight = ?,<br>Tensor<[10, 10]> indices = ?         | None     |
 |  2 | Tensor<[32, 16]> weight = ?,<br>Tensor<[2, 2]> indices = ?           | Unknown  |
 |  3 | Tensor<[32, 16]> weight = ?,<br>Tensor<[s0 + 1, s0 + 1]> indices = ? | Unknown  |
-|  4 | Tensor<[32128, 1024]> weight = ?,<br>Tensor<[1, 10]> indices = ?     | Done     |
+|  4 | Tensor<[32128, 1024]> weight = ?,<br>Tensor<[1, 10]> indices = ?     | None     |
 |  5 | Tensor<[32128, 1024]> weight = ?,<br>Tensor<[1, 1]> indices = ?      | Unknown  |
 ### aten.expand.default
 |    | ATen Input Variations                                                           | Status   |

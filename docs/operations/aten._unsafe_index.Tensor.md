@@ -1,7 +1,7 @@
 ### aten._unsafe_index.Tensor
 |    | ATen Input Variations                                                                                                                       | Status   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 384, 512]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, <[12, 1]>, <[16]>]                                      | Unknown  |
+|  0 | Tensor<[1, 1, 384, 512]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, <[12, 1]>, <[16]>]                                      | None     |
 |  1 | Tensor<[1, 1, 720, 1280]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, <[23, 1]>, <[40]>]                                     | Unknown  |
 |  2 | Tensor<[1, 120, 14, 14]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, <[28, 1]>, <[28]>]                                      | None     |
 |  3 | Tensor<[1, 128, 32, 32]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, <[64, 1]>, <[64]>]                                      | None     |

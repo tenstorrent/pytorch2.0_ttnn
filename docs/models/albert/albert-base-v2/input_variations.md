@@ -9,7 +9,7 @@
 |  5 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |               1    |
 |  6 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |               1    |
 |  7 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  8 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |               1    |
+|  8 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |               0    |
 |  9 | aten.expand.default            |                  3 |           0 |         0 |          0 | ✘           |               0    |
 | 10 | aten.mul.Tensor                |                  5 |           5 |         0 |          0 | ✅          |               1    |
 | 11 | aten.native_layer_norm.default |                  2 |           2 |         0 |          0 | ✅          |               1    |
@@ -70,9 +70,9 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                   | Status   |
 |---:|:----------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[2, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                             | Done     |
-|  1 | Tensor<[30000, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?,<br>int padding_idx = 0 | Done     |
-|  2 | Tensor<[512, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                           | Done     |
+|  0 | Tensor<[2, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                             | None     |
+|  1 | Tensor<[30000, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?,<br>int padding_idx = 0 | None     |
+|  2 | Tensor<[512, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                           | None     |
 ### aten.expand.default
 |    | ATen Input Variations                                                 | Status   |
 |---:|:----------------------------------------------------------------------|:---------|

@@ -8,7 +8,7 @@
 |  4 | aten.cat.default                                 |                 26 |           0 |         0 |          0 | ✘           |               0    |
 |  5 | aten.clone.default                               |                  8 |           5 |         0 |          0 | 🚧          |               0.62 |
 |  6 | aten.convolution.default                         |                  2 |           0 |         0 |          0 | ✘           |               0    |
-|  7 | aten.embedding.default                           |                  2 |           1 |         0 |          0 | 🚧          |               0.5  |
+|  7 | aten.embedding.default                           |                  2 |           0 |         0 |          0 | ✘           |               0    |
 |  8 | aten.gelu.default                                |                  5 |           4 |         0 |          0 | 🚧          |               0.8  |
 |  9 | aten.mm.default                                  |                  5 |           3 |         0 |          0 | 🚧          |               0.6  |
 | 10 | aten.mul.Tensor                                  |                  4 |           1 |         0 |          0 | 🚧          |               0.25 |
@@ -115,7 +115,7 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                      | Status   |
 |---:|:-------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 50257 | Done     |
+|  0 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 50257 | None     |
 |  1 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 4]> indices = ?,<br>int padding_idx = 50257 | Unknown  |
 ### aten.gelu.default
 |    | ATen Input Variations            | Status   |

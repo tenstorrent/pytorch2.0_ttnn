@@ -10,7 +10,7 @@
 |  6 | aten.cat.default               |                  4 |           0 |         0 |          0 | ✘           |               0    |
 |  7 | aten.clone.default             |                 10 |           5 |         0 |          0 | 🚧          |               0.5  |
 |  8 | aten.cumsum.default            |                  3 |           0 |         0 |          0 | ✘           |               0    |
-|  9 | aten.embedding.default         |                  4 |           2 |         0 |          0 | 🚧          |               0.5  |
+|  9 | aten.embedding.default         |                  4 |           0 |         0 |          0 | ✘           |               0    |
 | 10 | aten.eq.Scalar                 |                  1 |           0 |         0 |          0 | ✘           |               0    |
 | 11 | aten.expand.default            |                  4 |           1 |         0 |          0 | 🚧          |               0.25 |
 | 12 | aten.full.default              |                  1 |           1 |         0 |          0 | ✅          |               1    |
@@ -113,9 +113,9 @@
 |    | ATen Input Variations                                                                   | Status   |
 |---:|:----------------------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[2050, 1024]> weight = ?,<br>Tensor<[1, 1]> indices = ?                          | Unknown  |
-|  1 | Tensor<[2050, 1024]> weight = ?,<br>Tensor<[1, 59]> indices = ?                         | Done     |
+|  1 | Tensor<[2050, 1024]> weight = ?,<br>Tensor<[1, 59]> indices = ?                         | None     |
 |  2 | Tensor<[50272, 512]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 1  | Unknown  |
-|  3 | Tensor<[50272, 512]> weight = ?,<br>Tensor<[1, 59]> indices = ?,<br>int padding_idx = 1 | Done     |
+|  3 | Tensor<[50272, 512]> weight = ?,<br>Tensor<[1, 59]> indices = ?,<br>int padding_idx = 1 | None     |
 ### aten.eq.Scalar
 |    | ATen Input Variations                     | Status   |
 |---:|:------------------------------------------|:---------|
