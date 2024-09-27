@@ -43,14 +43,6 @@ csv_header_mappings = {
         "Accuracy (%)",
         "Model accuracy on a predefined test dataset after conversion.",
     ),
-    "fits_in_memory": (
-        "Fits in memory",
-        "Whether a model is estimated to fit in SRAM memory.",
-    ),
-    "peak_sram_usage": (
-        "Peak SRAM usage (in MB)",
-        "What is the peak SRAM usage for a model during its execution phase.",
-    ),
 }
 
 
@@ -101,14 +93,6 @@ def write_to_readme(all_metrics, aten_ops_per_model):
     """
     # Create an explanation section for the headers
     explanations_md = "\n".join([f"**{val[0]}**: {val[1]}  " for val in csv_header_mappings.values()])
-    # FIXME: Remove this once metrics generation and collection work for multiple graphs
-    explanations_md += "\n***\n**NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  "
-
-    # Create a series of tables showing the status of converted ops per model
-    aten_ops_md = ""
-    for key, val in aten_ops_per_model.items():
-        aten_ops_md += f"#### {key}\n"
-        aten_ops_md += pd.DataFrame(val).to_markdown(index=False) + "\n"
 
     # Load README.in as an f-string and substitute the variables
     with open("docs/README.md.in", "r") as text_file:
@@ -124,7 +108,8 @@ def write_to_readme(all_metrics, aten_ops_per_model):
 
     # Write to README file
     readme_md = readme_comment + readme_in.format(
-        metrics_md=metrics_md, explanations_md=explanations_md, aten_ops_md=aten_ops_md
+        metrics_md=metrics_md,
+        explanations_md=explanations_md,
     )
     with open("README.md", "w") as text_file:
         print(readme_md, file=text_file)
@@ -474,9 +459,6 @@ if __name__ == "__main__":
         # Remap bool to emoji
         emoji_map = {True: "✅", False: "✘"}
         compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
-
-        # pydantic_model.fit_in_memory = compiled_runtime_metrics["fits_in_memory"]
-        # pydantic_model.peak_sram_usage = compiled_runtime_metrics["peak_sram_usage"]
 
         # Process input variations per model
         input_var_per_op = InputVarPerOp(
