@@ -1,16 +1,16 @@
 # High Level Operations Status
-|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 65 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.avg_pool2d.default                           |                  3 |           0 |         0 |          0 | ✘           |                  0 |
-|  3 | aten.cat.default                                  |                 62 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.convolution.default                          |                 66 |           0 |         0 |          0 | ✘           |                  0 |
-|  5 | aten.max_pool2d_with_indices.default              |                  1 |           0 |         0 |          0 | ✘           |                  0 |
-|  6 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  7 | aten.relu.default                                 |                 65 |          65 |         0 |          0 | ✅          |                  1 |
-|  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  9 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._native_batch_norm_legit_no_training.default |                 65 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  2 | aten.avg_pool2d.default                           |                  3 |           0 |         0 |          0 | ✘           |       0 |
+|  3 | aten.cat.default                                  |                 62 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.convolution.default                          |                 66 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.max_pool2d_with_indices.default              |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  7 | aten.relu.default                                 |                 65 |          65 |         0 |          0 | ✅          |       1 |
+|  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  9 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                   | Status   |

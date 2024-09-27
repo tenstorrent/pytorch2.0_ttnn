@@ -1,38 +1,38 @@
 # High Level Operations Status
-|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._to_copy.default                |                  3 |           0 |         0 |          0 | ✘           |               0    |
-|  1 | aten._unsafe_index.Tensor            |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  2 | aten._unsafe_view.default            |                 15 |           0 |         0 |          0 | ✘           |               0    |
-|  3 | aten.add.Tensor                      |                 13 |           9 |         0 |          0 | 🚧          |               0.69 |
-|  4 | aten.arange.default                  |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  5 | aten.arange.start                    |                  6 |           0 |         0 |          0 | ✘           |               0    |
-|  6 | aten.cat.default                     |                 10 |           0 |         0 |          0 | ✘           |               0    |
-|  7 | aten.ceil.default                    |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  8 | aten.clamp.default                   |                  7 |           5 |         0 |          0 | 🚧          |               0.71 |
-|  9 | aten.clamp_min.default               |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 10 | aten.clone.default                   |                 15 |          15 |         0 |          0 | ✅          |               1    |
-| 11 | aten.convolution.default             |                 31 |           0 |         0 |          0 | ✘           |               0    |
-| 12 | aten.div.Tensor                      |                 11 |           1 |         0 |          0 | 🚧          |               0.09 |
-| 13 | aten.exp.default                     |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 14 | aten.expand.default                  |                 12 |           6 |         0 |          0 | 🚧          |               0.5  |
-| 15 | aten.lift_fresh_copy.default         |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 16 | aten.linalg_vector_norm.default      |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 17 | aten.max.default                     |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 18 | aten.max_pool2d_with_indices.default |                  5 |           0 |         0 |          0 | ✘           |               0    |
-| 19 | aten.mul.Tensor                      |                 12 |           7 |         0 |          0 | 🚧          |               0.58 |
-| 20 | aten.new_full.default                |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 21 | aten.permute.default                 |                 12 |          12 |         0 |          0 | ✅          |               1    |
-| 22 | aten.relu.default                    |                 14 |          14 |         0 |          0 | ✅          |               1    |
-| 23 | aten.repeat.default                  |                  6 |           5 |         0 |          0 | 🚧          |               0.83 |
-| 24 | aten.rsub.Scalar                     |                  2 |           0 |         0 |          0 | ✘           |               0    |
-| 25 | aten.select.int                      |                  6 |           0 |         0 |          0 | ✘           |               0    |
-| 26 | aten.slice.Tensor                    |                 12 |           2 |         0 |          0 | 🚧          |               0.17 |
-| 27 | aten.stack.default                   |                  9 |           0 |         0 |          0 | ✘           |               0    |
-| 28 | aten.sub.Tensor                      |                  7 |           5 |         0 |          0 | 🚧          |               0.71 |
-| 29 | aten.unbind.int                      |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 30 | aten.unsqueeze.default               |                  6 |           2 |         0 |          0 | 🚧          |               0.33 |
-| 31 | aten.view.default                    |                 36 |           0 |         0 |         34 | ✘           |               0    |
+|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._to_copy.default                |                  3 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten._unsafe_index.Tensor            |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  2 | aten._unsafe_view.default            |                 15 |           0 |         0 |          0 | ✘           |    0    |
+|  3 | aten.add.Tensor                      |                 13 |           9 |         0 |          0 | 🚧          |    0.69 |
+|  4 | aten.arange.default                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  5 | aten.arange.start                    |                  6 |           0 |         0 |          0 | ✘           |    0    |
+|  6 | aten.cat.default                     |                 10 |           0 |         0 |          0 | ✘           |    0    |
+|  7 | aten.ceil.default                    |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  8 | aten.clamp.default                   |                  7 |           5 |         0 |          0 | 🚧          |    0.71 |
+|  9 | aten.clamp_min.default               |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 10 | aten.clone.default                   |                 15 |          15 |         0 |          0 | ✅          |    1    |
+| 11 | aten.convolution.default             |                 31 |           0 |         0 |          0 | ✘           |    0    |
+| 12 | aten.div.Tensor                      |                 11 |           1 |         0 |          0 | 🚧          |    0.09 |
+| 13 | aten.exp.default                     |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 14 | aten.expand.default                  |                 12 |           6 |         0 |          0 | 🚧          |    0.5  |
+| 15 | aten.lift_fresh_copy.default         |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 16 | aten.linalg_vector_norm.default      |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 17 | aten.max.default                     |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 18 | aten.max_pool2d_with_indices.default |                  5 |           0 |         0 |          0 | ✘           |    0    |
+| 19 | aten.mul.Tensor                      |                 12 |           7 |         0 |          0 | 🚧          |    0.58 |
+| 20 | aten.new_full.default                |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 21 | aten.permute.default                 |                 12 |          12 |         0 |          0 | ✅          |    1    |
+| 22 | aten.relu.default                    |                 14 |          14 |         0 |          0 | ✅          |    1    |
+| 23 | aten.repeat.default                  |                  6 |           5 |         0 |          0 | 🚧          |    0.83 |
+| 24 | aten.rsub.Scalar                     |                  2 |           0 |         0 |          0 | ✘           |    0    |
+| 25 | aten.select.int                      |                  6 |           0 |         0 |          0 | ✘           |    0    |
+| 26 | aten.slice.Tensor                    |                 12 |           2 |         0 |          0 | 🚧          |    0.17 |
+| 27 | aten.stack.default                   |                  9 |           0 |         0 |          0 | ✘           |    0    |
+| 28 | aten.sub.Tensor                      |                  7 |           5 |         0 |          0 | 🚧          |    0.71 |
+| 29 | aten.unbind.int                      |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 30 | aten.unsqueeze.default               |                  6 |           2 |         0 |          0 | 🚧          |    0.33 |
+| 31 | aten.view.default                    |                 36 |           0 |         0 |         34 | ✘           |    0    |
 ***
 ### aten._to_copy.default
 |    | ATen Input Variations                                                                           | Status   |

@@ -1,12 +1,12 @@
 # High Level Operations Status
-|    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._native_batch_norm_legit_functional.default |                  5 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.add.Tensor                                  |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.cat.default                                 |                  4 |           0 |         0 |          0 | ✘           |                  0 |
-|  3 | aten.convolution.default                         |                 19 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.max_pool2d_with_indices.default             |                  4 |           0 |         0 |          0 | ✘           |                  0 |
-|  5 | aten.relu.default                                |                  5 |           5 |         0 |          0 | ✅          |                  1 |
+|    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._native_batch_norm_legit_functional.default |                  5 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.add.Tensor                                  |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  2 | aten.cat.default                                 |                  4 |           0 |         0 |          0 | ✘           |       0 |
+|  3 | aten.convolution.default                         |                 19 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.max_pool2d_with_indices.default             |                  4 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.relu.default                                |                  5 |           5 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_functional.default
 |    | ATen Input Variations                                                                                                                                                                                                                                            | Status   |

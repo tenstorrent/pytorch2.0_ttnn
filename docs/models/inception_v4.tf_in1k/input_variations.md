@@ -1,17 +1,17 @@
 # High Level Operations Status
-|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 22 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.avg_pool2d.default                           |                  3 |           0 |         0 |          0 | ✘           |                  0 |
-|  3 | aten.cat.default                                  |                  9 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  5 | aten.convolution.default                          |                 38 |           0 |         0 |          0 | ✘           |                  0 |
-|  6 | aten.max_pool2d_with_indices.default              |                  4 |           0 |         0 |          0 | ✘           |                  0 |
-|  7 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  8 | aten.relu.default                                 |                 22 |          22 |         0 |          0 | ✅          |                  1 |
-|  9 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-| 10 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._native_batch_norm_legit_no_training.default |                 22 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  2 | aten.avg_pool2d.default                           |                  3 |           0 |         0 |          0 | ✘           |       0 |
+|  3 | aten.cat.default                                  |                  9 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  5 | aten.convolution.default                          |                 38 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.max_pool2d_with_indices.default              |                  4 |           0 |         0 |          0 | ✘           |       0 |
+|  7 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  8 | aten.relu.default                                 |                 22 |          22 |         0 |          0 | ✅          |       1 |
+|  9 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 10 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                              | Status   |

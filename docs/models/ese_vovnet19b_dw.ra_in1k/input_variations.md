@@ -1,18 +1,18 @@
 # High Level Operations Status
-|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 10 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.cat.default                                  |                  4 |           0 |         0 |          0 | ✘           |                  0 |
-|  3 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  4 | aten.convolution.default                          |                 25 |           0 |         0 |          0 | ✘           |                  0 |
-|  5 | aten.hardsigmoid.default                          |                  4 |           0 |         0 |          0 | ✘           |                  0 |
-|  6 | aten.max_pool2d_with_indices.default              |                  3 |           0 |         0 |          0 | ✘           |                  0 |
-|  7 | aten.mean.dim                                     |                  5 |           5 |         0 |          0 | ✅          |                  1 |
-|  8 | aten.mul.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |                  1 |
-|  9 | aten.relu.default                                 |                 10 |          10 |         0 |          0 | ✅          |                  1 |
-| 10 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-| 11 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._native_batch_norm_legit_no_training.default |                 10 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  2 | aten.cat.default                                  |                  4 |           0 |         0 |          0 | ✘           |       0 |
+|  3 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  4 | aten.convolution.default                          |                 25 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.hardsigmoid.default                          |                  4 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.max_pool2d_with_indices.default              |                  3 |           0 |         0 |          0 | ✘           |       0 |
+|  7 | aten.mean.dim                                     |                  5 |           5 |         0 |          0 | ✅          |       1 |
+|  8 | aten.mul.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |       1 |
+|  9 | aten.relu.default                                 |                 10 |          10 |         0 |          0 | ✅          |       1 |
+| 10 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 11 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                 | Status   |

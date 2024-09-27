@@ -1,17 +1,17 @@
 # High Level Operations Status
-|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 19 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.add.Tensor                                   |                  6 |           6 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.addmm.default                                |                  2 |           2 |         0 |          0 | ✅          |                  1 |
-|  3 | aten.convolution.default                          |                 44 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.hardsigmoid.default                          |                  5 |           0 |         0 |          0 | ✘           |                  0 |
-|  5 | aten.hardswish.default                            |                 10 |           0 |         0 |          0 | ✘           |                  0 |
-|  6 | aten.mean.dim                                     |                  6 |           6 |         0 |          0 | ✅          |                  1 |
-|  7 | aten.mul.Tensor                                   |                  6 |           6 |         0 |          0 | ✅          |                  1 |
-|  8 | aten.relu.default                                 |                 11 |          11 |         0 |          0 | ✅          |                  1 |
-|  9 | aten.t.default                                    |                  2 |           2 |         0 |          0 | ✅          |                  1 |
-| 10 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._native_batch_norm_legit_no_training.default |                 19 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.add.Tensor                                   |                  6 |           6 |         0 |          0 | ✅          |       1 |
+|  2 | aten.addmm.default                                |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  3 | aten.convolution.default                          |                 44 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.hardsigmoid.default                          |                  5 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.hardswish.default                            |                 10 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.mean.dim                                     |                  6 |           6 |         0 |          0 | ✅          |       1 |
+|  7 | aten.mul.Tensor                                   |                  6 |           6 |         0 |          0 | ✅          |       1 |
+|  8 | aten.relu.default                                 |                 11 |          11 |         0 |          0 | ✅          |       1 |
+|  9 | aten.t.default                                    |                  2 |           2 |         0 |          0 | ✅          |       1 |
+| 10 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                               | Status   |

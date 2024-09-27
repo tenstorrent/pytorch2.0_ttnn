@@ -1,17 +1,17 @@
 # High Level Operations Status
-|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._unsafe_view.default      |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  2 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |               1    |
-|  3 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |               1    |
-|  4 | aten.convolution.default       |                  2 |           0 |         0 |          0 | ✘           |               0    |
-|  5 | aten.gelu.default              |                  2 |           2 |         0 |          0 | ✅          |               1    |
-|  6 | aten.mean.dim                  |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  7 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  8 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |               1    |
-|  9 | aten.t.default                 |                  4 |           4 |         0 |          0 | ✅          |               1    |
-| 10 | aten.view.default              |                  8 |           7 |         0 |          1 | 🚧          |               0.88 |
+|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._unsafe_view.default      |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  2 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
+|  3 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
+|  4 | aten.convolution.default       |                  2 |           0 |         0 |          0 | ✘           |    0    |
+|  5 | aten.gelu.default              |                  2 |           2 |         0 |          0 | ✅          |    1    |
+|  6 | aten.mean.dim                  |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  7 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  8 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |    1    |
+|  9 | aten.t.default                 |                  4 |           4 |         0 |          0 | ✅          |    1    |
+| 10 | aten.view.default              |                  8 |           7 |         0 |          1 | 🚧          |    0.88 |
 ***
 ### aten._unsafe_view.default
 |    | ATen Input Variations                                                      | Status   |

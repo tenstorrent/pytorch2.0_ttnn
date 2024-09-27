@@ -1,9 +1,9 @@
 # High Level Operations Status
-|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten.convolution.default             |                  4 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.max_pool2d_with_indices.default |                  2 |           0 |         0 |          0 | ✘           |                  0 |
-|  2 | aten.relu.default                    |                  3 |           3 |         0 |          0 | ✅          |                  1 |
+|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten.convolution.default             |                  4 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.max_pool2d_with_indices.default |                  2 |           0 |         0 |          0 | ✘           |       0 |
+|  2 | aten.relu.default                    |                  3 |           3 |         0 |          0 | ✅          |       1 |
 ***
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                       | Status   |

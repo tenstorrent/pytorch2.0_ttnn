@@ -1,14 +1,14 @@
 # High Level Operations Status
-|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._adaptive_avg_pool2d.default    |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  1 | aten.addmm.default                   |                  3 |           3 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.clone.default                   |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  3 | aten.convolution.default             |                  7 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.max_pool2d_with_indices.default |                  5 |           0 |         0 |          0 | ✘           |                  0 |
-|  5 | aten.relu.default                    |                  6 |           6 |         0 |          0 | ✅          |                  1 |
-|  6 | aten.t.default                       |                  3 |           3 |         0 |          0 | ✅          |                  1 |
-|  7 | aten.view.default                    |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._adaptive_avg_pool2d.default    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  1 | aten.addmm.default                   |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  2 | aten.clone.default                   |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  3 | aten.convolution.default             |                  7 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.max_pool2d_with_indices.default |                  5 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.relu.default                    |                  6 |           6 |         0 |          0 | ✅          |       1 |
+|  6 | aten.t.default                       |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  7 | aten.view.default                    |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._adaptive_avg_pool2d.default
 |    | ATen Input Variations                                              | Status   |

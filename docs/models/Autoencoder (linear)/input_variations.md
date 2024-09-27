@@ -1,9 +1,9 @@
 # High Level Operations Status
-|    | Operations         |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten.addmm.default |                  8 |           8 |         0 |          0 | ✅          |                  1 |
-|  1 | aten.relu.default  |                  3 |           3 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.t.default     |                  8 |           8 |         0 |          0 | ✅          |                  1 |
+|    | Operations         |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten.addmm.default |                  8 |           8 |         0 |          0 | ✅          |       1 |
+|  1 | aten.relu.default  |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  2 | aten.t.default     |                  8 |           8 |         0 |          0 | ✅          |       1 |
 ***
 ### aten.addmm.default
 |    | ATen Input Variations                                                                | Status   |

@@ -1,11 +1,11 @@
 # High Level Operations Status
-|    | Operations             |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-----------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten.arange.start      |                  1 |           0 |         0 |          0 | ✘           |                0   |
-|  1 | aten.embedding.default |                  1 |           1 |         0 |          0 | ✅          |                1   |
-|  2 | aten.repeat.default    |                  1 |           0 |         1 |          0 | ✅          |                1   |
-|  3 | aten.slice.Tensor      |                  3 |           0 |         3 |          0 | ✅          |                1   |
-|  4 | aten.unsqueeze.default |                  5 |           4 |         0 |          0 | 🚧          |                0.8 |
+|    | Operations             |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-----------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten.arange.start      |                  1 |           0 |         0 |          0 | ✘           |     0   |
+|  1 | aten.embedding.default |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  2 | aten.repeat.default    |                  1 |           0 |         1 |          0 | ✅          |     1   |
+|  3 | aten.slice.Tensor      |                  3 |           0 |         3 |          0 | ✅          |     1   |
+|  4 | aten.unsqueeze.default |                  5 |           4 |         0 |          0 | 🚧          |     0.8 |
 ***
 ### aten.arange.start
 |    | ATen Input Variations                                                                                        | Status   |

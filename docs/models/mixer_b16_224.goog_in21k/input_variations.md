@@ -1,17 +1,17 @@
 # High Level Operations Status
-|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten.add.Tensor                |                  2 |           2 |         0 |          0 | ✅          |               1    |
-|  1 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |               1    |
-|  2 | aten.clone.default             |                  5 |           5 |         0 |          0 | ✅          |               1    |
-|  3 | aten.convolution.default       |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  4 | aten.gelu.default              |                  2 |           2 |         0 |          0 | ✅          |               1    |
-|  5 | aten.mean.dim                  |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  6 | aten.mm.default                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  7 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  8 | aten.t.default                 |                  5 |           5 |         0 |          0 | ✅          |               1    |
-|  9 | aten.transpose.int             |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 10 | aten.view.default              |                  9 |           6 |         0 |          3 | 🚧          |               0.67 |
+|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten.add.Tensor                |                  2 |           2 |         0 |          0 | ✅          |    1    |
+|  1 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
+|  2 | aten.clone.default             |                  5 |           5 |         0 |          0 | ✅          |    1    |
+|  3 | aten.convolution.default       |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  4 | aten.gelu.default              |                  2 |           2 |         0 |          0 | ✅          |    1    |
+|  5 | aten.mean.dim                  |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  6 | aten.mm.default                |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  7 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  8 | aten.t.default                 |                  5 |           5 |         0 |          0 | ✅          |    1    |
+|  9 | aten.transpose.int             |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 10 | aten.view.default              |                  9 |           6 |         0 |          3 | 🚧          |    0.67 |
 ***
 ### aten.add.Tensor
 |    | ATen Input Variations                                              | Status   |

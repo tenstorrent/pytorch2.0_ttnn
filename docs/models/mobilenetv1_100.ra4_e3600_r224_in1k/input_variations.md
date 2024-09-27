@@ -1,13 +1,13 @@
 # High Level Operations Status
-|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 10 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.convolution.default                          |                 19 |           0 |         0 |          0 | ✘           |                  0 |
-|  3 | aten.hardtanh.default                             |                 10 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  5 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  6 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._native_batch_norm_legit_no_training.default |                 10 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  2 | aten.convolution.default                          |                 19 |           0 |         0 |          0 | ✘           |       0 |
+|  3 | aten.hardtanh.default                             |                 10 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  5 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  6 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                 | Status   |

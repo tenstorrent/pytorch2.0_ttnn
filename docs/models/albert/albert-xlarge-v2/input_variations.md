@@ -1,27 +1,27 @@
 # High Level Operations Status
-|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  1 | aten._to_copy.default          |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  2 | aten._unsafe_view.default      |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  3 | aten.add.Tensor                |                  6 |           6 |         0 |          0 | ✅          |               1    |
-|  4 | aten.addmm.default             |                  6 |           6 |         0 |          0 | ✅          |               1    |
-|  5 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |               1    |
-|  6 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |               1    |
-|  7 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  8 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |               0    |
-|  9 | aten.expand.default            |                  3 |           0 |         0 |          0 | ✘           |               0    |
-| 10 | aten.mul.Tensor                |                  9 |           9 |         0 |          0 | ✅          |               1    |
-| 11 | aten.native_layer_norm.default |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 12 | aten.permute.default           |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 13 | aten.pow.Tensor_Scalar         |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 14 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 15 | aten.slice.Tensor              |                  2 |           1 |         0 |          0 | 🚧          |               0.5  |
-| 16 | aten.t.default                 |                  6 |           6 |         0 |          0 | ✅          |               1    |
-| 17 | aten.tanh.default              |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 18 | aten.transpose.int             |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 19 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 20 | aten.view.default              |                 13 |          11 |         0 |          2 | 🚧          |               0.85 |
+|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  1 | aten._to_copy.default          |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  2 | aten._unsafe_view.default      |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  3 | aten.add.Tensor                |                  6 |           6 |         0 |          0 | ✅          |    1    |
+|  4 | aten.addmm.default             |                  6 |           6 |         0 |          0 | ✅          |    1    |
+|  5 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |    1    |
+|  6 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
+|  7 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  8 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |    0    |
+|  9 | aten.expand.default            |                  3 |           0 |         0 |          0 | ✘           |    0    |
+| 10 | aten.mul.Tensor                |                  9 |           9 |         0 |          0 | ✅          |    1    |
+| 11 | aten.native_layer_norm.default |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 12 | aten.permute.default           |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 13 | aten.pow.Tensor_Scalar         |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 14 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 15 | aten.slice.Tensor              |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
+| 16 | aten.t.default                 |                  6 |           6 |         0 |          0 | ✅          |    1    |
+| 17 | aten.tanh.default              |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 18 | aten.transpose.int             |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 19 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 20 | aten.view.default              |                 13 |          11 |         0 |          2 | 🚧          |    0.85 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                          | Status   |

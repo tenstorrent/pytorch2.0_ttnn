@@ -1,15 +1,15 @@
 # High Level Operations Status
-|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._to_copy.default          |                  1 |           0 |         1 |          0 | ✅          |                  1 |
-|  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.clone.default             |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  3 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  5 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  6 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  7 | aten.slice.Tensor              |                  4 |           1 |         3 |          0 | ✅          |                  1 |
-|  8 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |                  1 |
+|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._to_copy.default          |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  2 | aten.clone.default             |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  3 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  5 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  6 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  7 | aten.slice.Tensor              |                  4 |           1 |         3 |          0 | ✅          |       1 |
+|  8 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._to_copy.default
 |    | ATen Input Variations                                                  | Status   |

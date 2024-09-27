@@ -1,28 +1,28 @@
 # High Level Operations Status
-|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  1 | aten._to_copy.default          |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  2 | aten.add.Tensor                |                  2 |           2 |         0 |          0 | ✅          |               1    |
-|  3 | aten.addmm.default             |                  5 |           5 |         0 |          0 | ✅          |               1    |
-|  4 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |               1    |
-|  5 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |               1    |
-|  6 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-|  7 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |               0    |
-|  8 | aten.expand.default            |                  4 |           0 |         0 |          0 | ✘           |               0    |
-|  9 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 10 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 11 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 12 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 13 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 14 | aten.select.int                |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 15 | aten.slice.Tensor              |                  6 |           1 |         0 |          0 | 🚧          |               0.17 |
-| 16 | aten.split.Tensor              |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 17 | aten.squeeze.dim               |                  1 |           0 |         0 |          0 | ✘           |               0    |
-| 18 | aten.t.default                 |                  5 |           5 |         0 |          0 | ✅          |               1    |
-| 19 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 20 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |               1    |
-| 21 | aten.view.default              |                 14 |          12 |         0 |          2 | 🚧          |               0.86 |
+|    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  1 | aten._to_copy.default          |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  2 | aten.add.Tensor                |                  2 |           2 |         0 |          0 | ✅          |    1    |
+|  3 | aten.addmm.default             |                  5 |           5 |         0 |          0 | ✅          |    1    |
+|  4 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |    1    |
+|  5 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
+|  6 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  7 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |    0    |
+|  8 | aten.expand.default            |                  4 |           0 |         0 |          0 | ✘           |    0    |
+|  9 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 10 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 11 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 12 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 13 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 14 | aten.select.int                |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 15 | aten.slice.Tensor              |                  6 |           1 |         0 |          0 | 🚧          |    0.17 |
+| 16 | aten.split.Tensor              |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 17 | aten.squeeze.dim               |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 18 | aten.t.default                 |                  5 |           5 |         0 |          0 | ✅          |    1    |
+| 19 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 20 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 21 | aten.view.default              |                 14 |          12 |         0 |          2 | 🚧          |    0.86 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   |

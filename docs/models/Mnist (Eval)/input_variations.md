@@ -1,14 +1,14 @@
 # High Level Operations Status
-|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._log_softmax.default            |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  1 | aten.addmm.default                   |                  2 |           2 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.clone.default                   |                  2 |           2 |         0 |          0 | ✅          |                  1 |
-|  3 | aten.convolution.default             |                  2 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.max_pool2d_with_indices.default |                  1 |           0 |         0 |          0 | ✘           |                  0 |
-|  5 | aten.relu.default                    |                  3 |           3 |         0 |          0 | ✅          |                  1 |
-|  6 | aten.t.default                       |                  2 |           2 |         0 |          0 | ✅          |                  1 |
-|  7 | aten.view.default                    |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._log_softmax.default            |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  1 | aten.addmm.default                   |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  2 | aten.clone.default                   |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  3 | aten.convolution.default             |                  2 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.max_pool2d_with_indices.default |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.relu.default                    |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  6 | aten.t.default                       |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  7 | aten.view.default                    |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._log_softmax.default
 |    | ATen Input Variations                                                   | Status   |

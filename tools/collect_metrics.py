@@ -306,7 +306,7 @@ class InputVarPerOp(defaultdict):
                 input_vars.get_conversion_status_count_for(ConversionStatus.FALLBACK)
             )
             high_level_op_status["Completed"].append(input_vars.get_completion_status_for())
-            high_level_op_status["Generality Score"].append(input_vars.get_generality_score())
+            high_level_op_status["Score"].append(input_vars.get_generality_score())
 
         md = ""
         md += f"# High Level Operations Status\n"

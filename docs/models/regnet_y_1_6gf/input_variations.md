@@ -1,16 +1,16 @@
 # High Level Operations Status
-|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                  9 |           0 |         0 |          0 | ✘           |                  0 |
-|  1 | aten.add.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |                  1 |
-|  2 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  3 | aten.convolution.default                          |                 37 |           0 |         0 |          0 | ✘           |                  0 |
-|  4 | aten.mean.dim                                     |                  4 |           4 |         0 |          0 | ✅          |                  1 |
-|  5 | aten.mul.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |                  1 |
-|  6 | aten.relu.default                                 |                 14 |          14 |         0 |          0 | ✅          |                  1 |
-|  7 | aten.sigmoid.default                              |                  4 |           4 |         0 |          0 | ✅          |                  1 |
-|  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |                  1 |
-|  9 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |                  0 |
+|    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._native_batch_norm_legit_no_training.default |                  9 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.add.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |       1 |
+|  2 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  3 | aten.convolution.default                          |                 37 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.mean.dim                                     |                  4 |           4 |         0 |          0 | ✅          |       1 |
+|  5 | aten.mul.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |       1 |
+|  6 | aten.relu.default                                 |                 14 |          14 |         0 |          0 | ✅          |       1 |
+|  7 | aten.sigmoid.default                              |                  4 |           4 |         0 |          0 | ✅          |       1 |
+|  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  9 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                              | Status   |

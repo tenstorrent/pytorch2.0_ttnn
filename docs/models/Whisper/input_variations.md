@@ -1,25 +1,25 @@
 # High Level Operations Status
-|    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Generality Score |
-|---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|-------------------:|
-|  0 | aten._scaled_dot_product_flash_attention.default |                 18 |           0 |         0 |          0 | ✘           |               0    |
-|  1 | aten.add.Tensor                                  |                  6 |           4 |         0 |          0 | 🚧          |               0.67 |
-|  2 | aten.addmm.default                               |                  9 |           6 |         0 |          0 | 🚧          |               0.67 |
-|  3 | aten.argmax.default                              |                  1 |           0 |         0 |          0 | ✘           |               0    |
-|  4 | aten.cat.default                                 |                 26 |           0 |         0 |          0 | ✘           |               0    |
-|  5 | aten.clone.default                               |                  8 |           5 |         0 |          0 | 🚧          |               0.62 |
-|  6 | aten.convolution.default                         |                  2 |           0 |         0 |          0 | ✘           |               0    |
-|  7 | aten.embedding.default                           |                  2 |           0 |         0 |          0 | ✘           |               0    |
-|  8 | aten.gelu.default                                |                  5 |           4 |         0 |          0 | 🚧          |               0.8  |
-|  9 | aten.mm.default                                  |                  5 |           3 |         0 |          0 | 🚧          |               0.6  |
-| 10 | aten.mul.Tensor                                  |                  4 |           1 |         0 |          0 | 🚧          |               0.25 |
-| 11 | aten.native_layer_norm.default                   |                  3 |           2 |         0 |          0 | 🚧          |               0.67 |
-| 12 | aten.ones.default                                |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 13 | aten.permute.default                             |                  1 |           1 |         0 |          0 | ✅          |               1    |
-| 14 | aten.select.int                                  |                  2 |           0 |         0 |          0 | ✘           |               0    |
-| 15 | aten.slice.Tensor                                |                  7 |           1 |         0 |          0 | 🚧          |               0.14 |
-| 16 | aten.t.default                                   |                  4 |           4 |         0 |          0 | ✅          |               1    |
-| 17 | aten.transpose.int                               |                  6 |           4 |         0 |          0 | 🚧          |               0.67 |
-| 18 | aten.view.default                                |                 25 |           8 |         0 |          8 | 🚧          |               0.32 |
+|    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
+|---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
+|  0 | aten._scaled_dot_product_flash_attention.default |                 18 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten.add.Tensor                                  |                  6 |           4 |         0 |          0 | 🚧          |    0.67 |
+|  2 | aten.addmm.default                               |                  9 |           6 |         0 |          0 | 🚧          |    0.67 |
+|  3 | aten.argmax.default                              |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  4 | aten.cat.default                                 |                 26 |           0 |         0 |          0 | ✘           |    0    |
+|  5 | aten.clone.default                               |                  8 |           5 |         0 |          0 | 🚧          |    0.62 |
+|  6 | aten.convolution.default                         |                  2 |           0 |         0 |          0 | ✘           |    0    |
+|  7 | aten.embedding.default                           |                  2 |           0 |         0 |          0 | ✘           |    0    |
+|  8 | aten.gelu.default                                |                  5 |           4 |         0 |          0 | 🚧          |    0.8  |
+|  9 | aten.mm.default                                  |                  5 |           3 |         0 |          0 | 🚧          |    0.6  |
+| 10 | aten.mul.Tensor                                  |                  4 |           1 |         0 |          0 | 🚧          |    0.25 |
+| 11 | aten.native_layer_norm.default                   |                  3 |           2 |         0 |          0 | 🚧          |    0.67 |
+| 12 | aten.ones.default                                |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 13 | aten.permute.default                             |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 14 | aten.select.int                                  |                  2 |           0 |         0 |          0 | ✘           |    0    |
+| 15 | aten.slice.Tensor                                |                  7 |           1 |         0 |          0 | 🚧          |    0.14 |
+| 16 | aten.t.default                                   |                  4 |           4 |         0 |          0 | ✅          |    1    |
+| 17 | aten.transpose.int                               |                  6 |           4 |         0 |          0 | 🚧          |    0.67 |
+| 18 | aten.view.default                                |                 25 |           8 |         0 |          8 | 🚧          |    0.32 |
 ***
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                                                                        | Status   |
