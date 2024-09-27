@@ -10,6 +10,7 @@ from tests.utils import comp_pcc
 from tools.data_collection import pydantic_models
 from enum import Enum
 import string
+import warnings
 
 # Map dictionary keys from metrics to header descriptions
 csv_header_mappings = {
@@ -137,6 +138,7 @@ class ConversionStatus(Enum):
     BUG = (3,)  # Known issue with conversion
     NONE = (4,)  # No conversion at all
     UNKNOWN = (5,)  # Op was not processed, so status is unknown
+    REMOVED = (6,)  # Op is removed from compiled graph; usually intentional
 
 
 class InputVarPerOp(defaultdict):
@@ -152,6 +154,24 @@ class InputVarPerOp(defaultdict):
         def __init__(self):
             super(InputVarPerOp.InputVarStatus, self).__init__(lambda: ConversionStatus.UNKNOWN)
 
+        def get_completion_status_for(self) -> str:
+            """
+            Return a "✅" if the sum of ConversionStatus.DONE and ConversionStatus.REMOVED is equal the total.
+            Return a "🚧" if the sum of conversions are greater than 0, but less than the total.
+            Otherwise return an "✘".}
+            """
+            done = self.get_conversion_status_count_for(ConversionStatus.DONE)
+            removed = self.get_conversion_status_count_for(ConversionStatus.REMOVED)
+            completed = done + removed
+            total = len(self.values())
+            assert completed <= total, f"done: {done} + removed: {removed} ({completed}) is greater than total: {total}"
+            if completed == total:
+                return "✅"
+            elif completed < total and completed > 0:
+                return "🚧"
+            else:
+                return "✘"
+
         def get_conversion_status_count_for(self, status: ConversionStatus) -> int:
             """
             Get the count of a type of ConversionStatus
@@ -161,6 +181,16 @@ class InputVarPerOp(defaultdict):
                 if input == status:
                     count += 1
             return count
+
+        def get_generality_score(self) -> float:
+            """
+            Generality Score: Converted input variations / Total input variations
+            """
+            done = self.get_conversion_status_count_for(ConversionStatus.DONE)
+            removed = self.get_conversion_status_count_for(ConversionStatus.REMOVED)
+            completed = done + removed
+            total = len(self.values())
+            return round(completed / total, 2)
 
         def get_list_input_var_to_dict(self):
             """
@@ -172,9 +202,10 @@ class InputVarPerOp(defaultdict):
                 "Status": [string.capwords(x.name) for x in sort_by_opname.values()],
             }
 
-    def __init__(self, original_schema_metrics={}, compiled_schema_metrics={}):
+    def __init__(self, original_schema_metrics={}, compiled_schema_metrics={}, compiled_run_success: bool = False):
         super(InputVarPerOp, self).__init__(self.InputVarStatus)
         self.ops_dir = "operations"
+        self.compiled_run_success = compiled_run_success
 
         def _join_br(str_list: list):
             # Separate each input with a line-break, <br>
@@ -186,13 +217,53 @@ class InputVarPerOp(defaultdict):
                 opname = op["opname"]
                 inputs = _join_br(op["inputs"])
                 self[opname][inputs]
+                if opname == "aten.cat.default":
+                    print(op)
+            # If exist, map converted ops to the original op
             if compiled_schema_metrics:
-                # If exist, map converted ops to the original op
+                # Hold ops that require revisiting the original dict to determine the status
+                unprocessed_compiled_ops = InputVarPerOp()
                 for op in compiled_schema_metrics:
                     if "original_inputs" in op:
+                        opname = op["opname"]
                         original_opname = op["original_inputs"]["opname"]
                         original_inputs = _join_br(op["original_inputs"]["inputs"])
-                        self[original_opname][original_inputs] = ConversionStatus.DONE
+                        if opname == "aten.cat.default":
+                            print(op)
+                        # NOTE(kevinwuTT): Some ttnn ops are wrapped, so they have no `ttnn` prefix. Should this be more strict?
+                        if opname != original_opname:
+                            # Some aten ops are converted to other aten ops
+                            if opname.startswith("aten"):
+                                self[original_opname][original_inputs] = ConversionStatus.FALLBACK
+                            else:
+                                self[original_opname][original_inputs] = ConversionStatus.DONE
+                        else:
+                            unprocessed_compiled_ops[opname][original_inputs]
+                    else:
+                        warnings.warn(
+                            f'{op} has no "original_inputs" key for compiled schema metrics. This may indicate a newly inserted op.'
+                        )
+
+                # Process remaining ops
+                for opname, input_vars in self.items():
+                    for input_var, status in input_vars.items():
+                        # If opname and the same input variation still exists, then this op has no conversion
+                        unprocessed_compiled_ops_input_vars = unprocessed_compiled_ops.get(opname)
+                        if (
+                            unprocessed_compiled_ops_input_vars != None
+                            and unprocessed_compiled_ops_input_vars.get(input_var) != None
+                        ):
+                            self[opname][input_var] = ConversionStatus.NONE
+                        # If opname does not exist, or it exists, but matching input variation does not exist,
+                        # and the status is unknown and the compiled run was successful, then this op is considered removed
+                        elif self[opname][input_var] == ConversionStatus.UNKNOWN and self.compiled_run_success:
+                            self[opname][input_var] = ConversionStatus.REMOVED
+
+                # Sanity check
+                for opname, input_vars in self.items():
+                    if input_vars.get_conversion_status_count_for(ConversionStatus.UNKNOWN) != 0:
+                        warnings.warn(f"{opname}: {input_vars} has UNKNOWN status.")
+
         elif compiled_schema_metrics:
             # if only compiled_schema exists, initialize dict with those values
             for op in compiled_schema_metrics:
@@ -211,7 +282,9 @@ class InputVarPerOp(defaultdict):
         """
         for opname, input_var in other.items():
             for input, status in input_var.items():
-                self[opname][input] = status
+                # Don't overwrite existing with UNKNOWN status
+                if self[opname][input] == ConversionStatus.UNKNOWN:
+                    self[opname][input] = status
 
     def sorted(self):
         return dict(sorted(self.items()))
@@ -243,6 +316,12 @@ class InputVarPerOp(defaultdict):
             high_level_op_status["Operations"].append(ops)
             high_level_op_status["Input Variations"].append(len(input_vars))
             high_level_op_status["Converted"].append(input_vars.get_conversion_status_count_for(ConversionStatus.DONE))
+            high_level_op_status["Removed"].append(input_vars.get_conversion_status_count_for(ConversionStatus.REMOVED))
+            high_level_op_status["Fallback"].append(
+                input_vars.get_conversion_status_count_for(ConversionStatus.FALLBACK)
+            )
+            high_level_op_status["Completed"].append(input_vars.get_completion_status_for())
+            high_level_op_status["Generality Score"].append(input_vars.get_generality_score())
 
         md = ""
         md += f"# High Level Operations Status\n"
@@ -390,16 +469,19 @@ if __name__ == "__main__":
             accuracy_metric = {"accuracy": "N/A"}
 
         # Save run_success status before changing it
-        pydantic_model.run_success = compiled_runtime_metrics["success"]
+        compiled_run_success = compiled_runtime_metrics["success"]
+        pydantic_model.run_success = compiled_run_success
         # Remap bool to emoji
         emoji_map = {True: "✅", False: "✘"}
-        compiled_runtime_metrics["success"] = emoji_map[compiled_runtime_metrics["success"]]
+        compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
 
-        pydantic_model.fit_in_memory = compiled_runtime_metrics["fits_in_memory"]
-        pydantic_model.peak_sram_usage = compiled_runtime_metrics["peak_sram_usage"]
+        # pydantic_model.fit_in_memory = compiled_runtime_metrics["fits_in_memory"]
+        # pydantic_model.peak_sram_usage = compiled_runtime_metrics["peak_sram_usage"]
 
         # Process input variations per model
-        input_var_per_op = InputVarPerOp(original_schema_metrics, compiled_schema_metrics)
+        input_var_per_op = InputVarPerOp(
+            original_schema_metrics, compiled_schema_metrics, compiled_run_success=compiled_run_success
+        )
         model_info_dir = Path("docs") / Path("models") / Path(model)
         input_var_per_op.write_md_for_input_variations(model_info_dir, Path("input_variations.md"))
 
