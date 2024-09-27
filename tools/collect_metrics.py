@@ -442,8 +442,8 @@ if __name__ == "__main__":
             aten_ops_before, aten_ops_unique_before = len(aten_ops_before_list), len(set(aten_ops_before_list))
             ops_metrics["torch_ops_total_unique_before"] = f"{aten_ops_before} ({aten_ops_unique_before})"
 
-            # Count number of aten ops remaning after conversion
-            if compiled_schema_metrics:
+            # Count number of aten ops remaning after conversion. Only relevant if model ran successfully.
+            if compiled_schema_metrics and compiled_runtime_metrics["success"]:
                 aten_ops_remain_list = [
                     node["opname"] for node in compiled_schema_metrics if node["opname"].startswith("aten.")
                 ]

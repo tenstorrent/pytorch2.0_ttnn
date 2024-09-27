@@ -29,10 +29,10 @@ def _sanitize_value(value):
                 val = val.node
             if isinstance(val, torch.fx.node.Node) and "val" in val.meta:
                 val_shape = _get_shape_from_fake_tensor(val.meta["val"])
-                val_list.append(f"torch.Size({val_shape})")
+                val_list.append(f"<{val_shape}>")
             else:
-                val_list.append(val)
-        return val_list
+                val_list.append(str(val))
+        return f"[{', '.join(val_list)}]"
     else:
         return value
 
@@ -43,11 +43,8 @@ class Inputs:
         self.name = name
         self.shape = shape
 
-        shape = _get_shape_from_fake_tensor(shape) if shape is not None else ""
-        self.shape = f"<{str(shape)}>"
-
-        value = _sanitize_value(value) if value is not None else "?"
-        self.value = f"{str(value)}"
+        self.shape = f"<{_get_shape_from_fake_tensor(shape)}>" if shape is not None else ""
+        self.value = f"{str(_sanitize_value(value))}" if value is not None else "?"
 
     def __repr__(self):
         return f"{str(self.dtype)}{self.shape} {str(self.name)} = {self.value}"
