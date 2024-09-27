@@ -136,6 +136,7 @@ TTNN_NORM_OPS = [
 TTNN_LAYOUT_CHANGE_OPS = set(
     [
         ttnn.reshape,
+        ttnn.squeeze,
         ttnn.slice,
     ]
 )
