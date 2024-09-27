@@ -2,7 +2,6 @@ from typing import List
 import torch
 import pickle
 from pathlib import Path
-from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move
 
 
 # Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
@@ -139,11 +138,7 @@ def collect_input_variation_from_node(node: torch.fx.Node):
     Returns:
         class InputVariation or class ConvertedInput
     """
-    if (
-        hasattr(node, "meta")
-        and ((original_input_variations := node.meta.get("original_input_variations")) != None)
-        and not is_tt_data_move(node)
-    ):
+    if hasattr(node, "meta") and ((original_input_variations := node.meta.get("original_input_variations")) != None):
         # aten ops should begin with "aten."
         # however, some ttnn ops are wrapped, so they will be missing the prefix
         opname = str(node.target) if str(node.target).startswith("aten.") else node.target.__name__
