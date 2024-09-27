@@ -462,9 +462,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return g.call_function(ttnn.add, args=(beta_node, new_node))
 
             if node.target == torch.ops.aten.embedding.default:
-                # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
-                new_kwargs = {"layout": TtnnTileLayout()}
-                return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
+                if args[1].meta["val"].size()[-1] % ttnn.TILE_SIZE == 0:
+                    # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
+                    new_kwargs = {"layout": TtnnTileLayout()}
+                    return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
+                else:
+                    # TODO: remove fallback to torch when ttnn supports embedding inputs with any size of last dim not just TILE_SIZE multiples
+                    return g.call_function(torch.ops.aten.embedding.default, args, kwargs)
 
             if node.target == torch.ops.aten._log_softmax.default:
                 softmax_node = g.call_function(ttnn.softmax, args[:2], kwargs)
