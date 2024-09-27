@@ -336,7 +336,7 @@ class InputVarPerOp(defaultdict):
         print(f"Data written to {basedir / filename}")
 
     def write_md_for_cumulative_report(self):
-        md = self.generate_md_for_high_level_table()
+        md = self.generate_md_for_high_level_table(links_to_ops=True)
 
         basedir = Path("docs")
         self.write_md(md, basedir, Path("OperationsReport.md"))
