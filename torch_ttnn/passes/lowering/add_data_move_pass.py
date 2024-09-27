@@ -502,5 +502,7 @@ class AddDataMovePass(PassBase):
                             (node,),
                             {"dtype": torch.int64},
                         )
-                        new_node.meta = node.meta
+                        new_node.meta = dict(node.meta)
+                        # Remove "original_input_variations" data if exists since this is not a conversion
+                        new_node.meta.pop("original_input_variations")
                         node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
