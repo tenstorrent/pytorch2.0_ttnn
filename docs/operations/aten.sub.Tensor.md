@@ -16,9 +16,9 @@
 | 12 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor<> other = 2.25               | Done     |
 | 13 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor<[1, 1, 32, 1]> other = ?     | Done     |
 | 14 | Tensor<[1, 1024, 1, 1]> self = ?,<br>Tensor<[1, 1024, 1, 1]> other = ? | Unknown  |
-| 15 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 1]> other = ?                 | Unknown  |
+| 15 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 1]> other = ?                 | Done     |
 | 16 | Tensor<[1, 128, 1, 1]> self = ?,<br>Tensor<[1, 128, 1, 1]> other = ?   | Unknown  |
-| 17 | Tensor<[1, 15]> self = ?,<br>Tensor<[15, 1]> other = ?                 | Unknown  |
+| 17 | Tensor<[1, 15]> self = ?,<br>Tensor<[15, 1]> other = ?                 | Done     |
 | 18 | Tensor<[1, 17]> self = ?,<br>Tensor<[17, 1]> other = ?                 | Unknown  |
 | 19 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 1]> other = ?                   | Unknown  |
 | 20 | Tensor<[1, 2048, 1, 1]> self = ?,<br>Tensor<[1, 2048, 1, 1]> other = ? | Unknown  |
@@ -42,7 +42,7 @@
 | 38 | Tensor<[128]> self = ?,<br>Tensor<> other = 0.5                        | Done     |
 | 39 | Tensor<[128]> self = ?,<br>Tensor<[128]> other = ?                     | Done     |
 | 40 | Tensor<[16, 1, 49]> self = ?,<br>Tensor<[16, 49, 1]> other = ?         | Done     |
-| 41 | Tensor<[16, 1, 64]> self = ?,<br>Tensor<[16, 64, 1]> other = ?         | Unknown  |
+| 41 | Tensor<[16, 1, 64]> self = ?,<br>Tensor<[16, 64, 1]> other = ?         | Done     |
 | 42 | Tensor<[160]> self = ?,<br>Tensor<> other = 0.5                        | Done     |
 | 43 | Tensor<[160]> self = ?,<br>Tensor<[160]> other = ?                     | Done     |
 | 44 | Tensor<[1]> self = ?,<br>Tensor<> other = 1                            | Unknown  |
@@ -63,7 +63,7 @@
 | 59 | Tensor<[3234, 2]> self = ?,<br>Tensor<[3234, 2]> other = ?             | Done     |
 | 60 | Tensor<[3234]> self = ?,<br>Tensor<[3234]> other = ?                   | Unknown  |
 | 61 | Tensor<[4, 1, 49]> self = ?,<br>Tensor<[4, 49, 1]> other = ?           | Done     |
-| 62 | Tensor<[4, 1, 64]> self = ?,<br>Tensor<[4, 64, 1]> other = ?           | Unknown  |
+| 62 | Tensor<[4, 1, 64]> self = ?,<br>Tensor<[4, 64, 1]> other = ?           | Done     |
 | 63 | Tensor<[40]> self = ?,<br>Tensor<> other = 0.5                         | Done     |
 | 64 | Tensor<[40]> self = ?,<br>Tensor<[40]> other = ?                       | Done     |
 | 65 | Tensor<[480, 1]> self = ?,<br>Tensor<[480, 1]> other = ?               | Done     |
@@ -71,7 +71,7 @@
 | 67 | Tensor<[60, 1]> self = ?,<br>Tensor<[60, 1]> other = ?                 | Done     |
 | 68 | Tensor<[60]> self = ?,<br>Tensor<> other = 0.5                         | Done     |
 | 69 | Tensor<[64, 1, 49]> self = ?,<br>Tensor<[64, 49, 1]> other = ?         | Done     |
-| 70 | Tensor<[64, 1, 64]> self = ?,<br>Tensor<[64, 64, 1]> other = ?         | Unknown  |
+| 70 | Tensor<[64, 1, 64]> self = ?,<br>Tensor<[64, 64, 1]> other = ?         | Done     |
 | 71 | Tensor<[640]> self = ?,<br>Tensor<> other = 0.5                        | Done     |
 | 72 | Tensor<[640]> self = ?,<br>Tensor<[640]> other = ?                     | Done     |
 | 73 | Tensor<[800, 1]> self = ?,<br>Tensor<[800, 1]> other = ?               | Unknown  |
@@ -81,5 +81,5 @@
 | 77 | Tensor<[8732, 1]> self = ?,<br>Tensor<[8732, 1]> other = ?             | Unknown  |
 | 78 | Tensor<[8732, 2]> self = ?,<br>Tensor<[8732, 2]> other = ?             | Done     |
 | 79 | Tensor<[8732]> self = ?,<br>Tensor<[8732]> other = ?                   | Unknown  |
-| 80 | Tensor<[98, 80]> self = ?,<br>Tensor<[80]> other = ?                   | Unknown  |
+| 80 | Tensor<[96, 80]> self = ?,<br>Tensor<[80]> other = ?                   | Unknown  |
 

@@ -3,8 +3,8 @@
 |----:|:----------------------------------------------------------------------------------|:---------|
 |   0 | Tensor<[1, 1, 1, 7, 7, 1024]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]  | Done     |
 |   1 | Tensor<[1, 1, 1, 7, 7, 768]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
-|   2 | Tensor<[1, 1, 1, 8, 8, 1024]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]  | Unknown  |
-|   3 | Tensor<[1, 1, 1, 8, 8, 768]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
+|   2 | Tensor<[1, 1, 1, 8, 8, 1024]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]  | Done     |
+|   3 | Tensor<[1, 1, 1, 8, 8, 768]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 |   4 | Tensor<[1, 1, 12, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]               | Unknown  |
 |   5 | Tensor<[1, 1, 12]> self = ?,<br>List[int]<> dims = [2, 0, 1]                      | Unknown  |
 |   6 | Tensor<[1, 1, 16, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]               | Unknown  |
@@ -14,8 +14,8 @@
 |  10 | Tensor<[1, 1, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]                       | Unknown  |
 |  11 | Tensor<[1, 1, 7, 1, 7, 1024]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]  | Done     |
 |  12 | Tensor<[1, 1, 7, 1, 7, 768]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
-|  13 | Tensor<[1, 1, 8, 1, 8, 1024]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]  | Unknown  |
-|  14 | Tensor<[1, 1, 8, 1, 8, 768]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
+|  13 | Tensor<[1, 1, 8, 1, 8, 1024]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]  | Done     |
+|  14 | Tensor<[1, 1, 8, 1, 8, 768]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 |  15 | Tensor<[1, 1, 8]> self = ?,<br>List[int]<> dims = [2, 0, 1]                       | Unknown  |
 |  16 | Tensor<[1, 10, 12, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]              | Done     |
 |  17 | Tensor<[1, 1024, 160]> self = ?,<br>List[int]<> dims = [0, 2, 1]                  | Done     |
@@ -41,7 +41,7 @@
 |  37 | Tensor<[1, 128, 128, 32]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]            | Done     |
 |  38 | Tensor<[1, 128, 300]> self = ?,<br>List[int]<> dims = [0, 2, 1]                   | Done     |
 |  39 | Tensor<[1, 128, 56, 56]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]             | Done     |
-|  40 | Tensor<[1, 128, 64, 64]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]             | Unknown  |
+|  40 | Tensor<[1, 128, 64, 64]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]             | Done     |
 |  41 | Tensor<[1, 1280, 1369]> self = ?,<br>List[int]<> dims = [0, 2, 1]                 | Done     |
 |  42 | Tensor<[1, 1280, 16, 16]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]            | Done     |
 |  43 | Tensor<[1, 1280, 8, 8]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]              | Done     |
@@ -68,14 +68,14 @@
 |  64 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]             | Done     |
 |  65 | Tensor<[1, 2, 2, 7, 7, 384]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 |  66 | Tensor<[1, 2, 2, 7, 7, 512]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
-|  67 | Tensor<[1, 2, 2, 8, 8, 384]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
-|  68 | Tensor<[1, 2, 2, 8, 8, 512]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
+|  67 | Tensor<[1, 2, 2, 8, 8, 384]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
+|  68 | Tensor<[1, 2, 2, 8, 8, 512]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 |  69 | Tensor<[1, 2, 4096, 32]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]             | Done     |
 |  70 | Tensor<[1, 2, 4800, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]             | Done     |
 |  71 | Tensor<[1, 2, 7, 2, 7, 384]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 |  72 | Tensor<[1, 2, 7, 2, 7, 512]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
-|  73 | Tensor<[1, 2, 8, 2, 8, 384]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
-|  74 | Tensor<[1, 2, 8, 2, 8, 512]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
+|  73 | Tensor<[1, 2, 8, 2, 8, 384]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
+|  74 | Tensor<[1, 2, 8, 2, 8, 512]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 |  75 | Tensor<[1, 201, 12, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]             | Unknown  |
 |  76 | Tensor<[1, 2048, 8, 160]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]            | Unknown  |
 |  77 | Tensor<[1, 2048, 8, 32]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]             | Unknown  |
@@ -111,12 +111,12 @@
 | 107 | Tensor<[1, 4, 4, 38, 38]> self = ?,<br>List[int]<> dims = [0, 3, 4, 1, 2]         | Done     |
 | 108 | Tensor<[1, 4, 4, 7, 7, 192]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 | 109 | Tensor<[1, 4, 4, 7, 7, 256]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
-| 110 | Tensor<[1, 4, 4, 8, 8, 192]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
-| 111 | Tensor<[1, 4, 4, 8, 8, 256]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
+| 110 | Tensor<[1, 4, 4, 8, 8, 192]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
+| 111 | Tensor<[1, 4, 4, 8, 8, 256]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 | 112 | Tensor<[1, 4, 7, 4, 7, 192]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 | 113 | Tensor<[1, 4, 7, 4, 7, 256]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
-| 114 | Tensor<[1, 4, 8, 4, 8, 192]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
-| 115 | Tensor<[1, 4, 8, 4, 8, 256]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
+| 114 | Tensor<[1, 4, 8, 4, 8, 192]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
+| 115 | Tensor<[1, 4, 8, 4, 8, 256]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 | 116 | Tensor<[1, 4, 91, 1, 1]> self = ?,<br>List[int]<> dims = [0, 3, 4, 1, 2]          | Done     |
 | 117 | Tensor<[1, 4, 91, 3, 3]> self = ?,<br>List[int]<> dims = [0, 3, 4, 1, 2]          | Done     |
 | 118 | Tensor<[1, 4, 91, 38, 38]> self = ?,<br>List[int]<> dims = [0, 3, 4, 1, 2]        | Done     |
@@ -148,8 +148,8 @@
 | 144 | Tensor<[1, 6, 91, 5, 5]> self = ?,<br>List[int]<> dims = [0, 3, 4, 1, 2]          | Done     |
 | 145 | Tensor<[1, 60, 80, 128]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]             | Done     |
 | 146 | Tensor<[1, 64, 256]> self = ?,<br>List[int]<> dims = [0, 2, 1]                    | Done     |
-| 147 | Tensor<[1, 64, 3, 24, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
-| 148 | Tensor<[1, 64, 3, 32, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
+| 147 | Tensor<[1, 64, 3, 24, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
+| 148 | Tensor<[1, 64, 3, 32, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
 | 149 | Tensor<[1, 64, 300]> self = ?,<br>List[int]<> dims = [0, 2, 1]                    | Done     |
 | 150 | Tensor<[1, 64, 64, 320]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]             | Done     |
 | 151 | Tensor<[1, 64, 64, 64]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]              | Done     |
@@ -169,13 +169,13 @@
 | 165 | Tensor<[1, 8, 7, 8, 7, 128]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 | 166 | Tensor<[1, 8, 7, 8, 7, 96]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]    | Done     |
 | 167 | Tensor<[1, 8, 768]> self = ?,<br>List[int]<> dims = [0, 2, 1]                     | Unknown  |
-| 168 | Tensor<[1, 8, 8, 1024]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]              | Unknown  |
+| 168 | Tensor<[1, 8, 8, 1024]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]              | Done     |
 | 169 | Tensor<[1, 8, 8, 1280]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]              | Done     |
 | 170 | Tensor<[1, 8, 8, 7, 7, 128]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
 | 171 | Tensor<[1, 8, 8, 7, 7, 96]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]    | Done     |
-| 172 | Tensor<[1, 8, 8, 768]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]               | Unknown  |
-| 173 | Tensor<[1, 8, 8, 8, 8, 128]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Unknown  |
-| 174 | Tensor<[1, 8, 8, 8, 8, 96]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]    | Unknown  |
+| 172 | Tensor<[1, 8, 8, 768]> self = ?,<br>List[int]<> dims = [0, 3, 1, 2]               | Done     |
+| 173 | Tensor<[1, 8, 8, 8, 8, 128]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]   | Done     |
+| 174 | Tensor<[1, 8, 8, 8, 8, 96]> self = ?,<br>List[int]<> dims = [0, 1, 3, 2, 4, 5]    | Done     |
 | 175 | Tensor<[1, 9, 12, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]               | Done     |
 | 176 | Tensor<[1, 9, 16, 128]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]              | Done     |
 | 177 | Tensor<[1, 9, 16, 64]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]               | Done     |
@@ -191,15 +191,15 @@
 | 187 | Tensor<[1, 9, 91, 50, 68]> self = ?,<br>List[int]<> dims = [0, 3, 4, 1, 2]        | Unknown  |
 | 188 | Tensor<[1, 9, 91, 7, 9]> self = ?,<br>List[int]<> dims = [0, 3, 4, 1, 2]          | Unknown  |
 | 189 | Tensor<[1, 96, 56, 56]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]              | Done     |
-| 190 | Tensor<[1, 96, 64, 64]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]              | Unknown  |
-| 191 | Tensor<[10, 10, 12]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Unknown  |
-| 192 | Tensor<[10, 10, 16]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Unknown  |
-| 193 | Tensor<[10, 10, 8]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Unknown  |
-| 194 | Tensor<[15, 15, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Unknown  |
+| 190 | Tensor<[1, 96, 64, 64]> self = ?,<br>List[int]<> dims = [0, 2, 3, 1]              | Done     |
+| 191 | Tensor<[10, 10, 12]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Done     |
+| 192 | Tensor<[10, 10, 16]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Done     |
+| 193 | Tensor<[10, 10, 8]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Done     |
+| 194 | Tensor<[15, 15, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Done     |
 | 195 | Tensor<[16, 49, 3, 6, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
 | 196 | Tensor<[16, 49, 3, 8, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
-| 197 | Tensor<[16, 64, 3, 6, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
-| 198 | Tensor<[16, 64, 3, 8, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
+| 197 | Tensor<[16, 64, 3, 6, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
+| 198 | Tensor<[16, 64, 3, 8, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
 | 199 | Tensor<[17, 17, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Unknown  |
 | 200 | Tensor<[18176, 4544]> self = ?,<br>List[int]<> dims = [1, 0]                      | Unknown  |
 | 201 | Tensor<[197, 197, 12]> self = ?,<br>List[int]<> dims = [2, 0, 1]                  | Done     |
@@ -209,13 +209,13 @@
 | 205 | Tensor<[2, 2, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]                       | Unknown  |
 | 206 | Tensor<[2, 2, 8]> self = ?,<br>List[int]<> dims = [2, 0, 1]                       | Unknown  |
 | 207 | Tensor<[2, 7, 2, 7]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Done     |
-| 208 | Tensor<[2, 8, 2, 8]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Unknown  |
+| 208 | Tensor<[2, 8, 2, 8]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Done     |
 | 209 | Tensor<[4, 49, 3, 12, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
 | 210 | Tensor<[4, 49, 3, 16, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
-| 211 | Tensor<[4, 64, 3, 12, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
-| 212 | Tensor<[4, 64, 3, 16, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
+| 211 | Tensor<[4, 64, 3, 12, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
+| 212 | Tensor<[4, 64, 3, 16, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
 | 213 | Tensor<[4, 7, 4, 7]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Done     |
-| 214 | Tensor<[4, 8, 4, 8]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Unknown  |
+| 214 | Tensor<[4, 8, 4, 8]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Done     |
 | 215 | Tensor<[4544, 18176]> self = ?,<br>List[int]<> dims = [1, 0]                      | Unknown  |
 | 216 | Tensor<[4544, 4544]> self = ?,<br>List[int]<> dims = [1, 0]                       | Unknown  |
 | 217 | Tensor<[4672, 4544]> self = ?,<br>List[int]<> dims = [1, 0]                       | Unknown  |
@@ -229,18 +229,18 @@
 | 225 | Tensor<[49, 49, 8]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Done     |
 | 226 | Tensor<[64, 49, 3, 3, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
 | 227 | Tensor<[64, 49, 3, 4, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
-| 228 | Tensor<[64, 64, 12]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Unknown  |
-| 229 | Tensor<[64, 64, 16]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Unknown  |
-| 230 | Tensor<[64, 64, 24]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Unknown  |
-| 231 | Tensor<[64, 64, 3, 3, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
-| 232 | Tensor<[64, 64, 3, 4, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Unknown  |
-| 233 | Tensor<[64, 64, 32]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Unknown  |
-| 234 | Tensor<[64, 64, 3]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Unknown  |
-| 235 | Tensor<[64, 64, 4]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Unknown  |
-| 236 | Tensor<[64, 64, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Unknown  |
-| 237 | Tensor<[64, 64, 8]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Unknown  |
+| 228 | Tensor<[64, 64, 12]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Done     |
+| 229 | Tensor<[64, 64, 16]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Done     |
+| 230 | Tensor<[64, 64, 24]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Done     |
+| 231 | Tensor<[64, 64, 3, 3, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
+| 232 | Tensor<[64, 64, 3, 4, 32]> self = ?,<br>List[int]<> dims = [2, 0, 3, 1, 4]        | Done     |
+| 233 | Tensor<[64, 64, 32]> self = ?,<br>List[int]<> dims = [2, 0, 1]                    | Done     |
+| 234 | Tensor<[64, 64, 3]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Done     |
+| 235 | Tensor<[64, 64, 4]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Done     |
+| 236 | Tensor<[64, 64, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Done     |
+| 237 | Tensor<[64, 64, 8]> self = ?,<br>List[int]<> dims = [2, 0, 1]                     | Done     |
 | 238 | Tensor<[8, 7, 8, 7]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Done     |
-| 239 | Tensor<[8, 8, 8, 8]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Unknown  |
+| 239 | Tensor<[8, 8, 8, 8]> self = ?,<br>List[int]<> dims = [0, 2, 1, 3]                 | Done     |
 | 240 | Tensor<[s0 + 1, s0 + 1, 12]> self = ?,<br>List[int]<> dims = [2, 0, 1]            | Unknown  |
 | 241 | Tensor<[s0 + 1, s0 + 1, 16]> self = ?,<br>List[int]<> dims = [2, 0, 1]            | Unknown  |
 | 242 | Tensor<[s0 + 1, s0 + 1, 6]> self = ?,<br>List[int]<> dims = [2, 0, 1]             | Unknown  |

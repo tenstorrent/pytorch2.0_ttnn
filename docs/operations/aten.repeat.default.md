@@ -2,7 +2,7 @@
 |    | ATen Input Variations                                                      | Status   |
 |---:|:---------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1, 1]> self = ?,<br>List[int]<> repeats = [1, 1, 1]             | Unknown  |
-|  1 | Tensor<[1, 1, 2048, 2048]> self = ?,<br>List[int]<> repeats = [1, 1, 1, 1] | Unknown  |
+|  1 | Tensor<[1, 1, 2048, 2048]> self = ?,<br>List[int]<> repeats = [1, 1, 1, 1] | Removed  |
 |  2 | Tensor<[1, 1, 256]> self = ?,<br>List[int]<> repeats = [1, 1, 1]           | Unknown  |
 |  3 | Tensor<[1, s0, 256]> self = ?,<br>List[int]<> repeats = [1, 1, 1]          | Unknown  |
 |  4 | Tensor<[100, 1, 256]> self = ?,<br>List[int]<> repeats = [1, 1, 1]         | Unknown  |

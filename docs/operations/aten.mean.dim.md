@@ -4,13 +4,13 @@
 |  0 | Tensor<[1, 1, 1024]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True          | Unknown  |
 |  1 | Tensor<[1, 1, 512]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True           | Unknown  |
 |  2 | Tensor<[1, 1, 768]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True           | Unknown  |
-|  3 | Tensor<[1, 10, 1024]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True         | Unknown  |
-|  4 | Tensor<[1, 10, 512]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True          | Unknown  |
-|  5 | Tensor<[1, 10, 768]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True          | Unknown  |
+|  3 | Tensor<[1, 10, 1024]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True         | Done     |
+|  4 | Tensor<[1, 10, 512]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True          | Done     |
+|  5 | Tensor<[1, 10, 768]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True          | Done     |
 |  6 | Tensor<[1, 1008, 7, 7]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True   | Done     |
 |  7 | Tensor<[1, 1024, 7, 7]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True   | Done     |
 |  8 | Tensor<[1, 1024, 7, 7]> self = ?,<br>Optional[List[int]]<> dim = [2, 3],<br>bool<> keepdim = True     | Done     |
-|  9 | Tensor<[1, 1024, 8, 8]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True   | Unknown  |
+|  9 | Tensor<[1, 1024, 8, 8]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True   | Done     |
 | 10 | Tensor<[1, 104, 28, 28]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True  | Done     |
 | 11 | Tensor<[1, 1056, 48, 48]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True | Done     |
 | 12 | Tensor<[1, 120, 14, 14]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True  | Done     |
@@ -26,7 +26,7 @@
 | 22 | Tensor<[1, 1392, 14, 14]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True | Done     |
 | 23 | Tensor<[1, 144, 14, 14]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True  | Done     |
 | 24 | Tensor<[1, 144, 28, 28]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True  | Done     |
-| 25 | Tensor<[1, 15, 512]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True          | Unknown  |
+| 25 | Tensor<[1, 15, 512]> self = ?,<br>Optional[List[int]]<> dim = [-1],<br>bool<> keepdim = True          | Done     |
 | 26 | Tensor<[1, 1512, 7, 7]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True   | Done     |
 | 27 | Tensor<[1, 1536, 8, 8]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True   | Done     |
 | 28 | Tensor<[1, 16, 56, 56]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True   | Done     |
@@ -80,7 +80,7 @@
 | 76 | Tensor<[1, 7392, 12, 12]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True | Done     |
 | 77 | Tensor<[1, 768, 14, 14]> self = ?,<br>Optional[List[int]]<> dim = [2, 3],<br>bool<> keepdim = True    | Done     |
 | 78 | Tensor<[1, 768, 7, 7]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True    | Done     |
-| 79 | Tensor<[1, 768, 8, 8]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True    | Unknown  |
+| 79 | Tensor<[1, 768, 8, 8]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True    | Done     |
 | 80 | Tensor<[1, 784, 7, 7]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True    | Done     |
 | 81 | Tensor<[1, 888, 7, 7]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True    | Done     |
 | 82 | Tensor<[1, 896, 14, 14]> self = ?,<br>Optional[List[int]]<> dim = [-1, -2],<br>bool<> keepdim = True  | Done     |

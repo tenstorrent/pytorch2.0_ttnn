@@ -2,7 +2,7 @@
 |    | ATen Input Variations                                                                                                                                                               | Status   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1, 1024]> input = ?,<br>List[int]<> normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float<> eps = 1e-05      | Unknown  |
-|  1 | Tensor<[1, 1, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05          | Unknown  |
+|  1 | Tensor<[1, 1, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05          | Done     |
 |  2 | Tensor<[1, 10, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05         | Done     |
 |  3 | Tensor<[1, 1024, 160]> input = ?,<br>List[int]<> normalized_shape = [160],<br>Optional[Tensor]<[160]> weight = ?,<br>Optional[Tensor]<[160]> bias = ?,<br>float<> eps = 1e-05       | Done     |
 |  4 | Tensor<[1, 1024, 640]> input = ?,<br>List[int]<> normalized_shape = [640],<br>Optional[Tensor]<[640]> weight = ?,<br>Optional[Tensor]<[640]> bias = ?,<br>float<> eps = 1e-05       | Done     |
@@ -20,9 +20,9 @@
 | 16 | Tensor<[1, 1445, 192]> input = ?,<br>List[int]<> normalized_shape = [192],<br>Optional[Tensor]<[192]> weight = ?,<br>Optional[Tensor]<[192]> bias = ?,<br>float<> eps = 1e-12       | Done     |
 | 17 | Tensor<[1, 1500, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05       | Done     |
 | 18 | Tensor<[1, 1536]> input = ?,<br>List[int]<> normalized_shape = [1536],<br>Optional[Tensor]<[1536]> weight = ?,<br>Optional[Tensor]<[1536]> bias = ?,<br>float<> eps = 1e-05         | Unknown  |
-| 19 | Tensor<[1, 16, 16, 384]> input = ?,<br>List[int]<> normalized_shape = [384],<br>Optional[Tensor]<[384]> weight = ?,<br>Optional[Tensor]<[384]> bias = ?,<br>float<> eps = 1e-05     | Unknown  |
-| 20 | Tensor<[1, 16, 16, 512]> input = ?,<br>List[int]<> normalized_shape = [512],<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>float<> eps = 1e-05     | Unknown  |
-| 21 | Tensor<[1, 16, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-12         | Unknown  |
+| 19 | Tensor<[1, 16, 16, 384]> input = ?,<br>List[int]<> normalized_shape = [384],<br>Optional[Tensor]<[384]> weight = ?,<br>Optional[Tensor]<[384]> bias = ?,<br>float<> eps = 1e-05     | Done     |
+| 20 | Tensor<[1, 16, 16, 512]> input = ?,<br>List[int]<> normalized_shape = [512],<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>float<> eps = 1e-05     | Done     |
+| 21 | Tensor<[1, 16, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-12         | Done     |
 | 22 | Tensor<[1, 16384, 32]> input = ?,<br>List[int]<> normalized_shape = [32],<br>Optional[Tensor]<[32]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>float<> eps = 1e-05          | Done     |
 | 23 | Tensor<[1, 19, 1024]> input = ?,<br>List[int]<> normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float<> eps = 1e-05     | Done     |
 | 24 | Tensor<[1, 19200, 64]> input = ?,<br>List[int]<> normalized_shape = [64],<br>Optional[Tensor]<[64]> weight = ?,<br>Optional[Tensor]<[64]> bias = ?,<br>float<> eps = 1e-05          | Done     |
@@ -51,8 +51,8 @@
 | 47 | Tensor<[1, 300, 512]> input = ?,<br>List[int]<> normalized_shape = [512],<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>float<> eps = 1e-05        | Done     |
 | 48 | Tensor<[1, 300, 64]> input = ?,<br>List[int]<> normalized_shape = [64],<br>Optional[Tensor]<[64]> weight = ?,<br>Optional[Tensor]<[64]> bias = ?,<br>float<> eps = 1e-05            | Done     |
 | 49 | Tensor<[1, 32, 1536]> input = ?,<br>List[int]<> normalized_shape = [1536],<br>Optional[Tensor]<[1536]> weight = ?,<br>Optional[Tensor]<[1536]> bias = ?,<br>float<> eps = 1e-05     | Done     |
-| 50 | Tensor<[1, 32, 32, 192]> input = ?,<br>List[int]<> normalized_shape = [192],<br>Optional[Tensor]<[192]> weight = ?,<br>Optional[Tensor]<[192]> bias = ?,<br>float<> eps = 1e-05     | Unknown  |
-| 51 | Tensor<[1, 32, 32, 256]> input = ?,<br>List[int]<> normalized_shape = [256],<br>Optional[Tensor]<[256]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>float<> eps = 1e-05     | Unknown  |
+| 50 | Tensor<[1, 32, 32, 192]> input = ?,<br>List[int]<> normalized_shape = [192],<br>Optional[Tensor]<[192]> weight = ?,<br>Optional[Tensor]<[192]> bias = ?,<br>float<> eps = 1e-05     | Done     |
+| 51 | Tensor<[1, 32, 32, 256]> input = ?,<br>List[int]<> normalized_shape = [256],<br>Optional[Tensor]<[256]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>float<> eps = 1e-05     | Done     |
 | 52 | Tensor<[1, 4, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05          | Unknown  |
 | 53 | Tensor<[1, 4096, 320]> input = ?,<br>List[int]<> normalized_shape = [320],<br>Optional[Tensor]<[320]> weight = ?,<br>Optional[Tensor]<[320]> bias = ?,<br>float<> eps = 1e-05       | Done     |
 | 54 | Tensor<[1, 4096, 64]> input = ?,<br>List[int]<> normalized_shape = [64],<br>Optional[Tensor]<[64]> weight = ?,<br>Optional[Tensor]<[64]> bias = ?,<br>float<> eps = 1e-05           | Done     |
@@ -66,8 +66,8 @@
 | 62 | Tensor<[1, 56, 56, 96]> input = ?,<br>List[int]<> normalized_shape = [96],<br>Optional[Tensor]<[96]> weight = ?,<br>Optional[Tensor]<[96]> bias = ?,<br>float<> eps = 1e-05         | Done     |
 | 63 | Tensor<[1, 59, 1024]> input = ?,<br>List[int]<> normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float<> eps = 1e-05     | Done     |
 | 64 | Tensor<[1, 64, 1280]> input = ?,<br>List[int]<> normalized_shape = [1280],<br>Optional[Tensor]<[1280]> weight = ?,<br>Optional[Tensor]<[1280]> bias = ?,<br>float<> eps = 1e-05     | Done     |
-| 65 | Tensor<[1, 64, 64, 128]> input = ?,<br>List[int]<> normalized_shape = [128],<br>Optional[Tensor]<[128]> weight = ?,<br>Optional[Tensor]<[128]> bias = ?,<br>float<> eps = 1e-05     | Unknown  |
-| 66 | Tensor<[1, 64, 64, 96]> input = ?,<br>List[int]<> normalized_shape = [96],<br>Optional[Tensor]<[96]> weight = ?,<br>Optional[Tensor]<[96]> bias = ?,<br>float<> eps = 1e-05         | Unknown  |
+| 65 | Tensor<[1, 64, 64, 128]> input = ?,<br>List[int]<> normalized_shape = [128],<br>Optional[Tensor]<[128]> weight = ?,<br>Optional[Tensor]<[128]> bias = ?,<br>float<> eps = 1e-05     | Done     |
+| 66 | Tensor<[1, 64, 64, 96]> input = ?,<br>List[int]<> normalized_shape = [96],<br>Optional[Tensor]<[96]> weight = ?,<br>Optional[Tensor]<[96]> bias = ?,<br>float<> eps = 1e-05         | Done     |
 | 67 | Tensor<[1, 7, 4544]> input = ?,<br>List[int]<> normalized_shape = [4544],<br>Optional[Tensor]<[4544]> weight = ?,<br>Optional[Tensor]<[4544]> bias = ?,<br>float<> eps = 1e-05      | Unknown  |
 | 68 | Tensor<[1, 7, 7, 1024]> input = ?,<br>List[int]<> normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float<> eps = 1e-05   | Done     |
 | 69 | Tensor<[1, 7, 7, 1536]> input = ?,<br>List[int]<> normalized_shape = [1536],<br>Optional[Tensor]<[1536]> weight = ?,<br>Optional[Tensor]<[1536]> bias = ?,<br>float<> eps = 1e-05   | Done     |
@@ -77,8 +77,8 @@
 | 73 | Tensor<[1, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05             | Done     |
 | 74 | Tensor<[1, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-12             | Done     |
 | 75 | Tensor<[1, 8, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-12          | Done     |
-| 76 | Tensor<[1, 8, 8, 1024]> input = ?,<br>List[int]<> normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float<> eps = 1e-05   | Unknown  |
-| 77 | Tensor<[1, 8, 8, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05       | Unknown  |
+| 76 | Tensor<[1, 8, 8, 1024]> input = ?,<br>List[int]<> normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float<> eps = 1e-05   | Done     |
+| 77 | Tensor<[1, 8, 8, 768]> input = ?,<br>List[int]<> normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float<> eps = 1e-05       | Done     |
 | 78 | Tensor<[1, 9, 1024]> input = ?,<br>List[int]<> normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float<> eps = 1e-12      | Done     |
 | 79 | Tensor<[1, 9, 128]> input = ?,<br>List[int]<> normalized_shape = [128],<br>Optional[Tensor]<[128]> weight = ?,<br>Optional[Tensor]<[128]> bias = ?,<br>float<> eps = 1e-12          | Done     |
 | 80 | Tensor<[1, 9, 2048]> input = ?,<br>List[int]<> normalized_shape = [2048],<br>Optional[Tensor]<[2048]> weight = ?,<br>Optional[Tensor]<[2048]> bias = ?,<br>float<> eps = 1e-12      | Done     |
