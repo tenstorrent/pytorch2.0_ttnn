@@ -14,6 +14,7 @@ class ThisTester(ModelTester):
         """
         # Model
         model = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True)
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -29,12 +30,29 @@ class ThisTester(ModelTester):
         )
         input_tensor = preprocess(input_image)
         input_batch = input_tensor.unsqueeze(0)
+        input_batch = input_batch.to(torch.bfloat16)
         return input_batch
+
+    def set_inputs_train(self, inputs):
+        inputs.requires_grad_(True)
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return torch.mean(outputs["pred_logits"]) + torch.mean(outputs["pred_boxes"])
+
+    def get_results_train(self, model, inputs, outputs):
+        return inputs.grad
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [
+        pytest.param(
+            "train",
+            marks=pytest.mark.skip(reason="model has no training mode(A view was created in no_grad)"),
+        ),
+        "eval",
+    ],
 )
 @pytest.mark.compilation_xfail
 def test_detr(record_property, mode):

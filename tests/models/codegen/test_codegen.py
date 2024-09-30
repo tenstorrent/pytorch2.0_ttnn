@@ -3,6 +3,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
@@ -10,6 +11,7 @@ class ThisTester(ModelTester):
         checkpoint = "Salesforce/codegen-350M-mono"
         model = AutoModelForCausalLM.from_pretrained(checkpoint)
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -21,10 +23,23 @@ class ThisTester(ModelTester):
         completion = model.generate(**inputs)
         return completion
 
+    def set_inputs_train(self, inputs):
+        # inputs all are int tensor, cannot calculate grad
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        # TODO: outputs is int tensor, so convert it to float, does it work?
+        torch.mean(outputs.to(torch.float))
+        return
+
+    # TODO: inputs cannot calculate grad, need to find other tensor to calculate training accuracy
+    # def get_results_train(self, model, inputs, outputs):
+    #     return
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_codegen(record_property, mode):

@@ -8,6 +8,7 @@ class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = DistilBertTokenizer.from_pretrained(self.model_name)
         model = DistilBertModel.from_pretrained(self.model_name)
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -15,10 +16,21 @@ class ThisTester(ModelTester):
         inputs = self.tokenizer(self.text, return_tensors="pt")
         return inputs
 
+    def set_inputs_train(self, inputs):
+        # inputs all are int tensor, cannot calculate grad
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return torch.mean(outputs.last_hidden_state)
+
+    # TODO: inputs cannot calculate grad, need to find other tensor to calculate training accuracy
+    # def get_results_train(self, model, inputs, outputs):
+    #     return
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.parametrize("model_name", ["distilbert-base-uncased"])
 @pytest.mark.compilation_xfail

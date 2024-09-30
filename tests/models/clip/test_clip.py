@@ -24,10 +24,25 @@ class ThisTester(ModelTester):
         )
         return inputs
 
+    def set_inputs_train(self, inputs):
+        inputs["pixel_values"].requires_grad_(True)
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return (
+            torch.mean(outputs.logits_per_image)
+            + torch.mean(outputs.logits_per_text)
+            + torch.mean(outputs.text_embeds[0])
+            + torch.mean(outputs.text_embeds[0])
+        )
+
+    def get_results_train(self, model, inputs, outputs):
+        return inputs["pixel_values"].grad
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_clip(record_property, mode):

@@ -3,12 +3,14 @@
 from transformers import DPRReader, DPRReaderTokenizer
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = DPRReaderTokenizer.from_pretrained("facebook/dpr-reader-single-nq-base")
         model = DPRReader.from_pretrained("facebook/dpr-reader-single-nq-base")
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -20,10 +22,21 @@ class ThisTester(ModelTester):
         )
         return encoded_inputs
 
+    def set_inputs_train(self, inputs):
+        # inputs all are int tensor, cannot calculate grad
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return torch.mean(outputs.start_logits) + torch.mean(outputs.end_logits) + torch.mean(outputs.relevance_logits)
+
+    # TODO: inputs cannot calculate grad, need to find other tensor to calculate training accuracy
+    # def get_results_train(self, model, inputs, outputs):
+    #     return
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_dpr(record_property, mode):
