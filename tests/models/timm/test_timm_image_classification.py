@@ -5,10 +5,37 @@ from urllib.request import urlopen
 from PIL import Image
 import torch
 import pytest
+from tests.utils import ModelTester
 
 dependencies = ["timm==1.0.9"]
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        import timm
+
+        model = timm.create_model(self.model_name, pretrained=True)
+        return model
+
+    def _load_inputs(self):
+        import timm
+
+        img = Image.open(
+            urlopen(
+                "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/beignets-task-guide.png"
+            )
+        )
+        # get model specific transforms (normalization, resize)
+        data_config = timm.data.resolve_model_data_config(self.model)
+        transforms = timm.data.create_transform(**data_config, is_training=False)
+        input_batch = transforms(img).unsqueeze(0)  # unsqueeze single image into batch of 1
+        return input_batch
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.parametrize(
     "model_name",
@@ -30,28 +57,16 @@ dependencies = ["timm==1.0.9"]
     ],
 )
 @pytest.mark.compilation_xfail
-def test_timm_image_classification(record_property, model_name):
-    record_property("model_name", model_name)
+def test_timm_image_classification(record_property, model_name, mode):
+    record_property("model_name", f"{model_name} {mode}")
 
-    img = Image.open(
-        urlopen("https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/beignets-task-guide.png")
-    )
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
+    if mode == "eval":
+        top5_probabilities, top5_class_indices = torch.topk(results.softmax(dim=1) * 100, k=5)
 
-    import timm
+        print(
+            f"Model: {model_name} | Predicted class ID: {top5_class_indices[0]} | Probabiliy: {top5_probabilities[0]}"
+        )
 
-    model = timm.create_model(model_name, pretrained=True)
-    model = model.eval()
-
-    # get model specific transforms (normalization, resize)
-    data_config = timm.data.resolve_model_data_config(model)
-    transforms = timm.data.create_transform(**data_config, is_training=False)
-    input_batch = transforms(img).unsqueeze(0)  # unsqueeze single image into batch of 1
-
-    with torch.no_grad():
-        output = model(input_batch)
-
-    top5_probabilities, top5_class_indices = torch.topk(output.softmax(dim=1) * 100, k=5)
-
-    print(f"Model: {model_name} | Predicted class ID: {top5_class_indices[0]} | Probabiliy: {top5_probabilities[0]}")
-
-    record_property("torch_ttnn", (model, input_batch, output))
+    record_property("torch_ttnn", (tester, results))

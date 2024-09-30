@@ -2,22 +2,40 @@
 
 from transformers import AutoProcessor, MusicgenForConditionalGeneration
 import pytest
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        self.processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
+        model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small")
+        return model
+
+    def _load_inputs(self):
+        inputs = self.processor(
+            text=["80s pop track with bassy drums and synth", "90s rock song with loud guitars and heavy drums"],
+            padding=True,
+            return_tensors="pt",
+        )
+
+        inputs["max_new_tokens"] = 256
+        return inputs
+
+    def run_model(self, model, inputs):
+        audio_values = model.generate(**inputs)
+        return audio_values
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.skip("torch run with bypass compilation is stalling")
-def test_musicgen_small(record_property):
-    record_property("model_name", "musicgen_small")
+def test_musicgen_small(record_property, mode):
+    model_name = "musicgen_small"
+    record_property("model_name", f"{model_name} {mode}")
 
-    processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
-    model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small")
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    inputs = processor(
-        text=["80s pop track with bassy drums and synth", "90s rock song with loud guitars and heavy drums"],
-        padding=True,
-        return_tensors="pt",
-    )
-
-    inputs["max_new_tokens"] = 256
-    audio_values = model.generate(**inputs)
-
-    record_property("torch_ttnn", (model.generate, inputs, audio_values))
+    record_property("torch_ttnn", (tester, results))
