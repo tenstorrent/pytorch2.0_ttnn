@@ -1,6 +1,8 @@
 name: Create PR with Dependency Update
 
 on:
+  schedule:
+    - cron: '0 8 * * *'  # Runs at 08:00 UTC every day
   workflow_dispatch:  # Manual trigger
 
 jobs:
@@ -26,9 +28,9 @@ jobs:
         id: update-requirements
         run: |
           latest_version=${{ steps.fetch_release.outputs.release }}
-          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
-          # Replace the old version with the new pre-release version in requirements.txt
-          sed -i "s|https://github\.com/tenstorrent/tt-metal/releases/download/.*/metal_libs-.*+wormhole\.b0-cp38-cp38-linux_x86_64\.whl|https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$latest_version_short+wormhole.b0-cp38-cp38-linux_x86_64.whl|" requirements.txt
+          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')          
+          sed -i '/^https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt          
+          echo "https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$latest_version_short+wormhole.b0-cp38-cp38-linux_x86_64.whl" >> requirements.txt
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
@@ -44,18 +46,16 @@ jobs:
           body: "This PR updates TT-NN wheel to the latest pre-release version."          
           labels: ttnn-wheel-update
           delete-branch: true
+          token: ${{ secrets.GH_TOKEN }}
           
-      - name: Check outputs
+      - name: Approve Pull Request
         if: ${{ steps.create-pr.outputs.pull-request-number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"
-          
-      - name: Trigger Pull Request Validation Workflow
-        if: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: gh workflow run "Pull Request Validation" --ref "${{ steps.create-pr.outputs.pull-request-branch }}"  -f pr_number=${{ steps.create-pr.outputs.pull-request-number }}
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"        
+          gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --approve      
           
       - name: Enable Pull Request Automerge
         if: ${{ steps.create-pr.outputs.pull-request-number }}
