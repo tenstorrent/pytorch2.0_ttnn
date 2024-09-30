@@ -29,8 +29,7 @@ class ThisTester(ModelTester):
 
     def append_fake_loss_function(self, outputs):
         # TODO: outputs is int tensor, so convert it to float, does it work?
-        torch.mean(outputs.to(torch.float))
-        return
+        return torch.mean(outputs.to(torch.float))
 
     # TODO: inputs cannot calculate grad, need to find other tensor to calculate training accuracy
     # def get_results_train(self, model, inputs, outputs):

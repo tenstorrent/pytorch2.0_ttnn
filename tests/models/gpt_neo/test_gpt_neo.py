@@ -3,12 +3,14 @@
 from transformers import GPTNeoForCausalLM, GPT2Tokenizer
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
         self.tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -26,10 +28,22 @@ class ThisTester(ModelTester):
         gen_tokens = model.generate(**inputs)
         return gen_tokens
 
+    def set_inputs_train(self, inputs):
+        # inputs all are int tensor, cannot calculate grad
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        # TODO: outputs is int tensor, so convert it to float, does it work?
+        return torch.mean(outputs.to(torch.float))
+
+    # TODO: inputs cannot calculate grad, need to find other tensor to calculate training accuracy
+    # def get_results_train(self, model, inputs, outputs):
+    #     return
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_gpt_neo(record_property, mode):

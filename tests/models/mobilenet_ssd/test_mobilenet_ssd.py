@@ -29,7 +29,13 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [
+        pytest.param(
+            "train",
+            marks=pytest.mark.skip(reason="targets should not be none when in training mode"),
+        ),
+        "eval",
+    ],
 )
 @pytest.mark.compilation_xfail
 def test_mobilenet_ssd(record_property, mode):
