@@ -8,15 +8,129 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
 
-| Model                                                                          | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   |   To/From Device Ops |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   | Fits in memory   |   Peak SRAM usage (in MB) |
-|:-------------------------------------------------------------------------------|:--------------|:--------------------------------|:--------------------------------|---------------------:|-------------------------:|:-------------------------|:---------------|:-----------------|--------------------------:|
-| [MobileNetV2](<docs/models/MobileNetV2>)                                       | ✘             | 154 (9)                         | 140 (4)                         |                   14 |                   425.53 | N/A                      | N/A            | N/A              |                         0 |
-| [albert/albert-base-v2](<docs/models/albert/albert-base-v2>)                   | ✘             | 791 (21)                        | 250 (4)                         |                  298 |                  3619.02 | N/A                      | N/A            | N/A              |                         0 |
-| [albert/albert-large-v2](<docs/models/albert/albert-large-v2>)                 | ✘             | 1547 (21)                       | 490 (4)                         |                  574 |                  2957.09 | N/A                      | N/A            | N/A              |                         0 |
-| [albert/albert-xlarge-v2](<docs/models/albert/albert-xlarge-v2>)               | ✘             | 1547 (21)                       | 490 (4)                         |                  574 |                  7654.1  | N/A                      | N/A            | N/A              |                         0 |
-| [albert/albert-xxlarge-v2](<docs/models/albert/albert-xxlarge-v2>)             | ✘             | 791 (21)                        | 250 (4)                         |                  298 |                  8354.39 | N/A                      | N/A            | N/A              |                         0 |
-| [textattack/albert-base-v2-imdb](<docs/models/textattack/albert-base-v2-imdb>) | ✘             | 782 (22)                        | 248 (5)                         |                  294 |                  1719.51 | N/A                      | N/A            | N/A              |                         0 |
-| [twmkn9/albert-base-v2-squad2](<docs/models/twmkn9/albert-base-v2-squad2>)     | ✘             | 783 (23)                        | 251 (6)                         |                  293 |                  1995.25 | N/A                      | N/A            | N/A              |                         0 |
+| Model                                                                                    | Run Success   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time (ms)   | Accuracy (%)   |
+|:-----------------------------------------------------------------------------------------|:--------------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------|:---------------|
+| [Autoencoder (conv)](<docs/models/Autoencoder (conv)>)                                   | ✘             | 9 (3)                           | N/A                             | N/A                  |                  2820.6  | N/A                      | N/A            |
+| [Autoencoder (linear)](<docs/models/Autoencoder (linear)>)                               | ✘             | 22 (3)                          | N/A                             | N/A                  |                  1805.49 | N/A                      | N/A            |
+| [BERT](<docs/models/BERT>)                                                               | ✅            | 1393 (21)                       | 100 (3)                         | 610                  |                 64018.1  | 55212.51                 | 98.64          |
+| [Bloom](<docs/models/Bloom>)                                                             | ✅            | 1407 (29)                       | 180 (10)                        | 683                  |                 28901.2  | 68217.04                 | 45.77          |
+| [CLIP](<docs/models/CLIP>)                                                               | ✘             | 1397 (30)                       | N/A                             | N/A                  |                  5898.12 | N/A                      | N/A            |
+| [DETR](<docs/models/DETR>)                                                               | ✘             | 1685 (42)                       | N/A                             | N/A                  |                  2504.78 | N/A                      | N/A            |
+| [DPR](<docs/models/DPR>)                                                                 | ✘             | 720 (22)                        | N/A                             | N/A                  |                   753.9  | N/A                      | N/A            |
+| [FLAN-T5](<docs/models/FLAN-T5>)                                                         | ✘             | 19680 (38)                      | N/A                             | N/A                  |                  6989.62 | N/A                      | N/A            |
+| [Falcon](<docs/models/Falcon>)                                                           | ✘             | 2698 (30)                       | N/A                             | N/A                  |                 60905    | N/A                      | N/A            |
+| [GLPN-KITTI](<docs/models/GLPN-KITTI>)                                                   | ✘             | 3064 (30)                       | N/A                             | N/A                  |                  3852.85 | N/A                      | N/A            |
+| [GPT-2](<docs/models/GPT-2>)                                                             | ✘             | 748 (31)                        | N/A                             | N/A                  |                  2670.77 | N/A                      | N/A            |
+| [GPTNeo](<docs/models/GPTNeo>)                                                           | ✘             | 2652 (36)                       | N/A                             | N/A                  |                 11909.7  | N/A                      | N/A            |
+| [HardNet](<docs/models/HardNet>)                                                         | ✅            | 245 (10)                        | 241 (6)                         | 4                    |                  1322.55 | 19959.26                 | 99.99          |
+| [Llama](<docs/models/Llama>)                                                             | ✅            | 104 (5)                         | 35 (3)                          | 35                   |                172105    | 167269.96                | 100.0          |
+| [MLPMixer](<docs/models/MLPMixer>)                                                       | ✘             | 255 (11)                        | N/A                             | N/A                  |                   195.61 | N/A                      | N/A            |
+| [Mnist (Eval)](<docs/models/Mnist (Eval)>)                                               | ✅            | 14 (8)                          | 4 (3)                           | 8                    |                    37.51 | 534.9                    | 90.48          |
+| [Mnist (Train)](<docs/models/Mnist (Train)>)                                             | ✅            | 46 (15)                         | 22 (9)                          | 14                   |                   139.85 | 8243.7                   | 88.63          |
+| [MobileNetSSD](<docs/models/MobileNetSSD>)                                               | ✘             | 575 (34)                        | N/A                             | N/A                  |                   635.41 | N/A                      | N/A            |
+| [OPT](<docs/models/OPT>)                                                                 | ✘             | 4072 (32)                       | N/A                             | N/A                  |                  6271.93 | N/A                      | N/A            |
+| [OpenPose](<docs/models/OpenPose>)                                                       | ✘             | 155 (7)                         | N/A                             | N/A                  |                   406.9  | N/A                      | N/A            |
+| [Perceiver IO](<docs/models/Perceiver IO>)                                               | ✘             | 1532 (21)                       | N/A                             | N/A                  |                  1589.95 | N/A                      | N/A            |
+| [ResNet18](<docs/models/ResNet18>)                                                       | ✅            | 70 (9)                          | 42 (4)                          | 20                   |                  2102.84 | 13314.96                 | 99.99          |
+| [ResNet50](<docs/models/ResNet50>)                                                       | ✅            | 176 (9)                         | 108 (4)                         | 52                   |                  4594.02 | 17987.31                 | 99.98          |
+| [RoBERTa](<docs/models/RoBERTa>)                                                         | ✘             | 719 (21)                        | N/A                             | N/A                  |                  5500.24 | N/A                      | N/A            |
+| [SegFormer](<docs/models/SegFormer>)                                                     | ✘             | 760 (27)                        | N/A                             | N/A                  |                   907.49 | N/A                      | N/A            |
+| [SqueezeBERT](<docs/models/SqueezeBERT>)                                                 | ✅            | 16 (9)                          | 5 (2)                           | 7                    |                  1047.77 | 4680.07                  | 100.0          |
+| [Stable Diffusion](<docs/models/Stable Diffusion>)                                       | ✘             | 1762 (29)                       | N/A                             | N/A                  |                  6016.54 | N/A                      | N/A            |
+| [U-Net](<docs/models/U-Net>)                                                             | ✘             | 86 (7)                          | N/A                             | N/A                  |                   841.59 | N/A                      | N/A            |
+| [Unet-brain](<docs/models/Unet-brain>)                                                   | ✘             | 86 (7)                          | N/A                             | N/A                  |                   691.79 | N/A                      | N/A            |
+| [Unet-carvana](<docs/models/Unet-carvana>)                                               | ✘             | 85 (6)                          | N/A                             | N/A                  |                   482.3  | N/A                      | N/A            |
+| [ViLT](<docs/models/ViLT>)                                                               | ✘             | 781 (30)                        | N/A                             | N/A                  |                  1576.88 | N/A                      | N/A            |
+| [Whisper](<docs/models/Whisper>)                                                         | ✘             | 4294 (19)                       | N/A                             | N/A                  |                  8577.57 | N/A                      | N/A            |
+| [XGLM](<docs/models/XGLM>)                                                               | ✘             | 1458 (30)                       | N/A                             | N/A                  |                  4050.87 | N/A                      | N/A            |
+| [YOLOS](<docs/models/YOLOS>)                                                             | ✅            | 964 (28)                        | 144 (10)                        | 377                  |                   784.94 | 56322.18                 | 71.71          |
+| [YOLOv3](<docs/models/YOLOv3>)                                                           | ✘             | 264 (10)                        | N/A                             | N/A                  |                  1266.72 | N/A                      | N/A            |
+| [YOLOv5](<docs/models/YOLOv5>)                                                           | ✘             | 236 (13)                        | N/A                             | N/A                  |                 11650.9  | N/A                      | N/A            |
+| [albert/albert-base-v2](<docs/models/albert/albert-base-v2>)                             | ✘             | 779 (21)                        | N/A                             | N/A                  |                   346.45 | N/A                      | N/A            |
+| [albert/albert-large-v2](<docs/models/albert/albert-large-v2>)                           | ✘             | 1547 (21)                       | N/A                             | N/A                  |                   654.68 | N/A                      | N/A            |
+| [albert/albert-xlarge-v2](<docs/models/albert/albert-xlarge-v2>)                         | ✘             | 1547 (21)                       | N/A                             | N/A                  |                  1008.08 | N/A                      | N/A            |
+| [albert/albert-xxlarge-v2](<docs/models/albert/albert-xxlarge-v2>)                       | ✘             | 791 (21)                        | N/A                             | N/A                  |                  1462.02 | N/A                      | N/A            |
+| [codegen](<docs/models/codegen>)                                                         | ✘             | 9114 (37)                       | N/A                             | N/A                  |                  3804.21 | N/A                      | N/A            |
+| [densenet121](<docs/models/densenet121>)                                                 | ✘             | 432 (10)                        | N/A                             | N/A                  |                   659.19 | N/A                      | N/A            |
+| [densenet161](<docs/models/densenet161>)                                                 | ✘             | 572 (10)                        | N/A                             | N/A                  |                  5641.99 | N/A                      | N/A            |
+| [densenet169](<docs/models/densenet169>)                                                 | ✘             | 600 (10)                        | N/A                             | N/A                  |                   759.44 | N/A                      | N/A            |
+| [densenet201](<docs/models/densenet201>)                                                 | ✘             | 712 (10)                        | N/A                             | N/A                  |                  1475.14 | N/A                      | N/A            |
+| [distilbert-base-uncased](<docs/models/distilbert-base-uncased>)                         | ✘             | 367 (17)                        | N/A                             | N/A                  |                   822.69 | N/A                      | N/A            |
+| [dla34.in1k](<docs/models/dla34.in1k>)                                                   | ✘             | 135 (9)                         | N/A                             | N/A                  |                   630.17 | N/A                      | N/A            |
+| [ese_vovnet19b_dw.ra_in1k](<docs/models/ese_vovnet19b_dw.ra_in1k>)                       | ✘             | 111 (12)                        | N/A                             | N/A                  |                   426.94 | N/A                      | N/A            |
+| [facebook/deit-base-patch16-224](<docs/models/facebook/deit-base-patch16-224>)           | ✅            | 685 (17)                        | 100 (5)                         | 330                  |                  1173.91 | 27003.7                  | 96.01          |
+| [ghostnet_100.in1k](<docs/models/ghostnet_100.in1k>)                                     | ✘             | 515 (14)                        | N/A                             | N/A                  |                   408.09 | N/A                      | N/A            |
+| [ghostnetv2_100.in1k](<docs/models/ghostnetv2_100.in1k>)                                 | ✘             | 781 (20)                        | N/A                             | N/A                  |                   543.94 | N/A                      | N/A            |
+| [googlenet](<docs/models/googlenet>)                                                     | ✘             | 214 (15)                        | N/A                             | N/A                  |                   716.95 | N/A                      | N/A            |
+| [hrnet_w18.ms_aug_in1k](<docs/models/hrnet_w18.ms_aug_in1k>)                             | ✘             | 1426 (14)                       | N/A                             | N/A                  |                  1069.34 | N/A                      | N/A            |
+| [inception_v4.tf_in1k](<docs/models/inception_v4.tf_in1k>)                               | ✘             | 495 (11)                        | N/A                             | N/A                  |                  1054.2  | N/A                      | N/A            |
+| [microsoft/beit-base-patch16-224](<docs/models/microsoft/beit-base-patch16-224>)         | ✘             | 793 (21)                        | N/A                             | N/A                  |                  1079.27 | N/A                      | N/A            |
+| [microsoft/beit-large-patch16-224](<docs/models/microsoft/beit-large-patch16-224>)       | ✘             | 1573 (21)                       | N/A                             | N/A                  |                  2252.97 | N/A                      | N/A            |
+| [mixer_b16_224.goog_in21k](<docs/models/mixer_b16_224.goog_in21k>)                       | ✅            | 356 (11)                        | 26 (2)                          | 210                  |                  1735.14 | 25218.07                 | 41.52          |
+| [mobilenet_v2](<docs/models/mobilenet_v2>)                                               | ✘             | 154 (9)                         | N/A                             | N/A                  |                   517.11 | N/A                      | N/A            |
+| [mobilenet_v3_large](<docs/models/mobilenet_v3_large>)                                   | ✘             | 188 (11)                        | N/A                             | N/A                  |                   542.86 | N/A                      | N/A            |
+| [mobilenet_v3_small](<docs/models/mobilenet_v3_small>)                                   | ✘             | 158 (11)                        | N/A                             | N/A                  |                   400.69 | N/A                      | N/A            |
+| [mobilenetv1_100.ra4_e3600_r224_in1k](<docs/models/mobilenetv1_100.ra4_e3600_r224_in1k>) | ✅            | 85 (7)                          | 82 (4)                          | 3                    |                   449.36 | 7487.2                   | 99.14          |
+| [regnet_x_16gf](<docs/models/regnet_x_16gf>)                                             | ✘             | 235 (8)                         | N/A                             | N/A                  |                  2072.13 | N/A                      | N/A            |
+| [regnet_x_1_6gf](<docs/models/regnet_x_1_6gf>)                                           | ✘             | 195 (8)                         | N/A                             | N/A                  |                   536.23 | N/A                      | N/A            |
+| [regnet_x_32gf](<docs/models/regnet_x_32gf>)                                             | ✘             | 245 (8)                         | N/A                             | N/A                  |                  3138.26 | N/A                      | N/A            |
+| [regnet_x_3_2gf](<docs/models/regnet_x_3_2gf>)                                           | ✘             | 265 (8)                         | N/A                             | N/A                  |                   759.96 | N/A                      | N/A            |
+| [regnet_x_400mf](<docs/models/regnet_x_400mf>)                                           | ✘             | 235 (8)                         | N/A                             | N/A                  |                   483.66 | N/A                      | N/A            |
+| [regnet_x_800mf](<docs/models/regnet_x_800mf>)                                           | ✘             | 175 (8)                         | N/A                             | N/A                  |                   467.31 | N/A                      | N/A            |
+| [regnet_x_8gf](<docs/models/regnet_x_8gf>)                                               | ✘             | 245 (8)                         | N/A                             | N/A                  |                  1269.97 | N/A                      | N/A            |
+| [regnet_y_128gf](<docs/models/regnet_y_128gf>)                                           | ✘             | 447 (10)                        | N/A                             | N/A                  |                 16158.1  | N/A                      | N/A            |
+| [regnet_y_16gf](<docs/models/regnet_y_16gf>)                                             | ✘             | 303 (10)                        | N/A                             | N/A                  |                  2436.44 | N/A                      | N/A            |
+| [regnet_y_1_6gf](<docs/models/regnet_y_1_6gf>)                                           | ✘             | 447 (10)                        | N/A                             | N/A                  |                   722.44 | N/A                      | N/A            |
+| [regnet_y_32gf](<docs/models/regnet_y_32gf>)                                             | ✘             | 335 (10)                        | N/A                             | N/A                  |                  4557.42 | N/A                      | N/A            |
+| [regnet_y_3_2gf](<docs/models/regnet_y_3_2gf>)                                           | ✘             | 351 (10)                        | N/A                             | N/A                  |                   927.68 | N/A                      | N/A            |
+| [regnet_y_400mf](<docs/models/regnet_y_400mf>)                                           | ✘             | 271 (10)                        | N/A                             | N/A                  |                   530.75 | N/A                      | N/A            |
+| [regnet_y_800mf](<docs/models/regnet_y_800mf>)                                           | ✘             | 239 (10)                        | N/A                             | N/A                  |                   506.09 | N/A                      | N/A            |
+| [regnet_y_8gf](<docs/models/regnet_y_8gf>)                                               | ✘             | 287 (10)                        | N/A                             | N/A                  |                  1330.38 | N/A                      | N/A            |
+| [resnet101](<docs/models/resnet101>)                                                     | ✘             | 346 (9)                         | N/A                             | N/A                  |                  1249.91 | N/A                      | N/A            |
+| [resnet152](<docs/models/resnet152>)                                                     | ✘             | 516 (9)                         | N/A                             | N/A                  |                  1697.12 | N/A                      | N/A            |
+| [resnet18](<docs/models/resnet18>)                                                       | ✘             | 70 (9)                          | N/A                             | N/A                  |                   609.9  | N/A                      | N/A            |
+| [resnet34](<docs/models/resnet34>)                                                       | ✘             | 126 (9)                         | N/A                             | N/A                  |                   739.07 | N/A                      | N/A            |
+| [resnet50](<docs/models/resnet50>)                                                       | ✘             | 176 (9)                         | N/A                             | N/A                  |                   816.02 | N/A                      | N/A            |
+| [resnext101_32x8d](<docs/models/resnext101_32x8d>)                                       | ✘             | 346 (9)                         | N/A                             | N/A                  |                  2647.5  | N/A                      | N/A            |
+| [resnext101_64x4d](<docs/models/resnext101_64x4d>)                                       | ✘             | 346 (9)                         | N/A                             | N/A                  |                 15655.6  | N/A                      | N/A            |
+| [resnext50_32x4d](<docs/models/resnext50_32x4d>)                                         | ✘             | 176 (9)                         | N/A                             | N/A                  |                  1178.88 | N/A                      | N/A            |
+| [retinanet_resnet50_fpn](<docs/models/retinanet_resnet50_fpn>)                           | ✘             | 1107 (32)                       | N/A                             | N/A                  |                  2301.66 | N/A                      | N/A            |
+| [retinanet_resnet50_fpn_v2](<docs/models/retinanet_resnet50_fpn_v2>)                     | ✘             | 617 (33)                        | N/A                             | N/A                  |                  2239.23 | N/A                      | N/A            |
+| [speecht5-tts](<docs/models/speecht5-tts>)                                               | ✘             | 6940 (38)                       | N/A                             | N/A                  |                  4303.55 | N/A                      | N/A            |
+| [ssd300_vgg16](<docs/models/ssd300_vgg16>)                                               | ✘             | 387 (32)                        | N/A                             | N/A                  |                  3381.07 | N/A                      | N/A            |
+| [ssdlite320_mobilenet_v3_large](<docs/models/ssdlite320_mobilenet_v3_large>)             | ✘             | 575 (34)                        | N/A                             | N/A                  |                   564.65 | N/A                      | N/A            |
+| [swin_b](<docs/models/swin_b>)                                                           | ✘             | 1898 (30)                       | N/A                             | N/A                  |                  2776.24 | N/A                      | N/A            |
+| [swin_s](<docs/models/swin_s>)                                                           | ✘             | 1898 (30)                       | N/A                             | N/A                  |                  3168.2  | N/A                      | N/A            |
+| [swin_t](<docs/models/swin_t>)                                                           | ✘             | 968 (30)                        | N/A                             | N/A                  |                  1296.93 | N/A                      | N/A            |
+| [swin_v2_b](<docs/models/swin_v2_b>)                                                     | ✘             | 2474 (37)                       | N/A                             | N/A                  |                  3511.28 | N/A                      | N/A            |
+| [swin_v2_s](<docs/models/swin_v2_s>)                                                     | ✘             | 2474 (37)                       | N/A                             | N/A                  |                  2090.86 | N/A                      | N/A            |
+| [swin_v2_t](<docs/models/swin_v2_t>)                                                     | ✘             | 1256 (37)                       | N/A                             | N/A                  |                  1363.67 | N/A                      | N/A            |
+| [t5-base](<docs/models/t5-base>)                                                         | ✘             | 13550 (38)                      | N/A                             | N/A                  |                  4353.55 | N/A                      | N/A            |
+| [t5-large](<docs/models/t5-large>)                                                       | ✘             | 20891 (38)                      | N/A                             | N/A                  |                  4574.86 | N/A                      | N/A            |
+| [t5-small](<docs/models/t5-small>)                                                       | ✘             | 5681 (38)                       | N/A                             | N/A                  |                  2208.99 | N/A                      | N/A            |
+| [textattack/albert-base-v2-imdb](<docs/models/textattack/albert-base-v2-imdb>)           | ✘             | 782 (22)                        | N/A                             | N/A                  |                   414.59 | N/A                      | N/A            |
+| [tf_efficientnet_lite0.in1k](<docs/models/tf_efficientnet_lite0.in1k>)                   | ✘             | 149 (9)                         | N/A                             | N/A                  |                   734.51 | N/A                      | N/A            |
+| [tf_efficientnet_lite1.in1k](<docs/models/tf_efficientnet_lite1.in1k>)                   | ✘             | 194 (9)                         | N/A                             | N/A                  |                   455.98 | N/A                      | N/A            |
+| [tf_efficientnet_lite2.in1k](<docs/models/tf_efficientnet_lite2.in1k>)                   | ✘             | 194 (9)                         | N/A                             | N/A                  |                   487.19 | N/A                      | N/A            |
+| [tf_efficientnet_lite3.in1k](<docs/models/tf_efficientnet_lite3.in1k>)                   | ✘             | 221 (9)                         | N/A                             | N/A                  |                   523.98 | N/A                      | N/A            |
+| [tf_efficientnet_lite4.in1k](<docs/models/tf_efficientnet_lite4.in1k>)                   | ✘             | 275 (9)                         | N/A                             | N/A                  |                   691.26 | N/A                      | N/A            |
+| [twmkn9/albert-base-v2-squad2](<docs/models/twmkn9/albert-base-v2-squad2>)               | ✘             | 783 (23)                        | N/A                             | N/A                  |                   544.2  | N/A                      | N/A            |
+| [vgg11](<docs/models/vgg11>)                                                             | ✘             | 33 (8)                          | N/A                             | N/A                  |                  2063.18 | N/A                      | N/A            |
+| [vgg11_bn](<docs/models/vgg11_bn>)                                                       | ✘             | 41 (9)                          | N/A                             | N/A                  |                  1816.49 | N/A                      | N/A            |
+| [vgg13](<docs/models/vgg13>)                                                             | ✘             | 37 (8)                          | N/A                             | N/A                  |                  1964.88 | N/A                      | N/A            |
+| [vgg13_bn](<docs/models/vgg13_bn>)                                                       | ✘             | 47 (9)                          | N/A                             | N/A                  |                  1882.64 | N/A                      | N/A            |
+| [vgg16](<docs/models/vgg16>)                                                             | ✘             | 43 (8)                          | N/A                             | N/A                  |                  1899.6  | N/A                      | N/A            |
+| [vgg16_bn](<docs/models/vgg16_bn>)                                                       | ✘             | 56 (9)                          | N/A                             | N/A                  |                  2081.79 | N/A                      | N/A            |
+| [vgg19](<docs/models/vgg19>)                                                             | ✘             | 49 (8)                          | N/A                             | N/A                  |                  1985.53 | N/A                      | N/A            |
+| [vgg19_bn](<docs/models/vgg19_bn>)                                                       | ✘             | 65 (9)                          | N/A                             | N/A                  |                  2031.69 | N/A                      | N/A            |
+| [vit_b_16](<docs/models/vit_b_16>)                                                       | ✘             | 552 (17)                        | N/A                             | N/A                  |                  1952.1  | N/A                      | N/A            |
+| [vit_b_32](<docs/models/vit_b_32>)                                                       | ✘             | 552 (17)                        | N/A                             | N/A                  |                  1725.55 | N/A                      | N/A            |
+| [vit_h_14](<docs/models/vit_h_14>)                                                       | ✘             | 1452 (17)                       | N/A                             | N/A                  |                 25062.9  | N/A                      | N/A            |
+| [vit_l_16](<docs/models/vit_l_16>)                                                       | ✘             | 1092 (17)                       | N/A                             | N/A                  |                  5792.03 | N/A                      | N/A            |
+| [vit_l_32](<docs/models/vit_l_32>)                                                       | ✘             | 1092 (17)                       | N/A                             | N/A                  |                  6193.11 | N/A                      | N/A            |
+| [wide_resnet101_2](<docs/models/wide_resnet101_2>)                                       | ✘             | 346 (9)                         | N/A                             | N/A                  |                  2940.82 | N/A                      | N/A            |
+| [wide_resnet50_2](<docs/models/wide_resnet50_2>)                                         | ✘             | 176 (9)                         | N/A                             | N/A                  |                  1696.58 | N/A                      | N/A            |
+| [xception71.tf_in1k](<docs/models/xception71.tf_in1k>)                                   | ✘             | 393 (9)                         | N/A                             | N/A                  |                  1133.26 | N/A                      | N/A            |
 
 ### Explanation of Metrics
 
@@ -28,175 +142,8 @@ The table below summarizes the results of running various ML models through our 
 **Original Run Time (ms)**: Execution time (in seconds) of the model before conversion.  
 **Compiled Run Time (ms)**: Execution time (in seconds) of the model after conversion.  
 **Accuracy (%)**: Model accuracy on a predefined test dataset after conversion.  
-**Fits in memory**: Whether a model is estimated to fit in SRAM memory.  
-**Peak SRAM usage (in MB)**: What is the peak SRAM usage for a model during its execution phase.  
-***
-**NOTE:** The total number of ops currently reflect only the first graph of a model. This will be fixed in a future update to include all graphs.  
 
 ***
-
-### Op conversion status per model
-
-#### MobileNetV2
-| aten ops                                          | status   |   count |
-|:--------------------------------------------------|:---------|--------:|
-| aten._native_batch_norm_legit_no_training.default | ✘        |      52 |
-| aten.add.Tensor                                   | ✅       |      10 |
-| aten.addmm.default                                | ✅       |       1 |
-| aten.clone.default                                | ✅       |       1 |
-| aten.convolution.default                          | ✘        |      52 |
-| aten.hardtanh.default                             | ✘        |      35 |
-| aten.mean.dim                                     | ✅       |       1 |
-| aten.t.default                                    | ✅       |       1 |
-| aten.view.default                                 | ✅       |       1 |
-#### albert/albert-base-v2
-| aten ops                       | status   |   count |
-|:-------------------------------|:---------|--------:|
-| aten._softmax.default          | ✅       |      12 |
-| aten._to_copy.default          | ✘        |       1 |
-| aten._unsafe_view.default      | ✘        |      12 |
-| aten.add.Tensor                | ✅       |      64 |
-| aten.addmm.default             | ✅       |      75 |
-| aten.bmm.default               | ✅       |      24 |
-| aten.clone.default             | ✅       |      37 |
-| aten.div.Tensor                | ✅       |      12 |
-| aten.embedding.default         | ✅       |       3 |
-| aten.expand.default            | ✅       |      48 |
-| aten.mul.Tensor                | ✅       |      53 |
-| aten.native_layer_norm.default | ✅       |      26 |
-| aten.permute.default           | ✅       |      36 |
-| aten.pow.Tensor_Scalar         | ✅       |      13 |
-| aten.rsub.Scalar               | ✅       |       1 |
-| aten.slice.Tensor              | ✘        |       2 |
-| aten.t.default                 | ✅       |      75 |
-| aten.tanh.default              | ✅       |      13 |
-| aten.transpose.int             | ✅       |      24 |
-| aten.unsqueeze.default         | ✅       |       2 |
-| aten.view.default              | ✅       |     258 |
-#### albert/albert-large-v2
-| aten ops                       | status   |   count |
-|:-------------------------------|:---------|--------:|
-| aten._softmax.default          | ✅       |      24 |
-| aten._to_copy.default          | ✘        |       1 |
-| aten._unsafe_view.default      | ✘        |      24 |
-| aten.add.Tensor                | ✅       |     124 |
-| aten.addmm.default             | ✅       |     147 |
-| aten.bmm.default               | ✅       |      48 |
-| aten.clone.default             | ✅       |      73 |
-| aten.div.Tensor                | ✅       |      24 |
-| aten.embedding.default         | ✅       |       3 |
-| aten.expand.default            | ✅       |      96 |
-| aten.mul.Tensor                | ✅       |     101 |
-| aten.native_layer_norm.default | ✅       |      50 |
-| aten.permute.default           | ✅       |      72 |
-| aten.pow.Tensor_Scalar         | ✅       |      25 |
-| aten.rsub.Scalar               | ✅       |       1 |
-| aten.slice.Tensor              | ✘        |       2 |
-| aten.t.default                 | ✅       |     147 |
-| aten.tanh.default              | ✅       |      25 |
-| aten.transpose.int             | ✅       |      48 |
-| aten.unsqueeze.default         | ✅       |       2 |
-| aten.view.default              | ✅       |     510 |
-#### albert/albert-xlarge-v2
-| aten ops                       | status   |   count |
-|:-------------------------------|:---------|--------:|
-| aten._softmax.default          | ✅       |      24 |
-| aten._to_copy.default          | ✘        |       1 |
-| aten._unsafe_view.default      | ✘        |      24 |
-| aten.add.Tensor                | ✅       |     124 |
-| aten.addmm.default             | ✅       |     147 |
-| aten.bmm.default               | ✅       |      48 |
-| aten.clone.default             | ✅       |      73 |
-| aten.div.Tensor                | ✅       |      24 |
-| aten.embedding.default         | ✅       |       3 |
-| aten.expand.default            | ✅       |      96 |
-| aten.mul.Tensor                | ✅       |     101 |
-| aten.native_layer_norm.default | ✅       |      50 |
-| aten.permute.default           | ✅       |      72 |
-| aten.pow.Tensor_Scalar         | ✅       |      25 |
-| aten.rsub.Scalar               | ✅       |       1 |
-| aten.slice.Tensor              | ✘        |       2 |
-| aten.t.default                 | ✅       |     147 |
-| aten.tanh.default              | ✅       |      25 |
-| aten.transpose.int             | ✅       |      48 |
-| aten.unsqueeze.default         | ✅       |       2 |
-| aten.view.default              | ✅       |     510 |
-#### albert/albert-xxlarge-v2
-| aten ops                       | status   |   count |
-|:-------------------------------|:---------|--------:|
-| aten._softmax.default          | ✅       |      12 |
-| aten._to_copy.default          | ✘        |       1 |
-| aten._unsafe_view.default      | ✘        |      12 |
-| aten.add.Tensor                | ✅       |      64 |
-| aten.addmm.default             | ✅       |      75 |
-| aten.bmm.default               | ✅       |      24 |
-| aten.clone.default             | ✅       |      37 |
-| aten.div.Tensor                | ✅       |      12 |
-| aten.embedding.default         | ✅       |       3 |
-| aten.expand.default            | ✅       |      48 |
-| aten.mul.Tensor                | ✅       |      53 |
-| aten.native_layer_norm.default | ✅       |      26 |
-| aten.permute.default           | ✅       |      36 |
-| aten.pow.Tensor_Scalar         | ✅       |      13 |
-| aten.rsub.Scalar               | ✅       |       1 |
-| aten.slice.Tensor              | ✘        |       2 |
-| aten.t.default                 | ✅       |      75 |
-| aten.tanh.default              | ✅       |      13 |
-| aten.transpose.int             | ✅       |      24 |
-| aten.unsqueeze.default         | ✅       |       2 |
-| aten.view.default              | ✅       |     258 |
-#### textattack/albert-base-v2-imdb
-| aten ops                       | status   |   count |
-|:-------------------------------|:---------|--------:|
-| aten._softmax.default          | ✅       |      12 |
-| aten._to_copy.default          | ✘        |       1 |
-| aten._unsafe_view.default      | ✘        |      12 |
-| aten.add.Tensor                | ✅       |      62 |
-| aten.addmm.default             | ✅       |      75 |
-| aten.bmm.default               | ✅       |      24 |
-| aten.clone.default             | ✅       |      38 |
-| aten.div.Tensor                | ✅       |      12 |
-| aten.embedding.default         | ✅       |       3 |
-| aten.expand.default            | ✅       |      48 |
-| aten.mul.Tensor                | ✅       |      49 |
-| aten.native_layer_norm.default | ✅       |      25 |
-| aten.permute.default           | ✅       |      36 |
-| aten.pow.Tensor_Scalar         | ✅       |      12 |
-| aten.rsub.Scalar               | ✅       |       1 |
-| aten.select.int                | ✘        |       1 |
-| aten.slice.Tensor              | ✘        |       3 |
-| aten.t.default                 | ✅       |      75 |
-| aten.tanh.default              | ✅       |      13 |
-| aten.transpose.int             | ✅       |      24 |
-| aten.unsqueeze.default         | ✅       |       2 |
-| aten.view.default              | ✅       |     254 |
-#### twmkn9/albert-base-v2-squad2
-| aten ops                       | status   |   count |
-|:-------------------------------|:---------|--------:|
-| aten._softmax.default          | ✅       |      12 |
-| aten._to_copy.default          | ✘        |       1 |
-| aten._unsafe_view.default      | ✘        |      12 |
-| aten.add.Tensor                | ✅       |      62 |
-| aten.addmm.default             | ✅       |      74 |
-| aten.bmm.default               | ✅       |      24 |
-| aten.clone.default             | ✅       |      39 |
-| aten.div.Tensor                | ✅       |      12 |
-| aten.embedding.default         | ✅       |       3 |
-| aten.expand.default            | ✅       |      48 |
-| aten.mul.Tensor                | ✅       |      49 |
-| aten.native_layer_norm.default | ✅       |      25 |
-| aten.permute.default           | ✅       |      36 |
-| aten.pow.Tensor_Scalar         | ✅       |      12 |
-| aten.rsub.Scalar               | ✅       |       1 |
-| aten.slice.Tensor              | ✘        |       2 |
-| aten.split.Tensor              | ✘        |       1 |
-| aten.squeeze.dim               | ✘        |       2 |
-| aten.t.default                 | ✅       |      74 |
-| aten.tanh.default              | ✅       |      12 |
-| aten.transpose.int             | ✅       |      24 |
-| aten.unsqueeze.default         | ✅       |       2 |
-| aten.view.default              | ✅       |     256 |
-
 
 ## Quickstart
 
