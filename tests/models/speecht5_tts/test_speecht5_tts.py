@@ -12,13 +12,14 @@ class ThisTester(ModelTester):
         self.processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
         model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
         self.vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
         inputs = self.processor(text="Hello, my dog is cute.", return_tensors="pt")
         # load xvector containing speaker's voice characteristics from a dataset
         embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
-        speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
+        speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0).to(torch.bfloat16)
         arguments = {
             "input_ids": inputs["input_ids"],
             "speaker_embeddings": speaker_embeddings,
@@ -26,18 +27,21 @@ class ThisTester(ModelTester):
         }
         return arguments
 
-    def set_model_eval(self, model):
-        model.eval()
-        return model
-
     def run_model(self, model, inputs):
         speech = model.generate_speech(**inputs)
         return speech
 
+    def set_inputs_train(self, inputs):
+        inputs["speaker_embeddings"] = inputs["speaker_embeddings"].requires_grad_(True)
+        return inputs
+
+    def get_results_train(self, model, inputs, outputs):
+        return inputs["speaker_embeddings"].grad
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_speecht5_tts(record_property, mode):

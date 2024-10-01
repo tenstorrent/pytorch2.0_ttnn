@@ -12,6 +12,7 @@ class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = XGLMTokenizer.from_pretrained("facebook/xglm-564M")
         model = XGLMForCausalLM.from_pretrained("facebook/xglm-564M")
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -21,10 +22,21 @@ class ThisTester(ModelTester):
         inputs["labels"] = inputs["input_ids"]
         return inputs
 
+    def set_inputs_train(self, inputs):
+        # inputs all are int tensor, cannot calculate grad
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return outputs.loss
+
+    # TODO: inputs cannot calculate grad, need to find other tensor to calculate training accuracy
+    # def get_results_train(self, model, inputs, outputs):
+    #     return
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_xglm(record_property, mode):

@@ -18,7 +18,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 def test_resnet(record_property, mode):
     model_name = "ResNet18"

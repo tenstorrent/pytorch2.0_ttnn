@@ -75,6 +75,7 @@ class ThisTester(ModelTester):
             os.remove(downloaded_file)
 
         subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python-headless"])
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -84,12 +85,16 @@ class ThisTester(ModelTester):
         transform = transforms.Compose([transforms.Resize((512, 512)), transforms.ToTensor()])
         img_tensor = [transform(image).unsqueeze(0)]
         batch_tensor = torch.cat(img_tensor, dim=0)
+        batch_tensor = batch_tensor.to(torch.bfloat16)
         return batch_tensor
+
+    def append_fake_loss_function(self, outputs):
+        return torch.mean(outputs[0])
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.compilation_xfail

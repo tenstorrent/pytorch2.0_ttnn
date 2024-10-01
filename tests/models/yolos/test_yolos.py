@@ -18,6 +18,7 @@ class ThisTester(ModelTester):
         m = AutoModelForObjectDetection.from_pretrained(
             model_name,
         )
+        m = m.to(torch.bfloat16)
         return m
 
     def _load_inputs(self):
@@ -25,12 +26,23 @@ class ThisTester(ModelTester):
         self.test_input = "http://images.cocodataset.org/val2017/000000039769.jpg"
         self.image = Image.open(requests.get(self.test_input, stream=True).raw)
         inputs = self.image_processor(images=self.image, return_tensors="pt")
+        inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
         return inputs
+
+    def set_inputs_train(self, inputs):
+        inputs["pixel_values"].requires_grad_(True)
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return torch.mean(outputs.logits)
+
+    def get_results_train(self, model, inputs, outputs):
+        return inputs["pixel_values"].grad
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 
 # @pytest.mark.xfail

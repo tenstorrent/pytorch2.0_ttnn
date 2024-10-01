@@ -20,6 +20,7 @@ class ThisTester(ModelTester):
         model_name, weights_name = self.model_info
         self.weights = getattr(models.detection, weights_name).DEFAULT
         model = getattr(models.detection, model_name)(weights=self.weights)
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -29,12 +30,13 @@ class ThisTester(ModelTester):
         image = Image.open(requests.get(url, stream=True).raw)
         img_t = preprocess(image)
         batch_t = torch.unsqueeze(img_t, 0)
+        batch_t = batch_t.to(torch.bfloat16)
         return batch_t
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.parametrize(
     "model_info",

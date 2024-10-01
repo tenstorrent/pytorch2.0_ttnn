@@ -18,10 +18,21 @@ class ThisTester(ModelTester):
         inputs = self.tokenizer("Hello, my dog is cute", return_tensors="pt")
         return inputs
 
+    def set_inputs_train(self, inputs):
+        # inputs all are int tensor, cannot calculate grad
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return torch.mean(outputs.logits)
+
+    # TODO: inputs cannot calculate grad, need to find other tensor to calculate training accuracy
+    # def get_results_train(self, model, inputs, outputs):
+    #     return
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 def test_squeeze_bert(record_property, mode):
     model_name = "SqueezeBERT"

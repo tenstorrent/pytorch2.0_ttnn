@@ -2,6 +2,7 @@ from transformers import WhisperProcessor, WhisperForConditionalGeneration
 from datasets import load_dataset
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
@@ -10,6 +11,7 @@ class ThisTester(ModelTester):
         self.processor = WhisperProcessor.from_pretrained("openai/whisper-small")
         model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
         model.config.forced_decoder_ids = None
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -19,6 +21,7 @@ class ThisTester(ModelTester):
         input_features = self.processor(
             sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
         ).input_features
+        input_features = input_features.to(torch.bfloat16)
         return input_features
 
     def run_model(self, model, input_features):
@@ -28,10 +31,21 @@ class ThisTester(ModelTester):
         transcription = self.processor.batch_decode(predicted_ids, skip_special_tokens=True)
         return transcription
 
+    def set_inputs_train(self, inputs):
+        inputs.requires_grad_(True)
+        return inputs
+
+    # def append_fake_loss_function(self, outputs):
+    #     #TODO: output is string, cannot calculate loss
+    #     return
+
+    def get_results_train(self, model, inputs, outputs):
+        return inputs.grad
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_whisper(record_property, mode):
