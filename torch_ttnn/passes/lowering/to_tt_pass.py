@@ -615,13 +615,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return new_nodes[-1]
 
             if node.target == torch.ops.aten.t.default:
-                permutation = list()
                 rank = len(node.meta["val"].size())
-                assert rank >= 0 and rank <= 2, "Input tensor can only be 0D, 1D or 2D"
                 if rank == 2:
-                    permutation = [1, 0]
-                    return g.call_function(ttnn.permute, args=(args[0], permutation))
-                return None
+                    return g.call_function(ttnn.permute, (args[0], (1, 0)))
+                return args[0] if rank < 2 else None
+
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad, value = args
                 input_shape = input.meta["val"].size()
