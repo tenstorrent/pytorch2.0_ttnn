@@ -3,6 +3,8 @@ import torch_ttnn
 import pytest
 import ttnn
 
+from tests.utils import assert_with_pcc
+
 
 class CosModule(torch.nn.Module):
     def __init__(self):
@@ -31,4 +33,4 @@ def test_cos(device, input_shapes):
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.cos) == 1
     # Check inference result
-    assert torch.allclose(result_before, result_after, rtol=0.2)
+    assert_with_pcc(result_before, result_after)
