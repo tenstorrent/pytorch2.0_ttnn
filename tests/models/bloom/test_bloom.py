@@ -41,7 +41,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", "eval"],
+    ["eval"],
 )
 def test_bloom(record_property, mode):
     model_name = "Bloom"

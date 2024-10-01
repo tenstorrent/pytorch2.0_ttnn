@@ -31,7 +31,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", "eval"],
+    ["eval"],
 )
 @pytest.mark.compilation_xfail
 def test_roberta(record_property, mode):

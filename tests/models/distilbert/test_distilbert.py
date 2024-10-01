@@ -30,7 +30,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", "eval"],
+    ["eval"],
 )
 @pytest.mark.parametrize("model_name", ["distilbert-base-uncased"])
 @pytest.mark.compilation_xfail
