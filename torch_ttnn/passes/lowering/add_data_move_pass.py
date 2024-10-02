@@ -117,6 +117,7 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
 ]
 
 TTNN_DATAMOVE_OPS = [
+    ttnn.fold,
     ttnn.reshape,
     ttnn.pad,
     ttnn.permute,
