@@ -20,6 +20,7 @@ class UnsqueezeCloneModule(torch.nn.Module):
         a2 = torch.clone(a1)
         return a2
 
+
 @pytest.mark.xfail
 def test_unsqueeze_clone(device):
     m = UnsqueezeCloneModule()
@@ -49,6 +50,7 @@ class GptNeoUnsqueezeCloneModule(torch.nn.Module):
         a4 = a3.view(1, 45)
         return a4
 
+
 @pytest.mark.xfail
 def test_gptneo_unsqueeze_clone(device):
     m = GptNeoUnsqueezeCloneModule()
@@ -62,6 +64,3 @@ def test_gptneo_unsqueeze_clone(device):
     option._out_fx_graphs[0].print_tabular()
     # Check inference result
     assert torch.allclose(result_before, result_after)
-
-
-
