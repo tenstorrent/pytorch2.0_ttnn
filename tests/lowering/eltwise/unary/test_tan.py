@@ -15,12 +15,12 @@ class TanModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    ("input_shape", "init_offset"),
-    [((4, 4), 0)],
+    "input_shape",
+    ((4, 4), (1, 1066)),
 )
-def test_tan(device, input_shape, init_offset):
+def test_tan(device, input_shape):
     m = TanModule()
-    input = torch.rand(input_shape, dtype=torch.bfloat16) + init_offset
+    input = torch.rand(input_shape, dtype=torch.bfloat16) * 3.14 - 1.57
     result_before = m.forward(input)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
