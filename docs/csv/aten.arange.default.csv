@@ -1,0 +1,41 @@
+Variation #,End,Device,Pin Memory,Dtype
+0,number end = 2,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+1,number end = 23,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+2,number end = 40,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+3,number end = 128,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+4,number end = 15,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.int64
+5,number end = 1,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+6,number end = 1,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.int64
+7,number end = 2,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.int64
+8,number<s0 + 1> end = ?,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.int64
+9,number end = 17,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.int64
+10,number end = 30,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+11,number end = 60,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+12,number end = 80,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+13,number end = 120,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+14,number end = 160,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+15,number end = 240,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+16,number end = 320,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+17,number end = 480,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+18,number end = 640,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+19,number end = 16,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+20,number end = 32,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+21,number end = 64,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+22,number end = 12,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+23,number end = 12,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+24,number end = 16,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+25,number end = 192,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+26,number end = 32,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+27,number end = 42,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+28,number end = 56,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+29,number end = 28,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+30,number end = 14,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+31,number end = 7,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+32,number end = 800,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+33,number end = 1066,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+34,number end = 50,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+35,number end = 68,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+36,number end = 100,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+37,number end = 136,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+38,number end = 300,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.float32
+39,number end = 10,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.int64

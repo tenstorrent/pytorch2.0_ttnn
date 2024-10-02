@@ -1,0 +1,10 @@
+Variation #,Input
+0,"Tensor<[1, 64, 1, 1]> input = ?"
+1,"Tensor<[1, 256, 1, 1]> input = ?"
+2,"Tensor<[1, 128, 1, 1]> input = ?"
+3,"Tensor<[1, 512, 1, 1]> input = ?"
+4,"Tensor<[1, 1024, 1, 1]> input = ?"
+5,"Tensor<[1, 2048, 1, 1]> input = ?"
+6,"Tensor<[1, 15, 1]> input = ?"
+7,"Tensor<[1, 1, 1]> input = ?"
+8,"Tensor<[1, 10, 1]> input = ?"

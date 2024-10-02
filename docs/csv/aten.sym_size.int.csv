@@ -1,0 +1,11 @@
+Variation #,Input,Dim
+0,"Tensor<[1, 6, s0 + 1, 64]> input = ?",int dim = 2
+1,"Tensor<[1, s10 + 1]> input = ?",int dim = 1
+2,"Tensor<[1, 12, s10 + 1, 64]> input = ?",int dim = 2
+3,"Tensor<[1, 1, 1, s10 + 1]> input = ?",int dim = 3
+4,"Tensor<[1, 16, s10 + 1, 64]> input = ?",int dim = 2
+5,"Tensor<[1, s0, 256]> input = ?",int dim = 1
+6,"Tensor<[1, s0, 768]> input = ?",int dim = 1
+7,"Tensor<[1, 12, s0 + 1, 64]> input = ?",int dim = 2
+8,"Tensor<[1, 16, s0 + 1, 64]> input = ?",int dim = 2
+9,"Tensor<[1, 8, s0 + 1, 64]> input = ?",int dim = 2

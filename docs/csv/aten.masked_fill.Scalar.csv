@@ -1,0 +1,27 @@
+Variation #,Input,Mask,Value
+0,"Tensor<[1, 1, 32, 32]> input = ?","Tensor<[1, 1, 32, 32]> mask = ?",number value = -3.3895313892515355e+38
+1,"Tensor<[1, 16, 32, 32]> input = ?","Tensor<[1, 1, 32, 32]> mask = ?",number value = -3.3895313892515355e+38
+2,"Tensor<[2, 1, 7, 7]> input = ?","Tensor<[2, 1, 7, 7]> mask = ?",number value = -3.3895313892515355e+38
+3,"Tensor<[1, 920]> input = ?","Tensor<[1, 920]> mask = ?",number value = -inf
+4,"Tensor<[7, 7]> input = ?","Tensor<[7, 7]> mask = ?",number value = -inf
+5,"Tensor<[1, 1, 45, 45]> input = ?","Tensor<[1, 1, 45, 45]> mask = ?",number value = -3.4028234663852886e+38
+6,"Tensor<[1, 50257]> input = ?","Tensor<[1, 50257]> mask = ?",number value = -inf
+7,"Tensor<[1, 1, 1, 46]> input = ?","Tensor<[1, 1, 1, 46]> mask = ?",number value = -3.4028234663852886e+38
+8,"Tensor<[1, 1, 1, s10 + 1]> input = ?","Tensor<[1, 1, 1, s10 + 1]> mask = ?",number value = -3.4028234663852886e+38
+9,"Tensor<[1, 1, 59, 59]> input = ?","Tensor<[1, 1, 59, 59]> mask = ?",number value = -3.4028234663852886e+38
+10,"Tensor<[1, 1, 1, 60]> input = ?","Tensor<[1, 1, 1, 60]> mask = ?",number value = -3.4028234663852886e+38
+11,"Tensor<[1, 1, 19, 19]> input = ?","Tensor<[1, 1, 19, 19]> mask = ?",number value = -3.4028234663852886e+38
+12,"Tensor<[1, 1, 24, 24]> input = ?","Tensor<[1, 1, 24, 24]> mask = ?",number value = -3.4028234663852886e+38
+13,"Tensor<[1, 1, 1, 24]> input = ?","Tensor<[1, 1, 1, 24]> mask = ?",number value = -3.4028234663852886e+38
+14,"Tensor<[64, 49, 49]> input = ?","Tensor<[64, 49, 49]> mask = ?",number value = -100.0
+15,"Tensor<[64, 49, 49]> input = ?","Tensor<[64, 49, 49]> mask = ?",number value = 0.0
+16,"Tensor<[16, 49, 49]> input = ?","Tensor<[16, 49, 49]> mask = ?",number value = -100.0
+17,"Tensor<[16, 49, 49]> input = ?","Tensor<[16, 49, 49]> mask = ?",number value = 0.0
+18,"Tensor<[4, 49, 49]> input = ?","Tensor<[4, 49, 49]> mask = ?",number value = -100.0
+19,"Tensor<[4, 49, 49]> input = ?","Tensor<[4, 49, 49]> mask = ?",number value = 0.0
+20,"Tensor<[64, 64, 64]> input = ?","Tensor<[64, 64, 64]> mask = ?",number value = -100.0
+21,"Tensor<[64, 64, 64]> input = ?","Tensor<[64, 64, 64]> mask = ?",number value = 0.0
+22,"Tensor<[16, 64, 64]> input = ?","Tensor<[16, 64, 64]> mask = ?",number value = -100.0
+23,"Tensor<[16, 64, 64]> input = ?","Tensor<[16, 64, 64]> mask = ?",number value = 0.0
+24,"Tensor<[4, 64, 64]> input = ?","Tensor<[4, 64, 64]> mask = ?",number value = -100.0
+25,"Tensor<[4, 64, 64]> input = ?","Tensor<[4, 64, 64]> mask = ?",number value = 0.0

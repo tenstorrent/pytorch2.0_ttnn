@@ -1,0 +1,11 @@
+Variation #,Input,Dim,Dtype
+0,"Tensor<[1, 32]> input = ?",int dim = -1,
+1,"Tensor<[1, 23, 40]> input = ?",int dim = 1,Optional[int] dtype = torch.float32
+2,"Tensor<[1, 23, 40]> input = ?",int dim = 2,Optional[int] dtype = torch.float32
+3,"Tensor<[1, 45]> input = ?",int dim = -1,
+4,"Tensor<[1, s0]> input = ?",int dim = -1,
+5,"Tensor<[1, 59]> input = ?",int dim = 1,
+6,"Tensor<[1, 60]> input = ?",int dim = 1,
+7,"Tensor<[1, s10 + 1]> input = ?",int dim = 1,
+8,"Tensor<[1, 10]> input = ?",int dim = 1,
+9,"Tensor<[1, 5]> input = ?",int dim = -1,

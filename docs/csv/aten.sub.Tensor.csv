@@ -1,0 +1,82 @@
+Variation #,Input,Other
+0,"Tensor<[1, 32]> input = ?",Tensor other = 1
+1,"Tensor<[1, 64, 1, 1]> input = ?","Tensor<[1, 64, 1, 1]> other = ?"
+2,"Tensor<[1, 256, 1, 1]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+3,"Tensor<[1, 128, 1, 1]> input = ?","Tensor<[1, 128, 1, 1]> other = ?"
+4,"Tensor<[1, 512, 1, 1]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+5,"Tensor<[1, 1024, 1, 1]> input = ?","Tensor<[1, 1024, 1, 1]> other = ?"
+6,"Tensor<[1, 2048, 1, 1]> input = ?","Tensor<[1, 2048, 1, 1]> other = ?"
+7,"Tensor<[1, 15]> input = ?","Tensor<[15, 1]> other = ?"
+8,"Tensor<[1, 1]> input = ?","Tensor<[1, 1]> other = ?"
+9,"Tensor<[1, 2]> input = ?","Tensor<[2, 1]> other = ?"
+10,"Tensor<[1, s0 + 1]> input = ?","Tensor<[s0 + 1, 1]> other = ?"
+11,"Tensor<[1, 17]> input = ?","Tensor<[17, 1]> other = ?"
+12,Tensor<[30]> input = ?,Tensor other = 0.5
+13,Tensor<[40]> input = ?,Tensor other = 0.5
+14,"Tensor<[30, 1]> input = ?","Tensor<[30, 1]> other = ?"
+15,Tensor<[40]> input = ?,Tensor<[40]> other = ?
+16,Tensor<[60]> input = ?,Tensor other = 0.5
+17,Tensor<[80]> input = ?,Tensor other = 0.5
+18,"Tensor<[60, 1]> input = ?","Tensor<[60, 1]> other = ?"
+19,Tensor<[80]> input = ?,Tensor<[80]> other = ?
+20,Tensor<[120]> input = ?,Tensor other = 0.5
+21,Tensor<[160]> input = ?,Tensor other = 0.5
+22,"Tensor<[120, 1]> input = ?","Tensor<[120, 1]> other = ?"
+23,Tensor<[160]> input = ?,Tensor<[160]> other = ?
+24,Tensor<[240]> input = ?,Tensor other = 0.5
+25,Tensor<[320]> input = ?,Tensor other = 0.5
+26,"Tensor<[240, 1]> input = ?","Tensor<[240, 1]> other = ?"
+27,Tensor<[320]> input = ?,Tensor<[320]> other = ?
+28,Tensor<[480]> input = ?,Tensor other = 0.5
+29,Tensor<[640]> input = ?,Tensor other = 0.5
+30,"Tensor<[480, 1]> input = ?","Tensor<[480, 1]> other = ?"
+31,Tensor<[640]> input = ?,Tensor<[640]> other = ?
+32,Tensor<[1]> input = ?,Tensor other = 1
+33,"Tensor<[1, 45]> input = ?",Tensor other = 1
+34,"Tensor<[1, s0]> input = ?",Tensor other = 1
+35,"Tensor<[3, 320, 320]> input = ?","Tensor<[3, 1, 1]> other = ?"
+36,"Tensor<[320, 1]> input = ?","Tensor<[320, 1]> other = ?"
+37,"Tensor<[3234, 2]> input = ?","Tensor<[3234, 2]> other = ?"
+38,Tensor<[3234]> input = ?,Tensor<[3234]> other = ?
+39,"Tensor<[3234, 1]> input = ?","Tensor<[3234, 1]> other = ?"
+40,"Tensor<[1, 59]> input = ?",Tensor other = 1
+41,"Tensor<[1, 60]> input = ?",Tensor other = 1
+42,"Tensor<[1, s10 + 1]> input = ?",Tensor other = 1
+43,Tensor<[128]> input = ?,Tensor other = 0.5
+44,"Tensor<[128, 1]> input = ?","Tensor<[128, 1]> other = ?"
+45,Tensor<[128]> input = ?,Tensor<[128]> other = ?
+46,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = 0.5
+47,"Tensor<[1, 1, 1, 42]> input = ?","Tensor<[1, 1, 1, 42]> other = ?"
+48,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = 0.5
+49,"Tensor<[1, 1, 32, 1]> input = ?","Tensor<[1, 1, 32, 1]> other = ?"
+50,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = 1
+51,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = 1
+52,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = -3.75
+53,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = -3.0
+54,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = 2.25
+55,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = -3.75
+56,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = -3.0
+57,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = 2.25
+58,"Tensor<[1, 5]> input = ?",Tensor other = 1
+59,"Tensor<[3, 480, 640]> input = ?","Tensor<[3, 1, 1]> other = ?"
+60,Tensor<[800]> input = ?,Tensor other = 0.5
+61,Tensor<[1066]> input = ?,Tensor other = 0.5
+62,"Tensor<[800, 1]> input = ?","Tensor<[800, 1]> other = ?"
+63,Tensor<[1066]> input = ?,Tensor<[1066]> other = ?
+64,Tensor<[0]> input = ?,Tensor<[0]> other = ?
+65,"Tensor<[0, 1]> input = ?","Tensor<[0, 1]> other = ?"
+66,"Tensor<[24, 1]> input = ?","Tensor<[1, 24]> other = ?"
+67,"Tensor<[96, 80]> input = ?",Tensor<[80]> other = ?
+68,Tensor<[300]> input = ?,Tensor other = 0.5
+69,"Tensor<[300, 1]> input = ?","Tensor<[300, 1]> other = ?"
+70,Tensor<[300]> input = ?,Tensor<[300]> other = ?
+71,"Tensor<[8732, 2]> input = ?","Tensor<[8732, 2]> other = ?"
+72,Tensor<[8732]> input = ?,Tensor<[8732]> other = ?
+73,"Tensor<[8732, 1]> input = ?","Tensor<[8732, 1]> other = ?"
+74,"Tensor<[64, 1, 49]> input = ?","Tensor<[64, 49, 1]> other = ?"
+75,"Tensor<[16, 1, 49]> input = ?","Tensor<[16, 49, 1]> other = ?"
+76,"Tensor<[4, 1, 49]> input = ?","Tensor<[4, 49, 1]> other = ?"
+77,"Tensor<[64, 1, 64]> input = ?","Tensor<[64, 64, 1]> other = ?"
+78,"Tensor<[16, 1, 64]> input = ?","Tensor<[16, 64, 1]> other = ?"
+79,"Tensor<[4, 1, 64]> input = ?","Tensor<[4, 64, 1]> other = ?"
+80,"Tensor<[1, 10]> input = ?","Tensor<[10, 1]> other = ?"

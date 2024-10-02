@@ -1,0 +1,384 @@
+Variation #,Input,Other
+0,"Tensor<[1, 1, 1, 256]> input = ?",Tensor<> other = -3.3895313892515355e+38
+1,"Tensor<[1, 32]> input = ?","Tensor<[1, 32]> other = ?"
+2,"Tensor<[16, 1]> input = ?","Tensor<[1, 1, 32]> other = ?"
+3,"Tensor<[1, 32, 6144]> input = ?",Tensor other = 0.5
+4,"Tensor<[1, 32, 6144]> input = ?",Tensor other = 0.79788456
+5,"Tensor<[1, 32, 6144]> input = ?",Tensor other = 0.044715
+6,"Tensor<[1, 32, 6144]> input = ?","Tensor<[1, 32, 6144]> other = ?"
+7,"Tensor<[1, 50, 768]> input = ?",Tensor other = 0.125
+8,"Tensor<[1, 50, 3072]> input = ?",Tensor other = 1.702
+9,"Tensor<[1, 50, 3072]> input = ?","Tensor<[1, 50, 3072]> other = ?"
+10,"Tensor<[2, 7, 512]> input = ?",Tensor other = 0.125
+11,"Tensor<[2, 7, 2048]> input = ?",Tensor other = 1.702
+12,"Tensor<[2, 7, 2048]> input = ?","Tensor<[2, 7, 2048]> other = ?"
+13,"Tensor<[2, 1]> input = ?",Tensor<[]> other = ?
+14,"Tensor<[1, 64, 1, 1]> input = ?","Tensor<[1, 64, 1, 1]> other = ?"
+15,"Tensor<[1, 64, 360, 640]> input = ?","Tensor<[1, 64, 1, 1]> other = ?"
+16,"Tensor<[1, 64, 180, 320]> input = ?","Tensor<[1, 64, 1, 1]> other = ?"
+17,"Tensor<[1, 256, 1, 1]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+18,"Tensor<[1, 256, 180, 320]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+19,"Tensor<[1, 128, 1, 1]> input = ?","Tensor<[1, 128, 1, 1]> other = ?"
+20,"Tensor<[1, 128, 180, 320]> input = ?","Tensor<[1, 128, 1, 1]> other = ?"
+21,"Tensor<[1, 128, 90, 160]> input = ?","Tensor<[1, 128, 1, 1]> other = ?"
+22,"Tensor<[1, 512, 1, 1]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+23,"Tensor<[1, 512, 90, 160]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+24,"Tensor<[1, 256, 90, 160]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+25,"Tensor<[1, 256, 45, 80]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+26,"Tensor<[1, 1024, 1, 1]> input = ?","Tensor<[1, 1024, 1, 1]> other = ?"
+27,"Tensor<[1, 1024, 45, 80]> input = ?","Tensor<[1, 1024, 1, 1]> other = ?"
+28,"Tensor<[1, 512, 45, 80]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+29,"Tensor<[1, 512, 23, 40]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+30,"Tensor<[1, 2048, 1, 1]> input = ?","Tensor<[1, 2048, 1, 1]> other = ?"
+31,"Tensor<[1, 2048, 23, 40]> input = ?","Tensor<[1, 2048, 1, 1]> other = ?"
+32,Tensor<[23]> input = ?,Tensor other = 31.304347826086957
+33,Tensor<[40]> input = ?,Tensor other = 32.0
+34,"Tensor<[1, 23, 40]> input = ?",Tensor other = 6.283185307179586
+35,Tensor<[128]> input = ?,Tensor other = 2
+36,"Tensor<[1, 1, 1, 25]> input = ?",Tensor other = -3.4028234663852886e+38
+37,"Tensor<[1, 1, 1, 15]> input = ?",Tensor other = -3.4028234663852886e+38
+38,"Tensor<[1, 15, 512]> input = ?","Tensor<[1, 15, 1]> other = ?"
+39,Tensor<[512]> input = ?,"Tensor<[1, 15, 512]> other = ?"
+40,"Tensor<[15, 15]> input = ?",Tensor other = 16
+41,"Tensor<[15, 15]> input = ?",Tensor other = 8
+42,"Tensor<[1, 15, 1024]> input = ?",Tensor other = 0.5
+43,"Tensor<[1, 15, 1024]> input = ?",Tensor other = 0.044715
+44,"Tensor<[1, 15, 1024]> input = ?",Tensor other = 0.7978845608028654
+45,"Tensor<[1, 15, 1024]> input = ?","Tensor<[1, 15, 1024]> other = ?"
+46,"Tensor<[1, 1]> input = ?",Tensor other = 0
+47,"Tensor<[1, 1, 1, 1]> input = ?","Tensor<[1, 1, 1, 1]> other = ?"
+48,"Tensor<[1, 1, 1, 1]> input = ?",Tensor other = -3.4028234663852886e+38
+49,"Tensor<[1, 1, 512]> input = ?","Tensor<[1, 1, 1]> other = ?"
+50,Tensor<[512]> input = ?,"Tensor<[1, 1, 512]> other = ?"
+51,"Tensor<[1, 1]> input = ?",Tensor other = 16
+52,"Tensor<[1, 1, 1024]> input = ?",Tensor other = 0.5
+53,"Tensor<[1, 1, 1024]> input = ?",Tensor other = 0.044715
+54,"Tensor<[1, 1, 1024]> input = ?",Tensor other = 0.7978845608028654
+55,"Tensor<[1, 1, 1024]> input = ?","Tensor<[1, 1, 1024]> other = ?"
+56,"Tensor<[1, 1, 1, 2]> input = ?","Tensor<[1, 1, 1, 2]> other = ?"
+57,"Tensor<[1, 1, 1, 2]> input = ?",Tensor other = -3.4028234663852886e+38
+58,"Tensor<[2, 2]> input = ?",Tensor other = 16
+59,"Tensor<[1, 1, 1, s0 + 1]> input = ?","Tensor<[1, 1, 1, s0 + 1]> other = ?"
+60,"Tensor<[1, 1, 1, s0 + 1]> input = ?",Tensor other = -3.4028234663852886e+38
+61,"Tensor<[s0 + 1, s0 + 1]> input = ?",Tensor other = 16
+62,"Tensor<[1, 1, 1, 17]> input = ?","Tensor<[1, 1, 1, 17]> other = ?"
+63,"Tensor<[1, 1, 1, 17]> input = ?",Tensor other = -3.4028234663852886e+38
+64,"Tensor<[17, 17]> input = ?",Tensor other = 16
+65,"Tensor<[1, 1, 1, s0]> input = ?","Tensor<[1, 1, 1, s0]> other = ?"
+66,"Tensor<[1, 1, 1, s0]> input = ?",Tensor other = -3.4028234663852886e+38
+67,"Tensor<[1, 71, 7, 64]> input = ?","Tensor<[1, 1, 7, 64]> other = ?"
+68,"Tensor<[1, 1, 7, 64]> input = ?","Tensor<[1, 1, 7, 64]> other = ?"
+69,Tensor<[30]> input = ?,Tensor other = 0.5
+70,Tensor<[40]> input = ?,Tensor other = 0.5
+71,"Tensor<[1, 64, 30, 40]> input = ?","Tensor<[30, 1]> other = ?"
+72,"Tensor<[1, 64, 30, 40]> input = ?",Tensor<[40]> other = ?
+73,"Tensor<[1, 64, 30, 40]> input = ?","Tensor<[1, 1, 30, 40]> other = ?"
+74,Tensor<[60]> input = ?,Tensor other = 0.5
+75,Tensor<[80]> input = ?,Tensor other = 0.5
+76,"Tensor<[1, 64, 60, 80]> input = ?","Tensor<[60, 1]> other = ?"
+77,"Tensor<[1, 64, 60, 80]> input = ?",Tensor<[80]> other = ?
+78,"Tensor<[1, 64, 60, 80]> input = ?","Tensor<[1, 1, 60, 80]> other = ?"
+79,Tensor<[120]> input = ?,Tensor other = 0.5
+80,Tensor<[160]> input = ?,Tensor other = 0.5
+81,"Tensor<[1, 64, 120, 160]> input = ?","Tensor<[120, 1]> other = ?"
+82,"Tensor<[1, 64, 120, 160]> input = ?",Tensor<[160]> other = ?
+83,"Tensor<[1, 64, 120, 160]> input = ?","Tensor<[1, 1, 120, 160]> other = ?"
+84,Tensor<[240]> input = ?,Tensor other = 0.5
+85,Tensor<[320]> input = ?,Tensor other = 0.5
+86,"Tensor<[1, 64, 240, 320]> input = ?","Tensor<[240, 1]> other = ?"
+87,"Tensor<[1, 64, 240, 320]> input = ?",Tensor<[320]> other = ?
+88,Tensor<[480]> input = ?,Tensor other = 0.5
+89,Tensor<[640]> input = ?,Tensor other = 0.5
+90,"Tensor<[1, 64, 480, 640]> input = ?","Tensor<[480, 1]> other = ?"
+91,"Tensor<[1, 64, 480, 640]> input = ?",Tensor<[640]> other = ?
+92,"Tensor<[1, 1, 480, 640]> input = ?",Tensor other = 10
+93,"Tensor<[1, 1, 1, 7]> input = ?",Tensor other = -3.3895313892515355e+38
+94,"Tensor<[1, 7, 3072]> input = ?",Tensor other = 0.5
+95,"Tensor<[1, 7, 3072]> input = ?",Tensor other = 0.044715
+96,"Tensor<[1, 7, 3072]> input = ?",Tensor other = 0.7978845608028654
+97,"Tensor<[1, 7, 3072]> input = ?","Tensor<[1, 7, 3072]> other = ?"
+98,"Tensor<[1, 45, 3072]> input = ?",Tensor other = 0.5
+99,"Tensor<[1, 45, 3072]> input = ?",Tensor other = 0.044715
+100,"Tensor<[1, 45, 3072]> input = ?",Tensor other = 0.7978845608028654
+101,"Tensor<[1, 45, 3072]> input = ?","Tensor<[1, 45, 3072]> other = ?"
+102,"Tensor<[1, 1, 3072]> input = ?",Tensor other = 0.5
+103,"Tensor<[1, 1, 3072]> input = ?",Tensor other = 0.044715
+104,"Tensor<[1, 1, 3072]> input = ?",Tensor other = 0.7978845608028654
+105,"Tensor<[1, 1, 3072]> input = ?","Tensor<[1, 1, 3072]> other = ?"
+106,Tensor<[320]> input = ?,Tensor other = 1.0
+107,"Tensor<[1, 3, 320, 320]> input = ?","Tensor<[320, 1]> other = ?"
+108,"Tensor<[1, 3, 320, 320]> input = ?",Tensor<[320]> other = ?
+109,"Tensor<[1, 72, 1, 1]> input = ?","Tensor<[1, 72, 40, 40]> other = ?"
+110,"Tensor<[1, 120, 1, 1]> input = ?","Tensor<[1, 120, 40, 40]> other = ?"
+111,"Tensor<[1, 480, 1, 1]> input = ?","Tensor<[1, 480, 20, 20]> other = ?"
+112,"Tensor<[1, 672, 1, 1]> input = ?","Tensor<[1, 672, 20, 20]> other = ?"
+113,"Tensor<[1, 672, 1, 1]> input = ?","Tensor<[1, 672, 10, 10]> other = ?"
+114,"Tensor<[1, 480, 1, 1]> input = ?","Tensor<[1, 480, 10, 10]> other = ?"
+115,"Tensor<[3234, 2]> input = ?",Tensor other = 0.5
+116,"Tensor<[3234, 2]> input = ?",Tensor<[2]> other = ?
+117,Tensor<[3234]> input = ?,Tensor other = 0.5
+118,"Tensor<[3234, 1]> input = ?","Tensor<[3234, 1]> other = ?"
+119,Tensor<[]> input = ?,"Tensor<[3234, 1]> other = ?"
+120,Tensor<[300]> input = ?,Tensor<[]> other = ?
+121,"Tensor<[1, 59]> input = ?","Tensor<[1, 59]> other = ?"
+122,"Tensor<[1, 59, 1024]> input = ?",Tensor other = 0.125
+123,"Tensor<[1, 60]> input = ?","Tensor<[1, 60]> other = ?"
+124,"Tensor<[1, 1, 1024]> input = ?",Tensor other = 0.125
+125,"Tensor<[1, s10 + 1]> input = ?","Tensor<[1, s10 + 1]> other = ?"
+126,"Tensor<[1, 1, 1, 2048]> input = ?",Tensor other = -3.4028234663852886e+38
+127,"Tensor<[1, 1, 1, 10]> input = ?",Tensor other = -3.4028234663852886e+38
+128,"Tensor<[1, 10]> input = ?","Tensor<[1, 10]> other = ?"
+129,Tensor<[128]> input = ?,Tensor other = 1.0
+130,"Tensor<[1, 256, 128, 128]> input = ?","Tensor<[128, 1]> other = ?"
+131,"Tensor<[1, 256, 128, 128]> input = ?",Tensor<[128]> other = ?
+132,Tensor<[128]> input = ?,Tensor other = 0.5
+133,Tensor<[128]> input = ?,Tensor other = 0.25
+134,Tensor<[128]> input = ?,Tensor other = 0.125
+135,"Tensor<[1, 1, 1, 8]> input = ?",Tensor other = -3.3895313892515355e+38
+136,Tensor<[160]> input = ?,Tensor other = -9.210340371976184
+137,"Tensor<[1, 1]> input = ?","Tensor<[1, 160]> other = ?"
+138,"Tensor<[1, 160]> input = ?",Tensor other = 1
+139,"Tensor<[1, 4096, 1280]> input = ?","Tensor<[1, 4096, 1280]> other = ?"
+140,"Tensor<[1, 1024, 2560]> input = ?","Tensor<[1, 1024, 2560]> other = ?"
+141,"Tensor<[1, 256, 5120]> input = ?","Tensor<[1, 256, 5120]> other = ?"
+142,"Tensor<[1, 64, 5120]> input = ?","Tensor<[1, 64, 5120]> other = ?"
+143,Tensor<[16]> input = ?,Tensor other = 0.5
+144,Tensor<[32]> input = ?,Tensor other = 0.5
+145,Tensor<[64]> input = ?,Tensor other = 0.5
+146,Tensor<[12]> input = ?,Tensor other = 32.0
+147,Tensor<[16]> input = ?,Tensor other = 32.0
+148,Tensor<[1]> input = ?,Tensor<[1]> other = ?
+149,"Tensor<[1, 1, 1, 201]> input = ?",Tensor other = -3.4028234663852886e+38
+150,"Tensor<[1, 1]> input = ?",Tensor other = 50258
+151,"Tensor<[1, 1]> input = ?",Tensor other = 50259
+152,"Tensor<[1, 1]> input = ?",Tensor other = 50359
+153,"Tensor<[1, 1]> input = ?",Tensor other = 50363
+154,"Tensor<[1, 19, 1024]> input = ?",Tensor other = 32.0
+155,"Tensor<[1, 19, 1024]> input = ?",Tensor other = 0.125
+156,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = 1.9761904761904763
+157,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = 1.5625
+158,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = -0.75
+159,"Tensor<[1, 1, 1, 42]> input = ?","Tensor<[1, 1, 1, 42]> other = ?"
+160,"Tensor<[1, 1, 1, 42]> input = ?",Tensor other = 1.25
+161,"Tensor<[1, 192, 32, 42]> input = ?","Tensor<[1, 1, 1, 42]> other = ?"
+162,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = -0.75
+163,"Tensor<[1, 1, 32, 1]> input = ?","Tensor<[1, 1, 32, 1]> other = ?"
+164,"Tensor<[1, 1, 32, 1]> input = ?",Tensor other = 1.25
+165,"Tensor<[1, 192, 32, 42]> input = ?","Tensor<[1, 1, 32, 1]> other = ?"
+166,"Tensor<[1, 3, 64, 64, 2]> input = ?",Tensor other = 2
+167,"Tensor<[1, 3, 64, 64, 2]> input = ?",Tensor<[]> other = ?
+168,"Tensor<[1, 3, 64, 64, 2]> input = ?","Tensor<[1, 3, 64, 64, 2]> other = ?"
+169,"Tensor<[1, 3, 32, 32, 2]> input = ?",Tensor other = 2
+170,"Tensor<[1, 3, 32, 32, 2]> input = ?",Tensor<[]> other = ?
+171,"Tensor<[1, 3, 32, 32, 2]> input = ?","Tensor<[1, 3, 32, 32, 2]> other = ?"
+172,"Tensor<[1, 3, 16, 16, 2]> input = ?",Tensor other = 2
+173,"Tensor<[1, 3, 16, 16, 2]> input = ?",Tensor<[]> other = ?
+174,"Tensor<[1, 3, 16, 16, 2]> input = ?","Tensor<[1, 3, 16, 16, 2]> other = ?"
+175,"Tensor<[1, 1, 1, 12]> input = ?",Tensor other = -3.4028234663852886e+38
+176,"Tensor<[1, 12, 3072]> input = ?",Tensor other = 0.5
+177,"Tensor<[1, 12, 3072]> input = ?",Tensor other = 0.044715
+178,"Tensor<[1, 12, 3072]> input = ?",Tensor other = 0.7978845608028654
+179,"Tensor<[1, 12, 3072]> input = ?","Tensor<[1, 12, 3072]> other = ?"
+180,"Tensor<[1, 1, 1, 9]> input = ?",Tensor other = -3.4028234663852886e+38
+181,"Tensor<[1, 9, 4096]> input = ?",Tensor other = 0.5
+182,"Tensor<[1, 9, 4096]> input = ?",Tensor other = 0.044715
+183,"Tensor<[1, 9, 4096]> input = ?",Tensor other = 0.7978845608028654
+184,"Tensor<[1, 9, 4096]> input = ?","Tensor<[1, 9, 4096]> other = ?"
+185,"Tensor<[1, 9, 128]> input = ?",Tensor other = 0.5
+186,"Tensor<[1, 9, 128]> input = ?",Tensor other = 0.044715
+187,"Tensor<[1, 9, 128]> input = ?",Tensor other = 0.7978845608028654
+188,"Tensor<[1, 9, 128]> input = ?","Tensor<[1, 9, 128]> other = ?"
+189,"Tensor<[1, 9, 8192]> input = ?",Tensor other = 0.5
+190,"Tensor<[1, 9, 8192]> input = ?",Tensor other = 0.044715
+191,"Tensor<[1, 9, 8192]> input = ?",Tensor other = 0.7978845608028654
+192,"Tensor<[1, 9, 8192]> input = ?","Tensor<[1, 9, 8192]> other = ?"
+193,"Tensor<[1, 9, 16384]> input = ?",Tensor other = 0.5
+194,"Tensor<[1, 9, 16384]> input = ?",Tensor other = 0.044715
+195,"Tensor<[1, 9, 16384]> input = ?",Tensor other = 0.7978845608028654
+196,"Tensor<[1, 9, 16384]> input = ?","Tensor<[1, 9, 16384]> other = ?"
+197,"Tensor<[1, 1, 1, 5]> input = ?",Tensor other = -3.4028234663852886e+38
+198,"Tensor<[1, 5, 16, 32]> input = ?","Tensor<[1, 5, 1, 32]> other = ?"
+199,"Tensor<[1, 5, 4096]> input = ?",Tensor other = 0.5
+200,"Tensor<[1, 5, 4096]> input = ?",Tensor other = 0.044715
+201,"Tensor<[1, 5, 4096]> input = ?",Tensor other = 0.7978845608028654
+202,"Tensor<[1, 5, 4096]> input = ?","Tensor<[1, 5, 4096]> other = ?"
+203,"Tensor<[1, 1, 1, 6]> input = ?",Tensor other = -3.4028234663852886e+38
+204,"Tensor<[1, 1, 16, 32]> input = ?","Tensor<[1, 1, 1, 32]> other = ?"
+205,"Tensor<[1, 1, 4096]> input = ?",Tensor other = 0.5
+206,"Tensor<[1, 1, 4096]> input = ?",Tensor other = 0.044715
+207,"Tensor<[1, 1, 4096]> input = ?",Tensor other = 0.7978845608028654
+208,"Tensor<[1, 1, 4096]> input = ?","Tensor<[1, 1, 4096]> other = ?"
+209,"Tensor<[1, 1, 1, s10 + 1]> input = ?",Tensor other = -3.4028234663852886e+38
+210,"Tensor<[1, 256, 56, 56]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+211,"Tensor<[1, 512, 28, 28]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+212,"Tensor<[1, 768, 14, 14]> input = ?","Tensor<[1, 768, 1, 1]> other = ?"
+213,"Tensor<[1, 1024, 7, 7]> input = ?","Tensor<[1, 1024, 1, 1]> other = ?"
+214,"Tensor<[1, 72, 28, 28]> input = ?","Tensor<[1, 72, 1, 1]> other = ?"
+215,"Tensor<[1, 120, 28, 28]> input = ?","Tensor<[1, 120, 1, 1]> other = ?"
+216,"Tensor<[1, 480, 14, 14]> input = ?","Tensor<[1, 480, 1, 1]> other = ?"
+217,"Tensor<[1, 672, 14, 14]> input = ?","Tensor<[1, 672, 1, 1]> other = ?"
+218,"Tensor<[1, 672, 7, 7]> input = ?","Tensor<[1, 672, 1, 1]> other = ?"
+219,"Tensor<[1, 960, 7, 7]> input = ?","Tensor<[1, 960, 1, 1]> other = ?"
+220,Tensor<[56]> input = ?,Tensor other = 0.5
+221,"Tensor<[1, 72, 56, 56]> input = ?","Tensor<[1, 72, 56, 56]> other = ?"
+222,Tensor<[28]> input = ?,Tensor other = 0.5
+223,"Tensor<[1, 120, 28, 28]> input = ?","Tensor<[1, 120, 28, 28]> other = ?"
+224,"Tensor<[1, 240, 28, 28]> input = ?","Tensor<[1, 240, 28, 28]> other = ?"
+225,Tensor<[14]> input = ?,Tensor other = 0.5
+226,"Tensor<[1, 200, 14, 14]> input = ?","Tensor<[1, 200, 14, 14]> other = ?"
+227,"Tensor<[1, 184, 14, 14]> input = ?","Tensor<[1, 184, 14, 14]> other = ?"
+228,"Tensor<[1, 480, 14, 14]> input = ?","Tensor<[1, 480, 14, 14]> other = ?"
+229,"Tensor<[1, 672, 14, 14]> input = ?","Tensor<[1, 672, 14, 14]> other = ?"
+230,Tensor<[7]> input = ?,Tensor other = 0.42857142857142855
+231,"Tensor<[1, 960, 7, 7]> input = ?","Tensor<[1, 960, 7, 7]> other = ?"
+232,"Tensor<[1, 1, 224, 224]> input = ?",Tensor other = 0.458
+233,"Tensor<[1, 1, 224, 224]> input = ?",Tensor other = 0.448
+234,"Tensor<[1, 1, 224, 224]> input = ?",Tensor other = 0.45
+235,Tensor<[56]> input = ?,Tensor other = 0.25
+236,Tensor<[56]> input = ?,Tensor other = 0.125
+237,Tensor<[28]> input = ?,Tensor other = 0.25
+238,Tensor<[768]> input = ?,"Tensor<[1, 197, 768]> other = ?"
+239,Tensor<[1024]> input = ?,"Tensor<[1, 197, 1024]> other = ?"
+240,"Tensor<[1, 72, 1, 1]> input = ?","Tensor<[1, 72, 28, 28]> other = ?"
+241,"Tensor<[1, 120, 1, 1]> input = ?","Tensor<[1, 120, 28, 28]> other = ?"
+242,"Tensor<[1, 480, 1, 1]> input = ?","Tensor<[1, 480, 14, 14]> other = ?"
+243,"Tensor<[1, 672, 1, 1]> input = ?","Tensor<[1, 672, 14, 14]> other = ?"
+244,"Tensor<[1, 672, 1, 1]> input = ?","Tensor<[1, 672, 7, 7]> other = ?"
+245,"Tensor<[1, 960, 1, 1]> input = ?","Tensor<[1, 960, 7, 7]> other = ?"
+246,"Tensor<[1, 16, 1, 1]> input = ?","Tensor<[1, 16, 56, 56]> other = ?"
+247,"Tensor<[1, 96, 1, 1]> input = ?","Tensor<[1, 96, 14, 14]> other = ?"
+248,"Tensor<[1, 240, 1, 1]> input = ?","Tensor<[1, 240, 14, 14]> other = ?"
+249,"Tensor<[1, 120, 1, 1]> input = ?","Tensor<[1, 120, 14, 14]> other = ?"
+250,"Tensor<[1, 144, 1, 1]> input = ?","Tensor<[1, 144, 14, 14]> other = ?"
+251,"Tensor<[1, 288, 1, 1]> input = ?","Tensor<[1, 288, 7, 7]> other = ?"
+252,"Tensor<[1, 576, 1, 1]> input = ?","Tensor<[1, 576, 7, 7]> other = ?"
+253,"Tensor<[1, 528, 1, 1]> input = ?","Tensor<[1, 528, 96, 96]> other = ?"
+254,"Tensor<[1, 1056, 1, 1]> input = ?","Tensor<[1, 1056, 48, 48]> other = ?"
+255,"Tensor<[1, 2904, 1, 1]> input = ?","Tensor<[1, 2904, 24, 24]> other = ?"
+256,"Tensor<[1, 7392, 1, 1]> input = ?","Tensor<[1, 7392, 12, 12]> other = ?"
+257,"Tensor<[1, 224, 1, 1]> input = ?","Tensor<[1, 224, 56, 56]> other = ?"
+258,"Tensor<[1, 448, 1, 1]> input = ?","Tensor<[1, 448, 28, 28]> other = ?"
+259,"Tensor<[1, 1232, 1, 1]> input = ?","Tensor<[1, 1232, 14, 14]> other = ?"
+260,"Tensor<[1, 3024, 1, 1]> input = ?","Tensor<[1, 3024, 7, 7]> other = ?"
+261,"Tensor<[1, 48, 1, 1]> input = ?","Tensor<[1, 48, 56, 56]> other = ?"
+262,"Tensor<[1, 336, 1, 1]> input = ?","Tensor<[1, 336, 14, 14]> other = ?"
+263,"Tensor<[1, 888, 1, 1]> input = ?","Tensor<[1, 888, 7, 7]> other = ?"
+264,"Tensor<[1, 232, 1, 1]> input = ?","Tensor<[1, 232, 56, 56]> other = ?"
+265,"Tensor<[1, 696, 1, 1]> input = ?","Tensor<[1, 696, 28, 28]> other = ?"
+266,"Tensor<[1, 1392, 1, 1]> input = ?","Tensor<[1, 1392, 14, 14]> other = ?"
+267,"Tensor<[1, 3712, 1, 1]> input = ?","Tensor<[1, 3712, 7, 7]> other = ?"
+268,"Tensor<[1, 72, 1, 1]> input = ?","Tensor<[1, 72, 56, 56]> other = ?"
+269,"Tensor<[1, 216, 1, 1]> input = ?","Tensor<[1, 216, 28, 28]> other = ?"
+270,"Tensor<[1, 576, 1, 1]> input = ?","Tensor<[1, 576, 14, 14]> other = ?"
+271,"Tensor<[1, 1512, 1, 1]> input = ?","Tensor<[1, 1512, 7, 7]> other = ?"
+272,"Tensor<[1, 104, 1, 1]> input = ?","Tensor<[1, 104, 28, 28]> other = ?"
+273,"Tensor<[1, 208, 1, 1]> input = ?","Tensor<[1, 208, 14, 14]> other = ?"
+274,"Tensor<[1, 440, 1, 1]> input = ?","Tensor<[1, 440, 7, 7]> other = ?"
+275,"Tensor<[1, 64, 1, 1]> input = ?","Tensor<[1, 64, 56, 56]> other = ?"
+276,"Tensor<[1, 144, 1, 1]> input = ?","Tensor<[1, 144, 28, 28]> other = ?"
+277,"Tensor<[1, 320, 1, 1]> input = ?","Tensor<[1, 320, 14, 14]> other = ?"
+278,"Tensor<[1, 784, 1, 1]> input = ?","Tensor<[1, 784, 7, 7]> other = ?"
+279,"Tensor<[1, 896, 1, 1]> input = ?","Tensor<[1, 896, 14, 14]> other = ?"
+280,"Tensor<[1, 2016, 1, 1]> input = ?","Tensor<[1, 2016, 7, 7]> other = ?"
+281,Tensor<[800]> input = ?,Tensor other = 0.6
+282,Tensor<[1066]> input = ?,Tensor other = 0.600375234521576
+283,"Tensor<[1, 3, 800, 1066]> input = ?","Tensor<[800, 1]> other = ?"
+284,"Tensor<[1, 3, 800, 1066]> input = ?",Tensor<[1066]> other = ?
+285,"Tensor<[1, 64, 400, 544]> input = ?","Tensor<[1, 64, 1, 1]> other = ?"
+286,"Tensor<[1, 64, 200, 272]> input = ?","Tensor<[1, 64, 1, 1]> other = ?"
+287,"Tensor<[1, 256, 200, 272]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+288,"Tensor<[1, 128, 200, 272]> input = ?","Tensor<[1, 128, 1, 1]> other = ?"
+289,"Tensor<[1, 128, 100, 136]> input = ?","Tensor<[1, 128, 1, 1]> other = ?"
+290,"Tensor<[1, 512, 100, 136]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+291,"Tensor<[1, 256, 100, 136]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+292,"Tensor<[1, 256, 50, 68]> input = ?","Tensor<[1, 256, 1, 1]> other = ?"
+293,"Tensor<[1, 1024, 50, 68]> input = ?","Tensor<[1, 1024, 1, 1]> other = ?"
+294,"Tensor<[1, 512, 50, 68]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+295,"Tensor<[1, 512, 25, 34]> input = ?","Tensor<[1, 512, 1, 1]> other = ?"
+296,"Tensor<[1, 2048, 25, 34]> input = ?","Tensor<[1, 2048, 1, 1]> other = ?"
+297,Tensor<[50]> input = ?,Tensor other = 0.5
+298,Tensor<[68]> input = ?,Tensor other = 0.5
+299,Tensor<[100]> input = ?,Tensor other = 0.5
+300,Tensor<[136]> input = ?,Tensor other = 0.5
+301,Tensor<[136]> input = ?,Tensor<[]> other = ?
+302,Tensor<[100]> input = ?,Tensor<[]> other = ?
+303,Tensor<[68]> input = ?,Tensor<[]> other = ?
+304,Tensor<[50]> input = ?,Tensor<[]> other = ?
+305,Tensor<[34]> input = ?,Tensor<[]> other = ?
+306,Tensor<[25]> input = ?,Tensor<[]> other = ?
+307,Tensor<[17]> input = ?,Tensor<[]> other = ?
+308,Tensor<[13]> input = ?,Tensor<[]> other = ?
+309,Tensor<[9]> input = ?,Tensor<[]> other = ?
+310,Tensor<[7]> input = ?,Tensor<[]> other = ?
+311,Tensor<[0]> input = ?,Tensor other = 0.5
+312,"Tensor<[0, 1]> input = ?","Tensor<[0, 1]> other = ?"
+313,Tensor<[]> input = ?,"Tensor<[0, 1]> other = ?"
+314,Tensor<[0]> input = ?,Tensor<[]> other = ?
+315,Tensor<[]> input = ?,"Tensor<[1, 24, 768]> other = ?"
+316,"Tensor<[1, 24, 768]> input = ?",Tensor other = 0.125
+317,"Tensor<[1, 1, 256]> input = ?",Tensor other = 1
+318,Tensor<[]> input = ?,"Tensor<[1, 1, 768]> other = ?"
+319,"Tensor<[1, 1, 768]> input = ?",Tensor other = 0.125
+320,"Tensor<[1, s0, 256]> input = ?",Tensor other = 1
+321,Tensor<[]> input = ?,"Tensor<[1, s0, 768]> other = ?"
+322,Tensor<[300]> input = ?,Tensor other = 1.6
+323,Tensor<[300]> input = ?,Tensor other = 2.1333333333333333
+324,"Tensor<[1, 3, 300, 300]> input = ?","Tensor<[300, 1]> other = ?"
+325,"Tensor<[1, 3, 300, 300]> input = ?",Tensor<[300]> other = ?
+326,"Tensor<[1, 512, 1, 1]> input = ?","Tensor<[1, 512, 38, 38]> other = ?"
+327,"Tensor<[8732, 2]> input = ?",Tensor other = 0.5
+328,"Tensor<[8732, 2]> input = ?",Tensor<[2]> other = ?
+329,Tensor<[8732]> input = ?,Tensor other = 0.5
+330,"Tensor<[8732, 1]> input = ?","Tensor<[8732, 1]> other = ?"
+331,Tensor<[]> input = ?,"Tensor<[8732, 1]> other = ?"
+332,Tensor<[12]> input = ?,Tensor<[]> other = ?
+333,Tensor<[320]> input = ?,Tensor other = 1.5
+334,Tensor<[320]> input = ?,Tensor other = 2.0
+335,"Tensor<[64, 4, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+336,"Tensor<[16, 8, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+337,"Tensor<[4, 16, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+338,"Tensor<[1, 32, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+339,"Tensor<[64, 3, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+340,"Tensor<[16, 6, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+341,"Tensor<[4, 12, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+342,"Tensor<[1, 24, 49, 32]> input = ?",Tensor other = 0.1767766952966369
+343,"Tensor<[1, 4, 64, 64]> input = ?",Tensor other = 16
+344,"Tensor<[64, 4, 64, 64]> input = ?","Tensor<[4, 1, 1]> other = ?"
+345,"Tensor<[1, 8, 64, 64]> input = ?",Tensor other = 16
+346,"Tensor<[16, 8, 64, 64]> input = ?","Tensor<[8, 1, 1]> other = ?"
+347,"Tensor<[1, 16, 64, 64]> input = ?",Tensor other = 16
+348,"Tensor<[4, 16, 64, 64]> input = ?","Tensor<[16, 1, 1]> other = ?"
+349,"Tensor<[1, 32, 64, 64]> input = ?",Tensor other = 16
+350,"Tensor<[1, 32, 64, 64]> input = ?","Tensor<[32, 1, 1]> other = ?"
+351,"Tensor<[1, 3, 64, 64]> input = ?",Tensor other = 16
+352,"Tensor<[64, 3, 64, 64]> input = ?","Tensor<[3, 1, 1]> other = ?"
+353,"Tensor<[1, 6, 64, 64]> input = ?",Tensor other = 16
+354,"Tensor<[16, 6, 64, 64]> input = ?","Tensor<[6, 1, 1]> other = ?"
+355,"Tensor<[1, 12, 64, 64]> input = ?",Tensor other = 16
+356,"Tensor<[4, 12, 64, 64]> input = ?","Tensor<[12, 1, 1]> other = ?"
+357,"Tensor<[1, 24, 64, 64]> input = ?",Tensor other = 16
+358,"Tensor<[1, 24, 64, 64]> input = ?","Tensor<[24, 1, 1]> other = ?"
+359,"Tensor<[1, 10, 768]> input = ?","Tensor<[1, 10, 1]> other = ?"
+360,Tensor<[768]> input = ?,"Tensor<[1, 10, 768]> other = ?"
+361,"Tensor<[10, 10]> input = ?",Tensor other = 16
+362,"Tensor<[10, 10]> input = ?",Tensor other = 8
+363,"Tensor<[1, 1, 768]> input = ?","Tensor<[1, 1, 1]> other = ?"
+364,Tensor<[768]> input = ?,"Tensor<[1, 1, 768]> other = ?"
+365,"Tensor<[1, 1, 768]> input = ?",Tensor other = 0.03608439182435161
+366,"Tensor<[1, 10, 1024]> input = ?","Tensor<[1, 10, 1]> other = ?"
+367,Tensor<[1024]> input = ?,"Tensor<[1, 10, 1024]> other = ?"
+368,"Tensor<[1, 1, 1024]> input = ?","Tensor<[1, 1, 1]> other = ?"
+369,Tensor<[1024]> input = ?,"Tensor<[1, 1, 1024]> other = ?"
+370,"Tensor<[1, 1, 1024]> input = ?",Tensor other = 0.03125
+371,"Tensor<[1, 10, 512]> input = ?","Tensor<[1, 10, 1]> other = ?"
+372,Tensor<[512]> input = ?,"Tensor<[1, 10, 512]> other = ?"
+373,"Tensor<[1, 1, 512]> input = ?",Tensor other = 0.04419417382415922
+374,"Tensor<[1, 9, 3072]> input = ?",Tensor other = 0.5
+375,"Tensor<[1, 9, 3072]> input = ?",Tensor other = 0.044715
+376,"Tensor<[1, 9, 3072]> input = ?",Tensor other = 0.7978845608028654
+377,"Tensor<[1, 9, 3072]> input = ?","Tensor<[1, 9, 3072]> other = ?"
+378,"Tensor<[1, 1, 1, 14]> input = ?",Tensor other = -3.4028234663852886e+38
+379,"Tensor<[1, 14, 3072]> input = ?",Tensor other = 0.5
+380,"Tensor<[1, 14, 3072]> input = ?",Tensor other = 0.044715
+381,"Tensor<[1, 14, 3072]> input = ?",Tensor other = 0.7978845608028654
+382,"Tensor<[1, 14, 3072]> input = ?","Tensor<[1, 14, 3072]> other = ?"

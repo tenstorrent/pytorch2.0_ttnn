@@ -1,0 +1,14 @@
+Variation #,Input,Size,Pin Memory
+0,"Tensor<[1, 19]> input = ?","List[int] size = [1, 19]",Optional[bool] pin_memory = False
+1,"Tensor<[64, 49, 128]> input = ?","List[int] size = [56, 56]",Optional[bool] pin_memory = False
+2,"Tensor<[16, 49, 256]> input = ?","List[int] size = [28, 28]",Optional[bool] pin_memory = False
+3,"Tensor<[4, 49, 512]> input = ?","List[int] size = [14, 14]",Optional[bool] pin_memory = False
+4,"Tensor<[64, 49, 96]> input = ?","List[int] size = [56, 56]",Optional[bool] pin_memory = False
+5,"Tensor<[16, 49, 192]> input = ?","List[int] size = [28, 28]",Optional[bool] pin_memory = False
+6,"Tensor<[4, 49, 384]> input = ?","List[int] size = [14, 14]",Optional[bool] pin_memory = False
+7,"Tensor<[64, 64, 128]> input = ?","List[int] size = [64, 64]",Optional[bool] pin_memory = False
+8,"Tensor<[16, 64, 256]> input = ?","List[int] size = [32, 32]",Optional[bool] pin_memory = False
+9,"Tensor<[4, 64, 512]> input = ?","List[int] size = [16, 16]",Optional[bool] pin_memory = False
+10,"Tensor<[64, 64, 96]> input = ?","List[int] size = [64, 64]",Optional[bool] pin_memory = False
+11,"Tensor<[16, 64, 192]> input = ?","List[int] size = [32, 32]",Optional[bool] pin_memory = False
+12,"Tensor<[4, 64, 384]> input = ?","List[int] size = [16, 16]",Optional[bool] pin_memory = False

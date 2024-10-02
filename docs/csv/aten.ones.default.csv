@@ -1,0 +1,11 @@
+Variation #,Size,Dtype,Device,Pin Memory,Layout
+0,"List[int] size = [1, 720, 1280]",Optional[int] dtype = torch.bool,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+1,"List[int] size = [1, 1]",Optional[int] dtype = torch.int64,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+2,"List[int] size = [1, 1]",,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+3,"List[int] size = [1, 2]",,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+4,"List[int] size = [1, 1, 1]",Optional[int] dtype = torch.float32,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+5,"List[int] size = [1, <s0 + 1>]",,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+6,"List[int] size = [1, 1, <s0>]",Optional[int] dtype = torch.float32,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+7,"List[int] size = [1, 1, 16]",Optional[int] dtype = torch.float32,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+8,"List[int] size = [1, 1, <s0 - 1>]",Optional[int] dtype = torch.float32,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+9,"List[int] size = [7, 7]",Optional[int] dtype = torch.bool,Optional[Device] device = cpu,,Optional[int] layout = torch.strided

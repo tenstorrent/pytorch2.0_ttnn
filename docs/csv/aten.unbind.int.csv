@@ -1,0 +1,4 @@
+Variation #,Input,Dim
+0,"Tensor<[300, 4]> input = ?",int dim = 1
+1,"Tensor<[0, 4]> input = ?",int dim = 1
+2,"Tensor<[12, 4]> input = ?",int dim = 1

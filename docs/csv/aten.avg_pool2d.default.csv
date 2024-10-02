@@ -1,0 +1,17 @@
+Variation #,Input,Kernel Size,Stride,Padding,Ceil Mode,Count Include Pad
+0,"Tensor<[1, 128, 56, 56]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+1,"Tensor<[1, 256, 28, 28]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+2,"Tensor<[1, 512, 14, 14]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+3,"Tensor<[1, 192, 56, 56]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+4,"Tensor<[1, 384, 28, 28]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+5,"Tensor<[1, 1056, 14, 14]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+6,"Tensor<[1, 640, 14, 14]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+7,"Tensor<[1, 896, 14, 14]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+8,"Tensor<[1, 24, 56, 56]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+9,"Tensor<[1, 40, 28, 28]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+10,"Tensor<[1, 80, 14, 14]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+11,"Tensor<[1, 112, 14, 14]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+12,"Tensor<[1, 160, 7, 7]> input = ?","List[int] kernel_size = [2, 2]","List[int] stride = [2, 2]",,,
+13,"Tensor<[1, 384, 35, 35]> input = ?","List[int] kernel_size = [3, 3]","List[int] stride = [1, 1]","List[int] padding = [1, 1]",bool ceil_mode = False,bool count_include_pad = False
+14,"Tensor<[1, 1024, 17, 17]> input = ?","List[int] kernel_size = [3, 3]","List[int] stride = [1, 1]","List[int] padding = [1, 1]",bool ceil_mode = False,bool count_include_pad = False
+15,"Tensor<[1, 1536, 8, 8]> input = ?","List[int] kernel_size = [3, 3]","List[int] stride = [1, 1]","List[int] padding = [1, 1]",bool ceil_mode = False,bool count_include_pad = False

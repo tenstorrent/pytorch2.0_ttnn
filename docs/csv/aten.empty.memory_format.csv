@@ -1,0 +1,3 @@
+Variation #,Size,Dtype,Device,Pin Memory
+0,List[int] size = [],Optional[int] dtype = torch.int64,Optional[Device] device = cpu,Optional[bool] pin_memory = False
+1,List[int] size = [0],Optional[int] dtype = torch.int64,Optional[Device] device = cpu,Optional[bool] pin_memory = False

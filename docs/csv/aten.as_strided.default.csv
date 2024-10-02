@@ -1,0 +1,3 @@
+Variation #,Input,Size,Stride
+0,"Tensor<[1, 1024, 1, 1]> input = ?","List[int] size = [1, 1024, 1, 1]","List[int] stride = [1024, 1, 1024, 1024]"
+1,"Tensor<[1, 768, 1, 1]> input = ?","List[int] size = [1, 768, 1, 1]","List[int] stride = [768, 1, 768, 768]"

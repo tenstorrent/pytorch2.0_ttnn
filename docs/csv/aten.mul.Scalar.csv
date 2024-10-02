@@ -1,0 +1,3 @@
+Variation #,Input,Other
+0,"Tensor<[1, 71, 7, 64]> input = ?",number other = 0.3535533905932738
+1,"Tensor<[1, 1, 64, 7]> input = ?",number other = 0.3535533905932738

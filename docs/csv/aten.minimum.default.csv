@@ -1,0 +1,7 @@
+Variation #,Input,Other
+0,"Tensor<[15, 15]> input = ?","Tensor<[15, 15]> other = ?"
+1,"Tensor<[1, 1]> input = ?","Tensor<[1, 1]> other = ?"
+2,"Tensor<[2, 2]> input = ?","Tensor<[2, 2]> other = ?"
+3,"Tensor<[s0 + 1, s0 + 1]> input = ?","Tensor<[s0 + 1, s0 + 1]> other = ?"
+4,"Tensor<[17, 17]> input = ?","Tensor<[17, 17]> other = ?"
+5,"Tensor<[10, 10]> input = ?","Tensor<[10, 10]> other = ?"

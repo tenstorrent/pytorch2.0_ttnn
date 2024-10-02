@@ -1,0 +1,2 @@
+Variation #,Input,Dim,Index
+0,"Tensor<[2050, 1024]> input = ?",int dim = 0,Tensor<[19]> index = ?

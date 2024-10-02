@@ -1,0 +1,4 @@
+Variation #,Input,Dim
+0,"Tensor<[2, 7]> input = ?",Optional[int] dim = -1
+1,"Tensor<[1, 7]> input = ?",Optional[int] dim = -1
+2,"Tensor<[1, 51865]> input = ?",Optional[int] dim = -1

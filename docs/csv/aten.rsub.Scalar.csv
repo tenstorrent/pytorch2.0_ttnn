@@ -1,0 +1,51 @@
+Variation #,Input,Other
+0,"Tensor<[1, 1, 1, 256]> input = ?",number<> other = 1.0
+1,"Tensor<[1, 1, 32, 32]> input = ?",number other = 1.0
+2,"Tensor<[2, 1, 7, 7]> input = ?",number other = 1.0
+3,"Tensor<[1, 1, 1, 25]> input = ?",number other = 1.0
+4,"Tensor<[1, 1, 1, 15]> input = ?",number other = 1.0
+5,"Tensor<[1, 1, 1, 1]> input = ?",number other = 1.0
+6,"Tensor<[1, 1, 1, 2]> input = ?",number other = 1.0
+7,"Tensor<[1, 1, 1, s0 + 1]> input = ?",number other = 1.0
+8,"Tensor<[1, 1, 1, 17]> input = ?",number other = 1.0
+9,"Tensor<[1, 1, 1, s0]> input = ?",number other = 1.0
+10,"Tensor<[30, 1]> input = ?",number other = 1.0
+11,Tensor<[40]> input = ?,number other = 1.0
+12,"Tensor<[60, 1]> input = ?",number other = 1.0
+13,Tensor<[80]> input = ?,number other = 1.0
+14,"Tensor<[120, 1]> input = ?",number other = 1.0
+15,Tensor<[160]> input = ?,number other = 1.0
+16,"Tensor<[240, 1]> input = ?",number other = 1.0
+17,Tensor<[320]> input = ?,number other = 1.0
+18,"Tensor<[480, 1]> input = ?",number other = 1.0
+19,Tensor<[640]> input = ?,number other = 1.0
+20,"Tensor<[1, 1, 1, 7]> input = ?",number other = 1.0
+21,"Tensor<[1, 1, 45, 45]> input = ?",number other = 1.0
+22,"Tensor<[1, 1, 1, 46]> input = ?",number other = 1.0
+23,"Tensor<[1, 1, 1, s10 + 1]> input = ?",number other = 1.0
+24,"Tensor<[320, 1]> input = ?",number other = 1.0
+25,"Tensor<[1, 1, 59, 59]> input = ?",number other = 1.0
+26,"Tensor<[1, 1, 1, 60]> input = ?",number other = 1.0
+27,"Tensor<[1, 1, 1, 2048]> input = ?",number other = 1.0
+28,"Tensor<[1, 1, 1, 10]> input = ?",number other = 1.0
+29,"Tensor<[128, 1]> input = ?",number other = 1.0
+30,Tensor<[128]> input = ?,number other = 1.0
+31,"Tensor<[1, 1, 1, 8]> input = ?",number other = 1.0
+32,"Tensor<[1, 192]> input = ?",number other = 1
+33,"Tensor<[1, 1, 1, 201]> input = ?",number other = 1.0
+34,"Tensor<[1, 1, 19, 19]> input = ?",number other = 1.0
+35,"Tensor<[1, 1, 1, 42]> input = ?",number other = 1.0
+36,"Tensor<[1, 1, 1, 42]> input = ?",number other = 2.0
+37,"Tensor<[1, 1, 32, 1]> input = ?",number other = 1.0
+38,"Tensor<[1, 1, 32, 1]> input = ?",number other = 2.0
+39,"Tensor<[1, 1, 1, 12]> input = ?",number other = 1.0
+40,"Tensor<[1, 1, 1, 9]> input = ?",number other = 1.0
+41,"Tensor<[1, 1, 1, 5]> input = ?",number other = 1.0
+42,"Tensor<[1, 1, 1, 6]> input = ?",number other = 1.0
+43,"Tensor<[800, 1]> input = ?",number other = 1.0
+44,Tensor<[1066]> input = ?,number other = 1.0
+45,"Tensor<[1, 1, 24, 24]> input = ?",number other = 1.0
+46,"Tensor<[1, 1, 1, 24]> input = ?",number other = 1.0
+47,"Tensor<[300, 1]> input = ?",number other = 1.0
+48,Tensor<[300]> input = ?,number other = 1.0
+49,"Tensor<[1, 1, 1, 14]> input = ?",number other = 1.0

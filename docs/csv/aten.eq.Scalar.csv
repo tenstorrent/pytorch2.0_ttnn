@@ -1,0 +1,14 @@
+Variation #,Input,Other
+0,"Tensor<[1, 7]> input = ?",number other = 1
+1,"Tensor<[1, 7]> input = ?",number other = 50256
+2,Tensor<[1]> input = ?,number other = 50256
+3,Tensor<[1]> input = ?,number other = 1
+4,"Tensor<[1, 16]> input = ?",number other = 0
+5,"Tensor<[1, 1, 256]> input = ?",number other = 1
+6,"Tensor<[1, s0, 256]> input = ?",number other = 1
+7,"Tensor<[64, 49, 49]> input = ?",number other = 0
+8,"Tensor<[16, 49, 49]> input = ?",number other = 0
+9,"Tensor<[4, 49, 49]> input = ?",number other = 0
+10,"Tensor<[64, 64, 64]> input = ?",number other = 0
+11,"Tensor<[16, 64, 64]> input = ?",number other = 0
+12,"Tensor<[4, 64, 64]> input = ?",number other = 0

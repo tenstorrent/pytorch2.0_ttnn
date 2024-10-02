@@ -1,0 +1,19 @@
+Variation #,Input,Src,Dim,Start,End
+0,"Tensor<[1, 16, 112, 112]> input = ?","Tensor<[1, 16, 112, 112]> src = ?",int dim = 3,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+1,"Tensor<[1, 16, 112, 112]> input = ?","Tensor<[1, 16, 112, 112]> src = ?",int dim = 2,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+2,"Tensor<[1, 16, 112, 112]> input = ?","Tensor<[1, 16, 112, 112]> src = ?",int dim = 0,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+3,"Tensor<[1, 24, 56, 56]> input = ?","Tensor<[1, 24, 56, 56]> src = ?",int dim = 3,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+4,"Tensor<[1, 24, 56, 56]> input = ?","Tensor<[1, 24, 56, 56]> src = ?",int dim = 2,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+5,"Tensor<[1, 24, 56, 56]> input = ?","Tensor<[1, 24, 56, 56]> src = ?",int dim = 0,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+6,"Tensor<[1, 40, 28, 28]> input = ?","Tensor<[1, 40, 28, 28]> src = ?",int dim = 3,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+7,"Tensor<[1, 40, 28, 28]> input = ?","Tensor<[1, 40, 28, 28]> src = ?",int dim = 2,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+8,"Tensor<[1, 40, 28, 28]> input = ?","Tensor<[1, 40, 28, 28]> src = ?",int dim = 0,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+9,"Tensor<[1, 80, 14, 14]> input = ?","Tensor<[1, 80, 14, 14]> src = ?",int dim = 3,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+10,"Tensor<[1, 80, 14, 14]> input = ?","Tensor<[1, 80, 14, 14]> src = ?",int dim = 2,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+11,"Tensor<[1, 80, 14, 14]> input = ?","Tensor<[1, 80, 14, 14]> src = ?",int dim = 0,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+12,"Tensor<[1, 112, 14, 14]> input = ?","Tensor<[1, 112, 14, 14]> src = ?",int dim = 3,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+13,"Tensor<[1, 112, 14, 14]> input = ?","Tensor<[1, 112, 14, 14]> src = ?",int dim = 2,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+14,"Tensor<[1, 112, 14, 14]> input = ?","Tensor<[1, 112, 14, 14]> src = ?",int dim = 0,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+15,"Tensor<[1, 160, 7, 7]> input = ?","Tensor<[1, 160, 7, 7]> src = ?",int dim = 3,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+16,"Tensor<[1, 160, 7, 7]> input = ?","Tensor<[1, 160, 7, 7]> src = ?",int dim = 2,Optional[int] start = 0,Optional[int] end = 9223372036854775807
+17,"Tensor<[1, 160, 7, 7]> input = ?","Tensor<[1, 160, 7, 7]> src = ?",int dim = 0,Optional[int] start = 0,Optional[int] end = 9223372036854775807

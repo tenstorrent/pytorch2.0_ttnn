@@ -1,0 +1,7 @@
+Variation #,Input,Size,Pin Memory
+0,"Tensor<[1, 45]> input = ?","List[int] size = [1, 1]",Optional[bool] pin_memory = False
+1,"Tensor<[1, s24]> input = ?","List[int] size = [1, 1]",Optional[bool] pin_memory = False
+2,"Tensor<[1, 59]> input = ?","List[int] size = [1, 1]",Optional[bool] pin_memory = False
+3,"Tensor<[1, s48]> input = ?","List[int] size = [1, 1]",Optional[bool] pin_memory = False
+4,"Tensor<[1, 5]> input = ?","List[int] size = [1, 1]",Optional[bool] pin_memory = False
+5,"Tensor<[1, s40]> input = ?","List[int] size = [1, 1]",Optional[bool] pin_memory = False

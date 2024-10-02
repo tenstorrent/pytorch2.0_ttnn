@@ -1,0 +1,2 @@
+Variation #,Grad Output,Input,Kernel Size,Stride,Padding,Dilation,Ceil Mode,Indices
+0,"Tensor<[1, 64, 12, 12]> grad_output = ?","Tensor<[1, 64, 24, 24]> input = ?","List[int] kernel_size = [2, 2]",List[int] stride = [],"List[int] padding = [0, 0]","List[int] dilation = [1, 1]",bool ceil_mode = False,"Tensor<[1, 64, 12, 12]> indices = ?"

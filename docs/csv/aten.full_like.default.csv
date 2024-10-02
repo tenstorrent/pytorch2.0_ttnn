@@ -1,0 +1,8 @@
+Variation #,Input,Fill Value,Pin Memory,Dtype,Device
+0,"Tensor<[15, 15]> input = ?",number fill_value = 15,Optional[bool] pin_memory = False,,
+1,"Tensor<[1, 1]> input = ?",number fill_value = 31,Optional[bool] pin_memory = False,,
+2,"Tensor<[2, 2]> input = ?",number fill_value = 31,Optional[bool] pin_memory = False,,
+3,"Tensor<[s0 + 1, s0 + 1]> input = ?",number fill_value = 31,Optional[bool] pin_memory = False,,
+4,"Tensor<[17, 17]> input = ?",number fill_value = 31,Optional[bool] pin_memory = False,,
+5,"Tensor<[1, 193]> input = ?",number fill_value = 1,Optional[bool] pin_memory = False,Optional[int] dtype = torch.int64,Optional[Device] device = cpu
+6,"Tensor<[10, 10]> input = ?",number fill_value = 15,Optional[bool] pin_memory = False,,

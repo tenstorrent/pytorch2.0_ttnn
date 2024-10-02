@@ -1,0 +1,3 @@
+Variation #,Input,Dim,Half To Float
+0,"Tensor<[1, 10]> input = ?",int dim = 1,bool half_to_float = False
+1,"Tensor<[19, 256008]> input = ?",int dim = 1,bool half_to_float = False

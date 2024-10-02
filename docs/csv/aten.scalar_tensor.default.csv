@@ -1,0 +1,2 @@
+Variation #,S,Dtype,Layout,Device
+0,number s = 0,Optional[int] dtype = torch.float32,Optional[int] layout = torch.strided,Optional[Device] device = cpu

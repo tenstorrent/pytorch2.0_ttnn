@@ -1,0 +1,2 @@
+Variation #,Input,Mask,Value
+0,"Tensor<[1, 12, 16, 16]> input = ?","Tensor<[1, 12, 16, 16]> mask = ?",Tensor<[]> value = ?

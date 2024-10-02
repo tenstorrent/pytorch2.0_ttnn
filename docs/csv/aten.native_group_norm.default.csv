@@ -1,0 +1,24 @@
+Variation #,Input,Weight,Bias,N,C,Hxw,Group,Eps
+0,"Tensor<[1, 320, 64, 64]> input = ?",Optional[Tensor]<[320]> weight = ?,Optional[Tensor]<[320]> bias = ?,int N = 1,int C = 320,int HxW = 4096,int group = 32,float eps = 1e-05
+1,"Tensor<[1, 320, 64, 64]> input = ?",Optional[Tensor]<[320]> weight = ?,Optional[Tensor]<[320]> bias = ?,int N = 1,int C = 320,int HxW = 4096,int group = 32,float eps = 1e-06
+2,"Tensor<[1, 320, 32, 32]> input = ?",Optional[Tensor]<[320]> weight = ?,Optional[Tensor]<[320]> bias = ?,int N = 1,int C = 320,int HxW = 1024,int group = 32,float eps = 1e-05
+3,"Tensor<[1, 640, 32, 32]> input = ?",Optional[Tensor]<[640]> weight = ?,Optional[Tensor]<[640]> bias = ?,int N = 1,int C = 640,int HxW = 1024,int group = 32,float eps = 1e-05
+4,"Tensor<[1, 640, 32, 32]> input = ?",Optional[Tensor]<[640]> weight = ?,Optional[Tensor]<[640]> bias = ?,int N = 1,int C = 640,int HxW = 1024,int group = 32,float eps = 1e-06
+5,"Tensor<[1, 640, 16, 16]> input = ?",Optional[Tensor]<[640]> weight = ?,Optional[Tensor]<[640]> bias = ?,int N = 1,int C = 640,int HxW = 256,int group = 32,float eps = 1e-05
+6,"Tensor<[1, 1280, 16, 16]> input = ?",Optional[Tensor]<[1280]> weight = ?,Optional[Tensor]<[1280]> bias = ?,int N = 1,int C = 1280,int HxW = 256,int group = 32,float eps = 1e-05
+7,"Tensor<[1, 1280, 16, 16]> input = ?",Optional[Tensor]<[1280]> weight = ?,Optional[Tensor]<[1280]> bias = ?,int N = 1,int C = 1280,int HxW = 256,int group = 32,float eps = 1e-06
+8,"Tensor<[1, 1280, 8, 8]> input = ?",Optional[Tensor]<[1280]> weight = ?,Optional[Tensor]<[1280]> bias = ?,int N = 1,int C = 1280,int HxW = 64,int group = 32,float eps = 1e-05
+9,"Tensor<[1, 1280, 8, 8]> input = ?",Optional[Tensor]<[1280]> weight = ?,Optional[Tensor]<[1280]> bias = ?,int N = 1,int C = 1280,int HxW = 64,int group = 32,float eps = 1e-06
+10,"Tensor<[1, 2560, 8, 8]> input = ?",Optional[Tensor]<[2560]> weight = ?,Optional[Tensor]<[2560]> bias = ?,int N = 1,int C = 2560,int HxW = 64,int group = 32,float eps = 1e-05
+11,"Tensor<[1, 2560, 16, 16]> input = ?",Optional[Tensor]<[2560]> weight = ?,Optional[Tensor]<[2560]> bias = ?,int N = 1,int C = 2560,int HxW = 256,int group = 32,float eps = 1e-05
+12,"Tensor<[1, 1920, 16, 16]> input = ?",Optional[Tensor]<[1920]> weight = ?,Optional[Tensor]<[1920]> bias = ?,int N = 1,int C = 1920,int HxW = 256,int group = 32,float eps = 1e-05
+13,"Tensor<[1, 1920, 32, 32]> input = ?",Optional[Tensor]<[1920]> weight = ?,Optional[Tensor]<[1920]> bias = ?,int N = 1,int C = 1920,int HxW = 1024,int group = 32,float eps = 1e-05
+14,"Tensor<[1, 1280, 32, 32]> input = ?",Optional[Tensor]<[1280]> weight = ?,Optional[Tensor]<[1280]> bias = ?,int N = 1,int C = 1280,int HxW = 1024,int group = 32,float eps = 1e-05
+15,"Tensor<[1, 960, 32, 32]> input = ?",Optional[Tensor]<[960]> weight = ?,Optional[Tensor]<[960]> bias = ?,int N = 1,int C = 960,int HxW = 1024,int group = 32,float eps = 1e-05
+16,"Tensor<[1, 960, 64, 64]> input = ?",Optional[Tensor]<[960]> weight = ?,Optional[Tensor]<[960]> bias = ?,int N = 1,int C = 960,int HxW = 4096,int group = 32,float eps = 1e-05
+17,"Tensor<[1, 640, 64, 64]> input = ?",Optional[Tensor]<[640]> weight = ?,Optional[Tensor]<[640]> bias = ?,int N = 1,int C = 640,int HxW = 4096,int group = 32,float eps = 1e-05
+18,"Tensor<[1, 256, 100, 136]> input = ?",Optional[Tensor]<[256]> weight = ?,Optional[Tensor]<[256]> bias = ?,int N = 1,int C = 256,int HxW = 13600,int group = 32,float eps = 1e-05
+19,"Tensor<[1, 256, 50, 68]> input = ?",Optional[Tensor]<[256]> weight = ?,Optional[Tensor]<[256]> bias = ?,int N = 1,int C = 256,int HxW = 3400,int group = 32,float eps = 1e-05
+20,"Tensor<[1, 256, 25, 34]> input = ?",Optional[Tensor]<[256]> weight = ?,Optional[Tensor]<[256]> bias = ?,int N = 1,int C = 256,int HxW = 850,int group = 32,float eps = 1e-05
+21,"Tensor<[1, 256, 13, 17]> input = ?",Optional[Tensor]<[256]> weight = ?,Optional[Tensor]<[256]> bias = ?,int N = 1,int C = 256,int HxW = 221,int group = 32,float eps = 1e-05
+22,"Tensor<[1, 256, 7, 9]> input = ?",Optional[Tensor]<[256]> weight = ?,Optional[Tensor]<[256]> bias = ?,int N = 1,int C = 256,int HxW = 63,int group = 32,float eps = 1e-05

@@ -1,0 +1,2 @@
+Variation #,Input,Target,Weight,Reduction,Ignore Index
+0,"Tensor<[19, 256008]> input = ?",Tensor<[19]> target = ?,Optional[Tensor] weight = ?,int reduction = 1,int ignore_index = -100

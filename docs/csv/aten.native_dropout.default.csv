@@ -1,0 +1,8 @@
+Variation #,Input,P,Train
+0,"Tensor<[8, 920, 920]> input = ?",float p = 0.1,Optional[bool] train = True
+1,"Tensor<[920, 1, 256]> input = ?",float p = 0.1,Optional[bool] train = True
+2,"Tensor<[920, 1, 2048]> input = ?",float p = 0.1,Optional[bool] train = True
+3,"Tensor<[8, 100, 100]> input = ?",float p = 0.1,Optional[bool] train = True
+4,"Tensor<[100, 1, 256]> input = ?",float p = 0.1,Optional[bool] train = True
+5,"Tensor<[8, 100, 920]> input = ?",float p = 0.1,Optional[bool] train = True
+6,"Tensor<[100, 1, 2048]> input = ?",float p = 0.1,Optional[bool] train = True

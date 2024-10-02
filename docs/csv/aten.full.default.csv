@@ -1,0 +1,8 @@
+Variation #,Size,Fill Value,Device,Pin Memory,Dtype
+0,"List[int] size = [32, 32]",number fill_value = -3.3895313892515355e+38,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+1,"List[int] size = [7, 7]",number fill_value = -3.3895313892515355e+38,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+2,List[int] size = [],number fill_value = 8.0,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.bfloat16
+3,List[int] size = [],number fill_value = -3.3895313892515355e+38,Optional[Device] device = cpu,Optional[bool] pin_memory = False,Optional[int] dtype = torch.bfloat16
+4,"List[int] size = [45, 45]",number fill_value = -3.4028234663852886e+38,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+5,"List[int] size = [59, 59]",number fill_value = -3.4028234663852886e+38,Optional[Device] device = cpu,Optional[bool] pin_memory = False,
+6,"List[int] size = [19, 19]",number fill_value = -3.4028234663852886e+38,Optional[Device] device = cpu,Optional[bool] pin_memory = False,

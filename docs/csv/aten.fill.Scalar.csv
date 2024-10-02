@@ -1,0 +1,8 @@
+Variation #,Input,Value
+0,Tensor<[]> input = ?,number value = 8
+1,Tensor<[]> input = ?,number value = 16
+2,Tensor<[]> input = ?,number value = 32
+3,Tensor<[]> input = ?,number value = 61
+4,Tensor<[]> input = ?,number value = 64
+5,Tensor<[]> input = ?,number value = 114
+6,Tensor<[]> input = ?,number value = 120

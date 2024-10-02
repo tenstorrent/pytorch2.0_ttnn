@@ -1,0 +1,11 @@
+Variation #,Input,Weight,Bias,Running Mean,Running Var,Training,Momentum,Eps
+0,"Tensor<[1, 32, 256, 256]> input = ?",Optional[Tensor]<[32]> weight = ?,Optional[Tensor]<[32]> bias = ?,Tensor<[32]> running_mean = ?,Tensor<[32]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+1,"Tensor<[1, 64, 128, 128]> input = ?",Optional[Tensor]<[64]> weight = ?,Optional[Tensor]<[64]> bias = ?,Tensor<[64]> running_mean = ?,Tensor<[64]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+2,"Tensor<[1, 128, 64, 64]> input = ?",Optional[Tensor]<[128]> weight = ?,Optional[Tensor]<[128]> bias = ?,Tensor<[128]> running_mean = ?,Tensor<[128]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+3,"Tensor<[1, 256, 32, 32]> input = ?",Optional[Tensor]<[256]> weight = ?,Optional[Tensor]<[256]> bias = ?,Tensor<[256]> running_mean = ?,Tensor<[256]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+4,"Tensor<[1, 512, 16, 16]> input = ?",Optional[Tensor]<[512]> weight = ?,Optional[Tensor]<[512]> bias = ?,Tensor<[512]> running_mean = ?,Tensor<[512]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+5,"Tensor<[1, 64, 224, 224]> input = ?",Optional[Tensor]<[64]> weight = ?,Optional[Tensor]<[64]> bias = ?,Tensor<[64]> running_mean = ?,Tensor<[64]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+6,"Tensor<[1, 128, 112, 112]> input = ?",Optional[Tensor]<[128]> weight = ?,Optional[Tensor]<[128]> bias = ?,Tensor<[128]> running_mean = ?,Tensor<[128]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+7,"Tensor<[1, 256, 56, 56]> input = ?",Optional[Tensor]<[256]> weight = ?,Optional[Tensor]<[256]> bias = ?,Tensor<[256]> running_mean = ?,Tensor<[256]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+8,"Tensor<[1, 512, 28, 28]> input = ?",Optional[Tensor]<[512]> weight = ?,Optional[Tensor]<[512]> bias = ?,Tensor<[512]> running_mean = ?,Tensor<[512]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05
+9,"Tensor<[1, 1024, 14, 14]> input = ?",Optional[Tensor]<[1024]> weight = ?,Optional[Tensor]<[1024]> bias = ?,Tensor<[1024]> running_mean = ?,Tensor<[1024]> running_var = ?,bool training = True,float momentum = 0.1,float eps = 1e-05

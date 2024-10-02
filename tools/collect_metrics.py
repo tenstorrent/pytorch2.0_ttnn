@@ -11,6 +11,8 @@ from tools.data_collection import pydantic_models
 from enum import Enum
 import string
 import warnings
+import re
+import csv
 
 # Map dictionary keys from metrics to header descriptions
 csv_header_mappings = {
@@ -187,10 +189,35 @@ class InputVarPerOp(defaultdict):
                 "Status": [string.capwords(x.name) for x in sort_by_opname.values()],
             }
 
+    def write_to_csv(self):
+        for op, inputs in self.csv.items():
+            csv_dir = Path("docs/csv")
+            csv_dir.mkdir(parents=True, exist_ok=True)
+            csv_file = csv_dir / f"{op}.csv"
+            with open(csv_file, "w") as outfile:
+                # find header
+                d = {}
+                for i in inputs:
+                    d.update(i)
+                header = list(d.keys())
+                for d in inputs:
+                    for i in header:
+                        if i not in d:
+                            d[i] = "None"
+
+                writer = csv.DictWriter(outfile, fieldnames=header)
+                writer.writeheader()
+                writer.writerows(inputs)
+
+            df = pd.read_csv(csv_file)
+            df.rename(columns=lambda x: x.replace("_", " ").title(), inplace=True)
+            df.to_csv(csv_file, index=True, index_label="Variation #")
+
     def __init__(self, original_schema_metrics={}, compiled_schema_metrics={}, compiled_run_success: bool = False):
         super(InputVarPerOp, self).__init__(self.InputVarStatus)
         self.ops_dir = "operations"
         self.compiled_run_success = compiled_run_success
+        self.csv = {}
 
         def _join_br(str_list: list):
             # Separate each input with a line-break, <br>
@@ -202,8 +229,23 @@ class InputVarPerOp(defaultdict):
                 opname = op["opname"]
                 inputs = _join_br(op["inputs"])
                 self[opname][inputs]
-                if opname == "aten.cat.default":
-                    print(op)
+
+                if str(opname) not in self.csv:
+                    self.csv[str(opname)] = []
+
+                entry = {}
+                for input in op["inputs"]:
+                    # replace "self" with "input"
+                    input = input.replace("self", "input")
+                    var_name = re.search("[^(,\s]+(?=\s*=)", input)
+                    if var_name:
+                        entry[var_name[0]] = input
+                    else:
+                        raise
+
+                if entry not in self.csv[str(opname)]:
+                    self.csv[str(opname)].append(entry)
+
             # If exist, map converted ops to the original op
             if compiled_schema_metrics:
                 # Hold ops that require revisiting the original dict to determine the status
@@ -213,8 +255,7 @@ class InputVarPerOp(defaultdict):
                         opname = op["opname"]
                         original_opname = op["original_inputs"]["opname"]
                         original_inputs = _join_br(op["original_inputs"]["inputs"])
-                        if opname == "aten.cat.default":
-                            print(op)
+
                         # NOTE(kevinwuTT): Some ttnn ops are wrapped, so they have no `ttnn` prefix. Should this be more strict?
                         if opname != original_opname:
                             # Some aten ops are converted to other aten ops
@@ -270,6 +311,13 @@ class InputVarPerOp(defaultdict):
                 # Don't overwrite existing with UNKNOWN status
                 if self[opname][input] == ConversionStatus.UNKNOWN:
                     self[opname][input] = status
+
+        for opname, inputs in other.csv.items():
+            if opname not in self.csv:
+                self.csv[opname] = []
+            for item in inputs:
+                if item not in self.csv[opname]:
+                    self.csv[opname].append(item)
 
     def sorted(self):
         return dict(sorted(self.items()))
@@ -517,6 +565,8 @@ if __name__ == "__main__":
 
     # Write cumulative input variations to file
     cumulative_input_vars.write_md_for_cumulative_report()
+
+    cumulative_input_vars.write_to_csv()
 
     # Write collected metrics to README
     write_to_readme(all_metrics, aten_ops_per_model)

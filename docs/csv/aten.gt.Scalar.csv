@@ -1,0 +1,4 @@
+Variation #,Input,Other
+0,"Tensor<[15, 15]> input = ?",number other = 0
+1,Tensor<[]> input = ?,number other = 0
+2,"Tensor<[10, 10]> input = ?",number other = 0

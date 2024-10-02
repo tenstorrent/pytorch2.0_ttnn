@@ -1,0 +1,25 @@
+Variation #,Input,Indices
+0,"Tensor<[2, 7, 512]> input = ?","List[Optional[Tensor]] indices = [<[2]>, <[2]>]"
+1,"Tensor<[1, 7, 73, 64]> input = ?","List[Optional[Tensor]] indices = [None, None, <[1]>]"
+2,"Tensor<[7, 64]> input = ?","List[Optional[Tensor]] indices = [<[1, 7]>]"
+3,"Tensor<[1, 7, 2]> input = ?","List[Optional[Tensor]] indices = [<[1]>, <[1]>]"
+4,"Tensor<[2048, 32]> input = ?","List[Optional[Tensor]] indices = [<[1, 5]>]"
+5,"Tensor<[2048, 32]> input = ?","List[Optional[Tensor]] indices = [<[1, 1]>]"
+6,"Tensor<[732, 12]> input = ?",List[Optional[Tensor]] indices = [<[38809]>]
+7,"Tensor<[732, 16]> input = ?",List[Optional[Tensor]] indices = [<[38809]>]
+8,"Tensor<[169, 4]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+9,"Tensor<[169, 8]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+10,"Tensor<[169, 16]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+11,"Tensor<[169, 32]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+12,"Tensor<[169, 3]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+13,"Tensor<[169, 6]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+14,"Tensor<[169, 12]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+15,"Tensor<[169, 24]> input = ?",List[Optional[Tensor]] indices = [<[2401]>]
+16,"Tensor<[225, 4]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]
+17,"Tensor<[225, 8]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]
+18,"Tensor<[225, 16]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]
+19,"Tensor<[225, 32]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]
+20,"Tensor<[225, 3]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]
+21,"Tensor<[225, 6]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]
+22,"Tensor<[225, 12]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]
+23,"Tensor<[225, 24]> input = ?",List[Optional[Tensor]] indices = [<[4096]>]

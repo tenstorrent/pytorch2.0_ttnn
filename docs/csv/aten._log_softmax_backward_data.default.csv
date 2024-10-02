@@ -1,0 +1,2 @@
+Variation #,Grad Output,Output,Dim,Input Dtype
+0,"Tensor<[1, 10]> grad_output = ?","Tensor<[1, 10]> output = ?",int dim = 1,int input_dtype = torch.bfloat16

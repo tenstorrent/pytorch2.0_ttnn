@@ -1,0 +1,15 @@
+Variation #,Input,Split Size,Dim
+0,"Tensor<[1, 256, 2]> input = ?",int<> split_size = 1,int<> dim = -1
+1,"Tensor<[768, 256]> input = ?",int split_size = 256,
+2,Tensor<[768]> input = ?,int split_size = 256,
+3,"Tensor<[1, 25, 2]> input = ?",int split_size = 1,int dim = -1
+4,"Tensor<[1, 7, 2304]> input = ?",int split_size = 768,int dim = 2
+5,"Tensor<[1, 4096, 2560]> input = ?",int split_size = 1280,int dim = -1
+6,"Tensor<[1, 1024, 5120]> input = ?",int split_size = 2560,int dim = -1
+7,"Tensor<[1, 256, 10240]> input = ?",int split_size = 5120,int dim = -1
+8,"Tensor<[1, 64, 10240]> input = ?",int split_size = 5120,int dim = -1
+9,"Tensor<[1, 5, 4, 768]> input = ?",int split_size = 256,int dim = -1
+10,"Tensor<[1, 5, 32]> input = ?",int split_size = 16,int dim = -1
+11,"Tensor<[1, 1, 4, 768]> input = ?",int split_size = 256,int dim = -1
+12,"Tensor<[1, 1, 32]> input = ?",int split_size = 16,int dim = -1
+13,"Tensor<[1, 14, 2]> input = ?",int split_size = 1,int dim = -1

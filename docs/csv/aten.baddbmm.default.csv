@@ -1,0 +1,4 @@
+Variation #,Input,Batch1,Batch2,Beta,Alpha
+0,"Tensor<[16, 1, 32]> input = ?","Tensor<[16, 32, 96]> batch1 = ?","Tensor<[16, 96, 32]> batch2 = ?",number beta = 1.0,number alpha = 0.10206207261596577
+1,"Tensor<[8, 1, 920]> input = ?","Tensor<[8, 920, 32]> batch1 = ?","Tensor<[8, 32, 920]> batch2 = ?",,
+2,"Tensor<[8, 1, 920]> input = ?","Tensor<[8, 100, 32]> batch1 = ?","Tensor<[8, 32, 920]> batch2 = ?",,

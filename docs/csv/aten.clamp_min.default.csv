@@ -1,0 +1,11 @@
+Variation #,Input,Min
+0,"Tensor<[1, 1]> input = ?",number min = 1e-12
+1,"Tensor<[1, 1, 38, 38]> input = ?",number min = 1e-12
+2,"Tensor<[64, 4, 64, 1]> input = ?",number min = 1e-12
+3,"Tensor<[16, 8, 64, 1]> input = ?",number min = 1e-12
+4,"Tensor<[4, 16, 64, 1]> input = ?",number min = 1e-12
+5,"Tensor<[1, 32, 64, 1]> input = ?",number min = 1e-12
+6,"Tensor<[64, 3, 64, 1]> input = ?",number min = 1e-12
+7,"Tensor<[16, 6, 64, 1]> input = ?",number min = 1e-12
+8,"Tensor<[4, 12, 64, 1]> input = ?",number min = 1e-12
+9,"Tensor<[1, 24, 64, 1]> input = ?",number min = 1e-12

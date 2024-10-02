@@ -1,0 +1,2 @@
+Variation #,Input,Exponent
+0,Tensor<[]> input = ?,Tensor<[16]> exponent = ?

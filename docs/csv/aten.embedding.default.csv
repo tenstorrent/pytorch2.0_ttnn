@@ -1,0 +1,76 @@
+Variation #,Weight,Indices,Padding Idx
+0,"Tensor<[30522, 1024]> weight = ?","Tensor<[1, 256]> indices = ?",int<> padding_idx = 0
+1,"Tensor<[2, 1024]> weight = ?","Tensor<[1, 256]> indices = ?",
+2,"Tensor<[512, 1024]> weight = ?","Tensor<[1, 256]> indices = ?",
+3,"Tensor<[250880, 1536]> weight = ?","Tensor<[1, 32]> indices = ?",
+4,"Tensor<[50, 768]> weight = ?","Tensor<[1, 50]> indices = ?",
+5,"Tensor<[49408, 512]> weight = ?","Tensor<[2, 7]> indices = ?",
+6,"Tensor<[77, 512]> weight = ?","Tensor<[1, 7]> indices = ?",
+7,"Tensor<[30522, 768]> weight = ?","Tensor<[1, 25]> indices = ?",int padding_idx = 0
+8,"Tensor<[2, 768]> weight = ?","Tensor<[1, 25]> indices = ?",
+9,"Tensor<[512, 768]> weight = ?","Tensor<[1, 25]> indices = ?",
+10,"Tensor<[32128, 512]> weight = ?","Tensor<[1, 15]> indices = ?",
+11,"Tensor<[32, 6]> weight = ?","Tensor<[15, 15]> indices = ?",
+12,"Tensor<[32128, 512]> weight = ?","Tensor<[1, 1]> indices = ?",
+13,"Tensor<[32, 6]> weight = ?","Tensor<[1, 1]> indices = ?",
+14,"Tensor<[32, 6]> weight = ?","Tensor<[2, 2]> indices = ?",
+15,"Tensor<[32, 6]> weight = ?","Tensor<[s0 + 1, s0 + 1]> indices = ?",
+16,"Tensor<[32, 6]> weight = ?","Tensor<[17, 17]> indices = ?",
+17,"Tensor<[65024, 4544]> weight = ?","Tensor<[1, 7]> indices = ?",
+18,"Tensor<[50257, 768]> weight = ?","Tensor<[1, 7]> indices = ?",
+19,"Tensor<[1024, 768]> weight = ?","Tensor<[1, 7]> indices = ?",
+20,"Tensor<[50257, 768]> weight = ?","Tensor<[1, 45]> indices = ?",
+21,"Tensor<[2048, 768]> weight = ?","Tensor<[1, 45]> indices = ?",
+22,"Tensor<[50257, 768]> weight = ?","Tensor<[1, 1]> indices = ?",
+23,"Tensor<[2048, 768]> weight = ?","Tensor<[1, 1]> indices = ?",
+24,"Tensor<[32000, 4096]> weight = ?","Tensor<[1, 32]> indices = ?",int padding_idx = 0
+25,"Tensor<[50272, 512]> weight = ?","Tensor<[1, 59]> indices = ?",int padding_idx = 1
+26,"Tensor<[2050, 1024]> weight = ?","Tensor<[1, 59]> indices = ?",
+27,"Tensor<[50272, 512]> weight = ?","Tensor<[1, 1]> indices = ?",int padding_idx = 1
+28,"Tensor<[2050, 1024]> weight = ?","Tensor<[1, 1]> indices = ?",
+29,"Tensor<[262, 768]> weight = ?","Tensor<[1, 2048]> indices = ?",
+30,"Tensor<[2048, 768]> weight = ?",Tensor<[2048]> indices = ?,
+31,"Tensor<[250002, 768]> weight = ?","Tensor<[1, 10]> indices = ?",int padding_idx = 1
+32,"Tensor<[1, 768]> weight = ?","Tensor<[1, 10]> indices = ?",
+33,"Tensor<[514, 768]> weight = ?","Tensor<[1, 10]> indices = ?",int padding_idx = 1
+34,"Tensor<[30528, 768]> weight = ?","Tensor<[1, 8]> indices = ?",int padding_idx = 0
+35,"Tensor<[512, 768]> weight = ?","Tensor<[1, 8]> indices = ?",
+36,"Tensor<[2, 768]> weight = ?","Tensor<[1, 8]> indices = ?",
+37,"Tensor<[30522, 768]> weight = ?","Tensor<[1, 8]> indices = ?",
+38,"Tensor<[40, 768]> weight = ?","Tensor<[1, 8]> indices = ?",
+39,"Tensor<[2, 768]> weight = ?","Tensor<[1, 193]> indices = ?",
+40,"Tensor<[51865, 768]> weight = ?","Tensor<[1, 1]> indices = ?",int padding_idx = 50257
+41,"Tensor<[51865, 768]> weight = ?","Tensor<[1, 4]> indices = ?",int padding_idx = 50257
+42,"Tensor<[256008, 1024]> weight = ?","Tensor<[1, 19]> indices = ?",int padding_idx = 1
+43,"Tensor<[30000, 128]> weight = ?","Tensor<[1, 12]> indices = ?",int padding_idx = 0
+44,"Tensor<[2, 128]> weight = ?","Tensor<[1, 12]> indices = ?",
+45,"Tensor<[512, 128]> weight = ?","Tensor<[1, 12]> indices = ?",
+46,"Tensor<[30000, 128]> weight = ?","Tensor<[1, 9]> indices = ?",int padding_idx = 0
+47,"Tensor<[2, 128]> weight = ?","Tensor<[1, 9]> indices = ?",
+48,"Tensor<[512, 128]> weight = ?","Tensor<[1, 9]> indices = ?",
+49,"Tensor<[51200, 1024]> weight = ?","Tensor<[1, 5]> indices = ?",
+50,"Tensor<[51200, 1024]> weight = ?","Tensor<[1, 1]> indices = ?",
+51,"Tensor<[30522, 768]> weight = ?","Tensor<[1, 16]> indices = ?",int padding_idx = 0
+52,"Tensor<[512, 768]> weight = ?","Tensor<[1, 16]> indices = ?",
+53,"Tensor<[81, 768]> weight = ?","Tensor<[1, 24]> indices = ?",int padding_idx = 1
+54,"Tensor<[320, 64]> weight = ?","Tensor<[24, 24]> indices = ?",
+55,"Tensor<[32128, 768]> weight = ?","Tensor<[1, 10]> indices = ?",
+56,"Tensor<[32, 12]> weight = ?","Tensor<[10, 10]> indices = ?",
+57,"Tensor<[32128, 768]> weight = ?","Tensor<[1, 1]> indices = ?",
+58,"Tensor<[32, 12]> weight = ?","Tensor<[1, 1]> indices = ?",
+59,"Tensor<[32, 12]> weight = ?","Tensor<[2, 2]> indices = ?",
+60,"Tensor<[32, 12]> weight = ?","Tensor<[s0 + 1, s0 + 1]> indices = ?",
+61,"Tensor<[32128, 1024]> weight = ?","Tensor<[1, 10]> indices = ?",
+62,"Tensor<[32, 16]> weight = ?","Tensor<[10, 10]> indices = ?",
+63,"Tensor<[32128, 1024]> weight = ?","Tensor<[1, 1]> indices = ?",
+64,"Tensor<[32, 16]> weight = ?","Tensor<[1, 1]> indices = ?",
+65,"Tensor<[32, 16]> weight = ?","Tensor<[2, 2]> indices = ?",
+66,"Tensor<[32, 16]> weight = ?","Tensor<[s0 + 1, s0 + 1]> indices = ?",
+67,"Tensor<[32128, 512]> weight = ?","Tensor<[1, 10]> indices = ?",
+68,"Tensor<[32, 8]> weight = ?","Tensor<[10, 10]> indices = ?",
+69,"Tensor<[32, 8]> weight = ?","Tensor<[1, 1]> indices = ?",
+70,"Tensor<[32, 8]> weight = ?","Tensor<[2, 2]> indices = ?",
+71,"Tensor<[32, 8]> weight = ?","Tensor<[s0 + 1, s0 + 1]> indices = ?",
+72,"Tensor<[30000, 128]> weight = ?","Tensor<[1, 14]> indices = ?",int padding_idx = 0
+73,"Tensor<[2, 128]> weight = ?","Tensor<[1, 14]> indices = ?",
+74,"Tensor<[512, 128]> weight = ?","Tensor<[1, 14]> indices = ?",

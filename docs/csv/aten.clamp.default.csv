@@ -1,0 +1,55 @@
+Variation #,Input,Min,Max
+0,Tensor<[30]> input = ?,Optional[number] min = 0.0,
+1,Tensor<[40]> input = ?,Optional[number] min = 0.0,
+2,Tensor<[30]> input = ?,Optional[number] min = ?,Optional[number] max = 14
+3,Tensor<[40]> input = ?,Optional[number] min = ?,Optional[number] max = 19
+4,Tensor<[60]> input = ?,Optional[number] min = 0.0,
+5,Tensor<[80]> input = ?,Optional[number] min = 0.0,
+6,Tensor<[60]> input = ?,Optional[number] min = ?,Optional[number] max = 29
+7,Tensor<[80]> input = ?,Optional[number] min = ?,Optional[number] max = 39
+8,Tensor<[120]> input = ?,Optional[number] min = 0.0,
+9,Tensor<[160]> input = ?,Optional[number] min = 0.0,
+10,Tensor<[120]> input = ?,Optional[number] min = ?,Optional[number] max = 59
+11,Tensor<[160]> input = ?,Optional[number] min = ?,Optional[number] max = 79
+12,Tensor<[240]> input = ?,Optional[number] min = 0.0,
+13,Tensor<[320]> input = ?,Optional[number] min = 0.0,
+14,Tensor<[240]> input = ?,Optional[number] min = ?,Optional[number] max = 119
+15,Tensor<[320]> input = ?,Optional[number] min = ?,Optional[number] max = 159
+16,Tensor<[480]> input = ?,Optional[number] min = 0.0,
+17,Tensor<[640]> input = ?,Optional[number] min = 0.0,
+18,Tensor<[480]> input = ?,Optional[number] min = ?,Optional[number] max = 239
+19,Tensor<[640]> input = ?,Optional[number] min = ?,Optional[number] max = 319
+20,Tensor<[320]> input = ?,Optional[number] min = ?,Optional[number] max = 319
+21,"Tensor<[6, 2]> input = ?",Optional[number] min = 0,Optional[number] max = 1
+22,"Tensor<[3234, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.135166556742356
+23,"Tensor<[3234, 2]> input = ?",Optional[number] min = 0,Optional[number] max = 320
+24,Tensor<[128]> input = ?,Optional[number] min = 0.0,
+25,Tensor<[128]> input = ?,Optional[number] min = ?,Optional[number] max = 127
+26,Tensor<[128]> input = ?,Optional[number] min = ?,Optional[number] max = 63
+27,Tensor<[128]> input = ?,Optional[number] min = ?,Optional[number] max = 31
+28,Tensor<[128]> input = ?,Optional[number] min = ?,Optional[number] max = 15
+29,"Tensor<[1, 1, 32, 1]> input = ?",Optional[number] min = 0,Optional[number] max = 49
+30,"Tensor<[1, 1, 1, 42]> input = ?",Optional[number] min = 0,Optional[number] max = 82
+31,Tensor<[800]> input = ?,Optional[number] min = 0.0,
+32,Tensor<[1066]> input = ?,Optional[number] min = 0.0,
+33,Tensor<[800]> input = ?,Optional[number] min = ?,Optional[number] max = 479
+34,Tensor<[1066]> input = ?,Optional[number] min = ?,Optional[number] max = 639
+35,"Tensor<[0, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.135166556742356
+36,"Tensor<[0, 2]> input = ?",Optional[number] min = 0,Optional[number] max = 1066
+37,"Tensor<[0, 2]> input = ?",Optional[number] min = 0,Optional[number] max = 800
+38,Tensor<[300]> input = ?,Optional[number] min = 0.0,
+39,Tensor<[300]> input = ?,Optional[number] min = ?,Optional[number] max = 479
+40,Tensor<[300]> input = ?,Optional[number] min = ?,Optional[number] max = 639
+41,"Tensor<[4, 2]> input = ?",Optional[number] min = 0,Optional[number] max = 1
+42,"Tensor<[8732, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.135166556742356
+43,"Tensor<[8732, 2]> input = ?",Optional[number] min = 0,Optional[number] max = 300
+44,Tensor<[320]> input = ?,Optional[number] min = ?,Optional[number] max = 479
+45,Tensor<[320]> input = ?,Optional[number] min = ?,Optional[number] max = 639
+46,"Tensor<[4, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092
+47,"Tensor<[8, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092
+48,"Tensor<[16, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092
+49,"Tensor<[32, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092
+50,"Tensor<[3, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092
+51,"Tensor<[6, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092
+52,"Tensor<[12, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092
+53,"Tensor<[24, 1, 1]> input = ?",Optional[number] min = ?,Optional[number] max = 4.605170185988092

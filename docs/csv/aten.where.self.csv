@@ -1,0 +1,16 @@
+Variation #,Condition,Input,Other
+0,"Tensor<[15, 15]> condition = ?","Tensor<[15, 15]> input = ?","Tensor<[15, 15]> other = ?"
+1,"Tensor<[1, 1]> condition = ?","Tensor<[1, 1]> input = ?","Tensor<[1, 1]> other = ?"
+2,"Tensor<[2, 2]> condition = ?","Tensor<[2, 2]> input = ?","Tensor<[2, 2]> other = ?"
+3,"Tensor<[s0 + 1, s0 + 1]> condition = ?","Tensor<[s0 + 1, s0 + 1]> input = ?","Tensor<[s0 + 1, s0 + 1]> other = ?"
+4,"Tensor<[17, 17]> condition = ?","Tensor<[17, 17]> input = ?","Tensor<[17, 17]> other = ?"
+5,"Tensor<[1, 1, 7, 7]> condition = ?","Tensor<[1, 12, 7, 7]> input = ?",Tensor<[]> other = ?
+6,"Tensor<[1, 1, 45, 45]> condition = ?","Tensor<[1, 12, 45, 45]> input = ?",Tensor<[]> other = ?
+7,"Tensor<[1, 1, 1, 46]> condition = ?","Tensor<[1, 12, 1, 46]> input = ?",Tensor<[]> other = ?
+8,"Tensor<[1, 1, 1, s10 + 1]> condition = ?","Tensor<[1, 12, 1, s10 + 1]> input = ?",Tensor<[]> other = ?
+9,"Tensor<[1, 1, 5, 5]> condition = ?","Tensor<[1, 16, 5, 5]> input = ?",Tensor<[]> other = ?
+10,"Tensor<[1, 1, 1, 6]> condition = ?","Tensor<[1, 16, 1, 6]> input = ?",Tensor<[]> other = ?
+11,"Tensor<[1, 1, 1, s10 + 1]> condition = ?","Tensor<[1, 16, 1, s10 + 1]> input = ?",Tensor<[]> other = ?
+12,"Tensor<[1, 1, 256]> condition = ?","Tensor<[1, 1, 256]> input = ?",Tensor<[]> other = ?
+13,"Tensor<[1, s0, 256]> condition = ?","Tensor<[1, s0, 256]> input = ?",Tensor<[]> other = ?
+14,"Tensor<[10, 10]> condition = ?","Tensor<[10, 10]> input = ?","Tensor<[10, 10]> other = ?"

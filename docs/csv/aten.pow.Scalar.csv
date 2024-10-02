@@ -1,0 +1,2 @@
+Variation #,Input,Exponent
+0,number input = 10000,Tensor<[128]> exponent = ?

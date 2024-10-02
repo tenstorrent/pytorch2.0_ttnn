@@ -1,0 +1,431 @@
+Variation #,Input,Memory Format
+0,"Tensor<[1, 256, 1024]> input = ?",
+1,"Tensor<[1, 16, 256, 256]> input = ?",
+2,"Tensor<[1, 256, 16, 64]> input = ?",Optional[int]<> memory_format = torch.contiguous_format
+3,"Tensor<[1, 256]> input = ?",Optional[int]<> memory_format = torch.contiguous_format
+4,"Tensor<[1, 16, 32, 32]> input = ?",
+5,"Tensor<[1, 32, 16, 96]> input = ?",Optional[int] memory_format = torch.contiguous_format
+6,"Tensor<[1, 32, 1536]> input = ?",
+7,"Tensor<[1, 12, 50, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+8,"Tensor<[12, 50, 50]> input = ?",
+9,"Tensor<[1, 50, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+10,"Tensor<[2, 8, 7, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+11,"Tensor<[16, 7, 7]> input = ?",
+12,"Tensor<[2, 7, 8, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+13,"Tensor<[920, 8, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+14,"Tensor<[100, 8, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+15,"Tensor<[1, 25, 768]> input = ?",
+16,"Tensor<[1, 12, 25, 25]> input = ?",
+17,"Tensor<[1, 25, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+18,"Tensor<[1, 25]> input = ?",Optional[int] memory_format = torch.contiguous_format
+19,"Tensor<[1, 15, 512]> input = ?",
+20,"Tensor<[1, 6, 15, 15]> input = ?",
+21,"Tensor<[1, 15, 6, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+22,"Tensor<[1, 15, 1024]> input = ?",
+23,"Tensor<[1, 1, 512]> input = ?",
+24,"Tensor<[1, 6, 1, 1]> input = ?",
+25,"Tensor<[1, 6, 1, 15]> input = ?",
+26,"Tensor<[1, 1, 1024]> input = ?",
+27,"Tensor<[1, 6, 1, 2]> input = ?",
+28,"Tensor<[1, 6, 1, s0 + 1]> input = ?",
+29,"Tensor<[1, 6, 1, 17]> input = ?",
+30,"Tensor<[1, 7, 71, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+31,"Tensor<[1, 7, 4544]> input = ?",
+32,"Tensor<[1, 1, 19200, 300]> input = ?",
+33,"Tensor<[1, 19200, 64]> input = ?",
+34,"Tensor<[1, 19200, 256]> input = ?",
+35,"Tensor<[1, 64, 120, 160]> input = ?",Optional[int] memory_format = torch.contiguous_format
+36,"Tensor<[1, 2, 4800, 300]> input = ?",
+37,"Tensor<[1, 4800, 2, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+38,"Tensor<[1, 4800, 128]> input = ?",
+39,"Tensor<[1, 4800, 512]> input = ?",
+40,"Tensor<[1, 128, 60, 80]> input = ?",Optional[int] memory_format = torch.contiguous_format
+41,"Tensor<[1, 5, 1200, 300]> input = ?",
+42,"Tensor<[1, 1200, 5, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+43,"Tensor<[1, 1200, 320]> input = ?",
+44,"Tensor<[1, 1200, 1280]> input = ?",
+45,"Tensor<[1, 320, 30, 40]> input = ?",Optional[int] memory_format = torch.contiguous_format
+46,"Tensor<[1, 8, 300, 300]> input = ?",
+47,"Tensor<[1, 300, 8, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+48,"Tensor<[1, 300, 512]> input = ?",
+49,"Tensor<[1, 300, 2048]> input = ?",
+50,"Tensor<[1, 512, 15, 20]> input = ?",Optional[int] memory_format = torch.contiguous_format
+51,"Tensor<[1, 7, 768]> input = ?",
+52,"Tensor<[1, 12, 7, 7]> input = ?",
+53,"Tensor<[1, 7, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+54,"Tensor<[1, 1, 45]> input = ?",Optional[int] memory_format = torch.contiguous_format
+55,"Tensor<[1, 45, 768]> input = ?",
+56,"Tensor<[1, 12, 45, 45]> input = ?",
+57,"Tensor<[1, 45, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+58,"Tensor<[1, 1, 768]> input = ?",
+59,"Tensor<[1, 12, 1, 46]> input = ?",
+60,"Tensor<[1, s10 + 1]> input = ?",
+61,"Tensor<[1, 12, 1, s10 + 1]> input = ?",
+62,"Tensor<[1, 1024]> input = ?",
+63,"Tensor<[1, 16, 16, 16, 16, 3]> input = ?",Optional[int] memory_format = torch.contiguous_format
+64,"Tensor<[1, 1024, 512]> input = ?",
+65,"Tensor<[1, 256, 512]> input = ?",
+66,"Tensor<[1, 256, 256]> input = ?",
+67,"Tensor<[1, 64, 12, 12]> input = ?",
+68,"Tensor<[1, 128]> input = ?",
+69,"Tensor<[1, 20, 20, 6, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+70,"Tensor<[1, 10, 10, 6, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+71,"Tensor<[1, 5, 5, 6, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+72,"Tensor<[1, 3, 3, 6, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+73,"Tensor<[1, 2, 2, 6, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+74,"Tensor<[1, 20, 20, 6, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+75,"Tensor<[1, 10, 10, 6, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+76,"Tensor<[1, 5, 5, 6, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+77,"Tensor<[1, 3, 3, 6, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+78,"Tensor<[1, 2, 2, 6, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+79,"Tensor<[20, 20]> input = ?",Optional[int] memory_format = torch.contiguous_format
+80,"Tensor<[10, 10]> input = ?",Optional[int] memory_format = torch.contiguous_format
+81,"Tensor<[5, 5]> input = ?",Optional[int] memory_format = torch.contiguous_format
+82,"Tensor<[3, 3]> input = ?",Optional[int] memory_format = torch.contiguous_format
+83,"Tensor<[2, 2]> input = ?",Optional[int] memory_format = torch.contiguous_format
+84,"Tensor<[1, 16, 59, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+85,"Tensor<[16, 59, 59]> input = ?",
+86,"Tensor<[1, 59, 16, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+87,"Tensor<[1, 59, 1024]> input = ?",
+88,"Tensor<[59, 1024]> input = ?",
+89,"Tensor<[16, 1, 60]> input = ?",
+90,"Tensor<[16, 1, s10 + 1]> input = ?",
+91,"Tensor<[1, 8, 256, 2048]> input = ?",
+92,"Tensor<[1, 256, 8, 160]> input = ?",Optional[int] memory_format = torch.contiguous_format
+93,"Tensor<[1, 8, 256, 256]> input = ?",
+94,"Tensor<[1, 8, 2048, 256]> input = ?",
+95,"Tensor<[1, 2048, 8, 96]> input = ?",Optional[int] memory_format = torch.contiguous_format
+96,"Tensor<[1, 10, 768]> input = ?",
+97,"Tensor<[1, 12, 10, 10]> input = ?",
+98,"Tensor<[1, 10, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+99,"Tensor<[1, 1, 16384, 256]> input = ?",
+100,"Tensor<[1, 16384, 32]> input = ?",
+101,"Tensor<[1, 16384, 128]> input = ?",
+102,"Tensor<[1, 32, 128, 128]> input = ?",Optional[int] memory_format = torch.contiguous_format
+103,"Tensor<[1, 2, 4096, 256]> input = ?",
+104,"Tensor<[1, 4096, 2, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+105,"Tensor<[1, 4096, 64]> input = ?",
+106,"Tensor<[1, 4096, 256]> input = ?",
+107,"Tensor<[1, 64, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+108,"Tensor<[1, 5, 1024, 256]> input = ?",
+109,"Tensor<[1, 1024, 5, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+110,"Tensor<[1, 1024, 160]> input = ?",
+111,"Tensor<[1, 1024, 640]> input = ?",
+112,"Tensor<[1, 160, 32, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+113,"Tensor<[1, 256, 8, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+114,"Tensor<[1, 256, 16, 16]> input = ?",Optional[int] memory_format = torch.contiguous_format
+115,"Tensor<[1, 256, 128, 128]> input = ?",Optional[int] memory_format = torch.channels_last
+116,"Tensor<[1, 256, 128, 128]> input = ?",
+117,"Tensor<[1, 8, 768]> input = ?",
+118,"Tensor<[1, 320, 64, 64]> input = ?",
+119,"Tensor<[1, 4096, 320]> input = ?",
+120,"Tensor<[1, 4096, 1280]> input = ?",
+121,"Tensor<[1, 320, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+122,"Tensor<[1, 640, 32, 32]> input = ?",
+123,"Tensor<[1, 1024, 2560]> input = ?",
+124,"Tensor<[1, 640, 32, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+125,"Tensor<[1, 1280, 16, 16]> input = ?",
+126,"Tensor<[1, 256, 1280]> input = ?",
+127,"Tensor<[1, 256, 5120]> input = ?",
+128,"Tensor<[1, 1280, 16, 16]> input = ?",Optional[int] memory_format = torch.contiguous_format
+129,"Tensor<[1, 1280, 8, 8]> input = ?",
+130,"Tensor<[1, 64, 1280]> input = ?",
+131,"Tensor<[1, 64, 5120]> input = ?",
+132,"Tensor<[1, 1280, 8, 8]> input = ?",Optional[int] memory_format = torch.contiguous_format
+133,"Tensor<[1, 12, 201, 201]> input = ?",
+134,"Tensor<[1, 201, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+135,"Tensor<[1, 201, 768]> input = ?",
+136,"Tensor<[1, 1500, 768]> input = ?",
+137,"Tensor<[1, 12, 1500, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+138,"Tensor<[1, 1500, 3072]> input = ?",
+139,"Tensor<[1, 1, 3072]> input = ?",
+140,"Tensor<[1, 4, 768]> input = ?",
+141,"Tensor<[1, 12, 4, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+142,"Tensor<[1, 4, 3072]> input = ?",
+143,"Tensor<[1, 19, 1024]> input = ?",
+144,"Tensor<[1, 16, 19, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+145,"Tensor<[16, 19, 19]> input = ?",
+146,"Tensor<[1, 19, 16, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+147,"Tensor<[1, 19, 4096]> input = ?",
+148,"Tensor<[1, 192, 32, 42]> input = ?",Optional[int] memory_format = torch.channels_last
+149,"Tensor<[1, 1445, 192]> input = ?",
+150,"Tensor<[1, 3, 1445, 1445]> input = ?",
+151,"Tensor<[1, 1445, 3, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+152,"Tensor<[1, 3, 64, 64, 85]> input = ?",Optional[int] memory_format = torch.contiguous_format
+153,"Tensor<[1, 3, 32, 32, 85]> input = ?",Optional[int] memory_format = torch.contiguous_format
+154,"Tensor<[1, 3, 16, 16, 85]> input = ?",Optional[int] memory_format = torch.contiguous_format
+155,"Tensor<[1, 12, 128]> input = ?",
+156,"Tensor<[1, 12, 12, 12]> input = ?",
+157,"Tensor<[1, 12, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+158,"Tensor<[1, 12, 768]> input = ?",
+159,"Tensor<[1, 9, 128]> input = ?",
+160,"Tensor<[1, 16, 9, 9]> input = ?",
+161,"Tensor<[1, 9, 16, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+162,"Tensor<[1, 9, 1024]> input = ?",
+163,"Tensor<[1, 9, 16, 128]> input = ?",Optional[int] memory_format = torch.contiguous_format
+164,"Tensor<[1, 9, 2048]> input = ?",
+165,"Tensor<[1, 64, 9, 9]> input = ?",
+166,"Tensor<[1, 9, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+167,"Tensor<[1, 9, 4096]> input = ?",
+168,"Tensor<[1, 5, 1024]> input = ?",
+169,"Tensor<[1, 5, 4, 4, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+170,"Tensor<[1, 5, 1, 16, 2]> input = ?",Optional[int] memory_format = torch.contiguous_format
+171,"Tensor<[1, 16, 5, 5]> input = ?",
+172,"Tensor<[1, 5, 16, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+173,"Tensor<[1, 1, 4, 4, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+174,"Tensor<[1, 1, 1, 16, 2]> input = ?",Optional[int] memory_format = torch.contiguous_format
+175,"Tensor<[1, 16, 1, 6]> input = ?",
+176,"Tensor<[1, 16, 1, s10 + 1]> input = ?",
+177,"Tensor<[1, 16, 768]> input = ?",
+178,"Tensor<[1, 12, 16, 16]> input = ?",
+179,"Tensor<[1, 16, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+180,"Tensor<[1, 512, 1, 1]> input = ?",
+181,"Tensor<[1, 197, 768]> input = ?",
+182,"Tensor<[1, 12, 197, 197]> input = ?",
+183,"Tensor<[1, 197, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+184,"Tensor<[1, 1280]> input = ?",
+185,"Tensor<[1, 2048]> input = ?",
+186,"Tensor<[1, 1536]> input = ?",
+187,"Tensor<[12, 197, 197]> input = ?",Optional[int] memory_format = torch.contiguous_format
+188,"Tensor<[1, 197, 1024]> input = ?",
+189,"Tensor<[16, 197, 197]> input = ?",Optional[int] memory_format = torch.contiguous_format
+190,"Tensor<[1, 16, 197, 197]> input = ?",
+191,"Tensor<[1, 197, 16, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+192,"Tensor<[1, 768, 384]> input = ?",
+193,"Tensor<[1, 768, 196]> input = ?",
+194,"Tensor<[1, 196, 3072]> input = ?",
+195,"Tensor<[1, 196, 768]> input = ?",
+196,"Tensor<[1, 768]> input = ?",
+197,"Tensor<[1, 100, 136, 9, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+198,"Tensor<[1, 50, 68, 9, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+199,"Tensor<[1, 25, 34, 9, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+200,"Tensor<[1, 13, 17, 9, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+201,"Tensor<[1, 7, 9, 9, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+202,"Tensor<[1, 100, 136, 9, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+203,"Tensor<[1, 50, 68, 9, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+204,"Tensor<[1, 25, 34, 9, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+205,"Tensor<[1, 13, 17, 9, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+206,"Tensor<[1, 7, 9, 9, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+207,"Tensor<[100, 136]> input = ?",Optional[int] memory_format = torch.contiguous_format
+208,"Tensor<[50, 68]> input = ?",Optional[int] memory_format = torch.contiguous_format
+209,"Tensor<[25, 34]> input = ?",Optional[int] memory_format = torch.contiguous_format
+210,"Tensor<[13, 17]> input = ?",Optional[int] memory_format = torch.contiguous_format
+211,"Tensor<[7, 9]> input = ?",Optional[int] memory_format = torch.contiguous_format
+212,"Tensor<[1, 24, 768]> input = ?",
+213,"Tensor<[1, 12, 24, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+214,"Tensor<[12, 24, 24]> input = ?",
+215,"Tensor<[1, 24, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+216,"Tensor<[1, 24, 3072]> input = ?",
+217,"Tensor<[12, 1, 1]> input = ?",
+218,"Tensor<[12, 1, 24]> input = ?",
+219,"Tensor<[1, s0, 768]> input = ?",
+220,"Tensor<[12, 1, 2]> input = ?",
+221,"Tensor<[12, 1, s0 + 1]> input = ?",
+222,"Tensor<[12, 1, s2 + 1]> input = ?",
+223,"Tensor<[12, 1, s4 + 1]> input = ?",
+224,"Tensor<[12, 1, s6 + 1]> input = ?",
+225,"Tensor<[12, 1, s8 + 1]> input = ?",
+226,"Tensor<[12, 1, s10 + 1]> input = ?",
+227,"Tensor<[1, 256, 96]> input = ?",
+228,"Tensor<[1, 80, 96]> input = ?",
+229,"Tensor<[1, 38, 38, 4, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+230,"Tensor<[1, 19, 19, 6, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+231,"Tensor<[1, 3, 3, 4, 4]> input = ?",Optional[int] memory_format = torch.contiguous_format
+232,"Tensor<[1, 38, 38, 4, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+233,"Tensor<[1, 19, 19, 6, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+234,"Tensor<[1, 3, 3, 4, 91]> input = ?",Optional[int] memory_format = torch.contiguous_format
+235,"Tensor<[38, 38]> input = ?",Optional[int] memory_format = torch.contiguous_format
+236,"Tensor<[19, 19]> input = ?",Optional[int] memory_format = torch.contiguous_format
+237,"Tensor<[4, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+238,"Tensor<[1, 8, 8, 7, 7, 128]> input = ?",Optional[int] memory_format = torch.contiguous_format
+239,"Tensor<[64, 4, 49, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+240,"Tensor<[64, 4, 32, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+241,"Tensor<[64, 4, 49, 49]> input = ?",
+242,"Tensor<[64, 49, 4, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+243,"Tensor<[64, 49, 128]> input = ?",
+244,"Tensor<[1, 8, 7, 8, 7, 128]> input = ?",Optional[int] memory_format = torch.contiguous_format
+245,"Tensor<[1, 56, 56, 512]> input = ?",
+246,"Tensor<[1, 56, 56, 128]> input = ?",
+247,"Tensor<[8, 8, 7, 7]> input = ?",Optional[int] memory_format = torch.contiguous_format
+248,"Tensor<[8, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+249,"Tensor<[1, 4, 4, 7, 7, 256]> input = ?",Optional[int] memory_format = torch.contiguous_format
+250,"Tensor<[16, 8, 49, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+251,"Tensor<[16, 8, 32, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+252,"Tensor<[16, 8, 49, 49]> input = ?",
+253,"Tensor<[16, 49, 8, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+254,"Tensor<[16, 49, 256]> input = ?",
+255,"Tensor<[1, 4, 7, 4, 7, 256]> input = ?",Optional[int] memory_format = torch.contiguous_format
+256,"Tensor<[1, 28, 28, 1024]> input = ?",
+257,"Tensor<[1, 28, 28, 256]> input = ?",
+258,"Tensor<[4, 4, 7, 7]> input = ?",Optional[int] memory_format = torch.contiguous_format
+259,"Tensor<[16, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+260,"Tensor<[1, 2, 2, 7, 7, 512]> input = ?",Optional[int] memory_format = torch.contiguous_format
+261,"Tensor<[4, 16, 49, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+262,"Tensor<[4, 16, 32, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+263,"Tensor<[4, 16, 49, 49]> input = ?",
+264,"Tensor<[4, 49, 16, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+265,"Tensor<[4, 49, 512]> input = ?",
+266,"Tensor<[1, 2, 7, 2, 7, 512]> input = ?",Optional[int] memory_format = torch.contiguous_format
+267,"Tensor<[1, 14, 14, 2048]> input = ?",
+268,"Tensor<[1, 14, 14, 512]> input = ?",
+269,"Tensor<[2, 2, 7, 7]> input = ?",Optional[int] memory_format = torch.contiguous_format
+270,"Tensor<[32, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+271,"Tensor<[1, 32, 49, 49]> input = ?",
+272,"Tensor<[1, 49, 32, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+273,"Tensor<[1, 49, 1024]> input = ?",
+274,"Tensor<[1, 7, 7, 4096]> input = ?",
+275,"Tensor<[1, 7, 7, 1024]> input = ?",
+276,"Tensor<[3, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+277,"Tensor<[1, 8, 8, 7, 7, 96]> input = ?",Optional[int] memory_format = torch.contiguous_format
+278,"Tensor<[64, 3, 49, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+279,"Tensor<[64, 3, 32, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+280,"Tensor<[64, 3, 49, 49]> input = ?",
+281,"Tensor<[64, 49, 3, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+282,"Tensor<[64, 49, 96]> input = ?",
+283,"Tensor<[1, 8, 7, 8, 7, 96]> input = ?",Optional[int] memory_format = torch.contiguous_format
+284,"Tensor<[1, 56, 56, 384]> input = ?",
+285,"Tensor<[1, 56, 56, 96]> input = ?",
+286,"Tensor<[6, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+287,"Tensor<[1, 4, 4, 7, 7, 192]> input = ?",Optional[int] memory_format = torch.contiguous_format
+288,"Tensor<[16, 6, 49, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+289,"Tensor<[16, 6, 32, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+290,"Tensor<[16, 6, 49, 49]> input = ?",
+291,"Tensor<[16, 49, 6, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+292,"Tensor<[16, 49, 192]> input = ?",
+293,"Tensor<[1, 4, 7, 4, 7, 192]> input = ?",Optional[int] memory_format = torch.contiguous_format
+294,"Tensor<[1, 28, 28, 768]> input = ?",
+295,"Tensor<[1, 28, 28, 192]> input = ?",
+296,"Tensor<[12, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+297,"Tensor<[1, 2, 2, 7, 7, 384]> input = ?",Optional[int] memory_format = torch.contiguous_format
+298,"Tensor<[4, 12, 49, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+299,"Tensor<[4, 12, 32, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+300,"Tensor<[4, 12, 49, 49]> input = ?",
+301,"Tensor<[4, 49, 12, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+302,"Tensor<[4, 49, 384]> input = ?",
+303,"Tensor<[1, 2, 7, 2, 7, 384]> input = ?",Optional[int] memory_format = torch.contiguous_format
+304,"Tensor<[1, 14, 14, 1536]> input = ?",
+305,"Tensor<[1, 14, 14, 384]> input = ?",
+306,"Tensor<[24, 49, 49]> input = ?",Optional[int] memory_format = torch.contiguous_format
+307,"Tensor<[1, 24, 49, 49]> input = ?",
+308,"Tensor<[1, 49, 24, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+309,"Tensor<[1, 49, 768]> input = ?",
+310,"Tensor<[1, 7, 7, 3072]> input = ?",
+311,"Tensor<[1, 7, 7, 768]> input = ?",
+312,"Tensor<[4, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+313,"Tensor<[1, 8, 8, 8, 8, 128]> input = ?",Optional[int] memory_format = torch.contiguous_format
+314,"Tensor<[64, 4, 64, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+315,"Tensor<[64, 4, 32, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+316,"Tensor<[64, 4, 64, 64]> input = ?",
+317,"Tensor<[64, 64, 4, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+318,"Tensor<[64, 64, 128]> input = ?",
+319,"Tensor<[1, 64, 64, 512]> input = ?",
+320,"Tensor<[1, 64, 64, 128]> input = ?",
+321,"Tensor<[8, 8, 8, 8]> input = ?",Optional[int] memory_format = torch.contiguous_format
+322,"Tensor<[8, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+323,"Tensor<[1, 4, 4, 8, 8, 256]> input = ?",Optional[int] memory_format = torch.contiguous_format
+324,"Tensor<[16, 8, 64, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+325,"Tensor<[16, 8, 32, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+326,"Tensor<[16, 8, 64, 64]> input = ?",
+327,"Tensor<[16, 64, 8, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+328,"Tensor<[16, 64, 256]> input = ?",
+329,"Tensor<[1, 4, 8, 4, 8, 256]> input = ?",Optional[int] memory_format = torch.contiguous_format
+330,"Tensor<[1, 32, 32, 1024]> input = ?",
+331,"Tensor<[1, 32, 32, 256]> input = ?",
+332,"Tensor<[4, 4, 8, 8]> input = ?",Optional[int] memory_format = torch.contiguous_format
+333,"Tensor<[16, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+334,"Tensor<[1, 2, 2, 8, 8, 512]> input = ?",Optional[int] memory_format = torch.contiguous_format
+335,"Tensor<[4, 16, 64, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+336,"Tensor<[4, 16, 32, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+337,"Tensor<[4, 16, 64, 64]> input = ?",
+338,"Tensor<[4, 64, 16, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+339,"Tensor<[4, 64, 512]> input = ?",
+340,"Tensor<[1, 2, 8, 2, 8, 512]> input = ?",Optional[int] memory_format = torch.contiguous_format
+341,"Tensor<[1, 16, 16, 2048]> input = ?",
+342,"Tensor<[1, 16, 16, 512]> input = ?",
+343,"Tensor<[2, 2, 8, 8]> input = ?",Optional[int] memory_format = torch.contiguous_format
+344,"Tensor<[32, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+345,"Tensor<[1, 32, 64, 64]> input = ?",
+346,"Tensor<[1, 64, 32, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+347,"Tensor<[1, 64, 1024]> input = ?",
+348,"Tensor<[1, 8, 8, 4096]> input = ?",
+349,"Tensor<[1, 8, 8, 1024]> input = ?",
+350,"Tensor<[3, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+351,"Tensor<[1, 8, 8, 8, 8, 96]> input = ?",Optional[int] memory_format = torch.contiguous_format
+352,"Tensor<[64, 3, 64, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+353,"Tensor<[64, 3, 32, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+354,"Tensor<[64, 3, 64, 64]> input = ?",
+355,"Tensor<[64, 64, 3, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+356,"Tensor<[64, 64, 96]> input = ?",
+357,"Tensor<[1, 64, 64, 384]> input = ?",
+358,"Tensor<[1, 64, 64, 96]> input = ?",
+359,"Tensor<[6, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+360,"Tensor<[1, 4, 4, 8, 8, 192]> input = ?",Optional[int] memory_format = torch.contiguous_format
+361,"Tensor<[16, 6, 64, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+362,"Tensor<[16, 6, 32, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+363,"Tensor<[16, 6, 64, 64]> input = ?",
+364,"Tensor<[16, 64, 6, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+365,"Tensor<[16, 64, 192]> input = ?",
+366,"Tensor<[1, 4, 8, 4, 8, 192]> input = ?",Optional[int] memory_format = torch.contiguous_format
+367,"Tensor<[1, 32, 32, 768]> input = ?",
+368,"Tensor<[1, 32, 32, 192]> input = ?",
+369,"Tensor<[12, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+370,"Tensor<[1, 2, 2, 8, 8, 384]> input = ?",Optional[int] memory_format = torch.contiguous_format
+371,"Tensor<[4, 12, 64, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+372,"Tensor<[4, 12, 32, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+373,"Tensor<[4, 12, 64, 64]> input = ?",
+374,"Tensor<[4, 64, 12, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+375,"Tensor<[4, 64, 384]> input = ?",
+376,"Tensor<[1, 2, 8, 2, 8, 384]> input = ?",Optional[int] memory_format = torch.contiguous_format
+377,"Tensor<[1, 16, 16, 1536]> input = ?",
+378,"Tensor<[1, 16, 16, 384]> input = ?",
+379,"Tensor<[24, 64, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+380,"Tensor<[1, 24, 64, 64]> input = ?",
+381,"Tensor<[1, 64, 24, 32]> input = ?",Optional[int] memory_format = torch.contiguous_format
+382,"Tensor<[1, 64, 768]> input = ?",
+383,"Tensor<[1, 8, 8, 3072]> input = ?",
+384,"Tensor<[1, 8, 8, 768]> input = ?",
+385,"Tensor<[1, 10, 3072]> input = ?",
+386,"Tensor<[1, 12, 1, 1]> input = ?",
+387,"Tensor<[1, 12, 1, 10]> input = ?",
+388,"Tensor<[1, 12, 1, 2]> input = ?",
+389,"Tensor<[1, 12, 1, s0 + 1]> input = ?",
+390,"Tensor<[1, 10, 1024]> input = ?",
+391,"Tensor<[1, 16, 10, 10]> input = ?",
+392,"Tensor<[1, 10, 16, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+393,"Tensor<[1, 10, 4096]> input = ?",
+394,"Tensor<[1, 16, 1, 1]> input = ?",
+395,"Tensor<[1, 16, 1, 10]> input = ?",
+396,"Tensor<[1, 1, 4096]> input = ?",
+397,"Tensor<[1, 16, 1, 2]> input = ?",
+398,"Tensor<[1, 16, 1, s0 + 1]> input = ?",
+399,"Tensor<[1, 10, 512]> input = ?",
+400,"Tensor<[1, 8, 10, 10]> input = ?",
+401,"Tensor<[1, 10, 8, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+402,"Tensor<[1, 10, 2048]> input = ?",
+403,"Tensor<[1, 8, 1, 1]> input = ?",
+404,"Tensor<[1, 8, 1, 10]> input = ?",
+405,"Tensor<[1, 1, 2048]> input = ?",
+406,"Tensor<[1, 8, 1, 2]> input = ?",
+407,"Tensor<[1, 8, 1, s0 + 1]> input = ?",
+408,"Tensor<[1, 12, 9, 9]> input = ?",
+409,"Tensor<[1, 9, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+410,"Tensor<[1, 9, 768]> input = ?",
+411,"Tensor<[1, 14, 128]> input = ?",
+412,"Tensor<[1, 12, 14, 14]> input = ?",
+413,"Tensor<[1, 14, 12, 64]> input = ?",Optional[int] memory_format = torch.contiguous_format
+414,"Tensor<[1, 14, 768]> input = ?",
+415,"Tensor<[1, 14]> input = ?",Optional[int] memory_format = torch.contiguous_format
+416,"Tensor<[1, 4096]> input = ?",
+417,"Tensor<[3, 197, 1, 768]> input = ?",Optional[int] memory_format = torch.contiguous_format
+418,"Tensor<[1, 197, 3072]> input = ?",
+419,"Tensor<[1, 50, 768]> input = ?",
+420,"Tensor<[3, 50, 1, 768]> input = ?",Optional[int] memory_format = torch.contiguous_format
+421,"Tensor<[1, 50, 3072]> input = ?",
+422,"Tensor<[1, 1370, 1280]> input = ?",
+423,"Tensor<[3, 1370, 1, 1280]> input = ?",Optional[int] memory_format = torch.contiguous_format
+424,"Tensor<[1, 1370, 5120]> input = ?",
+425,"Tensor<[3, 197, 1, 1024]> input = ?",Optional[int] memory_format = torch.contiguous_format
+426,"Tensor<[1, 197, 4096]> input = ?",
+427,"Tensor<[1, 50, 1024]> input = ?",
+428,"Tensor<[3, 50, 1, 1024]> input = ?",Optional[int] memory_format = torch.contiguous_format
+429,"Tensor<[1, 50, 4096]> input = ?",

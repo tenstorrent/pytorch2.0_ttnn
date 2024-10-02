@@ -1,0 +1,25 @@
+Variation #,Input,Exponent
+0,"Tensor<[1, 15, 512]> input = ?",number exponent = 2
+1,"Tensor<[1, 15, 1024]> input = ?",number exponent = 3.0
+2,"Tensor<[1, 1, 512]> input = ?",number exponent = 2
+3,"Tensor<[1, 1, 1024]> input = ?",number exponent = 3.0
+4,"Tensor<[1, 7, 3072]> input = ?",number exponent = 3.0
+5,"Tensor<[1, 45, 3072]> input = ?",number exponent = 3.0
+6,"Tensor<[1, 1, 3072]> input = ?",number exponent = 3.0
+7,"Tensor<[1, 3, 64, 64, 2]> input = ?",number exponent = 2
+8,"Tensor<[1, 3, 32, 32, 2]> input = ?",number exponent = 2
+9,"Tensor<[1, 3, 16, 16, 2]> input = ?",number exponent = 2
+10,"Tensor<[1, 12, 3072]> input = ?",number exponent = 3.0
+11,"Tensor<[1, 9, 4096]> input = ?",number exponent = 3.0
+12,"Tensor<[1, 9, 128]> input = ?",number exponent = 3.0
+13,"Tensor<[1, 9, 8192]> input = ?",number exponent = 3.0
+14,"Tensor<[1, 9, 16384]> input = ?",number exponent = 3.0
+15,"Tensor<[1, 5, 4096]> input = ?",number exponent = 3.0
+16,"Tensor<[1, 1, 4096]> input = ?",number exponent = 3.0
+17,"Tensor<[1, 10, 768]> input = ?",number exponent = 2
+18,"Tensor<[1, 1, 768]> input = ?",number exponent = 2
+19,"Tensor<[1, 10, 1024]> input = ?",number exponent = 2
+20,"Tensor<[1, 1, 1024]> input = ?",number exponent = 2
+21,"Tensor<[1, 10, 512]> input = ?",number exponent = 2
+22,"Tensor<[1, 9, 3072]> input = ?",number exponent = 3.0
+23,"Tensor<[1, 14, 3072]> input = ?",number exponent = 3.0
