@@ -215,6 +215,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.silu, args, kwargs)
 
         if target == torch.ops.aten._softmax.default:
+            kwargs = {
+                "numeric_stable": True,
+                **kwargs,
+            }
             return self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
 
         if target == torch.ops.aten.sqrt.default:
@@ -471,7 +475,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     return g.call_function(torch.ops.aten.embedding.default, args, kwargs)
 
             if node.target == torch.ops.aten._log_softmax.default:
-                softmax_node = g.call_function(ttnn.softmax, args[:2], kwargs)
+                softmax_node = g.call_function(
+                    ttnn.softmax,
+                    args[:2],
+                    {
+                        "numeric_stable": True,
+                        **kwargs,
+                    },
+                )
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.rsub.Scalar:
