@@ -41,7 +41,7 @@ AutoencoderTiny(
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.skip(reason="PyTorch compilation flow cannot accept pipeline.")
 def test_autoencoder_conv(record_property, mode):
