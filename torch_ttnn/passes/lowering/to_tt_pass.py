@@ -308,6 +308,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 result = g.call_function(code, args, kwargs)
 
                 if ndims == 1:
+                    result = g.call_function(ttnn.to_layout, (result, TtnnRowMajorLayout()))
                     result = g.call_function(ttnn.squeeze, (result, 0))
 
                 return result
