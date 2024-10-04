@@ -14,6 +14,7 @@ class ThisTester(ModelTester):
         from controlnet_aux import OpenposeDetector
 
         model = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -24,7 +25,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.skip(reason="failing during torch run with bypass compilation")
