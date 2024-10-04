@@ -110,6 +110,7 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.logical_not.default: ttnn.logical_not,
     torch.ops.aten.neg.default: ttnn.neg,
     torch.ops.aten.reciprocal.default: ttnn.reciprocal,
+    torch.ops.aten.remainder.Scalar: ttnn.remainder,
     torch.ops.aten.relu.default: ttnn.relu,
     torch.ops.aten.rsqrt.default: ttnn.rsqrt,
     torch.ops.aten.sigmoid.default: ttnn.sigmoid,
