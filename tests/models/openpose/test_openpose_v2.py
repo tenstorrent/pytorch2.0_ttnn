@@ -36,6 +36,7 @@ class ThisTester(ModelTester):
     def _load_inputs(self):
         input_batch = [get_image_tensor()]
         batch_input = torch.cat(input_batch, dim=0)
+        batch_input = batch_input.to(torch.bfloat16)
         return batch_input
 
 
