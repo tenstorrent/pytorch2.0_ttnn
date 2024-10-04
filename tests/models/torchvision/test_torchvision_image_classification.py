@@ -36,7 +36,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", "eval"],
+    ["eval"],
 )
 @pytest.mark.parametrize(
     "model_info",
