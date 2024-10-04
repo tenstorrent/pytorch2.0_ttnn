@@ -21,6 +21,7 @@ class ThisTester(ModelTester):
             init_features=32,
             pretrained=True,
         )
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -43,12 +44,13 @@ class ThisTester(ModelTester):
         )
         input_tensor = preprocess(input_image)
         input_batch = input_tensor.unsqueeze(0)
+        input_batch = input_batch.to(torch.bfloat16)
         return input_batch
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.compilation_xfail
 def test_unet_brain(record_property, mode):
