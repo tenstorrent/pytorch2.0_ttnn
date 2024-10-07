@@ -19,7 +19,7 @@ class ThisTester(ModelTester):
         base_options = python.BaseOptions(model_asset_path=str(model_asset_path))
         options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
         detector = vision.HandLandmarker.create_from_options(options)
-        return detector
+        return detector.detect
 
     def _load_inputs(self):
         import mediapipe as mp
@@ -27,10 +27,6 @@ class ThisTester(ModelTester):
         image_path = Path(__file__).parent / "woman_hands.jpg"
         image = mp.Image.create_from_file(str(image_path))
         return image
-
-    def run_model(self, detector, image):
-        detection_result = detector.detect(image)
-        return detection_result
 
     def set_model_eval(self, model):
         # 'HandLandmarker' object has no attribute 'eval'
