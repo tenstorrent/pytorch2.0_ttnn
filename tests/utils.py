@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import collections
+import re
 
 
 class ModelTester:
@@ -252,9 +253,129 @@ def calculate_accuracy(original_outputs, compiled_outputs):
             output_pccs
         ), f"No comparable outputs:\noriginal_outputs:\n{original_outputs}\ncompiled_outputs:\n{compiled_outputs}"
         accuracy = torch.mean(torch.tensor(output_pccs)).item()
+    elif (isinstance(original_outputs, list) and isinstance(compiled_outputs, list)) or (
+        isinstance(original_outputs, tuple) and isinstance(compiled_outputs, tuple)
+    ):
+        # Handle case where outputs are lists
+        output_pccs = []
+        assert len(original_outputs) == len(compiled_outputs), (
+            f"Original and compiled output do not have the same length."
+            f"original length: {len(original_outputs)}\ncompiled length: {len(compiled_outputs)}"
+        )
+        for original_outputs, compiled_outputs in zip(original_outputs, compiled_outputs):
+            if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
+                _, pcc = comp_pcc(original_outputs, compiled_outputs)
+                output_pccs.append(pcc)
+        assert (
+            output_pccs
+        ), f"No comparable outputs:\noriginal_outputs:\n{original_outputs}\ncompiled_outputs:\n{compiled_outputs}"
+        accuracy = torch.mean(torch.tensor(output_pccs)).item()
     elif isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
         # Handle case where outputs are Pytorch Tensors
         _, accuracy = comp_pcc(original_outputs, compiled_outputs)
     else:
         accuracy = None
     return accuracy
+
+
+def get_input_vals_from_metric_str(op_name, input_strings):
+    input_vals = []
+    for input_str in input_strings:
+        # for example: Optional[Tensor]<[1, 512, 7, 7]> bias = ?
+        pattern = r"(?P<type>[\[\]\w]+)<(?P<shape>.*)>\s+(?P<name>\w+)\s*=\s*(?P<val>.*)"
+        m = re.match(pattern, input_str)
+        m_type = m.group("type")
+        m_type = re.sub(r"Optional\[(.*?)\]", r"\1", m_type)
+        if m_type == "Tensor":
+            if m.group("shape") == "":
+                if m.group("val") == "" or m.group("val") == "?":
+                    val = None
+                else:
+                    try:
+                        val = eval(m.group("val"))
+                    except:
+                        return None, None
+            else:
+                try:
+                    shape = eval(m.group("shape"))
+                except:
+                    return None, None
+                val = torch.randn(shape).type(torch.bfloat16)
+                if op_name == "aten.bitwise_not.default" and m.group("name") == "self":
+                    val = val.type(torch.int)
+                if op_name == "aten.masked_fill.Scalar" and m.group("name") == "mask":
+                    val = torch.randint(0, 2, shape).type(torch.bool)
+                if op_name == "aten.where.self" and m.group("name") == "condition":
+                    val = torch.randint(0, 2, shape).type(torch.bool)
+        elif m_type == "List[Tensor]":
+            if m.group("val") == "" or m.group("val") == "?":
+                val = None
+            else:
+                try:
+                    val_str = m.group("val").replace("'", "").replace("Size", "tensor")
+                    val = eval(val_str)
+                except:
+                    return None, None
+        elif (
+            m_type.startswith("List") or m_type == "bool" or m_type == "int" or m_type == "float" or m_type == "number"
+        ):
+            if m.group("val") == "" or m.group("val") == "?":
+                val = None
+            else:
+                try:
+                    val = eval(m.group("val"))
+                except:
+                    return None, None
+        elif m_type == "Device":
+            if m.group("val") == "" or m.group("val") == "?":
+                val = None
+            else:
+                try:
+                    val_str = f"'{m.group('val')}'"
+                    val = eval(val_str)
+                except:
+                    return None, None
+        else:
+            raise ValueError(f"Unknown type: {m.group('type')}")
+
+        input_vals.append({"name": m.group("name"), "val": val})
+
+    if op_name == "aten.embedding.default":
+        for input_val in input_vals:
+            if input_val["name"] == "weight":
+                weight_shape0 = input_val["val"].shape[0]
+                break
+        for input_val in input_vals:
+            if input_val["name"] == "indices":
+                input_val["val"] = torch.randint(0, weight_shape0, input_val["val"].shape)
+                break
+
+    if op_name == "aten.index_select.default":
+        for input_val in input_vals:
+            if input_val["name"] == "self":
+                self_shape = input_val["val"].shape
+                break
+        for input_val in input_vals:
+            if input_val["name"] == "dim":
+                dim = input_val["val"]
+                break
+        for input_val in input_vals:
+            if input_val["name"] == "index":
+                input_val["val"] = torch.randint(0, self_shape[dim], input_val["val"].shape)
+                break
+
+    input_args = []
+    input_kwargs = {}
+    if "self" not in [input_val["name"] for input_val in input_vals]:
+        input_kwargs = {input_val["name"]: input_val["val"] for input_val in input_vals}
+    else:
+        before_self = True
+        for input_val in input_vals:
+            if before_self:
+                input_args.append(input_val["val"])
+            else:
+                input_kwargs[input_val["name"]] = input_val["val"]
+            if input_val["name"] == "self":
+                before_self = False
+
+    return input_args, input_kwargs

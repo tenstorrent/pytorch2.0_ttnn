@@ -16,6 +16,27 @@ import sys
 mb_in_bytes = 1048576
 
 
+def pytest_addoption(parser):
+    parser.addoption("--input_var_only_native", action="store_true")
+    parser.addoption("--input_var_check_ttnn", action="store_true")
+    parser.addoption("--input_var_check_accu", action="store_true")
+
+
+@pytest.fixture(scope="session")
+def input_var_only_native(request):
+    return request.config.getoption("--input_var_only_native")
+
+
+@pytest.fixture(scope="session")
+def input_var_check_ttnn(request):
+    return request.config.getoption("--input_var_check_ttnn")
+
+
+@pytest.fixture(scope="session")
+def input_var_check_accu(request):
+    return request.config.getoption("--input_var_check_accu")
+
+
 @pytest.fixture(scope="session")
 def device():
     device = ttnn.open_device(device_id=0)
