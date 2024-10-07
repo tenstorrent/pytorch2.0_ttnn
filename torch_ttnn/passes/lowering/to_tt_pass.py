@@ -305,10 +305,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
         if target == torch.ops.aten.squeeze.dim:
-            # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
-            if args[1] == 0:
-                return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
-            return self.call_function_prop_meta(target, args, kwargs)
+            return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 
@@ -584,9 +581,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
-                if output_size[-1] == args[0].meta["val"].size()[-1]:
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
-                return None
+                return g.call_function(ttnn.reshape, args=(args[0], output_size))
 
             if node.target == torch.ops.aten.transpose.int:
                 dim0 = args[1]
