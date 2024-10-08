@@ -78,6 +78,7 @@ class ViewShareOpModule(torch.nn.Module):
         ((256, 1024), (1, 256, 1024)),
         ((256, 2), (1, 256, 2)),
         ((256, 4096), (1, 256, 4096)),
+        ((1, 32, 16, 96), (1, 32, 1536)),
     ],
 )
 def test_reshape(device, input_shape, new_shape, module):
