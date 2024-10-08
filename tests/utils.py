@@ -275,8 +275,10 @@ def calculate_accuracy(original_outputs, compiled_outputs):
 def get_input_vals_from_metric_str(op_name, input_strings):
     input_vals = []
     for input_str in input_strings:
-        # for example: Optional[Tensor]<[1, 512, 7, 7]> bias = ?
-        pattern = r"(?P<type>[\[\]\w]+)<(?P<shape>.*)>\s+(?P<name>\w+)\s*=\s*(?P<val>.*)"
+        # for example:
+        # 'Optional[Tensor]<[1, 512, 7, 7]> bias = ?'
+        # 'float momentum = 0.1'
+        pattern = r"(?P<type>[\[\]\w]+)<?(?P<shape>[^>]*)>?\s+(?P<name>\w+)\s*=\s*(?P<val>.*)"
         m = re.match(pattern, input_str)
         m_type = m.group("type")
         m_type = re.sub(r"Optional\[(.*?)\]", r"\1", m_type)
