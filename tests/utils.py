@@ -330,7 +330,8 @@ def get_input_vals_from_metric_str(op_name, input_strings):
                 except:
                     return None, None
         else:
-            raise ValueError(f"Unknown type: {m.group('type')}")
+            return None, None
+            # raise ValueError(f"Unknown type: {m.group('type')}")
 
         input_vals.append({"name": m.group("name"), "val": val})
 
