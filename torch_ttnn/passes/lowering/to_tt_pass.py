@@ -304,6 +304,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
+        if target == torch.ops.aten.avg_pool2d.default:
+            return self.call_function_prop_meta(ttnn.avg_pool2d, args, kwargs)
+
         if target == torch.ops.aten.squeeze.dim:
             # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
             if args[1] == 0:

@@ -173,6 +173,7 @@ def is_tt_compute(node) -> bool:
             ttnn.zeros_like,
             ttnn.mean,
             ttnn.global_avg_pool2d,
+            ttnn.avg_pool2d,
             ttnn.clip,
             ttnn.squeeze,
             ttnn.full,
