@@ -55,6 +55,19 @@ def load_pickle(path: str):
         return None
 
 
+def load_single_metrics(path: str):
+    if os.path.isdir(path):
+        results = []
+        for file in os.listdir(path):
+            if file.endswith(".pickle"):
+                result = load_pickle(os.path.join(path, file))
+                if result:
+                    results += result
+        return results
+    else:
+        return None
+
+
 # Load a pt file from path and return a Torch tensor object or None
 def load_pt(path: str):
     if os.path.isfile(path):
@@ -187,7 +200,13 @@ class InputVarPerOp(defaultdict):
                 "Status": [string.capwords(x.name) for x in sort_by_opname.values()],
             }
 
-    def __init__(self, original_schema_metrics={}, compiled_schema_metrics={}, compiled_run_success: bool = False):
+    def __init__(
+        self,
+        original_schema_metrics={},
+        compiled_schema_metrics={},
+        single_metrics=[],
+        compiled_run_success: bool = False,
+    ):
         super(InputVarPerOp, self).__init__(self.InputVarStatus)
         self.ops_dir = "operations"
         self.compiled_run_success = compiled_run_success
@@ -261,6 +280,10 @@ class InputVarPerOp(defaultdict):
                 self[opname][inputs]
         # else this will be an empty dict with defaults
 
+        self.single_metrics = single_metrics
+        for s in self.single_metrics:
+            s["input_variation"] = _join_br(s["input_strings"])
+
     def merge(self, other: "InputVarPerOp"):
         """
         Method to merge another InputVarPerOp object to this.
@@ -270,9 +293,43 @@ class InputVarPerOp(defaultdict):
                 # Don't overwrite existing with UNKNOWN status
                 if self[opname][input] == ConversionStatus.UNKNOWN:
                     self[opname][input] = status
+        if not self.single_metrics:
+            self.single_metrics = other.single_metrics
+        elif self.single_metrics:
+            self.single_metrics += other.single_metrics
 
     def sorted(self):
         return dict(sorted(self.items()))
+
+    def append_single_status(self, opname, input_variations, input_vars_dict):
+        """
+        Add the single status of each input variation.
+        """
+
+        def _filter_single_status(opname, input_variation):
+            """
+            Filter out the single status from single_metrics.
+            """
+            na = {"native_run": "N/A", "run": "N/A", "accuracy": "N/A", "convert_to_ttnn": "N/A"}
+            if not self.single_metrics:
+                return na
+            return next(
+                filter(
+                    lambda x: x["opname"] == opname and x["input_variation"] == input_variation, self.single_metrics
+                ),
+                na,
+            )
+
+        input_vars_dict["Single-native-run"] = []
+        input_vars_dict["Single-run"] = []
+        input_vars_dict["Single-accuracy"] = []
+        input_vars_dict["Single-converted"] = []
+        for input_variation in input_variations:
+            single_status = _filter_single_status(opname, input_variation)
+            input_vars_dict["Single-native-run"].append(single_status["native_run"])
+            input_vars_dict["Single-run"].append(single_status["run"])
+            input_vars_dict["Single-accuracy"].append(single_status["accuracy"])
+            input_vars_dict["Single-converted"].append(single_status["convert_to_ttnn"])
 
     def generate_md_for_input_variations(self) -> str:
         """
@@ -287,6 +344,7 @@ class InputVarPerOp(defaultdict):
 
         for opname, input_vars in self.sorted().items():
             input_vars_dict = input_vars.get_list_input_var_to_dict()
+            self.append_single_status(opname, input_vars_dict["ATen Input Variations"], input_vars_dict)
             md += f"### {opname}\n"
             md += pd.DataFrame(input_vars_dict).to_markdown(index=True) + "\n"
 
@@ -333,6 +391,7 @@ class InputVarPerOp(defaultdict):
         for opname, input_vars in self.sorted().items():
             op_md = ""
             input_vars_dict = input_vars.get_list_input_var_to_dict()
+            self.append_single_status(opname, input_vars_dict["ATen Input Variations"], input_vars_dict)
             op_md += f"### {opname}\n"
             op_md += pd.DataFrame(input_vars_dict).to_markdown(index=True) + "\n"
             self.write_md(op_md, basedir / cumulative_ops_dir, Path(f"{opname}.md"))
@@ -414,6 +473,10 @@ if __name__ == "__main__":
         compiled_schema_metrics_path = model_path / "compiled-schema_list.pickle"
         compiled_schema_metrics = load_pickle(compiled_schema_metrics_path) or {}
 
+        # Load single metrics
+        single_metrics_path = Path("metrics-input-variations") / model
+        single_metrics = load_single_metrics(single_metrics_path)
+
         # Count total number of original aten ops and unique aten ops
         ops_metrics = {
             "torch_ops_total_unique_before": "N/A",
@@ -462,7 +525,7 @@ if __name__ == "__main__":
 
         # Process input variations per model
         input_var_per_op = InputVarPerOp(
-            original_schema_metrics, compiled_schema_metrics, compiled_run_success=compiled_run_success
+            original_schema_metrics, compiled_schema_metrics, single_metrics, compiled_run_success=compiled_run_success
         )
         model_info_dir = Path("docs") / Path("models") / Path(model)
         input_var_per_op.write_md_for_input_variations(model_info_dir, Path("input_variations.md"))
