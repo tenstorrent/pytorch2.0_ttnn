@@ -10,7 +10,7 @@ class ArangeModule(torch.nn.Module):
 
     def forward(self, end):
         # start = 0, step = 1
-        return torch.arange(end)
+        return torch.arange(end, dtype=torch.bfloat16)
 
 
 class ArangeStartModule(torch.nn.Module):
@@ -19,7 +19,7 @@ class ArangeStartModule(torch.nn.Module):
 
     def forward(self, start, end):
         # step = 1
-        return torch.arange(start, end)
+        return torch.arange(start, end, dtype=torch.bfloat16)
 
 
 class ArangeStartStepModule(torch.nn.Module):
@@ -27,7 +27,7 @@ class ArangeStartStepModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, start, end, step):
-        return torch.arange(start, end, step)
+        return torch.arange(start, end, step, dtype=torch.bfloat16)
 
 
 # NOTE(kevinwuTT) This test fails because ttnn.arange does not support start value of 0.

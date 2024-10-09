@@ -495,8 +495,8 @@ class AddDataMovePass(PassBase):
         # Because of the mixing of ttnn and aten ops, some types need to be fixed
         for node in gm.graph.nodes:
             if node.target == ttnn.to_torch:
-                # Reconvert int64 types back to torch
-                if node.meta["val"].dtype == torch.int64:
+                # Reconvert int64 types back to torch if the user is not "output"
+                if node.meta["val"].dtype == torch.int64 and "output" not in [user.op for user in node.users.keys()]:
                     g = node.graph
                     with g.inserting_after(node):
                         # TODO: Is _to_copy the right op?
