@@ -662,6 +662,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_args = (to_layout, num_chunks, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
 
+            if node.target == torch.ops.aten._to_copy.default:
+                target_users_ops = [user.target for user in node.users.keys()]
+                # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
+                # Skip if type casting from bool and if the graph output uses this op
+                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
+                    # Essentially remove this op because it's used as a typecast
+                    return node.args[0]
+                else:
+                    return None
+
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
