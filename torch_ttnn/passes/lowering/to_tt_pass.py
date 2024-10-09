@@ -382,19 +382,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             """
 
             if node.target == torch.ops.aten.arange.start:
-                # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
-                if args[0] >= 2:
-                    # step = 1
-                    new_args = (args[0], args[1], 1)
-                    return g.call_function(ttnn.arange, args=new_args)
-                return None
+                new_args = (args[0], args[1], 1)  # step = 1
+                new_kwargs = {"device": TtnnDevice(), "dtype": TtnnBfloat16()}
+                return g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
 
             if node.target == torch.ops.aten.arange.start_step:
-                # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
-                if args[0] >= 2:
-                    new_args = (args[0], args[1], args[2])
-                    return g.call_function(ttnn.arange, args=new_args)
-                return None
+                new_args = (args[0], args[1], args[2])
+                new_kwargs = {"device": TtnnDevice(), "dtype": TtnnBfloat16()}
+                return g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
 
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
