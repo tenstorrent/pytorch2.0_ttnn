@@ -346,19 +346,22 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     if not is_function_call(src_node):
         return None
     if (
-        src_node.target not in TTNN_LAYOUT_CHANGE_OPS
+        src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
         or not is_tt_compute(dst_node)
         or dst_node.target == ttnn.embedding
-        or (src_node.target in TTNN_LAYOUT_CHANGE_OPS and can_be_tilized(src_node))
     ):
         return None
 
     g = dst_node.graph
     new_nodes = []
     with g.inserting_before(dst_node):
-        new_nodes.append(g.call_function(ttnn.to_device, (src_node,), {"device": device}))
         if dst_node.target != target_wrappers.repeat:
-            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout())))
+            new_nodes.append(
+                g.call_function(ttnn.to_layout, (new_nodes[-1] if new_nodes else src_node, TtnnTileLayout()))
+            )
+        new_nodes.append(
+            g.call_function(ttnn.to_device, (new_nodes[-1] if new_nodes else src_node,), {"device": device})
+        )
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 

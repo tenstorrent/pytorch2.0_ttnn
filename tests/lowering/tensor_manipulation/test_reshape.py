@@ -12,7 +12,6 @@ class ReshapeModule(torch.nn.Module):
         return torch.reshape(x, new_shape)
 
 
-@pytest.mark.xfail(reason="lowering issue (#67)")
 @pytest.mark.parametrize(
     "input_shape, new_shape",
     [((3 * 5, 7), (7 * 3, 5))],
