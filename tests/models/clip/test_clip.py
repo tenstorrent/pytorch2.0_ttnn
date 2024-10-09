@@ -44,7 +44,6 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_clip(record_property, mode):
     model_name = "CLIP"
     record_property("model_name", f"{model_name} {mode}")

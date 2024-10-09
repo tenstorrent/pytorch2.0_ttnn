@@ -40,7 +40,8 @@ class Inputs:
     def __init__(self, dtype, name, shape, value):
         self.dtype = dtype
         self.name = name
-        self.shape = shape
+        self.shape_ = shape
+        self.value_ = value
 
         self.shape = f"<{_get_shape_from_fake_tensor(shape)}>" if shape is not None else ""
         self.value = f"{str(_sanitize_value(value))}" if value is not None else "?"
