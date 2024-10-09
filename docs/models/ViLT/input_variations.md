@@ -29,7 +29,7 @@
 | 25 | aten.tanh.default              |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 26 | aten.transpose.int             |                  3 |           1 |         0 |          0 | 🚧          |    0.33 |
 | 27 | aten.unsqueeze.default         |                  6 |           1 |         0 |          0 | 🚧          |    0.17 |
-| 28 | aten.view.default              |                 17 |           0 |         0 |          1 | ✘           |    0    |
+| 28 | aten.view.default              |                 17 |           1 |         0 |          0 | 🚧          |    0.06 |
 | 29 | aten.zeros_like.default        |                  1 |           0 |         0 |          0 | ✘           |    0    |
 ***
 ### aten._softmax.default
@@ -41,9 +41,9 @@
 |---:|:--------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1, 1, 201]> self = ?,<br>Optional[int] dtype = torch.float32   | Unknown  |
 |  1 | Tensor<[1, 1, 12, 16]> self = ?,<br>Optional[int] dtype = torch.int64     | None     |
-|  2 | Tensor<[1, 1, 384, 512]> self = ?,<br>Optional[int] dtype = torch.float32 | None     |
-|  3 | Tensor<[12]> self = ?,<br>Optional[int] dtype = torch.int64               | None     |
-|  4 | Tensor<[16]> self = ?,<br>Optional[int] dtype = torch.int64               | None     |
+|  2 | Tensor<[1, 1, 384, 512]> self = ?,<br>Optional[int] dtype = torch.float32 | Unknown  |
+|  3 | Tensor<[12]> self = ?,<br>Optional[int] dtype = torch.int64               | Unknown  |
+|  4 | Tensor<[16]> self = ?,<br>Optional[int] dtype = torch.int64               | Unknown  |
 ### aten._unsafe_index.Tensor
 |    | ATen Input Variations                                                                                  | Status   |
 |---:|:-------------------------------------------------------------------------------------------------------|:---------|
@@ -230,7 +230,7 @@
 |  7 | Tensor<[1, 201, 768]> self = ?,<br>List[int] size = [1, 201, 12, 64]   | Unknown  |
 |  8 | Tensor<[1, 201, 768]> self = ?,<br>List[int] size = [201, 768]         | Unknown  |
 |  9 | Tensor<[1, 768, 12, 16]> self = ?,<br>List[int] size = [1, 768, 192]   | Unknown  |
-| 10 | Tensor<[1, 768, 144]> self = ?,<br>List[int] size = [1, 768, 12, 12]   | Fallback |
+| 10 | Tensor<[1, 768, 144]> self = ?,<br>List[int] size = [1, 768, 12, 12]   | Done     |
 | 11 | Tensor<[12, 201, 201]> self = ?,<br>List[int] size = [1, 12, 201, 201] | Unknown  |
 | 12 | Tensor<[12, 201, 64]> self = ?,<br>List[int] size = [1, 12, 201, 64]   | Unknown  |
 | 13 | Tensor<[12]> self = ?,<br>List[int] size = [-1, 1]                     | Unknown  |

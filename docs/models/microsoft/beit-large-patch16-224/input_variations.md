@@ -21,7 +21,7 @@
 | 17 | aten.t.default                 |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 18 | aten.transpose.int             |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 19 | aten.unsqueeze.default         |                  1 |           1 |         0 |          0 | ✅          |    1    |
-| 20 | aten.view.default              |                 14 |           6 |         0 |          8 | 🚧          |    0.43 |
+| 20 | aten.view.default              |                 14 |          14 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                              | Status   |
@@ -126,18 +126,18 @@
 ### aten.view.default
 |    | ATen Input Variations                                                  | Status   |
 |---:|:-----------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1024, 14, 14]> self = ?,<br>List[int] size = [1, 1024, 196] | Fallback |
-|  1 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [16, 197, 197] | Fallback |
+|  0 | Tensor<[1, 1024, 14, 14]> self = ?,<br>List[int] size = [1, 1024, 196] | Done     |
+|  1 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [16, 197, 197] | Done     |
 |  2 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] size = [16, 197, 64]   | Done     |
-|  3 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [16, 64, 197]   | Fallback |
-|  4 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [1, 197, 16, 64]  | Fallback |
+|  3 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [16, 64, 197]   | Done     |
+|  4 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [1, 197, 16, 64]  | Done     |
 |  5 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [197, 1024]       | Done     |
-|  6 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] size = [1, 197, 1024]  | Fallback |
+|  6 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] size = [1, 197, 1024]  | Done     |
 |  7 | Tensor<[1, 197, 4096]> self = ?,<br>List[int] size = [197, 4096]       | Done     |
-|  8 | Tensor<[16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | Fallback |
+|  8 | Tensor<[16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | Done     |
 |  9 | Tensor<[16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | Done     |
 | 10 | Tensor<[197, 1024]> self = ?,<br>List[int] size = [1, 197, 1024]       | Done     |
-| 11 | Tensor<[197, 197]> self = ?,<br>List[int] size = [-1]                  | Fallback |
+| 11 | Tensor<[197, 197]> self = ?,<br>List[int] size = [-1]                  | Done     |
 | 12 | Tensor<[197, 4096]> self = ?,<br>List[int] size = [1, 197, 4096]       | Done     |
-| 13 | Tensor<[38809, 16]> self = ?,<br>List[int] size = [197, 197, -1]       | Fallback |
+| 13 | Tensor<[38809, 16]> self = ?,<br>List[int] size = [197, 197, -1]       | Done     |
 

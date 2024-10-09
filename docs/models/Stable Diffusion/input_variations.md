@@ -29,7 +29,7 @@
 | 25 | aten.t.default                                   |                 14 |          14 |         0 |          0 | ✅          |    1    |
 | 26 | aten.transpose.int                               |                 11 |          11 |         0 |          0 | ✅          |    1    |
 | 27 | aten.unsqueeze.default                           |                 11 |           5 |         0 |          0 | 🚧          |    0.45 |
-| 28 | aten.view.default                                |                 39 |          20 |         0 |         19 | 🚧          |    0.51 |
+| 28 | aten.view.default                                |                 39 |          39 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                          | Status   |
@@ -45,7 +45,7 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                           | Status   |
 |---:|:----------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1]> self = ?,<br>Optional[int] dtype = torch.float32 | None     |
+|  0 | Tensor<[1, 1]> self = ?,<br>Optional[int] dtype = torch.float32 | Unknown  |
 |  1 | Tensor<[16]> self = ?,<br>Optional[int] dtype = torch.int64     | None     |
 |  2 | Tensor<[32]> self = ?,<br>Optional[int] dtype = torch.int64     | None     |
 |  3 | Tensor<[64]> self = ?,<br>Optional[int] dtype = torch.int64     | None     |
@@ -360,32 +360,32 @@
 |    | ATen Input Variations                                                  | Status   |
 |---:|:-----------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1024, 2560]> self = ?,<br>List[int] size = [1024, 2560]     | Done     |
-|  1 | Tensor<[1, 1024, 640]> self = ?,<br>List[int] size = [1, -1, 8, 80]    | Fallback |
-|  2 | Tensor<[1, 1024, 640]> self = ?,<br>List[int] size = [1, 32, 32, 640]  | Fallback |
+|  1 | Tensor<[1, 1024, 640]> self = ?,<br>List[int] size = [1, -1, 8, 80]    | Done     |
+|  2 | Tensor<[1, 1024, 640]> self = ?,<br>List[int] size = [1, 32, 32, 640]  | Done     |
 |  3 | Tensor<[1, 1024, 640]> self = ?,<br>List[int] size = [1024, 640]       | Done     |
-|  4 | Tensor<[1, 1024, 8, 80]> self = ?,<br>List[int] size = [1, -1, 640]    | Fallback |
-|  5 | Tensor<[1, 16, 16, 1280]> self = ?,<br>List[int] size = [1, 256, 1280] | Fallback |
-|  6 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [1, -1, 8, 160]   | Fallback |
-|  7 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [1, 16, 16, 1280] | Fallback |
+|  4 | Tensor<[1, 1024, 8, 80]> self = ?,<br>List[int] size = [1, -1, 640]    | Done     |
+|  5 | Tensor<[1, 16, 16, 1280]> self = ?,<br>List[int] size = [1, 256, 1280] | Done     |
+|  6 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [1, -1, 8, 160]   | Done     |
+|  7 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [1, 16, 16, 1280] | Done     |
 |  8 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [256, 1280]       | Done     |
 |  9 | Tensor<[1, 256, 5120]> self = ?,<br>List[int] size = [256, 5120]       | Done     |
-| 10 | Tensor<[1, 256, 8, 160]> self = ?,<br>List[int] size = [1, -1, 1280]   | Fallback |
-| 11 | Tensor<[1, 32, 32, 640]> self = ?,<br>List[int] size = [1, 1024, 640]  | Fallback |
+| 10 | Tensor<[1, 256, 8, 160]> self = ?,<br>List[int] size = [1, -1, 1280]   | Done     |
+| 11 | Tensor<[1, 32, 32, 640]> self = ?,<br>List[int] size = [1, 1024, 640]  | Done     |
 | 12 | Tensor<[1, 4096, 1280]> self = ?,<br>List[int] size = [4096, 1280]     | Done     |
-| 13 | Tensor<[1, 4096, 320]> self = ?,<br>List[int] size = [1, -1, 8, 40]    | Fallback |
-| 14 | Tensor<[1, 4096, 320]> self = ?,<br>List[int] size = [1, 64, 64, 320]  | Fallback |
+| 13 | Tensor<[1, 4096, 320]> self = ?,<br>List[int] size = [1, -1, 8, 40]    | Done     |
+| 14 | Tensor<[1, 4096, 320]> self = ?,<br>List[int] size = [1, 64, 64, 320]  | Done     |
 | 15 | Tensor<[1, 4096, 320]> self = ?,<br>List[int] size = [4096, 320]       | Done     |
-| 16 | Tensor<[1, 4096, 8, 40]> self = ?,<br>List[int] size = [1, -1, 320]    | Fallback |
-| 17 | Tensor<[1, 64, 1280]> self = ?,<br>List[int] size = [1, -1, 8, 160]    | Fallback |
-| 18 | Tensor<[1, 64, 1280]> self = ?,<br>List[int] size = [1, 8, 8, 1280]    | Fallback |
+| 16 | Tensor<[1, 4096, 8, 40]> self = ?,<br>List[int] size = [1, -1, 320]    | Done     |
+| 17 | Tensor<[1, 64, 1280]> self = ?,<br>List[int] size = [1, -1, 8, 160]    | Done     |
+| 18 | Tensor<[1, 64, 1280]> self = ?,<br>List[int] size = [1, 8, 8, 1280]    | Done     |
 | 19 | Tensor<[1, 64, 1280]> self = ?,<br>List[int] size = [64, 1280]         | Done     |
 | 20 | Tensor<[1, 64, 5120]> self = ?,<br>List[int] size = [64, 5120]         | Done     |
-| 21 | Tensor<[1, 64, 64, 320]> self = ?,<br>List[int] size = [1, 4096, 320]  | Fallback |
-| 22 | Tensor<[1, 64, 8, 160]> self = ?,<br>List[int] size = [1, -1, 1280]    | Fallback |
-| 23 | Tensor<[1, 8, 8, 1280]> self = ?,<br>List[int] size = [1, 64, 1280]    | Fallback |
-| 24 | Tensor<[1, 9, 1280]> self = ?,<br>List[int] size = [1, -1, 8, 160]     | Fallback |
-| 25 | Tensor<[1, 9, 320]> self = ?,<br>List[int] size = [1, -1, 8, 40]       | Fallback |
-| 26 | Tensor<[1, 9, 640]> self = ?,<br>List[int] size = [1, -1, 8, 80]       | Fallback |
+| 21 | Tensor<[1, 64, 64, 320]> self = ?,<br>List[int] size = [1, 4096, 320]  | Done     |
+| 22 | Tensor<[1, 64, 8, 160]> self = ?,<br>List[int] size = [1, -1, 1280]    | Done     |
+| 23 | Tensor<[1, 8, 8, 1280]> self = ?,<br>List[int] size = [1, 64, 1280]    | Done     |
+| 24 | Tensor<[1, 9, 1280]> self = ?,<br>List[int] size = [1, -1, 8, 160]     | Done     |
+| 25 | Tensor<[1, 9, 320]> self = ?,<br>List[int] size = [1, -1, 8, 40]       | Done     |
+| 26 | Tensor<[1, 9, 640]> self = ?,<br>List[int] size = [1, -1, 8, 80]       | Done     |
 | 27 | Tensor<[1, 9, 768]> self = ?,<br>List[int] size = [9, 768]             | Done     |
 | 28 | Tensor<[1024, 5120]> self = ?,<br>List[int] size = [1, 1024, 5120]     | Done     |
 | 29 | Tensor<[1024, 640]> self = ?,<br>List[int] size = [1, 1024, 640]       | Done     |

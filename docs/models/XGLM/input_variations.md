@@ -4,7 +4,7 @@
 |  0 | aten._log_softmax.default      |                  1 |           1 |         0 |          0 | ✅          |     1   |
 |  1 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |     1   |
 |  2 | aten._to_copy.default          |                  2 |           0 |         0 |          0 | ✘           |     0   |
-|  3 | aten._unsafe_view.default      |                  1 |           0 |         0 |          0 | ✘           |     0   |
+|  3 | aten._unsafe_view.default      |                  1 |           1 |         0 |          0 | ✅          |     1   |
 |  4 | aten.add.Tensor                |                  3 |           3 |         0 |          0 | ✅          |     1   |
 |  5 | aten.addmm.default             |                  3 |           3 |         0 |          0 | ✅          |     1   |
 |  6 | aten.arange.start              |                  1 |           0 |         0 |          0 | ✘           |     0   |
@@ -30,7 +30,7 @@
 | 26 | aten.t.default                 |                  4 |           4 |         0 |          0 | ✅          |     1   |
 | 27 | aten.transpose.int             |                  3 |           3 |         0 |          0 | ✅          |     1   |
 | 28 | aten.unsqueeze.default         |                  5 |           5 |         0 |          0 | ✅          |     1   |
-| 29 | aten.view.default              |                 14 |           7 |         0 |          7 | 🚧          |     0.5 |
+| 29 | aten.view.default              |                 14 |          14 |         0 |          0 | ✅          |     1   |
 ***
 ### aten._log_softmax.default
 |    | ATen Input Variations                                                        | Status   |
@@ -44,11 +44,11 @@
 |    | ATen Input Variations                                                   | Status   |
 |---:|:------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.bool    | None     |
-|  1 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.float32 | None     |
+|  1 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.float32 | Unknown  |
 ### aten._unsafe_view.default
 |    | ATen Input Variations                                               | Status   |
 |---:|:--------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 19, 16, 64]> self = ?,<br>List[int] size = [1, 19, 1024] | None     |
+|  0 | Tensor<[1, 19, 16, 64]> self = ?,<br>List[int] size = [1, 19, 1024] | Done     |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                 | Status   |
 |---:|:----------------------------------------------------------------------|:---------|
@@ -176,17 +176,17 @@
 |    | ATen Input Variations                                               | Status   |
 |---:|:--------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 16, 19, 19]> self = ?,<br>List[int] size = [16, 19, 19]  | Done     |
-|  1 | Tensor<[1, 16, 19, 64]> self = ?,<br>List[int] size = [16, -1, 64]  | Fallback |
-|  2 | Tensor<[1, 19, 1024]> self = ?,<br>List[int] size = [1, -1, 16, 64] | Fallback |
-|  3 | Tensor<[1, 19, 1024]> self = ?,<br>List[int] size = [1, 19, 16, 64] | Fallback |
+|  1 | Tensor<[1, 16, 19, 64]> self = ?,<br>List[int] size = [16, -1, 64]  | Done     |
+|  2 | Tensor<[1, 19, 1024]> self = ?,<br>List[int] size = [1, -1, 16, 64] | Done     |
+|  3 | Tensor<[1, 19, 1024]> self = ?,<br>List[int] size = [1, 19, 16, 64] | Done     |
 |  4 | Tensor<[1, 19, 1024]> self = ?,<br>List[int] size = [19, 1024]      | Done     |
-|  5 | Tensor<[1, 19, 256008]> self = ?,<br>List[int] size = [-1, 256008]  | Fallback |
+|  5 | Tensor<[1, 19, 256008]> self = ?,<br>List[int] size = [-1, 256008]  | Done     |
 |  6 | Tensor<[1, 19, 4096]> self = ?,<br>List[int] size = [19, 4096]      | Done     |
-|  7 | Tensor<[1, 19]> self = ?,<br>List[int] size = [-1, 19]              | Fallback |
-|  8 | Tensor<[1, 19]> self = ?,<br>List[int] size = [-1]                  | Fallback |
+|  7 | Tensor<[1, 19]> self = ?,<br>List[int] size = [-1, 19]              | Done     |
+|  8 | Tensor<[1, 19]> self = ?,<br>List[int] size = [-1]                  | Done     |
 |  9 | Tensor<[16, 19, 19]> self = ?,<br>List[int] size = [1, 16, 19, 19]  | Done     |
 | 10 | Tensor<[16, 19, 64]> self = ?,<br>List[int] size = [1, 16, 19, 64]  | Done     |
 | 11 | Tensor<[19, 1024]> self = ?,<br>List[int] size = [1, 19, 1024]      | Done     |
-| 12 | Tensor<[19, 256008]> self = ?,<br>List[int] size = [1, 19, 256008]  | Fallback |
+| 12 | Tensor<[19, 256008]> self = ?,<br>List[int] size = [1, 19, 256008]  | Done     |
 | 13 | Tensor<[19, 4096]> self = ?,<br>List[int] size = [1, 19, 4096]      | Done     |
 
