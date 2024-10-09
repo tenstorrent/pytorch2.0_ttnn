@@ -11,7 +11,7 @@
 |  7 | aten.mul.Tensor                                   |                  7 |           7 |         0 |          0 | ✅          |       1 |
 |  8 | aten.relu.default                                 |                 11 |          11 |         0 |          0 | ✅          |       1 |
 |  9 | aten.t.default                                    |                  2 |           2 |         0 |          0 | ✅          |       1 |
-| 10 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
+| 10 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                               | Status   |
@@ -154,5 +154,5 @@
 ### aten.view.default
 |    | ATen Input Variations                                         | Status   |
 |---:|:--------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 576, 1, 1]> self = ?,<br>List[int] size = [1, 576] | Fallback |
+|  0 | Tensor<[1, 576, 1, 1]> self = ?,<br>List[int] size = [1, 576] | Done     |
 

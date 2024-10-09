@@ -14,7 +14,7 @@
 | 10 | aten.slice.Tensor                                 |                 45 |           0 |         0 |          0 | ✘           |       0 |
 | 11 | aten.slice_scatter.default                        |                 18 |           0 |         0 |          0 | ✘           |       0 |
 | 12 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 13 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
+| 13 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                              | Status   |
@@ -272,5 +272,5 @@
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   |
 |---:|:----------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1280, 1, 1]> self = ?,<br>List[int] size = [1, 1280] | Fallback |
+|  0 | Tensor<[1, 1280, 1, 1]> self = ?,<br>List[int] size = [1, 1280] | Done     |
 

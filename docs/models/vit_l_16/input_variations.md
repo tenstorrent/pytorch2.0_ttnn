@@ -1,23 +1,23 @@
 # High Level Operations Status
 |    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._scaled_dot_product_flash_attention.default |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  1 | aten.add.Tensor                                  |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  2 | aten.addmm.default                               |                  5 |           5 |         0 |          0 | ✅          |    1    |
-|  3 | aten.cat.default                                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  4 | aten.clone.default                               |                  3 |           3 |         0 |          0 | ✅          |    1    |
-|  5 | aten.convolution.default                         |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  6 | aten.expand.default                              |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  7 | aten.gelu.default                                |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  8 | aten.native_layer_norm.default                   |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  9 | aten.permute.default                             |                  2 |           2 |         0 |          0 | ✅          |    1    |
-| 10 | aten.select.int                                  |                  4 |           0 |         0 |          0 | ✘           |    0    |
-| 11 | aten.slice.Tensor                                |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 12 | aten.squeeze.dim                                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 13 | aten.t.default                                   |                  5 |           5 |         0 |          0 | ✅          |    1    |
-| 14 | aten.transpose.int                               |                  4 |           4 |         0 |          0 | ✅          |    1    |
-| 15 | aten.unsqueeze.default                           |                  1 |           1 |         0 |          0 | ✅          |    1    |
-| 16 | aten.view.default                                |                 12 |           5 |         0 |          7 | 🚧          |    0.42 |
+|  0 | aten._scaled_dot_product_flash_attention.default |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.add.Tensor                                  |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  2 | aten.addmm.default                               |                  5 |           5 |         0 |          0 | ✅          |       1 |
+|  3 | aten.cat.default                                 |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.clone.default                               |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  5 | aten.convolution.default                         |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.expand.default                              |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  7 | aten.gelu.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  8 | aten.native_layer_norm.default                   |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  9 | aten.permute.default                             |                  2 |           2 |         0 |          0 | ✅          |       1 |
+| 10 | aten.select.int                                  |                  4 |           0 |         0 |          0 | ✘           |       0 |
+| 11 | aten.slice.Tensor                                |                  1 |           0 |         0 |          0 | ✘           |       0 |
+| 12 | aten.squeeze.dim                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 13 | aten.t.default                                   |                  5 |           5 |         0 |          0 | ✅          |       1 |
+| 14 | aten.transpose.int                               |                  4 |           4 |         0 |          0 | ✅          |       1 |
+| 15 | aten.unsqueeze.default                           |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 16 | aten.view.default                                |                 12 |          12 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                          | Status   |
@@ -80,7 +80,7 @@
 ### aten.squeeze.dim
 |    | ATen Input Variations                                  | Status   |
 |---:|:-------------------------------------------------------|:---------|
-|  0 | Tensor<[3, 197, 1, 1, 1024]> self = ?,<br>int dim = -2 | None     |
+|  0 | Tensor<[3, 197, 1, 1, 1024]> self = ?,<br>int dim = -2 | Done     |
 ### aten.t.default
 |    | ATen Input Variations         | Status   |
 |---:|:------------------------------|:---------|
@@ -103,16 +103,16 @@
 ### aten.view.default
 |    | ATen Input Variations                                                  | Status   |
 |---:|:-----------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1024, 14, 14]> self = ?,<br>List[int] size = [1, 1024, 196] | Fallback |
+|  0 | Tensor<[1, 1024, 14, 14]> self = ?,<br>List[int] size = [1, 1024, 196] | Done     |
 |  1 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [197, 1024]       | Done     |
 |  2 | Tensor<[1, 197, 4096]> self = ?,<br>List[int] size = [197, 4096]       | Done     |
 |  3 | Tensor<[16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | Done     |
-|  4 | Tensor<[197, 1, 1024]> self = ?,<br>List[int] size = [197, 1024]       | Fallback |
-|  5 | Tensor<[197, 1, 1024]> self = ?,<br>List[int] size = [197, 16, 64]     | Fallback |
-|  6 | Tensor<[197, 1, 16, 64]> self = ?,<br>List[int] size = [197, 1024]     | Fallback |
-|  7 | Tensor<[197, 1, 3072]> self = ?,<br>List[int] size = [197, 1, 3, 1024] | Fallback |
+|  4 | Tensor<[197, 1, 1024]> self = ?,<br>List[int] size = [197, 1024]       | Done     |
+|  5 | Tensor<[197, 1, 1024]> self = ?,<br>List[int] size = [197, 16, 64]     | Done     |
+|  6 | Tensor<[197, 1, 16, 64]> self = ?,<br>List[int] size = [197, 1024]     | Done     |
+|  7 | Tensor<[197, 1, 3072]> self = ?,<br>List[int] size = [197, 1, 3, 1024] | Done     |
 |  8 | Tensor<[197, 1024]> self = ?,<br>List[int] size = [1, 197, 1024]       | Done     |
-|  9 | Tensor<[197, 1024]> self = ?,<br>List[int] size = [197, 1, 1024]       | Fallback |
-| 10 | Tensor<[197, 3072]> self = ?,<br>List[int] size = [197, 1, 3072]       | Fallback |
+|  9 | Tensor<[197, 1024]> self = ?,<br>List[int] size = [197, 1, 1024]       | Done     |
+| 10 | Tensor<[197, 3072]> self = ?,<br>List[int] size = [197, 1, 3072]       | Done     |
 | 11 | Tensor<[197, 4096]> self = ?,<br>List[int] size = [1, 197, 4096]       | Done     |
 
