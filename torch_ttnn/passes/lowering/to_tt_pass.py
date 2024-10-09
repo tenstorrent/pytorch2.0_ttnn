@@ -249,9 +249,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.minimum.default:
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
-        if target == torch.ops.aten.mul.Tensor:
-            return self.call_function_prop_meta(ttnn.mul, args, kwargs)
-
         if target == torch.ops.aten.pow.Tensor_Scalar:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
@@ -436,6 +433,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if node_user.target == torch.ops.aten.div.Tensor:
                         node_user.update_arg(1, args[1])
                 return None
+
+            if node.target == torch.ops.aten.mul.Tensor:
+                # Assumption: Inputs are in bfloat16 dtype only
+                # If not, change to tile layout will throw errors
+                to_layout_arg0 = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnTileLayout()})
+                to_layout_arg1 = g.call_function(ttnn.to_layout, (args[1],), {"layout": TtnnTileLayout()})
+
+                return g.call_function(
+                    ttnn.mul,
+                    args=(
+                        to_layout_arg0,
+                        to_layout_arg1,
+                    ),
+                )
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
