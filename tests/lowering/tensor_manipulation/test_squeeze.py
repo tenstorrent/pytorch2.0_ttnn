@@ -13,19 +13,21 @@ class SqueezeDimModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shapes",
-    [[(1, 32, 16)]],
+    "input_shape, dim",
+    [
+        ((1, 32, 16), 0),
+        ((1, 256, 1), -1),
+    ],
 )
-def test_squeeze_dim(device, input_shapes):
+def test_squeeze_dim(device, input_shape, dim):
     m = SqueezeDimModule()
-    inputs = [torch.zeros(shape, dtype=torch.bfloat16) for shape in input_shapes]
-    dim = 0
-    result_before = m.forward(inputs[0], dim)
+    inputs = torch.zeros(input_shape, dtype=torch.bfloat16)
+    result_before = m.forward(inputs, dim)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(inputs[0], dim)
+    result_after = m.forward(inputs, dim)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
