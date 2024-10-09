@@ -253,9 +253,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.minimum.default:
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
-        if target == torch.ops.aten.mul.Tensor:
-            return self.call_function_prop_meta(ttnn.mul, args, kwargs)
-
         if target == torch.ops.aten.pow.Tensor_Scalar:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
@@ -383,32 +380,33 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             """
 
             if node.target == torch.ops.aten.arange.start:
-                # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
-                if args[0] >= 2:
-                    # step = 1
-                    new_args = (args[0], args[1], 1)
-                    return g.call_function(ttnn.arange, args=new_args)
-                return None
+                new_args = (args[0], args[1], 1)  # step = 1
+                new_kwargs = {"device": TtnnDevice(), "dtype": TtnnBfloat16()}
+                return g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
 
             if node.target == torch.ops.aten.arange.start_step:
-                # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
-                if args[0] >= 2:
-                    new_args = (args[0], args[1], args[2])
-                    return g.call_function(ttnn.arange, args=new_args)
-                return None
+                new_args = (args[0], args[1], args[2])
+                new_kwargs = {"device": TtnnDevice(), "dtype": TtnnBfloat16()}
+                return g.call_function(ttnn.arange, args=new_args, kwargs=new_kwargs)
 
             if node.target in relational_scalar_ops:
                 # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if HasValidPageSize(arg_metadata.size(), strict=True):
+                shape = list(arg_metadata.size())
+
+                # Convert only if page size is valid and its input shape is in tile form.
+                # Converting untilized shapes results in this error:
+                # Inputs to eltwise binary must be tilized
+
+                if HasValidPageSize(arg_metadata.size(), strict=True) and (shape[-1] % 32 == 0 and shape[-2] % 32 == 0):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
                         "layout": TtnnTileLayout(),
                     }
-                    full_node = g.call_function(ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs)
+                    full_node = g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
                     return g.call_function(
                         relational_scalar_ops[node.target],
                         args=(args[0], full_node),
@@ -426,6 +424,53 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     )
                 return None
 
+            if node.target == torch.ops.aten.eq.Scalar:
+                shape = list(args[0].meta["val"].size())
+                # Skip conversion for shapes like [1,1]
+                if np.prod(shape) == 1:
+                    return None
+                # Convert only if input tensor is already tilized
+                if shape[-1] % 32 == 0 and shape[-2] % 32 == 0:
+                    new_kwargs = {
+                        "fill_value": args[1],
+                        "layout": TtnnTileLayout(),
+                        "device": TtnnDevice(),
+                    }
+                    full_node = g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+                    return g.call_function(
+                        ttnn.eq,
+                        args=(
+                            args[0],
+                            full_node,
+                        ),
+                        kwargs={},
+                    )
+                else:
+                    return None
+
+            if node.target == torch.ops.aten.gt.Scalar:
+                shape = list(args[0].meta["val"].size())
+                # Skip conversion for shapes like [1,1]
+                if np.prod(shape) == 1:
+                    return None
+                # Convert only if input tensor is already tilized
+                if shape[-1] % 32 == 0 and shape[-2] % 32 == 0:
+                    new_kwargs = {
+                        "fill_value": args[1],
+                        "layout": TtnnTileLayout(),
+                        "device": TtnnDevice(),
+                    }
+                    full_node = g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+                    return g.call_function(
+                        ttnn.gt,
+                        args=(
+                            args[0],
+                            full_node,
+                        ),
+                        kwargs={},
+                    )
+                return None
+
             if node.target == torch.ops.aten.full.default:
                 # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
                 if args[0]:
@@ -434,7 +479,21 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         "device": TtnnDevice(),
                         "layout": TtnnTileLayout(),
                     }
-                    return g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
+                    shape = tuple(args[0])
+                    # Input shapes like [1,1], [1,1,1] etc throws buffer error -
+                    # Buffer size and page size should be larger than 0 bytes if executed on device
+                    # Ignore conversion for these cases
+                    if np.prod(shape) == 1:
+                        return None
+                    # Use tile layout only if input tensor is tilized
+                    # Else untilized tensors will throw error if conversion is done in tile layout:
+                    # TILE layout requires width/height dimension to be multiple of 32
+                    if shape[-1] % 32 == 0 and shape[-2] % 32 == 0:
+                        return g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+                    else:
+                        new_kwargs["layout"] = TtnnRowMajorLayout()
+                        return g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+
                 # Replace op with scalar for eltwise ops
                 # TODO: Generalize this to support all eltwise ops
                 node_users = list(node.users.keys())
@@ -442,6 +501,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     if node_user.target == torch.ops.aten.div.Tensor:
                         node_user.update_arg(1, args[1])
                 return None
+
+            if node.target == torch.ops.aten.mul.Tensor:
+                # Assumption: Inputs are in bfloat16 dtype only
+                # If not, change to tile layout will throw errors
+                to_layout_arg0 = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnTileLayout()})
+                to_layout_arg1 = g.call_function(ttnn.to_layout, (args[1],), {"layout": TtnnTileLayout()})
+
+                return g.call_function(
+                    ttnn.mul,
+                    args=(
+                        to_layout_arg0,
+                        to_layout_arg1,
+                    ),
+                )
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
