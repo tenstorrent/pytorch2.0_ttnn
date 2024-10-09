@@ -21,7 +21,7 @@
 | 17 | aten.t.default                 |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 18 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 19 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |    1    |
-| 20 | aten.view.default              |                 12 |           9 |         0 |          3 | 🚧          |    0.75 |
+| 20 | aten.view.default              |                 12 |          12 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   |
@@ -30,10 +30,10 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                                                                                                     | Status   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 1, 10]> self = ?,<br>Optional[int] dtype = torch.float32                                                                    | None     |
-|  1 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32                                                                            | None     |
-|  2 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | None     |
-|  3 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int64                                                                            | None     |
+|  0 | Tensor<[1, 1, 1, 10]> self = ?,<br>Optional[int] dtype = torch.float32                                                                    | Unknown  |
+|  1 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32                                                                            | Unknown  |
+|  2 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | Unknown  |
+|  3 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int64                                                                            | Unknown  |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                | Status   |
 |---:|:---------------------------------------------------------------------|:---------|
@@ -133,14 +133,14 @@
 ### aten.view.default
 |    | ATen Input Variations                                              | Status   |
 |---:|:-------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 10, 12, 64]> self = ?,<br>List[int] size = [1, 10, 768] | Fallback |
+|  0 | Tensor<[1, 10, 12, 64]> self = ?,<br>List[int] size = [1, 10, 768] | Done     |
 |  1 | Tensor<[1, 10, 3072]> self = ?,<br>List[int] size = [10, 3072]     | Done     |
-|  2 | Tensor<[1, 10, 768]> self = ?,<br>List[int] size = [1, 10, 12, 64] | Fallback |
+|  2 | Tensor<[1, 10, 768]> self = ?,<br>List[int] size = [1, 10, 12, 64] | Done     |
 |  3 | Tensor<[1, 10, 768]> self = ?,<br>List[int] size = [10, 768]       | Done     |
 |  4 | Tensor<[1, 12, 10, 10]> self = ?,<br>List[int] size = [12, 10, 10] | Done     |
 |  5 | Tensor<[1, 12, 10, 64]> self = ?,<br>List[int] size = [12, 10, 64] | Done     |
 |  6 | Tensor<[1, 12, 64, 10]> self = ?,<br>List[int] size = [12, 64, 10] | Done     |
-|  7 | Tensor<[10, 250002]> self = ?,<br>List[int] size = [1, 10, 250002] | Fallback |
+|  7 | Tensor<[10, 250002]> self = ?,<br>List[int] size = [1, 10, 250002] | Done     |
 |  8 | Tensor<[10, 3072]> self = ?,<br>List[int] size = [1, 10, 3072]     | Done     |
 |  9 | Tensor<[10, 768]> self = ?,<br>List[int] size = [1, 10, 768]       | Done     |
 | 10 | Tensor<[12, 10, 10]> self = ?,<br>List[int] size = [1, 12, 10, 10] | Done     |

@@ -17,7 +17,7 @@
 | 13 | aten.slice.Tensor              |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
 | 14 | aten.t.default                 |                  3 |           3 |         0 |          0 | ✅          |    1    |
 | 15 | aten.transpose.int             |                  3 |           3 |         0 |          0 | ✅          |    1    |
-| 16 | aten.view.default              |                 12 |          10 |         0 |          2 | 🚧          |    0.83 |
+| 16 | aten.view.default              |                 12 |          12 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   |
@@ -103,9 +103,9 @@
 |  0 | Tensor<[1, 12, 16, 16]> self = ?,<br>List[int] size = [12, 16, 16] | Done     |
 |  1 | Tensor<[1, 12, 16, 64]> self = ?,<br>List[int] size = [12, 16, 64] | Done     |
 |  2 | Tensor<[1, 12, 64, 16]> self = ?,<br>List[int] size = [12, 64, 16] | Done     |
-|  3 | Tensor<[1, 16, 12, 64]> self = ?,<br>List[int] size = [1, -1, 768] | Fallback |
+|  3 | Tensor<[1, 16, 12, 64]> self = ?,<br>List[int] size = [1, -1, 768] | Done     |
 |  4 | Tensor<[1, 16, 3072]> self = ?,<br>List[int] size = [16, 3072]     | Done     |
-|  5 | Tensor<[1, 16, 768]> self = ?,<br>List[int] size = [1, -1, 12, 64] | Fallback |
+|  5 | Tensor<[1, 16, 768]> self = ?,<br>List[int] size = [1, -1, 12, 64] | Done     |
 |  6 | Tensor<[1, 16, 768]> self = ?,<br>List[int] size = [16, 768]       | Done     |
 |  7 | Tensor<[1, 16]> self = ?,<br>List[int] size = [1, 1, 1, 16]        | Done     |
 |  8 | Tensor<[12, 16, 16]> self = ?,<br>List[int] size = [1, 12, 16, 16] | Done     |

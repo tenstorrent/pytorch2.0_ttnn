@@ -2,8 +2,8 @@
 |    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  1 | aten._to_copy.default          |                  6 |           0 |         4 |          0 | 🚧          |    0.67 |
-|  2 | aten._unsafe_view.default      |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten._to_copy.default          |                  6 |           0 |         5 |          0 | 🚧          |    0.83 |
+|  2 | aten._unsafe_view.default      |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  3 | aten.add.Tensor                |                  3 |           3 |         0 |          0 | ✅          |    1    |
 |  4 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
 |  5 | aten.arange.start              |                  1 |           0 |         0 |          0 | ✘           |    0    |
@@ -29,7 +29,7 @@
 | 25 | aten.tanh.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 26 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 27 | aten.unsqueeze.default         |                  5 |           4 |         0 |          0 | 🚧          |    0.8  |
-| 28 | aten.view.default              |                 13 |          11 |         0 |          2 | 🚧          |    0.85 |
+| 28 | aten.view.default              |                 13 |          13 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   |
@@ -41,13 +41,13 @@
 |  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                            | Removed  |
 |  1 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                | None     |
 |  2 | Tensor<[1, 16, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                           | Removed  |
-|  3 | Tensor<[1, 16, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | None     |
+|  3 | Tensor<[1, 16, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | Removed  |
 |  4 | Tensor<[16, 1, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                               | Removed  |
 |  5 | Tensor<[32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                  | Removed  |
 ### aten._unsafe_view.default
 |    | ATen Input Variations                                               | Status   |
 |---:|:--------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 32, 16, 96]> self = ?,<br>List[int] size = [1, 32, 1536] | None     |
+|  0 | Tensor<[1, 32, 16, 96]> self = ?,<br>List[int] size = [1, 32, 1536] | Done     |
 ### aten.add.Tensor
 |    | ATen Input Variations                                              | Status   |
 |---:|:-------------------------------------------------------------------|:---------|
@@ -183,10 +183,10 @@
 |---:|:-----------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 16, 32, 32]> self = ?,<br>List[int] size = [16, 32, 32]     | Done     |
 |  1 | Tensor<[1, 16, 32, 96]> self = ?,<br>List[int] size = [16, 32, 96]     | Done     |
-|  2 | Tensor<[1, 16, 32]> self = ?,<br>List[int] size = [16, 1, 32]          | Fallback |
+|  2 | Tensor<[1, 16, 32]> self = ?,<br>List[int] size = [16, 1, 32]          | Done     |
 |  3 | Tensor<[1, 16, 96, 32]> self = ?,<br>List[int] size = [16, 96, 32]     | Done     |
 |  4 | Tensor<[1, 32, 1536]> self = ?,<br>List[int] size = [32, 1536]         | Done     |
-|  5 | Tensor<[1, 32, 4608]> self = ?,<br>List[int] size = [1, 32, 16, 3, 96] | Fallback |
+|  5 | Tensor<[1, 32, 4608]> self = ?,<br>List[int] size = [1, 32, 16, 3, 96] | Done     |
 |  6 | Tensor<[1, 32, 6144]> self = ?,<br>List[int] size = [32, 6144]         | Done     |
 |  7 | Tensor<[16, 32, 32]> self = ?,<br>List[int] size = [1, 16, 32, 32]     | Done     |
 |  8 | Tensor<[16, 32, 96]> self = ?,<br>List[int] size = [1, 16, 32, 96]     | Done     |

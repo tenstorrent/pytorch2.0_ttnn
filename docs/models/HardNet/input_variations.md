@@ -10,7 +10,7 @@
 |  6 | aten.max_pool2d_with_indices.default              |                  4 |           0 |         0 |          0 | ✘           |       0 |
 |  7 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  9 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
+|  9 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                 | Status   |
@@ -191,5 +191,5 @@
 ### aten.view.default
 |    | ATen Input Variations                                         | Status   |
 |---:|:--------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1024, 1, 1]> self = ?,<br>List[int] size = [1, -1] | Fallback |
+|  0 | Tensor<[1, 1024, 1, 1]> self = ?,<br>List[int] size = [1, -1] | Done     |
 
