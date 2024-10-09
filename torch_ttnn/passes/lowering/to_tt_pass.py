@@ -423,6 +423,53 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     )
                 return None
 
+            if node.target == torch.ops.aten.eq.Scalar:
+                shape = list(args[0].meta["val"].size())
+                # Skip conversion for shapes like [1,1]
+                if np.prod(shape) == 1:
+                    return None
+                # Convert only if input tensor is already tilized
+                if shape[-1] % 32 == 0 and shape[-2] % 32 == 0:
+                    new_kwargs = {
+                        "fill_value": args[1],
+                        "layout": TtnnTileLayout(),
+                        "device": TtnnDevice(),
+                    }
+                    full_node = g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+                    return g.call_function(
+                        ttnn.eq,
+                        args=(
+                            args[0],
+                            full_node,
+                        ),
+                        kwargs={},
+                    )
+                else:
+                    return None
+
+            if node.target == torch.ops.aten.gt.Scalar:
+                shape = list(args[0].meta["val"].size())
+                # Skip conversion for shapes like [1,1]
+                if np.prod(shape) == 1:
+                    return None
+                # Convert only if input tensor is already tilized
+                if shape[-1] % 32 == 0 and shape[-2] % 32 == 0:
+                    new_kwargs = {
+                        "fill_value": args[1],
+                        "layout": TtnnTileLayout(),
+                        "device": TtnnDevice(),
+                    }
+                    full_node = g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+                    return g.call_function(
+                        ttnn.gt,
+                        args=(
+                            args[0],
+                            full_node,
+                        ),
+                        kwargs={},
+                    )
+                return None
+
             if node.target == torch.ops.aten.full.default:
                 # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
                 if args[0]:
