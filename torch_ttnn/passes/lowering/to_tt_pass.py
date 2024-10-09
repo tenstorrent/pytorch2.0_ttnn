@@ -393,13 +393,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if HasValidPageSize(arg_metadata.size(), strict=True):
+                shape = list(arg_metadata.size())
+
+                # Convert only if page size is valid and its input shape is in tile form.
+                # Converting untilized shapes results in this error:
+                # Inputs to eltwise binary must be tilized
+
+                if HasValidPageSize(arg_metadata.size(), strict=True) and (shape[-1] % 32 == 0 and shape[-2] % 32 == 0):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
                         "layout": TtnnTileLayout(),
                     }
-                    full_node = g.call_function(ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs)
+                    full_node = g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
                     return g.call_function(
                         relational_scalar_ops[node.target],
                         args=(args[0], full_node),
