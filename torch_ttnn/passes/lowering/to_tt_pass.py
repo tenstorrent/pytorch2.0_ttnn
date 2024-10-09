@@ -431,7 +431,21 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                         "device": TtnnDevice(),
                         "layout": TtnnTileLayout(),
                     }
-                    return g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
+                    shape = tuple(args[0])
+                    # Input shapes like [1,1], [1,1,1] etc throws buffer error -
+                    # Buffer size and page size should be larger than 0 bytes if executed on device
+                    # Ignore conversion for these cases
+                    if np.prod(shape) == 1:
+                        return None
+                    # Use tile layout only if input tensor is tilized
+                    # Else untilized tensors will throw error if conversion is done in tile layout:
+                    # TILE layout requires width/height dimension to be multiple of 32
+                    if shape[-1] % 32 == 0 and shape[-2] % 32 == 0:
+                        return g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+                    else:
+                        new_kwargs["layout"] = TtnnRowMajorLayout()
+                        return g.call_function(ttnn.full, args=(shape,), kwargs=new_kwargs)
+
                 # Replace op with scalar for eltwise ops
                 # TODO: Generalize this to support all eltwise ops
                 node_users = list(node.users.keys())
