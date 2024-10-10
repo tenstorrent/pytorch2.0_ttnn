@@ -3,32 +3,43 @@
 from transformers import AutoTokenizer, AlbertForTokenClassification
 import torch
 import pytest
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        return AlbertForTokenClassification.from_pretrained(self.model_name)
+
+    def _load_inputs(self):
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.text = "HuggingFace is a company based in Paris and New York."
+        self.inputs = self.tokenizer(self.text, add_special_tokens=False, return_tensors="pt")
+        return self.inputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.parametrize("model_name", ["albert/albert-base-v2"])
 @pytest.mark.compilation_xfail
-def test_albert_token_classification(record_property, model_name):
-    record_property("model_name", model_name)
+def test_albert_token_classification(record_property, model_name, mode):
+    record_property("model_name", f"{model_name} {mode}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AlbertForTokenClassification.from_pretrained(model_name)
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    text = "HuggingFace is a company based in Paris and New York."
-    inputs = tokenizer(text, add_special_tokens=False, return_tensors="pt")
+    if mode == "eval":
+        logits = results.logits
+        predicted_token_class_ids = logits.argmax(-1)
 
-    with torch.no_grad():
-        output = model(**inputs)
+        # Note that tokens are classified rather then input words which means that
+        # there might be more predicted token classes than words.
+        # Multiple token classes might account for the same word
+        predicted_tokens_classes = [tester.model.config.id2label[t.item()] for t in predicted_token_class_ids[0]]
 
-    logits = output.logits
-    predicted_token_class_ids = logits.argmax(-1)
+        input_ids = tester.inputs["input_ids"]
+        tokens = tester.tokenizer.convert_ids_to_tokens(input_ids[0])
+        print(f"Model: {model_name} | Tokens: {tokens} | Predictions: {predicted_tokens_classes}")
 
-    # Note that tokens are classified rather then input words which means that
-    # there might be more predicted token classes than words.
-    # Multiple token classes might account for the same word
-    predicted_tokens_classes = [model.config.id2label[t.item()] for t in predicted_token_class_ids[0]]
-
-    input_ids = inputs["input_ids"]
-    tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
-    print(f"Model: {model_name} | Tokens: {tokens} | Predictions: {predicted_tokens_classes}")
-
-    record_property("torch_ttnn", (model, inputs, output))
+    record_property("torch_ttnn", (tester, results))
