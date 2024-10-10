@@ -5,58 +5,71 @@ import requests
 
 # Load model directly
 from transformers import AutoImageProcessor, AutoModelForObjectDetection
+from tests.utils import ModelTester
 
+
+class ThisTester(ModelTester):
+    def _load_model(self):
+        # Download model from cloud
+        model_name = "hustvl/yolos-tiny"
+        self.image_processor = AutoImageProcessor.from_pretrained(
+            model_name,
+        )
+        m = AutoModelForObjectDetection.from_pretrained(
+            model_name,
+        )
+        return m
+
+    def _load_inputs(self):
+        # Set up sample input
+        self.test_input = "http://images.cocodataset.org/val2017/000000039769.jpg"
+        self.image = Image.open(requests.get(self.test_input, stream=True).raw)
+        inputs = self.image_processor(images=self.image, return_tensors="pt")
+        return inputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 
 # @pytest.mark.xfail
-def test_yolos(record_property):
-    record_property("model_name", "YOLOS")
+def test_yolos(record_property, mode):
+    model_name = "YOLOS"
+    record_property("model_name", f"{model_name} {mode}")
 
-    # Download model from cloud
-    model_name = "hustvl/yolos-tiny"
-    image_processor = AutoImageProcessor.from_pretrained(
-        model_name,
-    )
-    m = AutoModelForObjectDetection.from_pretrained(
-        model_name,
-    )
-    m.eval()
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
+    if mode == "eval":
+        # Helper function to decode output to human-readable text
+        def decode_output(outputs):
+            target_sizes = torch.tensor([tester.image.size[::-1]])
+            results = tester.image_processor.post_process_object_detection(
+                outputs, threshold=0.9, target_sizes=target_sizes
+            )[0]
+            return results
 
-    # Set up sample input
-    test_input = "http://images.cocodataset.org/val2017/000000039769.jpg"
-    image = Image.open(requests.get(test_input, stream=True).raw)
-    inputs = image_processor(images=image, return_tensors="pt")
+        decoded_output = decode_output(results)
 
-    # Run inference with the original model
-    with torch.no_grad():
-        outputs = m(**inputs)
+        def interpret_results(decoded_output):
+            for score, label, box in zip(
+                decoded_output["scores"],
+                decoded_output["labels"],
+                decoded_output["boxes"],
+            ):
+                box = [round(i, 2) for i in box.tolist()]
+                string = (
+                    f"Detected {tester.model.config.id2label[label.item()]} with confidence "
+                    f"{round(score.item(), 3)} at location {box}"
+                )
+                return string
 
-    # Helper function to decode output to human-readable text
-    def decode_output(outputs):
-        target_sizes = torch.tensor([image.size[::-1]])
-        results = image_processor.post_process_object_detection(outputs, threshold=0.9, target_sizes=target_sizes)[0]
-        return results
+        print(
+            f"""
+        model_name: {model_name}
+        input_url: {tester.test_input}
+        answer before: {interpret_results(decoded_output)}
+        """
+        )
 
-    decoded_output = decode_output(outputs)
-
-    def interpret_results(decoded_output):
-        for score, label, box in zip(
-            decoded_output["scores"],
-            decoded_output["labels"],
-            decoded_output["boxes"],
-        ):
-            box = [round(i, 2) for i in box.tolist()]
-            string = (
-                f"Detected {m.config.id2label[label.item()]} with confidence "
-                f"{round(score.item(), 3)} at location {box}"
-            )
-            return string
-
-    print(
-        f"""
-    model_name: {model_name}
-    input_url: {test_input}
-    answer before: {interpret_results(decoded_output)}
-    """
-    )
-
-    record_property("torch_ttnn", (m, inputs, outputs))
+    record_property("torch_ttnn", (tester, results))

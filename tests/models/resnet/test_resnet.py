@@ -1,21 +1,31 @@
 import torch
 import torchvision
+import pytest
+from tests.utils import ModelTester
 
 
-def test_resnet(record_property):
-    record_property("model_name", "ResNet18")
+class ThisTester(ModelTester):
+    def _load_model(self):
+        model = torchvision.models.get_model("resnet18", pretrained=True)
+        model = model.to(torch.bfloat16)
+        return model
 
-    # Download model from cloud
-    model = torchvision.models.get_model("resnet18", pretrained=True)
-    model.eval()
-    model = model.to(torch.bfloat16)
+    def _load_inputs(self):
+        inputs = torch.rand((1, 3, 224, 224), dtype=torch.bfloat16)
+        inputs = inputs.to(torch.bfloat16)
+        return inputs
 
-    # Create random input tensor
-    input_batch = torch.rand((1, 3, 224, 224), dtype=torch.bfloat16)
 
-    # Run inference with the original model
-    with torch.no_grad():
-        output = model(input_batch)
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
+def test_resnet(record_property, mode):
+    model_name = "ResNet18"
+    record_property("model_name", f"{model_name} {mode}")
+
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
     # Check inference result
-    record_property("torch_ttnn", (model, input_batch, output))
+    record_property("torch_ttnn", (tester, results))
