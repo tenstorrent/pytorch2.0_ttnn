@@ -2,17 +2,36 @@
 
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import pytest
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        self.tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
+        model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
+        return model
+
+    def _load_inputs(self):
+        inputs = self.tokenizer("A step by step recipe to make bolognese pasta:", return_tensors="pt")
+        return inputs
+
+    def run_model(self, model, inputs):
+        outputs = model.generate(**inputs)
+        return outputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.compilation_xfail
-def test_flan_t5(record_property):
-    record_property("model_name", "FLAN-T5")
+def test_flan_t5(record_property, mode):
+    model_name = "FLAN-T5"
+    record_property("model_name", f"{model_name} {mode}")
 
-    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
-    model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
+    if mode == "eval":
+        results = tester.tokenizer.batch_decode(results, skip_special_tokens=True)
 
-    inputs = tokenizer("A step by step recipe to make bolognese pasta:", return_tensors="pt")
-    outputs = model.generate(**inputs)
-    results = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-
-    record_property("torch_ttnn", (model.generate, inputs, outputs))
+    record_property("torch_ttnn", (tester, results))
