@@ -147,6 +147,47 @@ jobs:
             git push
           fi
 
+  generate-input-variations-tests:
+    needs: model-tests
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    runs-on: ["in-service", "n150"]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download All Metrics Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-metrics-group-*
+          merge-multiple: true
+          path: metrics/
+      # - name: Download Metrics Artifacts
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     GH_REPO: ${{ github.repository }}
+      #   run: |
+      #     mkdir -p metrics
+      #     for i in $(seq 1 40); do
+      #       echo "Downloading metrics for Group $i"
+      #       gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
+      #       cd metrics
+      #       ls -l
+      #       cd ..
+      #     done
+
+      - name: Generate input variations tests
+        run: |
+          python3 tools/generate_input_variation_test_from_models.py
+
+      - name: Upload variations tests
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: input-variations-tests
+          path: tests/input_variation/
+
   validate-pr:
     if: ${{ always() }}
     runs-on: ubuntu-latest    
