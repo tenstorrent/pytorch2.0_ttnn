@@ -3,21 +3,34 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import pytest
+from tests.utils import ModelTester
 
 
-def test_squeeze_bert(record_property):
-    record_property("model_name", "SqueezeBERT")
+class ThisTester(ModelTester):
+    def _load_model(self):
+        self.tokenizer = AutoTokenizer.from_pretrained("squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            "squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16
+        )
+        return model
 
-    tokenizer = AutoTokenizer.from_pretrained("squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        "squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16
-    )
+    def _load_inputs(self):
+        inputs = self.tokenizer("Hello, my dog is cute", return_tensors="pt")
+        return inputs
 
-    inputs = tokenizer("Hello, my dog is cute", return_tensors="pt")
-    with torch.no_grad():
-        outputs = model(**inputs)
-        logits = outputs.logits
 
-    predicted_class_id = logits.argmax().item()
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
+def test_squeeze_bert(record_property, mode):
+    model_name = "SqueezeBERT"
+    record_property("model_name", f"{model_name} {mode}")
 
-    record_property("torch_ttnn", (model, inputs, outputs))
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
+    if mode == "eval":
+        logits = results.logits
+        predicted_class_id = logits.argmax().item()
+
+    record_property("torch_ttnn", (tester, results))
