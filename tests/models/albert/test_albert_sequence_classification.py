@@ -3,25 +3,37 @@
 from transformers import AlbertTokenizer, AlbertForSequenceClassification
 import torch
 import pytest
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        return AlbertForSequenceClassification.from_pretrained(self.model_name)
+
+    def _load_inputs(self):
+        self.tokenizer = AlbertTokenizer.from_pretrained(self.model_name)
+        self.input_text = "Hello, my dog is cute."
+        self.inputs = self.tokenizer(self.input_text, return_tensors="pt")
+        return self.inputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.parametrize("model_name", ["textattack/albert-base-v2-imdb"])
 @pytest.mark.compilation_xfail
-def test_albert_sequence_classification(record_property, model_name):
-    record_property("model_name", model_name)
+def test_albert_sequence_classification(record_property, model_name, mode):
+    record_property("model_name", f"{model_name} {mode}")
 
-    tokenizer = AlbertTokenizer.from_pretrained(model_name)
-    model = AlbertForSequenceClassification.from_pretrained(model_name)
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    input_text = "Hello, my dog is cute."
-    inputs = tokenizer(input_text, return_tensors="pt")
-    with torch.no_grad():
-        output = model(**inputs)
+    if mode == "eval":
+        logits = results.logits
+        predicted_class_id = logits.argmax().item()
+        predicted_label = tester.model.config.id2label[predicted_class_id]
 
-    logits = output.logits
-    predicted_class_id = logits.argmax().item()
-    predicted_label = model.config.id2label[predicted_class_id]
+        print(f"Model: {model_name} | Input: {tester.input_text} | Label: {predicted_label}")
 
-    print(f"Model: {model_name} | Input: {input_text} | Label: {predicted_label}")
-
-    record_property("torch_ttnn", (model, inputs, output))
+    record_property("torch_ttnn", (tester, results))

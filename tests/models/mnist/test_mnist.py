@@ -35,15 +35,18 @@ class MnistModel(torch.nn.Module):
         return output
 
 
-class MnistTester(ModelTester):
+class ThisTester(ModelTester):
     def _load_model(self):
-        return MnistModel()
+        model = MnistModel()
+        model = model.to(torch.bfloat16)
+        return model
 
     def _load_inputs(self):
         transform = transforms.Compose([transforms.ToTensor()])
         test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
         dataloader = DataLoader(test_dataset, batch_size=1)
         test_input, _ = next(iter(dataloader))
+        test_input = test_input.to(torch.bfloat16)
         return test_input
 
 
@@ -52,11 +55,10 @@ class MnistTester(ModelTester):
     ["train", "eval"],
 )
 def test_mnist_train(record_property, mode):
-    model_name = f"Mnist ({mode})"
-    record_property("model_name", model_name)
+    model_name = "Mnist"
+    record_property("model_name", f"{model_name} {mode}")
 
-    mnist_tester = MnistTester(mode)
-    results = mnist_tester.test_model()
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    record_property("torch_ttnn", (None, None, None))
-    record_property("model_tester", (mnist_tester, results))
+    record_property("torch_ttnn", (tester, results))
