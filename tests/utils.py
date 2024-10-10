@@ -4,9 +4,10 @@ import collections
 
 
 class ModelTester:
-    def __init__(self, mode):
+    def __init__(self, model_name, mode):
         if mode not in ["train", "eval"]:
             raise ValueError(f"Current mode is not supported: {mode}")
+        self.model_name = model_name
         self.mode = mode
         self.model = self._load_model()
         self.inputs = self._load_inputs()
@@ -18,7 +19,6 @@ class ModelTester:
         raise NotImplementedError("This method should be implemented in the derived class")
 
     def set_model_train(self, model):
-        model = model.to(torch.bfloat16)
         model.train()
         model.zero_grad()
 
@@ -33,27 +33,21 @@ class ModelTester:
         return model
 
     def set_model_eval(self, model):
-        model = model.to(torch.bfloat16)
         model.eval()
         return model
 
     def set_inputs_train(self, inputs):
         if type(inputs) == torch.Tensor:
-            inputs = inputs.to(torch.bfloat16)
             # Setting input tensor's `requires_grad` attribute to true.
             #
             # This allows us to use the gradient of the input as the golden result for the training process.
             # For further details, refer to the file `conftest.py` regarding the rationale behind.
             inputs.requires_grad_(True)
         else:
-            raise ValueError(f"Current inputs type is not supported: {type(inputs)}")
+            raise ValueError(f"set_inputs_train: Current inputs type is not supported: {type(inputs)}")
         return inputs
 
     def set_inputs_eval(self, inputs):
-        if type(inputs) == torch.Tensor:
-            inputs = inputs.to(torch.bfloat16)
-        else:
-            raise ValueError(f"Current inputs type is not supported: {type(inputs)}")
         return inputs
 
     def compile_model(self, model, option):
@@ -84,9 +78,9 @@ class ModelTester:
         if str(type(outputs)) in ["<class 'torch.Tensor'>", "<class 'core.TorchTensor'>"]:
             return torch.mean(outputs)
         else:
-            raise ValueError(f"Current outputs type is not supported: {type(outputs)}")
+            raise ValueError(f"append_fake_loss_function: Current outputs type is not supported: {type(outputs)}")
 
-    def get_results_train(self, inputs):
+    def get_results_train(self, model, inputs, outputs):
         # Why `inputs.requires_grad`?
         #
         # Backward pass computes gradients for all trainable weight tensors.
@@ -103,10 +97,10 @@ class ModelTester:
         elif type(inputs) == dict:
             results = {k: v.grad for k, v in inputs.items()}
         else:
-            raise ValueError(f"Current inputs type is not supported: {type(inputs)}")
+            raise ValueError(f"get_results_train: Current inputs type is not supported: {type(inputs)}")
         return results
 
-    def get_results_eval(self, outputs):
+    def get_results_eval(self, model, inputs, outputs):
         return outputs
 
     def test_model_train(self, as_ttnn=False, option=None):
@@ -125,7 +119,7 @@ class ModelTester:
         loss = self.append_fake_loss_function(outputs)
         loss.backward()
         # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
-        results = self.get_results_train(inputs)
+        results = self.get_results_train(model, inputs, outputs)
         return results
 
     @torch.no_grad()
@@ -135,7 +129,7 @@ class ModelTester:
         if as_ttnn == True:
             model = self.compile_model(model, option)
         outputs = self.run_model(model, inputs)
-        results = self.get_results_eval(outputs)
+        results = self.get_results_eval(model, inputs, outputs)
         return results
 
     def test_model(self, as_ttnn=False, option=None):
