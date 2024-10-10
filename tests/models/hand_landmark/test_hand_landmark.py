@@ -4,14 +4,49 @@ import subprocess
 import sys
 from pathlib import Path
 import pytest
+from tests.utils import ModelTester
 
 dependencies = ["mediapipe"]
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        from mediapipe.tasks import python
+        from mediapipe.tasks.python import vision
+
+        model_asset_path = Path(__file__).parent / "hand_landmarker.task"
+
+        base_options = python.BaseOptions(model_asset_path=str(model_asset_path))
+        options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
+        detector = vision.HandLandmarker.create_from_options(options)
+        return detector
+
+    def _load_inputs(self):
+        import mediapipe as mp
+
+        image_path = Path(__file__).parent / "woman_hands.jpg"
+        image = mp.Image.create_from_file(str(image_path))
+        return image
+
+    def run_model(self, detector, image):
+        detection_result = detector.detect(image)
+        return detection_result
+
+    def set_model_eval(self, model):
+        # 'HandLandmarker' object has no attribute 'eval'
+        # model.eval()
+        return model
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.compilation_xfail
-def test_hand_landmark(record_property):
-    record_property("model_name", "Hand Landmark")
+def test_hand_landmark(record_property, mode):
+    model_name = "Hand Landmark"
+    record_property("model_name", f"{model_name} {mode}")
 
     """
      Forcely do `git lfs pull` to make sure the LFS files needed by this test are available.
@@ -49,19 +84,7 @@ def test_hand_landmark(record_property):
         [sys.executable, "-m", "pip", "install", "--force-reinstall", "opencv-python-headless==4.8.0.74"]
     )
 
-    import mediapipe as mp
-    from mediapipe.tasks import python
-    from mediapipe.tasks.python import vision
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    model_asset_path = Path(__file__).parent / "hand_landmarker.task"
-
-    base_options = python.BaseOptions(model_asset_path=str(model_asset_path))
-    options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
-    detector = vision.HandLandmarker.create_from_options(options)
-
-    image_path = Path(__file__).parent / "woman_hands.jpg"
-    image = mp.Image.create_from_file(str(image_path))
-
-    detection_result = detector.detect(image)
-
-    record_property("torch_ttnn", (detector.detect, image, detection_result))
+    record_property("torch_ttnn", (tester, results))

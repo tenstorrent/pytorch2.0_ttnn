@@ -4,6 +4,7 @@ import torch
 import torchvision.transforms as transforms
 from datasets import load_dataset
 import pytest
+from tests.utils import ModelTester
 
 
 class ConvAE(torch.nn.Module):
@@ -39,31 +40,44 @@ class ConvAE(torch.nn.Module):
         return act
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        # Instantiate model
+        # NOTE: The model has not been pre-trained or fine-tuned.
+        # This is for demonstration purposes only.
+        model = ConvAE()
+        return model
+
+    def _load_inputs(self):
+        # Define transform to normalize data
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,)),
+            ]
+        )
+
+        # Load sample from MNIST dataset
+        dataset = load_dataset("mnist")
+        sample = dataset["train"][0]["image"]
+        n_sample_tensor = [transform(sample).unsqueeze(0)]
+        batch_tensor = torch.cat(n_sample_tensor, dim=0)
+        return batch_tensor
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.compilation_xfail
-def test_autoencoder_conv_v2(record_property):
-    record_property("model_name", "Autoencoder (conv)")
+def test_autoencoder_conv_v2(record_property, mode):
+    model_name = f"Autoencoder (conv)"
+    record_property("model_name", f"{model_name} {mode}")
 
-    # Instantiate model
-    # NOTE: The model has not been pre-trained or fine-tuned.
-    # This is for demonstration purposes only.
-    model = ConvAE()
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    # Define transform to normalize data
-    transform = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,)),
-        ]
-    )
+    if mode == "eval":
+        print("Output: ", results)
 
-    # Load sample from MNIST dataset
-    dataset = load_dataset("mnist")
-    sample = dataset["train"][0]["image"]
-    n_sample_tensor = [transform(sample).unsqueeze(0)]
-    batch_tensor = torch.cat(n_sample_tensor, dim=0)
-
-    output = model(batch_tensor)
-
-    print("Output: ", output)
-
-    record_property("torch_ttnn", (model, batch_tensor, output))
+    record_property("torch_ttnn", (tester, results))
