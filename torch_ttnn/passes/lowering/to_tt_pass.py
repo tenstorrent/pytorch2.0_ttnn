@@ -215,6 +215,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.silu, args, kwargs)
 
         if target == torch.ops.aten._softmax.default:
+            kwargs = {
+                "numeric_stable": True,
+                **kwargs,
+            }
             return self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
 
         if target == torch.ops.aten.sqrt.default:
@@ -305,10 +309,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
         if target == torch.ops.aten.squeeze.dim:
-            # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
-            if args[1] == 0:
-                return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
-            return self.call_function_prop_meta(target, args, kwargs)
+            return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 
@@ -471,7 +472,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     return g.call_function(torch.ops.aten.embedding.default, args, kwargs)
 
             if node.target == torch.ops.aten._log_softmax.default:
-                softmax_node = g.call_function(ttnn.softmax, args[:2], kwargs)
+                softmax_node = g.call_function(
+                    ttnn.softmax,
+                    args[:2],
+                    {
+                        "numeric_stable": True,
+                        **kwargs,
+                    },
+                )
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.rsub.Scalar:
@@ -643,55 +651,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
-            if node.target == torch.ops.aten.view.default:
-                source_shape = args[0].meta["val"].size()
-                out_shape = args[1]
-                source_rank = len(source_shape)
-                out_rank = len(out_shape)
+            if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
+                return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
-                # Allow lowering by default
-                can_reshape = True
-
-                # Unsupported:
-                # (1) -> (1, 1) or (1, 1, 1), etc
-                if (source_rank == 1) and (np.prod(source_shape) == 1):
-                    can_reshape = False
-                elif not HasValidPageSize(source_shape):
-                    can_reshape = False
-                # Same as ttnn.squeeze with dim = 0
-                # Supported:
-                # (1, 16, 256, 256) -> (16, 256, 256)
-                # (1, 256, 256) - > (256, 256)
-                elif (source_rank != 1) and (out_rank == (source_rank - 1)) and (source_shape[0] == 1):
-                    for i in range(0, out_rank):
-                        if source_shape[i + 1] != out_shape[i]:
-                            can_reshape = False
-                            break
-
-                # Same as ttnn.unsqueeze_to_4D
-                # Supported:
-                # (16, 256, 256) -> (1, 16, 256, 256)
-                # (256, 256) -> (1, 1, 256, 256)
-                elif (out_rank > 1) and (out_rank <= 4) and (source_rank > 0) and (source_rank <= 4):
-                    for i in range(0, out_rank):
-                        si = i + (source_rank - out_rank)
-                        if si < 0:
-                            if out_shape[i] != 1:
-                                can_reshape = False
-                                break
-                        else:
-                            if out_shape[i] != source_shape[si]:
-                                can_reshape = False
-                                break
-                else:
-                    can_reshape = False
-
-                # Transform to ttnn.reshape if possible
-                if can_reshape:
-                    return g.call_function(ttnn.reshape, (args[0], args[1]), {})
-                else:
-                    # Fallback: aten.reshape is more stable if the input nodes have changed
-                    return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
             if node.target == torch.ops.aten.split.Tensor:
                 # convert input tensopr to ROW MAJOR layout for split
                 to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
@@ -710,6 +672,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 new_args = (to_layout, num_chunks, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
+
+            if node.target == torch.ops.aten._to_copy.default:
+                target_users_ops = [user.target for user in node.users.keys()]
+                # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
+                # Skip if type casting from bool and if the graph output uses this op
+                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
+                    # Essentially remove this op because it's used as a typecast
+                    return node.args[0]
+                else:
+                    return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)

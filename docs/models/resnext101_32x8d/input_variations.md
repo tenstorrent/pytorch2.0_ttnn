@@ -9,7 +9,7 @@
 |  5 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  6 | aten.relu.default                                 |                  8 |           8 |         0 |          0 | ✅          |       1 |
 |  7 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  8 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |       0 |
+|  8 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                   | Status   |
@@ -81,5 +81,5 @@
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   |
 |---:|:----------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 2048, 1, 1]> self = ?,<br>List[int] size = [1, 2048] | Fallback |
+|  0 | Tensor<[1, 2048, 1, 1]> self = ?,<br>List[int] size = [1, 2048] | Done     |
 

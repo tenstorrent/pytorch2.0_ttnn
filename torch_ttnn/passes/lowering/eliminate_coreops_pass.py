@@ -30,20 +30,6 @@ def _eliminate_pair(node, func, pre_func):
     return changed
 
 
-def _eliminate_to_copy(node):
-    if node.target == torch.ops.aten._to_copy.default:
-        kwargs = node.kwargs
-        target_users = [user.target for user in node.users.keys()]
-        if kwargs["dtype"] == torch.bfloat16 and ttnn.from_torch in target_users:
-            node.replace_all_uses_with(
-                node.args[0],
-                delete_user_cb=lambda node: node != node.args[0],
-            )
-        return True
-    else:
-        return False
-
-
 class EliminateCoreopsPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
@@ -52,7 +38,6 @@ class EliminateCoreopsPass(PassBase):
             modified |= _eliminate_pair(node, ttnn.from_device, ttnn.to_device)
             modified |= _eliminate_pair(node, ttnn.to_torch, ttnn.from_torch)
             modified |= _eliminate_pair(node, ttnn.from_torch, ttnn.to_torch)
-            modified |= _eliminate_to_copy(node)
         if modified:
             gm.graph.eliminate_dead_code()
         return PassResult(gm, modified)
