@@ -2,24 +2,41 @@
 
 from transformers import DPRReader, DPRReaderTokenizer
 import pytest
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        self.tokenizer = DPRReaderTokenizer.from_pretrained("facebook/dpr-reader-single-nq-base")
+        model = DPRReader.from_pretrained("facebook/dpr-reader-single-nq-base")
+        return model
+
+    def _load_inputs(self):
+        encoded_inputs = self.tokenizer(
+            questions=["What is love ?"],
+            titles=["Haddaway"],
+            texts=["'What Is Love' is a song recorded by the artist Haddaway"],
+            return_tensors="pt",
+        )
+        return encoded_inputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.compilation_xfail
-def test_dpr(record_property):
-    record_property("model_name", "DPR")
+def test_dpr(record_property, mode):
+    model_name = "DPR"
+    record_property("model_name", f"{model_name} {mode}")
 
-    tokenizer = DPRReaderTokenizer.from_pretrained("facebook/dpr-reader-single-nq-base")
-    model = DPRReader.from_pretrained("facebook/dpr-reader-single-nq-base")
-    encoded_inputs = tokenizer(
-        questions=["What is love ?"],
-        titles=["Haddaway"],
-        texts=["'What Is Love' is a song recorded by the artist Haddaway"],
-        return_tensors="pt",
-    )
-    outputs = model(**encoded_inputs)
-    start_logits = outputs.start_logits
-    end_logits = outputs.end_logits
-    relevance_logits = outputs.relevance_logits
-    print(outputs)
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    record_property("torch_ttnn", (model, encoded_inputs, outputs))
+    if mode == "eval":
+        start_logits = results.start_logits
+        end_logits = results.end_logits
+        relevance_logits = results.relevance_logits
+        print(results)
+
+    record_property("torch_ttnn", (tester, results))
