@@ -3,39 +3,49 @@ import pytest
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        # Download model from cloud
+        model_name = "mnoukhov/gpt2-imdb-sentiment-classifier"
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
+        m = AutoModelForSequenceClassification.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+        return m
+
+    def _load_inputs(self):
+        # Set up sample input
+        self.test_input = "This is a sample text from "
+        inputs = self.tokenizer(self.test_input, return_tensors="pt")
+        return inputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.compilation_xfail
-def test_gpt2(record_property):
-    record_property("model_name", "GPT-2")
+def test_gpt2(record_property, mode):
+    model_name = "GPT-2"
+    record_property("model_name", f"{model_name} {mode}")
 
-    # Download model from cloud
-    model_name = "mnoukhov/gpt2-imdb-sentiment-classifier"
-    tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
-    m = AutoModelForSequenceClassification.from_pretrained(model_name, torch_dtype=torch.bfloat16)
-    m.eval()
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
+    if mode == "eval":
+        # Helper function to decode output to human-readable text
+        def decode_output(outputs):
+            normalized = outputs.logits.softmax(dim=-1)
+            return normalized.argmax().item()
 
-    # Set up sample input
-    test_input = "This is a sample text from "
-    inputs = tokenizer(test_input, return_tensors="pt")
+        decoded_output = decode_output(results)
 
-    # Run inference with the original model
-    with torch.no_grad():
-        outputs = m(**inputs)
+        print(
+            f"""
+        model_name: {model_name}
+        input: {tester.test_input}
+        output before: {decoded_output}
+        """
+        )
 
-    # Helper function to decode output to human-readable text
-    def decode_output(outputs):
-        normalized = outputs.logits.softmax(dim=-1)
-        return normalized.argmax().item()
-
-    decoded_output = decode_output(outputs)
-
-    print(
-        f"""
-    model_name: {model_name}
-    input: {test_input}
-    output before: {decoded_output}
-    """
-    )
-
-    record_property("torch_ttnn", (m, inputs, outputs))
+    record_property("torch_ttnn", (tester, results))
