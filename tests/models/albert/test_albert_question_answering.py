@@ -3,28 +3,40 @@
 from transformers import AutoTokenizer, AlbertForQuestionAnswering
 import torch
 import pytest
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        model = AlbertForQuestionAnswering.from_pretrained(self.model_name)
+        return model
+
+    def _load_inputs(self):
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.question, self.text = "Who was Jim Henson?", "Jim Henson was a nice puppet"
+        inputs = self.tokenizer(self.question, self.text, return_tensors="pt")
+        return inputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.parametrize("model_name", ["twmkn9/albert-base-v2-squad2"])
 @pytest.mark.compilation_xfail
-def test_albert_question_answering(record_property, model_name):
-    record_property("model_name", model_name)
+def test_albert_question_answering(record_property, model_name, mode):
+    record_property("model_name", f"{model_name} {mode}")
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AlbertForQuestionAnswering.from_pretrained(model_name)
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    question, text = "Who was Jim Henson?", "Jim Henson was a nice puppet"
+    if mode == "eval":
+        answer_start_index = results.start_logits.argmax()
+        answer_end_index = results.end_logits.argmax()
 
-    inputs = tokenizer(question, text, return_tensors="pt")
-    with torch.no_grad():
-        output = model(**inputs)
+        predict_answer_tokens = tester.inputs.input_ids[0, answer_start_index : answer_end_index + 1]
+        answer = tester.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
 
-    answer_start_index = output.start_logits.argmax()
-    answer_end_index = output.end_logits.argmax()
+        print(f"Model: {model_name} | Question: {tester.question} | Text: {tester.text} | Answer: {answer}")
 
-    predict_answer_tokens = inputs.input_ids[0, answer_start_index : answer_end_index + 1]
-    answer = tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
-
-    print(f"Model: {model_name} | Question: {question} | Text: {text} | Answer: {answer}")
-
-    record_property("torch_ttnn", (model, inputs, output))
+    record_property("torch_ttnn", (tester, results))

@@ -82,14 +82,11 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 pickle.dump(runtime_metrics, f)
 
     if "torch_ttnn" in record:
-        model, inputs, outputs = record["torch_ttnn"]
-        model_tester = None
-        if "model_tester" in record:
-            from tests.utils import ModelTester
+        model_tester, outputs = record["torch_ttnn"]
+        from tests.utils import ModelTester
 
-            model_tester, outputs = record["model_tester"]
-            if not isinstance(model_tester, ModelTester):
-                raise TypeError("model_tester must be instance of ModelTester")
+        if not isinstance(model_tester, ModelTester):
+            raise TypeError("model_tester must be instance of ModelTester")
 
         try:
             # Compile model with ttnn backend
@@ -102,11 +99,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             )
             start = time.perf_counter() * 1000
 
-            if model_tester:
-                outputs_after = model_tester.test_model(as_ttnn=True, option=option)
-            else:
-                m = torch.compile(model, backend=torch_ttnn.backend, options=option)
-                outputs_after = run_model(m, inputs)
+            outputs_after = model_tester.test_model(as_ttnn=True, option=option)
 
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
@@ -160,11 +153,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 torch._dynamo.reset()
                 option.bypass_compile = True
                 option.reset_containers()
-                if model_tester:
-                    model_tester.test_model(as_ttnn=True, option=option)
-                else:
-                    m = torch.compile(model, backend=torch_ttnn.backend, options=option)
-                    run_model(m, inputs)
+                model_tester.test_model(as_ttnn=True, option=option)
             except Exception as e2:
                 err_msg = f"{model_name} - Torch run with bypass compilation failed. "
                 err_msg += "Please check whether `model` or `model.generate` is passed to `record_property`."

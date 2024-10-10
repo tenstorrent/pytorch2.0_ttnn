@@ -6,6 +6,7 @@ from PIL import Image
 from pytorchcv.model_provider import get_model as ptcv_get_model
 from torchvision import transforms
 import pytest
+from tests.utils import ModelTester
 
 
 def get_image_tensor():
@@ -25,21 +26,32 @@ def get_image_tensor():
     return input_batch
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        # Create PyBuda module from PyTorch model
+        model = ptcv_get_model("lwopenpose2d_mobilenet_cmupan_coco", pretrained=True)
+        model = model.to(torch.bfloat16)
+        return model
+
+    def _load_inputs(self):
+        input_batch = [get_image_tensor()]
+        batch_input = torch.cat(input_batch, dim=0)
+        batch_input = batch_input.to(torch.bfloat16)
+        return batch_input
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["train", "eval"],
+)
 @pytest.mark.compilation_xfail
-def test_openpose_v2(record_property):
-    record_property("model_name", "OpenPose")
+def test_openpose_v2(record_property, mode):
+    model_name = "OpenPose V2"
+    record_property("model_name", f"{model_name} {mode}")
 
-    # Create PyBuda module from PyTorch model
-    model = ptcv_get_model("lwopenpose2d_mobilenet_cmupan_coco", pretrained=True)
-    model.eval()
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
+    if mode == "eval":
+        print(f"Output: {results}")
 
-    input_batch = [get_image_tensor()]
-    batch_input = torch.cat(input_batch, dim=0)
-
-    # Run inference on Tenstorrent device
-    output = model(batch_input)
-
-    # Print output
-    print(f"Output: {output}")
-
-    record_property("torch_ttnn", (model, batch_input, output))
+    record_property("torch_ttnn", (tester, results))
