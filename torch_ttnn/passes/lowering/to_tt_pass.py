@@ -58,14 +58,6 @@ def create_call_function(transformer, target, args, kwargs):
 # Workaround for issue https://github.com/tenstorrent/tt-metal/issues/11191
 def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
     if rank == 3 and output_size[0] == 1:
-        if output_size[1] % 32 or output_size[2] % 32:
-            new_nodes.append(
-                g.call_function(
-                    ttnn.to_layout,
-                    (new_nodes[-1],),
-                    {"layout": TtnnRowMajorLayout()},
-                )
-            )
         new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
     return new_nodes
 
