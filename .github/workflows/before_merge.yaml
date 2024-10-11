@@ -93,12 +93,63 @@ jobs:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
 
-            
-  collect-metrics:
+
+  model-input-variations-tests:
     needs: model-tests
+    runs-on: ["in-service", "n150"]
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+
+    env:
+      pytest_verbosity: 0
+      pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download Metrics Artifacts for Generate Input Variations Tests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-metrics-group-${{ matrix.group }}
+          path: metrics/
+      - name: Run Model Input Variations Tests
+        run: |
+          set +e
+          python3 tools/generate_input_variation_test_from_models.py
+          exit_code=$?  # Capture the exit code
+          if [ $exit_code -ne 0 ]; then
+            echo "Failed to generate input variation test : exit code $exit_code.";
+            exit 1;  # Fail the workflow for other errors
+          fi
+          python3 -m pytest --github-report tests/input-variations -s
+          exit_code=$?  # Capture the exit code, but ignore any errors for now.
+          ls -l
+          cd metrics-input-variations
+          ls -l
+          cd ..
+          exit 0;
+
+      - name: Upload Input Variations Tests Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-input-variations-tests-group-${{ matrix.group }}
+          path: tests/input-variations/
+
+      - name: Upload Input Variations Metrics Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-input-variations-tests-metrics-group-${{ matrix.group }}
+          path: metrics-input-variations/
+
+
+  collect-metrics:
+    needs: model-input-variations-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service", "n150"]
-    env: 
+    env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
@@ -110,6 +161,13 @@ jobs:
           pattern: model-tests-metrics-group-*
           merge-multiple: true
           path: metrics/
+
+      - name: Download All Input Variations Metrics Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-input-variations-tests-metrics-group-*
+          merge-multiple: true
+          path: metrics-input-variations/
       # - name: Download Metrics Artifacts
       #   env:
       #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -125,11 +183,11 @@ jobs:
       #     done
 
       - name: Collect Metrics Report
-        run: | 
+        run: |
           python3 tools/collect_metrics.py
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          
+
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
             git add --all
           elif [ "${{ github.event.inputs.commit_report }}" == "Docs" ]; then
@@ -139,11 +197,49 @@ jobs:
             echo "No files will be committed"
             exit 0
           fi
-          
+
           if git diff-index --quiet HEAD; then
             echo "No changes to commit"
           else
             git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
+            git push
+          fi
+
+  push-input-variations-tests:
+    needs: model-input-variations-tests
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    runs-on: ["in-service", "n150"]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download All Input Variations Tests Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-input-variations-tests-group-*
+          merge-multiple: true
+          path: tests/input-variations/
+
+      - name: Collect Metrics Report
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
+            git add --all
+          elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then
+            git add tests/
+          elif [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
+            echo "No files will be committed"
+            exit 0
+          fi
+
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit"
+          else
+            git commit -m '[auto][on-merge-queue] Update input variations tests'
             git push
           fi
 
