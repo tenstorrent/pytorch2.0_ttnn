@@ -42,7 +42,7 @@
 |---:|:------------------------------------------------------------------------------------------------|:---------|
 |  0 | Tensor<[1, 3, 224, 224]> self = ?,<br>Optional[int] dtype = torch.bfloat16                      | Unknown  |
 |  1 | Tensor<[2, 1, 7, 7]> self = ?,<br>Optional[int] dtype = torch.bfloat16                          | Unknown  |
-|  2 | Tensor<[2, 1, 7, 7]> self = ?,<br>Optional[int] dtype = torch.bool                              | Unknown  |
+|  2 | Tensor<[2, 1, 7, 7]> self = ?,<br>Optional[int] dtype = torch.bool                              | None     |
 |  3 | Tensor<[2, 7]> self = ?,<br>Optional[int] dtype = torch.int32,<br>Optional[Device] device = cpu | Unknown  |
 |  4 | Tensor<[7, 7]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                | Unknown  |
 ### aten._unsafe_view.default

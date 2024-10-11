@@ -12,12 +12,12 @@
 |  8 | Tensor<[1, 1, 1, 8]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                              | Removed  |
 |  9 | Tensor<[1, 1, 1, 9]> self = ?,<br>Optional[int] dtype = torch.float32                                                                               | Unknown  |
 | 10 | Tensor<[1, 1, 12, 16]> self = ?,<br>Optional[int] dtype = torch.int64                                                                               | None     |
-| 11 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                | Unknown  |
+| 11 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                | None     |
 | 12 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.float32                                                                             | Unknown  |
 | 13 | Tensor<[1, 1, 23, 40]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                | Unknown  |
 | 14 | Tensor<[1, 1, 32, 1]> self = ?,<br>Optional[int] dtype = torch.int64                                                                                | Removed  |
 | 15 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                            | Removed  |
-| 16 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                | Removed  |
+| 16 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                | None     |
 | 17 | Tensor<[1, 1, 384, 512]> self = ?,<br>Optional[int] dtype = torch.float32                                                                           | Unknown  |
 | 18 | Tensor<[1, 1, 720, 1280]> self = ?,<br>Optional[int] dtype = torch.float32                                                                          | Unknown  |
 | 19 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32                                                                                      | Unknown  |
@@ -39,7 +39,7 @@
 | 35 | Tensor<[160]> self = ?,<br>Optional[int] dtype = torch.int64                                                                                        | Unknown  |
 | 36 | Tensor<[16]> self = ?,<br>Optional[int] dtype = torch.int64                                                                                         | Unknown  |
 | 37 | Tensor<[2, 1, 7, 7]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                              | Unknown  |
-| 38 | Tensor<[2, 1, 7, 7]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                  | Unknown  |
+| 38 | Tensor<[2, 1, 7, 7]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                  | None     |
 | 39 | Tensor<[2, 7]> self = ?,<br>Optional[int] dtype = torch.int32,<br>Optional[Device] device = cpu                                                     | Unknown  |
 | 40 | Tensor<[23]> self = ?,<br>Optional[int] dtype = torch.int64                                                                                         | Unknown  |
 | 41 | Tensor<[240]> self = ?,<br>Optional[int] dtype = torch.int64                                                                                        | Unknown  |

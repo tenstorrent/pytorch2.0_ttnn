@@ -7,7 +7,7 @@
 |   3 | [aten._native_batch_norm_legit_no_training.default](operations/aten._native_batch_norm_legit_no_training.default.md) |                570 |           0 |         0 |          0 | ✘           |    0    |
 |   4 | [aten._scaled_dot_product_flash_attention.default](operations/aten._scaled_dot_product_flash_attention.default.md)   |                 13 |           0 |         0 |          0 | ✘           |    0    |
 |   5 | [aten._softmax.default](operations/aten._softmax.default.md)                                                         |                 47 |          39 |         0 |          0 | 🚧          |    0.83 |
-|   6 | [aten._to_copy.default](operations/aten._to_copy.default.md)                                                         |                 62 |           0 |        10 |          0 | 🚧          |    0.16 |
+|   6 | [aten._to_copy.default](operations/aten._to_copy.default.md)                                                         |                 62 |           0 |         9 |          0 | 🚧          |    0.15 |
 |   7 | [aten._unsafe_index.Tensor](operations/aten._unsafe_index.Tensor.md)                                                 |                 37 |           0 |         0 |          0 | ✘           |    0    |
 |   8 | [aten._unsafe_view.default](operations/aten._unsafe_view.default.md)                                                 |                119 |         103 |         0 |          0 | 🚧          |    0.87 |
 |   9 | [aten.add.Tensor](operations/aten.add.Tensor.md)                                                                     |                382 |         287 |         0 |          0 | 🚧          |    0.75 |
