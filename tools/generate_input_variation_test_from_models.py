@@ -3,8 +3,12 @@ from pathlib import Path
 from tools.collect_metrics import load_pickle, InputVarPerOp
 
 
-class InputVarTestExporter(InputVarPerOp):
-    def export_tests(self, basedir: Path):
+class AtenOpTestExporter(InputVarPerOp):
+    def render_string(self, template: str, key: str, replacement: str) -> str:
+        result = template.replace("{" + key + "}", replacement)
+        return result
+
+    def export_tests(self, template_path: Path, basedir: Path):
         # undo _join_br
         def _unjoin_br(str_br: str):
             return str_br.split(",<br>")
@@ -15,50 +19,10 @@ class InputVarTestExporter(InputVarPerOp):
             inputs_strings = [_unjoin_br(input_variations) for input_variations in inputs_variations.keys()]
             opname_ = opname.replace(".", "_")
             filename = f"test_{opname_}.py"
-            text = f"""
-import torch
-import torch_ttnn
-import pytest
-import ttnn
-from tests.utils import calculate_accuracy, get_input_vals_from_metric_str
-
-class AtenModule(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, *args, **kwargs):
-        return torch.ops.{opname}(*args, **kwargs)
-
-
-@pytest.mark.parametrize(
-    "input_strings",
-    {inputs_strings}
-)
-def test_aten(device, input_strings, input_var_only_native, input_var_check_ttnn, input_var_check_accu):
-    m = AtenModule()
-    input_args, input_kwargs = get_input_vals_from_metric_str('{opname}', input_strings)
-    if input_args is None and input_kwargs is None:
-        pytest.skip("Invalid input strings:" + str(input_strings))
-    result_before = m.forward(*input_args, **input_kwargs)
-    if input_var_only_native:
-        return
-    option = torch_ttnn.TorchTtnnOption(device=device)
-    #option.gen_graphviz = True
-    # The compilation is lazy, so we need to run forward once to trigger the compilation
-    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(*input_args, **input_kwargs)
-    #option._out_fx_graphs[0].print_tabular()
-
-    if input_var_check_ttnn:
-        # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option._out_fx_graphs[0].nodes)
-        assert any(["ttnn" in str(node) for node in nodes]), "No ttnn ops found in the graph"
-
-    if input_var_check_accu:
-        # Check inference result
-        accuracy = calculate_accuracy(result_before, result_after)
-        assert accuracy >= 0.99
-"""
+            with open(template_path, "r") as f:
+                text = f.read()
+            text = self.render_string(text, "opname", opname)
+            text = self.render_string(text, "inputs_strings", str(inputs_strings))
             with open(basedir / filename, "w") as f:
                 f.write(text)
 
@@ -67,7 +31,8 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_ttnn
 #  - check the graph has been rewritten and contain ttnn ops
 #  - check inference result
 if __name__ == "__main__":
-    cumulative_input_vars = InputVarTestExporter()
+    template_path = os.path.dirname(os.path.abspath(__file__)) + "/aten_test.tmpl"
+    cumulative_input_vars = AtenOpTestExporter()
 
     # Assumed directory structure example. Some files will not exist if test failed.
     """
@@ -95,7 +60,7 @@ if __name__ == "__main__":
         # Only collect input variations from original models
         original_schema_metrics_path = model_path / "original-schema_list.pickle"
         original_schema_metrics = load_pickle(original_schema_metrics_path) or {}
-        input_var_per_op = InputVarTestExporter(original_schema_metrics, compiled_schema_metrics={})
+        input_var_per_op = AtenOpTestExporter(original_schema_metrics, compiled_schema_metrics={})
         cumulative_input_vars.merge(input_var_per_op)
 
-    cumulative_input_vars.export_tests(Path("tests/input_variation/"))
+    cumulative_input_vars.export_tests(template_path, Path("tests/input_variation/"))
