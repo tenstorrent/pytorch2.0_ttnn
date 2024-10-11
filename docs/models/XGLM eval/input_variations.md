@@ -43,7 +43,7 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                                   | Status   |
 |---:|:------------------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.bool    | Unknown  |
+|  0 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.bool    | None     |
 |  1 | Tensor<[1, 1, 19, 19]> self = ?,<br>Optional[int] dtype = torch.float32 | Unknown  |
 ### aten._unsafe_view.default
 |    | ATen Input Variations                                               | Status   |
