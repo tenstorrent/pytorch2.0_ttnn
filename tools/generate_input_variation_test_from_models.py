@@ -18,13 +18,14 @@ class AtenOpTestExporter(InputVarPerOp):
             return str_br.split(",<br>")
 
         sort_by_opname = dict(sorted(self.items()))
+        mdoel_name = basedir.parts[-1]
         basedir.mkdir(parents=True, exist_ok=True)
         for opname, inputs_variations in sort_by_opname.items():
             inputs_strings = [_unjoin_br(input_variations) for input_variations in inputs_variations.keys()]
             opname_ = opname.replace(".", "_")
             metrics_dir = f"metrics-input-variations/{model_name}"
             metrics_filename = opname
-            filename = f"test_{opname_}.py"
+            filename = f"test_{mdoel_name}_{opname_}.py"
             with open(template_path, "r") as f:
                 text = f.read()
             text = self.render_string(text, "opname", opname)
@@ -55,7 +56,8 @@ if __name__ == "__main__":
             └── compiled-schema_list.pickle
     """
     if not os.path.isdir("metrics"):
-        raise ValueError("metrics directory not found. Please run models to generate metrics first.")
+        print("metrics directory not found. Please run models to generate metrics first.")
+        exit(0)
 
     # Support subdirectories
     all_model_paths = sorted([Path(dirpath) for dirpath, dirnames, filenames in os.walk("metrics") if not dirnames])
