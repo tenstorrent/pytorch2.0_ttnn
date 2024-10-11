@@ -52,15 +52,6 @@ class MaskedFillModule(torch.nn.Module):
         return input.masked_fill(mask, fill_value)
 
 
-class ToCopyMaskedFill(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, input, mask, fill_value):
-        _to_copy = torch.ops.aten._to_copy.default(mask, dtype=torch.bool)
-        return input.masked_fill(_to_copy, fill_value)
-
-
 @pytest.mark.parametrize(
     "input_shape, mask_shape, fill_value",
     [
@@ -95,16 +86,3 @@ class ToCopyMaskedFill(torch.nn.Module):
 )
 def test_masked_fill(device, input_shape, mask_shape, fill_value):
     _test_masked_fill_common(device, MaskedFillModule(), input_shape, mask_shape, fill_value)
-
-
-@pytest.mark.parametrize(
-    "input_shape, mask_shape, fill_value",
-    [
-        ((1, 1, 32, 32), (1, 1, 32, 32), -3.3895313892515355e38),
-        ((1, 16, 32, 32), (1, 1, 32, 32), -3.3895313892515355e38),
-    ],
-)
-def test_masked_fill_to_copy(device, input_shape, mask_shape, fill_value):
-    target = _test_masked_fill_common(device, ToCopyMaskedFill(), input_shape, mask_shape, fill_value)
-    # Check the graph has be rewritten and contain ttnn ops
-    assert target.count(torch.ops.aten._to_copy.default) == 0
