@@ -1,5 +1,8 @@
 import os
 from pathlib import Path
+
+tmp = Path(os.path.abspath(__file__))
+sys.path.append(str(tmp.parent.parent))
 from tools.collect_metrics import load_pickle, InputVarPerOp
 
 
