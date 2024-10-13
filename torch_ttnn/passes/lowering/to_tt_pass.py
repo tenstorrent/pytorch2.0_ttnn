@@ -41,6 +41,7 @@ ops_incompatible_with_grayskull = {
     torch.ops.aten.ceil.default,
     torch.ops.aten.floor.default,
     torch.ops.aten.round.default,
+    torch.ops.aten.trunc.default,
 }
 
 
@@ -124,6 +125,7 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.tan.default: ttnn.tan,
     torch.ops.aten.tanh.default: ttnn.tanh,
     torch.ops.aten.tril.default: ttnn.tril,
+    torch.ops.aten.trunc.default: ttnn.trunc,
 }
 
 
