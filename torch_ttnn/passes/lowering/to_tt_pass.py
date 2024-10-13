@@ -39,6 +39,7 @@ int_output_ops = [
 ops_incompatible_with_grayskull = {
     torch.ops.aten.ceil.default,
     torch.ops.aten.floor.default,
+    torch.ops.aten.round.default,
 }
 
 
@@ -85,6 +86,7 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.reciprocal.default: ttnn.reciprocal,
     torch.ops.aten.remainder.Scalar: ttnn.remainder,
     torch.ops.aten.relu.default: ttnn.relu,
+    torch.ops.aten.round.default: ttnn.round,
     torch.ops.aten.rsqrt.default: ttnn.rsqrt,
     torch.ops.aten.sigmoid.default: ttnn.sigmoid,
     torch.ops.aten.sign.default: ttnn.sign,
