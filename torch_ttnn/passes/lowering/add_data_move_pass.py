@@ -68,6 +68,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.sqrt,
     ttnn.tan,
     ttnn.tanh,
+    ttnn.trunc,
 ]
 
 
