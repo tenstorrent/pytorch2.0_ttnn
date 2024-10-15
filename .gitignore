@@ -9,5 +9,6 @@ stat
 *.csv
 *.pt
 metrics
+metrics-input-variations
 data
 .ttnn_runtime_artifacts
