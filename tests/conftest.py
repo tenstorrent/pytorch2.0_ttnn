@@ -28,13 +28,13 @@ def input_var_only_native(request):
 
 
 @pytest.fixture(scope="session")
-def input_var_check_ttnn(request):
-    return request.config.getoption("--input_var_check_ttnn")
+def input_var_check_accu(request):
+    return request.config.getoption("--input_var_check_accu")
 
 
 @pytest.fixture(scope="session")
-def input_var_check_accu(request):
-    return request.config.getoption("--input_var_check_accu")
+def input_var_check_ttnn(request):
+    return request.config.getoption("--input_var_check_ttnn")
 
 
 @pytest.fixture(scope="session")
