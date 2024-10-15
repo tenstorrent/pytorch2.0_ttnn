@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 tmp = Path(os.path.abspath(__file__))
@@ -11,21 +12,26 @@ class AtenOpTestExporter(InputVarPerOp):
         result = template.replace("{" + key + "}", replacement)
         return result
 
-    def export_tests(self, template_path: Path, basedir: Path):
+    def export_tests(self, template_path: Path, basedir: Path, model_name: str):
         # undo _join_br
         def _unjoin_br(str_br: str):
             return str_br.split(",<br>")
 
         sort_by_opname = dict(sorted(self.items()))
+        mdoel_name = basedir.parts[-1]
         basedir.mkdir(parents=True, exist_ok=True)
         for opname, inputs_variations in sort_by_opname.items():
             inputs_strings = [_unjoin_br(input_variations) for input_variations in inputs_variations.keys()]
             opname_ = opname.replace(".", "_")
-            filename = f"test_{opname_}.py"
+            metrics_dir = f"metrics-input-variations/{model_name}"
+            metrics_filename = opname
+            filename = f"test_{mdoel_name}_{opname_}.py"
             with open(template_path, "r") as f:
                 text = f.read()
             text = self.render_string(text, "opname", opname)
             text = self.render_string(text, "inputs_strings", str(inputs_strings))
+            text = self.render_string(text, "metrics_dir", metrics_dir)
+            text = self.render_string(text, "metrics_filename", metrics_filename)
             with open(basedir / filename, "w") as f:
                 f.write(text)
 
@@ -35,7 +41,6 @@ class AtenOpTestExporter(InputVarPerOp):
 #  - check inference result
 if __name__ == "__main__":
     template_path = os.path.dirname(os.path.abspath(__file__)) + "/aten_test.tmpl"
-    cumulative_input_vars = AtenOpTestExporter()
 
     # Assumed directory structure example. Some files will not exist if test failed.
     """
@@ -51,7 +56,8 @@ if __name__ == "__main__":
             └── compiled-schema_list.pickle
     """
     if not os.path.isdir("metrics"):
-        raise ValueError("metrics directory not found. Please run models to generate metrics first.")
+        print("metrics directory not found. Please run models to generate metrics first.")
+        exit(0)
 
     # Support subdirectories
     all_model_paths = sorted([Path(dirpath) for dirpath, dirnames, filenames in os.walk("metrics") if not dirnames])
@@ -59,11 +65,10 @@ if __name__ == "__main__":
     for model_path in all_model_paths:
         # Remove the "metrics" root directory and convert to string
         model = str(Path(*model_path.parts[1:]))
+        model_ = model.replace(" ", "_").replace("(", "").replace(")", "")
 
         # Only collect input variations from original models
         original_schema_metrics_path = model_path / "original-schema_list.pickle"
         original_schema_metrics = load_pickle(original_schema_metrics_path) or {}
         input_var_per_op = AtenOpTestExporter(original_schema_metrics, compiled_schema_metrics={})
-        cumulative_input_vars.merge(input_var_per_op)
-
-    cumulative_input_vars.export_tests(template_path, Path("tests/input_variation/"))
+        input_var_per_op.export_tests(template_path, Path(f"tests/input-variations/{model_}"), model)
