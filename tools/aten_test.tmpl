@@ -63,15 +63,22 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
             print(f"Failed to run. Raised exception: {e}")
 
     if metric["run"] == True:
-        # Check inference result
-        accuracy = calculate_accuracy(result_before, result_after)
-        if accuracy >= 0.99:
-            metric["accuracy"] = True
+        try:
+            # Check inference result
+            accuracy = calculate_accuracy(result_before, result_after)
+            if accuracy >= 0.99:
+                metric["accuracy"] = True
+        except Exception as e:
+            print(f"Failed to check inference result. Raised exception: {e}")
 
-        # Check the graph has be rewritten and contain ttnn ops
-        nodes = list(option._out_fx_graphs[0].nodes)
-        if any(["ttnn" in str(node) for node in nodes]):
-            metric["convert_to_ttnn"] = True
+        try:
+            # Check the graph has be rewritten and contain ttnn ops
+            nodes = list(option._out_fx_graphs[0].nodes)
+            if any(["ttnn" in str(node) for node in nodes]):
+                metric["convert_to_ttnn"] = True
+        except Exception as e:
+            print(f"Failed to check the graph has ttnn op. Raised exception: {e}")
+
 
     metrics.append(metric)
 
