@@ -15,6 +15,7 @@ class ThisTester(ModelTester):
         import timm
 
         model = timm.create_model(self.model_name, pretrained=True)
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -29,12 +30,13 @@ class ThisTester(ModelTester):
         data_config = timm.data.resolve_model_data_config(self.model)
         transforms = timm.data.create_transform(**data_config, is_training=False)
         input_batch = transforms(img).unsqueeze(0)  # unsqueeze single image into batch of 1
+        input_batch = input_batch.to(torch.bfloat16)
         return input_batch
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.parametrize(
