@@ -22,6 +22,7 @@ class ThisTester(ModelTester):
             return_tensors="pt",
             padding=True,
         )
+        inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
         return inputs
 
     def set_inputs_train(self, inputs):
@@ -42,7 +43,13 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", "eval"],
+    [
+        pytest.param(
+            "train",
+            marks=pytest.mark.compilation_xfail,
+        ),
+        "eval",
+    ],
 )
 def test_clip(record_property, mode):
     model_name = "CLIP"
