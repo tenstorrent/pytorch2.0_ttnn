@@ -136,6 +136,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.atanh.default:
             return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
 
+        if target == torch.ops.aten.bitwise_not.default:
+            return self.call_function_prop_meta(ttnn.bitwise_not, args, kwargs)
+
         if target == torch.ops.aten.clamp.default:
             return self.call_function_prop_meta(ttnn.clip, args, kwargs)
 
