@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import collections
 import re
+from typing import List, Dict, Tuple
 
 
 class ModelTester:
@@ -272,72 +273,175 @@ def calculate_accuracy(original_outputs, compiled_outputs):
     return accuracy
 
 
-def get_input_vals_from_metric_str(op_name, input_strings):
-    input_vals = []
-    for input_str in input_strings:
-        # for example:
-        # 'Optional[Tensor]<[1, 512, 7, 7]> bias = ?'
-        # 'float momentum = 0.1'
-        pattern = r"(?P<type>[\[\]\w]+)<?(?P<shape>[^>]*)>?\s+(?P<name>\w+)\s*=\s*(?P<val>.*)"
-        m = re.match(pattern, input_str)
-        m_type = m.group("type")
-        m_type = re.sub(r"Optional\[(.*?)\]", r"\1", m_type)
-        if m_type == "Tensor":
-            if m.group("shape") == "":
-                if m.group("val") == "" or m.group("val") == "?":
-                    val = None
-                else:
-                    try:
-                        val = eval(m.group("val"))
-                    except:
-                        return None, None
-            else:
-                try:
-                    shape = eval(m.group("shape"))
-                except:
-                    return None, None
-                val = torch.randn(shape).type(torch.bfloat16)
-                if op_name == "aten.bitwise_not.default" and m.group("name") == "self":
-                    val = val.type(torch.int)
-                if op_name == "aten.masked_fill.Scalar" and m.group("name") == "mask":
-                    val = torch.randint(0, 2, shape).type(torch.bool)
-                if op_name == "aten.where.self" and m.group("name") == "condition":
-                    val = torch.randint(0, 2, shape).type(torch.bool)
-        elif m_type == "List[Tensor]":
-            if m.group("val") == "" or m.group("val") == "?":
-                val = None
-            else:
-                try:
-                    val_str = m.group("val").replace("'", "").replace("Size", "tensor")
-                    val = eval(val_str)
-                except:
-                    return None, None
-        elif (
-            m_type.startswith("List") or m_type == "bool" or m_type == "int" or m_type == "float" or m_type == "number"
-        ):
-            if m.group("val") == "" or m.group("val") == "?":
-                val = None
-            else:
-                try:
-                    val = eval(m.group("val"))
-                except:
-                    return None, None
-        elif m_type == "Device":
-            if m.group("val") == "" or m.group("val") == "?":
-                val = None
-            else:
-                try:
-                    val_str = f"'{m.group('val')}'"
-                    val = eval(val_str)
-                except:
-                    return None, None
+class MetricStrRenderer:
+    def __init__(self, op_name: str, input_str: str):
+        self.op_name = op_name
+        self.input_str = input_str
+        self.render_val_by_type = {
+            "Tensor": self._by_tensor,
+            "bool": self._by_basic,
+            "int": self._by_basic,
+            "float": self._by_basic,
+            "number": self._by_basic,
+            "Optional[Tensor]": self._by_optionalTensor,
+            "Optional[bool]": self._by_optionalBasic,
+            "Optional[int]": self._by_optionalBasic,
+            "Optional[float]": self._by_optionalBasic,
+            "Optional[number]": self._by_optionalBasic,
+            "List[Tensor]": self._by_listTensor,
+            "List[bool]": self._by_listBasic,
+            "List[int]": self._by_listBasic,
+            "List[float]": self._by_listBasic,
+            "List[number]": self._by_listBasic,
+            "List[Optional[Tensor]]": self._by_listOptionalTensor,
+            "List[Optional[bool]]": self._by_listOptionalBasic,
+            "List[Optional[int]]": self._by_listOptionalBasic,
+            "List[Optional[float]]": self._by_listOptionalBasic,
+            "List[Optional[number]]": self._by_listOptionalBasic,
+            "Optional[List[Tensor]]": self._by_optionalListTensor,
+            "Optional[List[bool]]": self._by_optionalListBasic,
+            "Optional[List[int]]": self._by_optionalListBasic,
+            "Optional[List[float]]": self._by_optionalListBasic,
+            "Optional[List[number]]": self._by_optionalListBasic,
+            "Device": self._by_device,
+            "Optional[Device]": self._by_OptionalDevice,
+        }
+
+    def _by_tensor(self, parsed):
+        if parsed["shape"] == "":
+            return self._by_basic(parsed)
         else:
-            return None, None
-            # raise ValueError(f"Unknown type: {m.group('type')}")
+            if parsed["raw_val"] != "None":
+                # TODO: adapt raw_val in shape tensor
+                return None, False
+            try:
+                shape = eval(parsed["shape"])
+                val = torch.randn(shape).type(torch.bfloat16)
+                return val, True
+            except Exception as e:
+                print("Error in MetricStrRenderer._by_tensor:", e)
+                return None, False
 
-        input_vals.append({"name": m.group("name"), "val": val})
+    def _by_basic(self, parsed):
+        if parsed["raw_val"] == "inf" or parsed["raw_val"] == "-inf":
+            parsed["raw_val"] = f"float('{parsed['raw_val']}')"
+        try:
+            val = eval(parsed["raw_val"])
+            return val, True
+        except Exception as e:
+            print("Error in MetricStrRenderer._by_basic:", e)
+            return None, False
 
-    if op_name == "aten.embedding.default":
+    def _by_optionalTensor(self, parsed):
+        return self._by_tensor(parsed)
+
+    def _by_optionalBasic(self, parsed):
+        return self._by_basic(parsed)
+
+    def _by_listTensor(self, parsed):
+        def parse_list_tensor_raw_val(raw_val):
+            # '[None, None, <[12, 1]>, <[16]>]' to [None, None, [12, 1], [16]]
+            raw_val = raw_val.replace("<", "").replace(">", "")
+            return eval(raw_val)
+
+        try:
+            val = []
+            raw_list = parse_list_tensor_raw_val(parsed["raw_val"])
+            for r in raw_list:
+                if r == None:
+                    val.append(None)
+                else:
+                    shape = r
+                    val.append(torch.randn(shape).type(torch.bfloat16))
+            return val, True
+        except Exception as e:
+            print("Error in MetricStrRenderer._by_listTensor:", e)
+            return None, False
+
+    def _by_listBasic(self, parsed):
+        return self._by_basic(parsed)
+
+    def _by_listOptionalTensor(self, parsed):
+        return self._by_listTensor(parsed)
+
+    def _by_listOptionalBasic(self, parsed):
+        return self._by_basic(parsed)
+
+    def _by_optionalListTensor(self, parsed):
+        return self._by_listTensor(parsed)
+
+    def _by_optionalListBasic(self, parsed):
+        return self._by_listBasic(parsed)
+
+    def _by_device(self, parsed):
+        parsed["raw_val"] = f"'{parsed['raw_val']}'"
+        return self._by_basic(parsed)
+
+    def _by_OptionalDevice(self, parsed):
+        return self._by_device(parsed)
+
+    def _parse_input_str(self) -> Tuple[Dict, bool]:
+        try:
+            pattern = r"(?P<type>[\[\]\w]+)<?(?P<shape>[^>]*)>?\s+(?P<name>\w+)\s*=\s*(?P<raw_val>.*)"
+            m = re.match(pattern, self.input_str)
+            parsed = {
+                "type": m.group("type"),
+                "shape": m.group("shape"),
+                "name": m.group("name"),
+                "raw_val": m.group("raw_val"),
+            }
+            if parsed["raw_val"] == "" or parsed["raw_val"] == "?":
+                parsed["raw_val"] = "None"
+            return parsed, True
+        except Exception as e:
+            print("Error in MetricStrRenderer._parse_input_str:", e)
+            return None, False
+
+    def render_input_val(self):
+        parsed, status = self._parse_input_str()
+        if status == False:
+            return None, False
+        val, status = self.render_val_by_type[parsed["type"]](parsed)
+        if status == False:
+            return None, False
+        input_val = {"name": parsed["name"], "val": val}
+        return input_val, True
+
+
+class MetricStringListHandler:
+    def __init__(self, op_name: str, input_strings: List[str]):
+        self.op_name = op_name
+        self.input_strings = input_strings
+        self.post_adjustment_ops = {
+            "aten.bitwise_not.default": self._adjust_bitwise_not_default,
+            "aten.masked_fill.Scalar": self._adjust_masked_fill_Scalar,
+            "aten.where.self": self._adjust_where_self,
+            "aten.embedding.default": self._adjust_embedding_default,
+            "aten.index_select.default": self._adjust_index_select_default,
+        }
+
+    def _adjust_bitwise_not_default(self, input_vals):
+        for input_val in input_vals:
+            if input_val["name"] == "self":
+                input_val["val"] = input_val["val"].type(torch.int)
+                break
+        return input_vals
+
+    def _adjust_masked_fill_Scalar(self, input_vals):
+        for input_val in input_vals:
+            if input_val["name"] == "mask":
+                input_val["val"] = torch.randint(0, 2, input_val["val"].shape).type(torch.bool)
+                break
+        return input_vals
+
+    def _adjust_where_self(self, input_vals):
+        for input_val in input_vals:
+            if input_val["name"] == "condition":
+                input_val["val"] = torch.randint(0, 2, input_val["val"].shape).type(torch.bool)
+                break
+        return input_vals
+
+    def _adjust_embedding_default(self, input_vals):
         for input_val in input_vals:
             if input_val["name"] == "weight":
                 weight_shape0 = input_val["val"].shape[0]
@@ -346,8 +450,9 @@ def get_input_vals_from_metric_str(op_name, input_strings):
             if input_val["name"] == "indices":
                 input_val["val"] = torch.randint(0, weight_shape0, input_val["val"].shape)
                 break
+        return input_vals
 
-    if op_name == "aten.index_select.default":
+    def _adjust_index_select_default(self, input_vals):
         for input_val in input_vals:
             if input_val["name"] == "self":
                 self_shape = input_val["val"].shape
@@ -360,19 +465,41 @@ def get_input_vals_from_metric_str(op_name, input_strings):
             if input_val["name"] == "index":
                 input_val["val"] = torch.randint(0, self_shape[dim], input_val["val"].shape)
                 break
+        return input_vals
 
-    input_args = []
-    input_kwargs = {}
-    if "self" not in [input_val["name"] for input_val in input_vals]:
-        input_kwargs = {input_val["name"]: input_val["val"] for input_val in input_vals}
-    else:
-        before_self = True
-        for input_val in input_vals:
-            if before_self:
-                input_args.append(input_val["val"])
-            else:
-                input_kwargs[input_val["name"]] = input_val["val"]
-            if input_val["name"] == "self":
-                before_self = False
+    def build_input_args_kwargs(self, input_vals):
+        input_args = []
+        input_kwargs = {}
+        has_self = any(input_val["name"] == "self" for input_val in input_vals)
 
-    return input_args, input_kwargs
+        if not has_self:
+            input_kwargs = {input_val["name"]: input_val["val"] for input_val in input_vals}
+        else:
+            before_self = True
+            for input_val in input_vals:
+                if before_self:
+                    input_args.append(input_val["val"])
+                else:
+                    input_kwargs[input_val["name"]] = input_val["val"]
+                if input_val["name"] == "self":
+                    before_self = False
+
+        return input_args, input_kwargs
+
+    def render_input_args_kwargs(self) -> Tuple[List, Dict, bool]:
+        input_vals = []
+        for input_str in self.input_strings:
+            renderer = MetricStrRenderer(self.op_name, input_str)
+            input_val, status = renderer.render_input_val()
+            if status == False:
+                return None, None, False
+            input_vals.append(input_val)
+        if self.op_name in self.post_adjustment_ops:
+            input_vals = self.post_adjustment_ops[self.op_name](input_vals)
+        input_args, input_kwargs = self.build_input_args_kwargs(input_vals)
+        return input_args, input_kwargs, True
+
+
+def render_metric_string_list_to_input_args_kwargs(op_name, input_strings) -> Tuple[List, Dict, bool]:
+    handler = MetricStringListHandler(op_name, input_strings)
+    return handler.render_input_args_kwargs()
