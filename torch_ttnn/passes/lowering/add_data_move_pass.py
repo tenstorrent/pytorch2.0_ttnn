@@ -7,6 +7,7 @@ from torch_ttnn.utils import (
     TtnnBfloat16,
     TtnnUint32,
     HasValidPageSize,
+    CanBeTilized,
 )
 
 
@@ -137,13 +138,27 @@ TTNN_LAYOUT_CHANGE_OPS = set(
     [
         ttnn.reshape,
         ttnn.slice,
+        ttnn.full,
     ]
 )
 
 
-def can_be_tilized(node):
-    size = node.meta["val"].size()
-    return len(size) >= 2 and size[-1] % 32 == 0 and size[-2] % 32 == 0
+# BUG (https://github.com/tenstorrent/tt-metal/issues/13891):
+# BUG (https://github.com/tenstorrent/tt-metal/issues/13889):
+def can_reshape(node):
+    shape = node.meta["val"].size()
+    # Unsupported shapes that doesn't have a match a pattern goes here
+    unsupported_shapes = set(
+        [
+            (1445, 192),
+            (1, 1445, 3, 64),
+            (3, 64, 1445),
+            (3, 1445, 64),
+        ]
+    )
+    # Unsupported if H dim is 1
+    # Unsupported if output rank is > 4
+    return (shape not in unsupported_shapes) and (len(shape) >= 2 and shape[-2] > 1) and (len(shape) <= 4)
 
 
 # For operations limitations
@@ -292,10 +307,11 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     with g.inserting_before(dst_node):
         kwargs = {}
         if (
-            (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and not can_be_tilized(dst_node))
+            dst_node.target == ttnn.slice
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat
+            or (dst_node.target == ttnn.reshape and len(dst_node.meta["val"].size()) > 4)
         ):
             kwargs["layout"] = TtnnRowMajorLayout()
         else:
@@ -306,10 +322,9 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["dtype"] = TtnnBfloat16()
 
-        if (is_tt_compute(dst_node) and dst_node.target not in TTNN_LAYOUT_CHANGE_OPS) or (
-            dst_node.target in TTNN_LAYOUT_CHANGE_OPS and HasValidPageSize(src_node.meta["val"].size(), strict=True)
-        ):
-            kwargs["device"] = device
+        if is_tt_compute(dst_node):
+            if not (dst_node.target == ttnn.reshape and len(dst_node.meta["val"].size()) > 4):
+                kwargs["device"] = device
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
@@ -324,21 +339,24 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.n
     if not is_function_call(dst_node):
         return None
     if (
-        dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
-        or dst_idx != 0
-        or not is_tt(src_node)
-        or (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and can_be_tilized(dst_node))
+        not is_tt(src_node)
+        or dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
+        or (dst_node.target == ttnn.reshape and can_reshape(dst_node))
+        or (dst_node.target == ttnn.full and CanBeTilized(dst_node))
+        or (dst_node.target == ttnn.slice and not HasValidPageSize(dst_node, strict=True))
     ):
         return None
 
     g = dst_node.graph
+    new_nodes = []
     with g.inserting_before(dst_node):
-        from_device = g.call_function(ttnn.from_device, (src_node,))
-        to_layout = g.call_function(ttnn.to_layout, (from_device, TtnnRowMajorLayout()))
+        new_nodes.append(g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout())))
+        if len(dst_node.meta["val"].size()) > 4:
+            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_layout])
+    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 
-    return to_layout
+    return new_nodes[-1]
 
 
 def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
@@ -346,22 +364,22 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     if not is_function_call(src_node):
         return None
     if (
-        src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
-        or not is_tt_compute(dst_node)
+        not is_tt_compute(dst_node)
         or dst_node.target == ttnn.embedding
+        or dst_node.target == target_wrappers.repeat
+        or src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
+        or (src_node.target == ttnn.reshape and can_reshape(src_node))
+        or (src_node.target == ttnn.full and CanBeTilized(src_node))
+        or (src_node.target == ttnn.slice and not HasValidPageSize(src_node, strict=True))
     ):
         return None
 
     g = dst_node.graph
     new_nodes = []
     with g.inserting_before(dst_node):
-        if dst_node.target != target_wrappers.repeat:
-            new_nodes.append(
-                g.call_function(ttnn.to_layout, (new_nodes[-1] if new_nodes else src_node, TtnnTileLayout()))
-            )
-        new_nodes.append(
-            g.call_function(ttnn.to_device, (new_nodes[-1] if new_nodes else src_node,), {"device": device})
-        )
+        new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1] if new_nodes else src_node, TtnnTileLayout())))
+        if len(src_node.meta["val"].size()) > 4:
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], TtnnDevice())))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 

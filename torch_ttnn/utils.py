@@ -9,12 +9,30 @@ def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     return gm
 
 
+def GetShape(node_or_shape):
+    if isinstance(node_or_shape, torch.fx.node.Node):
+        if (val := node_or_shape.meta.get("val", None)) is not None:
+            return val.size()
+    elif isinstance(node_or_shape, torch.Size):
+        return node_or_shape
+
+    return None
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
-def HasValidPageSize(shape, strict=False):
-    if len(shape) >= 2 and shape[-1] > 0:
-        return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
+def HasValidPageSize(node_or_shape, strict=False):
+    if (shape := GetShape(node_or_shape)) is not None:
+        if len(shape) >= 2 and len(shape) <= 4 and shape[-1] > 0:
+            return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
+    return False
+
+
+def CanBeTilized(node_or_shape):
+    if (shape := GetShape(node_or_shape)) is not None:
+        if len(shape) >= 2 and len(shape) <= 4 and shape[-1] > 0 and shape[-2] > 1:
+            return shape[-1] % 32 == 0 or shape[-2] % 32 == 0
     return False
 
 

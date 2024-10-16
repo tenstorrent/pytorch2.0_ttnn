@@ -9,6 +9,7 @@ from torch_ttnn.utils import (
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
     HasValidPageSize,
+    CanBeTilized,
 )
 import numpy as np
 from typing import Tuple
@@ -514,17 +515,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
                 if shape[-1] != 1 and HasValidPageSize(shape):
                     if isinstance(args[1], float):
+                        layout = TtnnTileLayout() if CanBeTilized(shape) else TtnnRowMajorLayout()
                         new_kwargs = {
                             "fill_value": args[1],
                             "device": TtnnDevice(),
+                            "layout": layout,
                         }
                         full = g.call_function(
                             ttnn.full,
                             args=(tuple(shape),),
                             kwargs=new_kwargs,
                         )
-                        to_layout = g.call_function(ttnn.to_layout, (full,), {"layout": TtnnTileLayout()})
-                        recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
+                        recip = g.call_function(ttnn.reciprocal, (full,), {})
                     else:
                         recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     return g.call_function(ttnn.mul, (args[0], recip), {})
@@ -611,14 +613,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_nodes[-1].meta["val"] = node.meta["val"]
                 # strange workaround when dim 0 is 1 for rank 3
                 if rank == 3 and output_size[0] == 1:
-                    if output_size[1] % 32 or output_size[2] % 32:
-                        new_nodes.append(
-                            g.call_function(
-                                ttnn.to_layout,
-                                (new_nodes[-1],),
-                                {"layout": TtnnRowMajorLayout()},
-                            )
-                        )
                     new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
                 return new_nodes[-1]
 
