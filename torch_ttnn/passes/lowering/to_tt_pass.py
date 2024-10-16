@@ -18,6 +18,7 @@ import torch_ttnn.metrics as metrics
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
+from .to_tt_guard import can_lowering_to_ttnn
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -56,11 +57,19 @@ def create_call_function(transformer, target, args, kwargs):
     transformer.call_function(target, args, kwargs)
 
 
+# Workaround for issue https://github.com/tenstorrent/tt-metal/issues/11191
+def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
+    if rank == 3 and output_size[0] == 1:
+        new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
+    return new_nodes
+
+
 class ReplaceMoreTt(torch.fx.Transformer):
-    def __init__(self, module, device):
+    def __init__(self, module, device, use_less_ttnn_op_types):
         super().__init__(module)
         self._input_node_meta = {node.name: node.meta for node in self.module.graph.nodes if node.op == "placeholder"}
         self.device = device
+        self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def placeholder(self, target, args, kwargs):
         # Restore original metadata for placeholder nodes
@@ -86,6 +95,16 @@ class ReplaceMoreTt(torch.fx.Transformer):
         self.old_target = target
         self.old_args = args
         self.old_kwargs = kwargs
+
+        class PseudoNode:
+            def __init__(self, target, args, kwargs):
+                self.target = target
+                self.args = args
+                self.kwargs = kwargs
+
+        pseudo_node = PseudoNode(target, args, kwargs)
+        if not can_lowering_to_ttnn(pseudo_node):
+            return self.call_function_prop_meta(target, args, kwargs)
 
         if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
             return self.call_function_prop_meta(target, args, kwargs)
@@ -297,20 +316,11 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.min, args, kwargs)
 
         ############################################################
-        # Data movement
-        ############################################################
-        if target == torch.ops.aten.permute.default:
-            return self.call_function_prop_meta(ttnn.permute, args, kwargs)
-
-        ############################################################
         # Other ops
         ############################################################
         if target == torch.ops.aten._adaptive_avg_pool2d.default:
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
-
-        if target == torch.ops.aten.squeeze.dim:
-            return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 
@@ -346,9 +356,11 @@ class GraphWrapper:
         return self.g.inserting_before(node)
 
 
-def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
+        if not can_lowering_to_ttnn(node):
+            continue
         g = GraphWrapper(node)
 
         def rewrite_node(node):
@@ -591,6 +603,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 return None
 
+            if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
+                if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
+                    # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
+                    # squeezing is the same as reshaping to shape of output tensor of squeeze
+                    output_size = list(node.meta["val"].size())
+                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
+                else:
+                    return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
+
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
@@ -612,8 +633,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_nodes.append(g.call_function(ttnn.permute, args=(args[0], permutation)))
                 new_nodes[-1].meta["val"] = node.meta["val"]
                 # strange workaround when dim 0 is 1 for rank 3
-                if rank == 3 and output_size[0] == 1:
-                    new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
+                # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
+                new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
                 return new_nodes[-1]
 
             if node.target == torch.ops.aten.t.default:
@@ -624,6 +645,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
+
+            if node.target == torch.ops.aten.permute.default:
+                new_nodes = list()
+                new_nodes.append(g.call_function(ttnn.permute, args=(args[0], args[1])))
+                new_nodes[-1].meta["val"] = node.meta["val"]
+
+                # strange workaround when dim 0 is 1 for rank 3
+                # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
+                # and this can then go to ReplaceMoreTt class.
+                output_size = node.meta["val"].size()
+                rank = len(output_size)
+                new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
+                return new_nodes[-1]
+
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad, value = args
                 input_shape = input.meta["val"].size()
@@ -690,14 +725,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 
 class ToTtPass(PassBase):
-    def __init__(self, device):
+    def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
+        self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
         # Replace more patterns with torch.fx.Transformer
-        gm = ReplaceMoreTt(gm, self.device).transform()
+        gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
         # Replace patterns manually
-        gm = ReplaceMoreTtManually(gm)
+        gm = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
 
         return PassResult(gm, True)

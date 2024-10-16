@@ -46,6 +46,7 @@ class ThisTester(ModelTester):
         # NOTE: The model has not been pre-trained or fine-tuned.
         # This is for demonstration purposes only.
         model = ConvAE()
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -62,14 +63,14 @@ class ThisTester(ModelTester):
         sample = dataset["train"][0]["image"]
         n_sample_tensor = [transform(sample).unsqueeze(0)]
         batch_tensor = torch.cat(n_sample_tensor, dim=0)
+        batch_tensor = batch_tensor.to(torch.bfloat16)
         return batch_tensor
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_autoencoder_conv_v2(record_property, mode):
     model_name = f"Autoencoder (conv)"
     record_property("model_name", f"{model_name} {mode}")
