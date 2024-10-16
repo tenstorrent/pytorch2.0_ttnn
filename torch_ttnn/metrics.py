@@ -21,18 +21,17 @@ def _get_shape_from_fake_tensor(faketensor):
 
 
 def _sanitize_value(value):
-    # Put this in a map?
-    if isinstance(value, int) and value == 9223372036854775807:
-        return -1
-    elif isinstance(value, list):
+    if isinstance(value, list):
         val_list = []
         for val in value:
+            if isinstance(val, torch.fx.proxy.Proxy):
+                val = val.node
             if isinstance(val, torch.fx.node.Node) and "val" in val.meta:
                 val_shape = _get_shape_from_fake_tensor(val.meta["val"])
-                val_list.append(f"torch.Size({val_shape})")
+                val_list.append(f"<{val_shape}>")
             else:
-                val_list.append(val)
-        return val_list
+                val_list.append(str(val))
+        return f"[{', '.join(val_list)}]"
     else:
         return value
 
@@ -41,13 +40,11 @@ class Inputs:
     def __init__(self, dtype, name, shape, value):
         self.dtype = dtype
         self.name = name
-        self.shape = shape
+        self.shape_ = shape
+        self.value_ = value
 
-        shape = _get_shape_from_fake_tensor(shape) if shape is not None else ""
-        self.shape = f"<{str(shape)}>"
-
-        value = _sanitize_value(value) if value is not None else "?"
-        self.value = f"{str(value)}"
+        self.shape = f"<{_get_shape_from_fake_tensor(shape)}>" if shape is not None else ""
+        self.value = f"{str(_sanitize_value(value))}" if value is not None else "?"
 
     def __repr__(self):
         return f"{str(self.dtype)}{self.shape} {str(self.name)} = {self.value}"
@@ -134,22 +131,25 @@ def collect_input_variation(target, args, kwargs):
 
 def collect_input_variation_from_node(node: torch.fx.Node):
     """
-    Collection input variation from a torch.fx.Node. If the node consists of a TTNN op, then
-    also process the schema from the original aten op.
+    Collect input variation from a torch.fx.Node. If the node already has an original
+    input variation attached, then create a ConvertedInput.
+
+    TTNN Data-movement ops are not considered converted at the moment.
 
     Returns:
         class InputVariation or class ConvertedInput
     """
-    if node.op in [
-        "call_function",
-        "call_method",
-    ] and node.target.__name__.startswith("ttnn."):
-        if hasattr(node, "meta") and "original_input_variations" in node.meta:
-            original_input_variations = node.meta["original_input_variations"]
-            assert isinstance(original_input_variations, InputVariation)
-            return ConvertedInput(node.target.__name__, original_input_variations)
-    else:
-        return collect_input_variation(node.target, node.args, node.kwargs)
+    if hasattr(node, "meta") and ((original_input_variations := node.meta.get("original_input_variations")) != None):
+        # aten ops should begin with "aten."
+        # however, some ttnn ops are wrapped, so they will be missing the prefix
+        opname = str(node.target) if str(node.target).startswith("aten.") else node.target.__name__
+        if isinstance(original_input_variations, ConvertedInput):
+            return ConvertedInput(opname, original_input_variations.original_input_variation)
+
+        assert isinstance(original_input_variations, InputVariation)
+        if original_input_variations.opname != opname:
+            return ConvertedInput(opname, original_input_variations)
+    return collect_input_variation(node.target, node.args, node.kwargs)
 
 
 def collect_input_variations_from_list_nodes(nodes: List[torch.fx.Node]):

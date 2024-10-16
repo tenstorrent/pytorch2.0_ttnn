@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 
 import torch.nn as nn
 import torch.nn.functional as F
+from tests.utils import ModelTester
 
 
 # adapted from https://github.com/pytorch/examples/blob/main/mnist/main.py
@@ -34,43 +35,30 @@ class MnistModel(torch.nn.Module):
         return output
 
 
-def test_mnist_train(record_property):
-    record_property("model_name", "Mnist (Train)")
+class ThisTester(ModelTester):
+    def _load_model(self):
+        model = MnistModel()
+        model = model.to(torch.bfloat16)
+        return model
 
-    transform = transforms.Compose([transforms.ToTensor()])
-
-    train_dataset = datasets.MNIST(root="./data", train=True, transform=transform, download=True)
-    dataloader = DataLoader(train_dataset, batch_size=1)
-
-    m = MnistModel()
-    m = m.to(torch.bfloat16)
-    m.train()
-
-    test_input, target = next(iter(dataloader))
-    test_input = test_input.to(torch.bfloat16)
-    outputs = m(test_input)
-
-    # TODO: Since only one loop of training is done, the outputs could have greater differences.
-    # Consider adding more loops.
-
-    record_property("torch_ttnn", (m, test_input, outputs))
+    def _load_inputs(self):
+        transform = transforms.Compose([transforms.ToTensor()])
+        test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
+        dataloader = DataLoader(test_dataset, batch_size=1)
+        test_input, _ = next(iter(dataloader))
+        test_input = test_input.to(torch.bfloat16)
+        return test_input
 
 
-def test_mnist_eval(record_property):
-    record_property("model_name", "Mnist (Eval)")
+@pytest.mark.parametrize(
+    "mode",
+    ["train", "eval"],
+)
+def test_mnist_train(record_property, mode):
+    model_name = "Mnist"
+    record_property("model_name", f"{model_name} {mode}")
 
-    transform = transforms.Compose([transforms.ToTensor()])
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
-    dataloader = DataLoader(test_dataset, batch_size=1)
-
-    m = MnistModel()
-    m = m.to(torch.bfloat16)
-    m.eval()
-
-    test_input, _ = next(iter(dataloader))
-    test_input = test_input.to(torch.bfloat16)
-    with torch.no_grad():
-        outputs = m(test_input)
-
-    record_property("torch_ttnn", (m, test_input, outputs))
+    record_property("torch_ttnn", (tester, results))

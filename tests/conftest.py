@@ -16,6 +16,27 @@ import sys
 mb_in_bytes = 1048576
 
 
+def pytest_addoption(parser):
+    parser.addoption("--input_var_only_native", action="store_true")
+    parser.addoption("--input_var_check_ttnn", action="store_true")
+    parser.addoption("--input_var_check_accu", action="store_true")
+
+
+@pytest.fixture(scope="session")
+def input_var_only_native(request):
+    return request.config.getoption("--input_var_only_native")
+
+
+@pytest.fixture(scope="session")
+def input_var_check_accu(request):
+    return request.config.getoption("--input_var_check_accu")
+
+
+@pytest.fixture(scope="session")
+def input_var_check_ttnn(request):
+    return request.config.getoption("--input_var_check_ttnn")
+
+
 @pytest.fixture(scope="session")
 def device():
     device = ttnn.open_device(device_id=0)
@@ -82,20 +103,25 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 pickle.dump(runtime_metrics, f)
 
     if "torch_ttnn" in record:
-        model, inputs, outputs = record["torch_ttnn"]
+        model_tester, outputs = record["torch_ttnn"]
+        from tests.utils import ModelTester
+
+        if not isinstance(model_tester, ModelTester):
+            raise TypeError("model_tester must be instance of ModelTester")
+
         try:
             # Compile model with ttnn backend
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=True,
-                run_mem_analysis=True,
+                run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
             )
-            m = torch.compile(model, backend=torch_ttnn.backend, options=option)
-
             start = time.perf_counter() * 1000
-            outputs_after = run_model(m, inputs)
+
+            outputs_after = model_tester.test_model(as_ttnn=True, option=option)
+
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
             option._out_fx_graphs[0].print_tabular()
@@ -104,34 +130,38 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 comp_runtime_metrics["accuracy"] = accuracy
             # dump compiled aten schemas
             metrics.save_pickle(
-                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+                [x.dict() for x in option.compiled_schema_list],
+                option.metrics_path,
+                "compiled-schema_list",
             )
 
-            # Memory analysis
-            mm = option.memory_manager
-            # Convert bytes to MB
-            peak_usage = mm.peak_sram_usage / mb_in_bytes
-            comp_runtime_metrics["peak_sram_usage"] = peak_usage
+            # # Memory analysis
+            # TODO: re-enable memory analysis
 
-            if mem_utils.check_sram_overflow(mm) is True:
-                comp_runtime_metrics["fits_in_memory"] = "No"
-            else:
-                comp_runtime_metrics["fits_in_memory"] = "Yes"
+            # mm = option.memory_manager
+            # # Convert bytes to MB
+            # peak_usage = mm.peak_sram_usage / mb_in_bytes
+            # comp_runtime_metrics["peak_sram_usage"] = peak_usage
 
-            # These are for plotting charts for later inspection
-            from tools.plot_chart import (
-                plot_mem_footprint_bar_chart,
-                plot_mem_footprint_line_chart,
-            )
+            # if mem_utils.check_sram_overflow(mm) is True:
+            #     comp_runtime_metrics["fits_in_memory"] = "No"
+            # else:
+            #     comp_runtime_metrics["fits_in_memory"] = "Yes"
 
-            bar_chart_file = f"metrics/{model_name}/bar_chart.png"
-            line_chart_file = f"metrics/{model_name}/line_chart.png"
-            plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
-            plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
+            # # These are for plotting charts for later inspection
+            # from tools.plot_chart import (
+            #     plot_mem_footprint_bar_chart,
+            #     plot_mem_footprint_line_chart,
+            # )
 
-            log_file = f"metrics/{model_name}/memory_footprint.txt"
-            with open(log_file, "w") as f:
-                f.write(mm.logs)
+            # bar_chart_file = f"metrics/{model_name}/bar_chart.png"
+            # line_chart_file = f"metrics/{model_name}/line_chart.png"
+            # plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
+            # plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
+
+            # log_file = f"metrics/{model_name}/memory_footprint.txt"
+            # with open(log_file, "w") as f:
+            #     f.write(mm.logs)
 
         except Exception as e:
             comp_runtime_metrics = {
@@ -144,8 +174,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 torch._dynamo.reset()
                 option.bypass_compile = True
                 option.reset_containers()
-                m = torch.compile(model, backend=torch_ttnn.backend, options=option)
-                run_model(m, inputs)
+                model_tester.test_model(as_ttnn=True, option=option)
             except Exception as e2:
                 err_msg = f"{model_name} - Torch run with bypass compilation failed. "
                 err_msg += "Please check whether `model` or `model.generate` is passed to `record_property`."
@@ -158,14 +187,18 @@ def compile_and_run(device, reset_torch_dynamo, request):
         finally:
             # dump original aten schemas
             metrics.save_pickle(
-                [x.dict() for x in option.original_schema_list], option.metrics_path, "original-schema_list"
+                [x.dict() for x in option.original_schema_list],
+                option.metrics_path,
+                "original-schema_list",
             )
             compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
             # dump compiled aten schemas
             metrics.save_pickle(
-                [x.dict() for x in option.compiled_schema_list], option.metrics_path, "compiled-schema_list"
+                [x.dict() for x in option.compiled_schema_list],
+                option.metrics_path,
+                "compiled-schema_list",
             )
 
 

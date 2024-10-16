@@ -1,5 +1,6 @@
 import torch
 import ttnn
+import math
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
@@ -7,6 +8,7 @@ from torch_ttnn.utils import (
     TtnnTileLayout,
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
+    HasValidPageSize,
 )
 import numpy as np
 from typing import Tuple
@@ -15,6 +17,7 @@ import torch_ttnn.metrics as metrics
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
+from .to_tt_guard import can_lowering_to_ttnn
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -53,6 +56,13 @@ def create_call_function(transformer, target, args, kwargs):
     transformer.call_function(target, args, kwargs)
 
 
+# Workaround for issue https://github.com/tenstorrent/tt-metal/issues/11191
+def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
+    if rank == 3 and output_size[0] == 1:
+        new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
+    return new_nodes
+
+
 class ReplaceMoreTt(torch.fx.Transformer):
     def __init__(self, module, device):
         super().__init__(module)
@@ -83,6 +93,16 @@ class ReplaceMoreTt(torch.fx.Transformer):
         self.old_target = target
         self.old_args = args
         self.old_kwargs = kwargs
+
+        class PseudoNode:
+            def __init__(self, target, args, kwargs):
+                self.target = target
+                self.args = args
+                self.kwargs = kwargs
+
+        pseudo_node = PseudoNode(target, args, kwargs)
+        if not can_lowering_to_ttnn(pseudo_node):
+            return self.call_function_prop_meta(target, args, kwargs)
 
         if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
             return self.call_function_prop_meta(target, args, kwargs)
@@ -210,6 +230,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.silu, args, kwargs)
 
         if target == torch.ops.aten._softmax.default:
+            kwargs = {
+                "numeric_stable": True,
+                **kwargs,
+            }
             return self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
 
         if target == torch.ops.aten.sqrt.default:
@@ -290,16 +314,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.min, args, kwargs)
 
         ############################################################
-        # Data movement
-        ############################################################
-        if target == torch.ops.aten.permute.default:
-            return self.call_function_prop_meta(ttnn.permute, args, kwargs)
-
-        if target == torch.ops.aten.view.default:
-            # aten.reshape is more stable if the input nodes have changed
-            return self.call_function_prop_meta(torch.ops.aten.reshape.default, args, kwargs)
-
-        ############################################################
         # Other ops
         ############################################################
         if target == torch.ops.aten._adaptive_avg_pool2d.default:
@@ -307,10 +321,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
         if target == torch.ops.aten.squeeze.dim:
-            # NOTE(kevinwuTT): ttnn.squeeze only supports dim 0 currently
-            if args[1] == 0:
-                return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
-            return self.call_function_prop_meta(target, args, kwargs)
+            return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 
@@ -325,15 +336,6 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
         return dtype_map.get(dtype)
     else:
         raise RuntimeError(f"Missing conversion from torch.dtype: {dtype} to Ttnn dtype.")
-
-
-# Certain ops don't support certain shapes and will emit a valid_page_size error
-# RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
-# For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
-def has_valid_page_size(shape, strict=False):
-    if len(shape) >= 2 and shape[-1] > 0:
-        return shape[-1] % 32 == 0 or (not strict and shape[-1] < 32)
-    return False
 
 
 # override some functions from torch.fx.graph.Graph
@@ -358,6 +360,8 @@ class GraphWrapper:
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
+        if not can_lowering_to_ttnn(node):
+            continue
         g = GraphWrapper(node)
 
         def rewrite_node(node):
@@ -412,7 +416,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if has_valid_page_size(arg_metadata.size(), strict=True):
+                if HasValidPageSize(arg_metadata.size(), strict=True):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
@@ -473,12 +477,23 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 return g.call_function(ttnn.add, args=(beta_node, new_node))
 
             if node.target == torch.ops.aten.embedding.default:
-                # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
-                new_kwargs = {"layout": TtnnTileLayout()}
-                return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
+                if args[1].meta["val"].size()[-1] % ttnn.TILE_SIZE == 0:
+                    # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
+                    new_kwargs = {"layout": TtnnTileLayout()}
+                    return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
+                else:
+                    # TODO: remove fallback to torch when ttnn supports embedding inputs with any size of last dim not just TILE_SIZE multiples
+                    return g.call_function(torch.ops.aten.embedding.default, args, kwargs)
 
             if node.target == torch.ops.aten._log_softmax.default:
-                softmax_node = g.call_function(ttnn.softmax, args[:2], kwargs)
+                softmax_node = g.call_function(
+                    ttnn.softmax,
+                    args[:2],
+                    {
+                        "numeric_stable": True,
+                        **kwargs,
+                    },
+                )
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.rsub.Scalar:
@@ -488,7 +503,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and HasValidPageSize(shape):
                     # NOTE(kevinwuTT): Only bfloat16 seems to work for now
                     # TODO(kevinwuTT): Use ttnn.full instead of aten
                     new_kwargs = {
@@ -511,7 +526,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
+                if shape[-1] != 1 and HasValidPageSize(shape):
                     if isinstance(args[1], float):
                         new_kwargs = {
                             "fill_value": args[1],
@@ -548,6 +563,33 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     return args[0]
                 return None
 
+            if node.target == torch.ops.aten.slice.Tensor:
+                tensor, dim, start, end, *step = args
+                [step] = step or [1]
+                input_size = list(tensor.meta["val"].size())
+                rank = len(input_size)
+
+                if step != 1 or dim >= rank:
+                    return None
+
+                # Check if no-op, just return the input tensor
+                if start == 0 and end >= input_size[dim]:
+                    return tensor
+
+                slice_start = np.zeros(rank, dtype=int)
+                slice_end = input_size
+
+                # For negative end values
+                if end < 0:
+                    end = input_size[dim] + end
+                else:
+                    end = np.clip(end, a_min=None, a_max=input_size[dim])
+
+                slice_start[dim] = start
+                slice_end[dim] = end
+
+                return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
+
             if node.target == torch.ops.aten.repeat.default:
                 tensor, sizes = args
                 shape = tensor.meta["val"].size()
@@ -582,16 +624,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 new_nodes.append(g.call_function(ttnn.permute, args=(args[0], permutation)))
                 new_nodes[-1].meta["val"] = node.meta["val"]
                 # strange workaround when dim 0 is 1 for rank 3
-                if rank == 3 and output_size[0] == 1:
-                    if output_size[1] % 32 or output_size[2] % 32:
-                        new_nodes.append(
-                            g.call_function(
-                                ttnn.to_layout,
-                                (new_nodes[-1],),
-                                {"layout": TtnnRowMajorLayout()},
-                            )
-                        )
-                    new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
+                # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
+                new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
                 return new_nodes[-1]
 
             if node.target == torch.ops.aten.t.default:
@@ -602,6 +636,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                     permutation = [1, 0]
                     return g.call_function(ttnn.permute, args=(args[0], permutation))
                 return None
+
+            if node.target == torch.ops.aten.permute.default:
+                new_nodes = list()
+                new_nodes.append(g.call_function(ttnn.permute, args=(args[0], args[1])))
+                new_nodes[-1].meta["val"] = node.meta["val"]
+
+                # strange workaround when dim 0 is 1 for rank 3
+                # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
+                # and this can then go to ReplaceMoreTt class.
+                output_size = node.meta["val"].size()
+                rank = len(output_size)
+                new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
+                return new_nodes[-1]
+
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad, value = args
                 input_shape = input.meta["val"].size()
@@ -622,6 +670,38 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 ):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
+
+            if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
+                return g.call_function(ttnn.reshape, (args[0], args[1]), {})
+
+            if node.target == torch.ops.aten.split.Tensor:
+                # convert input tensopr to ROW MAJOR layout for split
+                to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
+
+                # convert relative split dim to absolute
+                if args[2] >= 0:
+                    split_dim = args[0]
+                else:
+                    split_dim = len(args[0].meta["val"].size()) + args[2]
+
+                # convert from PyTorch size of chunk to ttnn number of chunks
+                if isinstance(args[1], int):
+                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
+                else:
+                    raise RuntimeError(f"ttnn.split only supports chunks of same size.")
+
+                new_args = (to_layout, num_chunks, split_dim)
+                return g.call_function(ttnn.split, args=new_args)
+
+            if node.target == torch.ops.aten._to_copy.default:
+                target_users_ops = [user.target for user in node.users.keys()]
+                # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
+                # Skip if type casting from bool and if the graph output uses this op
+                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
+                    # Essentially remove this op because it's used as a typecast
+                    return node.args[0]
+                else:
+                    return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)

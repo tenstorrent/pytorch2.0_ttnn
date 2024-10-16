@@ -5,17 +5,33 @@ import torch.nn.functional as F
 
 from transformers import XGLMTokenizer, XGLMForCausalLM
 import pytest
+from tests.utils import ModelTester
 
 
+class ThisTester(ModelTester):
+    def _load_model(self):
+        self.tokenizer = XGLMTokenizer.from_pretrained("facebook/xglm-564M")
+        model = XGLMForCausalLM.from_pretrained("facebook/xglm-564M")
+        return model
+
+    def _load_inputs(self):
+        inputs = self.tokenizer(
+            "I wanted to conserve energy.\nI swept the floor in the unoccupied room.", return_tensors="pt"
+        )
+        inputs["labels"] = inputs["input_ids"]
+        return inputs
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["eval"],
+)
 @pytest.mark.compilation_xfail
-def test_xglm(record_property):
-    record_property("model_name", "XGLM")
+def test_xglm(record_property, mode):
+    model_name = "XGLM"
+    record_property("model_name", f"{model_name} {mode}")
 
-    tokenizer = XGLMTokenizer.from_pretrained("facebook/xglm-564M")
-    model = XGLMForCausalLM.from_pretrained("facebook/xglm-564M")
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model()
 
-    inputs = tokenizer("I wanted to conserve energy.\nI swept the floor in the unoccupied room.", return_tensors="pt")
-    inputs["labels"] = inputs["input_ids"]
-    outputs = model(**inputs)
-
-    record_property("torch_ttnn", (model, inputs, outputs))
+    record_property("torch_ttnn", (tester, results))
