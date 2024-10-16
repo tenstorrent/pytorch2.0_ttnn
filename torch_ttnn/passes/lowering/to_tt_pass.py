@@ -64,10 +64,11 @@ def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
 
 
 class ReplaceMoreTt(torch.fx.Transformer):
-    def __init__(self, module, device):
+    def __init__(self, module, device, use_less_ttnn_op_types):
         super().__init__(module)
         self._input_node_meta = {node.name: node.meta for node in self.module.graph.nodes if node.op == "placeholder"}
         self.device = device
+        self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def placeholder(self, target, args, kwargs):
         # Restore original metadata for placeholder nodes
@@ -320,9 +321,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
-        if target == torch.ops.aten.squeeze.dim:
-            return self.call_function_prop_meta(ttnn.squeeze, args, kwargs)
-
         return self.call_function_prop_meta(target, args, kwargs)
 
 
@@ -357,7 +355,7 @@ class GraphWrapper:
         return self.g.inserting_before(node)
 
 
-def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
         if not can_lowering_to_ttnn(node):
@@ -603,6 +601,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
                 return None
 
+            if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
+                if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
+                    # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
+                    # squeezing is the same as reshaping to shape of output tensor of squeeze
+                    output_size = list(node.meta["val"].size())
+                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
+                else:
+                    return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
+
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
@@ -716,14 +723,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 
 class ToTtPass(PassBase):
-    def __init__(self, device):
+    def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
+        self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
         # Replace more patterns with torch.fx.Transformer
-        gm = ReplaceMoreTt(gm, self.device).transform()
+        gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
         # Replace patterns manually
-        gm = ReplaceMoreTtManually(gm)
+        gm = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
 
         return PassResult(gm, True)
