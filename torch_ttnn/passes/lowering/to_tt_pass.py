@@ -17,6 +17,7 @@ import torch_ttnn.metrics as metrics
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
+from .to_tt_guard import can_lowering_to_ttnn
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -85,6 +86,16 @@ class ReplaceMoreTt(torch.fx.Transformer):
         self.old_target = target
         self.old_args = args
         self.old_kwargs = kwargs
+
+        class PseudoNode:
+            def __init__(self, target, args, kwargs):
+                self.target = target
+                self.args = args
+                self.kwargs = kwargs
+
+        pseudo_node = PseudoNode(target, args, kwargs)
+        if not can_lowering_to_ttnn(pseudo_node):
+            return self.call_function_prop_meta(target, args, kwargs)
 
         if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
             return self.call_function_prop_meta(target, args, kwargs)
@@ -348,6 +359,8 @@ class GraphWrapper:
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
+        if not can_lowering_to_ttnn(node):
+            continue
         g = GraphWrapper(node)
 
         def rewrite_node(node):
