@@ -80,7 +80,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
             nodes = list(option._out_fx_graphs[0].nodes)
             if any(["ttnn" in str(node) for node in nodes]):
                 metric["convert_to_ttnn"] = True
-            else
+            else:
                 metric["convert_to_ttnn"] = False
         except Exception as e:
             print(f"Failed to check the graph has ttnn op. Raised exception: {e}")
