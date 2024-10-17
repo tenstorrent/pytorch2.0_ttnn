@@ -34,14 +34,19 @@ class TtnnTileLayout:
         return f"ttnn_TILE_LAYOUT"
 
 
-class TtnnUint32:
+class TtnnFloat32:
     def __repr__(self):
-        return f"ttnn_uint32"
+        return f"ttnn_float32"
 
 
 class TtnnBfloat16:
     def __repr__(self):
         return f"ttnn_bfloat16"
+
+
+class TtnnUint32:
+    def __repr__(self):
+        return f"ttnn_uint32"
 
 
 class TtnnDramMemoryConfig:

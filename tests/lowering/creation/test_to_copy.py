@@ -14,6 +14,28 @@ class ToCopyModule(torch.nn.Module):
         return x.to(torch.bfloat16)
 
 
+@pytest.mark.parametrize(
+    "input_shapes",
+    [[(4, 4)]],
+)
+def test_to_copy(device, input_shapes):
+    m = ToCopyModule()
+    inputs = [torch.rand(shape) for shape in input_shapes]
+    torch_result = m.forward(*inputs)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    option.gen_graphviz = True
+    # The compilation is lazy, so we need to run forward once to trigger the compilation
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    ttnn_result = m.forward(*inputs)
+    option._out_fx_graphs[0].print_tabular()
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(torch_ttnn.target_wrappers.clone_to) == 1
+    # Check inference result
+    assert torch.allclose(torch_result, ttnn_result, rtol=0.2)
+
+
 class ToCopyWithOpAfterModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -23,33 +45,6 @@ class ToCopyWithOpAfterModule(torch.nn.Module):
         return torch.add(to, to)
 
 
-# aten._to_copy is used to convert a dtype to another.
-# If there is no ttnn.from_torch that follows aten._to_copy, then leave alone.
-# TODO: Will need to re-evaluate the conversion.
-@pytest.mark.parametrize(
-    "input_shapes",
-    [[(4, 4)]],
-)
-def test_to_copy(device, input_shapes):
-    m = ToCopyModule()
-    inputs = [torch.rand(shape) for shape in input_shapes]
-    result_before = m.forward(*inputs)
-    option = torch_ttnn.TorchTtnnOption(device=device)
-    option.gen_graphviz = True
-    # The compilation is lazy, so we need to run forward once to trigger the compilation
-    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(*inputs)
-    option._out_fx_graphs[0].print_tabular()
-
-    # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(torch.ops.aten._to_copy.default) == 1
-    # Check inference result
-    assert torch.allclose(result_before, result_after, rtol=0.2)
-
-
-# aten._to_copy is used to convert a dtype to another.
-# If there is a ttnn.from_torch that follows aten._to_copy and is casting to bfloat, then convert.
 @pytest.mark.parametrize(
     "input_shapes",
     [[(4, 4)]],
@@ -57,12 +52,12 @@ def test_to_copy(device, input_shapes):
 def test_to_copy_with_op_after(device, input_shapes):
     m = ToCopyWithOpAfterModule()
     inputs = [torch.rand(shape) for shape in input_shapes]
-    result_before = m.forward(*inputs)
+    torch_result = m.forward(*inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(*inputs)
+    ttnn_result = m.forward(*inputs)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
@@ -71,16 +66,16 @@ def test_to_copy_with_op_after(device, input_shapes):
     assert target.count(torch.ops.aten._to_copy.default) == 0
     assert target.count(ttnn.add) == 1
     # Check inference result
-    assert torch.allclose(result_before, result_after, rtol=0.2)
+    assert torch.allclose(torch_result, ttnn_result, rtol=0.2)
 
 
 class ToCopyViewModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, x, y, target_shape):
+    def forward(self, x, y, target_shape, target_dtype):
         view = torch.ops.aten.view.default(x, target_shape)
-        _to_copy = torch.ops.aten._to_copy.default(view, dtype=torch.bfloat16)
+        _to_copy = torch.ops.aten._to_copy.default(view, dtype=target_dtype)
         abs = torch.abs(y)
         return torch.add(_to_copy, abs)
 
@@ -92,9 +87,9 @@ class ToCopyExpand(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, x, y, target_shape):
+    def forward(self, x, y, target_shape, target_dtype):
         expand = torch.ops.aten.expand.default(x, target_shape)
-        _to_copy = torch.ops.aten._to_copy.default(expand, dtype=torch.bfloat16)
+        _to_copy = torch.ops.aten._to_copy.default(expand, dtype=target_dtype)
         abs = torch.abs(y)
         return torch.add(_to_copy, abs)
 
@@ -103,23 +98,25 @@ class ToCopyExpand(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "module, ttnn_op",
+    "module, ttnn_op, target_dtype",
     [
-        (ToCopyViewModule(), ttnn.reshape),
-        (ToCopyExpand(), torch_ttnn.target_wrappers.repeat),
+        (ToCopyViewModule(), ttnn.reshape, torch.float32),
+        (ToCopyViewModule(), ttnn.reshape, torch.bfloat16),
+        (ToCopyExpand(), torch_ttnn.target_wrappers.repeat, torch.float32),
+        (ToCopyExpand(), torch_ttnn.target_wrappers.repeat, torch.bfloat16),
     ],
 )
-def test_reshape_test1(device, module, ttnn_op):
+def test_reshape_test1(device, module, ttnn_op, target_dtype):
     m = module
     input_shape1, input_shape2, target_shape = m.input_shapes()
     x = torch.rand(input_shape1, dtype=torch.bfloat16)
     y = torch.rand(input_shape2, dtype=torch.bfloat16)
-    result_before = m.forward(x, y, target_shape)
+    torch_result = m.forward(x, y, target_shape, target_dtype)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(x, y, target_shape)
+    ttnn_result = m.forward(x, y, target_shape, target_dtype)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
@@ -128,4 +125,4 @@ def test_reshape_test1(device, module, ttnn_op):
     assert target.count(torch.ops.aten._to_copy.default) == 0
     assert [node.target for node in nodes].count(ttnn_op) == 1
     # Check inference result
-    assert_with_pcc(result_before, result_after, 0.99)
+    assert_with_pcc(torch_result, ttnn_result, 0.99)
