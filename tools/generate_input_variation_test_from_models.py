@@ -34,6 +34,7 @@ class AtenOpTestExporter(InputVarPerOp):
             text = self.render_string(text, "metrics_filename", metrics_filename)
             with open(basedir / filename, "w") as f:
                 f.write(text)
+            os.system(f"pre-commit run --files {basedir / filename} > /dev/null")
 
 
 # Generate input variation tests only contain single op, it will
