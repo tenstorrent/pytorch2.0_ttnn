@@ -306,12 +306,13 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     new_nodes = list()
     with g.inserting_before(dst_node):
         kwargs = {}
+        node_ranks_greater_than_4 = len(dst_node.meta["val"].size()) > 4 or len(src_node.meta["val"].size()) > 4
         if (
             dst_node.target == ttnn.slice
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat
-            or (dst_node.target == ttnn.reshape and len(dst_node.meta["val"].size()) > 4)
+            or (dst_node.target == ttnn.reshape and node_ranks_greater_than_4)
         ):
             kwargs["layout"] = TtnnRowMajorLayout()
         else:
@@ -323,7 +324,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             kwargs["dtype"] = TtnnBfloat16()
 
         if is_tt_compute(dst_node):
-            if not (dst_node.target == ttnn.reshape and len(dst_node.meta["val"].size()) > 4):
+            if not (dst_node.target == ttnn.reshape and node_ranks_greater_than_4):
                 kwargs["device"] = device
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
@@ -341,7 +342,7 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.n
     if (
         not is_tt(src_node)
         or dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
-        or (dst_node.target == ttnn.reshape and can_reshape(dst_node))
+        or (dst_node.target == ttnn.reshape and (can_reshape(dst_node) and can_reshape(src_node)))
         or (dst_node.target == ttnn.full and CanBeTilized(dst_node))
         or (dst_node.target == ttnn.slice and not HasValidPageSize(dst_node, strict=True))
     ):
