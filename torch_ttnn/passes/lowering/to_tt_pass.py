@@ -3,6 +3,7 @@ import ttnn
 import math
 from torch_ttnn.utils import (
     GraphCleanup,
+    TtnnFloat32,
     TtnnBfloat16,
     TtnnDevice,
     TtnnTileLayout,
@@ -327,7 +328,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     # Add newly supported dtypes here:
     dtype_map = {
-        torch.float32: TtnnBfloat16(),
+        torch.float32: TtnnFloat32(),
         torch.bfloat16: TtnnBfloat16(),
     }
     if dtype in dtype_map:
@@ -357,6 +358,7 @@ class GraphWrapper:
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
+
     for node in nodes:
         if not can_lowering_to_ttnn(node):
             continue
@@ -370,6 +372,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 arg_metadata = node.meta["val"]
                 ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
+                return g.call_function(target_wrappers.clone, args=(args[0],))
+
+            if node.target == torch.ops.aten._to_copy.default:
+                ttnn_dtype = torch_dtype_to_ttnn_dtype(kwargs["dtype"])
+                return g.call_function(
+                    target_wrappers.clone_to,
+                    args=(
+                        args[0],
+                        ttnn_dtype,
+                    ),
+                )
+
+            if node.target == torch.ops.aten.lift_fresh_copy.default:
                 return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
@@ -699,16 +714,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 new_args = (to_layout, num_chunks, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
-
-            if node.target == torch.ops.aten._to_copy.default:
-                target_users_ops = [user.target for user in node.users.keys()]
-                # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
-                # Skip if type casting from bool and if the graph output uses this op
-                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
-                    # Essentially remove this op because it's used as a typecast
-                    return node.args[0]
-                else:
-                    return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
