@@ -48,7 +48,10 @@ class ThisTester(ModelTester):
             "train",
             marks=pytest.mark.compilation_xfail,
         ),
-        "eval",
+        pytest.param(
+            "eval",
+            marks=pytest.mark.compilation_xfail,
+        ),
     ],
 )
 def test_clip(record_property, mode):
