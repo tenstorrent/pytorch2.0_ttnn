@@ -304,7 +304,7 @@ OPLIST = {
 
 
 def can_lowering_to_ttnn(node):
-    if node.target in OPLIST:
-        return OPLIST[node.target](node)
+    # if node.target in OPLIST:
+    #     return OPLIST[node.target](node)
 
     return True
