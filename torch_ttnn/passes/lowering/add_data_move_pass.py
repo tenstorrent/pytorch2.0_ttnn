@@ -147,18 +147,14 @@ TTNN_LAYOUT_CHANGE_OPS = set(
 # BUG (https://github.com/tenstorrent/tt-metal/issues/13889):
 def can_reshape(node):
     shape = node.meta["val"].size()
-    # Unsupported shapes that doesn't have a match a pattern goes here
-    unsupported_shapes = set(
-        [
-            (1445, 192),
-            (1, 1445, 3, 64),
-            (3, 64, 1445),
-            (3, 1445, 64),
-        ]
-    )
-    # Unsupported if H dim is 1
+    # Unsupported H dims
+    unsupported_H_dim = set([1, 1445, 100])
     # Unsupported if output rank is > 4
-    return (shape not in unsupported_shapes) and (len(shape) >= 2 and shape[-2] > 1) and (len(shape) <= 4)
+    return len(shape) >= 2 and shape[-2] not in unsupported_H_dim and len(shape) <= 4
+
+
+def are_node_ranks_greater_than_4(src_node, dst_node):
+    return len(dst_node.meta["val"].size()) > 4 or len(src_node.meta["val"].size()) > 4
 
 
 # For operations limitations
@@ -306,13 +302,12 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     new_nodes = list()
     with g.inserting_before(dst_node):
         kwargs = {}
-        node_ranks_greater_than_4 = len(dst_node.meta["val"].size()) > 4 or len(src_node.meta["val"].size()) > 4
         if (
             dst_node.target == ttnn.slice
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat
-            or (dst_node.target == ttnn.reshape and node_ranks_greater_than_4)
+            or (dst_node.target == ttnn.reshape and are_node_ranks_greater_than_4(src_node, dst_node))
         ):
             kwargs["layout"] = TtnnRowMajorLayout()
         else:
@@ -324,7 +319,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
             kwargs["dtype"] = TtnnBfloat16()
 
         if is_tt_compute(dst_node):
-            if not (dst_node.target == ttnn.reshape and node_ranks_greater_than_4):
+            if not (dst_node.target == ttnn.reshape and are_node_ranks_greater_than_4(src_node, dst_node)):
                 kwargs["device"] = device
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
@@ -342,7 +337,7 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.n
     if (
         not is_tt(src_node)
         or dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
-        or (dst_node.target == ttnn.reshape and (can_reshape(dst_node) and can_reshape(src_node)))
+        or (dst_node.target == ttnn.reshape and not are_node_ranks_greater_than_4(src_node, dst_node))
         or (dst_node.target == ttnn.full and CanBeTilized(dst_node))
         or (dst_node.target == ttnn.slice and not HasValidPageSize(dst_node, strict=True))
     ):
