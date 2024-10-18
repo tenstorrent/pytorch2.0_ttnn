@@ -328,8 +328,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     # Add newly supported dtypes here:
     dtype_map = {
-        torch.float32: TtnnFloat32(),
+        torch.float32: TtnnBfloat16(),
         torch.bfloat16: TtnnBfloat16(),
+        torch.int64: TtnnBfloat16(),
     }
     if dtype in dtype_map:
         return dtype_map.get(dtype)
@@ -358,7 +359,6 @@ class GraphWrapper:
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
-
     for node in nodes:
         if not can_lowering_to_ttnn(node):
             continue
