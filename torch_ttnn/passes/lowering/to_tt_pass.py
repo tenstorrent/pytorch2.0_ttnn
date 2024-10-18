@@ -375,17 +375,23 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten._to_copy.default:
-                ttnn_dtype = torch_dtype_to_ttnn_dtype(kwargs["dtype"])
-                return g.call_function(
-                    target_wrappers.clone_to,
-                    args=(
-                        args[0],
-                        ttnn_dtype,
-                    ),
-                )
+                target_users_ops = [user.target for user in node.users.keys()]
+                # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
+                # Skip if type casting from bool and if the graph output uses this op
+                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
+                    ttnn_dtype = torch_dtype_to_ttnn_dtype(kwargs["dtype"])
+                    return g.call_function(
+                        target_wrappers.clone_to,
+                        args=(
+                            args[0],
+                            ttnn_dtype,
+                        ),
+                    )
+                else:
+                    return None
 
             if node.target == torch.ops.aten.lift_fresh_copy.default:
-                return g.call_function(target_wrappers.clone, args=(args[0],))
+                return None
 
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(
