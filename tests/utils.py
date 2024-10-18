@@ -417,7 +417,11 @@ class MetricStringListHandler:
             "aten.masked_fill.Scalar": self._adjust_masked_fill_Scalar,
             "aten.where.self": self._adjust_where_self,
             "aten.embedding.default": self._adjust_embedding_default,
+            "aten.embedding_dense_backward.default": self._adjust_embedding_dense_backward_default,
             "aten.index_select.default": self._adjust_index_select_default,
+            "aten.index.Tensor": self._adjust_index_tensor,
+            "aten.index_put.default": self._adjust_index_tensor,
+            "aten._unsafe_index.Tensor": self._adjust_index_tensor,
         }
 
     def _adjust_bitwise_not_default(self, input_vals):
@@ -452,6 +456,17 @@ class MetricStringListHandler:
                 break
         return input_vals
 
+    def _adjust_embedding_dense_backward_default(self, input_vals):
+        for input_val in input_vals:
+            if input_val["name"] == "grad_output":
+                grad_output_shape0 = input_val["val"].shape[0]
+                break
+        for input_val in input_vals:
+            if input_val["name"] == "indices":
+                input_val["val"] = torch.randint(0, grad_output_shape0, input_val["val"].shape)
+                break
+        return input_vals
+
     def _adjust_index_select_default(self, input_vals):
         for input_val in input_vals:
             if input_val["name"] == "self":
@@ -464,6 +479,26 @@ class MetricStringListHandler:
         for input_val in input_vals:
             if input_val["name"] == "index":
                 input_val["val"] = torch.randint(0, self_shape[dim], input_val["val"].shape)
+                break
+        return input_vals
+
+    def _adjust_index_tensor(self, input_vals):
+        for input_val in input_vals:
+            if input_val["name"] == "self":
+                self_shape = input_val["val"].shape
+                break
+        for input_val in input_vals:
+            if input_val["name"] == "indices":
+                indices = input_val["val"]
+                new_indices = []
+                for i in range(len(indices)):
+                    indice = indices[i]
+                    new_indice = []
+                    for j in range(len(indice)):
+                        new_indice.append(torch.randint(0, self_shape[i], [1]))
+                    new_indice = torch.tensor(new_indice)
+                    new_indices.append(new_indice)
+                input_val["val"] = new_indices
                 break
         return input_vals
 
