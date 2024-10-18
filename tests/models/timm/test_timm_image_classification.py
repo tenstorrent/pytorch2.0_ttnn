@@ -34,32 +34,45 @@ class ThisTester(ModelTester):
         return input_batch
 
 
-@pytest.mark.parametrize(
-    "mode",
-    ["train", "eval"],
-)
+model_list = [
+    "tf_efficientnet_lite0.in1k",
+    "tf_efficientnet_lite1.in1k",
+    "tf_efficientnet_lite2.in1k",
+    "tf_efficientnet_lite3.in1k",
+    "tf_efficientnet_lite4.in1k",
+    "ghostnet_100.in1k",
+    "ghostnetv2_100.in1k",
+    "inception_v4.tf_in1k",
+    "mixer_b16_224.goog_in21k",
+    "mobilenetv1_100.ra4_e3600_r224_in1k",
+    "ese_vovnet19b_dw.ra_in1k",
+    "xception71.tf_in1k",
+    "dla34.in1k",
+    "hrnet_w18.ms_aug_in1k",
+]
+mode_list = ["train", "eval"]
+model_and_mode_list = []
+for model in model_list:
+    for mode in mode_list:
+        if (
+            (model == "ghostnet_100.in1k" and mode == "eval")
+            or (model == "inception_v4.tf_in1k")
+            or (model == "mixer_b16_224.goog_in21k" and mode == "eval")
+            or (model == "mobilenetv1_100.ra4_e3600_r224_in1k")
+            or (model == "ese_vovnet19b_dw.ra_in1k")
+            or (model == "xception71.tf_in1k")
+            or (model == "dla34.in1k")
+        ):
+            model_and_mode_list.append([model, mode])
+        else:
+            model_and_mode_list.append(pytest.param([model, mode], marks=pytest.mark.compilation_xfail))
+
+
 @pytest.mark.usefixtures("manage_dependencies")
-@pytest.mark.parametrize(
-    "model_name",
-    [
-        "tf_efficientnet_lite0.in1k",
-        "tf_efficientnet_lite1.in1k",
-        "tf_efficientnet_lite2.in1k",
-        "tf_efficientnet_lite3.in1k",
-        "tf_efficientnet_lite4.in1k",
-        "ghostnet_100.in1k",
-        "ghostnetv2_100.in1k",
-        "inception_v4.tf_in1k",
-        "mixer_b16_224.goog_in21k",
-        "mobilenetv1_100.ra4_e3600_r224_in1k",
-        "ese_vovnet19b_dw.ra_in1k",
-        "xception71.tf_in1k",
-        "dla34.in1k",
-        "hrnet_w18.ms_aug_in1k",
-    ],
-)
-@pytest.mark.compilation_xfail
-def test_timm_image_classification(record_property, model_name, mode):
+@pytest.mark.parametrize("model_and_mode", model_and_mode_list)
+def test_timm_image_classification(record_property, model_and_mode):
+    model_name = model_and_mode[0]
+    mode = model_and_mode[1]
     record_property("model_name", f"{model_name} {mode}")
 
     tester = ThisTester(model_name, mode)

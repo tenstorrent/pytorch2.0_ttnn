@@ -42,7 +42,6 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_unet(record_property, mode):
     model_name = "U-Net"
     record_property("model_name", f"{model_name} {mode}")

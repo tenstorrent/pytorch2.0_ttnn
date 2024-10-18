@@ -38,7 +38,6 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_hardnet(record_property, mode):
     model_name = "HardNet"
     record_property("model_name", f"{model_name} {mode}")
