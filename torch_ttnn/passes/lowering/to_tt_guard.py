@@ -283,6 +283,18 @@ def blocked_aten_native_layer_norm_default(node):
     return True
 
 
+def blocked_aten_masked_fill_Scalar(node):
+    # TODO: block all input variations from CLIP eval, find root cause
+    blacklist = [
+        ["Tensor<[2, 1, 7, 7]> self = ?", "Tensor<[2, 1, 7, 7]> mask = ?", "number value = -3.3895313892515355e+38"],
+    ]
+    inputs = get_inputs(node)
+    inputs_str = [str(i) for i in inputs]
+    if inputs_str in blacklist:
+        return False
+    return True
+
+
 OPLIST = {
     torch.ops.aten.exp.default: aten_exp_default,
     torch.ops.aten.expand.default: aten_expand_default,
@@ -300,6 +312,7 @@ OPLIST = {
     torch.ops.aten.view.default: blocked_aten_view_default,
     torch.ops.aten._to_copy.default: blocked_aten__to_copy_default,
     torch.ops.aten.native_layer_norm.default: blocked_aten_native_layer_norm_default,
+    torch.ops.aten.masked_fill.Scalar: blocked_aten_masked_fill_Scalar,
 }
 
 
