@@ -9,6 +9,7 @@ from torch_ttnn.utils import (
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
     HasValidPageSize,
+    CanBeTilized,
 )
 import numpy as np
 from typing import Tuple
@@ -526,17 +527,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
                 if shape[-1] != 1 and HasValidPageSize(shape):
                     if isinstance(args[1], float):
+                        layout = TtnnTileLayout() if CanBeTilized(shape) else TtnnRowMajorLayout()
                         new_kwargs = {
                             "fill_value": args[1],
                             "device": TtnnDevice(),
+                            "layout": layout,
                         }
                         full = g.call_function(
                             ttnn.full,
                             args=(tuple(shape),),
                             kwargs=new_kwargs,
                         )
-                        to_layout = g.call_function(ttnn.to_layout, (full,), {"layout": TtnnTileLayout()})
-                        recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
+                        recip = g.call_function(ttnn.reciprocal, (full,), {})
                     else:
                         recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     return g.call_function(ttnn.mul, (args[0], recip), {})
