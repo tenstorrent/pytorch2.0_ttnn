@@ -93,7 +93,6 @@ jobs:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
 
-
   model-input-variations-tests:
     needs: model-tests
     runs-on: ["in-service", "n150"]
@@ -144,6 +143,56 @@ jobs:
           name: model-input-variations-tests-metrics-group-${{ matrix.group }}
           path: metrics-input-variations/
 
+  collect-artifacts-from-matrix-jobs:
+    needs: model-input-variations-tests
+    runs-on: ["in-service", "n150"]
+    env:
+      pytest_verbosity: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download All Metrics Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-metrics-group-*
+          merge-multiple: true
+          path: metrics/
+
+      - name: Download All Input Variations Tests Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-input-variations-tests-group-*
+          merge-multiple: true
+          path: tests/input-variations/
+
+      - name: Download All Input Variations Metrics Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-input-variations-tests-metrics-group-*
+          merge-multiple: true
+          path: metrics-input-variations/
+
+      - name: Upload Metrics Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-tests-metrics
+          path: metrics/
+
+      - name: Upload Input Variations Tests Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-input-variations-tests
+          path: tests/input-variations/
+
+      - name: Upload Input Variations Metrics Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-input-variations-tests-metrics
+          path: metrics-input-variations/
 
   collect-metrics:
     needs: model-input-variations-tests
