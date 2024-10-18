@@ -34,7 +34,6 @@ class AtenOpTestExporter(InputVarPerOp):
             text = self.render_string(text, "metrics_filename", metrics_filename)
             with open(basedir / filename, "w") as f:
                 f.write(text)
-            os.system(f"pre-commit run --files {basedir / filename} > /dev/null")
 
 
 # Generate input variation tests only contain single op, it will
@@ -73,3 +72,4 @@ if __name__ == "__main__":
         original_schema_metrics = load_pickle(original_schema_metrics_path) or {}
         input_var_per_op = AtenOpTestExporter(original_schema_metrics, compiled_schema_metrics={})
         input_var_per_op.export_tests(template_path, Path(f"tests/input-variations/{model_}"), model)
+        os.system(f"pre-commit run --files tests/input-variations/{model_}/* > /dev/null")

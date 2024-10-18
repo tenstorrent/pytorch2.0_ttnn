@@ -505,6 +505,9 @@ aten_native_layer_norm_default_blocklist += [
     ],
 ]
 
+# Need to remove this from the blocklist so that yolos can pass
+aten_view_default_blocklist.remove(["Tensor<[1, 192, 32, 42]> self = ?", "List[int] size = [1, 192, 1344]"])
+
 
 def get_inputs(node):
     node_inputs = metrics.collect_input_variation_from_node(node)
