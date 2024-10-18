@@ -378,7 +378,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 target_users_ops = [user.target for user in node.users.keys()]
                 # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
                 # Skip if type casting from bool and if the graph output uses this op
-                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
+                if kwargs["dtype"] not in [torch.bool] or "output" not in target_users_ops:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(kwargs["dtype"])
                     return g.call_function(
                         target_wrappers.clone_to,
