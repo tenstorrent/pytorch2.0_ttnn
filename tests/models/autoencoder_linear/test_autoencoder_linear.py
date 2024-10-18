@@ -80,7 +80,6 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_autoencoder_linear(record_property, mode):
     model_name = "Autoencoder (linear)"
     record_property("model_name", f"{model_name} {mode}")

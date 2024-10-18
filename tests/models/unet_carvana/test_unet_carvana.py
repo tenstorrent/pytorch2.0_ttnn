@@ -28,7 +28,6 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_unet_carvana(record_property, mode):
     model_name = "Unet-carvana"
     record_property("model_name", f"{model_name} {mode}")
