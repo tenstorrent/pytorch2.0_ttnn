@@ -24,7 +24,10 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize("model_name", ["textattack/albert-base-v2-imdb"])
 @pytest.mark.compilation_xfail
 def test_albert_sequence_classification(record_property, model_name, mode):
-    record_property("model_name", f"{model_name} {mode}")
+    if mode == "eval":
+        record_property("model_name", model_name)
+    else:
+        record_property("model_name", f"{model_name} {mode}")
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

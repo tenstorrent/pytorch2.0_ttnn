@@ -31,7 +31,10 @@ class ThisTester(ModelTester):
 @pytest.mark.skip(reason="failing during torch run with bypass compilation")
 def test_openpose(record_property, mode):
     model_name = "OpenPose"
-    record_property("model_name", f"{model_name} {mode}")
+    if mode == "eval":
+        record_property("model_name", model_name)
+    else:
+        record_property("model_name", f"{model_name} {mode}")
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()
