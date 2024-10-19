@@ -177,13 +177,11 @@ jobs:
         run: |
           set +e
           ls metrics/
-          tree metrics/
 
       - name: list metrics-input-variations/
         run: |
           set +e
           ls metrics-input-variations/
-          tree metrics-input-variations/
 
 
       - name: Upload Metrics Artifact
