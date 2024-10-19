@@ -91,6 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
+          merge-multiple: true
           path: metrics/
 
   model-input-variations-tests:
