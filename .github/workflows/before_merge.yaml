@@ -22,7 +22,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
-    runs-on: ["in-service", "n150"]
+    runs-on: ["in-service"]
     steps:      
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup        
@@ -31,7 +31,7 @@ jobs:
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
-    runs-on: ["in-service", "n150"]
+    runs-on: ["in-service"]
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
@@ -48,7 +48,7 @@ jobs:
 
   model-tests:
     needs: lowering-tests
-    runs-on: ["in-service", "n150"]
+    runs-on: ["in-service"]
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
@@ -95,7 +95,7 @@ jobs:
 
   model-input-variations-tests:
     needs: model-tests
-    runs-on: ["in-service", "n150"]
+    runs-on: ["in-service"]
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
@@ -145,7 +145,7 @@ jobs:
 
   collect-artifacts-from-matrix-jobs:
     needs: model-input-variations-tests
-    runs-on: ["in-service", "n150"]
+    runs-on: ["in-service"]
     env:
       pytest_verbosity: 0
     steps:
@@ -197,7 +197,7 @@ jobs:
   collect-metrics:
     needs: model-input-variations-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service", "n150"]
+    runs-on: ["in-service"]
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
@@ -257,7 +257,7 @@ jobs:
   push-input-variations-tests:
     needs: model-input-variations-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service", "n150"]
+    runs-on: ["in-service"]
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
