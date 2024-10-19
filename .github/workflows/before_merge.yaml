@@ -91,6 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
+          merge-multiple: true
           path: metrics/
 
   model-input-variations-tests:
@@ -115,6 +116,7 @@ jobs:
       - name: Run Model Input Variations Tests
         run: |
           set +e
+          rm -rf tests/input-variations/
           python3 tools/generate_input_variation_test_from_models.py
           exit_code=$?  # Capture the exit code
           if [ $exit_code -ne 0 ]; then
