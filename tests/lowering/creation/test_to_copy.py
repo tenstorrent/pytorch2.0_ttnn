@@ -31,7 +31,7 @@ def test_to_copy(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(torch_ttnn.target_wrappers.clone_to) == 1
+    assert [node.target for node in nodes].count(torch.ops.aten._to_copy.default) == 1
     # Check inference result
     assert torch.allclose(torch_result, ttnn_result, rtol=0.2)
 
