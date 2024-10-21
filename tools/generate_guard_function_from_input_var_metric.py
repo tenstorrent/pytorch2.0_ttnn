@@ -79,9 +79,9 @@ class GuardFuncExporter:
 if __name__ == "__main__":
     template_path = os.path.dirname(os.path.abspath(__file__)) + "/to_tt_guard.tmpl"
 
-    if not os.path.isdir("metrics-input-variations"):
-        print("metrics-input-variations directory not found. Please run tests/input-variations")
+    if not os.path.isdir("metrics-autogen-op"):
+        print("metrics-autogen-op directory not found. Please run tests/autogen-op")
         exit(0)
 
-    exporter = GuardFuncExporter(Path("metrics-input-variations"))
+    exporter = GuardFuncExporter(Path("metrics-autogen-op"))
     exporter.export_guard_function(template_path, threshold=["run", "accuracy"])

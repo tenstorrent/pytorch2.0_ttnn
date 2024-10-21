@@ -23,7 +23,7 @@ class AtenOpTestExporter(InputVarPerOp):
         for opname, inputs_variations in sort_by_opname.items():
             inputs_strings = [_unjoin_br(input_variations) for input_variations in inputs_variations.keys()]
             opname_ = opname.replace(".", "_")
-            metrics_dir = f"metrics-input-variations/{model_name}"
+            metrics_dir = f"metrics-autogen-op/{model_name}"
             metrics_filename = opname
             filename = f"test_{mdoel_name}_{opname_}.py"
             with open(template_path, "r") as f:
@@ -71,5 +71,5 @@ if __name__ == "__main__":
         original_schema_metrics_path = model_path / "original-schema_list.pickle"
         original_schema_metrics = load_pickle(original_schema_metrics_path) or {}
         input_var_per_op = AtenOpTestExporter(original_schema_metrics, compiled_schema_metrics={})
-        input_var_per_op.export_tests(template_path, Path(f"tests/input-variations/{model_}"), model)
-        os.system(f"pre-commit run --files tests/input-variations/{model_}/* > /dev/null")
+        input_var_per_op.export_tests(template_path, Path(f"tests/autogen-op/{model_}"), model)
+        os.system(f"pre-commit run --files tests/autogen-op/{model_}/* > /dev/null")
