@@ -505,6 +505,10 @@ aten_native_layer_norm_default_blocklist += [
     ],
 ]
 
+aten_masked_fill_scalar_blocklist = [
+    ["Tensor<[2, 1, 7, 7]> self = ?", "Tensor<[2, 1, 7, 7]> mask = ?", "number value = -3.3895313892515355e+38"],
+]
+
 # Need to remove this from the blocklist so that yolos can pass
 aten_view_default_blocklist.remove(["Tensor<[1, 192, 32, 42]> self = ?", "List[int] size = [1, 192, 1344]"])
 
@@ -558,6 +562,7 @@ GUARD = {
     torch.ops.aten.empty.memory_format: partial(guard_aten, aten_empty_memory_format_blocklist),
     # Add for pass CLIP eval
     torch.ops.aten._to_copy.default: partial(guard_aten, aten__to_copy_default_blocklist),
+    torch.ops.aten.masked_fill.Scalar: partial(guard_aten, aten_masked_fill_scalar_blocklist),
 }
 
 
