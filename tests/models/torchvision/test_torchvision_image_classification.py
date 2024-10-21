@@ -110,7 +110,8 @@ def test_torchvision_image_classification(record_property, model_info_and_mode):
     model_info = model_info_and_mode[0]
     mode = model_info_and_mode[1]
     model_name, _ = model_info
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_info, mode)
     results = tester.test_model()
