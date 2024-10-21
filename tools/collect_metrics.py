@@ -475,7 +475,7 @@ if __name__ == "__main__":
         compiled_schema_metrics = load_pickle(compiled_schema_metrics_path) or {}
 
         # Load single metrics
-        single_metrics_path = Path("metrics-input-variations") / model
+        single_metrics_path = Path("metrics-autogen-op") / model
         single_metrics = load_single_metrics(single_metrics_path)
 
         # Count total number of original aten ops and unique aten ops
