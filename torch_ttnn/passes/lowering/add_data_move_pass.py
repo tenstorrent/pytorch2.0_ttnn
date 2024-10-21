@@ -6,8 +6,8 @@ from torch_ttnn.utils import (
     TtnnDevice,
     TtnnBfloat16,
     TtnnUint32,
-    HasValidPageSize,
-    CanBeTilized,
+    has_valid_page_size,
+    can_be_tilized,
 )
 
 
@@ -346,8 +346,8 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.n
         not is_tt(src_node)
         or dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
         or (dst_node.target == ttnn.reshape and not have_supported_ranks(src_node, dst_node))
-        or (dst_node.target == ttnn.full and CanBeTilized(dst_node))
-        or (dst_node.target == ttnn.slice and not HasValidPageSize(dst_node, strict=True))
+        or (dst_node.target == ttnn.full and can_be_tilized(dst_node))
+        or (dst_node.target == ttnn.slice and not has_valid_page_size(dst_node, strict=True))
     ):
         return None
 
@@ -373,8 +373,8 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
         or dst_node.target == target_wrappers.repeat
         or src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
         or (src_node.target == ttnn.reshape and can_reshape(src_node))
-        or (src_node.target == ttnn.full and CanBeTilized(src_node))
-        or (src_node.target == ttnn.slice and not HasValidPageSize(src_node, strict=True))
+        or (src_node.target == ttnn.full and can_be_tilized(src_node))
+        or (src_node.target == ttnn.slice and not has_valid_page_size(src_node, strict=True))
     ):
         return None
 

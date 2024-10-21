@@ -1,6 +1,6 @@
 import torch
 from typing import List
-from torch_ttnn.utils import GraphCleanup
+from torch_ttnn.utils import graph_cleanup
 
 """
 AOT Autograd has an optimization where if it determines that the storage of the
@@ -49,7 +49,7 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
             modified = True
 
     if modified:
-        gm = GraphCleanup(gm)
+        gm = graph_cleanup(gm)
 
     return gm
 
@@ -76,6 +76,6 @@ def remove_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
             modified = True
 
     if modified:
-        gm = GraphCleanup(gm)
+        gm = graph_cleanup(gm)
 
     return gm
