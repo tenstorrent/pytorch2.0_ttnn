@@ -65,7 +65,7 @@ def load_single_metrics(path: str):
                     results += result
         return results
     else:
-        return None
+        return []
 
 
 # Load a pt file from path and return a Torch tensor object or None
@@ -281,8 +281,9 @@ class InputVarPerOp(defaultdict):
         # else this will be an empty dict with defaults
 
         self.single_metrics = single_metrics
-        for s in self.single_metrics:
-            s["input_variation"] = _join_br(s["input_strings"])
+        if type(self.single_metrics) == list and len(self.single_metrics) > 0:
+            for s in self.single_metrics:
+                s["input_variation"] = _join_br(s["input_strings"])
 
     def merge(self, other: "InputVarPerOp"):
         """
@@ -474,7 +475,7 @@ if __name__ == "__main__":
         compiled_schema_metrics = load_pickle(compiled_schema_metrics_path) or {}
 
         # Load single metrics
-        single_metrics_path = Path("metrics-input-variations") / model
+        single_metrics_path = Path("metrics-autogen-op") / model
         single_metrics = load_single_metrics(single_metrics_path)
 
         # Count total number of original aten ops and unique aten ops
