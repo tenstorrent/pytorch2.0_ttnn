@@ -6,6 +6,7 @@ import pytest
 from tests.utils import ModelTester
 
 
+# TODO: RuntimeError: "nms_kernel" not implemented for 'BFloat16'
 class ThisTester(ModelTester):
     # pass model_info instead of model_name
     def __init__(self, model_info, mode):
@@ -19,7 +20,7 @@ class ThisTester(ModelTester):
     def _load_model(self):
         model_name, weights_name = self.model_info
         self.weights = getattr(models.detection, weights_name).DEFAULT
-        model = getattr(models.detection, model_name)(weights=self.weights)
+        model = getattr(models.detection, model_name)(weights=self.weights)  # .to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -28,7 +29,7 @@ class ThisTester(ModelTester):
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         image = Image.open(requests.get(url, stream=True).raw)
         img_t = preprocess(image)
-        batch_t = torch.unsqueeze(img_t, 0)
+        batch_t = torch.unsqueeze(img_t, 0)  # .to(torch.bfloat16)
         return batch_t
 
 

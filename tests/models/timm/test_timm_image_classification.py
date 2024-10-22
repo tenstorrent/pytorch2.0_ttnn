@@ -34,38 +34,36 @@ class ThisTester(ModelTester):
         return input_batch
 
 
-model_list = [
-    "tf_efficientnet_lite0.in1k",
-    "tf_efficientnet_lite1.in1k",
-    "tf_efficientnet_lite2.in1k",
-    "tf_efficientnet_lite3.in1k",
-    "tf_efficientnet_lite4.in1k",
-    "ghostnet_100.in1k",
-    "ghostnetv2_100.in1k",
-    "inception_v4.tf_in1k",
-    "mixer_b16_224.goog_in21k",
-    "mobilenetv1_100.ra4_e3600_r224_in1k",
-    "ese_vovnet19b_dw.ra_in1k",
-    "xception71.tf_in1k",
-    "dla34.in1k",
-    "hrnet_w18.ms_aug_in1k",
+model_and_mode_list = [
+    pytest.param(["tf_efficientnet_lite0.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite1.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite2.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite3.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite4.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["ghostnet_100.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["ghostnetv2_100.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    ["inception_v4.tf_in1k", "train"],
+    pytest.param(["mixer_b16_224.goog_in21k", "train"], marks=pytest.mark.compilation_xfail),
+    ["mobilenetv1_100.ra4_e3600_r224_in1k", "train"],
+    ["ese_vovnet19b_dw.ra_in1k", "train"],
+    ["xception71.tf_in1k", "train"],
+    ["dla34.in1k", "train"],
+    pytest.param(["hrnet_w18.ms_aug_in1k", "train"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite0.in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite1.in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite2.in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite3.in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    pytest.param(["tf_efficientnet_lite4.in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    ["ghostnet_100.in1k", "eval"],
+    pytest.param(["ghostnetv2_100.in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    ["inception_v4.tf_in1k", "eval"],
+    ["mixer_b16_224.goog_in21k", "eval"],
+    ["mobilenetv1_100.ra4_e3600_r224_in1k", "eval"],
+    ["ese_vovnet19b_dw.ra_in1k", "eval"],
+    ["xception71.tf_in1k", "eval"],
+    ["dla34.in1k", "eval"],
+    pytest.param(["hrnet_w18.ms_aug_in1k", "eval"], marks=pytest.mark.compilation_xfail),
 ]
-mode_list = ["train", "eval"]
-model_and_mode_list = []
-for model in model_list:
-    for mode in mode_list:
-        if (
-            (model == "ghostnet_100.in1k" and mode == "eval")
-            or (model == "inception_v4.tf_in1k")
-            or (model == "mixer_b16_224.goog_in21k" and mode == "eval")
-            or (model == "mobilenetv1_100.ra4_e3600_r224_in1k")
-            or (model == "ese_vovnet19b_dw.ra_in1k")
-            or (model == "xception71.tf_in1k")
-            or (model == "dla34.in1k")
-        ):
-            model_and_mode_list.append([model, mode])
-        else:
-            model_and_mode_list.append(pytest.param([model, mode], marks=pytest.mark.compilation_xfail))
 
 
 @pytest.mark.usefixtures("manage_dependencies")

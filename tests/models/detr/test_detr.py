@@ -13,7 +13,7 @@ class ThisTester(ModelTester):
         The model is from https://github.com/facebookresearch/detr
         """
         # Model
-        model = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True)
+        model = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True).to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -28,7 +28,7 @@ class ThisTester(ModelTester):
             ]
         )
         input_tensor = preprocess(input_image)
-        input_batch = input_tensor.unsqueeze(0)
+        input_batch = input_tensor.unsqueeze(0).to(torch.bfloat16)
         return input_batch
 
 

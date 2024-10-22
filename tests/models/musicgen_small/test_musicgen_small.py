@@ -9,7 +9,7 @@ class ThisTester(ModelTester):
     def _load_model(self):
         self.processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
         model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small")
-        return model
+        return model.generate
 
     def _load_inputs(self):
         inputs = self.processor(
@@ -21,9 +21,8 @@ class ThisTester(ModelTester):
         inputs["max_new_tokens"] = 256
         return inputs
 
-    def run_model(self, model, inputs):
-        audio_values = model.generate(**inputs)
-        return audio_values
+    def set_model_eval(self, model):
+        return model
 
 
 @pytest.mark.parametrize(

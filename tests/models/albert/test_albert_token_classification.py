@@ -8,10 +8,10 @@ from tests.utils import ModelTester
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        return AlbertForTokenClassification.from_pretrained(self.model_name)
+        return AlbertForTokenClassification.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
 
     def _load_inputs(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         self.text = "HuggingFace is a company based in Paris and New York."
         self.inputs = self.tokenizer(self.text, add_special_tokens=False, return_tensors="pt")
         return self.inputs

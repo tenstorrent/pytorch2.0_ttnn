@@ -7,7 +7,7 @@ from tests.utils import ModelTester
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = DistilBertTokenizer.from_pretrained(self.model_name)
-        model = DistilBertModel.from_pretrained(self.model_name)
+        model = DistilBertModel.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         return model
 
     def _load_inputs(self):
