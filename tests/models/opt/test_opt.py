@@ -8,9 +8,9 @@ from tests.utils import ModelTester
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        model = OPTForCausalLM.from_pretrained("facebook/opt-350m")
+        model = OPTForCausalLM.from_pretrained("facebook/opt-350m", torch_dtype=torch.bfloat16)
         self.tokenizer = GPT2Tokenizer.from_pretrained("facebook/opt-350m")
-        return model
+        return model.generate
 
     def _load_inputs(self):
         prompt = (
@@ -25,9 +25,8 @@ class ThisTester(ModelTester):
         model_inputs["do_sample"] = False
         return model_inputs
 
-    def run_model(self, model, inputs):
-        generated_ids = model.generate(**inputs)
-        return generated_ids
+    def set_model_eval(self, model):
+        return model
 
 
 @pytest.mark.parametrize(
