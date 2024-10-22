@@ -56,6 +56,17 @@ def create_call_function(transformer, target, args, kwargs):
     transformer.call_function(target, args, kwargs)
 
 
+def map_args_to_kwargs(args, kw_map):
+    """
+    kw_map format:
+    tuple(("index in args" : int, "keyword name" : str))
+    """
+    kwargs = {}
+    for idx, kw in kw_map:
+        kwargs[kw] = args[idx] if len(args) > idx else None
+    return kwargs
+
+
 # Workaround for issue https://github.com/tenstorrent/tt-metal/issues/11191
 def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
     if rank == 3 and output_size[0] == 1:
@@ -156,7 +167,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
 
         if target == torch.ops.aten.clamp.default:
-            return self.call_function_prop_meta(ttnn.clip, args, kwargs)
+            # aten.clamp args are positional but ttnn.clip uses kw args
+            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")))
+            new_args = (args[0],)
+            return self.call_function_prop_meta(ttnn.clip, new_args, new_kwargs)
 
         if target == torch.ops.aten.cos.default:
             return self.call_function_prop_meta(ttnn.cos, args, kwargs)
@@ -180,7 +194,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
 
         if target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
-            return self.call_function_prop_meta(ttnn.clip, args, kwargs)
+            # aten.hardtanh args are positional but ttnn.clip uses kw args
+            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")))
+            new_args = (args[0],)
+            return self.call_function_prop_meta(ttnn.clip, new_args, new_kwargs)
 
         if target == torch.ops.aten.isinf.default:
             return self.call_function_prop_meta(ttnn.isinf, args, kwargs)
