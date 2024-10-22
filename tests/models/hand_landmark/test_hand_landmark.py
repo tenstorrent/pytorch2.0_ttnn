@@ -42,7 +42,8 @@ class ThisTester(ModelTester):
 @pytest.mark.compilation_xfail
 def test_hand_landmark(record_property, mode):
     model_name = "Hand Landmark"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     """
      Forcely do `git lfs pull` to make sure the LFS files needed by this test are available.
