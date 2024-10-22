@@ -684,8 +684,8 @@ LOWERING_WHITE_LIST = []
 
 
 def can_lowering_to_ttnn(node):
-    if node.target not in LOWERING_WHITE_LIST:
-        return False
+    # if node.target not in LOWERING_WHITE_LIST:
+    #     return False
     if node.target in GUARD:
         return GUARD[node.target](node)
 
