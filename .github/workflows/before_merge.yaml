@@ -65,7 +65,7 @@ jobs:
       - name: Run Model Tests
         run: |
           set +e
-          python3 -m pytest --github-report tests/models/ --splits 40 --group 1${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/models/ --splits 40 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code      
           if [ $exit_code -eq 5 ]; then
             if [ ${{ matrix.group }} -eq 0 ]; then
