@@ -10,7 +10,9 @@ class ThisTester(ModelTester):
         # Load the pre-trained model and tokenizer
         self.tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
         self.text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
-        unet = UNet2DConditionModel.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="unet")
+        unet = UNet2DConditionModel.from_pretrained(
+            "CompVis/stable-diffusion-v1-4", subfolder="unet", torch_dtype=torch.bfloat16
+        )
         self.scheduler = LMSDiscreteScheduler.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="scheduler")
         return unet
 
@@ -34,7 +36,11 @@ class ThisTester(ModelTester):
 
         # Get the model's predicted noise
         latent_model_input = self.scheduler.scale_model_input(latents, 0)
-        arguments = {"sample": latent_model_input, "timestep": 0, "encoder_hidden_states": text_embeddings}
+        arguments = {
+            "sample": latent_model_input.to(torch.bfloat16),
+            "timestep": 0,
+            "encoder_hidden_states": text_embeddings.to(torch.bfloat16),
+        }
         return arguments
 
 

@@ -11,7 +11,7 @@ from tests.utils import ModelTester
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = XGLMTokenizer.from_pretrained("facebook/xglm-564M")
-        model = XGLMForCausalLM.from_pretrained("facebook/xglm-564M")
+        model = XGLMForCausalLM.from_pretrained("facebook/xglm-564M", torch_dtype=torch.bfloat16)
         return model
 
     def _load_inputs(self):
