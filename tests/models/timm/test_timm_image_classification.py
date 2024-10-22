@@ -73,7 +73,8 @@ for model in model_list:
 def test_timm_image_classification(record_property, model_and_mode):
     model_name = model_and_mode[0]
     mode = model_and_mode[1]
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

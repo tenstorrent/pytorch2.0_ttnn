@@ -40,7 +40,8 @@ class ThisTester(ModelTester):
 )
 def test_hardnet(record_property, mode):
     model_name = "HardNet"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()
