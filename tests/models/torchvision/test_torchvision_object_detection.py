@@ -48,7 +48,8 @@ class ThisTester(ModelTester):
 @pytest.mark.compilation_xfail
 def test_torchvision_object_detection(record_property, model_info, mode):
     model_name, _ = model_info
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_info, mode)
     results = tester.test_model()

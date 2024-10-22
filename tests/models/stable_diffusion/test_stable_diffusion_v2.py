@@ -45,7 +45,8 @@ class ThisTester(ModelTester):
 @pytest.mark.compilation_xfail
 def test_stable_diffusion_v2(record_property, mode):
     model_name = "Stable Diffusion V2"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()
