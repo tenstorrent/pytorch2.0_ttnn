@@ -3,21 +3,21 @@
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
-        model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
-        return model
+        model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small", torch_dtype=torch.bfloat16)
+        return model.generate
 
     def _load_inputs(self):
         inputs = self.tokenizer("A step by step recipe to make bolognese pasta:", return_tensors="pt")
         return inputs
 
-    def run_model(self, model, inputs):
-        outputs = model.generate(**inputs)
-        return outputs
+    def set_model_eval(self, model):
+        return model
 
 
 @pytest.mark.parametrize(

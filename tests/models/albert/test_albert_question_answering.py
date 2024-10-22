@@ -8,11 +8,11 @@ from tests.utils import ModelTester
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        model = AlbertForQuestionAnswering.from_pretrained(self.model_name)
+        model = AlbertForQuestionAnswering.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         return model
 
     def _load_inputs(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         self.question, self.text = "Who was Jim Henson?", "Jim Henson was a nice puppet"
         inputs = self.tokenizer(self.question, self.text, return_tensors="pt")
         return inputs

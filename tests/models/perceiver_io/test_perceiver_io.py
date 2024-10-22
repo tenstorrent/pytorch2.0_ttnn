@@ -3,12 +3,13 @@
 from transformers import PerceiverTokenizer, PerceiverForMaskedLM
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = PerceiverTokenizer.from_pretrained("deepmind/language-perceiver")
-        model = PerceiverForMaskedLM.from_pretrained("deepmind/language-perceiver")
+        model = PerceiverForMaskedLM.from_pretrained("deepmind/language-perceiver", torch_dtype=torch.bfloat16)
         return model
 
     def _load_inputs(self):

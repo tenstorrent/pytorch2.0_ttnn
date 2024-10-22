@@ -35,7 +35,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_llama(record_property, mode):
     model_name = "Llama"
     record_property("model_name", model_name)

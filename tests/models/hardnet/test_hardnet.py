@@ -12,7 +12,7 @@ from tests.utils import ModelTester
 class ThisTester(ModelTester):
     def _load_model(self):
         model = torch.hub.load("PingoLH/Pytorch-HarDNet", "hardnet68", pretrained=False)
-        checkpoint = "https://ping-chao.com/hardnet/hardnet68-5d684880.pth"
+        checkpoint = "https://github.com/PingoLH/Pytorch-HarDNet/raw/refs/heads/master/hardnet68.pth"
         model.load_state_dict(torch.hub.load_state_dict_from_url(checkpoint, progress=False, map_location="cpu"))
         model = model.to(torch.bfloat16)
         return model
