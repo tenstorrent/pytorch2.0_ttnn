@@ -15,9 +15,7 @@ class ThisTester(ModelTester):
         self.image_processor = AutoImageProcessor.from_pretrained(
             model_name,
         )
-        m = AutoModelForObjectDetection.from_pretrained(
-            model_name,
-        )
+        m = AutoModelForObjectDetection.from_pretrained(model_name, torch_dtype=torch.bfloat16)
         return m
 
     def _load_inputs(self):
@@ -25,6 +23,7 @@ class ThisTester(ModelTester):
         self.test_input = "http://images.cocodataset.org/val2017/000000039769.jpg"
         self.image = Image.open(requests.get(self.test_input, stream=True).raw)
         inputs = self.image_processor(images=self.image, return_tensors="pt")
+        inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
         return inputs
 
 

@@ -10,15 +10,15 @@ from tests.utils import ModelTester
 class ThisTester(ModelTester):
     def _load_model(self):
         self.processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
-        model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts")
-        self.vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan")
-        return model
+        model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts", torch_dtype=torch.bfloat16)
+        self.vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan", torch_dtype=torch.bfloat16)
+        return model.generate_speech
 
     def _load_inputs(self):
         inputs = self.processor(text="Hello, my dog is cute.", return_tensors="pt")
         # load xvector containing speaker's voice characteristics from a dataset
         embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
-        speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0)
+        speaker_embeddings = torch.tensor(embeddings_dataset[7306]["xvector"]).unsqueeze(0).to(torch.bfloat16)
         arguments = {
             "input_ids": inputs["input_ids"],
             "speaker_embeddings": speaker_embeddings,
@@ -27,12 +27,7 @@ class ThisTester(ModelTester):
         return arguments
 
     def set_model_eval(self, model):
-        model.eval()
         return model
-
-    def run_model(self, model, inputs):
-        speech = model.generate_speech(**inputs)
-        return speech
 
 
 @pytest.mark.parametrize(

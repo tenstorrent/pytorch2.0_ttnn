@@ -5,12 +5,13 @@ import requests
 from PIL import Image
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         self.processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
-        model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+        model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa", torch_dtype=torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -20,6 +21,7 @@ class ThisTester(ModelTester):
         text = "How many cats are there?"
         # prepare inputs
         encoding = self.processor(image, text, return_tensors="pt")
+        encoding["pixel_values"] = encoding["pixel_values"].to(torch.bfloat16)
         return encoding
 
 

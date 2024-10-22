@@ -9,7 +9,7 @@ from tests.utils import ModelTester
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = AutoTokenizer.from_pretrained("FacebookAI/xlm-roberta-base")
-        model = XLMRobertaForMaskedLM.from_pretrained("FacebookAI/xlm-roberta-base")
+        model = XLMRobertaForMaskedLM.from_pretrained("FacebookAI/xlm-roberta-base", torch_dtype=torch.bfloat16)
         return model
 
     def _load_inputs(self):

@@ -13,7 +13,7 @@ class ThisTester(ModelTester):
         # Load the MobileNetV2 model with updated API
         self.weights = models.MobileNet_V2_Weights.DEFAULT
         model = models.mobilenet_v2(weights=self.weights)
-        return model
+        return model.to(torch.bfloat16)
 
     def _load_inputs(self):
         # Define a transformation to preprocess the input image using the weights transforms
@@ -24,14 +24,13 @@ class ThisTester(ModelTester):
         image = Image.open(requests.get(url, stream=True).raw)
         img_t = preprocess(image)
         batch_t = torch.unsqueeze(img_t, 0)
-        return batch_t
+        return batch_t.to(torch.bfloat16)
 
 
 @pytest.mark.parametrize(
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_MobileNetV2(record_property, mode):
     model_name = "MobileNetV2"
     record_property("model_name", model_name)
