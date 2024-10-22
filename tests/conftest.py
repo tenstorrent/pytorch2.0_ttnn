@@ -94,7 +94,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
         model_path = Path(request.node.location[0])
         runtime_metrics["model_path"] = str(model_path.parent)
         if "model_name" in record:
-            model_name = record["model_name"]
+            if "mode" in record and record["mode"] != "eval":
+                model_name = f"{record['model_name']}-{record['mode']}"
+            else:
+                model_name = record["model_name"]
             p = Path(f"metrics/{model_name}")
             os.makedirs(p, exist_ok=True)
 
