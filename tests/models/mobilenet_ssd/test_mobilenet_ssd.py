@@ -15,7 +15,7 @@ class ThisTester(ModelTester):
         model = torchvision.models.detection.ssdlite320_mobilenet_v3_large(
             weights=torchvision.models.detection.SSDLite320_MobileNet_V3_Large_Weights.DEFAULT
         )
-        return model
+        return model.to(torch.bfloat16)
 
     def _load_inputs(self):
         # Image preprocessing
@@ -24,7 +24,7 @@ class ThisTester(ModelTester):
         transform = transforms.Compose([transforms.Resize((320, 320)), transforms.ToTensor()])
         img_tensor = [transform(image).unsqueeze(0)]
         batch_tensor = torch.cat(img_tensor, dim=0)
-        return batch_tensor
+        return batch_tensor.to(torch.bfloat16)
 
 
 @pytest.mark.parametrize(

@@ -19,7 +19,7 @@ class ThisTester(ModelTester):
     def _load_model(self):
         model_name, weights_name = self.model_info
         self.weights = getattr(models, weights_name).DEFAULT
-        model = models.get_model(model_name, weights=self.weights)
+        model = models.get_model(model_name, weights=self.weights).to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -28,7 +28,7 @@ class ThisTester(ModelTester):
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         image = Image.open(requests.get(url, stream=True).raw)
         img_t = preprocess(image)
-        batch_t = torch.unsqueeze(img_t, 0)
+        batch_t = torch.unsqueeze(img_t, 0).to(torch.bfloat16)
         return batch_t
 
 

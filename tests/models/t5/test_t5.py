@@ -1,22 +1,22 @@
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = T5Tokenizer.from_pretrained(self.model_name)
-        model = T5ForConditionalGeneration.from_pretrained(self.model_name)
-        return model
+        model = T5ForConditionalGeneration.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
+        return model.generate
 
     def _load_inputs(self):
         self.input_text = "translate English to French: How are you?"
         input_ids = self.tokenizer.encode(self.input_text, return_tensors="pt")
         return input_ids
 
-    def run_model(self, model, inputs):
-        output_ids = model.generate(inputs)
-        return output_ids
+    def set_model_eval(self, model):
+        return model
 
 
 @pytest.mark.parametrize(
