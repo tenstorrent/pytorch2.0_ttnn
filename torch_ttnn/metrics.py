@@ -125,6 +125,8 @@ def collect_input_variation(target, args, kwargs):
             inputs.append(Inputs(dtype, name, shape, value))
 
         return InputVariation(target, inputs)
+    elif hasattr(target, "python_fully_qualified_name"):
+        return InputVariation(target.python_fully_qualified_name, [])
     else:
         return None
 
@@ -139,6 +141,10 @@ def collect_input_variation_from_node(node: torch.fx.Node):
     Returns:
         class InputVariation or class ConvertedInput
     """
+    # placeholders and outputs have no inputs
+    if not isinstance(node, torch.fx.Node) or node.op == "placeholder" or node.op == "output":
+        return None
+
     if hasattr(node, "meta") and ((original_input_variations := node.meta.get("original_input_variations")) != None):
         # aten ops should begin with "aten."
         # however, some ttnn ops are wrapped, so they will be missing the prefix
