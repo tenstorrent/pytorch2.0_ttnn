@@ -519,11 +519,10 @@ def get_inputs(node):
 
 
 def guard_aten(blocklist, node):
-    if (inputs := get_inputs(node)) == None:
-        return True
-    inputs_str = [str(i) for i in inputs]
-    if inputs_str in blocklist:
-        return False
+    if (inputs := get_inputs(node)) != None:
+        inputs_str = [str(i) for i in inputs]
+        if inputs_str in blocklist:
+            return False
     return True
 
 
