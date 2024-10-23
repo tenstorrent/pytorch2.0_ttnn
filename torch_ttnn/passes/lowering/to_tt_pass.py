@@ -115,6 +115,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         pseudo_node = PseudoNode(target, args, kwargs)
         if not can_lowering_to_ttnn(pseudo_node):
+            # Fallback: aten.reshape is more stable if the input nodes have changed
+            if target == torch.ops.aten.view.default:
+                target = torch.ops.aten.reshape.default
             return self.call_function_prop_meta(target, args, kwargs)
 
         if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
