@@ -117,7 +117,7 @@ jobs:
         run: |
           set +e
           rm -rf tests/autogen-op/
-          python3 tools/generate_input_variation_test_from_models.py
+          python3 tools/generate_input_variation_test_from_models.py > /dev/null
           exit_code=$?  # Capture the exit code
           if [ $exit_code -ne 0 ]; then
             echo "Failed to generate input variation test : exit code $exit_code.";
