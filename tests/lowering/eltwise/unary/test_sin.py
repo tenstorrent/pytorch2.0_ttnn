@@ -3,6 +3,8 @@ import torch_ttnn
 import pytest
 import ttnn
 
+from tests.utils import assert_with_pcc
+
 
 class SinModule(torch.nn.Module):
     def __init__(self):
@@ -13,12 +15,12 @@ class SinModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    ("input_shape", "init_offset"),
-    [((4, 4), 0)],
+    "input_shape",
+    ((4, 4), (1, 1066)),
 )
-def test_sin(device, input_shape, init_offset):
+def test_sin(device, input_shape):
     m = SinModule()
-    input = torch.rand(input_shape, dtype=torch.bfloat16) + init_offset
+    input = torch.rand(input_shape, dtype=torch.bfloat16) * 10 - 5
     result_before = m.forward(input)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
@@ -32,4 +34,4 @@ def test_sin(device, input_shape, init_offset):
     assert [node.target for node in nodes].count(ttnn.sin) == 1
 
     # Check inference result
-    assert torch.allclose(result_before, result_after, rtol=0.1, atol=0.1)
+    assert_with_pcc(result_before, result_after)
