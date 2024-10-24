@@ -25,7 +25,7 @@
 | 21 | aten.index.Tensor                       |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 22 | aten.index_put.default                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 23 | aten.linalg_vector_norm.default         |                  2 |           0 |         0 |          0 | ✘           |    0    |
-| 24 | aten.masked_fill.Scalar                 |                  3 |           2 |         0 |          0 | 🚧          |    0.67 |
+| 24 | aten.masked_fill.Scalar                 |                  3 |           0 |         0 |          0 | ✘           |    0    |
 | 25 | aten.mm.default                         |                 20 |          20 |         0 |          0 | ✅          |    1    |
 | 26 | aten.mul.Tensor                         |                 13 |           5 |         0 |          0 | 🚧          |    0.38 |
 | 27 | aten.native_layer_norm.default          |                  3 |           0 |         0 |          0 | ✘           |    0    |
@@ -192,9 +192,9 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                      | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:-----------------------------------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[1, 512]> self = ?,<br>Tensor<[1, 1]> mask = ?,<br>number value = 0                                 | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  0 | Tensor<[1, 512]> self = ?,<br>Tensor<[1, 1]> mask = ?,<br>number value = 0                                 | None     | N/A                 | N/A          | N/A               | N/A                |
 |  1 | Tensor<[2, 1, 7, 7]> self = ?,<br>Tensor<[2, 1, 7, 7]> mask = ?,<br>number value = -3.3895313892515355e+38 | None     | N/A                 | N/A          | N/A               | N/A                |
-|  2 | Tensor<[2, 512]> self = ?,<br>Tensor<[2, 1]> mask = ?,<br>number value = 0                                 | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  2 | Tensor<[2, 512]> self = ?,<br>Tensor<[2, 1]> mask = ?,<br>number value = 0                                 | None     | N/A                 | N/A          | N/A               | N/A                |
 ### aten.mm.default
 |    | ATen Input Variations                                        | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:-------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|

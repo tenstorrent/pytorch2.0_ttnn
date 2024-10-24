@@ -103,8 +103,8 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                           | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:----------------------------------------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>Tensor<[1, 1, 32, 32]> mask = ?,<br>number value = -3.3895313892515355e+38  | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  1 | Tensor<[1, 16, 32, 32]> self = ?,<br>Tensor<[1, 1, 32, 32]> mask = ?,<br>number value = -3.3895313892515355e+38 | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>Tensor<[1, 1, 32, 32]> mask = ?,<br>number value = -3.3895313892515355e+38  | None     | N/A                 | N/A          | N/A               | N/A                |
+|  1 | Tensor<[1, 16, 32, 32]> self = ?,<br>Tensor<[1, 1, 32, 32]> mask = ?,<br>number value = -3.3895313892515355e+38 | None     | N/A                 | N/A          | N/A               | N/A                |
 ### aten.mm.default
 |    | ATen Input Variations                                           | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:----------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|

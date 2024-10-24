@@ -207,12 +207,12 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                     | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:------------------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[16, 49, 49]> self = ?,<br>Tensor<[16, 49, 49]> mask = ?,<br>number value = -100.0 | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  1 | Tensor<[16, 49, 49]> self = ?,<br>Tensor<[16, 49, 49]> mask = ?,<br>number value = 0.0    | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  2 | Tensor<[4, 49, 49]> self = ?,<br>Tensor<[4, 49, 49]> mask = ?,<br>number value = -100.0   | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  3 | Tensor<[4, 49, 49]> self = ?,<br>Tensor<[4, 49, 49]> mask = ?,<br>number value = 0.0      | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  4 | Tensor<[64, 49, 49]> self = ?,<br>Tensor<[64, 49, 49]> mask = ?,<br>number value = -100.0 | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  5 | Tensor<[64, 49, 49]> self = ?,<br>Tensor<[64, 49, 49]> mask = ?,<br>number value = 0.0    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  0 | Tensor<[16, 49, 49]> self = ?,<br>Tensor<[16, 49, 49]> mask = ?,<br>number value = -100.0 | None     | N/A                 | N/A          | N/A               | N/A                |
+|  1 | Tensor<[16, 49, 49]> self = ?,<br>Tensor<[16, 49, 49]> mask = ?,<br>number value = 0.0    | None     | N/A                 | N/A          | N/A               | N/A                |
+|  2 | Tensor<[4, 49, 49]> self = ?,<br>Tensor<[4, 49, 49]> mask = ?,<br>number value = -100.0   | None     | N/A                 | N/A          | N/A               | N/A                |
+|  3 | Tensor<[4, 49, 49]> self = ?,<br>Tensor<[4, 49, 49]> mask = ?,<br>number value = 0.0      | None     | N/A                 | N/A          | N/A               | N/A                |
+|  4 | Tensor<[64, 49, 49]> self = ?,<br>Tensor<[64, 49, 49]> mask = ?,<br>number value = -100.0 | None     | N/A                 | N/A          | N/A               | N/A                |
+|  5 | Tensor<[64, 49, 49]> self = ?,<br>Tensor<[64, 49, 49]> mask = ?,<br>number value = 0.0    | None     | N/A                 | N/A          | N/A               | N/A                |
 ### aten.mean.dim
 |    | ATen Input Variations                                                                          | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:-----------------------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|

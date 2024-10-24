@@ -74,7 +74,7 @@
 |  70 | [aten.logical_not.default](operations/aten.logical_not.default.md)                                                   |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  71 | [aten.lt.Scalar](operations/aten.lt.Scalar.md)                                                                       |                  6 |           0 |         0 |          0 | ✘           |    0    |
 |  72 | [aten.lt.Tensor](operations/aten.lt.Tensor.md)                                                                       |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  73 | [aten.masked_fill.Scalar](operations/aten.masked_fill.Scalar.md)                                                     |                 28 |          20 |         0 |          0 | 🚧          |    0.71 |
+|  73 | [aten.masked_fill.Scalar](operations/aten.masked_fill.Scalar.md)                                                     |                 28 |           0 |         0 |          0 | ✘           |    0    |
 |  74 | [aten.masked_fill.Tensor](operations/aten.masked_fill.Tensor.md)                                                     |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  75 | [aten.max.default](operations/aten.max.default.md)                                                                   |                  2 |           0 |         0 |          0 | ✘           |    0    |
 |  76 | [aten.max_pool2d_with_indices.default](operations/aten.max_pool2d_with_indices.default.md)                           |                 45 |           0 |         0 |          0 | ✘           |    0    |

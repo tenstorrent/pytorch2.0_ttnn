@@ -2,13 +2,13 @@
 |    | ATen Input Variations          | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:-------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
 |  0 | Tensor<[1, 1, 1024]> self = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
-|  1 | Tensor<[1, 1, 25600]> self = ? | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  1 | Tensor<[1, 1, 24576]> self = ? | Unknown  | N/A                 | N/A          | N/A               | N/A                |
 |  2 | Tensor<[1, 1, 3072]> self = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
 |  3 | Tensor<[1, 1, 4096]> self = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
 |  4 | Tensor<[1, 12, 3072]> self = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
 |  5 | Tensor<[1, 14, 3072]> self = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
 |  6 | Tensor<[1, 15, 1024]> self = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  7 | Tensor<[1, 256, 100]> self = ? | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  7 | Tensor<[1, 256, 96]> self = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
 |  8 | Tensor<[1, 32, 6144]> self = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
 |  9 | Tensor<[1, 45, 3072]> self = ? | Unknown  | N/A                 | N/A          | N/A               | N/A                |
 | 10 | Tensor<[1, 5, 4096]> self = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |

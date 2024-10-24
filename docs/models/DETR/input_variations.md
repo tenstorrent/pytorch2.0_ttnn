@@ -18,7 +18,7 @@
 | 14 | aten.div.Tensor                      |                  6 |           2 |         0 |          0 | 🚧          |    0.33 |
 | 15 | aten.expand.default                  |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 16 | aten.floor_divide.default            |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 17 | aten.masked_fill.Scalar              |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 17 | aten.masked_fill.Scalar              |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 18 | aten.max_pool2d_with_indices.default |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 19 | aten.mm.default                      |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 20 | aten.mul.Tensor                      |                 22 |          22 |         0 |          0 | ✅          |    1    |
@@ -196,7 +196,7 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                           | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:--------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[1, 920]> self = ?,<br>Tensor<[1, 920]> mask = ?,<br>number value = -inf | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  0 | Tensor<[1, 920]> self = ?,<br>Tensor<[1, 920]> mask = ?,<br>number value = -inf | None     | N/A                 | N/A          | N/A               | N/A                |
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                                                                                              | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|

@@ -1,7 +1,7 @@
 ### aten.squeeze.dim
 |    | ATen Input Variations                                   | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:--------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[1, 1, 25600]> self = ?,<br>int dim = 0          | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  0 | Tensor<[1, 1, 24576]> self = ?,<br>int dim = 0          | Unknown  | N/A                 | N/A          | N/A               | N/A                |
 |  1 | Tensor<[1, 1, 480, 640]> self = ?,<br>int dim = 1       | Done     | N/A                 | N/A          | N/A               | N/A                |
 |  2 | Tensor<[1, 112, 14, 14]> self = ?,<br>int dim = 0       | Done     | N/A                 | N/A          | N/A               | N/A                |
 |  3 | Tensor<[1, 12, 197, 197]> self = ?,<br>int dim = 0      | Unknown  | N/A                 | N/A          | N/A               | N/A                |

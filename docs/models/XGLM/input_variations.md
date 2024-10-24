@@ -17,7 +17,7 @@
 | 13 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 14 | aten.index_select.default      |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 15 | aten.lift_fresh_copy.default   |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 16 | aten.masked_fill.Scalar        |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 16 | aten.masked_fill.Scalar        |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 17 | aten.maximum.default           |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 18 | aten.mm.default                |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 19 | aten.mul.Tensor                |                  2 |           2 |         0 |          0 | ✅          |    1    |
@@ -111,7 +111,7 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                          | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:---------------------------------------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[1, 1, 19, 19]> self = ?,<br>Tensor<[1, 1, 19, 19]> mask = ?,<br>number value = -3.3895313892515355e+38 | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  0 | Tensor<[1, 1, 19, 19]> self = ?,<br>Tensor<[1, 1, 19, 19]> mask = ?,<br>number value = -3.3895313892515355e+38 | None     | N/A                 | N/A          | N/A               | N/A                |
 ### aten.maximum.default
 |    | ATen Input Variations                                     | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
 |---:|:----------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
