@@ -114,7 +114,6 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.reciprocal.default: ttnn.reciprocal,
     torch.ops.aten.remainder.Scalar: ttnn.remainder,
     torch.ops.aten.relu.default: ttnn.relu,
-    torch.ops.aten.round.default: ttnn.round,
     torch.ops.aten.rsqrt.default: ttnn.rsqrt,
     torch.ops.aten.sigmoid.default: ttnn.sigmoid,
     torch.ops.aten.sign.default: ttnn.sign,
@@ -396,6 +395,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target in TTNN_POINTWISE_UNARY_OPS:
                 code = TTNN_POINTWISE_UNARY_OPS[node.target]
+
+            def unsqueeze_to_2d(code, args=args, kwargs=kwargs):
                 ndims = len(node.meta["val"].size())
                 result = g.call_function(code, args, kwargs)
 
@@ -404,6 +405,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     result = g.call_function(ttnn.squeeze, (result, 0))
 
                 return result
+
+            if node.target in TTNN_POINTWISE_UNARY_OPS:
+                return unsqueeze_to_2d(TTNN_POINTWISE_UNARY_OPS[node.target])
+
+            if node.target == torch.ops.aten.round.default:
+                return unsqueeze_to_2d(ttnn.round, (args[0], 0))
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
