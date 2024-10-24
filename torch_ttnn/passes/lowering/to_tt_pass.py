@@ -2,13 +2,14 @@ import torch
 import ttnn
 import math
 from torch_ttnn.utils import (
-    GraphCleanup,
+    graph_cleanup,
     TtnnBfloat16,
     TtnnDevice,
     TtnnTileLayout,
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
-    HasValidPageSize,
+    has_valid_page_size,
+    can_be_tilized,
 )
 import numpy as np
 from typing import Tuple
@@ -114,6 +115,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         pseudo_node = PseudoNode(target, args, kwargs)
         if not can_lowering_to_ttnn(pseudo_node):
+            # Fallback: aten.reshape is more stable if the input nodes have changed
+            if target == torch.ops.aten.view.default:
+                target = torch.ops.aten.reshape.default
             return self.call_function_prop_meta(target, args, kwargs)
 
         if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
@@ -431,7 +435,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if HasValidPageSize(arg_metadata.size(), strict=True):
+                if has_valid_page_size(arg_metadata.size(), strict=True):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
@@ -518,7 +522,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and HasValidPageSize(shape):
+                if shape[-1] != 1 and has_valid_page_size(shape):
                     # NOTE(kevinwuTT): Only bfloat16 seems to work for now
                     # TODO(kevinwuTT): Use ttnn.full instead of aten
                     new_kwargs = {
@@ -541,19 +545,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 shape = node_metadata.size()
                 # If last dim == 1, then the follow error will appear:
                 # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and HasValidPageSize(shape):
+                if shape[-1] != 1 and has_valid_page_size(shape):
                     if isinstance(args[1], float):
+                        layout = TtnnTileLayout() if can_be_tilized(shape) else TtnnRowMajorLayout()
                         new_kwargs = {
                             "fill_value": args[1],
                             "device": TtnnDevice(),
+                            "layout": layout,
                         }
                         full = g.call_function(
                             ttnn.full,
                             args=(tuple(shape),),
                             kwargs=new_kwargs,
                         )
-                        to_layout = g.call_function(ttnn.to_layout, (full,), {"layout": TtnnTileLayout()})
-                        recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
+                        recip = g.call_function(ttnn.reciprocal, (full,), {})
                     else:
                         recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     return g.call_function(ttnn.mul, (args[0], recip), {})
@@ -735,7 +740,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     delete_user_cb=lambda node: node != new_node,
                 )
 
-    gm = GraphCleanup(gm)
+    gm = graph_cleanup(gm)
     return gm
 
 
