@@ -21,7 +21,7 @@
 | 17 | aten.gelu.default                                 |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
 | 18 | aten.leaky_relu.default                           |                  6 |           0 |         0 |          0 | ✘           |    0    |
 | 19 | aten.linalg_vector_norm.default                   |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 20 | aten.masked_fill.Scalar                           |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
+| 20 | aten.masked_fill.Scalar                           |                  2 |           0 |         0 |          0 | ✘           |    0    |
 | 21 | aten.mul.Tensor                                   |                  7 |           2 |         0 |          0 | 🚧          |    0.29 |
 | 22 | aten.native_layer_norm.default                    |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
 | 23 | aten.relu.default                                 |                  4 |           0 |         0 |          0 | ✘           |    0    |

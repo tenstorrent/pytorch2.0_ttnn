@@ -1,4 +1,0 @@
-# High Level Operations Status
-
-***
-

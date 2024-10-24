@@ -16,7 +16,7 @@
 | 12 | aten.full.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 13 | aten.gt.Scalar                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 14 | aten.lift_fresh_copy.default   |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 15 | aten.masked_fill.Scalar        |                  3 |           1 |         0 |          0 | 🚧          |    0.33 |
+| 15 | aten.masked_fill.Scalar        |                  3 |           0 |         0 |          0 | ✘           |    0    |
 | 16 | aten.maximum.default           |                  3 |           1 |         0 |          0 | 🚧          |    0.33 |
 | 17 | aten.mm.default                |                  6 |           3 |         0 |          0 | 🚧          |    0.5  |
 | 18 | aten.mul.Tensor                |                  5 |           2 |         0 |          0 | 🚧          |    0.4  |

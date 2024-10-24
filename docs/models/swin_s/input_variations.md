@@ -15,7 +15,7 @@
 | 11 | aten.expand.default            |                 12 |           0 |         0 |          0 | ✘           |    0    |
 | 12 | aten.gelu.default              |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 13 | aten.index.Tensor              |                  4 |           0 |         0 |          0 | ✘           |    0    |
-| 14 | aten.masked_fill.Scalar        |                  6 |           6 |         0 |          0 | ✅          |    1    |
+| 14 | aten.masked_fill.Scalar        |                  6 |           0 |         0 |          0 | ✘           |    0    |
 | 15 | aten.mean.dim                  |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 16 | aten.mm.default                |                  3 |           3 |         0 |          0 | ✅          |    1    |
 | 17 | aten.mul.Tensor                |                  4 |           4 |         0 |          0 | ✅          |    1    |
