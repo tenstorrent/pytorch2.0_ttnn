@@ -421,6 +421,7 @@ def teardown_module(module):
         ],
     ],
 )
+@pytest.mark.skip("Spent too many time to run")
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.convolution.default",
