@@ -54,20 +54,24 @@ class GuardFuncExporter:
     def export_guard_function(self, template_path: Path, threshold: list = ["run", "accuracy"]):
         blocklist_list = []
         guardfunc_list = []
+        guard_ops_list = []
         op_blocklist = self.get_op_blocklist(threshold)
         for opname, blocklist in op_blocklist.items():
             op_name_ = opname.replace(".", "_")
             op_blocklist_name = f"{op_name_}_blocklist"
             blocklist = f"{op_blocklist_name} = {str(blocklist)}"
             guardfunc = f"torch.ops.{opname}: partial(guard_aten, {op_blocklist_name}),"
+            guard_ops = f"torch.ops.{opname}"
             blocklist_list.append(blocklist)
             guardfunc_list.append(guardfunc)
+            guard_ops_list.append(f'"{guard_ops}",')
 
         with open(template_path, "r") as f:
             text = f.read()
 
         text = self.render_string(text, "BLOCKLIST", "\n".join(blocklist_list))
         text = self.render_string(text, "GUARD", "\n".join(guardfunc_list))
+        text = self.render_string(text, "GUARD_OPS", "\n".join(guard_ops_list))
 
         guard_path = "to_tt_guard_autogen.py"
         with open(guard_path, "w") as f:
