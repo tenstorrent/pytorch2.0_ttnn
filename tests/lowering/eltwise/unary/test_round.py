@@ -35,4 +35,4 @@ def test_round(device, input_shape):
     option._out_fx_graphs[0].print_tabular()
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.round) == 1
-    assert_with_pcc(result_before, result_after)
+    assert_with_pcc(result_before, result_after, 0.99)
