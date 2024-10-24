@@ -1,98 +1,197 @@
 ### aten.mm.default
-|    | ATen Input Variations                                           | Status   |
-|---:|:----------------------------------------------------------------|:---------|
-|  0 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Unknown  |
-|  1 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 3072]> mat2 = ?    | Unknown  |
-|  2 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 32128]> mat2 = ?   | Unknown  |
-|  3 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Unknown  |
-|  4 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?     | Unknown  |
-|  5 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 128]> mat2 = ?         | Done     |
-|  6 | Tensor<[1, 128]> self = ?,<br>Tensor<[128, 9216]> mat2 = ?      | Done     |
-|  7 | Tensor<[1, 2048]> self = ?,<br>Tensor<[2048, 512]> mat2 = ?     | Unknown  |
-|  8 | Tensor<[1, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ?     | Unknown  |
-|  9 | Tensor<[1, 384]> self = ?,<br>Tensor<[384, 512]> mat2 = ?       | Unknown  |
-| 10 | Tensor<[1, 4096]> self = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Unknown  |
-| 11 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 1024]> mat2 = ?      | Unknown  |
-| 12 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 2048]> mat2 = ?      | Unknown  |
-| 13 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 32128]> mat2 = ?     | Unknown  |
-| 14 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 384]> mat2 = ?       | Unknown  |
-| 15 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 50272]> mat2 = ?     | Unknown  |
-| 16 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 512]> mat2 = ?       | Unknown  |
-| 17 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Unknown  |
-| 18 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 32128]> mat2 = ?     | Unknown  |
-| 19 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 50257]> mat2 = ?     | Unknown  |
-| 20 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 512]> mat2 = ?       | Done     |
-| 21 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?     | Done     |
-| 22 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?       | Done     |
-| 23 | Tensor<[10, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?   | Done     |
-| 24 | Tensor<[10, 1024]> self = ?,<br>Tensor<[1024, 4096]> mat2 = ?   | Done     |
-| 25 | Tensor<[10, 1]> self = ?,<br>Tensor<[1, 128]> mat2 = ?          | Done     |
-| 26 | Tensor<[10, 2048]> self = ?,<br>Tensor<[2048, 512]> mat2 = ?    | Done     |
-| 27 | Tensor<[10, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Done     |
-| 28 | Tensor<[10, 4096]> self = ?,<br>Tensor<[4096, 1024]> mat2 = ?   | Done     |
-| 29 | Tensor<[10, 512]> self = ?,<br>Tensor<[512, 2048]> mat2 = ?     | Done     |
-| 30 | Tensor<[10, 512]> self = ?,<br>Tensor<[512, 512]> mat2 = ?      | Done     |
-| 31 | Tensor<[10, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?     | Done     |
-| 32 | Tensor<[10, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?      | Done     |
-| 33 | Tensor<[1024, 160]> self = ?,<br>Tensor<[160, 256]> mat2 = ?    | Done     |
-| 34 | Tensor<[1024, 384]> self = ?,<br>Tensor<[384, 192]> mat2 = ?    | Done     |
-| 35 | Tensor<[1024, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ?    | Done     |
-| 36 | Tensor<[1024, 640]> self = ?,<br>Tensor<[640, 640]> mat2 = ?    | Done     |
-| 37 | Tensor<[128, 1]> self = ?,<br>Tensor<[1, 9216]> mat2 = ?        | Done     |
-| 38 | Tensor<[15, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?    | Done     |
-| 39 | Tensor<[15, 384]> self = ?,<br>Tensor<[384, 512]> mat2 = ?      | Done     |
-| 40 | Tensor<[15, 512]> self = ?,<br>Tensor<[512, 1024]> mat2 = ?     | Done     |
-| 41 | Tensor<[15, 512]> self = ?,<br>Tensor<[512, 384]> mat2 = ?      | Done     |
-| 42 | Tensor<[1500, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?    | Done     |
-| 43 | Tensor<[16384, 32]> self = ?,<br>Tensor<[32, 256]> mat2 = ?     | Done     |
-| 44 | Tensor<[19, 1024]> self = ?,<br>Tensor<[1024, 256008]> mat2 = ? | Done     |
-| 45 | Tensor<[196, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?   | Done     |
-| 46 | Tensor<[196, 768]> self = ?,<br>Tensor<[768, 384]> mat2 = ?     | Done     |
-| 47 | Tensor<[197, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?  | Done     |
-| 48 | Tensor<[197, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?     | Done     |
-| 49 | Tensor<[2, 512]> self = ?,<br>Tensor<[512, 1]> mat2 = ?         | Done     |
-| 50 | Tensor<[2, 512]> self = ?,<br>Tensor<[512, 512]> mat2 = ?       | Done     |
-| 51 | Tensor<[2048, 768]> self = ?,<br>Tensor<[768, 262]> mat2 = ?    | Unknown  |
-| 52 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 12]> mat2 = ?      | Done     |
-| 53 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 16]> mat2 = ?      | Done     |
-| 54 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 24]> mat2 = ?      | Done     |
-| 55 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 32]> mat2 = ?      | Done     |
-| 56 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 3]> mat2 = ?       | Done     |
-| 57 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 4]> mat2 = ?       | Done     |
-| 58 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 6]> mat2 = ?       | Done     |
-| 59 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 8]> mat2 = ?       | Done     |
-| 60 | Tensor<[256, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?   | Done     |
-| 61 | Tensor<[256, 1280]> self = ?,<br>Tensor<[1280, 1280]> mat2 = ?  | Done     |
-| 62 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ?     | Done     |
-| 63 | Tensor<[256, 768]> self = ?,<br>Tensor<[768, 384]> mat2 = ?     | Done     |
-| 64 | Tensor<[32, 1536]> self = ?,<br>Tensor<[1536, 250880]> mat2 = ? | Done     |
-| 65 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?     | Unknown  |
-| 66 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?       | Unknown  |
-| 67 | Tensor<[4096, 320]> self = ?,<br>Tensor<[320, 320]> mat2 = ?    | Done     |
-| 68 | Tensor<[4096, 64]> self = ?,<br>Tensor<[64, 256]> mat2 = ?      | Done     |
-| 69 | Tensor<[45, 768]> self = ?,<br>Tensor<[768, 50257]> mat2 = ?    | Unknown  |
-| 70 | Tensor<[45, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?      | Unknown  |
-| 71 | Tensor<[49, 1536]> self = ?,<br>Tensor<[1536, 768]> mat2 = ?    | Done     |
-| 72 | Tensor<[49, 2048]> self = ?,<br>Tensor<[2048, 1024]> mat2 = ?   | Done     |
-| 73 | Tensor<[5, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Unknown  |
-| 74 | Tensor<[5, 1024]> self = ?,<br>Tensor<[1024, 3072]> mat2 = ?    | Unknown  |
-| 75 | Tensor<[59, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?    | Done     |
-| 76 | Tensor<[59, 512]> self = ?,<br>Tensor<[512, 1024]> mat2 = ?     | Done     |
-| 77 | Tensor<[59, 512]> self = ?,<br>Tensor<[512, 50272]> mat2 = ?    | Done     |
-| 78 | Tensor<[64, 1280]> self = ?,<br>Tensor<[1280, 1280]> mat2 = ?   | Done     |
-| 79 | Tensor<[64, 1536]> self = ?,<br>Tensor<[1536, 768]> mat2 = ?    | Done     |
-| 80 | Tensor<[64, 2048]> self = ?,<br>Tensor<[2048, 1024]> mat2 = ?   | Done     |
-| 81 | Tensor<[7, 18176]> self = ?,<br>Tensor<[18176, 4544]> mat2 = ?  | Unknown  |
-| 82 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 18176]> mat2 = ?   | Unknown  |
-| 83 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 4544]> mat2 = ?    | Unknown  |
-| 84 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 4672]> mat2 = ?    | Unknown  |
-| 85 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 65024]> mat2 = ?   | Unknown  |
-| 86 | Tensor<[7, 768]> self = ?,<br>Tensor<[768, 2]> mat2 = ?         | Unknown  |
-| 87 | Tensor<[768, 196]> self = ?,<br>Tensor<[196, 384]> mat2 = ?     | Done     |
-| 88 | Tensor<[784, 384]> self = ?,<br>Tensor<[384, 192]> mat2 = ?     | Done     |
-| 89 | Tensor<[784, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ?     | Done     |
-| 90 | Tensor<[9, 768]> self = ?,<br>Tensor<[768, 1280]> mat2 = ?      | Done     |
-| 91 | Tensor<[9, 768]> self = ?,<br>Tensor<[768, 320]> mat2 = ?       | Done     |
-| 92 | Tensor<[9, 768]> self = ?,<br>Tensor<[768, 640]> mat2 = ?       | Done     |
-| 93 | Tensor<[920, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ?     | Unknown  |
+|     | ATen Input Variations                                           | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
+|----:|:----------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
+|   0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 1024]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|   1 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 1280]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|   2 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 1536]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|   3 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 2048]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|   4 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|   5 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 768]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|   6 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|   7 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 3072]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|   8 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 32128]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|   9 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  10 | Tensor<[1, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  11 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 128]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  12 | Tensor<[1, 128]> self = ?,<br>Tensor<[128, 64]> mat2 = ?        | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  13 | Tensor<[1, 128]> self = ?,<br>Tensor<[128, 784]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  14 | Tensor<[1, 128]> self = ?,<br>Tensor<[128, 9216]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  15 | Tensor<[1, 12]> self = ?,<br>Tensor<[12, 3]> mat2 = ?           | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  16 | Tensor<[1, 12]> self = ?,<br>Tensor<[12, 64]> mat2 = ?          | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  17 | Tensor<[1, 2048]> self = ?,<br>Tensor<[2048, 512]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  18 | Tensor<[1, 21843]> self = ?,<br>Tensor<[21843, 768]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  19 | Tensor<[1, 2]> self = ?,<br>Tensor<[2, 512]> mat2 = ?           | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  20 | Tensor<[1, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  21 | Tensor<[1, 384]> self = ?,<br>Tensor<[384, 512]> mat2 = ?       | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  22 | Tensor<[1, 3]> self = ?,<br>Tensor<[3, 12]> mat2 = ?            | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  23 | Tensor<[1, 4096]> self = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  24 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 1024]> mat2 = ?      | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  25 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 2048]> mat2 = ?      | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  26 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 32128]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  27 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 384]> mat2 = ?       | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  28 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 50272]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  29 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 512]> mat2 = ?       | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  30 | Tensor<[1, 512]> self = ?,<br>Tensor<[512, 768]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  31 | Tensor<[1, 64]> self = ?,<br>Tensor<[64, 128]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  32 | Tensor<[1, 64]> self = ?,<br>Tensor<[64, 12]> mat2 = ?          | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  33 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  34 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 32128]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  35 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 50257]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  36 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 512]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  37 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  38 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  39 | Tensor<[1, 784]> self = ?,<br>Tensor<[784, 128]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  40 | Tensor<[10, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  41 | Tensor<[10, 1024]> self = ?,<br>Tensor<[1024, 4096]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  42 | Tensor<[10, 1]> self = ?,<br>Tensor<[1, 128]> mat2 = ?          | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  43 | Tensor<[10, 2048]> self = ?,<br>Tensor<[2048, 512]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  44 | Tensor<[10, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  45 | Tensor<[10, 4096]> self = ?,<br>Tensor<[4096, 1024]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  46 | Tensor<[10, 512]> self = ?,<br>Tensor<[512, 2048]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  47 | Tensor<[10, 512]> self = ?,<br>Tensor<[512, 512]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  48 | Tensor<[10, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  49 | Tensor<[10, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  50 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 1024]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  51 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 1280]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  52 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 1536]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  53 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 2048]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  54 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 512]> mat2 = ?        | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  55 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 768]> mat2 = ?        | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  56 | Tensor<[1024, 160]> self = ?,<br>Tensor<[160, 160]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  57 | Tensor<[1024, 160]> self = ?,<br>Tensor<[160, 256]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  58 | Tensor<[1024, 160]> self = ?,<br>Tensor<[160, 640]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  59 | Tensor<[1024, 197]> self = ?,<br>Tensor<[197, 1024]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  60 | Tensor<[1024, 197]> self = ?,<br>Tensor<[197, 4096]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  61 | Tensor<[1024, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  62 | Tensor<[1024, 384]> self = ?,<br>Tensor<[384, 192]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  63 | Tensor<[1024, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  64 | Tensor<[1024, 640]> self = ?,<br>Tensor<[640, 160]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  65 | Tensor<[1024, 640]> self = ?,<br>Tensor<[640, 640]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  66 | Tensor<[12, 1]> self = ?,<br>Tensor<[1, 3]> mat2 = ?            | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  67 | Tensor<[12, 1]> self = ?,<br>Tensor<[1, 64]> mat2 = ?           | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  68 | Tensor<[128, 16384]> self = ?,<br>Tensor<[16384, 32]> mat2 = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  69 | Tensor<[128, 1]> self = ?,<br>Tensor<[1, 64]> mat2 = ?          | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  70 | Tensor<[128, 1]> self = ?,<br>Tensor<[1, 784]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  71 | Tensor<[128, 1]> self = ?,<br>Tensor<[1, 9216]> mat2 = ?        | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  72 | Tensor<[14, 2048]> self = ?,<br>Tensor<[2048, 512]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  73 | Tensor<[14, 512]> self = ?,<br>Tensor<[512, 2048]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  74 | Tensor<[14, 512]> self = ?,<br>Tensor<[512, 512]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  75 | Tensor<[15, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  76 | Tensor<[15, 384]> self = ?,<br>Tensor<[384, 512]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  77 | Tensor<[15, 512]> self = ?,<br>Tensor<[512, 1024]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  78 | Tensor<[15, 512]> self = ?,<br>Tensor<[512, 384]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  79 | Tensor<[1500, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  80 | Tensor<[160, 1024]> self = ?,<br>Tensor<[1024, 160]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  81 | Tensor<[160, 1024]> self = ?,<br>Tensor<[1024, 640]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  82 | Tensor<[160, 256]> self = ?,<br>Tensor<[256, 1024]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  83 | Tensor<[160, 256]> self = ?,<br>Tensor<[256, 160]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  84 | Tensor<[16384, 128]> self = ?,<br>Tensor<[128, 32]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  85 | Tensor<[16384, 32]> self = ?,<br>Tensor<[32, 128]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  86 | Tensor<[16384, 32]> self = ?,<br>Tensor<[32, 256]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  87 | Tensor<[16384, 32]> self = ?,<br>Tensor<[32, 32]> mat2 = ?      | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  88 | Tensor<[19, 1024]> self = ?,<br>Tensor<[1024, 256008]> mat2 = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  89 | Tensor<[196, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  90 | Tensor<[196, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  91 | Tensor<[196, 384]> self = ?,<br>Tensor<[384, 768]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  92 | Tensor<[196, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  93 | Tensor<[196, 768]> self = ?,<br>Tensor<[768, 384]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  94 | Tensor<[197, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?  | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  95 | Tensor<[197, 1024]> self = ?,<br>Tensor<[1024, 4096]> mat2 = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  96 | Tensor<[197, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  97 | Tensor<[197, 4096]> self = ?,<br>Tensor<[4096, 1024]> mat2 = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+|  98 | Tensor<[197, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|  99 | Tensor<[197, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 100 | Tensor<[2, 1]> self = ?,<br>Tensor<[1, 512]> mat2 = ?           | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 101 | Tensor<[2, 512]> self = ?,<br>Tensor<[512, 1]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 102 | Tensor<[2, 512]> self = ?,<br>Tensor<[512, 512]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 103 | Tensor<[2048, 14]> self = ?,<br>Tensor<[14, 512]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 104 | Tensor<[2048, 768]> self = ?,<br>Tensor<[768, 262]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 105 | Tensor<[21843, 1]> self = ?,<br>Tensor<[1, 768]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 106 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 12]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 107 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 16]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 108 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 24]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 109 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 32]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 110 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 3]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 111 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 4]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 112 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 6]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 113 | Tensor<[225, 512]> self = ?,<br>Tensor<[512, 8]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 114 | Tensor<[256, 1024]> self = ?,<br>Tensor<[1024, 160]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 115 | Tensor<[256, 1024]> self = ?,<br>Tensor<[1024, 256]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 116 | Tensor<[256, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 117 | Tensor<[256, 1280]> self = ?,<br>Tensor<[1280, 1280]> mat2 = ?  | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 118 | Tensor<[256, 160]> self = ?,<br>Tensor<[160, 160]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 119 | Tensor<[256, 16384]> self = ?,<br>Tensor<[16384, 32]> mat2 = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 120 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 1024]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 121 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 122 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 512]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 123 | Tensor<[256, 32]> self = ?,<br>Tensor<[32, 32]> mat2 = ?        | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 124 | Tensor<[256, 4096]> self = ?,<br>Tensor<[4096, 64]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 125 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 126 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 768]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 127 | Tensor<[256, 64]> self = ?,<br>Tensor<[64, 64]> mat2 = ?        | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 128 | Tensor<[256, 768]> self = ?,<br>Tensor<[768, 384]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 129 | Tensor<[3, 1]> self = ?,<br>Tensor<[1, 12]> mat2 = ?            | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 130 | Tensor<[3072, 196]> self = ?,<br>Tensor<[196, 768]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 131 | Tensor<[3072, 197]> self = ?,<br>Tensor<[197, 768]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 132 | Tensor<[3072, 50]> self = ?,<br>Tensor<[50, 768]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 133 | Tensor<[32, 1536]> self = ?,<br>Tensor<[1536, 250880]> mat2 = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 134 | Tensor<[32, 16384]> self = ?,<br>Tensor<[16384, 128]> mat2 = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 135 | Tensor<[32, 16384]> self = ?,<br>Tensor<[16384, 32]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 136 | Tensor<[32, 256]> self = ?,<br>Tensor<[256, 16384]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 137 | Tensor<[32, 256]> self = ?,<br>Tensor<[256, 32]> mat2 = ?       | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 138 | Tensor<[384, 768]> self = ?,<br>Tensor<[768, 196]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 139 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 140 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?       | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 141 | Tensor<[4096, 197]> self = ?,<br>Tensor<[197, 1024]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 142 | Tensor<[4096, 256]> self = ?,<br>Tensor<[256, 64]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 143 | Tensor<[4096, 320]> self = ?,<br>Tensor<[320, 320]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 144 | Tensor<[4096, 64]> self = ?,<br>Tensor<[64, 256]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 145 | Tensor<[4096, 64]> self = ?,<br>Tensor<[64, 64]> mat2 = ?       | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 146 | Tensor<[45, 768]> self = ?,<br>Tensor<[768, 50257]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 147 | Tensor<[45, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?      | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 148 | Tensor<[49, 1536]> self = ?,<br>Tensor<[1536, 768]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 149 | Tensor<[49, 2048]> self = ?,<br>Tensor<[2048, 1024]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 150 | Tensor<[5, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 151 | Tensor<[5, 1024]> self = ?,<br>Tensor<[1024, 3072]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 152 | Tensor<[50, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 153 | Tensor<[50, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 154 | Tensor<[50, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 155 | Tensor<[512, 14]> self = ?,<br>Tensor<[14, 2048]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 156 | Tensor<[512, 14]> self = ?,<br>Tensor<[14, 512]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 157 | Tensor<[512, 1]> self = ?,<br>Tensor<[1, 768]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 158 | Tensor<[512, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 159 | Tensor<[512, 256]> self = ?,<br>Tensor<[256, 768]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 160 | Tensor<[512, 2]> self = ?,<br>Tensor<[2, 512]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 161 | Tensor<[59, 1024]> self = ?,<br>Tensor<[1024, 512]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 162 | Tensor<[59, 512]> self = ?,<br>Tensor<[512, 1024]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 163 | Tensor<[59, 512]> self = ?,<br>Tensor<[512, 50272]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 164 | Tensor<[64, 1280]> self = ?,<br>Tensor<[1280, 1280]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 165 | Tensor<[64, 1536]> self = ?,<br>Tensor<[1536, 768]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 166 | Tensor<[64, 1]> self = ?,<br>Tensor<[1, 128]> mat2 = ?          | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 167 | Tensor<[64, 1]> self = ?,<br>Tensor<[1, 12]> mat2 = ?           | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 168 | Tensor<[64, 2048]> self = ?,<br>Tensor<[2048, 1024]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 169 | Tensor<[64, 256]> self = ?,<br>Tensor<[256, 4096]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 170 | Tensor<[64, 256]> self = ?,<br>Tensor<[256, 64]> mat2 = ?       | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 171 | Tensor<[64, 4096]> self = ?,<br>Tensor<[4096, 256]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 172 | Tensor<[64, 4096]> self = ?,<br>Tensor<[4096, 64]> mat2 = ?     | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 173 | Tensor<[640, 1024]> self = ?,<br>Tensor<[1024, 160]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 174 | Tensor<[7, 18176]> self = ?,<br>Tensor<[18176, 4544]> mat2 = ?  | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 175 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 18176]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 176 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 4544]> mat2 = ?    | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 177 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 4672]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 178 | Tensor<[7, 4544]> self = ?,<br>Tensor<[4544, 65024]> mat2 = ?   | Unknown  | N/A                 | N/A          | N/A               | N/A                |
+| 179 | Tensor<[7, 768]> self = ?,<br>Tensor<[768, 2]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 180 | Tensor<[768, 196]> self = ?,<br>Tensor<[196, 3072]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 181 | Tensor<[768, 196]> self = ?,<br>Tensor<[196, 384]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 182 | Tensor<[768, 197]> self = ?,<br>Tensor<[197, 3072]> mat2 = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 183 | Tensor<[768, 197]> self = ?,<br>Tensor<[197, 768]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 184 | Tensor<[768, 50]> self = ?,<br>Tensor<[50, 3072]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 185 | Tensor<[768, 50]> self = ?,<br>Tensor<[50, 768]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 186 | Tensor<[784, 1]> self = ?,<br>Tensor<[1, 128]> mat2 = ?         | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 187 | Tensor<[784, 384]> self = ?,<br>Tensor<[384, 192]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 188 | Tensor<[784, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 189 | Tensor<[9, 768]> self = ?,<br>Tensor<[768, 1280]> mat2 = ?      | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 190 | Tensor<[9, 768]> self = ?,<br>Tensor<[768, 320]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 191 | Tensor<[9, 768]> self = ?,<br>Tensor<[768, 640]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
+| 192 | Tensor<[920, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
 
