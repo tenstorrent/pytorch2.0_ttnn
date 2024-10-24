@@ -69,7 +69,7 @@ class GuardFuncExporter:
         text = self.render_string(text, "BLOCKLIST", "\n".join(blocklist_list))
         text = self.render_string(text, "GUARD", "\n".join(guardfunc_list))
 
-        guard_path = "to_tt_guard.py"
+        guard_path = "to_tt_guard_autogen.py"
         with open(guard_path, "w") as f:
             f.write(text)
         os.system(f"pre-commit run --files {guard_path} > /dev/null")
@@ -77,7 +77,7 @@ class GuardFuncExporter:
 
 
 if __name__ == "__main__":
-    template_path = os.path.dirname(os.path.abspath(__file__)) + "/to_tt_guard.tmpl"
+    template_path = os.path.dirname(os.path.abspath(__file__)) + "/to_tt_guard_autogen.tmpl"
 
     if not os.path.isdir("metrics-autogen-op"):
         print("metrics-autogen-op directory not found. Please run tests/autogen-op")
