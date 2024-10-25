@@ -727,6 +727,35 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 else:
                     return None
 
+            if node.target == torch.ops.aten.masked_fill.Scalar:
+                # aten.masked_fill is equivalent to the following:
+                # masked_fill = (tensor * (ones - mask)) + (mask * full)
+
+                tensor, mask, fill_value = args
+                tensor_shape = tensor.meta["val"].size()
+                mask_shape = mask.meta["val"].size()
+
+                # check if divisible, otherwise skip
+                np_tensor_shp = np.array(tensor_shape)
+                np_mask_shp = np.array(mask_shape)
+                if np.sum(np_tensor_shp % np_mask_shp) == 0:
+                    multiplier = np_tensor_shp // np_mask_shp
+                    mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
+
+                    kwargs = {"dtype": TtnnBfloat16(), "layout": TtnnTileLayout(), "device": TtnnDevice()}
+                    ones = g.call_function(ttnn.ones, (tensor_shape,), kwargs)
+                    mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
+                    tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))
+
+                    full = g.call_function(ttnn.full, (tensor_shape, fill_value), kwargs)
+                    full_masked = g.call_function(ttnn.multiply, (mask_bcst, full))
+
+                    masked_fill = g.call_function(ttnn.add, (tensor_masked, full_masked))
+
+                    return masked_fill
+                else:
+                    return None
+
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
