@@ -148,10 +148,45 @@ aten_view_default_blocklist += [
     ["Tensor<[197, 4096]> self = ?", "List[int] size = [1, 197, 4096]"],
     ["Tensor<[1, 197, 4096]> self = ?", "List[int] size = [197, 4096]"],
 ]
+### EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224 END ###
 
-### EXTRA BLOCKLIST OF microsoft/beit-base-patch16-224 END ###
+### EXTRA BLOCKLIST OF XGLM START ###
+# Error msg:
+# self = <OpOverload(op='aten.index_select', overload='default')>
+# args = (tensor([[ 0.0000,  0.0000,  0.0000,  ...,  1.0000,  1.0000,  1.0000],
+#         [ 0.0000,  0.0000,  0.0000,  ...,  0.00....,  5.,  6.,  7.,  8.,  9., 10., 11., 12., 13., 14.,
+#              15., 16., 17., 18., 19., 20.], dtype=torch.bfloat16))
+# kwargs = {}
+#     def __call__(self, *args, **kwargs):
+# >       return self._op(*args, **(kwargs or {}))
+# E       RuntimeError: index_select(): Expected dtype int32 or int64 for index
+#
+# open "metrics/XGLM/00.origin.dot.svg" and search "index_select", you can see this pattern...
+# aten::arange.start -> aten::unsqueeze -> aten::add.Tensor ->
+# aten::squeeze.dim -> aten::unsqueeze -> aten::view -> 3rd input of aten::index_select
+# 3rd input of aten::index_select should be int32 or int64, but after lowering, it is bf16
+#
+# I disable above pattern to avoid it become ttnn op
+
+# aten::arange.start: it's not lowering, no need to block
+# aten::unsqueeze
+aten_unsqueeze_default_blocklist = [["Tensor<[19]> self = ?", "int dim = 0"]]
+# aten::add.Tensor
+aten_add_Tensor_blocklist += [["Tensor<[1, 19]> self = ?", "Tensor other = 2"]]
+# aten::squeeze.dim
+aten_squeeze_dim_blocklist = [["Tensor<[1, 19]> self = ?", "int dim = 0"]]
+# aten::unsqueeze: same with above, no need to block
+# aten::view
+aten_view_default_blocklist += [
+    ["Tensor<[1, 19]> self = ?", "List[int] size = [-1]"],
+]
+
+### EXTRA BLOCKLIST OF XGLM END ###
+
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
+GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
+GUARD[torch.ops.aten.squeeze.dim] = partial(guard_aten, aten_squeeze_dim_blocklist)
 
 
 def can_lowering_to_ttnn(node):
