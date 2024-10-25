@@ -103,6 +103,54 @@ aten_add_Tensor_blocklist += [["Tensor<[1, 14, 768]> self = ?", "Tensor<[1, 14, 
 ### EXTRA BLOCKLIST OF albert/albert-base-v2 END ###
 
 
+### EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224 START ###
+# This pattern origin is
+# view_37 -> aten::index.Tensor
+# after is
+# ttnn_reshape_39 -> aten::index.Tensor
+# And the error msg is "IndexError: tensors used as indices must be long, int, byte or bool tensors"
+# It means origin dtype of view_37 is int64
+# But after it convert to ttnn.reshape, the dtype of ttnn_reshape_39 is NOT int64
+# So there disable view lowering to avoid it become ttnn.reshape
+
+# beit-base-patch16-224
+aten_view_default_blocklist += [
+    ["Tensor<[1, 768, 14, 14]> self = ?", "List[int] size = [1, 768, 196]"],
+    ["Tensor<[1, 197, 768]> self = ?", "List[int] size = [197, 768]"],
+    ["Tensor<[197, 768]> self = ?", "List[int] size = [1, 197, 768]"],
+    ["Tensor<[1, 197, 768]> self = ?", "List[int] size = [1, 197, 12, 64]"],
+    ["Tensor<[1, 12, 197, 64]> self = ?", "List[int] size = [12, 197, 64]"],
+    ["Tensor<[1, 12, 64, 197]> self = ?", "List[int] size = [12, 64, 197]"],
+    ["Tensor<[12, 197, 197]> self = ?", "List[int] size = [1, 12, 197, 197]"],
+    ["Tensor<[197, 197]> self = ?", "List[int] size = [-1]"],
+    ["Tensor<[38809, 12]> self = ?", "List[int] size = [197, 197, -1]"],
+    ["Tensor<[1, 12, 197, 197]> self = ?", "List[int] size = [12, 197, 197]"],
+    ["Tensor<[12, 197, 64]> self = ?", "List[int] size = [1, 12, 197, 64]"],
+    ["Tensor<[1, 197, 12, 64]> self = ?", "List[int] size = [1, 197, 768]"],
+    ["Tensor<[197, 3072]> self = ?", "List[int] size = [1, 197, 3072]"],
+    ["Tensor<[1, 197, 3072]> self = ?", "List[int] size = [197, 3072]"],
+]
+
+# beit-large-patch16-224
+aten_view_default_blocklist += [
+    ["Tensor<[1, 1024, 14, 14]> self = ?", "List[int] size = [1, 1024, 196]"],
+    ["Tensor<[1, 197, 1024]> self = ?", "List[int] size = [197, 1024]"],
+    ["Tensor<[197, 1024]> self = ?", "List[int] size = [1, 197, 1024]"],
+    ["Tensor<[1, 197, 1024]> self = ?", "List[int] size = [1, 197, 16, 64]"],
+    ["Tensor<[1, 16, 197, 64]> self = ?", "List[int] size = [16, 197, 64]"],
+    ["Tensor<[1, 16, 64, 197]> self = ?", "List[int] size = [16, 64, 197]"],
+    ["Tensor<[16, 197, 197]> self = ?", "List[int] size = [1, 16, 197, 197]"],
+    ["Tensor<[197, 197]> self = ?", "List[int] size = [-1]"],
+    ["Tensor<[38809, 16]> self = ?", "List[int] size = [197, 197, -1]"],
+    ["Tensor<[1, 16, 197, 197]> self = ?", "List[int] size = [16, 197, 197]"],
+    ["Tensor<[16, 197, 64]> self = ?", "List[int] size = [1, 16, 197, 64]"],
+    ["Tensor<[1, 197, 16, 64]> self = ?", "List[int] size = [1, 197, 1024]"],
+    ["Tensor<[197, 4096]> self = ?", "List[int] size = [1, 197, 4096]"],
+    ["Tensor<[1, 197, 4096]> self = ?", "List[int] size = [197, 4096]"],
+]
+
+### EXTRA BLOCKLIST OF microsoft/beit-base-patch16-224 END ###
+
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
 
 

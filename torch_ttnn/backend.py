@@ -131,7 +131,7 @@ def aten_backend(
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
-        passes_with_graphviz = [GraphvizPass("00.origin")]
+        passes_with_graphviz = [GraphvizPass(f"metrics/{option.metrics_path}/00.origin")]
         for idx in range(len(passes)):
             passes_with_graphviz.append(passes[idx])
             passes_with_graphviz.append(

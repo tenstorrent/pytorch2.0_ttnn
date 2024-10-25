@@ -496,7 +496,15 @@ class AddDataMovePass(PassBase):
         for node in gm.graph.nodes:
             if node.target == ttnn.to_torch:
                 # Recast back to int64 type for a select list of aten ops
-                fallback_ops = set([torch.ops.aten.embedding.default, torch.ops.aten._unsafe_index.Tensor])
+                fallback_ops = set(
+                    [
+                        torch.ops.aten.embedding.default,
+                        torch.ops.aten._unsafe_index.Tensor,
+                        torch.ops.aten.index.Tensor,
+                        torch.ops.aten.index_put,
+                        torch.ops.aten.index_select,
+                    ]
+                )
                 if node.meta["val"].dtype == torch.int64 and fallback_ops.intersection(
                     set([user.target for user in node.users.keys()])
                 ):
