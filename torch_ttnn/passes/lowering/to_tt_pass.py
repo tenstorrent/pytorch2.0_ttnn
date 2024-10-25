@@ -114,6 +114,7 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.reciprocal.default: ttnn.reciprocal,
     torch.ops.aten.remainder.Scalar: ttnn.remainder,
     torch.ops.aten.relu.default: ttnn.relu,
+    torch.ops.aten.round.decimals: ttnn.round,
     torch.ops.aten.rsqrt.default: ttnn.rsqrt,
     torch.ops.aten.sigmoid.default: ttnn.sigmoid,
     torch.ops.aten.sign.default: ttnn.sign,
