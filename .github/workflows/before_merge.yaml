@@ -94,7 +94,7 @@ jobs:
           path: metrics/
 
   model-autogen-op-tests:
-    needs: model-tests
+    needs: lowering-tests
     runs-on: ["in-service"]
     strategy:
       matrix: # Need to find a way to replace this with a generator
@@ -107,22 +107,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
-      - name: Download Metrics Artifacts for Generate Input Variations Tests
-        uses: actions/download-artifact@v4
-        with:
-          pattern: model-tests-metrics-group-${{ matrix.group }}
-          merge-multiple: true
-          path: metrics/
       - name: Run Model Input Variations Tests
         run: |
           set +e
-          rm -rf tests/autogen-op/
-          python3 tools/generate_input_variation_test_from_models.py
-          exit_code=$?  # Capture the exit code
-          if [ $exit_code -ne 0 ]; then
-            echo "Failed to generate input variation test : exit code $exit_code.";
-            exit 1;  # Fail the workflow for other errors
-          fi
+          rm -rf tests/autogen-op/ALL
           python3 -m pytest --github-report tests/autogen-op -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
           ls -l
@@ -130,13 +118,6 @@ jobs:
           ls -l
           cd ..
           exit 0;
-
-      - name: Upload Input Variations Tests Artifact
-        if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-autogen-op-tests-group-${{ matrix.group }}
-          path: tests/autogen-op/
 
       - name: Upload Input Variations Metrics Artifact
         if: success()  # Only run if tests passed
@@ -146,7 +127,7 @@ jobs:
           path: metrics-autogen-op/
 
   collect-artifacts-from-matrix-jobs:
-    needs: model-autogen-op-tests
+    needs: [model-tests, model-autogen-op-tests]
     runs-on: ["in-service"]
     env:
       pytest_verbosity: 0
@@ -160,13 +141,6 @@ jobs:
           pattern: model-tests-metrics-group-*
           merge-multiple: true
           path: metrics/
-
-      - name: Download All Input Variations Tests Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: model-autogen-op-tests-group-*
-          merge-multiple: true
-          path: tests/autogen-op/
 
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -182,13 +156,6 @@ jobs:
           name: model-tests-metrics
           path: metrics/
 
-      - name: Upload Input Variations Tests Artifact
-        if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-autogen-op-tests
-          path: tests/autogen-op/
-
       - name: Upload Input Variations Metrics Artifact
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
@@ -197,7 +164,7 @@ jobs:
           path: metrics-autogen-op/
 
   collect-metrics:
-    needs: model-autogen-op-tests
+    needs: [model-tests, model-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     env:
@@ -266,6 +233,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
+      - name: Remove current autogen-op tests
+        run: |
+          rm -rf tests/autogen-op/
+          exit 0
+
       - name: Download All Input Variations Tests Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -277,7 +249,10 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-
+          echo "Remove these files because it's heavy for running"
+          rm -f tests/autogen-op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
+          rm -f tests/autogen-op/ALL/test_ALL_aten_convolution_default.py
+          rm -f tests/autogen-op/ALL/test_ALL_aten_convolution_backward_default.py
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
             git add --all
           elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then
@@ -286,7 +261,6 @@ jobs:
             echo "No files will be committed"
             exit 0
           fi
-
           if git diff-index --quiet HEAD; then
             echo "No changes to commit"
           else
