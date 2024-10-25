@@ -127,8 +127,8 @@ jobs:
           name: model-autogen-op-tests-metrics-group-${{ matrix.group }}
           path: metrics-autogen-op/
 
-  collect-model-artifacts-from-matrix-jobs:
-    needs: model-tests
+  collect-artifacts-from-matrix-jobs:
+    needs: [model-tests, model-autogen-op-tests]
     runs-on: ["in-service"]
     env:
       pytest_verbosity: 0
@@ -143,6 +143,14 @@ jobs:
           merge-multiple: true
           path: metrics/
 
+      - name: Download All Input Variations Metrics Artifacts
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-autogen-op-tests-metrics-group-*
+          merge-multiple: true
+          path: metrics-autogen-op/
+
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
@@ -150,23 +158,9 @@ jobs:
           name: model-tests-metrics
           path: metrics/
 
-  collect-op-artifacts-from-matrix-jobs:
-    needs: model-autogen-op-tests
-    runs-on: ["in-service"]
-    env:
-      pytest_verbosity: 0
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-
-      - name: Download All Input Variations Metrics Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: model-autogen-op-tests-metrics-group-*
-          merge-multiple: true
-          path: metrics-autogen-op/
-
       - name: Upload Input Variations Metrics Artifact
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+        if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
         with:
           name: model-autogen-op-tests-metrics
