@@ -308,7 +308,7 @@ GROUP12 = [
     torch.ops.aten._unsafe_view.default,
 ]
 
-LOWERING_WHITE_LIST = []
+LOWERING_WHITE_LIST = GROUP12
 
 
 def can_lowering_to_ttnn(node):
