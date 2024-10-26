@@ -244,7 +244,7 @@ jobs:
 
       - name: Remove current autogen-op tests
         run: |
-          rm -rf tests/autogen-op/
+          rm -rf tests/autogen_op/
           exit 0
 
       - name: Download All Input Variations Tests Artifacts
@@ -252,16 +252,16 @@ jobs:
         with:
           pattern: model-autogen-op-tests-group-*
           merge-multiple: true
-          path: tests/autogen-op/
+          path: tests/autogen_op/
 
       - name: Collect Metrics Report
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           echo "Remove these files because it's heavy for running"
-          rm -f tests/autogen-op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
-          rm -f tests/autogen-op/ALL/test_ALL_aten_convolution_default.py
-          rm -f tests/autogen-op/ALL/test_ALL_aten_convolution_backward_default.py
+          rm -f tests/autogen_op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
+          rm -f tests/autogen_op/ALL/test_ALL_aten_convolution_default.py
+          rm -f tests/autogen_op/ALL/test_ALL_aten_convolution_backward_default.py
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
             git add --all
           elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then

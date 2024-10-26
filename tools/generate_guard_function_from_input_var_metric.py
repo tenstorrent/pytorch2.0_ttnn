@@ -84,7 +84,7 @@ if __name__ == "__main__":
     template_path = os.path.dirname(os.path.abspath(__file__)) + "/to_tt_guard_autogen.tmpl"
 
     if not os.path.isdir("metrics-autogen-op"):
-        print("metrics-autogen-op directory not found. Please run tests/autogen-op")
+        print("metrics-autogen-op directory not found. Please run tests/autogen_op")
         exit(0)
 
     exporter = GuardFuncExporter(Path("metrics-autogen-op"))

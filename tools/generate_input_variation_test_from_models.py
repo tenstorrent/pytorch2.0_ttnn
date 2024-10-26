@@ -83,8 +83,8 @@ if __name__ == "__main__":
         model_ = model.replace(" ", "_").replace("(", "").replace(")", "").replace(".", "_")
 
         if not args.merge:
-            input_var_per_op.export_tests(template_path, Path(f"tests/autogen-op/{model_}"), model, model_)
+            input_var_per_op.export_tests(template_path, Path(f"tests/autogen_op/{model_}"), model, model_)
         else:
             all_exporter.merge(input_var_per_op)
     if args.merge:
-        all_exporter.export_tests(template_path, Path(f"tests/autogen-op/ALL"), "ALL", "ALL")
+        all_exporter.export_tests(template_path, Path(f"tests/autogen_op/ALL"), "ALL", "ALL")
