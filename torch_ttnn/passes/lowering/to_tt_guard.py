@@ -189,7 +189,131 @@ GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_def
 GUARD[torch.ops.aten.squeeze.dim] = partial(guard_aten, aten_squeeze_dim_blocklist)
 
 
+GROUP1 = [
+    torch.ops.aten.eq.Scalar,
+    torch.ops.aten.lt.Scalar,
+    torch.ops.aten.le.Scalar,
+    torch.ops.aten.gt.Scalar,
+    torch.ops.aten.ge.Scalar,
+    torch.ops.aten.ne.Scalar,
+    torch.ops.aten.argmax.default,
+    torch.ops.aten.argmin.default,
+    torch.ops.aten.floor.default,
+    torch.ops.aten.zeros_like.default,
+]
+GROUP2 = [
+    torch.ops.aten.addmm.default,
+    torch.ops.aten.bmm.default,
+    torch.ops.aten.linear.default,
+    torch.ops.aten.mm.default,
+]
+GROUP3 = [
+    torch.ops.aten.abs.default,
+    torch.ops.aten.acos.default,
+    torch.ops.aten.acosh.default,
+    torch.ops.aten.asin.default,
+    torch.ops.aten.asinh.default,
+    torch.ops.aten.atan.default,
+    torch.ops.aten.atanh.default,
+    torch.ops.aten.clamp.default,
+    torch.ops.aten.cos.default,
+    torch.ops.aten.cosh.default,
+]
+GROUP4 = [
+    torch.ops.aten.erf.default,
+    torch.ops.aten.exp.default,
+    torch.ops.aten.expm1.default,
+    torch.ops.aten.floor.default,
+    torch.ops.aten.gelu.default,
+    torch.ops.aten.hardtanh.default,
+    torch.ops.aten.isinf.default,
+    torch.ops.aten.isnan.default,
+    torch.ops.aten.log.default,
+    torch.ops.aten.log10.default,
+]
+GROUP5 = [
+    torch.ops.aten.log1p.default,
+    torch.ops.aten.log2.default,
+    torch.ops.aten.logical_not.default,
+    torch.ops.aten.neg.default,
+    torch.ops.aten.reciprocal.default,
+    torch.ops.aten.relu.default,
+    torch.ops.aten.remainder.Scalar,
+    torch.ops.aten.rsqrt.default,
+    torch.ops.aten.sigmoid.default,
+    torch.ops.aten.sign.default,
+]
+GROUP6 = [
+    torch.ops.aten.sin.default,
+    torch.ops.aten.sinh.default,
+    torch.ops.aten.silu.default,
+    torch.ops.aten._softmax.default,
+    torch.ops.aten.sqrt.default,
+    torch.ops.aten.tan.default,
+    torch.ops.aten.tanh.default,
+    torch.ops.aten.tril.default,
+]
+GROUP7 = [
+    torch.ops.aten.add.Tensor,
+    torch.ops.aten.atan2.default,
+    torch.ops.aten.leaky_relu.default,
+    torch.ops.aten.maximum.default,
+    torch.ops.aten.minimum.default,
+    torch.ops.aten.mul.Tensor,
+    torch.ops.aten.pow.Tensor_Scalar,
+    torch.ops.aten.rsub.Tensor,
+    torch.ops.aten.sub.Tensor,
+    torch.ops.aten.xlogy.Tensor,
+]
+GROUP8 = [
+    torch.ops.aten.addcdiv.default,
+    torch.ops.aten.addcmul.default,
+    torch.ops.aten.where.self,
+]
+GROUP9 = [
+    torch.ops.aten.mean.dim,
+    torch.ops.aten.min.default,
+    torch.ops.aten._adaptive_avg_pool2d.default,
+    torch.ops.aten._log_softmax.default,
+    torch.ops.aten.rsub.Scalar,
+    torch.ops.aten.div.Tensor,
+]
+GROUP10 = [
+    torch.ops.aten.native_layer_norm.default,
+    torch.ops.aten.baddbmm.default,
+    torch.ops.aten.embedding.default,
+    torch.ops.aten.expand.default,
+    torch.ops.aten.slice.Tensor,
+    torch.ops.aten.repeat.default,
+    torch.ops.aten.split.Tensor,
+]
+GROUP11 = [
+    torch.ops.aten.clone.default,
+    torch.ops.aten.ones.default,
+    torch.ops.aten.full.default,
+    torch.ops.aten._to_copy.default,
+    torch.ops.aten.eq.Tensor,
+    torch.ops.aten.arange.start,
+    torch.ops.aten.arange.start_step,
+    torch.ops.aten.constant_pad_nd.default,
+]
+GROUP12 = [
+    torch.ops.aten.squeeze.dim,
+    torch.ops.aten.squeeze.default,
+    torch.ops.aten.unsqueeze.default,
+    torch.ops.aten.transpose.int,
+    torch.ops.aten.t.default,
+    torch.ops.aten.permute.default,
+    torch.ops.aten.view.default,
+    torch.ops.aten._unsafe_view.default,
+]
+
+LOWERING_WHITE_LIST = []
+
+
 def can_lowering_to_ttnn(node):
+    if node.target not in LOWERING_WHITE_LIST:
+        return False
     if node.target in GUARD:
         return GUARD[node.target](node)
 
