@@ -503,10 +503,13 @@ class AddDataMovePass(PassBase):
                         torch.ops.aten.index.Tensor,
                         torch.ops.aten.index_put,
                         torch.ops.aten.index_select,
+                        torch.ops.aten.masked_fill.Scalar,
+                        torch.ops.aten.masked_fill.Tensor,
                     ]
                 )
                 node_meta_dtype = node.meta["val"].dtype
-                if node_meta_dtype in [torch.int32, torch.int64] and fallback_ops.intersection(
+                fallback_types = [torch.int64, torch.int32, torch.bool]
+                if node_meta_dtype in fallback_types and fallback_ops.intersection(
                     set([user.target for user in node.users.keys()])
                 ):
                     g = node.graph
