@@ -496,8 +496,17 @@ class AddDataMovePass(PassBase):
         for node in gm.graph.nodes:
             if node.target == ttnn.to_torch:
                 # Recast back to int64 type for a select list of aten ops
-                fallback_ops = set([torch.ops.aten.embedding.default, torch.ops.aten._unsafe_index.Tensor])
-                if node.meta["val"].dtype == torch.int64 and fallback_ops.intersection(
+                fallback_ops = set(
+                    [
+                        torch.ops.aten.embedding.default,
+                        torch.ops.aten._unsafe_index.Tensor,
+                        torch.ops.aten.index.Tensor,
+                        torch.ops.aten.index_put,
+                        torch.ops.aten.index_select,
+                    ]
+                )
+                node_meta_dtype = node.meta["val"].dtype
+                if node_meta_dtype in [torch.int32, torch.int64] and fallback_ops.intersection(
                     set([user.target for user in node.users.keys()])
                 ):
                     g = node.graph
@@ -506,7 +515,7 @@ class AddDataMovePass(PassBase):
                         new_node = g.call_function(
                             torch.ops.aten._to_copy.default,
                             (node,),
-                            {"dtype": torch.int64},
+                            {"dtype": node_meta_dtype},
                         )
                         new_node.meta = dict(node.meta)
                         # Remove "original_input_variations" data if exists since this is not a conversion
