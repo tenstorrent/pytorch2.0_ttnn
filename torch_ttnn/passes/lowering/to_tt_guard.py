@@ -185,9 +185,9 @@ aten_view_default_blocklist += [
 
 ### EXTRA BLOCKLIST OF FALCON START ###
 
-aten_unsqueeze_default_blocklist += [['Tensor<[7]> self = ?', 'int dim = 0']]
+aten_unsqueeze_default_blocklist += [["Tensor<[7]> self = ?", "int dim = 0"]]
 
-aten_masked_fill_scalar_blocklist += [['Tensor<[7, 7]> self = ?', 'Tensor<[7, 7]> mask = ?', 'number value = -inf']]
+aten_masked_fill_scalar_blocklist += [["Tensor<[7, 7]> self = ?", "Tensor<[7, 7]> mask = ?", "number value = -inf"]]
 
 ### EXTRA BLOCKLIST OF FALCON END ###
 

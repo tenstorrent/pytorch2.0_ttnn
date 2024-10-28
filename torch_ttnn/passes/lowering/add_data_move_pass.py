@@ -504,7 +504,7 @@ class AddDataMovePass(PassBase):
                         torch.ops.aten.index_put,
                         torch.ops.aten.index_select,
                         torch.ops.aten.masked_fill.Scalar,
-                        torch.ops.aten.masked_fill.Tensor
+                        torch.ops.aten.masked_fill.Tensor,
                     ]
                 )
                 node_meta_dtype = node.meta["val"].dtype
