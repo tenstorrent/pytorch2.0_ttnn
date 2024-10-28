@@ -529,8 +529,11 @@ if __name__ == "__main__":
         compiled_run_success = compiled_runtime_metrics["success"]
         pydantic_model.run_success = compiled_run_success
         # Remap bool to emoji
-        emoji_map = {True: "✅", False: "✘"}
-        compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
+        if compiled_run_success and aten_ops_remain == 0:
+            compiled_runtime_metrics["success"] = "✅"
+        else:
+            emoji_map = {True: "🚧", False: "❌"}
+            compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
 
         # Process input variations per model
         input_var_per_op = InputVarPerOp(
