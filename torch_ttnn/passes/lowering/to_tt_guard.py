@@ -191,10 +191,39 @@ aten_masked_fill_scalar_blocklist += [
     ["Tensor<[1, 1, 19, 19]> self = ?", "Tensor<[1, 1, 19, 19]> mask = ?", "number value = -3.3895313892515355e+38"]
 ]
 
+############################################################
+# EXTRA BLOCKLIST OF swin_*
+############################################################
+# TODO: Not pass yet
+# swin_b
+
+# This input vars become pass without blocking, and if blocking, the err msg shown:
+# RuntimeError: view size is not compatible with input tensor's size and stride
+# (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
+aten_view_default_blocklist.remove(["Tensor<[64, 49, 128]> self = ?", "List[int] size = [3136, 128]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 128]> self = ?", "List[int] size = [3136, 128]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 512]> self = ?", "List[int] size = [3136, 512]"])
+
+# TT_FATAL @ /tmp/build-via-sdist-c9nw8bov/metal_libs-0.53.0rc16+wormhole.b0/tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
+
+############################################################
+# EXTRA BLOCKLIST OF vgg*
+############################################################
+# vgg11
+# aten::_adaptive_avg_pool2d => aten::view
+# if aten avgpool lowering to ttnn avgpool,
+# then its output shape become torch.Size([1, 1, 1, 7]) and cause aten::view error
+# RuntimeError: shape '[1, 25088]' is invalid for input of size 7
+# vgg11/vgg11_bn/vgg13/vgg13_bn/vgg16/vgg16_bn/vgg19/vgg19_bn all have this input var
+aten__adaptive_avg_pool2d_default_blocklist = [["Tensor<[1, 512, 7, 7]> self = ?", "List[int] output_size = [7, 7]"]]
+
+
+############################################################
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
 GUARD[torch.ops.aten.squeeze.dim] = partial(guard_aten, aten_squeeze_dim_blocklist)
+GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):
