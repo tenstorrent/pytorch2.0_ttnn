@@ -219,11 +219,122 @@ aten__adaptive_avg_pool2d_default_blocklist = [["Tensor<[1, 512, 7, 7]> self = ?
 
 
 ############################################################
+# EXTRA BLOCKLIST OF t5*
+############################################################
+
+# aten::view => aten::embedding
+# current aten::view output shape will be bf16 if it convert to ttnn op
+# and will caue emb error
+# E       RuntimeError: Expected tensor for argument #1 'indices' to have
+# one of the following scalar types: Long, Int; but got CPUBFloat16Type instead
+# (while checking arguments for embedding)
+aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [-1, 10]"]]
+
+# TODO: Another pattern is
+# aten::arange => aten::unsqueeze => aten::slice.Tensor => aten::sub.Tensor
+# => aten::gt.Scalar => aten::_to_copy => aten::mul.Tensor => aten::add.Tensor
+# => aten::add.Tensor => aten::embedding
+# it is too long to block, so just wait the to_tt_pass fix
+
+############################################################
+# EXTRA BLOCKLIST OF retinanet_resnet50_fpn*
+############################################################
+
+# retinanet_resnet50_fpn
+# RuntimeError: Missing conversion from torch.dtype: torch.int32 to Ttnn dtype.
+# => comment ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype), it is not used now
+
+# RuntimeError: _unsafe_index found unexpected index type BFloat16
+# ... => aten::sub.Tensor => aten::div.Tensor => unsqueeze => unsafe_index
+# it is too long to block, so just wait the to_tt_pass fix
+
+############################################################
+# EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
+############################################################
+
+# ghostnetv2_100.in1k
+# RuntimeError: _unsafe_index found unexpected index type BFloat16
+# arange => add => mul => to_copy => unsqueeze => unsafe_index
+
+aten_arange_default_blocklist = [
+    [
+        "number end = 56",
+        "Optional[int] dtype = torch.float32",
+        "Optional[Device] device = cpu",
+        "Optional[bool] pin_memory = False",
+    ],
+    [
+        "number end = 28",
+        "Optional[int] dtype = torch.float32",
+        "Optional[Device] device = cpu",
+        "Optional[bool] pin_memory = False",
+    ],
+    [
+        "number end = 14",
+        "Optional[int] dtype = torch.float32",
+        "Optional[Device] device = cpu",
+        "Optional[bool] pin_memory = False",
+    ],
+    [
+        "number end = 7",
+        "Optional[int] dtype = torch.float32",
+        "Optional[Device] device = cpu",
+        "Optional[bool] pin_memory = False",
+    ],
+]
+
+aten_add_Tensor_blocklist += [
+    ["Tensor<[56]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[28]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[14]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[7]> self = ?", "Tensor other = 0.0"],
+]
+
+aten_mul_Tensor_blocklist += [
+    ["Tensor<[56]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[14]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[7]> self = ?", "Tensor other = 0.42857142857142855"],
+]
+
+
+aten__to_copy_default_blocklist += [
+    ["Tensor<[56]> self = ?", "Optional[int] dtype = torch.int64"],
+    ["Tensor<[28]> self = ?", "Optional[int] dtype = torch.int64"],
+    ["Tensor<[14]> self = ?", "Optional[int] dtype = torch.int64"],
+    ["Tensor<[7]> self = ?", "Optional[int] dtype = torch.int64"],
+]
+
+aten_unsqueeze_default_blocklist += [
+    ["Tensor<[56]> self = ?", "int dim = -1"],
+    ["Tensor<[28]> self = ?", "int dim = -1"],
+    ["Tensor<[14]> self = ?", "int dim = -1"],
+    ["Tensor<[7]> self = ?", "int dim = -1"],
+]
+
+# ghostnetv2_100.in1k-train
+# TODO:
+# self = <OpOverload(op='aten._unsafe_index_put', overload='default')>
+# args = (tensor([[[[0., 0., 0.],
+#           [0., 0., 0.],
+#           [0., 0., 0.]],
+
+#          [[0., 0., 0.],
+#           [0., 0., ...-4.8161e-05, -4.2200e-05,  ...,  0.0000e+00,
+#                  0.0000e+00,  0.0000e+00]]]], dtype=torch.bfloat16), True)
+# kwargs = {}
+
+#     def __call__(self, *args, **kwargs):
+# >       return self._op(*args, **(kwargs or {}))
+# E       RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
+
+############################################################
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
 GUARD[torch.ops.aten.squeeze.dim] = partial(guard_aten, aten_squeeze_dim_blocklist)
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
+GUARD[torch.ops.aten.arange.default] = partial(guard_aten, aten_arange_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):

@@ -55,7 +55,7 @@ model_and_mode_list = [
     pytest.param(["tf_efficientnet_lite3.in1k", "eval"], marks=pytest.mark.compilation_xfail),
     pytest.param(["tf_efficientnet_lite4.in1k", "eval"], marks=pytest.mark.compilation_xfail),
     ["ghostnet_100.in1k", "eval"],
-    pytest.param(["ghostnetv2_100.in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    ["ghostnetv2_100.in1k", "eval"],
     ["inception_v4.tf_in1k", "eval"],
     ["mixer_b16_224.goog_in21k", "eval"],
     ["mobilenetv1_100.ra4_e3600_r224_in1k", "eval"],
