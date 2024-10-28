@@ -13,7 +13,7 @@ class ThisTester(ModelTester):
         The model is from https://github.com/facebookresearch/detr
         """
         # Model
-        model = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True)
+        model = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True).to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -28,7 +28,7 @@ class ThisTester(ModelTester):
             ]
         )
         input_tensor = preprocess(input_image)
-        input_batch = input_tensor.unsqueeze(0)
+        input_batch = input_tensor.unsqueeze(0).to(torch.bfloat16)
         return input_batch
 
 
@@ -39,7 +39,8 @@ class ThisTester(ModelTester):
 @pytest.mark.compilation_xfail
 def test_detr(record_property, mode):
     model_name = "DETR"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

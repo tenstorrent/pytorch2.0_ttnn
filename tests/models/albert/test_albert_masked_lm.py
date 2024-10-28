@@ -8,10 +8,10 @@ from tests.utils import ModelTester
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        return AlbertForMaskedLM.from_pretrained(self.model_name)
+        return AlbertForMaskedLM.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
 
     def _load_inputs(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         self.text = "The capital of [MASK] is Paris."
         self.inputs = self.tokenizer(self.text, return_tensors="pt")
         return self.inputs
@@ -35,9 +35,9 @@ class ThisTester(ModelTester):
     "model_name",
     ["albert/albert-base-v2", "albert/albert-large-v2", "albert/albert-xlarge-v2", "albert/albert-xxlarge-v2"],
 )
-@pytest.mark.compilation_xfail
 def test_albert_masked_lm(record_property, model_name, mode):
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

@@ -9,7 +9,7 @@ class ThisTester(ModelTester):
     def _load_model(self):
         self.processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
         model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small")
-        return model
+        return model.generate
 
     def _load_inputs(self):
         inputs = self.processor(
@@ -21,9 +21,8 @@ class ThisTester(ModelTester):
         inputs["max_new_tokens"] = 256
         return inputs
 
-    def run_model(self, model, inputs):
-        audio_values = model.generate(**inputs)
-        return audio_values
+    def set_model_eval(self, model):
+        return model
 
 
 @pytest.mark.parametrize(
@@ -33,7 +32,8 @@ class ThisTester(ModelTester):
 @pytest.mark.skip("torch run with bypass compilation is stalling")
 def test_musicgen_small(record_property, mode):
     model_name = "musicgen_small"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

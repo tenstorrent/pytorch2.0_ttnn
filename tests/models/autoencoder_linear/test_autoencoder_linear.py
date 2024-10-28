@@ -54,6 +54,7 @@ class ThisTester(ModelTester):
         # NOTE: The model has not been pre-trained or fine-tuned.
         # This is for demonstration purposes only.
         model = LinearAE()
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -71,17 +72,18 @@ class ThisTester(ModelTester):
         sample = dataset["train"][0]["image"]
         sample_tensor = [transform(sample).squeeze(0)]
         batch_tensor = torch.cat(sample_tensor, dim=0)
+        batch_tensor = batch_tensor.to(torch.bfloat16)
         return batch_tensor
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_autoencoder_linear(record_property, mode):
     model_name = "Autoencoder (linear)"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

@@ -31,12 +31,12 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_resnet(record_property, mode):
     model_name = "ResNet50"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

@@ -3,13 +3,14 @@
 from transformers import GPTNeoForCausalLM, GPT2Tokenizer
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
+        model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M", torch_dtype=torch.bfloat16)
         self.tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
-        return model
+        return model.generate
 
     def _load_inputs(self):
         prompt = (
@@ -22,9 +23,8 @@ class ThisTester(ModelTester):
         arguments = {"input_ids": input_ids, "do_sample": True, "temperature": 0.9, "max_length": 100}
         return arguments
 
-    def run_model(self, model, inputs):
-        gen_tokens = model.generate(**inputs)
-        return gen_tokens
+    def set_model_eval(self, model):
+        return model
 
 
 @pytest.mark.parametrize(
@@ -34,7 +34,8 @@ class ThisTester(ModelTester):
 @pytest.mark.compilation_xfail
 def test_gpt_neo(record_property, mode):
     model_name = "GPTNeo"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

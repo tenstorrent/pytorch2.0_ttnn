@@ -1,5 +1,5 @@
 ### aten.all.default
-|    | ATen Input Variations   | Status   |
-|---:|:------------------------|:---------|
-|  0 | Tensor<[1, 7]> self = ? | None     |
+|    | ATen Input Variations   | Status   | Isolated   | PCC   |
+|---:|:------------------------|:---------|:-----------|:------|
+|  0 | Tensor<[1, 7]> self = ? | None     | Fallback   | True  |
 

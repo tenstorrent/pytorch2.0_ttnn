@@ -8,10 +8,10 @@ from tests.utils import ModelTester
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        return AlbertForSequenceClassification.from_pretrained(self.model_name)
+        return AlbertForSequenceClassification.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
 
     def _load_inputs(self):
-        self.tokenizer = AlbertTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = AlbertTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         self.input_text = "Hello, my dog is cute."
         self.inputs = self.tokenizer(self.input_text, return_tensors="pt")
         return self.inputs
@@ -22,9 +22,9 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.parametrize("model_name", ["textattack/albert-base-v2-imdb"])
-@pytest.mark.compilation_xfail
 def test_albert_sequence_classification(record_property, model_name, mode):
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

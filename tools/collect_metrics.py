@@ -65,7 +65,7 @@ def load_single_metrics(path: str):
                     results += result
         return results
     else:
-        return None
+        return []
 
 
 # Load a pt file from path and return a Torch tensor object or None
@@ -281,8 +281,9 @@ class InputVarPerOp(defaultdict):
         # else this will be an empty dict with defaults
 
         self.single_metrics = single_metrics
-        for s in self.single_metrics:
-            s["input_variation"] = _join_br(s["input_strings"])
+        if type(self.single_metrics) == list and len(self.single_metrics) > 0:
+            for s in self.single_metrics:
+                s["input_variation"] = _join_br(s["input_strings"])
 
     def merge(self, other: "InputVarPerOp"):
         """
@@ -320,16 +321,24 @@ class InputVarPerOp(defaultdict):
                 na,
             )
 
-        input_vars_dict["Single-native-run"] = []
-        input_vars_dict["Single-run"] = []
-        input_vars_dict["Single-accuracy"] = []
-        input_vars_dict["Single-converted"] = []
+        input_vars_dict["Isolated"] = []
+        input_vars_dict["PCC"] = []
         for input_variation in input_variations:
             single_status = _filter_single_status(opname, input_variation)
-            input_vars_dict["Single-native-run"].append(single_status["native_run"])
-            input_vars_dict["Single-run"].append(single_status["run"])
-            input_vars_dict["Single-accuracy"].append(single_status["accuracy"])
-            input_vars_dict["Single-converted"].append(single_status["convert_to_ttnn"])
+            status = "None"
+            # aten ir should run success, or the single op testcase is illegal
+            if single_status["native_run"] != True:
+                status = "Unknown"
+            # if compiled graph run fail, then the status is failed
+            elif single_status["run"] == False:
+                status = "Failed"
+            # or status is done or fallback according to the convert_to_ttnn
+            elif single_status["run"] == True and single_status["convert_to_ttnn"] == True:
+                status = "Done"
+            elif single_status["run"] == True and single_status["convert_to_ttnn"] == False:
+                status = "Fallback"
+            input_vars_dict["Isolated"].append(status)
+            input_vars_dict["PCC"].append(single_status["accuracy"])
 
     def generate_md_for_input_variations(self) -> str:
         """
@@ -474,7 +483,7 @@ if __name__ == "__main__":
         compiled_schema_metrics = load_pickle(compiled_schema_metrics_path) or {}
 
         # Load single metrics
-        single_metrics_path = Path("metrics-input-variations") / model
+        single_metrics_path = Path("metrics-autogen-op") / model
         single_metrics = load_single_metrics(single_metrics_path)
 
         # Count total number of original aten ops and unique aten ops
@@ -520,8 +529,11 @@ if __name__ == "__main__":
         compiled_run_success = compiled_runtime_metrics["success"]
         pydantic_model.run_success = compiled_run_success
         # Remap bool to emoji
-        emoji_map = {True: "✅", False: "✘"}
-        compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
+        if compiled_run_success and aten_ops_remain == 0:
+            compiled_runtime_metrics["success"] = "✅"
+        else:
+            emoji_map = {True: "🚧", False: "❌"}
+            compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
 
         # Process input variations per model
         input_var_per_op = InputVarPerOp(

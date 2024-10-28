@@ -75,7 +75,7 @@ class ThisTester(ModelTester):
             os.remove(downloaded_file)
 
         subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python-headless"])
-        return model
+        return model.to(torch.bfloat16)
 
     def _load_inputs(self):
         # Image preprocessing
@@ -84,7 +84,7 @@ class ThisTester(ModelTester):
         transform = transforms.Compose([transforms.Resize((512, 512)), transforms.ToTensor()])
         img_tensor = [transform(image).unsqueeze(0)]
         batch_tensor = torch.cat(img_tensor, dim=0)
-        return batch_tensor
+        return batch_tensor.to(torch.bfloat16)
 
 
 @pytest.mark.parametrize(
@@ -92,10 +92,10 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.usefixtures("manage_dependencies")
-@pytest.mark.compilation_xfail
 def test_yolov5(record_property, mode):
     model_name = "YOLOv5"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

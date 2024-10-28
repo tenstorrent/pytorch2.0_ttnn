@@ -3,23 +3,23 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         checkpoint = "Salesforce/codegen-350M-mono"
-        model = AutoModelForCausalLM.from_pretrained(checkpoint)
+        model = AutoModelForCausalLM.from_pretrained(checkpoint, torch_dtype=torch.bfloat16)
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-        return model
+        return model.generate
 
     def _load_inputs(self):
         text = "def hello_world():"
         inputs = self.tokenizer(text, return_tensors="pt")
         return inputs
 
-    def run_model(self, model, inputs):
-        completion = model.generate(**inputs)
-        return completion
+    def set_model_eval(self, model):
+        return model
 
 
 @pytest.mark.parametrize(
@@ -29,7 +29,8 @@ class ThisTester(ModelTester):
 @pytest.mark.compilation_xfail
 def test_codegen(record_property, mode):
     model_name = "codegen"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

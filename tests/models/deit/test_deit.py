@@ -12,6 +12,7 @@ class ThisTester(ModelTester):
     def _load_model(self):
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(self.model_name)
         model = ViTForImageClassification.from_pretrained(self.model_name)
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -20,15 +21,31 @@ class ThisTester(ModelTester):
         inputs = self.feature_extractor(images=image, return_tensors="pt")
         return inputs
 
+    def set_inputs_train(self, inputs):
+        inputs["pixel_values"].requires_grad_(True)
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return torch.mean(outputs.logits)
+
+    def get_results_train(self, model, inputs, outputs):
+        return inputs["pixel_values"].grad
+
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [
+        pytest.param(
+            "train",
+            marks=pytest.mark.compilation_xfail,
+        ),
+        "eval",
+    ],
 )
 @pytest.mark.parametrize("model_name", ["facebook/deit-base-patch16-224"])
-@pytest.mark.compilation_xfail
 def test_deit(record_property, model_name, mode):
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

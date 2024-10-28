@@ -8,10 +8,10 @@ from tests.utils import ModelTester
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        return AlbertForTokenClassification.from_pretrained(self.model_name)
+        return AlbertForTokenClassification.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
 
     def _load_inputs(self):
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         self.text = "HuggingFace is a company based in Paris and New York."
         self.inputs = self.tokenizer(self.text, add_special_tokens=False, return_tensors="pt")
         return self.inputs
@@ -22,9 +22,9 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.parametrize("model_name", ["albert/albert-base-v2"])
-@pytest.mark.compilation_xfail
 def test_albert_token_classification(record_property, model_name, mode):
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", f"{model_name}-classification")
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

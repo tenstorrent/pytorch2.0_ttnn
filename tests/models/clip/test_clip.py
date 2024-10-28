@@ -22,17 +22,39 @@ class ThisTester(ModelTester):
             return_tensors="pt",
             padding=True,
         )
+        inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
         return inputs
+
+    def set_inputs_train(self, inputs):
+        inputs["pixel_values"].requires_grad_(True)
+        return inputs
+
+    def append_fake_loss_function(self, outputs):
+        return (
+            torch.mean(outputs.logits_per_image)
+            + torch.mean(outputs.logits_per_text)
+            + torch.mean(outputs.text_embeds[0])
+            + torch.mean(outputs.text_embeds[0])
+        )
+
+    def get_results_train(self, model, inputs, outputs):
+        return inputs["pixel_values"].grad
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [
+        pytest.param(
+            "train",
+            marks=pytest.mark.compilation_xfail,
+        ),
+        "eval",
+    ],
 )
-@pytest.mark.compilation_xfail
 def test_clip(record_property, mode):
     model_name = "CLIP"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

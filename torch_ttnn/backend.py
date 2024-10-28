@@ -27,6 +27,7 @@ class TorchTtnnOption:
         metrics_path="",
         tracer_option=None,
         bypass_compile=False,
+        use_less_ttnn_op_types=True,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -39,6 +40,7 @@ class TorchTtnnOption:
 
         self.metrics_path = metrics_path
         self.bypass_compile = bypass_compile
+        self.use_less_ttnn_op_types = use_less_ttnn_op_types
         self.original_schema_list = list()
         self.compiled_schema_list = list()
 
@@ -116,7 +118,7 @@ def aten_backend(
     from torch_ttnn.passes.memory_pass import MemoryPass
 
     passes = [
-        ToTtPass(option.device),
+        ToTtPass(option.device, option.use_less_ttnn_op_types),
         AddDataMovePass(),
         EliminateCoreopsPass(),
         CSEPass(),
@@ -129,7 +131,7 @@ def aten_backend(
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
-        passes_with_graphviz = [GraphvizPass("00.origin")]
+        passes_with_graphviz = [GraphvizPass(f"metrics/{option.metrics_path}/00.origin")]
         for idx in range(len(passes)):
             passes_with_graphviz.append(passes[idx])
             passes_with_graphviz.append(

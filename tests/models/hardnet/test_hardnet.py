@@ -12,8 +12,9 @@ from tests.utils import ModelTester
 class ThisTester(ModelTester):
     def _load_model(self):
         model = torch.hub.load("PingoLH/Pytorch-HarDNet", "hardnet68", pretrained=False)
-        checkpoint = "https://ping-chao.com/hardnet/hardnet68-5d684880.pth"
+        checkpoint = "https://github.com/PingoLH/Pytorch-HarDNet/raw/refs/heads/master/hardnet68.pth"
         model.load_state_dict(torch.hub.load_state_dict_from_url(checkpoint, progress=False, map_location="cpu"))
+        model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -29,17 +30,18 @@ class ThisTester(ModelTester):
         )
         input_tensor = preprocess(input_image)
         input_batch = input_tensor.unsqueeze(0)  # create a mini-batch as expected by the model
+        input_batch = input_batch.to(torch.bfloat16)
         return input_batch
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_hardnet(record_property, mode):
     model_name = "HardNet"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

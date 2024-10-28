@@ -3,12 +3,13 @@
 from transformers import DPRReader, DPRReaderTokenizer
 import pytest
 from tests.utils import ModelTester
+import torch
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = DPRReaderTokenizer.from_pretrained("facebook/dpr-reader-single-nq-base")
-        model = DPRReader.from_pretrained("facebook/dpr-reader-single-nq-base")
+        model = DPRReader.from_pretrained("facebook/dpr-reader-single-nq-base", torch_dtype=torch.bfloat16)
         return model
 
     def _load_inputs(self):
@@ -28,7 +29,8 @@ class ThisTester(ModelTester):
 @pytest.mark.compilation_xfail
 def test_dpr(record_property, mode):
     model_name = "DPR"
-    record_property("model_name", f"{model_name} {mode}")
+    record_property("model_name", model_name)
+    record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()

@@ -1,116 +1,116 @@
 ### aten.hardtanh.default
-|     | ATen Input Variations                                                                 | Status   |
-|----:|:--------------------------------------------------------------------------------------|:---------|
-|   0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|   1 | Tensor<[1, 1152, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|   2 | Tensor<[1, 1152, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|   3 | Tensor<[1, 116, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|   4 | Tensor<[1, 1248, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|   5 | Tensor<[1, 128, 1, 1]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|   6 | Tensor<[1, 128, 2, 2]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|   7 | Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|   8 | Tensor<[1, 128, 3, 3]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|   9 | Tensor<[1, 128, 5, 5]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  10 | Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  11 | Tensor<[1, 1280, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  12 | Tensor<[1, 1280, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  13 | Tensor<[1, 1280, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  14 | Tensor<[1, 1280, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  15 | Tensor<[1, 1280, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  16 | Tensor<[1, 134, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  17 | Tensor<[1, 1392, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  18 | Tensor<[1, 14, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  19 | Tensor<[1, 144, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     |
-|  20 | Tensor<[1, 144, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     |
-|  21 | Tensor<[1, 144, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  22 | Tensor<[1, 144, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  23 | Tensor<[1, 144, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  24 | Tensor<[1, 144, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  25 | Tensor<[1, 144, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  26 | Tensor<[1, 144, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  27 | Tensor<[1, 144, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  28 | Tensor<[1, 144, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  29 | Tensor<[1, 16, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  30 | Tensor<[1, 160, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  31 | Tensor<[1, 1632, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  32 | Tensor<[1, 168, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  33 | Tensor<[1, 192, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  34 | Tensor<[1, 192, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  35 | Tensor<[1, 192, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  36 | Tensor<[1, 192, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  37 | Tensor<[1, 192, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  38 | Tensor<[1, 192, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  39 | Tensor<[1, 196, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  40 | Tensor<[1, 20, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  41 | Tensor<[1, 24, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  42 | Tensor<[1, 240, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  43 | Tensor<[1, 240, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  44 | Tensor<[1, 240, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  45 | Tensor<[1, 240, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  46 | Tensor<[1, 256, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  47 | Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  48 | Tensor<[1, 256, 2, 2]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  49 | Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  50 | Tensor<[1, 256, 3, 3]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  51 | Tensor<[1, 256, 5, 5]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  52 | Tensor<[1, 272, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  53 | Tensor<[1, 28, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  54 | Tensor<[1, 288, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  55 | Tensor<[1, 288, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  56 | Tensor<[1, 288, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  57 | Tensor<[1, 288, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  58 | Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  59 | Tensor<[1, 32, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  60 | Tensor<[1, 32, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  61 | Tensor<[1, 32, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  62 | Tensor<[1, 32, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  63 | Tensor<[1, 320, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  64 | Tensor<[1, 334, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  65 | Tensor<[1, 336, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  66 | Tensor<[1, 336, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  67 | Tensor<[1, 34, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  68 | Tensor<[1, 384, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  69 | Tensor<[1, 40, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  70 | Tensor<[1, 40, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  71 | Tensor<[1, 46, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  72 | Tensor<[1, 462, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  73 | Tensor<[1, 480, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  74 | Tensor<[1, 480, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  75 | Tensor<[1, 480, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  76 | Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  77 | Tensor<[1, 512, 5, 5]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  78 | Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  79 | Tensor<[1, 528, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  80 | Tensor<[1, 576, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  81 | Tensor<[1, 576, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  82 | Tensor<[1, 576, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  83 | Tensor<[1, 58, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  84 | Tensor<[1, 64, 1, 1]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0      | None     |
-|  85 | Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-|  86 | Tensor<[1, 64, 2, 2]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0      | None     |
-|  87 | Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  88 | Tensor<[1, 640, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  89 | Tensor<[1, 672, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  90 | Tensor<[1, 672, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  91 | Tensor<[1, 672, 20, 20]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  92 | Tensor<[1, 672, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  93 | Tensor<[1, 672, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  94 | Tensor<[1, 672, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  95 | Tensor<[1, 68, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  96 | Tensor<[1, 68, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-|  97 | Tensor<[1, 720, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-|  98 | Tensor<[1, 720, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-|  99 | Tensor<[1, 78, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-| 100 | Tensor<[1, 816, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-| 101 | Tensor<[1, 816, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-| 102 | Tensor<[1, 96, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-| 103 | Tensor<[1, 96, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-| 104 | Tensor<[1, 96, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     |
-| 105 | Tensor<[1, 96, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-| 106 | Tensor<[1, 96, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-| 107 | Tensor<[1, 96, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
-| 108 | Tensor<[1, 960, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-| 109 | Tensor<[1, 960, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     |
-| 110 | Tensor<[1, 960, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     |
-| 111 | Tensor<[1, 98, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     |
+|     | ATen Input Variations                                                                 | Status   | Isolated   | PCC   |
+|----:|:--------------------------------------------------------------------------------------|:---------|:-----------|:------|
+|   0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|   1 | Tensor<[1, 1152, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|   2 | Tensor<[1, 1152, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|   3 | Tensor<[1, 116, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|   4 | Tensor<[1, 1248, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|   5 | Tensor<[1, 128, 1, 1]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|   6 | Tensor<[1, 128, 2, 2]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|   7 | Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|   8 | Tensor<[1, 128, 3, 3]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|   9 | Tensor<[1, 128, 5, 5]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  10 | Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  11 | Tensor<[1, 1280, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  12 | Tensor<[1, 1280, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  13 | Tensor<[1, 1280, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  14 | Tensor<[1, 1280, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  15 | Tensor<[1, 1280, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  16 | Tensor<[1, 134, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  17 | Tensor<[1, 1392, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  18 | Tensor<[1, 14, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  19 | Tensor<[1, 144, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
+|  20 | Tensor<[1, 144, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
+|  21 | Tensor<[1, 144, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  22 | Tensor<[1, 144, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  23 | Tensor<[1, 144, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  24 | Tensor<[1, 144, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  25 | Tensor<[1, 144, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  26 | Tensor<[1, 144, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  27 | Tensor<[1, 144, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  28 | Tensor<[1, 144, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  29 | Tensor<[1, 16, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  30 | Tensor<[1, 160, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  31 | Tensor<[1, 1632, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  32 | Tensor<[1, 168, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  33 | Tensor<[1, 192, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  34 | Tensor<[1, 192, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  35 | Tensor<[1, 192, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  36 | Tensor<[1, 192, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  37 | Tensor<[1, 192, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  38 | Tensor<[1, 192, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  39 | Tensor<[1, 196, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  40 | Tensor<[1, 20, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  41 | Tensor<[1, 24, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  42 | Tensor<[1, 240, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  43 | Tensor<[1, 240, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  44 | Tensor<[1, 240, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  45 | Tensor<[1, 240, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  46 | Tensor<[1, 256, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  47 | Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  48 | Tensor<[1, 256, 2, 2]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  49 | Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  50 | Tensor<[1, 256, 3, 3]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  51 | Tensor<[1, 256, 5, 5]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  52 | Tensor<[1, 272, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  53 | Tensor<[1, 28, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  54 | Tensor<[1, 288, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  55 | Tensor<[1, 288, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  56 | Tensor<[1, 288, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  57 | Tensor<[1, 288, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  58 | Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  59 | Tensor<[1, 32, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  60 | Tensor<[1, 32, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  61 | Tensor<[1, 32, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  62 | Tensor<[1, 32, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  63 | Tensor<[1, 320, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  64 | Tensor<[1, 334, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  65 | Tensor<[1, 336, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  66 | Tensor<[1, 336, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  67 | Tensor<[1, 34, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  68 | Tensor<[1, 384, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  69 | Tensor<[1, 40, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  70 | Tensor<[1, 40, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  71 | Tensor<[1, 46, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  72 | Tensor<[1, 462, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  73 | Tensor<[1, 480, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  74 | Tensor<[1, 480, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  75 | Tensor<[1, 480, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  76 | Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  77 | Tensor<[1, 512, 5, 5]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  78 | Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  79 | Tensor<[1, 528, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  80 | Tensor<[1, 576, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  81 | Tensor<[1, 576, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  82 | Tensor<[1, 576, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  83 | Tensor<[1, 58, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  84 | Tensor<[1, 64, 1, 1]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0      | None     | Fallback   | True  |
+|  85 | Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+|  86 | Tensor<[1, 64, 2, 2]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0      | None     | Fallback   | True  |
+|  87 | Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  88 | Tensor<[1, 640, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  89 | Tensor<[1, 672, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  90 | Tensor<[1, 672, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  91 | Tensor<[1, 672, 20, 20]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  92 | Tensor<[1, 672, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  93 | Tensor<[1, 672, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  94 | Tensor<[1, 672, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  95 | Tensor<[1, 68, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  96 | Tensor<[1, 68, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+|  97 | Tensor<[1, 720, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  98 | Tensor<[1, 720, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+|  99 | Tensor<[1, 78, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+| 100 | Tensor<[1, 816, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+| 101 | Tensor<[1, 816, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+| 102 | Tensor<[1, 96, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+| 103 | Tensor<[1, 96, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+| 104 | Tensor<[1, 96, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
+| 105 | Tensor<[1, 96, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+| 106 | Tensor<[1, 96, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+| 107 | Tensor<[1, 96, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
+| 108 | Tensor<[1, 960, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+| 109 | Tensor<[1, 960, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+| 110 | Tensor<[1, 960, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
+| 111 | Tensor<[1, 98, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
 
