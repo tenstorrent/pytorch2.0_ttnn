@@ -111,8 +111,8 @@ jobs:
       - name: Run Model Input Variations Tests
         run: |
           set +e
-          rm -rf tests/autogen-op/ALL
-          python3 -m pytest --github-report tests/autogen-op -s
+          rm -rf tests/autogen_op/ALL
+          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
           ls -l
           cd metrics-autogen-op
@@ -233,7 +233,7 @@ jobs:
           fi
 
   push-autogen-op-tests:
-    needs: model-autogen-op-tests
+    needs: model-tests
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     env:
@@ -242,26 +242,24 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
 
-      - name: Remove current autogen-op tests
-        run: |
-          rm -rf tests/autogen-op/
-          exit 0
-
-      - name: Download All Input Variations Tests Artifacts
+      - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-autogen-op-tests-group-*
+          pattern: model-tests-metrics-group-*
           merge-multiple: true
-          path: tests/autogen-op/
+          path: metrics/
 
       - name: Collect Metrics Report
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          rm -rf tests/autogen_op/ # Remove old tests
+          python3 tools/generate_input_variation_test_from_models.py
+          python3 tools/generate_input_variation_test_from_models.py --merge=True
           echo "Remove these files because it's heavy for running"
-          rm -f tests/autogen-op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
-          rm -f tests/autogen-op/ALL/test_ALL_aten_convolution_default.py
-          rm -f tests/autogen-op/ALL/test_ALL_aten_convolution_backward_default.py
+          rm -f tests/autogen_op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
+          rm -f tests/autogen_op/ALL/test_ALL_aten_convolution_default.py
+          rm -f tests/autogen_op/ALL/test_ALL_aten_convolution_backward_default.py
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
             git add --all
           elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then
