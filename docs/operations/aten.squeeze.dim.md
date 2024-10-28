@@ -1,23 +1,23 @@
 ### aten.squeeze.dim
-|    | ATen Input Variations                                   | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
-|---:|:--------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[1, 1, 24576]> self = ?,<br>int dim = 0          | Unknown  | N/A                 | N/A          | N/A               | N/A                |
-|  1 | Tensor<[1, 1, 480, 640]> self = ?,<br>int dim = 1       | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  2 | Tensor<[1, 112, 14, 14]> self = ?,<br>int dim = 0       | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  3 | Tensor<[1, 12, 197, 197]> self = ?,<br>int dim = 0      | Unknown  | N/A                 | N/A          | N/A               | N/A                |
-|  4 | Tensor<[1, 14, 1]> self = ?,<br>int dim = -1            | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  5 | Tensor<[1, 16, 112, 112]> self = ?,<br>int dim = 0      | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  6 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = 0      | Unknown  | N/A                 | N/A          | N/A               | N/A                |
-|  7 | Tensor<[1, 160, 7, 7]> self = ?,<br>int dim = 0         | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  8 | Tensor<[1, 19]> self = ?,<br>int dim = 0                | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  9 | Tensor<[1, 24, 56, 56]> self = ?,<br>int dim = 0        | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 10 | Tensor<[1, 25, 1]> self = ?,<br>int dim = -1            | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 11 | Tensor<[1, 256, 1]> self = ?,<br>int dim = -1           | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 12 | Tensor<[1, 40, 28, 28]> self = ?,<br>int dim = 0        | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 13 | Tensor<[1, 80, 14, 14]> self = ?,<br>int dim = 0        | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 14 | Tensor<[3, 1370, 1, 1, 1280]> self = ?,<br>int dim = -2 | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 15 | Tensor<[3, 197, 1, 1, 1024]> self = ?,<br>int dim = -2  | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 16 | Tensor<[3, 197, 1, 1, 768]> self = ?,<br>int dim = -2   | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 17 | Tensor<[3, 50, 1, 1, 1024]> self = ?,<br>int dim = -2   | Done     | N/A                 | N/A          | N/A               | N/A                |
-| 18 | Tensor<[3, 50, 1, 1, 768]> self = ?,<br>int dim = -2    | Done     | N/A                 | N/A          | N/A               | N/A                |
+|    | ATen Input Variations                                   | Status   | Isolated   | PCC   |
+|---:|:--------------------------------------------------------|:---------|:-----------|:------|
+|  0 | Tensor<[1, 1, 24576]> self = ?,<br>int dim = 0          | Unknown  | Unknown    | N/A   |
+|  1 | Tensor<[1, 1, 480, 640]> self = ?,<br>int dim = 1       | Done     | Done       | True  |
+|  2 | Tensor<[1, 112, 14, 14]> self = ?,<br>int dim = 0       | Done     | Done       | True  |
+|  3 | Tensor<[1, 12, 197, 197]> self = ?,<br>int dim = 0      | Done     | Done       | True  |
+|  4 | Tensor<[1, 14, 1]> self = ?,<br>int dim = -1            | Done     | Done       | True  |
+|  5 | Tensor<[1, 16, 112, 112]> self = ?,<br>int dim = 0      | Done     | Done       | True  |
+|  6 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = 0      | Done     | Done       | True  |
+|  7 | Tensor<[1, 160, 7, 7]> self = ?,<br>int dim = 0         | Done     | Done       | True  |
+|  8 | Tensor<[1, 19]> self = ?,<br>int dim = 0                | None     | Fallback   | True  |
+|  9 | Tensor<[1, 24, 56, 56]> self = ?,<br>int dim = 0        | Done     | Done       | True  |
+| 10 | Tensor<[1, 25, 1]> self = ?,<br>int dim = -1            | Done     | Done       | True  |
+| 11 | Tensor<[1, 256, 1]> self = ?,<br>int dim = -1           | Done     | Done       | True  |
+| 12 | Tensor<[1, 40, 28, 28]> self = ?,<br>int dim = 0        | Done     | Done       | True  |
+| 13 | Tensor<[1, 80, 14, 14]> self = ?,<br>int dim = 0        | Done     | Done       | True  |
+| 14 | Tensor<[3, 1370, 1, 1, 1280]> self = ?,<br>int dim = -2 | Done     | Done       | True  |
+| 15 | Tensor<[3, 197, 1, 1, 1024]> self = ?,<br>int dim = -2  | Done     | Done       | True  |
+| 16 | Tensor<[3, 197, 1, 1, 768]> self = ?,<br>int dim = -2   | Done     | Done       | True  |
+| 17 | Tensor<[3, 50, 1, 1, 1024]> self = ?,<br>int dim = -2   | Done     | Done       | True  |
+| 18 | Tensor<[3, 50, 1, 1, 768]> self = ?,<br>int dim = -2    | Done     | Done       | True  |
 
