@@ -1,7 +1,9 @@
 from functools import partial
 from .to_tt_guard_autogen import *
 
-### EXTRA BLOCKLIST OF CLIP START ###
+############################################################
+# EXTRA BLOCKLIST OF CLIP
+############################################################
 aten_mul_Tensor_blocklist += [
     ["Tensor<[1, 50, 768]> self = ?", "Tensor other = 0.125"],
     ["Tensor<[1, 50, 3072]> self = ?", "Tensor other = 1.702"],
@@ -70,10 +72,10 @@ aten_native_layer_norm_default_blocklist += [
 # Need to remove this from the blocklist so that yolos can pass
 aten_view_default_blocklist.remove(["Tensor<[1, 192, 32, 42]> self = ?", "List[int] size = [1, 192, 1344]"])
 
-### EXTRA BLOCKLIST OF CLIP END ###
 
-### EXTRA BLOCKLIST OF albert/albert-base-v2-classification START ###
-
+############################################################
+# EXTRA BLOCKLIST OF albert/albert-base-v2-classification
+############################################################
 # If enable, then ttnn._ttnn.operations.binary.add_t will encounter this inputs and failed:
 # (ttnn.Tensor([[[ 0.74219,  0.07324,  ...,  1.32812,  0.25391],
 #               [ 0.57031,  0.38086,  ...,  0.37695, -0.16309],
@@ -100,10 +102,11 @@ aten_add_Tensor_blocklist += [["Tensor<[1, 9, 2048]> self = ?", "Tensor<[1, 9, 2
 aten_add_Tensor_blocklist += [["Tensor<[1, 9, 4096]> self = ?", "Tensor<[1, 9, 4096]> other = ?"]]
 # twmkn9/albert-base-v2-squad2: inputs[1].shape become ([1, 14[32], 768) during inference
 aten_add_Tensor_blocklist += [["Tensor<[1, 14, 768]> self = ?", "Tensor<[1, 14, 768]> other = ?"]]
-### EXTRA BLOCKLIST OF albert/albert-base-v2 END ###
 
 
-### EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224 START ###
+############################################################
+# EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224
+############################################################
 # This pattern origin is
 # view_37 -> aten::index.Tensor
 # after is
@@ -148,9 +151,10 @@ aten_view_default_blocklist += [
     ["Tensor<[197, 4096]> self = ?", "List[int] size = [1, 197, 4096]"],
     ["Tensor<[1, 197, 4096]> self = ?", "List[int] size = [197, 4096]"],
 ]
-### EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224 END ###
 
-### EXTRA BLOCKLIST OF XGLM START ###
+############################################################
+# EXTRA BLOCKLIST OF XGLM
+############################################################
 # Error msg:
 # self = <OpOverload(op='aten.index_select', overload='default')>
 # args = (tensor([[ 0.0000,  0.0000,  0.0000,  ...,  1.0000,  1.0000,  1.0000],
@@ -181,7 +185,11 @@ aten_view_default_blocklist += [
     ["Tensor<[1, 19]> self = ?", "List[int] size = [-1]"],
 ]
 
-### EXTRA BLOCKLIST OF XGLM END ###
+#  For valid non-interleaved buffers page size 38 must equal buffer size 720.
+#  For interleaved-buffers page size should be divisible by buffer size
+aten_masked_fill_scalar_blocklist += [
+    ["Tensor<[1, 1, 19, 19]> self = ?", "Tensor<[1, 1, 19, 19]> mask = ?", "number value = -3.3895313892515355e+38"]
+]
 
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
