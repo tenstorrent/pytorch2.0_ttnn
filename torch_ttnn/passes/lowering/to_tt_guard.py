@@ -192,6 +192,14 @@ aten_masked_fill_scalar_blocklist += [
 ]
 
 ############################################################
+# EXTRA BLOCKLIST OF FALCON
+############################################################
+
+aten_unsqueeze_default_blocklist += [["Tensor<[7]> self = ?", "int dim = 0"]]
+
+aten_masked_fill_scalar_blocklist += [["Tensor<[7, 7]> self = ?", "Tensor<[7, 7]> mask = ?", "number value = -inf"]]
+
+############################################################
 # EXTRA BLOCKLIST OF swin_*
 ############################################################
 # TODO: Not pass yet
