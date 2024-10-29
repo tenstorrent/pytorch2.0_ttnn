@@ -214,6 +214,7 @@ jobs:
           python3 tools/collect_metrics.py
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git pull
 
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
             git add --all
@@ -249,10 +250,12 @@ jobs:
           merge-multiple: true
           path: metrics/
 
-      - name: Collect Metrics Report
+      - name: Push Autogen Op Tests
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git pull
+
           rm -rf tests/autogen_op/ # Remove old tests
           python3 tools/generate_input_variation_test_from_models.py
           python3 tools/generate_input_variation_test_from_models.py --merge=True
