@@ -366,6 +366,29 @@ aten_mul_Tensor_blocklist += [
 # >       return self._op(*args, **(kwargs or {}))
 # E       RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
 
+
+############################################################
+# EXTRA BLOCKLIST OF ViLT
+############################################################
+# RuntimeError: _unsafe_index found unexpected index type BFloat16
+# arange => add => mul => to_copy => unsafe_index
+
+aten_add_Tensor_blocklist += [
+    ["Tensor<[12]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[16]> self = ?", "Tensor other = 0.0"],
+]
+
+aten_mul_Tensor_blocklist += [
+    ["Tensor<[12]> self = ?", "Tensor other = 32.0"],
+    ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
+]
+
+
+aten__to_copy_default_blocklist += [
+    ["Tensor<[12]> self = ?", "Optional[int] dtype = torch.int64"],
+    ["Tensor<[16]> self = ?", "Optional[int] dtype = torch.int64"],
+]
+
 ############################################################
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
