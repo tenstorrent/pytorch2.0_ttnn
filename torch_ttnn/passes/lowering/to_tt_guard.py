@@ -383,11 +383,68 @@ aten_mul_Tensor_blocklist += [
     ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
 ]
 
-
 aten__to_copy_default_blocklist += [
     ["Tensor<[12]> self = ?", "Optional[int] dtype = torch.int64"],
     ["Tensor<[16]> self = ?", "Optional[int] dtype = torch.int64"],
 ]
+
+############################################################
+# EXTRA BLOCKLIST OF speecht5-tts
+############################################################
+
+# self = FastOperation(python_fully_qualified_name='ttnn.ones',
+#   function=<ttnn._ttnn.operations.creation.ones_t object at
+#   0x7f6...<function default_postprocess_golden_function_outputs at 0x7f6e7f0ddca0>,
+#   is_cpp_operation=True, is_experimental=False)
+# function_args = ((1, 1, 24, 24),)
+# function_kwargs = {'device': <ttnn._ttnn.device.Device object at 0x7f6e6358bcf0>,
+#   'dtype': <DataType.BFLOAT16: 0>, 'layout': <Layout.TILE: 1>}
+
+#     def __call__(self, *function_args, **function_kwargs):
+# >       return self.function(*function_args, **function_kwargs)
+# E       RuntimeError: TT_FATAL @ .../functions.hpp:66: shape[-1] % tt::constants::TILE_WIDTH == 0
+
+# torch.ops.aten.masked_fill.Scalar is converted as ttnn.ones and it is failed at single op test
+
+aten_masked_fill_scalar_blocklist += [
+    [
+        "Tensor<[1, 1, 24, 24]> self = ?",
+        "Tensor<[1, 1, 24, 24]> mask = ?",
+        "number value = -3.3895313892515355e+38",
+    ],
+    ["Tensor<[1, 1, 1, 24]> self = ?", "Tensor<[1, 1, 1, 24]> mask = ?", "number value = -3.3895313892515355e+38"],
+]
+
+# RuntimeError: Expected tensor for argument #1 'indices' to have one of the following scalar types:
+# Long, Int; but got CPUBFloat16Type instead (while checking arguments for embedding)
+# arange(0, 24)
+# slice(arange, 0, 0, 9223372036854775807)
+# unsqueeze(slice, 1)
+# unsqueeze_2(arange, 0)
+# slice_2(unsqueeze_2, 1, 0, 9223372036854775807)
+# sub(unsqueeze, slice_2)
+# add(sub, 160)
+# embedding(arg4_1, add)
+# add output is bf16 type, which is wrong
+
+aten_slice_Tensor_blocklist += [
+    ["Tensor<[24]> self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
+    [
+        "Tensor<[1, 24]> self = ?",
+        "int dim = 1",
+        "Optional[int] start = 0",
+        "Optional[int] end = 9223372036854775807",
+    ],
+]
+
+
+aten_unsqueeze_default_blocklist += [["Tensor<[24]> self = ?", "int dim = 1"], ["Tensor<[24]> self = ?", "int dim = 0"]]
+
+# ttnn.add
+# shape=Shape([1, 24[32], 768]
+# MemoryConfig can only be obtained for a tensor with DeviceStorage
+
+aten_add_Tensor_blocklist += [["Tensor<[1, 24, 768]> self = ?", "Tensor<[1, 24, 768]> other = ?"]]
 
 ############################################################
 
