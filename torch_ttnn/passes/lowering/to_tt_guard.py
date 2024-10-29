@@ -447,12 +447,44 @@ aten_unsqueeze_default_blocklist += [["Tensor<[24]> self = ?", "int dim = 1"], [
 aten_add_Tensor_blocklist += [["Tensor<[1, 24, 768]> self = ?", "Tensor<[1, 24, 768]> other = ?"]]
 
 ############################################################
+# EXTRA BLOCKLIST OF Whisper
+############################################################
+# embedding
+# RuntimeError: Expected tensor for argument #1 'indices'
+# to have one of the following scalar types: Long, Int; but got CPUB...
+# ones = torch.ops.aten.ones.default([1, 1], dtype = torch.int64, device = device(type='cpu'), pin_memory = False)
+# mul = torch.ops.aten.mul.Tensor(ones, 50258);  ones = None
+# view_192 = torch.ops.aten.view.default(mul, [-1, 1]);  mul = None
+# embedding = torch.ops.aten.embedding.default(arg188_1, view_192, 50257);  arg188_1 = view_192 = None
+# TODO: not pass yet
+
+aten_mul_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 50258"]]
+
+aten_view_default_blocklist += [["Tensor<[1, 1]> self = ?", "List[int] size = [-1, 1]"]]
+
+
+############################################################
+# EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224-train
+############################################################
+# microsoft/beit-base-patch16-224
+# self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
+# function_args = (ttnn.Tensor(<buffer is not allocated>,
+# shape=Shape([1, 1[32], 1000[1024]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), (1, 0))
+# function_kwargs = {}
+# RuntimeError: TT_FATAL @ .../permute.cpp:170: input_rank == dims.size()
+# don't know why block aten.mean can avoid this error
+aten_mean_dim_blocklist = [["Tensor<[1, 196, 768]> self = ?", "Optional[List[int]] dim = [1]"]]
+# microsoft/beit-large-patch16-224: same issue
+aten_mean_dim_blocklist += [["Tensor<[1, 196, 1024]> self = ?", "Optional[List[int]] dim = [1]"]]
+
+############################################################
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
 GUARD[torch.ops.aten.squeeze.dim] = partial(guard_aten, aten_squeeze_dim_blocklist)
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
 GUARD[torch.ops.aten.arange.default] = partial(guard_aten, aten_arange_default_blocklist)
+GUARD[torch.ops.aten.mean.dim] = partial(guard_aten, aten_mean_dim_blocklist)
 
 
 def can_lowering_to_ttnn(node):
