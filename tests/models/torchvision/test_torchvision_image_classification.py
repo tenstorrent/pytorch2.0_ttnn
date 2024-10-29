@@ -79,12 +79,12 @@ model_info_and_mode_list = [
     [("regnet_x_8gf", "RegNet_X_8GF_Weights"), "eval"],
     [("regnet_x_16gf", "RegNet_X_16GF_Weights"), "eval"],
     [("regnet_x_32gf", "RegNet_X_32GF_Weights"), "eval"],
-    pytest.param([("swin_t", "Swin_T_Weights"), "eval"], marks=pytest.mark.compilation_xfail),
-    pytest.param([("swin_s", "Swin_S_Weights"), "eval"], marks=pytest.mark.compilation_xfail),
-    pytest.param([("swin_b", "Swin_B_Weights"), "eval"], marks=pytest.mark.compilation_xfail),
-    pytest.param([("swin_v2_t", "Swin_V2_T_Weights"), "eval"], marks=pytest.mark.compilation_xfail),
-    pytest.param([("swin_v2_s", "Swin_V2_S_Weights"), "eval"], marks=pytest.mark.compilation_xfail),
-    pytest.param([("swin_v2_b", "Swin_V2_B_Weights"), "eval"], marks=pytest.mark.compilation_xfail),
+    [("swin_t", "Swin_T_Weights"), "eval"],
+    [("swin_s", "Swin_S_Weights"), "eval"],
+    [("swin_b", "Swin_B_Weights"), "eval"],
+    [("swin_v2_t", "Swin_V2_T_Weights"), "eval"],
+    [("swin_v2_s", "Swin_V2_S_Weights"), "eval"],
+    [("swin_v2_b", "Swin_V2_B_Weights"), "eval"],
 ]
 
 

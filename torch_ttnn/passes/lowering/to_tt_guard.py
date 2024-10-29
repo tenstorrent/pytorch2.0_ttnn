@@ -202,9 +202,7 @@ aten_masked_fill_scalar_blocklist += [["Tensor<[7, 7]> self = ?", "Tensor<[7, 7]
 ############################################################
 # EXTRA BLOCKLIST OF swin_*
 ############################################################
-# TODO: Not pass yet
 # swin_b
-
 # This input vars become pass without blocking, and if blocking, the err msg shown:
 # RuntimeError: view size is not compatible with input tensor's size and stride
 # (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
@@ -212,7 +210,53 @@ aten_view_default_blocklist.remove(["Tensor<[64, 49, 128]> self = ?", "List[int]
 aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 128]> self = ?", "List[int] size = [3136, 128]"])
 aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 512]> self = ?", "List[int] size = [3136, 512]"])
 
-# TT_FATAL @ /tmp/build-via-sdist-c9nw8bov/metal_libs-0.53.0rc16+wormhole.b0/tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
+# TT_FATAL @ .../buffer.cpp:41: page_size % sizeof(uint32_t) == 0
+
+aten_masked_fill_scalar_blocklist += [
+    ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = -100.0"],
+    ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = 0.0"],
+    ["Tensor<[16, 49, 49]> self = ?", "Tensor<[16, 49, 49]> mask = ?", "number value = -100.0"],
+    ["Tensor<[16, 49, 49]> self = ?", "Tensor<[16, 49, 49]> mask = ?", "number value = 0.0"],
+    ["Tensor<[4, 49, 49]> self = ?", "Tensor<[4, 49, 49]> mask = ?", "number value = -100.0"],
+    ["Tensor<[4, 49, 49]> self = ?", "Tensor<[4, 49, 49]> mask = ?", "number value = 0.0"],
+]
+
+# swin_t
+aten_view_default_blocklist.remove(["Tensor<[64, 49, 96]> self = ?", "List[int] size = [3136, 96]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 96]> self = ?", "List[int] size = [3136, 96]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 384]> self = ?", "List[int] size = [3136, 384]"])
+
+# swin_s
+# swin_v2_t
+aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [64, 64, 96]"])
+aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [1, 64, 64, 96]"])
+aten__unsafe_view_default_blocklist.remove(["Tensor<[8, 8, 8, 8]> self = ?", "List[int] size = [64, 64]"])
+aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 4, 4, 8, 8, 192]> self = ?", "List[int] size = [16, 64, 192]"])
+aten__unsafe_view_default_blocklist.remove(
+    ["Tensor<[1, 4, 8, 4, 8, 192]> self = ?", "List[int] size = [1, 32, 32, 192]"]
+)
+aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 2, 2, 8, 8, 384]> self = ?", "List[int] size = [4, 64, 384]"])
+
+aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 384]> self = ?", "List[int] size = [256, 384]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 1536]> self = ?", "List[int] size = [256, 1536]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 768]> self = ?", "List[int] size = [64, 768]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 3072]> self = ?", "List[int] size = [64, 3072]"])
+# swin_v2_s
+# swin_v2_b
+aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [64, 64, 128]"])
+aten__unsafe_view_default_blocklist.remove(
+    ["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [1, 64, 64, 128]"]
+)
+aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 4, 4, 8, 8, 256]> self = ?", "List[int] size = [16, 64, 256]"])
+aten__unsafe_view_default_blocklist.remove(
+    ["Tensor<[1, 4, 8, 4, 8, 256]> self = ?", "List[int] size = [1, 32, 32, 256]"]
+)
+aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 2, 2, 8, 8, 512]> self = ?", "List[int] size = [4, 64, 512]"])
+
+aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 512]> self = ?", "List[int] size = [256, 512]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 2048]> self = ?", "List[int] size = [256, 2048]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 1024]> self = ?", "List[int] size = [64, 1024]"])
+aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 4096]> self = ?", "List[int] size = [64, 4096]"])
 
 ############################################################
 # EXTRA BLOCKLIST OF vgg*
