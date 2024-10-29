@@ -43,7 +43,7 @@ model_and_mode_list = [
     pytest.param(["ghostnet_100.in1k", "train"], marks=pytest.mark.compilation_xfail),
     pytest.param(["ghostnetv2_100.in1k", "train"], marks=pytest.mark.compilation_xfail),
     ["inception_v4.tf_in1k", "train"],
-    pytest.param(["mixer_b16_224.goog_in21k", "train"], marks=pytest.mark.compilation_xfail),
+    ["mixer_b16_224.goog_in21k", "train"],
     ["mobilenetv1_100.ra4_e3600_r224_in1k", "train"],
     ["ese_vovnet19b_dw.ra_in1k", "train"],
     ["xception71.tf_in1k", "train"],

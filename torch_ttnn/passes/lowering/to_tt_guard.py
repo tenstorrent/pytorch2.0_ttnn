@@ -478,6 +478,23 @@ aten_mean_dim_blocklist = [["Tensor<[1, 196, 768]> self = ?", "Optional[List[int
 aten_mean_dim_blocklist += [["Tensor<[1, 196, 1024]> self = ?", "Optional[List[int]] dim = [1]"]]
 
 ############################################################
+# EXTRA BLOCKLIST OF mixer_b16_224.goog_in21k-train
+############################################################
+# self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
+# function_args = (ttnn.Tensor(<buffer is not allocated>,
+# shape=Shape([768, 21843[21856]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), (1, 0))
+# function_kwargs = {}
+# RuntimeError: TT_FATAL @ .../buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
+
+aten_t_default_blocklist += [["Tensor<[768, 21843]> self = ?"]]
+# shape=Shape([1[32], 21843[21856]] same issue
+aten_t_default_blocklist += [["Tensor<[1, 21843]> self = ?"]]
+# ttnn.add
+# shape=Shape([1, 196[224], 768])
+aten_add_Tensor_blocklist += [["Tensor<[1, 196, 768]> self = ?", "Tensor<[1, 196, 768]> other = ?"]]
+
+
+############################################################
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
