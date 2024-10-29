@@ -15,12 +15,16 @@ class TanModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape",
-    ((4, 4), (1, 1066)),
+    "input_shape, range",
+    (
+        ((4, 4), 1),
+        ((1, 1066), 1),
+        pytest.param((1, 1066), 2, marks=pytest.mark.xfail(reason="tt-metal#14414: inaccurate reciprocal")),
+    ),
 )
-def test_tan(device, input_shape):
+def test_tan(device, input_shape, range):
     m = TanModule()
-    input = torch.rand(input_shape, dtype=torch.bfloat16) * 3.14 - 1.57
+    input = (torch.rand(input_shape, dtype=torch.bfloat16) * 2 - 1) * range
     result_before = m.forward(input)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
