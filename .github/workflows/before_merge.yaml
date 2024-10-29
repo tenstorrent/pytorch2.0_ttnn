@@ -234,7 +234,7 @@ jobs:
           fi
 
   push-autogen-op-tests:
-    needs: model-tests
+    needs: [model-tests, collect-metrics]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     env:
