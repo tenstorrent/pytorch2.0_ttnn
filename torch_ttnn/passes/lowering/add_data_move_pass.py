@@ -500,6 +500,7 @@ class AddDataMovePass(PassBase):
                     [
                         torch.ops.aten.embedding.default,
                         torch.ops.aten._unsafe_index.Tensor,
+                        torch.ops.aten._unsafe_index_put,
                         torch.ops.aten.index.Tensor,
                         torch.ops.aten.index_put,
                         torch.ops.aten.index_select,

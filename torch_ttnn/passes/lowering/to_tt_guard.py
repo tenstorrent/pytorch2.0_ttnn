@@ -314,16 +314,54 @@ aten_unsqueeze_default_blocklist += [
 
 # ghostnetv2_100.in1k-train
 # TODO:
-# self = <OpOverload(op='aten._unsafe_index_put', overload='default')>
-# args = (tensor([[[[0., 0., 0.],
-#           [0., 0., 0.],
-#           [0., 0., 0.]],
+# RuntimeError: Index put requires the source and destination dtypes match,
+# got Float for the destination and BFloat16 for the source.
+# gm.code:
+# new_zeros_default_1 = torch.ops.aten.new_zeros.default(
+#     mul_tensor_2, [1, 960, 3, 3], dtype=torch.float32, layout=torch.strided, device=device(type="cpu")
+# )
+# _unsafe_index_put_default = torch.ops.aten._unsafe_index_put.default(
+#     new_zeros_default_1, [None, None, unsqueeze_13, _to_copy_292], ttnn_to_torch_7, True
+# )
+# new_zeros_default_1 is float32 type and ttnn_to_torch_7 is bf16 type
+# need a pass to equal _unsafe_index_put_default's input type
 
-#          [[0., 0., 0.],
-#           [0., 0., ...-4.8161e-05, -4.2200e-05,  ...,  0.0000e+00,
-#                  0.0000e+00,  0.0000e+00]]]], dtype=torch.bfloat16), True)
+############################################################
+# EXTRA BLOCKLIST OF hrnet_w18.ms_aug_in1k*
+############################################################
+
+# self = <OpOverload(op='aten.convolution', overload='default')>
+# args = (TorchTensor([[[[[6.6797e-01, 1.5703e+00, 1.1562e+00,  ..., 5.8203e-01,
+#                  3.3936e-02, 1.1953e+00],
+#     ...-03,  1.2360e-03, -4.0527e-02]]]], dtype=torch.bfloat16,
+#        requires_grad=True), None, [1, 1], [1, 1], [1, 1], ...)
 # kwargs = {}
+#     def __call__(self, *args, **kwargs):
+# >       return self._op(*args, **(kwargs or {}))
+# E       RuntimeError: Expected 4-dimensional input for 4-dimensional weight [18, 18, 3, 3], but got 5-dimensional input of size [1, 18, 18, 56, 56] instead
+# gm.code:
+# add_tensor = torch.ops.aten.add.Tensor(arange_default, 0.0);  arange_default = None
+# mul_tensor = torch.ops.aten.mul.Tensor(add_tensor, 0.5)
+# _to_copy_default_1 = torch.ops.aten._to_copy.default(mul_tensor, dtype = torch.int64);  mul_tensor = None
+# unsqueeze_default = torch.ops.aten.unsqueeze.default(_to_copy_default_1, -1)
+# _unsafe_index_tensor = torch.ops.aten._unsafe_index.Tensor(getitem_33, [None, None, unsqueeze_default, _to_copy_default_1]);  getitem_33 = None
+# ttnn_from_torch_33 = ttnn_decorators_ttnn_from_torch(_unsafe_index_tensor, layout = ttnn_TILE_LAYOUT, dtype = ttnn_bfloat16, device = ttnn_Specified_Device);  _unsafe_index_tensor = None
+# ttnn_add_12 = ttnn_decorators_ttnn_add(ttnn_relu_23, ttnn_from_torch_33);  ttnn_from_torch_33 = None
+# ttnn_relu_32 = ttnn_decorators_ttnn_relu(ttnn_add_12);  ttnn_add_12 = None
+# ttnn_to_torch_33 = ttnn_decorators_ttnn_to_torch(ttnn_relu_23);  ttnn_relu_23 = None
+# convolution_default_34 = torch.ops.aten.convolution.default(ttnn_to_torch_33, arg102_1, None, [2, 2], [1, 1], [1, 1], False, [0, 0], 1);  ttnn_to_torch_33 = arg102_1 = None
+# Don't know why mul cause failed
 
+aten_mul_Tensor_blocklist += [
+    ["Tensor<[56]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[56]> self = ?", "Tensor other = 0.25"],
+    ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[56]> self = ?", "Tensor other = 0.125"],
+    ["Tensor<[28]> self = ?", "Tensor other = 0.25"],
+    ["Tensor<[14]> self = ?", "Tensor other = 0.5"],
+]
+
+# hrnet_w18.ms_aug_in1k train
 #     def __call__(self, *args, **kwargs):
 # >       return self._op(*args, **(kwargs or {}))
 # E       RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.

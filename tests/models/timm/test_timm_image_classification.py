@@ -62,7 +62,7 @@ model_and_mode_list = [
     ["ese_vovnet19b_dw.ra_in1k", "eval"],
     ["xception71.tf_in1k", "eval"],
     ["dla34.in1k", "eval"],
-    pytest.param(["hrnet_w18.ms_aug_in1k", "eval"], marks=pytest.mark.compilation_xfail),
+    ["hrnet_w18.ms_aug_in1k", "eval"],
 ]
 
 
