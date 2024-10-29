@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from collections import Counter, defaultdict
 import glob
-from tests.utils import comp_pcc
+
 from tools.data_collection import pydantic_models
 from enum import Enum
 import string
@@ -219,10 +219,16 @@ class InputVarPerOp(defaultdict):
             # classify each input variation with the op
             for op in original_schema_metrics:
                 opname = op["opname"]
+                if opname == "aten.convolution.default":
+                    if op["inputs"][6] == "bool transposed = True":
+                        if len(op["inputs"][3].split("=")[1].split(",")) == 2:
+                            opname = "aten.ConvTranspose2d.default"
+                            op["opname"] = "aten.ConvTranspose2d.default"
                 inputs = _join_br(op["inputs"])
                 self[opname][inputs]
                 if opname == "aten.cat.default":
                     print(op)
+
             # If exist, map converted ops to the original op
             if compiled_schema_metrics:
                 # Hold ops that require revisiting the original dict to determine the status
