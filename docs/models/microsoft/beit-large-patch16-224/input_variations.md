@@ -12,7 +12,7 @@
 |  8 | aten.expand.default            |                  4 |           0 |         4 |          0 | ✅          |       1 |
 |  9 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 10 | aten.index.Tensor              |                  1 |           0 |         0 |          0 | ✘           |       0 |
-| 11 | aten.mean.dim                  |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 11 | aten.mean.dim                  |                  1 |           0 |         0 |          0 | ✘           |       0 |
 | 12 | aten.mm.default                |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 13 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 14 | aten.native_layer_norm.default |                  2 |           2 |         0 |          0 | ✅          |       1 |
@@ -81,7 +81,7 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                             | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | True  |
+|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | None     | Fallback   | True  |
 ### aten.mm.default
 |    | ATen Input Variations                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------|:---------|:-----------|:------|

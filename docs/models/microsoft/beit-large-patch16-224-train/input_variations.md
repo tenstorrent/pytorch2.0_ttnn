@@ -14,12 +14,12 @@
 | 10 | aten.detach.default                     |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 11 | aten.div.Scalar                         |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 12 | aten.div.Tensor                         |                 24 |          23 |         0 |          0 | 🚧          |    0.96 |
-| 13 | aten.expand.default                     |                  5 |           1 |         0 |          0 | 🚧          |    0.2  |
+| 13 | aten.expand.default                     |                  5 |           1 |         4 |          0 | ✅          |    1    |
 | 14 | aten.gelu.default                       |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 15 | aten.gelu_backward.default              |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 16 | aten.index.Tensor                       |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 17 | aten.index_put.default                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 18 | aten.mean.dim                           |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 18 | aten.mean.dim                           |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 19 | aten.mm.default                         |                  8 |           8 |         0 |          0 | ✅          |    1    |
 | 20 | aten.mul.Tensor                         |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 21 | aten.native_layer_norm.default          |                  2 |           2 |         0 |          0 | ✅          |    1    |
@@ -27,7 +27,7 @@
 | 23 | aten.new_zeros.default                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 24 | aten.permute.default                    |                  4 |           3 |         0 |          0 | 🚧          |    0.75 |
 | 25 | aten.rand.default                       |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 26 | aten.slice.Tensor                       |                  5 |           3 |         0 |          0 | 🚧          |    0.6  |
+| 26 | aten.slice.Tensor                       |                  5 |           3 |         2 |          0 | ✅          |    1    |
 | 27 | aten.slice_backward.default             |                  3 |           0 |         0 |          0 | ✘           |    0    |
 | 28 | aten.squeeze.dim                        |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 29 | aten.sum.dim_IntList                    |                  4 |           0 |         0 |          0 | ✘           |    0    |
@@ -146,11 +146,11 @@
 ### aten.expand.default
 |    | ATen Input Variations                                                     | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, -1, -1]            | Unknown  | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, -1, -1]            | Removed  | Fallback   | True  |
 |  1 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, 196, 1024]         | Done     | Done       | True  |
-|  2 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | Unknown  | Fallback   | True  |
-|  3 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | Unknown  | Fallback   | True  |
-|  4 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [1, 16, 64, 197]   | Unknown  | Fallback   | True  |
+|  2 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | Removed  | Fallback   | True  |
+|  3 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | Removed  | Fallback   | True  |
+|  4 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [1, 16, 64, 197]   | Removed  | Fallback   | True  |
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   | Isolated   | PCC   |
 |---:|:--------------------------------|:---------|:-----------|:------|
@@ -170,7 +170,7 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                             | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | True  |
+|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | None     | Fallback   | True  |
 ### aten.mm.default
 |    | ATen Input Variations                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------|:---------|:-----------|:------|
@@ -217,8 +217,8 @@
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 1024]> self = ?,<br>int dim = 2,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Unknown  | Fallback   | True  |
-|  1 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Unknown  | Fallback   | True  |
+|  0 | Tensor<[1, 196, 1024]> self = ?,<br>int dim = 2,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
+|  1 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
 |  2 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 1                   | Done     | Done       | True  |
 |  3 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = 197                 | Done     | Done       | True  |
 |  4 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = 9223372036854775807 | Done     | Done       | True  |

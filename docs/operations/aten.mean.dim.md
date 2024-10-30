@@ -32,8 +32,8 @@
 | 28 | Tensor<[1, 16, 56, 56]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Done     | Done       | True  |
 | 29 | Tensor<[1, 1664, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Done     | Done       | True  |
 | 30 | Tensor<[1, 1920, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Done     | Done       | True  |
-| 31 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1]                                 | Done     | Done       | True  |
-| 32 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1]                                  | Done     | Done       | True  |
+| 31 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1]                                 | None     | Fallback   | True  |
+| 32 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1]                                  | None     | Fallback   | True  |
 | 33 | Tensor<[1, 2016, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Done     | Done       | True  |
 | 34 | Tensor<[1, 2048, 10, 10]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
 | 35 | Tensor<[1, 2048, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Done     | Done       | True  |
