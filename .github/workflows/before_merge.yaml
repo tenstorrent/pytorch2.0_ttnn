@@ -95,7 +95,7 @@ jobs:
 
   model-autogen-op-tests:
     needs: lowering-tests
-    # if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     strategy:
       matrix: # Need to find a way to replace this with a generator
@@ -174,7 +174,7 @@ jobs:
 
   collect-metrics:
     needs: [model-tests, model-autogen-op-tests]
-    # if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     env:
       PYTHONPATH: ${{ github.workspace }}
@@ -214,15 +214,27 @@ jobs:
           python3 tools/collect_metrics.py
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git pull
 
-          git add README.md
-          git add docs/
-          git checkout tmp-push-docs
-          git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
-          git push --set-upstream origin tmp-push-docs -f
+          if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
+            git add --all
+          elif [ "${{ github.event.inputs.commit_report }}" == "Docs" ]; then
+            git add README.md
+            git add docs/
+          elif [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
+            echo "No files will be committed"
+            exit 0
+          fi
+
+          if git diff-index --quiet HEAD; then
+            echo "No changes to commit"
+          else
+            git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
+            git push
+          fi
 
   push-autogen-op-tests:
-    needs: model-tests
+    needs: [model-tests, collect-metrics]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     env:
@@ -238,10 +250,12 @@ jobs:
           merge-multiple: true
           path: metrics/
 
-      - name: Collect Metrics Report
+      - name: Push Autogen Op Tests
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git pull
+
           rm -rf tests/autogen_op/ # Remove old tests
           python3 tools/generate_input_variation_test_from_models.py
           python3 tools/generate_input_variation_test_from_models.py --merge=True

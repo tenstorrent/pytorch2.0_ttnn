@@ -32,16 +32,7 @@ class ThisTester(ModelTester):
         return inputs["pixel_values"].grad
 
 
-@pytest.mark.parametrize(
-    "mode",
-    [
-        pytest.param(
-            "train",
-            marks=pytest.mark.compilation_xfail,
-        ),
-        "eval",
-    ],
-)
+@pytest.mark.parametrize("mode", ["train", "eval"])
 @pytest.mark.parametrize("model_name", ["facebook/deit-base-patch16-224"])
 def test_deit(record_property, model_name, mode):
     record_property("model_name", model_name)

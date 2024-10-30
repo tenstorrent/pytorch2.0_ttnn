@@ -34,7 +34,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_speecht5_tts(record_property, mode):
     model_name = "speecht5-tts"
     record_property("model_name", model_name)
