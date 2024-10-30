@@ -19,14 +19,14 @@
 | 15 | aten.slice.Tensor                                |                  7 |           1 |         0 |          0 | 🚧          |    0.14 |
 | 16 | aten.t.default                                   |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 17 | aten.transpose.int                               |                  6 |           4 |         0 |          0 | 🚧          |    0.67 |
-| 18 | aten.view.default                                |                 25 |          16 |         0 |          0 | 🚧          |    0.64 |
+| 18 | aten.view.default                                |                 25 |          15 |         0 |          0 | 🚧          |    0.6  |
 ***
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                                                                        | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                     | None     | Fallback   | False |
+|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                     | None     | Fallback   | True  |
 |  1 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                               | None     | Fallback   | True  |
-|  2 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 5, 64]> key = ?,<br>Tensor<[1, 12, 5, 64]> value = ?                                                     | Unknown  | Fallback   | False |
+|  2 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 5, 64]> key = ?,<br>Tensor<[1, 12, 5, 64]> value = ?                                                     | Unknown  | Fallback   | True  |
 |  3 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s10 + 1, 64]> key = ?,<br>Tensor<[1, 12, s11 + 1, 64]> value = ?                                         | Unknown  | Unknown    | N/A   |
 |  4 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s12 + 1, 64]> key = ?,<br>Tensor<[1, 12, s13 + 1, 64]> value = ?                                         | Unknown  | Unknown    | N/A   |
 |  5 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s14 + 1, 64]> key = ?,<br>Tensor<[1, 12, s15 + 1, 64]> value = ?                                         | Unknown  | Unknown    | N/A   |
@@ -39,7 +39,7 @@
 | 12 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s4 + 1, 64]> key = ?,<br>Tensor<[1, 12, s5 + 1, 64]> value = ?                                           | Unknown  | Unknown    | N/A   |
 | 13 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s6 + 1, 64]> key = ?,<br>Tensor<[1, 12, s7 + 1, 64]> value = ?                                           | Unknown  | Unknown    | N/A   |
 | 14 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s8 + 1, 64]> key = ?,<br>Tensor<[1, 12, s9 + 1, 64]> value = ?                                           | Unknown  | Unknown    | N/A   |
-| 15 | Tensor<[1, 12, 1500, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                            | None     | Fallback   | True  |
+| 15 | Tensor<[1, 12, 1500, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                            | None     | Fallback   | False |
 | 16 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                               | Unknown  | Fallback   | False |
 | 17 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 4, 64]> key = ?,<br>Tensor<[1, 12, 4, 64]> value = ?,<br>float dropout_p = 0.0,<br>bool is_causal = True | Unknown  | Fallback   | False |
 ### aten.add.Tensor
@@ -136,8 +136,8 @@
 ### aten.mul.Tensor
 |    | ATen Input Variations                            | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1]> self = ?,<br>Tensor other = 50258 | Done     | Done       | True  |
-|  1 | Tensor<[1, 1]> self = ?,<br>Tensor other = 50259 | Unknown  | Done       | True  |
+|  0 | Tensor<[1, 1]> self = ?,<br>Tensor other = 50258 | None     | Fallback   | True  |
+|  1 | Tensor<[1, 1]> self = ?,<br>Tensor other = 50259 | Done     | Done       | True  |
 |  2 | Tensor<[1, 1]> self = ?,<br>Tensor other = 50359 | Done     | Done       | True  |
 |  3 | Tensor<[1, 1]> self = ?,<br>Tensor other = 50363 | Done     | Done       | True  |
 ### aten.native_layer_norm.default
@@ -198,7 +198,7 @@
 |  7 | Tensor<[1, 1500, 768]> self = ?,<br>List[int] size = [1, -1, 12, 64]   | Done     | Done       | True  |
 |  8 | Tensor<[1, 1500, 768]> self = ?,<br>List[int] size = [1, 1500, 12, 64] | Done     | Done       | True  |
 |  9 | Tensor<[1, 1500, 768]> self = ?,<br>List[int] size = [1500, 768]       | Done     | Done       | True  |
-| 10 | Tensor<[1, 1]> self = ?,<br>List[int] size = [-1, 1]                   | Done     | Done       | True  |
+| 10 | Tensor<[1, 1]> self = ?,<br>List[int] size = [-1, 1]                   | None     | Fallback   | True  |
 | 11 | Tensor<[1, 3072]> self = ?,<br>List[int] size = [1, 1, 3072]           | Done     | Done       | True  |
 | 12 | Tensor<[1, 4, 12, 64]> self = ?,<br>List[int] size = [1, 4, 768]       | Unknown  | Done       | True  |
 | 13 | Tensor<[1, 4, 3072]> self = ?,<br>List[int] size = [4, 3072]           | Unknown  | Done       | True  |

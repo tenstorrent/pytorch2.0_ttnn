@@ -22,13 +22,11 @@
 | 18 | Tensor<[1, s0*s1, 1280]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
 | 19 | Tensor<[1, s0*s1, 5120]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
 | 20 | Tensor<[1, s0*s1, 640]> self = ?,<br>int dim = 1      | Unknown  | Unknown    | N/A   |
-| 21 | Tensor<[1, s0, 256]> self = ?,<br>int dim = 1         | Unknown  | Unknown    | N/A   |
-| 22 | Tensor<[1, s0, 768]> self = ?,<br>int dim = 1         | Unknown  | Unknown    | N/A   |
-| 23 | Tensor<[1, s1*s2, 10240]> self = ?,<br>int dim = 1    | Unknown  | Unknown    | N/A   |
-| 24 | Tensor<[1, s1*s2, 1280]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
-| 25 | Tensor<[1, s1*s2, 2560]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
-| 26 | Tensor<[1, s1*s2, 320]> self = ?,<br>int dim = 1      | Unknown  | Unknown    | N/A   |
-| 27 | Tensor<[1, s1*s2, 5120]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
-| 28 | Tensor<[1, s1*s2, 640]> self = ?,<br>int dim = 1      | Unknown  | Unknown    | N/A   |
-| 29 | Tensor<[1, s10 + 1]> self = ?,<br>int dim = 1         | Unknown  | Unknown    | N/A   |
+| 21 | Tensor<[1, s1*s2, 10240]> self = ?,<br>int dim = 1    | Unknown  | Unknown    | N/A   |
+| 22 | Tensor<[1, s1*s2, 1280]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
+| 23 | Tensor<[1, s1*s2, 2560]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
+| 24 | Tensor<[1, s1*s2, 320]> self = ?,<br>int dim = 1      | Unknown  | Unknown    | N/A   |
+| 25 | Tensor<[1, s1*s2, 5120]> self = ?,<br>int dim = 1     | Unknown  | Unknown    | N/A   |
+| 26 | Tensor<[1, s1*s2, 640]> self = ?,<br>int dim = 1      | Unknown  | Unknown    | N/A   |
+| 27 | Tensor<[1, s10 + 1]> self = ?,<br>int dim = 1         | Unknown  | Unknown    | N/A   |
 

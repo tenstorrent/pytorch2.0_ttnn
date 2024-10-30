@@ -22,7 +22,7 @@
 | 18 | Tensor<[225, 4]> self = ?,<br>List[Optional[Tensor]] indices = [<[4096]>]                | None     | Fallback   | True  |
 | 19 | Tensor<[225, 6]> self = ?,<br>List[Optional[Tensor]] indices = [<[4096]>]                | None     | Fallback   | True  |
 | 20 | Tensor<[225, 8]> self = ?,<br>List[Optional[Tensor]] indices = [<[4096]>]                | None     | Fallback   | True  |
-| 21 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 7]>]                 | Unknown  | Fallback   | True  |
+| 21 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 7]>]                 | None     | Fallback   | True  |
 | 22 | Tensor<[732, 12]> self = ?,<br>List[Optional[Tensor]] indices = [<[38809]>]              | None     | Fallback   | True  |
 | 23 | Tensor<[732, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[38809]>]              | None     | Fallback   | True  |
 

@@ -29,7 +29,7 @@
 | 25 | aten.t.default                 |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 26 | aten.tanh.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 27 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |    1    |
-| 28 | aten.unsqueeze.default         |                  3 |           3 |         0 |          0 | ✅          |    1    |
+| 28 | aten.unsqueeze.default         |                  3 |           2 |         0 |          0 | 🚧          |    0.67 |
 | 29 | aten.view.default              |                 17 |          17 |         0 |          0 | ✅          |    1    |
 | 30 | aten.where.self                |                  1 |           0 |         0 |          0 | ✘           |    0    |
 ***
@@ -174,7 +174,7 @@
 |---:|:-------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1, 7]> self = ?,<br>int dim = 2 | Done     | Done       | True  |
 |  1 | Tensor<[1, 7]> self = ?,<br>int dim = 1    | Done     | Done       | True  |
-|  2 | Tensor<[7]> self = ?,<br>int dim = 0       | Done     | Done       | True  |
+|  2 | Tensor<[7]> self = ?,<br>int dim = 0       | None     | Fallback   | True  |
 ### aten.view.default
 |    | ATen Input Variations                                            | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|:------|

@@ -178,24 +178,24 @@
 ### aten.relu.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 100, 14, 14]> self = ?  | Done     | Done       | True  |
-|  1 | Tensor<[1, 120, 1, 1]> self = ?    | Done     | Done       | True  |
-|  2 | Tensor<[1, 120, 28, 28]> self = ?  | Done     | Done       | True  |
-|  3 | Tensor<[1, 1280, 1, 1]> self = ?   | Done     | Done       | True  |
-|  4 | Tensor<[1, 16, 112, 112]> self = ? | Done     | Unknown    | N/A   |
-|  5 | Tensor<[1, 168, 1, 1]> self = ?    | Done     | Done       | True  |
-|  6 | Tensor<[1, 20, 1, 1]> self = ?     | Done     | Done       | True  |
-|  7 | Tensor<[1, 24, 112, 112]> self = ? | Done     | Unknown    | N/A   |
-|  8 | Tensor<[1, 240, 1, 1]> self = ?    | Done     | Done       | True  |
-|  9 | Tensor<[1, 240, 14, 14]> self = ?  | Done     | Done       | True  |
-| 10 | Tensor<[1, 32, 1, 1]> self = ?     | Done     | Done       | True  |
-| 11 | Tensor<[1, 336, 14, 14]> self = ?  | Done     | Done       | True  |
-| 12 | Tensor<[1, 36, 56, 56]> self = ?   | Done     | Unknown    | N/A   |
-| 13 | Tensor<[1, 480, 7, 7]> self = ?    | Done     | Done       | True  |
-| 14 | Tensor<[1, 60, 28, 28]> self = ?   | Done     | Done       | True  |
-| 15 | Tensor<[1, 8, 112, 112]> self = ?  | Done     | Unknown    | N/A   |
-| 16 | Tensor<[1, 92, 14, 14]> self = ?   | Done     | Done       | True  |
-| 17 | Tensor<[1, 960, 7, 7]> self = ?    | Done     | Done       | True  |
+|  0 | Tensor<[1, 100, 14, 14]> self = ?  | Done     | Unknown    | N/A   |
+|  1 | Tensor<[1, 120, 1, 1]> self = ?    | Done     | Unknown    | N/A   |
+|  2 | Tensor<[1, 120, 28, 28]> self = ?  | Done     | Unknown    | N/A   |
+|  3 | Tensor<[1, 1280, 1, 1]> self = ?   | Done     | Unknown    | N/A   |
+|  4 | Tensor<[1, 16, 112, 112]> self = ? | Done     | Done       | True  |
+|  5 | Tensor<[1, 168, 1, 1]> self = ?    | Done     | Unknown    | N/A   |
+|  6 | Tensor<[1, 20, 1, 1]> self = ?     | Done     | Unknown    | N/A   |
+|  7 | Tensor<[1, 24, 112, 112]> self = ? | Done     | Done       | True  |
+|  8 | Tensor<[1, 240, 1, 1]> self = ?    | Done     | Unknown    | N/A   |
+|  9 | Tensor<[1, 240, 14, 14]> self = ?  | Done     | Unknown    | N/A   |
+| 10 | Tensor<[1, 32, 1, 1]> self = ?     | Done     | Unknown    | N/A   |
+| 11 | Tensor<[1, 336, 14, 14]> self = ?  | Done     | Unknown    | N/A   |
+| 12 | Tensor<[1, 36, 56, 56]> self = ?   | Done     | Done       | True  |
+| 13 | Tensor<[1, 480, 7, 7]> self = ?    | Done     | Unknown    | N/A   |
+| 14 | Tensor<[1, 60, 28, 28]> self = ?   | Done     | Unknown    | N/A   |
+| 15 | Tensor<[1, 8, 112, 112]> self = ?  | Done     | Done       | True  |
+| 16 | Tensor<[1, 92, 14, 14]> self = ?   | Done     | Unknown    | N/A   |
+| 17 | Tensor<[1, 960, 7, 7]> self = ?    | Done     | Unknown    | N/A   |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                      | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
