@@ -35,7 +35,7 @@
 | 31 | aten.t.default          |                  4 |           3 |         0 |          0 | 🚧          |    0.75 |
 | 32 | aten.transpose.int      |                  8 |           3 |         0 |          0 | 🚧          |    0.38 |
 | 33 | aten.unsqueeze.default  |                 24 |           4 |         0 |          0 | 🚧          |    0.17 |
-| 34 | aten.view.default       |                 35 |          12 |         0 |          0 | 🚧          |    0.34 |
+| 34 | aten.view.default       |                 35 |          11 |         0 |          0 | 🚧          |    0.31 |
 | 35 | aten.where.self         |                  4 |           1 |         0 |          0 | 🚧          |    0.25 |
 | 36 | aten.zeros.default      |                  3 |           0 |         0 |          0 | ✘           |    0    |
 | 37 | aten.zeros_like.default |                  3 |           0 |         0 |          0 | ✘           |    0    |
@@ -413,8 +413,8 @@
 |  5 | Tensor<[1, 10, 512]> self = ?,<br>List[int] size = [1, -1, 8, 64]          | Done     | Done       | True  |
 |  6 | Tensor<[1, 10, 512]> self = ?,<br>List[int] size = [10, 512]               | Done     | Done       | True  |
 |  7 | Tensor<[1, 10, 8, 64]> self = ?,<br>List[int] size = [1, -1, 512]          | Done     | Done       | True  |
-|  8 | Tensor<[1, 10]> self = ?,<br>List[int] size = [-1, 10]                     | Done     | Done       | True  |
-|  9 | Tensor<[1, 1]> self = ?,<br>List[int] size = [-1, 1]                       | Unknown  | Done       | True  |
+|  8 | Tensor<[1, 10]> self = ?,<br>List[int] size = [-1, 10]                     | None     | Fallback   | True  |
+|  9 | Tensor<[1, 1]> self = ?,<br>List[int] size = [-1, 1]                       | Unknown  | Fallback   | True  |
 | 10 | Tensor<[1, 2048]> self = ?,<br>List[int] size = [1, 1, 2048]               | Unknown  | Done       | True  |
 | 11 | Tensor<[1, 32128]> self = ?,<br>List[int] size = [1, 1, 32128]             | Unknown  | Done       | True  |
 | 12 | Tensor<[1, 512]> self = ?,<br>List[int] size = [1, 1, 512]                 | Unknown  | Done       | True  |

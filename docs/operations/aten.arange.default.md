@@ -6,14 +6,14 @@
 |  2 | number end = 10,<br>Optional[int] dtype = torch.int64,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False        | None     | Fallback   | True  |
 |  3 | number end = 100,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False     | Unknown  | Fallback   | True  |
 |  4 | number end = 1066,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False    | Unknown  | Fallback   | True  |
-|  5 | number end = 12,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False                                              | Unknown  | Fallback   | True  |
+|  5 | number end = 12,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False                                              | None     | Fallback   | True  |
 |  6 | number end = 12,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False      | None     | Fallback   | True  |
 |  7 | number end = 120,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False     | None     | Fallback   | True  |
 |  8 | number end = 128,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False     | None     | Fallback   | True  |
 |  9 | number end = 136,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False     | Unknown  | Fallback   | True  |
 | 10 | number end = 14,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False      | None     | Fallback   | True  |
 | 11 | number end = 15,<br>Optional[int] dtype = torch.int64,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False        | None     | Fallback   | True  |
-| 12 | number end = 16,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False                                              | Unknown  | Fallback   | True  |
+| 12 | number end = 16,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False                                              | None     | Fallback   | True  |
 | 13 | number end = 16,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False      | None     | Fallback   | True  |
 | 14 | number end = 160,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False     | None     | Fallback   | True  |
 | 15 | number end = 17,<br>Optional[int] dtype = torch.int64,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False        | Unknown  | Fallback   | True  |

@@ -97,7 +97,7 @@
 | 17 | Tensor<[1, s1*s2, 1280]> self = ?,<br>Tensor<[1, s1*s2, 1280]> other = ?   | Unknown  | Unknown    | N/A   |
 | 18 | Tensor<[1, s1*s2, 320]> self = ?,<br>Tensor<[1, s1*s2, 320]> other = ?     | Unknown  | Unknown    | N/A   |
 | 19 | Tensor<[1, s1*s2, 640]> self = ?,<br>Tensor<[1, s1*s2, 640]> other = ?     | Unknown  | Unknown    | N/A   |
-| 20 | Tensor<[16]> self = ?,<br>Tensor other = 0.0                               | Unknown  | Done       | True  |
+| 20 | Tensor<[16]> self = ?,<br>Tensor other = 0.0                               | Unknown  | Fallback   | True  |
 | 21 | Tensor<[2*s0]> self = ?,<br>Tensor other = 0.0                             | Unknown  | Unknown    | N/A   |
 | 22 | Tensor<[2*s1]> self = ?,<br>Tensor other = 0.0                             | Unknown  | Unknown    | N/A   |
 | 23 | Tensor<[2*s2]> self = ?,<br>Tensor other = 0.0                             | Unknown  | Unknown    | N/A   |

@@ -487,7 +487,7 @@
 |  9 | Tensor<[1, 15, 512]> self = ?,<br>List[int] size = [15, 512]               | Done     | Done       | True  |
 | 10 | Tensor<[1, 15, 6, 64]> self = ?,<br>List[int] size = [1, -1, 384]          | Done     | Done       | True  |
 | 11 | Tensor<[1, 15]> self = ?,<br>List[int] size = [-1, 15]                     | Done     | Done       | True  |
-| 12 | Tensor<[1, 1]> self = ?,<br>List[int] size = [-1, 1]                       | Unknown  | Done       | True  |
+| 12 | Tensor<[1, 1]> self = ?,<br>List[int] size = [-1, 1]                       | Unknown  | Fallback   | True  |
 | 13 | Tensor<[1, 32128]> self = ?,<br>List[int] size = [1, 1, 32128]             | Unknown  | Done       | True  |
 | 14 | Tensor<[1, 384]> self = ?,<br>List[int] size = [1, 1, 384]                 | Unknown  | Done       | True  |
 | 15 | Tensor<[1, 512]> self = ?,<br>List[int] size = [1, 1, 512]                 | Unknown  | Done       | True  |
