@@ -17,7 +17,7 @@ csv_header_mappings = {
     "model": ("Model", "Name of the model."),
     "success": (
         "Status",
-        "Indicates whether the model is traced / compiled / E2E on device.",
+        "Indicates whether the model is ❌ traced / 🚧 compiled / ✅ E2E on device.",
     ),
     "torch_ops_total_unique_before": (
         "Torch Ops Before (Unique Ops)",
