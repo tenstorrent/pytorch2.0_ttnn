@@ -74,8 +74,10 @@ aten_view_default_blocklist.remove(["Tensor<[1, 192, 32, 42]> self = ?", "List[i
 
 
 ############################################################
-# EXTRA BLOCKLIST OF albert/albert-base-v2-classification
+# EXTRA BLOCKLIST OF albert/albert-*
 ############################################################
+# see issue #358
+# albert/albert-base-v2-classification
 # If enable, then ttnn._ttnn.operations.binary.add_t will encounter this inputs and failed:
 # (ttnn.Tensor([[[ 0.74219,  0.07324,  ...,  1.32812,  0.25391],
 #               [ 0.57031,  0.38086,  ...,  0.37695, -0.16309],
@@ -88,9 +90,6 @@ aten_view_default_blocklist.remove(["Tensor<[1, 192, 32, 42]> self = ?", "List[i
 # And I don't know why its inputs[1] become ([1, 12[32], 768])
 # Reproduce method: comment this line and run "pytest tests/models/albert/test_albert_token_classification.py"
 aten_add_Tensor_blocklist += [["Tensor<[1, 12, 768]> self = ?", "Tensor<[1, 12, 768]> other = ?"]]
-### EXTRA BLOCKLIST OF albert/albert-base-v2-classification END ###
-
-### EXTRA BLOCKLIST OF other albert START ###
 # other albert models have the same issue as albert/albert-base-v2-classification
 # albert/albert-base-v2: inputs[1].shape become ([1, 9[32], 768]) during inference
 aten_add_Tensor_blocklist += [["Tensor<[1, 9, 768]> self = ?", "Tensor<[1, 9, 768]> other = ?"]]
@@ -155,6 +154,7 @@ aten_view_default_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF XGLM
 ############################################################
+# see issue #360
 # Error msg:
 # self = <OpOverload(op='aten.index_select', overload='default')>
 # args = (tensor([[ 0.0000,  0.0000,  0.0000,  ...,  1.0000,  1.0000,  1.0000],
@@ -185,8 +185,9 @@ aten_view_default_blocklist += [
     ["Tensor<[1, 19]> self = ?", "List[int] size = [-1]"],
 ]
 
-#  For valid non-interleaved buffers page size 38 must equal buffer size 720.
-#  For interleaved-buffers page size should be divisible by buffer size
+# see issue #361
+# For valid non-interleaved buffers page size 38 must equal buffer size 720.
+# For interleaved-buffers page size should be divisible by buffer size
 aten_masked_fill_scalar_blocklist += [
     ["Tensor<[1, 1, 19, 19]> self = ?", "Tensor<[1, 1, 19, 19]> mask = ?", "number value = -3.3895313892515355e+38"]
 ]
@@ -212,6 +213,7 @@ aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 512]> self = ?", "List[i
 
 # TT_FATAL @ .../buffer.cpp:41: page_size % sizeof(uint32_t) == 0
 
+# see issue #361
 aten_masked_fill_scalar_blocklist += [
     ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = -100.0"],
     ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = 0.0"],
@@ -261,6 +263,7 @@ aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 4096]> self = ?", "List[in
 ############################################################
 # EXTRA BLOCKLIST OF vgg*
 ############################################################
+# see issue #362
 # vgg11
 # aten::_adaptive_avg_pool2d => aten::view
 # if aten avgpool lowering to ttnn avgpool,
@@ -304,6 +307,7 @@ aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [
 # EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
 ############################################################
 
+# see issue #360
 # ghostnetv2_100.in1k
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsqueeze => unsafe_index
@@ -381,7 +385,7 @@ aten_unsqueeze_default_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF hrnet_w18.ms_aug_in1k*
 ############################################################
-
+# see issue #363
 # self = <OpOverload(op='aten.convolution', overload='default')>
 # args = (TorchTensor([[[[[6.6797e-01, 1.5703e+00, 1.1562e+00,  ..., 5.8203e-01,
 #                  3.3936e-02, 1.1953e+00],
@@ -422,6 +426,7 @@ aten_mul_Tensor_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF ViLT
 ############################################################
+# see issue #360
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsafe_index
 
@@ -443,7 +448,7 @@ aten__to_copy_default_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF speecht5-tts
 ############################################################
-
+# see issue 361
 # self = FastOperation(python_fully_qualified_name='ttnn.ones',
 #   function=<ttnn._ttnn.operations.creation.ones_t object at
 #   0x7f6...<function default_postprocess_golden_function_outputs at 0x7f6e7f0ddca0>,
@@ -467,6 +472,7 @@ aten_masked_fill_scalar_blocklist += [
     ["Tensor<[1, 1, 1, 24]> self = ?", "Tensor<[1, 1, 1, 24]> mask = ?", "number value = -3.3895313892515355e+38"],
 ]
 
+# see issue #360
 # RuntimeError: Expected tensor for argument #1 'indices' to have one of the following scalar types:
 # Long, Int; but got CPUBFloat16Type instead (while checking arguments for embedding)
 # arange(0, 24)
@@ -492,6 +498,7 @@ aten_slice_Tensor_blocklist += [
 
 aten_unsqueeze_default_blocklist += [["Tensor<[24]> self = ?", "int dim = 1"], ["Tensor<[24]> self = ?", "int dim = 0"]]
 
+# see issue #358
 # ttnn.add
 # shape=Shape([1, 24[32], 768]
 # MemoryConfig can only be obtained for a tensor with DeviceStorage
@@ -518,6 +525,7 @@ aten_view_default_blocklist += [["Tensor<[1, 1]> self = ?", "List[int] size = [-
 ############################################################
 # EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224-train
 ############################################################
+# see issue #364
 # microsoft/beit-base-patch16-224
 # self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
 # function_args = (ttnn.Tensor(<buffer is not allocated>,
@@ -532,6 +540,7 @@ aten_mean_dim_blocklist += [["Tensor<[1, 196, 1024]> self = ?", "Optional[List[i
 ############################################################
 # EXTRA BLOCKLIST OF mixer_b16_224.goog_in21k-train
 ############################################################
+# see issue #358
 # self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
 # function_args = (ttnn.Tensor(<buffer is not allocated>,
 # shape=Shape([768, 21843[21856]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), (1, 0))
