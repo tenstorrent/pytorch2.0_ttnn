@@ -31,16 +31,7 @@ class ThisTester(ModelTester):
         return inputs["pixel_values"].grad
 
 
-@pytest.mark.parametrize(
-    "mode",
-    [
-        pytest.param(
-            "train",
-            marks=pytest.mark.compilation_xfail,
-        ),
-        "eval",
-    ],
-)
+@pytest.mark.parametrize("mode", ["train", "eval"])
 @pytest.mark.parametrize("model_name", ["microsoft/beit-base-patch16-224", "microsoft/beit-large-patch16-224"])
 def test_beit_image_classification(record_property, model_name, mode):
     record_property("model_name", model_name)
