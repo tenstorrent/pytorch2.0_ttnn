@@ -177,6 +177,7 @@ def is_tt_compute(node) -> bool:
             ttnn.squeeze,
             ttnn.full,
             ttnn.as_tensor,
+            ttnn.moreh_cumsum,
         ]
     )
 
