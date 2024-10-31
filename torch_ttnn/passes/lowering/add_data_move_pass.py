@@ -312,7 +312,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     with g.inserting_before(dst_node):
         kwargs = {}
         if (
-            (dst_node.target == ttnn.slice and get_shape(src_node)[-1] >= 32)
+            (dst_node.target == ttnn.slice and has_valid_page_size(dst_node, strict=True))
             or dst_node.target == ttnn.embedding
             or dst_node.target == ttnn.zeros_like
             or dst_node.target == target_wrappers.repeat

@@ -105,6 +105,8 @@ class AtenSliceBetweenOpModule(torch.nn.Module):
         ((1, 4251, 192), 1, 1, -100),
         # Hardnet (train)
         ((1, 782, 7, 7), 1, 0, 160),
+        # Clip
+        ((1, 77), 1, 0, 7),
     ),
 )
 def test_aten_slice(device, input_shape, dim, start, end, module):
