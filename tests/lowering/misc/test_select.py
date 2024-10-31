@@ -33,8 +33,9 @@ def test_select(device, input_shapes):
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.slice) == 1
+    nodes = [node.target for node in option._out_fx_graphs[0].nodes]
+    assert nodes.count(ttnn.slice) == 1 and \
+           (nodes.count(ttnn.squeeze) == 1 or nodes.count(ttnn.reshape) == 1)
 
     # Check inference result
     assert_with_pcc(result_before, result_after, pcc=0.99)
