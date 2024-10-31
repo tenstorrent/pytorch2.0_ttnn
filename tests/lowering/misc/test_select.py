@@ -18,7 +18,7 @@ class SelectModule(torch.nn.Module):
     "input_shapes",
     [(1, 32, 16, 3, 96)],
 )
-def test_adaptive_avg_pool_2d(device, input_shapes):
+def test_select(device, input_shapes):
     m = SelectModule()
     inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
     result_before = m.forward(inputs)
