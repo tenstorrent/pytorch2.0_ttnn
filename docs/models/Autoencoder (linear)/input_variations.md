@@ -6,31 +6,31 @@
 |  2 | aten.t.default     |                  8 |           7 |         0 |          0 | 🚧          |    0.88 |
 ***
 ### aten.addmm.default
-|    | ATen Input Variations                                                                | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
-|---:|:-------------------------------------------------------------------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[128]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 128]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  1 | Tensor<[128]> self = ?,<br>Tensor<[1, 784]> mat1 = ?,<br>Tensor<[784, 128]> mat2 = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  2 | Tensor<[12]> self = ?,<br>Tensor<[1, 3]> mat1 = ?,<br>Tensor<[3, 12]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  3 | Tensor<[12]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 12]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  4 | Tensor<[3]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 3]> mat2 = ?       | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  5 | Tensor<[64]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 64]> mat2 = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  6 | Tensor<[64]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 64]> mat2 = ?     | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  7 | Tensor<[784]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 784]> mat2 = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
+|    | ATen Input Variations                                                                | Status   | Isolated   | PCC   |
+|---:|:-------------------------------------------------------------------------------------|:---------|:-----------|:------|
+|  0 | Tensor<[128]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 128]> mat2 = ?   | Done     | Done       | True  |
+|  1 | Tensor<[128]> self = ?,<br>Tensor<[1, 784]> mat1 = ?,<br>Tensor<[784, 128]> mat2 = ? | Done     | Done       | True  |
+|  2 | Tensor<[12]> self = ?,<br>Tensor<[1, 3]> mat1 = ?,<br>Tensor<[3, 12]> mat2 = ?       | Done     | Done       | True  |
+|  3 | Tensor<[12]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 12]> mat2 = ?     | Done     | Done       | True  |
+|  4 | Tensor<[3]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 3]> mat2 = ?       | Done     | Done       | True  |
+|  5 | Tensor<[64]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 64]> mat2 = ?   | Done     | Done       | True  |
+|  6 | Tensor<[64]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 64]> mat2 = ?     | Done     | Done       | True  |
+|  7 | Tensor<[784]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 784]> mat2 = ? | Done     | Done       | True  |
 ### aten.relu.default
-|    | ATen Input Variations     | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
-|---:|:--------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[1, 128]> self = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  1 | Tensor<[1, 12]> self = ?  | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  2 | Tensor<[1, 64]> self = ?  | Done     | N/A                 | N/A          | N/A               | N/A                |
+|    | ATen Input Variations     | Status   | Isolated   | PCC   |
+|---:|:--------------------------|:---------|:-----------|:------|
+|  0 | Tensor<[1, 128]> self = ? | Done     | Done       | True  |
+|  1 | Tensor<[1, 12]> self = ?  | Done     | Done       | True  |
+|  2 | Tensor<[1, 64]> self = ?  | Done     | Done       | True  |
 ### aten.t.default
-|    | ATen Input Variations       | Status   | Single-native-run   | Single-run   | Single-accuracy   | Single-converted   |
-|---:|:----------------------------|:---------|:--------------------|:-------------|:------------------|:-------------------|
-|  0 | Tensor<[12, 3]> self = ?    | None     | N/A                 | N/A          | N/A               | N/A                |
-|  1 | Tensor<[12, 64]> self = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  2 | Tensor<[128, 64]> self = ?  | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  3 | Tensor<[128, 784]> self = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  4 | Tensor<[3, 12]> self = ?    | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  5 | Tensor<[64, 128]> self = ?  | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  6 | Tensor<[64, 12]> self = ?   | Done     | N/A                 | N/A          | N/A               | N/A                |
-|  7 | Tensor<[784, 128]> self = ? | Done     | N/A                 | N/A          | N/A               | N/A                |
+|    | ATen Input Variations       | Status   | Isolated   | PCC   |
+|---:|:----------------------------|:---------|:-----------|:------|
+|  0 | Tensor<[12, 3]> self = ?    | None     | Fallback   | True  |
+|  1 | Tensor<[12, 64]> self = ?   | Done     | Done       | True  |
+|  2 | Tensor<[128, 64]> self = ?  | Done     | Done       | True  |
+|  3 | Tensor<[128, 784]> self = ? | Done     | Done       | True  |
+|  4 | Tensor<[3, 12]> self = ?    | Done     | Done       | True  |
+|  5 | Tensor<[64, 128]> self = ?  | Done     | Done       | True  |
+|  6 | Tensor<[64, 12]> self = ?   | Done     | Done       | True  |
+|  7 | Tensor<[784, 128]> self = ? | Done     | Done       | True  |
 

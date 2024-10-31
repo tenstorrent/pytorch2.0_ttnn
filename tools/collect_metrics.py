@@ -16,8 +16,8 @@ import warnings
 csv_header_mappings = {
     "model": ("Model", "Name of the model."),
     "success": (
-        "Run Success",
-        "Indicates whether the model runs successfully after conversion.",
+        "Status",
+        "Indicates whether the model is ❌ traced / 🚧 compiled / ✅ E2E on device.",
     ),
     "torch_ops_total_unique_before": (
         "Torch Ops Before (Unique Ops)",
@@ -317,16 +317,24 @@ class InputVarPerOp(defaultdict):
                 na,
             )
 
-        input_vars_dict["Single-native-run"] = []
-        input_vars_dict["Single-run"] = []
-        input_vars_dict["Single-accuracy"] = []
-        input_vars_dict["Single-converted"] = []
+        input_vars_dict["Isolated"] = []
+        input_vars_dict["PCC"] = []
         for input_variation in input_variations:
             single_status = _filter_single_status(opname, input_variation)
-            input_vars_dict["Single-native-run"].append(single_status["native_run"])
-            input_vars_dict["Single-run"].append(single_status["run"])
-            input_vars_dict["Single-accuracy"].append(single_status["accuracy"])
-            input_vars_dict["Single-converted"].append(single_status["convert_to_ttnn"])
+            status = "None"
+            # aten ir should run success, or the single op testcase is illegal
+            if single_status["native_run"] != True:
+                status = "Unknown"
+            # if compiled graph run fail, then the status is failed
+            elif single_status["run"] == False:
+                status = "Failed"
+            # or status is done or fallback according to the convert_to_ttnn
+            elif single_status["run"] == True and single_status["convert_to_ttnn"] == True:
+                status = "Done"
+            elif single_status["run"] == True and single_status["convert_to_ttnn"] == False:
+                status = "Fallback"
+            input_vars_dict["Isolated"].append(status)
+            input_vars_dict["PCC"].append(single_status["accuracy"])
 
     def generate_md_for_input_variations(self) -> str:
         """
@@ -517,8 +525,11 @@ if __name__ == "__main__":
         compiled_run_success = compiled_runtime_metrics["success"]
         pydantic_model.run_success = compiled_run_success
         # Remap bool to emoji
-        emoji_map = {True: "✅", False: "✘"}
-        compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
+        if compiled_run_success and aten_ops_remain == 0:
+            compiled_runtime_metrics["success"] = "✅"
+        else:
+            emoji_map = {True: "🚧", False: "❌"}
+            compiled_runtime_metrics["success"] = emoji_map[compiled_run_success]
 
         # Process input variations per model
         input_var_per_op = InputVarPerOp(

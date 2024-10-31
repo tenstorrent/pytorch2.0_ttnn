@@ -29,7 +29,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_vilt(record_property, mode):
     model_name = "ViLT"
     record_property("model_name", model_name)
