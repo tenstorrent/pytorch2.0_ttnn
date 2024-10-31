@@ -11,7 +11,7 @@ from torch_ttnn.utils import (
     HasValidPageSize,
 )
 import numpy as np
-from typing import Tuple
+from typing import List, Sequence, Tuple
 import torch_ttnn.metrics as metrics
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
@@ -289,9 +289,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.minimum.default:
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
-        if target == torch.ops.aten.mul.Tensor:
-            return self.call_function_prop_meta(ttnn.mul, args, kwargs)
-
         if target == torch.ops.aten.pow.Tensor_Scalar:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
@@ -353,6 +350,24 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
         raise RuntimeError(f"Missing conversion from torch.dtype: {dtype} to Ttnn dtype.")
 
 
+def get_broadcast_shape(tensor_shapes: Sequence[Sequence[int]]) -> List[int]:
+    broadcast_shape = [1] * max(len(shape) for shape in tensor_shapes)
+    for shape in tensor_shapes:
+        for index, size in enumerate(shape):
+            pos = len(broadcast_shape) - len(shape) + index
+            broadcast_shape[pos] = max(broadcast_shape[pos], size)
+    return broadcast_shape
+
+
+def get_broadcast_multiplier(
+    broadcast_shape: Sequence[int], tensor_shape: Sequence[int]
+) -> List[int]:
+    return [
+        a if b == 1 else 1
+        for a, b in zip(broadcast_shape[-len(tensor_shape) :], tensor_shape)
+    ]
+
+
 # override some functions from torch.fx.graph.Graph
 class GraphWrapper:
     def __init__(self, node):
@@ -382,6 +397,33 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
         def rewrite_node(node):
             args = node.args
             kwargs = node.kwargs
+
+            if node.target == torch.ops.aten.mul.Tensor:
+                input_a, input_b = args
+                if isinstance(input_b, float):
+                    return g.call_function(ttnn.mul, args=(input_a, input_b), kwargs=kwargs)
+
+                input_a_shape = input_a.meta["val"].size()
+                input_b_shape = input_b.meta["val"].size()
+                broadcast_shape = get_broadcast_shape([input_a_shape, input_b_shape])
+                multiplier_a = get_broadcast_multiplier(broadcast_shape, input_a_shape)
+                multiplier_b = get_broadcast_multiplier(broadcast_shape, input_b_shape)
+                broadcast_a = any(m > 1 for m in multiplier_a)
+                broadcast_b = any(m > 1 for m in multiplier_b)
+                # TODO(#64): Binary op with both side broadcasted produces wrong results. Manually broadcast when possible
+                if broadcast_a and broadcast_b:
+                    if input_a_shape[-1] % 2 == 0:
+                        input_a = g.call_function(
+                            target_wrappers.repeat, args=(input_a, multiplier_a)
+                        )
+                    elif input_b_shape[-1] % 2 == 0:
+                        input_b = g.call_function(
+                            target_wrappers.repeat, args=(input_b, multiplier_b)
+                        )
+                    else:
+                        return None
+
+                return g.call_function(ttnn.mul, args=(input_a, input_b), kwargs=kwargs)
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]

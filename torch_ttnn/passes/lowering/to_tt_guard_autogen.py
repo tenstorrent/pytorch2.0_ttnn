@@ -441,7 +441,7 @@ aten_mul_Tensor_blocklist = [
     ["Tensor<[0, 1]> self = ?", "Tensor<[0, 1]> other = ?"],
     ["Tensor<[]> self = ?", "Tensor<[0, 1]> other = ?"],
     ["Tensor<[0]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[16, 1]> self = ?", "Tensor<[1, 1, 32]> other = ?"],
+    # TODO(DNS): Regenerate this file ["Tensor<[16, 1]> self = ?", "Tensor<[1, 1, 32]> other = ?"],
     ["Tensor<[2, 1]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[1, 71, 7, 64]> self = ?", "Tensor<[1, 1, 7, 64]> other = ?"],

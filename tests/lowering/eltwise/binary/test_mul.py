@@ -18,15 +18,20 @@ class MulModule(torch.nn.Module):
         ((32, 32), (32, 32)),
         ((64,), (32, 64)),
         ((64, 32), (64, 1)),
-        pytest.param(
-            ((64, 1), (1, 64)),
-            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
-        ),
+        ((16, 1), (1, 1, 32)),
+        ((64, 1), (1, 64)),
+        ((32, 32),),
+        ((64,),),
+        ((64, 32),),
+        ((16, 1),),
+        ((64, 1),),
     ),
 )
 def test_mul(device, input_shapes):
     m = MulModule()
     inputs = [torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes]
+    if len(inputs) == 1:
+        inputs.append(0.125)
     result_before = m.forward(*inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
