@@ -462,15 +462,19 @@ class AddDataMovePass(PassBase):
                     and node.target not in TTNN_LAYOUT_CHANGE_OPS
                 ):
                     node.update_arg(idx, data_move_in_hash[arg])
-                elif to_device := try_add_data_move_in(arg, idx, node, device):
-                    data_move_in_hash[arg] = to_device
-                    i += 1
-                elif to_layout := try_add_layout_change_before_node(arg, idx, node):
-                    data_move_in_hash[arg] = to_layout
-                    i += 1
-                elif to_layout := try_add_layout_change_after_node(arg, idx, node, device):
-                    data_move_in_hash[arg] = to_layout
-                    i += 1
+                else:
+                    if to_device := try_add_data_move_in(arg, idx, node, device):
+                        data_move_in_hash[arg] = to_device
+                        i += 1
+                    in_arg = data_move_in_hash.get(arg, arg)
+                    if to_layout := try_add_layout_change_before_node(in_arg, idx, node):
+                        data_move_in_hash[arg] = to_layout
+                        i += 1
+                    elif to_layout := try_add_layout_change_after_node(
+                        in_arg, idx, node, device
+                    ):
+                        data_move_in_hash[arg] = to_layout
+                        i += 1
 
                 if arg in data_move_out_hash and node.op == "output":
                     old_arg = node.args[0]

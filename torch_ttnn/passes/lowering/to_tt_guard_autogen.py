@@ -135,7 +135,7 @@ aten_view_default_blocklist = [
     ["Tensor<[4, 49, 1152]> self = ?", "List[int] size = [4, 49, 3, 12, 32]"],
     ["Tensor<[1, 49, 2304]> self = ?", "List[int] size = [1, 49, 3, 24, 32]"],
     ["Tensor<[1, 1024]> self = ?", "List[int] size = [1, 1024, 1, 1]"],
-    ["Tensor<[1, 32, 4608]> self = ?", "List[int] size = [1, 32, 16, 3, 96]"],
+    # TODO(DNS): Regenerate this file ["Tensor<[1, 32, 4608]> self = ?", "List[int] size = [1, 32, 16, 3, 96]"],
     ["Tensor<[1, 768, 12, 16]> self = ?", "List[int] size = [1, 768, 192]"],
     ["Tensor<[64, 64, 384]> self = ?", "List[int] size = [64, 64, 3, 4, 32]"],
     ["Tensor<[16, 64, 768]> self = ?", "List[int] size = [16, 64, 3, 8, 32]"],
