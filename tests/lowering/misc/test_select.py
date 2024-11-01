@@ -21,16 +21,12 @@ class SelectModule(torch.nn.Module):
         ((3, 32, 16, 3, 96), 2),
         ((3, 32, 16, 3, 96), 1),
         ((3, 32, 16, 3, 96), 0),
-
         ((3, 32, 16, 96), 1),
         ((3, 32, 16, 96), 0),
-
         ((3, 32, 16), 2),
         ((3, 32, 16), 1),
         ((3, 32, 16), 0),
-
         ((3, 32), 0),
-
         pytest.param((3, 32, 16, 3, 96), 4, marks=pytest.mark.xfail()),
         pytest.param((3, 32, 16, 96), 3, marks=pytest.mark.xfail()),
         pytest.param((3, 32, 16, 96), 2, marks=pytest.mark.xfail()),
@@ -53,8 +49,7 @@ def test_select(device, input_shapes, dim):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = [node.target for node in option._out_fx_graphs[0].nodes]
-    assert nodes.count(ttnn.slice) == 1 and \
-           (nodes.count(ttnn.squeeze) == 1 or nodes.count(ttnn.reshape) == 1)
+    assert nodes.count(ttnn.slice) == 1 and (nodes.count(ttnn.squeeze) == 1 or nodes.count(ttnn.reshape) == 1)
 
     # Check inference result
     assert_with_pcc(result_before, result_after, pcc=0.99)
