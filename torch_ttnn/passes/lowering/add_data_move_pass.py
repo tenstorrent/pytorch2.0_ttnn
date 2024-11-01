@@ -172,6 +172,7 @@ def is_tt_compute(node) -> bool:
             ttnn.arange,
             ttnn.zeros_like,
             ttnn.mean,
+            ttnn.moreh_cumsum,
             ttnn.global_avg_pool2d,
             ttnn.clip,
             ttnn.squeeze,
@@ -311,26 +312,12 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        kwargs = {}
-        if (
-            (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and not can_be_tilized(dst_node))
-            or dst_node.target == ttnn.embedding
-            or dst_node.target == ttnn.zeros_like
-            or dst_node.target == target_wrappers.repeat
-        ):
-            kwargs["layout"] = TtnnRowMajorLayout()
-        else:
-            kwargs["layout"] = TtnnTileLayout()
+        kwargs = {"layout": TtnnTileLayout(), "device": device}
 
         if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
             kwargs["dtype"] = TtnnUint32()
         else:
             kwargs["dtype"] = TtnnBfloat16()
-
-        if (is_tt_compute(dst_node) and dst_node.target not in TTNN_LAYOUT_CHANGE_OPS) or (
-            dst_node.target in TTNN_LAYOUT_CHANGE_OPS and HasValidPageSize(src_node.meta["val"].size(), strict=True)
-        ):
-            kwargs["device"] = device
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
@@ -338,28 +325,42 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     return new_nodes[-1]
 
 
-def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
+def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
     # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
     if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return None
     if not is_function_call(dst_node):
         return None
-    if (
-        dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
-        or dst_idx != 0
-        or not is_tt(src_node)
-        or (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and can_be_tilized(dst_node))
-    ):
+
+    need_from_device = False
+    need_to_layout = False
+    need_to_device = False
+    if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node) and not can_be_tilized(dst_node):
+        need_from_device = True
+        need_to_layout = True
+
+    if dst_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
+        # TODO: Only uint32 needs to to_layout on host
+        need_from_device = True
+        need_to_layout = True
+        need_to_device = True
+
+    if not any((need_from_device, need_to_layout, need_to_device)):
         return None
 
     g = dst_node.graph
     with g.inserting_before(dst_node):
-        from_device = g.call_function(ttnn.from_device, (src_node,))
-        to_layout = g.call_function(ttnn.to_layout, (from_device, TtnnRowMajorLayout()))
+        new_nodes = [src_node]
+        if need_from_device:
+            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
+        if need_to_layout:
+            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnRowMajorLayout())))
+        if need_to_device:
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1],), {"device": device}))
+        new_nodes = new_nodes[1:]
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_layout])
-
-    return to_layout
+    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
+    return new_nodes[-1]
 
 
 def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
@@ -494,15 +495,16 @@ class AddDataMovePass(PassBase):
                     and node.target not in TTNN_LAYOUT_CHANGE_OPS
                 ):
                     node.update_arg(idx, data_move_in_hash[arg])
-                elif to_device := try_add_data_move_in(arg, idx, node, device):
-                    data_move_in_hash[arg] = to_device
-                    i += 1
-                elif to_layout := try_add_layout_change_before_node(arg, idx, node):
-                    data_move_in_hash[arg] = to_layout
-                    i += 1
-                elif to_layout := try_add_layout_change_after_node(arg, idx, node, device):
-                    data_move_in_hash[arg] = to_layout
-                    i += 1
+                else:
+                    if to_device := try_add_data_move_in(arg, idx, node, device):
+                        data_move_in_hash[arg] = to_device
+                        i += 1
+                    updated_arg = data_move_in_hash.get(arg, arg)
+                    if to_layout := try_add_layout_change_before_node(updated_arg, idx, node, device):
+                        i += 1
+                    elif to_layout := try_add_layout_change_after_node(updated_arg, idx, node, device):
+                        data_move_in_hash[arg] = to_layout
+                        i += 1
 
                 if arg in data_move_out_hash and node.op == "output":
                     old_arg = node.args[0]
