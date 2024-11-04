@@ -14,6 +14,7 @@ import numpy as np
 from typing import Tuple
 import torch_ttnn.metrics as metrics
 
+from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
@@ -848,7 +849,9 @@ class ToTtPass(PassBase):
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
-        gm = ConstantFolder(gm).run()
+        # Temporarily Disable fake tensor mode to compute real constant tensors
+        with unset_fake_temporarily():
+            gm = ConstantFolder(gm).run()
 
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
