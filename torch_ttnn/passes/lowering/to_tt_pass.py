@@ -872,9 +872,7 @@ class ConstantFolder(torch.nn.Module):
         for node in self.module.graph.nodes:
             if node.op == "call_function" and node.target in self.foldable_ops and self._can_fold(node):
                 try:
-                    print("+++", node.target, "_can_fold")
                     folded_value = self._evaluate_node(node)
-                    print("---", folded_value)
                     self._replace_with_constant(node, folded_value)
                 except Exception as e:
                     print(f"Warning: Could not fold node {node.name}: {e}")
@@ -902,22 +900,11 @@ class ConstantFolder(torch.nn.Module):
                 args.append(arg)
 
         if node.target == torch.ops.aten.lift_fresh_copy.default:
-            print("++++", node.target)
-            # return args[0] #.clone()
-            return torch.tensor(
-                [
-                    0.7071,
-                ],
-                dtype=torch.bfloat16,
-            )
+            return args[0]
         elif node.target == torch.ops.aten.pow.Tensor_Tensor:
-            print("++++", node.target)
-            result = torch.pow(*args)
-            print("---", node.target)
-            return result
+            return torch.pow(*args)
         elif node.target == torch.ops.aten.arange.start:
-            print("++++", node.target)
-            return torch.arange(1, 17, dtype=torch.int32)
+            return torch.arange(*args, **node.kwargs)
         # Add handlers for other operations...
 
         raise ValueError(f"Unsupported operation: {node.target}")
