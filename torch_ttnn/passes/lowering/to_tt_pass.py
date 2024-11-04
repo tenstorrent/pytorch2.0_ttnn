@@ -338,6 +338,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
+        if target == torch.ops.aten.detach.default:
+            return args[0]
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
