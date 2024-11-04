@@ -385,7 +385,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
-                ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
+                try:
+                    ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
+                except:
+                    return None
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
                 return g.call_function(target_wrappers.clone, args=(args[0],))
 

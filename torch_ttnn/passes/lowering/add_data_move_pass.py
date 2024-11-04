@@ -206,6 +206,17 @@ def call_to_torch_with_meta(g, src_node):
     return call_func
 
 
+def call_aten__to_copy_with_meta(g, src_node, dtype):
+    call_func = g.call_function(
+        torch.ops.aten._to_copy.default,
+        (src_node,),
+        {"dtype": dtype},
+    )
+    if src_node.meta is not None:
+        call_func.meta = src_node.meta
+    return call_func
+
+
 def should_add_data_move_in(src_node, dst_node) -> bool:
     if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return False
@@ -379,6 +390,11 @@ def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
             g = dst_node.graph
             with g.inserting_before(dst_node):
                 new_nodes.append(call_to_torch_with_meta(g, src_node))
+                # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
+                # TODO: After to_torch has dtype args, then can adjust back in to_torch
+                if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
+                    src_meta_dtype = src_node.meta["val"].dtype
+                    new_nodes.append(call_aten__to_copy_with_meta(g, new_nodes[-1], src_meta_dtype))
         else:
             new_nodes.append(src_node)
 
@@ -396,8 +412,12 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(call_to_torch_with_meta(g, new_nodes[-1] if new_nodes else src_node))
-
+        new_nodes.append(call_to_torch_with_meta(g, src_node))
+        # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
+        # TODO: After to_torch has dtype args, then can adjust back in to_torch
+        if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
+            src_meta_dtype = src_node.meta["val"].dtype
+            new_nodes.append(call_aten__to_copy_with_meta(g, new_nodes[-1], src_meta_dtype))
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
 
@@ -411,6 +431,11 @@ def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.f
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
             new_nodes.append(call_to_torch_with_meta(g, src_node))
+            # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
+            # TODO: After to_torch has dtype args, then can adjust back in to_torch
+            if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
+                src_meta_dtype = src_node.meta["val"].dtype
+                new_nodes.append(call_aten__to_copy_with_meta(g, new_nodes[-1], src_meta_dtype))
 
     # Workaround to output the same layer_norm output
     # Before: layer_norm = aten.layer_norm
@@ -490,38 +515,3 @@ class AddDataMovePass(PassBase):
 
         modified = i > 0
         return PassResult(gm, modified)
-
-    def ensures(self, gm: torch.fx.GraphModule) -> None:
-        # Because of the mixing of ttnn and aten ops, some types need to be fixed
-        for node in gm.graph.nodes:
-            if node.target == ttnn.to_torch:
-                # Recast back to int64 type for a select list of aten ops
-                fallback_ops = set(
-                    [
-                        torch.ops.aten.embedding.default,
-                        torch.ops.aten._unsafe_index.Tensor,
-                        torch.ops.aten._unsafe_index_put,
-                        torch.ops.aten.index.Tensor,
-                        torch.ops.aten.index_put,
-                        torch.ops.aten.index_select,
-                        torch.ops.aten.masked_fill.Scalar,
-                        torch.ops.aten.masked_fill.Tensor,
-                    ]
-                )
-                node_meta_dtype = node.meta["val"].dtype
-                fallback_types = [torch.int64, torch.int32, torch.bool]
-                if node_meta_dtype in fallback_types and fallback_ops.intersection(
-                    set([user.target for user in node.users.keys()])
-                ):
-                    g = node.graph
-                    with g.inserting_after(node):
-                        # TODO: Is _to_copy the right op?
-                        new_node = g.call_function(
-                            torch.ops.aten._to_copy.default,
-                            (node,),
-                            {"dtype": node_meta_dtype},
-                        )
-                        new_node.meta = dict(node.meta)
-                        # Remove "original_input_variations" data if exists since this is not a conversion
-                        new_node.meta.pop("original_input_variations")
-                        node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
