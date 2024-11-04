@@ -359,13 +359,8 @@ def get_broadcast_shape(tensor_shapes: Sequence[Sequence[int]]) -> List[int]:
     return broadcast_shape
 
 
-def get_broadcast_multiplier(
-    broadcast_shape: Sequence[int], tensor_shape: Sequence[int]
-) -> List[int]:
-    return [
-        a if b == 1 else 1
-        for a, b in zip(broadcast_shape[-len(tensor_shape) :], tensor_shape)
-    ]
+def get_broadcast_multiplier(broadcast_shape: Sequence[int], tensor_shape: Sequence[int]) -> List[int]:
+    return [a if b == 1 else 1 for a, b in zip(broadcast_shape[-len(tensor_shape) :], tensor_shape)]
 
 
 # override some functions from torch.fx.graph.Graph
@@ -413,13 +408,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # TODO(#64): Binary op with both side broadcasted produces wrong results. Manually broadcast when possible
                 if broadcast_a and broadcast_b:
                     if input_a_shape[-1] % 2 == 0:
-                        input_a = g.call_function(
-                            target_wrappers.repeat, args=(input_a, multiplier_a)
-                        )
+                        input_a = g.call_function(target_wrappers.repeat, args=(input_a, multiplier_a))
                     elif input_b_shape[-1] % 2 == 0:
-                        input_b = g.call_function(
-                            target_wrappers.repeat, args=(input_b, multiplier_b)
-                        )
+                        input_b = g.call_function(target_wrappers.repeat, args=(input_b, multiplier_b))
                     else:
                         return None
 
@@ -800,8 +791,24 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensor, dim = args
                 input_shape = tensor.meta["val"].size()
                 rank = len(input_shape)
+                if rank > 4:
+                    return None
                 dim = (dim + rank) % rank
-                return g.call_function(ttnn.moreh_cumsum, (tensor, dim), kwargs)
+                # Unsqueeze input tensor to 4D for cumsum
+                # TODO(#367): Special case if dim is inner-most 2 dim
+                if (dim - rank) >= -2:
+                    if rank <= 2:
+                        input_4d_shape = (1,) * (2 - rank) + (*input_shape, 1, 1)
+                    elif rank == 3 and dim == 1:
+                        input_4d_shape = (*input_shape, 1)
+                    else:
+                        return None
+                else:
+                    input_4d_shape = (1,) * (4 - rank) + input_shape
+                    dim += 4 - rank
+                input_4d = g.call_function(ttnn.reshape, (tensor, input_4d_shape))
+                output_4d = g.call_function(ttnn.moreh_cumsum, (input_4d, dim), kwargs)
+                return g.call_function(ttnn.reshape, (output_4d, input_shape))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
