@@ -751,8 +751,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten._to_copy.default:
                 target_users_ops = [user.target for user in node.users.keys()]
                 # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
+                # Can be removed if bool is only used for the following ops that have lowering:
+                ops_safe_to_remove = set([torch.ops.aten.masked_fill.Scalar])
+                can_remove_bool = kwargs["dtype"] != bool or (
+                    kwargs["dtype"] == torch.bool and ops_safe_to_remove.intersection(target_users_ops)
+                )
                 # Skip if type casting from bool and if the graph output uses this op
-                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
+                if can_remove_bool and "output" not in target_users_ops:
                     # Essentially remove this op because it's used as a typecast
                     return node.args[0]
                 else:
