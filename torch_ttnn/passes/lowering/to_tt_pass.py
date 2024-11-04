@@ -938,7 +938,7 @@ class ToTtPass(PassBase):
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
-        # Temporarily Disable fake tensor mode to compute real constant tensors
+        # Temporarily disable fake tensor mode to compute real constant tensors
         with unset_fake_temporarily():
             gm = ConstantFolder(gm).run()
 
