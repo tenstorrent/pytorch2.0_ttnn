@@ -144,12 +144,11 @@ TTNN_LAYOUT_CHANGE_OPS = set(
 
 
 # FIXME: Workaround function for unsupported features for ttnn.reshape
-# BUG (https://github.com/tenstorrent/tt-metal/issues/13891)
 # BUG (https://github.com/tenstorrent/tt-metal/issues/13889)
 def can_reshape(node):
     shape = node.meta["val"].size()
     supported_H_dim = len(shape) >= 2 and (
-        (shape[-2] >= 32 and shape[-2] % 32 == 0) or (shape[-2] < 32 and shape[-2] > 1)
+        (shape[-2] >= 32 and shape[-2] % 32 == 0)
     )
     # Unsupported if output rank is > 4
     return supported_H_dim and len(shape) <= 4

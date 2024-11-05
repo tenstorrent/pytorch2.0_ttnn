@@ -35,6 +35,10 @@ aten_view_default_blocklist += [
     ["Tensor<[16, 7, 64]> self = ?", "List[int] size = [2, 8, 7, 64]"],
     ["Tensor<[14, 2048]> self = ?", "List[int] size = [2, 7, 2048]"],
     ["Tensor<[2, 7, 2048]> self = ?", "List[int] size = [14, 2048]"],
+    ["Tensor<[9, 30000]> self = ?", "List[int] size = [1, 9, 30000]"],
+    ["Tensor<[9, 8192]> self = ?", "List[int] size = [1, 9, 8192]"],
+    ["Tensor<[1, 9, 8192]> self = ?", "List[int] size = [9, 8192]"],
+    ["Tensor<[9, 16384]> self = ?", "List[int] size = [1, 9, 16384]"],
 ]
 
 aten__to_copy_default_blocklist = [
