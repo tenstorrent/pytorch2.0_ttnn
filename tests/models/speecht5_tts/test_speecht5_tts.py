@@ -30,6 +30,7 @@ class ThisTester(ModelTester):
         return model
 
 
+@pytest.mark.skip("Flaky: https://github.com/tenstorrent/pytorch2.0_ttnn/issues/375")
 @pytest.mark.parametrize(
     "mode",
     ["eval"],
