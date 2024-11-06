@@ -14,7 +14,6 @@ import numpy as np
 from typing import Tuple
 import torch_ttnn.metrics as metrics
 
-from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
@@ -769,77 +768,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     return gm
 
 
-class ConstantFolder(torch.nn.Module):
-    def __init__(self, module: torch.fx.GraphModule):
-        super().__init__()
-        self.module = module
-        self.foldable_ops = {
-            torch.ops.aten.lift_fresh_copy.default,
-            torch.ops.aten.pow.Tensor_Tensor,
-            torch.ops.aten.arange.start,
-        }
-
-    def run(self) -> torch.fx.GraphModule:
-        for node in self.module.graph.nodes:
-            if node.op == "call_function" and node.target in self.foldable_ops and self._can_fold(node):
-                try:
-                    folded_value = self._evaluate_node(node)
-                    self._replace_with_constant(node, folded_value)
-                except Exception as e:
-                    print(f"Warning: Could not fold node {node.name}: {e}")
-
-        self.module.recompile()
-        return self.module
-
-    def _can_fold(self, node):
-        for arg in node.args:
-            if isinstance(arg, torch.fx.Node):
-                if arg.op not in ("get_attr", "constant"):
-                    return False
-        return True
-
-    def _evaluate_node(self, node):
-        args = []
-        for arg in node.args:
-            if isinstance(arg, torch.fx.Node):
-                if arg.op == "get_attr":
-                    value = getattr(self.module, arg.target)
-                    args.append(value)
-                elif arg.op == "constant":
-                    args.append(arg.args[0])
-            else:
-                args.append(arg)
-
-        if node.target == torch.ops.aten.lift_fresh_copy.default:
-            return args[0]
-        elif node.target == torch.ops.aten.pow.Tensor_Tensor:
-            return torch.pow(*args)
-        elif node.target == torch.ops.aten.arange.start:
-            return torch.arange(*args, **node.kwargs)
-        # Add handlers for other operations...
-
-        raise ValueError(f"Unsupported operation: {node.target}")
-
-    def _replace_with_constant(self, node, value):
-        with self.module.graph.inserting_before(node):
-            new_node = self.module.graph.create_node("get_attr", target=f"_folded_{node.name}", args=(), kwargs=None)
-
-        self.module.register_parameter(f"_folded_{node.name}", torch.nn.Parameter(value, requires_grad=False))
-
-        node.replace_all_uses_with(new_node)
-        self.module.graph.erase_node(node)
-
-
 class ToTtPass(PassBase):
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
-        # Temporarily disable fake tensor mode to compute real constant tensors
-        with unset_fake_temporarily():
-            gm = ConstantFolder(gm).run()
-
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
