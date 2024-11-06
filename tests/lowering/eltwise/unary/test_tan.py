@@ -3,6 +3,8 @@ import torch_ttnn
 import pytest
 import ttnn
 
+from tests.utils import assert_with_pcc
+
 
 class TanModule(torch.nn.Module):
     def __init__(self):
@@ -13,12 +15,17 @@ class TanModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    ("input_shape", "init_offset"),
-    [((4, 4), 0)],
+    "input_shape, range",
+    (
+        ((4, 4), 1),
+        ((1, 1066), 1),
+        ((1, 1066), 1.5),
+        pytest.param((1, 1066), 1.6, marks=pytest.mark.xfail(reason="tt-metal#14414: inaccurate reciprocal")),
+    ),
 )
-def test_tan(device, input_shape, init_offset):
+def test_tan(device, input_shape, range):
     m = TanModule()
-    input = torch.rand(input_shape, dtype=torch.bfloat16) + init_offset
+    input = (torch.rand(input_shape, dtype=torch.bfloat16) * 2 - 1) * range
     result_before = m.forward(input)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
@@ -32,4 +39,4 @@ def test_tan(device, input_shape, init_offset):
     assert [node.target for node in nodes].count(ttnn.tan) == 1
 
     # Check inference result
-    assert torch.allclose(result_before, result_after, rtol=0.1, atol=0.1)
+    assert_with_pcc(result_before, result_after)
