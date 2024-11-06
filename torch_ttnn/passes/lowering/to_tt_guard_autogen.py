@@ -389,7 +389,7 @@ aten_transpose_int_blocklist = [
     ["Tensor<[16, 64, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
     ["Tensor<[1, 16, 64, 197]> self = ?", "int dim0 = -1", "int dim1 = -2"],
 ]
-aten_embedding_default_blocklist = [["Tensor<[2048, 768]> weight = ?", "Tensor<[2048]> indices = ?"]]
+aten_embedding_default_blocklist = [["Tensor<[2048, 768]> weight = ?", "Tensor indices = ?"]]
 aten_zeros_like_default_blocklist = [
     ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
     ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
