@@ -154,37 +154,6 @@ aten_view_default_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF XGLM
 ############################################################
-# see issue #360
-# Error msg:
-# self = <OpOverload(op='aten.index_select', overload='default')>
-# args = (tensor([[ 0.0000,  0.0000,  0.0000,  ...,  1.0000,  1.0000,  1.0000],
-#         [ 0.0000,  0.0000,  0.0000,  ...,  0.00....,  5.,  6.,  7.,  8.,  9., 10., 11., 12., 13., 14.,
-#              15., 16., 17., 18., 19., 20.], dtype=torch.bfloat16))
-# kwargs = {}
-#     def __call__(self, *args, **kwargs):
-# >       return self._op(*args, **(kwargs or {}))
-# E       RuntimeError: index_select(): Expected dtype int32 or int64 for index
-#
-# open "metrics/XGLM/00.origin.dot.svg" and search "index_select", you can see this pattern...
-# aten::arange.start -> aten::unsqueeze -> aten::add.Tensor ->
-# aten::squeeze.dim -> aten::unsqueeze -> aten::view -> 3rd input of aten::index_select
-# 3rd input of aten::index_select should be int32 or int64, but after lowering, it is bf16
-#
-# I disable above pattern to avoid it become ttnn op
-
-# aten::arange.start: it's not lowering, no need to block
-# aten::unsqueeze
-aten_unsqueeze_default_blocklist = [["Tensor<[19]> self = ?", "int dim = 0"]]
-# aten::add.Tensor
-aten_add_Tensor_blocklist += [["Tensor<[1, 19]> self = ?", "Tensor other = 2"]]
-# aten::squeeze.dim
-aten_squeeze_dim_blocklist = [["Tensor<[1, 19]> self = ?", "int dim = 0"]]
-# aten::unsqueeze: same with above, no need to block
-# aten::view
-aten_view_default_blocklist += [
-    ["Tensor<[1, 19]> self = ?", "List[int] size = [-1]"],
-]
-
 # see issue #361
 # For valid non-interleaved buffers page size 38 must equal buffer size 720.
 # For interleaved-buffers page size should be divisible by buffer size
@@ -195,8 +164,6 @@ aten_masked_fill_scalar_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF FALCON
 ############################################################
-
-aten_unsqueeze_default_blocklist += [["Tensor<[7]> self = ?", "int dim = 0"]]
 
 aten_masked_fill_scalar_blocklist += [["Tensor<[7, 7]> self = ?", "Tensor<[7, 7]> mask = ?", "number value = -inf"]]
 
@@ -306,68 +273,6 @@ aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [
 ############################################################
 # EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
 ############################################################
-
-# see issue #360
-# ghostnetv2_100.in1k
-# RuntimeError: _unsafe_index found unexpected index type BFloat16
-# arange => add => mul => to_copy => unsqueeze => unsafe_index
-
-aten_arange_default_blocklist = [
-    [
-        "number end = 56",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "number end = 28",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "number end = 14",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "number end = 7",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-]
-
-aten_add_Tensor_blocklist += [
-    ["Tensor<[56]> self = ?", "Tensor other = 0.0"],
-    ["Tensor<[28]> self = ?", "Tensor other = 0.0"],
-    ["Tensor<[14]> self = ?", "Tensor other = 0.0"],
-    ["Tensor<[7]> self = ?", "Tensor other = 0.0"],
-]
-
-aten_mul_Tensor_blocklist += [
-    ["Tensor<[56]> self = ?", "Tensor other = 0.5"],
-    ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
-    ["Tensor<[14]> self = ?", "Tensor other = 0.5"],
-    ["Tensor<[7]> self = ?", "Tensor other = 0.42857142857142855"],
-]
-
-
-aten__to_copy_default_blocklist += [
-    ["Tensor<[56]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[28]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[14]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[7]> self = ?", "Optional[int] dtype = torch.int64"],
-]
-
-aten_unsqueeze_default_blocklist += [
-    ["Tensor<[56]> self = ?", "int dim = -1"],
-    ["Tensor<[28]> self = ?", "int dim = -1"],
-    ["Tensor<[14]> self = ?", "int dim = -1"],
-    ["Tensor<[7]> self = ?", "int dim = -1"],
-]
-
 # ghostnetv2_100.in1k-train
 # TODO:
 # RuntimeError: Index put requires the source and destination dtypes match,
@@ -422,29 +327,6 @@ aten_mul_Tensor_blocklist += [
 # >       return self._op(*args, **(kwargs or {}))
 # E       RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
 
-
-############################################################
-# EXTRA BLOCKLIST OF ViLT
-############################################################
-# see issue #360
-# RuntimeError: _unsafe_index found unexpected index type BFloat16
-# arange => add => mul => to_copy => unsafe_index
-
-aten_add_Tensor_blocklist += [
-    ["Tensor<[12]> self = ?", "Tensor other = 0.0"],
-    ["Tensor<[16]> self = ?", "Tensor other = 0.0"],
-]
-
-aten_mul_Tensor_blocklist += [
-    ["Tensor<[12]> self = ?", "Tensor other = 32.0"],
-    ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
-]
-
-aten__to_copy_default_blocklist += [
-    ["Tensor<[12]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[16]> self = ?", "Optional[int] dtype = torch.int64"],
-]
-
 ############################################################
 # EXTRA BLOCKLIST OF speecht5-tts
 ############################################################
@@ -471,32 +353,6 @@ aten_masked_fill_scalar_blocklist += [
     ],
     ["Tensor<[1, 1, 1, 24]> self = ?", "Tensor<[1, 1, 1, 24]> mask = ?", "number value = -3.3895313892515355e+38"],
 ]
-
-# see issue #360
-# RuntimeError: Expected tensor for argument #1 'indices' to have one of the following scalar types:
-# Long, Int; but got CPUBFloat16Type instead (while checking arguments for embedding)
-# arange(0, 24)
-# slice(arange, 0, 0, 9223372036854775807)
-# unsqueeze(slice, 1)
-# unsqueeze_2(arange, 0)
-# slice_2(unsqueeze_2, 1, 0, 9223372036854775807)
-# sub(unsqueeze, slice_2)
-# add(sub, 160)
-# embedding(arg4_1, add)
-# add output is bf16 type, which is wrong
-
-aten_slice_Tensor_blocklist += [
-    ["Tensor<[24]> self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
-    [
-        "Tensor<[1, 24]> self = ?",
-        "int dim = 1",
-        "Optional[int] start = 0",
-        "Optional[int] end = 9223372036854775807",
-    ],
-]
-
-
-aten_unsqueeze_default_blocklist += [["Tensor<[24]> self = ?", "int dim = 1"], ["Tensor<[24]> self = ?", "int dim = 0"]]
 
 # see issue #358
 # ttnn.add
@@ -556,10 +412,7 @@ aten_add_Tensor_blocklist += [["Tensor<[1, 196, 768]> self = ?", "Tensor<[1, 196
 ############################################################
 
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
-# GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
-GUARD[torch.ops.aten.squeeze.dim] = partial(guard_aten, aten_squeeze_dim_blocklist)
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
-GUARD[torch.ops.aten.arange.default] = partial(guard_aten, aten_arange_default_blocklist)
 GUARD[torch.ops.aten.mean.dim] = partial(guard_aten, aten_mean_dim_blocklist)
 
 

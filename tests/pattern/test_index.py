@@ -54,7 +54,6 @@ def test_index(device):
     assert torch.allclose(result_before, result_after, rtol=0.1, atol=0.1)
 
 
-@pytest.mark.skip()
 def test_index_add(device):
     m = AddModule()
     # root cause, output type become bfloat16, but origin is int64
