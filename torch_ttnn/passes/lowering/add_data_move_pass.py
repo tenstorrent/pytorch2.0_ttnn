@@ -206,15 +206,25 @@ def call_to_torch_with_meta(g, src_node):
     return call_func
 
 
-def call_aten__to_copy_with_meta(g, src_node, dtype):
-    call_func = g.call_function(
-        torch.ops.aten._to_copy.default,
-        (src_node,),
-        {"dtype": dtype},
-    )
-    if src_node.meta is not None:
-        call_func.meta = src_node.meta
-    return call_func
+def try_call_aten__to_copy_with_meta(g, to_torch_node):
+    # try_add_data_move_in will change dtype to bfloat16
+    # so the to_torch's output dtype will be bfloat16, which is incorrect
+    # luckly, the meta remain the origin correct dtype
+    # so add aten._to_copy(dtype) to correct the dtype
+    # TODO: If to_torch can specify dtype, then can merge to_copy on it
+
+    # if user only output, then no need to add
+    if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
+        dtype = to_torch_node.meta["val"].dtype
+        call_func = g.call_function(
+            torch.ops.aten._to_copy.default,
+            (to_torch_node,),
+            {"dtype": dtype},
+        )
+        call_func.meta = to_torch_node.meta
+        return call_func
+    else:
+        return None
 
 
 def should_add_data_move_in(src_node, dst_node) -> bool:
@@ -389,16 +399,12 @@ def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
         if should_add_data_move_out(src_node, dst_node):
             g = dst_node.graph
             with g.inserting_before(dst_node):
-                node_to_torch = call_to_torch_with_meta(g, src_node)
-                # new_nodes.append(call_to_torch_with_meta(g, src_node))
-                # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
-                # TODO: After to_torch has dtype args, then can adjust back in to_torch
-                if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
-                    src_meta_dtype = src_node.meta["val"].dtype
-                    node_copy = call_aten__to_copy_with_meta(g, node_to_torch, src_meta_dtype)
-                    new_node = node_copy
+                to_torch_node = call_to_torch_with_meta(g, src_node)
+                copy_node = try_call_aten__to_copy_with_meta(g, to_torch_node)
+                if copy_node:
+                    new_node = copy_node
                 else:
-                    new_node = node_to_torch
+                    new_node = to_torch_node
         else:
             new_node = src_node
         new_nodes.append(new_node)
@@ -418,11 +424,9 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     new_nodes = list()
     with g.inserting_before(dst_node):
         new_nodes.append(call_to_torch_with_meta(g, src_node))
-        # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
-        # TODO: After to_torch has dtype args, then can adjust back in to_torch
-        if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
-            src_meta_dtype = src_node.meta["val"].dtype
-            new_nodes.append(call_aten__to_copy_with_meta(g, new_nodes[-1], src_meta_dtype))
+        copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1])
+        if copy_node:
+            new_nodes.append(copy_node)
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
 
@@ -436,11 +440,9 @@ def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.f
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
             new_nodes.append(call_to_torch_with_meta(g, src_node))
-            # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
-            # TODO: After to_torch has dtype args, then can adjust back in to_torch
-            if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
-                src_meta_dtype = src_node.meta["val"].dtype
-                new_nodes.append(call_aten__to_copy_with_meta(g, new_nodes[-1], src_meta_dtype))
+            copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1])
+            if copy_node:
+                new_nodes.append(copy_node)
 
     # Workaround to output the same layer_norm output
     # Before: layer_norm = aten.layer_norm
