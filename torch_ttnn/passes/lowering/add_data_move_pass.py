@@ -389,14 +389,19 @@ def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
         if should_add_data_move_out(src_node, dst_node):
             g = dst_node.graph
             with g.inserting_before(dst_node):
-                new_nodes.append(call_to_torch_with_meta(g, src_node))
-                # # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
-                # # TODO: After to_torch has dtype args, then can adjust back in to_torch
-                # if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
-                #     src_meta_dtype = src_node.meta["val"].dtype
-                #     new_nodes.append(call_aten__to_copy_with_meta(g, new_nodes[-1], src_meta_dtype))
+                node_to_torch = call_to_torch_with_meta(g, src_node)
+                # new_nodes.append(call_to_torch_with_meta(g, src_node))
+                # try_add_data_move_in will change dtype to bfloat16, should adjust back from meta
+                # TODO: After to_torch has dtype args, then can adjust back in to_torch
+                if hasattr(src_node, "meta") and "val" in src_node.meta and hasattr(src_node.meta["val"], "dtype"):
+                    src_meta_dtype = src_node.meta["val"].dtype
+                    node_copy = call_aten__to_copy_with_meta(g, node_to_torch, src_meta_dtype)
+                    new_node = node_copy
+                else:
+                    new_node = node_to_torch
         else:
-            new_nodes.append(src_node)
+            new_node = src_node
+        new_nodes.append(new_node)
 
     if new_nodes:
         dst_node.update_arg(dst_idx, new_nodes)
