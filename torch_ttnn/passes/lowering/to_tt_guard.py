@@ -273,6 +273,26 @@ aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [
 ############################################################
 # EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
 ############################################################
+
+# see issue #360
+# ghostnetv2_100.in1k
+# RuntimeError: _unsafe_index found unexpected index type BFloat16
+# arange => add => mul => to_copy => unsqueeze => unsafe_index
+
+aten_add_Tensor_blocklist += [
+    ["Tensor<[56]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[28]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[14]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[7]> self = ?", "Tensor other = 0.0"],
+]
+
+aten_mul_Tensor_blocklist += [
+    ["Tensor<[56]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[14]> self = ?", "Tensor other = 0.5"],
+    ["Tensor<[7]> self = ?", "Tensor other = 0.42857142857142855"],
+]
+
 # ghostnetv2_100.in1k-train
 # TODO:
 # RuntimeError: Index put requires the source and destination dtypes match,
@@ -326,6 +346,24 @@ aten_mul_Tensor_blocklist += [
 #     def __call__(self, *args, **kwargs):
 # >       return self._op(*args, **(kwargs or {}))
 # E       RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
+
+
+############################################################
+# EXTRA BLOCKLIST OF ViLT
+############################################################
+# see issue #360
+# RuntimeError: _unsafe_index found unexpected index type BFloat16
+# arange => add => mul => to_copy => unsafe_index
+
+aten_add_Tensor_blocklist += [
+    ["Tensor<[12]> self = ?", "Tensor other = 0.0"],
+    ["Tensor<[16]> self = ?", "Tensor other = 0.0"],
+]
+
+aten_mul_Tensor_blocklist += [
+    ["Tensor<[12]> self = ?", "Tensor other = 32.0"],
+    ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
+]
 
 ############################################################
 # EXTRA BLOCKLIST OF speecht5-tts
