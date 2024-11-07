@@ -72,37 +72,6 @@ aten_native_layer_norm_default_blocklist += [
 # Need to remove this from the blocklist so that yolos can pass
 aten_view_default_blocklist.remove(["Tensor<[1, 192, 32, 42]> self = ?", "List[int] size = [1, 192, 1344]"])
 
-
-############################################################
-# EXTRA BLOCKLIST OF albert/albert-*
-############################################################
-# see issue #358
-# albert/albert-base-v2-classification
-# If enable, then ttnn._ttnn.operations.binary.add_t will encounter this inputs and failed:
-# (ttnn.Tensor([[[ 0.74219,  0.07324,  ...,  1.32812,  0.25391],
-#               [ 0.57031,  0.38086,  ...,  0.37695, -0.16309],
-#               ...,
-#               [ 0.71875,  0.25000,  ...,  0.36133,  0.04224],
-#               [ 0.44727,  0.45312,  ...,  0.42188, -0.65234]]],
-#       shape=Shape([1, 12, 768]), dtype=DataType::BFLOAT16, layout=Layout::ROW_MAJOR),
-#   ttnn.Tensor(<buffer is not allocated>, shape=Shape([1, 12[32], 768]),
-#       dtype=DataType::BFLOAT16, layout=Layout::TILE))
-# And I don't know why its inputs[1] become ([1, 12[32], 768])
-# Reproduce method: comment this line and run "pytest tests/models/albert/test_albert_token_classification.py"
-aten_add_Tensor_blocklist += [["Tensor<[1, 12, 768]> self = ?", "Tensor<[1, 12, 768]> other = ?"]]
-# other albert models have the same issue as albert/albert-base-v2-classification
-# albert/albert-base-v2: inputs[1].shape become ([1, 9[32], 768]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 768]> self = ?", "Tensor<[1, 9, 768]> other = ?"]]
-# albert/albert-large-v2: inputs[1].shape become ([1, 9[32], 1024]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 1024]> self = ?", "Tensor<[1, 9, 1024]> other = ?"]]
-# albert/albert-xlarge-v2: inputs[1].shape become ([1, 9[32], 2048]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 2048]> self = ?", "Tensor<[1, 9, 2048]> other = ?"]]
-# albert/albert-xxlarge-v2: inputs[1].shape become ([1, 9[32], 4096]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 4096]> self = ?", "Tensor<[1, 9, 4096]> other = ?"]]
-# twmkn9/albert-base-v2-squad2: inputs[1].shape become ([1, 14[32], 768) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 14, 768]> self = ?", "Tensor<[1, 14, 768]> other = ?"]]
-
-
 ############################################################
 # EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224
 ############################################################
@@ -274,7 +243,7 @@ aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [
 # EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
 ############################################################
 
-# see issue #360
+# see issue #390
 # ghostnetv2_100.in1k
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsqueeze => unsafe_index
@@ -351,7 +320,7 @@ aten_mul_Tensor_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF ViLT
 ############################################################
-# see issue #360
+# see issue #390
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsafe_index
 
@@ -392,13 +361,6 @@ aten_masked_fill_scalar_blocklist += [
     ["Tensor<[1, 1, 1, 24]> self = ?", "Tensor<[1, 1, 1, 24]> mask = ?", "number value = -3.3895313892515355e+38"],
 ]
 
-# see issue #358
-# ttnn.add
-# shape=Shape([1, 24[32], 768]
-# MemoryConfig can only be obtained for a tensor with DeviceStorage
-
-aten_add_Tensor_blocklist += [["Tensor<[1, 24, 768]> self = ?", "Tensor<[1, 24, 768]> other = ?"]]
-
 ############################################################
 # EXTRA BLOCKLIST OF Whisper
 ############################################################
@@ -430,22 +392,6 @@ aten_view_default_blocklist += [["Tensor<[1, 1]> self = ?", "List[int] size = [-
 aten_mean_dim_blocklist = [["Tensor<[1, 196, 768]> self = ?", "Optional[List[int]] dim = [1]"]]
 # microsoft/beit-large-patch16-224: same issue
 aten_mean_dim_blocklist += [["Tensor<[1, 196, 1024]> self = ?", "Optional[List[int]] dim = [1]"]]
-
-############################################################
-# EXTRA BLOCKLIST OF mixer_b16_224.goog_in21k-train
-############################################################
-# see issue #358
-# self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
-# function_args = (ttnn.Tensor(<buffer is not allocated>,
-# shape=Shape([768, 21843[21856]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), (1, 0))
-# function_kwargs = {}
-# RuntimeError: TT_FATAL @ .../buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
-
-# shape=Shape([1[32], 21843[21856]] same issue
-# ttnn.add
-# shape=Shape([1, 196[224], 768])
-aten_add_Tensor_blocklist += [["Tensor<[1, 196, 768]> self = ?", "Tensor<[1, 196, 768]> other = ?"]]
-
 
 ############################################################
 
