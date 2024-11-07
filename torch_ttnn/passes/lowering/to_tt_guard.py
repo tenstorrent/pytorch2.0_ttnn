@@ -247,7 +247,7 @@ aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [
 # ghostnetv2_100.in1k
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsqueeze => unsafe_index
-
+aten_add_Tensor_blocklist = []
 aten_add_Tensor_blocklist += [
     ["Tensor<[56]> self = ?", "Tensor other = 0.0"],
     ["Tensor<[28]> self = ?", "Tensor other = 0.0"],
@@ -395,6 +395,7 @@ aten_mean_dim_blocklist += [["Tensor<[1, 196, 1024]> self = ?", "Optional[List[i
 
 ############################################################
 
+GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
 GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
 GUARD[torch.ops.aten.mean.dim] = partial(guard_aten, aten_mean_dim_blocklist)
