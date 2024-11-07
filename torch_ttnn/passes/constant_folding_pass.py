@@ -10,6 +10,7 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.lift_fresh_copy.default,
             torch.ops.aten.pow.Tensor_Tensor,
             torch.ops.aten.arange.start,
+            torch.ops.aten.unsqueeze.default,
         }
 
     def call(self, gm: torch.fx.GraphModule):
@@ -49,6 +50,9 @@ class ConstantFoldingPass(PassBase):
             return torch.pow(*args)
         elif node.target == torch.ops.aten.arange.start:
             return torch.arange(*args, **node.kwargs)
+        elif node.target == torch.ops.aten.unsqueeze.default:
+            return torch.unsqueeze(*args)
+
         # Add handlers for other operations...
 
         raise ValueError(f"Unsupported operation: {node.target}")
