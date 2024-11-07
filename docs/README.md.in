@@ -102,31 +102,3 @@ PYTHONPATH="$TT_METAL_HOME:$(pwd)" python3 tools/run_transformers.py --model "ph
 ```
 
 You can also substitute the backend with `torch_stat` to run a reference comparison.
-
-# Add a model test
-If you want to record run time metrics for a model or test, include a Pytest fixture named `record_property` as a parameter and set the "model_name" key.  
-If you also want to compile the model with torch_ttnn backend, set the "torch_ttnn" key to a tuple in this order `(model, test_inputs, outputs)`. "model_name" still needs to be set. See the example code snippet below. `torch.nn.Module` models with `generate` method is supported.
-```python
-def Model(torch.nn.Module):
-    def forward(self, x):
-        # ...
-        return outputs
-
-# Add compilation_xfail marker if torch/CPU runs, but compiled version is xfail
-@pytest.mark.compilation_xfail
-# Add "record_property" parameter
-def test_model_name(record_property):
-    # Should be set as early as possible
-    record_property("model_name", "Model Name")
-
-    model = Model()
-    # ...
-    outputs = model(test_input)
-    # outputs = model(**test_inputs) # dictionary inputs are also supported
-    # ...
-
-    # Can be set once all three objects for the tuple are defined
-    record_property("torch_ttnn", (model, test_input(s), outputs))
-```
-
-If `model.generate(inputs)` is used, pass in `model.generate` instead of `model` to `record_property`.
