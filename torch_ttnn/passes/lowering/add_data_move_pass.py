@@ -73,6 +73,7 @@ TTNN_POINTWISE_UNARY_OPS = [
 
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
+    ttnn.div,
     ttnn.eqz,
     ttnn.gez,
     ttnn.ge,
@@ -162,7 +163,7 @@ def get_shape(node):
 def have_unsupported_ranks(src_node, dst_node):
     dst_node_shape = get_shape(dst_node)
     src_node_shape = get_shape(src_node)
-    return len(dst_node_shape) > 4 or len(src_node_shape) > 4 or len(dst_node_shape) == 1
+    return len(dst_node_shape) > 5 or len(dst_node_shape) == 1
 
 
 # For operations limitations

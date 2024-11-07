@@ -10,6 +10,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     has_valid_page_size,
     can_be_tilized,
+    get_shape,
 )
 import numpy as np
 from typing import Tuple
@@ -116,7 +117,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
         pseudo_node = PseudoNode(target, args, kwargs)
         if not can_lowering_to_ttnn(pseudo_node):
             # Fallback: aten.reshape is more stable if the input nodes have changed
-            if target == torch.ops.aten.view.default:
+            if target == torch.ops.aten.view.default or target == torch.ops.aten._unsafe_view.default:
                 target = torch.ops.aten.reshape.default
             return self.call_function_prop_meta(target, args, kwargs)
 
@@ -342,6 +343,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
+        if target == torch.ops.aten.clone.default:
+            return args[0]
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
@@ -386,12 +390,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
         def rewrite_node(node):
             args = node.args
             kwargs = node.kwargs
-
-            if node.target == torch.ops.aten.clone.default:
-                arg_metadata = node.meta["val"]
-                ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
-                # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(
@@ -539,30 +537,35 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.div.Tensor:
-                # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
-                # TODO(kevinwuTT): Use a ttnn equivalent
-                node_metadata = node.meta["val"]
-                shape = node_metadata.size()
-                # If last dim == 1, then the follow error will appear:
-                # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and has_valid_page_size(shape):
-                    if isinstance(args[1], float):
-                        layout = TtnnTileLayout() if can_be_tilized(shape) else TtnnRowMajorLayout()
-                        new_kwargs = {
-                            "fill_value": args[1],
-                            "device": TtnnDevice(),
-                            "layout": layout,
-                        }
-                        full = g.call_function(
-                            ttnn.full,
-                            args=(tuple(shape),),
-                            kwargs=new_kwargs,
-                        )
-                        recip = g.call_function(ttnn.reciprocal, (full,), {})
-                    else:
-                        recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                # # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
+                # # TODO(kevinwuTT): Use a ttnn equivalent
+                # node_metadata = node.meta["val"]
+                # shape = node_metadata.size()
+                # # If last dim == 1, then the follow error will appear:
+                # # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
+                # if shape[-1] != 1 and has_valid_page_size(shape):
+                #     if isinstance(args[1], float):
+                #         layout = TtnnTileLayout() if can_be_tilized(shape) else TtnnRowMajorLayout()
+                #         new_kwargs = {
+                #             "fill_value": args[1],
+                #             "device": TtnnDevice(),
+                #             "layout": layout,
+                #         }
+                #         full = g.call_function(
+                #             ttnn.full,
+                #             args=(tuple(shape),),
+                #             kwargs=new_kwargs,
+                #         )
+                #         recip = g.call_function(ttnn.reciprocal, (full,), {})
+                #     else:
+                #         recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                #     return g.call_function(ttnn.mul, (args[0], recip), {})
+                # return None
+                
+                if not isinstance(args[1], float) and (get_shape(args[0]) != get_shape(args[1])):
+                    recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     return g.call_function(ttnn.mul, (args[0], recip), {})
-                return None
+                return g.call_function(ttnn.div, args, {})
 
             if node.target == torch.ops.aten.expand.default:
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
