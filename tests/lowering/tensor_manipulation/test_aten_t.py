@@ -1,7 +1,6 @@
 import torch
 import torch_ttnn
 import pytest
-import ttnn
 
 from tests.utils import assert_with_pcc
 
@@ -36,43 +35,28 @@ def _t(device, input_shapes):
     "input_shapes",
     [
         [(1, 32)],
+        [(1, 3)],
+        [(12, 3)],
+        [(1, 21843)],
+        [(768, 21843)],
+        pytest.param((2, 1), marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
+        pytest.param((512, 1), marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
     ],
 )
 def test_aten_t(device, input_shapes):
-    # Check the graph has be rewritten and contain ttnn ops
     nodes = _t(device, input_shapes)
-    assert [node.target for node in nodes].count(ttnn.permute) == 1
+    # Check the graph has be rewritten and aten ops are replaced
+    assert not any(node.target == torch.ops.aten.t.default for node in nodes)
 
 
 @pytest.mark.parametrize(
     "input_shapes",
     [
         [5],
-    ],
-)
-def test_aten_t_0d(device, input_shapes):
-    # Check the graph has be rewritten and contain ttnn ops
-    nodes = _t(device, input_shapes)
-
-    assert nodes[1].target == torch.ops.aten.t.default
-    assert nodes[1].args[0].target == "arg0_1"
-    assert nodes[1].args[0].op == "placeholder"
-    assert nodes[2].target == "output"
-    assert nodes[2].op == "output"
-
-
-@pytest.mark.parametrize(
-    "input_shapes",
-    [
         [(5)],
     ],
 )
-def test_aten_t_1d(device, input_shapes):
-    # Check the graph has be rewritten and contain ttnn ops
+def test_aten_t_less_2d(device, input_shapes):
     nodes = _t(device, input_shapes)
-
-    assert nodes[1].target == torch.ops.aten.t.default
-    assert nodes[1].args[0].target == "arg0_1"
-    assert nodes[1].args[0].op == "placeholder"
-    assert nodes[2].target == "output"
-    assert nodes[2].op == "output"
+    # Check the graph has be rewritten and aten ops are replaced
+    assert not any(node.target == torch.ops.aten.t.default for node in nodes)

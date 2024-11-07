@@ -126,6 +126,7 @@ class ModelTester:
 
     @torch.no_grad()
     def test_model_eval(self, as_ttnn=False, option=None):
+        torch.manual_seed(0)
         model = self.set_model_eval(self.model)
         inputs = self.set_inputs_eval(self.inputs)
         if as_ttnn == True:
