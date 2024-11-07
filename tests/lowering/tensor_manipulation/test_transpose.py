@@ -1,7 +1,6 @@
 import torch
 import torch_ttnn
 import pytest
-import ttnn
 
 from tests.utils import assert_with_pcc
 
@@ -22,6 +21,11 @@ class TransposeModule(torch.nn.Module):
         # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
         ((5, 3, 2), 0, 2),
         ((1, 4150, 192), 1, 2),
+        ((5, 3, 1), 0, 2),
+        ((5, 3, 1), 1, 2),
+        ((5, 3, 1), 0, 1),
+        ((1, 3), 0, 1),
+        pytest.param((3, 1), 1, 0, marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
     ],
 )
 def test_transpose(device, input_shape, dim0, dim1):
@@ -35,8 +39,8 @@ def test_transpose(device, input_shape, dim0, dim1):
     ttnn_result = m.forward(input, dim0, dim1)
     option._out_fx_graphs[0].print_tabular()
 
-    # Check the graph has be rewritten and contain ttnn ops
+    # Check the graph has be rewritten and aten ops are replaced
     nodes = list(option._out_fx_graphs[0].nodes)
-    [node.target for node in nodes].count(ttnn.permute) == 1
+    assert not any(node.target == torch.ops.aten.transpose.int for node in nodes)
     # Check inference result
     assert_with_pcc(torch_result, ttnn_result)

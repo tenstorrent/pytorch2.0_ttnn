@@ -126,6 +126,7 @@ class ModelTester:
 
     @torch.no_grad()
     def test_model_eval(self, as_ttnn=False, option=None):
+        torch.manual_seed(0)
         model = self.set_model_eval(self.model)
         inputs = self.set_inputs_eval(self.inputs)
         if as_ttnn == True:
@@ -421,7 +422,7 @@ class MetricStringListHandler:
             "aten.index_select.default": self._adjust_index_select_default,
             "aten.index.Tensor": self._adjust_index_tensor,
             "aten.index_put.default": self._adjust_index_tensor,
-            "aten._unsafe_index.Tensor": self._adjust_index_tensor,
+            # "aten._unsafe_index.Tensor": self._adjust_index_tensor,
         }
 
     def _adjust_bitwise_not_default(self, input_vals):

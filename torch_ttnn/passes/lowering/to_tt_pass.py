@@ -642,16 +642,27 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return g.call_function(ttnn.reshape, args=(args[0], output_size))
                 return None
 
-            if node.target == torch.ops.aten.transpose.int:
-                dim0 = args[1]
-                dim1 = args[2]
+            if node.target in [torch.ops.aten.transpose.int, torch.ops.aten.t.default]:
                 output_size = node.meta["val"].size()
                 rank = len(output_size)
+                if node.target == torch.ops.aten.t.default:
+                    assert rank >= 0 and rank <= 2, "Input tensor can only be 0D, 1D or 2D"
+                    if rank < 2:
+                        # Less 2D transpose is no-op
+                        return args[0]
+                    dim0 = 0
+                    dim1 = 1
+                else:
+                    dim0 = args[1]
+                    dim1 = args[2]
                 permutation = list(range(rank))
                 permutation[dim0], permutation[dim1] = (
                     permutation[dim1],
                     permutation[dim0],
                 )
+                # TODO(#377): ttnn.permute fails when swapping inner-most dim = 1 for 2D
+                if rank == 2 and output_size[0] == 1:
+                    return None
                 new_nodes = list()
                 new_nodes.append(g.call_function(ttnn.permute, args=(args[0], permutation)))
                 new_nodes[-1].meta["val"] = node.meta["val"]
@@ -659,15 +670,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
                 new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
                 return new_nodes[-1]
-
-            if node.target == torch.ops.aten.t.default:
-                permutation = list()
-                rank = len(node.meta["val"].size())
-                assert rank >= 0 and rank <= 2, "Input tensor can only be 0D, 1D or 2D"
-                if rank == 2:
-                    permutation = [1, 0]
-                    return g.call_function(ttnn.permute, args=(args[0], permutation))
-                return None
 
             if node.target == torch.ops.aten.permute.default:
                 new_nodes = list()
@@ -726,14 +728,24 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
-                target_users_ops = [user.target for user in node.users.keys()]
-                # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
-                # Skip if type casting from bool and if the graph output uses this op
-                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
-                    # Essentially remove this op because it's used as a typecast
-                    return node.args[0]
-                else:
+                # Keep it if casting to bool type(bool may be problematic)
+                if kwargs["dtype"] in [torch.bool]:
                     return None
+                # Keep it if the graph output uses this op
+                target_users_ops = [user.target for user in node.users.keys()]
+                if "output" in target_users_ops:
+                    return None
+                src_dtype = node.args[0].meta["val"].dtype
+                dst_dtype = kwargs["dtype"]
+                # Some aten op need it to cast specific dtype (ex, index_select)
+                # Keep it if casting from int to float or reverse
+                if dst_dtype in [torch.int32, torch.int64] and src_dtype not in [torch.int32, torch.int64]:
+                    return None
+                if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
+                    return None
+                target_users_ops = [user.target for user in node.users.keys()]
+                # Essentially remove this op
+                return node.args[0]
 
             if node.target == torch.ops.aten.masked_fill.Scalar:
                 # aten.masked_fill is equivalent to the following:
