@@ -583,8 +583,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.slice.Tensor:
                 tensor, dim, start, end, *step = args
+                if tensor.op == "get_attr":
+                    value = getattr(gm, tensor.target)
+                    input_size = list(value.size())
+                else:
+                    input_size = list(tensor.meta["val"].size())
+
                 [step] = step or [1]
-                input_size = list(tensor.meta["val"].size())
                 rank = len(input_size)
 
                 if step != 1 or dim >= rank:
@@ -631,9 +636,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
 
             if node.target == torch.ops.aten.unsqueeze.default:
+                if args[0].op == "get_attr":
+                    value = getattr(gm, args[0].target)
+                    input_size = value.size()
+                else:
+                    input_size = args[0].meta["val"].size()
+
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
-                if output_size[-1] == args[0].meta["val"].size()[-1]:
+                if output_size[-1] == input_size[-1]:
                     return g.call_function(ttnn.reshape, args=(args[0], output_size))
                 return None
 
