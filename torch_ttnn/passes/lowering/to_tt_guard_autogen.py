@@ -288,7 +288,7 @@ aten_clamp_default_blocklist = [
     ["Tensor<[32, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
 ]
 aten_maximum_default_blocklist = [
-    ["Tensor<[1, 16, 19, 19]> self = ?", "Tensor<[]> other = ?"],
+    ["Tensor<[1, 16, 19, 19]> self = ?", "Tensor other = ?"],
     ["Tensor<[1, 16, 59, 59]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
 ]
@@ -389,7 +389,7 @@ aten_transpose_int_blocklist = [
     ["Tensor<[16, 64, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
     ["Tensor<[1, 16, 64, 197]> self = ?", "int dim0 = -1", "int dim1 = -2"],
 ]
-aten_embedding_default_blocklist = [["Tensor<[2048, 768]> weight = ?", "Tensor<[2048]> indices = ?"]]
+aten_embedding_default_blocklist = [["Tensor<[2048, 768]> weight = ?", "Tensor indices = ?"]]
 aten_zeros_like_default_blocklist = [
     ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
     ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
@@ -508,12 +508,6 @@ aten_split_Tensor_blocklist = [
     ["Tensor<[768, 256]> self = ?", "int split_size = 256"],
     ["Tensor<[768]> self = ?", "int split_size = 256"],
     ["Tensor<[1, 7, 2304]> self = ?", "int split_size = 768", "int dim = 2"],
-]
-aten_t_default_blocklist = [
-    ["Tensor<[12, 3]> self = ?"],
-    ["Tensor<[1, 3]> self = ?"],
-    ["Tensor<[2, 1]> self = ?"],
-    ["Tensor<[512, 1]> self = ?"],
 ]
 aten_ones_default_blocklist = [
     [
@@ -665,7 +659,6 @@ GUARD = {
     torch.ops.aten.sub.Tensor: partial(guard_aten, aten_sub_Tensor_blocklist),
     torch.ops.aten.exp.default: partial(guard_aten, aten_exp_default_blocklist),
     torch.ops.aten.split.Tensor: partial(guard_aten, aten_split_Tensor_blocklist),
-    torch.ops.aten.t.default: partial(guard_aten, aten_t_default_blocklist),
     torch.ops.aten.ones.default: partial(guard_aten, aten_ones_default_blocklist),
     torch.ops.aten.where.self: partial(guard_aten, aten_where_self_blocklist),
     torch.ops.aten.empty.memory_format: partial(guard_aten, aten_empty_memory_format_blocklist),
