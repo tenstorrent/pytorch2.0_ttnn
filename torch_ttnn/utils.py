@@ -13,7 +13,7 @@ def get_shape(node_or_shape):
     if isinstance(node_or_shape, torch.fx.node.Node):
         if (val := node_or_shape.meta.get("val", None)) is not None:
             return val.size()
-    elif isinstance(node_or_shape, torch.Size):
+    elif isinstance(node_or_shape, torch.Size) or isinstance(node_or_shape, list):
         return node_or_shape
 
     return None

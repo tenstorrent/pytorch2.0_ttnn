@@ -137,7 +137,6 @@ TTNN_NORM_OPS = [
 
 TTNN_LAYOUT_CHANGE_OPS = set(
     [
-        ttnn.reshape,
         ttnn.slice,
         ttnn.full,
     ]
@@ -148,9 +147,7 @@ TTNN_LAYOUT_CHANGE_OPS = set(
 # BUG (https://github.com/tenstorrent/tt-metal/issues/13889)
 def can_reshape(node):
     shape = node.meta["val"].size()
-    supported_H_dim = len(shape) >= 2 and (
-        (shape[-2] >= 32 and shape[-2] % 32 == 0)
-    )
+    supported_H_dim = len(shape) >= 2 and ((shape[-2] >= 32 and shape[-2] % 32 == 0))
     # Unsupported if output rank is > 4
     return supported_H_dim and len(shape) <= 4
 
@@ -332,8 +329,7 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-
-        # kwargs = {}
+        kwargs = {}
         # if (
         #     (dst_node.target == ttnn.slice and has_valid_page_size(dst_node, strict=True))
         #     or dst_node.target == ttnn.embedding
@@ -344,8 +340,17 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         #     kwargs["layout"] = TtnnRowMajorLayout()
         # else:
         #     kwargs["layout"] = TtnnTileLayout()
+        if dst_node.target == ttnn.embedding or (
+            dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node)
+        ):
+            kwargs["layout"] = TtnnRowMajorLayout()
+        else:
+            kwargs["layout"] = TtnnTileLayout()
 
-        kwargs = {"layout": TtnnTileLayout(), "device": device}
+        if not (dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node)):
+            kwargs["device"] = device
+
+        # kwargs = {"layout": TtnnTileLayout(), "device": device}
 
         if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
             kwargs["dtype"] = TtnnUint32()
@@ -355,7 +360,6 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         # if is_tt_compute(dst_node):
         #     if not (dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node)):
         #         kwargs["device"] = device
-
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
@@ -383,6 +387,8 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
     if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node) and not can_be_tilized(dst_node):
         need_from_device = True
         need_to_layout = True
+    if dst_node.target == ttnn.slice:
+        need_to_layout = True
 
     if dst_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
         # TODO: Only uint32 needs to to_layout on host
@@ -396,11 +402,11 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
     g = dst_node.graph
     new_nodes = []
     with g.inserting_before(dst_node):
-    #     new_nodes.append(g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout())))
-    #     if len(get_shape(dst_node)) > 4 or len(get_shape(dst_node)) == 1:
-    #         new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
+        #     new_nodes.append(g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout())))
+        #     if len(get_shape(dst_node)) > 4 or len(get_shape(dst_node)) == 1:
+        #         new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
 
-    # insert_node_between(src_node, dst_idx, dst_node, new_nodes)
+        # insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 
         new_nodes = [src_node]
         if need_from_device:
@@ -426,7 +432,7 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
         or src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
         or (src_node.target == ttnn.reshape and can_reshape(src_node))
         or (src_node.target == ttnn.full and can_be_tilized(src_node))
-        or (src_node.target == ttnn.slice and get_shape(src_node)[-1] < 32)
+        # or (src_node.target == ttnn.slice and get_shape(src_node)[-1] < 32)
     ):
         return None
 
