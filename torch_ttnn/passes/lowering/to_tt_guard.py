@@ -243,7 +243,7 @@ aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [
 # EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
 ############################################################
 
-# see issue #360
+# see issue #390
 # ghostnetv2_100.in1k
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsqueeze => unsafe_index
@@ -320,7 +320,7 @@ aten_mul_Tensor_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF ViLT
 ############################################################
-# see issue #360
+# see issue #390
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsafe_index
 
