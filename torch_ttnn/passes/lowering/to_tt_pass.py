@@ -385,7 +385,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
-                ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
+                try:
+                    ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
+                except:
+                    return None
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
                 return g.call_function(target_wrappers.clone, args=(args[0],))
 
@@ -731,14 +734,24 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
-                target_users_ops = [user.target for user in node.users.keys()]
-                # Float and int types can be converted to ttnn.bfloat16, but bool may be problematic
-                # Skip if type casting from bool and if the graph output uses this op
-                if kwargs["dtype"] not in [torch.bool] and "output" not in target_users_ops:
-                    # Essentially remove this op because it's used as a typecast
-                    return node.args[0]
-                else:
+                # Keep it if casting to bool type(bool may be problematic)
+                if kwargs["dtype"] in [torch.bool]:
                     return None
+                # Keep it if the graph output uses this op
+                target_users_ops = [user.target for user in node.users.keys()]
+                if "output" in target_users_ops:
+                    return None
+                src_dtype = node.args[0].meta["val"].dtype
+                dst_dtype = kwargs["dtype"]
+                # Some aten op need it to cast specific dtype (ex, index_select)
+                # Keep it if casting from int to float or reverse
+                if dst_dtype in [torch.int32, torch.int64] and src_dtype not in [torch.int32, torch.int64]:
+                    return None
+                if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
+                    return None
+                target_users_ops = [user.target for user in node.users.keys()]
+                # Essentially remove this op
+                return node.args[0]
 
             if node.target == torch.ops.aten.masked_fill.Scalar:
                 # aten.masked_fill is equivalent to the following:

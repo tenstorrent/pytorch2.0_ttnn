@@ -422,7 +422,7 @@ class MetricStringListHandler:
             "aten.index_select.default": self._adjust_index_select_default,
             "aten.index.Tensor": self._adjust_index_tensor,
             "aten.index_put.default": self._adjust_index_tensor,
-            "aten._unsafe_index.Tensor": self._adjust_index_tensor,
+            # "aten._unsafe_index.Tensor": self._adjust_index_tensor,
         }
 
     def _adjust_bitwise_not_default(self, input_vals):
