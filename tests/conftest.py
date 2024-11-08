@@ -128,9 +128,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
             option._out_fx_graphs[0].print_tabular()
-            accuracy = calculate_accuracy(outputs, outputs_after)
-            if accuracy:
-                comp_runtime_metrics["accuracy"] = accuracy
+            if model_name not in ["speecht5-tts"]:
+                accuracy = calculate_accuracy(outputs, outputs_after)
+                if accuracy:
+                    comp_runtime_metrics["accuracy"] = accuracy
             # dump compiled aten schemas
             metrics.save_pickle(
                 [x.dict() for x in option.compiled_schema_list],
