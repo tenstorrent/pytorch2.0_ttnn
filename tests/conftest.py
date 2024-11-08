@@ -116,7 +116,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             # Compile model with ttnn backend
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
-                gen_graphviz=True,
+                gen_graphviz=False,
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
