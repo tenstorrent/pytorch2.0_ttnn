@@ -68,7 +68,8 @@ def test_to_copy_with_op_after(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(torch.ops.aten._to_copy.default) == 0
+    # try_add_data_move_out: ttnn.to_torch will be followed by a to_copy
+    assert target.count(torch.ops.aten._to_copy.default) == 1
     assert target.count(ttnn.add) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after, rtol=0.2)
@@ -125,7 +126,8 @@ def test_reshape_test1(device, module, ttnn_op):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(torch.ops.aten._to_copy.default) == 0
+    # try_add_data_move_out: ttnn.to_torch will be followed by a to_copy
+    assert target.count(torch.ops.aten._to_copy.default) == 1
     assert [node.target for node in nodes].count(ttnn_op) == 1
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.99)
