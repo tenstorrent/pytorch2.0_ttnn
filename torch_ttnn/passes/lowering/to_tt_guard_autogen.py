@@ -288,7 +288,7 @@ aten_clamp_default_blocklist = [
     ["Tensor<[32, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
 ]
 aten_maximum_default_blocklist = [
-    ["Tensor<[1, 16, 19, 19]> self = ?", "Tensor<[]> other = ?"],
+    ["Tensor<[1, 16, 19, 19]> self = ?", "Tensor other = ?"],
     ["Tensor<[1, 16, 59, 59]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
 ]
