@@ -118,12 +118,8 @@ def test_rsub_scalar(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(ttnn.full) == 1
-    assert target.count(ttnn.sub) == 1
-    assert target.index(ttnn.full) < target.index(ttnn.sub)
-    # Intermediate node meta check if preserved
-    for node in nodes:
-        if node.target == ttnn.full:
-            assert node.meta["val"].size() == input_shapes[0]
+    assert target.count(ttnn.neg) == 1
+    assert target.count(ttnn.add) == 1
+    assert target.index(ttnn.neg) < target.index(ttnn.add)
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.998)

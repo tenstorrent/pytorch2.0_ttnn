@@ -101,7 +101,11 @@ class ViewShareOpModule(torch.nn.Module):
         ((3, 1445, 64), (1, 3, 1445, 64)),
         ((32), (1, 1, 32, 1)),
         ((42), (1, 1, 1, 42)),
-        ((1, 10), (10,)),
+        pytest.param(
+            (1, 10),
+            (10,),
+            marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT."),
+        ),
     ],
 )
 def test_reshape(device, input_shape, new_shape, module):

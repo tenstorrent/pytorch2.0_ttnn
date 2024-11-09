@@ -610,7 +610,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
-                if len(get_shape(args[0])) > 4:
+                if len(get_shape(args[0])) > 4 and len(get_shape(node)) >= 4:
                     return None
                 if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
                     # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
@@ -629,7 +629,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
-                if output_size[-1] == input_size[-1] and len(output_size) <= 4:
+                if output_size[-1] == input_size[-1]:
                     return g.call_function(ttnn.reshape, args=(args[0], output_size))
                 return None
 
@@ -701,10 +701,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 print("view or unsafe view")
                 print(get_shape(args[0]))
                 print(args[1])
-                if len(get_shape(args[0])) > 4 or len(args[1]) > 4:
+                if len(get_shape(args[0])) > 4 or len(args[1]) > 4 or len(args[1]) < 2:
                     return g.call_function(torch.ops.aten.reshape.default, args, {})
-                # if any(x > 4 for x in [len(get_shape(args[0])), len(get_shape(args[1]))]):
-                #     return None
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:

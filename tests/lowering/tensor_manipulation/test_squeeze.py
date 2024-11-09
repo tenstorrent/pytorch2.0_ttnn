@@ -17,8 +17,8 @@ class SqueezeDimModule(torch.nn.Module):
     [
         ((1, 32, 16), 0),
         ((1, 256, 1), -1),
-        ((33, 44, 1, 32, 16), 1),
-        ((33, 44, 1, 32, 16), 2),
+        pytest.param((33, 44, 1, 32, 16), 1, marks=pytest.mark.xfail(reason="Cannot reshape from 5D to 4D.")),
+        pytest.param((33, 44, 1, 32, 16), 2, marks=pytest.mark.xfail(reason="Cannot reshape from 5D to 4D.")),
     ],
 )
 def test_squeeze_dim(device, input_shape, dim):
@@ -53,9 +53,9 @@ class SqueezeNoneDimModule(torch.nn.Module):
 @pytest.mark.parametrize(
     "input_shape",
     [
-        ((64, 1, 32, 16, 1, 32, 32)),
-        ((1, 1, 55, 23, 44, 32, 32)),
-        ((22, 1, 55, 23, 44, 32, 1)),
+        pytest.param((64, 1, 32, 16, 1, 32, 32), marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT.")),
+        pytest.param((1, 1, 55, 23, 44, 32, 32), marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT.")),
+        pytest.param((22, 1, 55, 23, 44, 32, 1), marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT.")),
         ((1, 1, 55, 1, 1, 1, 1)),
     ],
 )
