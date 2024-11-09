@@ -932,7 +932,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return masked_fill
                 else:
                     return None
-            
+
             if node.target == torch.ops.aten.sum.dim_IntList:
                 tensor, dims, keepdim = args
 
@@ -952,9 +952,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         tensor = g.call_function(ttnn.squeeze, (tensor, 0))
                     else:
                         tensor = g.call_function(ttnn.sum, (tensor, n))
-                
+
                 return tensor
-            
+
             # PEP 8 suggests this explicit statement
             return None
 
