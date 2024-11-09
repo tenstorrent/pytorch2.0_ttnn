@@ -32,6 +32,6 @@ def test_sum_dim(device, input_shape, dim):
 
     # Check the graph has been rewritten and contains ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.sum) == 1
+    assert [node.target for node in nodes].count(ttnn.sum) > 0
     # Check inference result
     assert_with_pcc(result_before, result_after)

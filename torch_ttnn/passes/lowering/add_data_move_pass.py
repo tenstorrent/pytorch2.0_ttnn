@@ -169,6 +169,7 @@ def is_tt_compute(node) -> bool:
             ttnn.sum,
             ttnn.mean,
             ttnn.moreh_cumsum,
+            ttnn.sum,
             ttnn.global_avg_pool2d,
             ttnn.clip,
             ttnn.squeeze,
