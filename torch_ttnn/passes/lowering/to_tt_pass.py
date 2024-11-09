@@ -941,10 +941,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 shape = tensor.meta["val"].size()
                 dims = (n if n >= 0 else len(shape) + n for n in dims)
-                dims = (n for n in dims if shape[n] > 1)
+                dims = [n for n in dims if shape[n] > 1]
+                dims.sort(reverse=True)
 
                 for n in dims:
-                    tensor = g.call_function(ttnn.sum, (tensor, n))
+                    if n == 0:
+                        tensor = g.call_function(ttnn.to_layout, (tensor, TtnnRowMajorLayout()))
+                        tensor = g.call_function(ttnn.unsqueeze, (tensor, 0))
+                        tensor = g.call_function(ttnn.sum, (tensor, 1))
+                        tensor = g.call_function(ttnn.squeeze, (tensor, 0))
+                    else:
+                        tensor = g.call_function(ttnn.sum, (tensor, n))
                 
                 return tensor
             

@@ -197,6 +197,7 @@ def is_tt_compute(node) -> bool:
             ttnn.global_avg_pool2d,
             ttnn.clip,
             ttnn.squeeze,
+            ttnn.unsqueeze,
             ttnn.full,
             ttnn.as_tensor,
             ttnn.expand,
