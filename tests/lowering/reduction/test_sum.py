@@ -24,6 +24,18 @@ class SumDimModule(torch.nn.Module):
         ((1, 1024, 7, 7), (2, 3)),
         ((1, 12, 16), (1,)),
         ((1, 12, 16), (2,)),
+        ((1, 512), (1,)),
+        ((1, 64), (0,)),
+        ((1024, 160), (0,)),
+        ((1024, 640), (0,)),
+        ((14, 2048), (0,)),
+        ((14, 512), (0,)),
+        ((16384, 128), (0,)),
+        ((16384, 32), (0,)),
+        ((197, 1024), (0,)),
+        ((197, 3072), (0,)),
+        ((197, 4096), (0,)),
+        ((197, 768), (0,)),
         ((2, 512), (1,)),
         ((2, 7, 512), (0,)),
         ((50, 768), (0,)),
@@ -32,7 +44,7 @@ class SumDimModule(torch.nn.Module):
 )
 def test_sum_dim(device, input_shape, dim):
     m = SumDimModule()
-    input = torch.zeros(input_shape, dtype=torch.bfloat16).uniform_(-1, 1)
+    input = torch.empty(input_shape, dtype=torch.bfloat16).uniform_(-1, 1)
     keepdim = True
     result_before = m.forward(input, dim, keepdim)
     option = torch_ttnn.TorchTtnnOption(device=device)
