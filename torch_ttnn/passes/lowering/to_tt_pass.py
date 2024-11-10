@@ -273,6 +273,25 @@ class ReplaceMoreTt(torch.fx.Transformer):
         # Pointwise binary
         ############################################################
         if target == torch.ops.aten.add.Tensor:
+
+            def is_zero_dim(meta):
+                if type(meta) != dict or "val" not in meta:
+                    return False  # scalar
+                size = list(meta["val"].size())
+                if len(size) == 0 or 0 in size:
+                    return True
+                return False
+
+            if hasattr(args[0], "node") and args[0].node.name in self._input_node_meta:
+                arg0_meta = self._input_node_meta[args[0].node.name]
+            else:
+                arg0_meta = None
+            if hasattr(args[1], "node") and args[1].node.name in self._input_node_meta:
+                arg1_meta = self._input_node_meta[args[1].node.name]
+            else:
+                arg1_meta = None
+            if is_zero_dim(arg0_meta) or is_zero_dim(arg1_meta):
+                return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
 
         if target == torch.ops.aten.atan2.default:
