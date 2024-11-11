@@ -273,6 +273,25 @@ class ReplaceMoreTt(torch.fx.Transformer):
         # Pointwise binary
         ############################################################
         if target == torch.ops.aten.add.Tensor:
+
+            def is_zero_dim(meta):
+                if type(meta) != dict or "val" not in meta:
+                    return False  # scalar
+                size = list(meta["val"].size())
+                if len(size) == 0 or 0 in size:
+                    return True
+                return False
+
+            if hasattr(args[0], "node") and args[0].node.name in self._input_node_meta:
+                arg0_meta = self._input_node_meta[args[0].node.name]
+            else:
+                arg0_meta = None
+            if hasattr(args[1], "node") and args[1].node.name in self._input_node_meta:
+                arg1_meta = self._input_node_meta[args[1].node.name]
+            else:
+                arg1_meta = None
+            if is_zero_dim(arg0_meta) or is_zero_dim(arg1_meta):
+                return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
 
         if target == torch.ops.aten.atan2.default:
@@ -563,28 +582,42 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.expand.default:
+                input_tensor_shape = args[0].meta["val"].size()
+                output_shape = node.meta["val"].size()
+                if input_tensor_shape.numel() == output_shape.numel():
+                    if input_tensor_shape != output_shape:
+                        return g.call_function(ttnn.reshape, args=(args[0], list(output_shape)))
+                    else:
+                        return args[0]
+
+                input_shape = np.ones(len(output_shape), dtype=int)
+                input_shape[-len(input_tensor_shape) :] = input_tensor_shape
+                multiplier = np.array(output_shape) // np.array(input_shape)
+
+                expand_multiplier = multiplier[multiplier > 1]
+                use_ttnn = input_tensor_shape[-1] % 2 == 0
+                use_ttnn = np.all(expand_multiplier == multiplier[: len(expand_multiplier)]) and use_ttnn
+                if use_ttnn:
+                    return g.call_function(ttnn.expand, args=(args[0], list(output_shape)))
+
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
-                input_tensor_shape = args[0].meta["val"].size()
                 # Repeat fails if last dimension of input is 1
                 if input_tensor_shape[-1] != 1:
-                    output_shape = torch.Size(args[1])
+                    return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
 
-                    multiplier = np.array(output_shape) // np.array(input_tensor_shape)
-                    # -1 // positive non-zero number will always be -1
-                    # Convert -1 to 1
-                    multiplier = np.array([1 if i == -1 else i for i in multiplier])
-
-                    if np.prod(multiplier) != 1:
-                        return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
-                    return args[0]
                 return None
 
             if node.target == torch.ops.aten.slice.Tensor:
                 tensor, dim, start, end, *step = args
+                if tensor.op == "get_attr":
+                    value = getattr(gm, tensor.target)
+                    input_size = list(value.size())
+                else:
+                    input_size = list(tensor.meta["val"].size())
+
                 [step] = step or [1]
-                input_size = list(tensor.meta["val"].size())
                 rank = len(input_size)
 
                 if step != 1 or dim >= rank:
@@ -631,9 +664,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
 
             if node.target == torch.ops.aten.unsqueeze.default:
+                if args[0].op == "get_attr":
+                    value = getattr(gm, args[0].target)
+                    input_size = value.size()
+                else:
+                    input_size = args[0].meta["val"].size()
+
                 output_size = node.meta["val"].size()
                 output_size = list(output_size)
-                if output_size[-1] == args[0].meta["val"].size()[-1]:
+                if output_size[-1] == input_size[-1]:
                     return g.call_function(ttnn.reshape, args=(args[0], output_size))
                 return None
 
@@ -770,6 +809,29 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return masked_fill
                 else:
                     return None
+
+            if node.target == torch.ops.aten.cumsum.default:
+                tensor, dim = args
+                input_shape = tensor.meta["val"].size()
+                rank = len(input_shape)
+                if rank > 4:
+                    return None
+                dim = (dim + rank) % rank
+                # Unsqueeze input tensor to 4D for cumsum
+                # TODO(#367): Special case if dim is inner-most 2 dim. Unsqueeze (x, y) to (x, y, 1, 1) as cumsum currently only support N and C
+                if (dim - rank) >= -2:
+                    if rank <= 2:
+                        input_4d_shape = (1,) * (2 - rank) + (*input_shape, 1, 1)
+                    elif rank == 3 and dim == 1:
+                        input_4d_shape = (*input_shape, 1)
+                    else:
+                        return None
+                else:
+                    input_4d_shape = (1,) * (4 - rank) + input_shape
+                    dim += 4 - rank
+                input_4d = g.call_function(ttnn.reshape, (tensor, input_4d_shape))
+                output_4d = g.call_function(ttnn.moreh_cumsum, (input_4d, dim), kwargs)
+                return g.call_function(ttnn.reshape, (output_4d, input_shape))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
