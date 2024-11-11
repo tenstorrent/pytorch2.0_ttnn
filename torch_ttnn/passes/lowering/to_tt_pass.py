@@ -776,7 +776,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return None
                 if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
                     return None
-                target_users_ops = [user.target for user in node.users.keys()]
                 # Essentially remove this op
                 return node.args[0]
 
