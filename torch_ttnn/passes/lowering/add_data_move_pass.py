@@ -195,6 +195,8 @@ def is_tt_compute(node) -> bool:
             ttnn.squeeze,
             ttnn.full,
             ttnn.as_tensor,
+            ttnn.expand,
+            ttnn.moreh_cumsum,
         ]
     )
 
@@ -357,10 +359,6 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
         else:
             kwargs["dtype"] = TtnnBfloat16()
 
-        # if is_tt_compute(dst_node):
-        #     if not (dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node)):
-        #         kwargs["device"] = device
-
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
@@ -389,6 +387,11 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
         need_to_layout = True
     if dst_node.target == ttnn.slice:
         need_to_layout = True
+
+    # # TODO(#372): #322 will enable tile layout for more layout change ops
+    # if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
+    #     need_from_device = True
+    #     need_to_layout = True
 
     if dst_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
         # TODO: Only uint32 needs to to_layout on host
