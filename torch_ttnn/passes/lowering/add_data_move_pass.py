@@ -141,11 +141,6 @@ TTNN_LAYOUT_CHANGE_OPS = set(
 )
 
 
-def can_be_tilized(node):
-    size = node.meta["val"].size()
-    return len(size) >= 2 and size[-1] % 32 == 0 and size[-2] % 32 == 0
-
-
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
 def is_tt_compute(node) -> bool:
@@ -178,6 +173,7 @@ def is_tt_compute(node) -> bool:
             ttnn.squeeze,
             ttnn.full,
             ttnn.as_tensor,
+            ttnn.moreh_cumsum,
         ]
     )
 
@@ -335,7 +331,8 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
     need_from_device = False
     need_to_layout = False
     need_to_device = False
-    if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node) and not can_be_tilized(dst_node):
+    # TODO(#372): #322 will enable tile layout for more layout change ops
+    if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
         need_from_device = True
         need_to_layout = True
 
