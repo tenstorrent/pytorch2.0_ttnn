@@ -627,9 +627,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 else:
                     input_size = args[0].meta["val"].size()
 
-                output_size = node.meta["val"].size()
-                output_size = list(output_size)
-                if output_size[-1] == input_size[-1]:
+                output_size = list(node.meta["val"].size())
+
+                if output_size[-1] == input_size[-1] and len(output_size) <= 4:
                     return g.call_function(ttnn.reshape, args=(args[0], output_size))
                 return None
 
