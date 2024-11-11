@@ -234,8 +234,6 @@ aten_maximum_default_blocklist = [
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
 aten_expand_default_blocklist = [
     ["Tensor<[1, 1, 1, 19]> self = ?", "List[int] size = [1, 1, 19, 19]"],
-    ["Tensor<[256, 1280]> self = ?", "List[int] size = [1, -1, -1]"],
-    ["Tensor<[2048, 768]> self = ?", "List[int] size = [1, -1, -1]"],
     ["Tensor<[1, 5]> self = ?", "List[int] size = [5, 5]"],
     ["Tensor<[1, 3]> self = ?", "List[int] size = [3, 3]"],
     ["Tensor<[1, 17]> self = ?", "List[int] size = [13, 17]"],
