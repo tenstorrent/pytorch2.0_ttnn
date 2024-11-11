@@ -39,6 +39,11 @@ class TtnnUint32:
         return f"ttnn_uint32"
 
 
+class TtnnInt32:
+    def __repr__(self):
+        return f"ttnn_int32"
+
+
 class TtnnBfloat16:
     def __repr__(self):
         return f"ttnn_bfloat16"

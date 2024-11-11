@@ -61,6 +61,7 @@ def register_ttnn_objects(option: TorchTtnnOption):
     torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
 
     torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
+    torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
 
     torch.fx.graph._register_custom_builtin(
