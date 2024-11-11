@@ -456,9 +456,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
                     }
                     full_node = g.call_function(ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs)
+                    full_node = g.call_function(ttnn.to_layout, (full_node, TtnnTileLayout()), {})
                     return g.call_function(
                         relational_scalar_ops[node.target],
                         args=(args[0], full_node),
@@ -482,9 +482,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
                     }
-                    return g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
+                    full = g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
+                    return g.call_function(ttnn.to_layout, (full, TtnnTileLayout()), {})
                 # Replace op with scalar for eltwise ops
                 # TODO: Generalize this to support all eltwise ops
                 node_users = list(node.users.keys())
@@ -638,7 +638,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 output_size = list(node.meta["val"].size())
 
-                if output_size[-1] == input_size[-1] and len(output_size) <= 4:
+                # FIXME: Cannot reshape a 4D tensor if size[-1] >= 32.
+                can_unsqueeze_4d = (len(input_size) >= 4 and input_size[-1] < 32) or len(input_size) < 4
+                if output_size[-1] == input_size[-1] and can_unsqueeze_4d:
                     return g.call_function(ttnn.reshape, args=(args[0], output_size))
                 return None
 
@@ -768,12 +770,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     multiplier = np_tensor_shp // np_mask_shp
                     mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
 
-                    kwargs = {"dtype": TtnnBfloat16(), "layout": TtnnTileLayout(), "device": TtnnDevice()}
+                    kwargs = {"dtype": TtnnBfloat16(), "device": TtnnDevice()}
                     ones = g.call_function(ttnn.ones, (tensor_shape,), kwargs)
                     mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
                     tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))
 
                     full = g.call_function(ttnn.full, (tensor_shape, fill_value), kwargs)
+                    full = g.call_function(ttnn.to_layout, (full, TtnnTileLayout()), {})
                     full_masked = g.call_function(ttnn.multiply, (mask_bcst, full))
 
                     masked_fill = g.call_function(ttnn.add, (tensor_masked, full_masked))

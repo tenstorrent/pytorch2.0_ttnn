@@ -17,7 +17,14 @@ class UnsqueezeModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shape, dim",
-    [((5, 2, 4, 3), 1)],
+    [
+        ((5, 2, 4, 3), 1),
+        pytest.param(
+            (50, 1, 3, 1024),
+            0,
+            marks=pytest.mark.xfail(reason="Fails if ouput is > 4D, using TILE_LAYOUT, and W dim is >= 32."),
+        ),
+    ],
 )
 def test_unsqueeze1(device, input_shape, dim):
     mod = UnsqueezeModule()
