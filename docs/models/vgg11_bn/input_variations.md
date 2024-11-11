@@ -3,13 +3,13 @@
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._adaptive_avg_pool2d.default                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  1 | aten._native_batch_norm_legit_no_training.default |                  5 |           0 |         0 |          0 | ✘           |    0    |
-|  2 | aten.addmm.default                                |                  3 |           2 |         0 |          0 | 🚧          |    0.67 |
+|  2 | aten.addmm.default                                |                  3 |           1 |         0 |          1 | 🚧          |    0.33 |
 |  3 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  4 | aten.convolution.default                          |                  7 |           0 |         0 |          0 | ✘           |    0    |
 |  5 | aten.max_pool2d_with_indices.default              |                  5 |           0 |         0 |          0 | ✘           |    0    |
-|  6 | aten.relu.default                                 |                  6 |           6 |         0 |          0 | ✅          |    1    |
-|  7 | aten.t.default                                    |                  3 |           3 |         0 |          0 | ✅          |    1    |
-|  8 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  6 | aten.relu.default                                 |                  6 |           1 |         0 |          5 | 🚧          |    0.17 |
+|  7 | aten.t.default                                    |                  3 |           2 |         0 |          1 | 🚧          |    0.67 |
+|  8 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |    0    |
 ***
 ### aten._adaptive_avg_pool2d.default
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   |
@@ -26,7 +26,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                      | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 1000]> mat2 = ?   | Done     | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 1000]> mat2 = ?   | Fallback | Done       | True  |
 |  1 | Tensor<[4096]> self = ?,<br>Tensor<[1, 25088]> mat1 = ?,<br>Tensor<[25088, 4096]> mat2 = ? | None     | Fallback   | True  |
 |  2 | Tensor<[4096]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 4096]> mat2 = ?   | Done     | Done       | True  |
 ### aten.clone.default
@@ -54,20 +54,20 @@
 ### aten.relu.default
 |    | ATen Input Variations               | Status   | Isolated   | PCC   |
 |---:|:------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128, 112, 112]> self = ? | Done     | Done       | True  |
-|  1 | Tensor<[1, 256, 56, 56]> self = ?   | Done     | Done       | True  |
+|  0 | Tensor<[1, 128, 112, 112]> self = ? | Fallback | Done       | True  |
+|  1 | Tensor<[1, 256, 56, 56]> self = ?   | Fallback | Done       | True  |
 |  2 | Tensor<[1, 4096]> self = ?          | Done     | Done       | True  |
-|  3 | Tensor<[1, 512, 14, 14]> self = ?   | Done     | Done       | True  |
-|  4 | Tensor<[1, 512, 28, 28]> self = ?   | Done     | Done       | True  |
-|  5 | Tensor<[1, 64, 224, 224]> self = ?  | Done     | Done       | True  |
+|  3 | Tensor<[1, 512, 14, 14]> self = ?   | Fallback | Done       | True  |
+|  4 | Tensor<[1, 512, 28, 28]> self = ?   | Fallback | Done       | True  |
+|  5 | Tensor<[1, 64, 224, 224]> self = ?  | Fallback | Done       | True  |
 ### aten.t.default
 |    | ATen Input Variations          | Status   | Isolated   | PCC   |
 |---:|:-------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1000, 4096]> self = ?  | Done     | Done       | True  |
-|  1 | Tensor<[4096, 25088]> self = ? | Done     | Done       | True  |
+|  1 | Tensor<[4096, 25088]> self = ? | Fallback | Done       | True  |
 |  2 | Tensor<[4096, 4096]> self = ?  | Done     | Done       | True  |
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 512, 7, 7]> self = ?,<br>List[int] size = [1, 25088] | Done     | Done       | True  |
+|  0 | Tensor<[1, 512, 7, 7]> self = ?,<br>List[int] size = [1, 25088] | Fallback | Done       | True  |
 

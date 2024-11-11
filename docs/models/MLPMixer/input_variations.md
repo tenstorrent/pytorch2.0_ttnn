@@ -3,8 +3,8 @@
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._unsafe_view.default      |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  2 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
-|  3 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
+|  2 | aten.addmm.default             |                  4 |           3 |         0 |          1 | 🚧          |    0.75 |
+|  3 | aten.clone.default             |                  4 |           2 |         0 |          2 | 🚧          |    0.5  |
 |  4 | aten.convolution.default       |                  2 |           0 |         0 |          0 | ✘           |    0    |
 |  5 | aten.gelu.default              |                  2 |           2 |         0 |          0 | ✅          |    1    |
 |  6 | aten.mean.dim                  |                  1 |           1 |         0 |          0 | ✅          |    1    |
@@ -24,15 +24,15 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Fallback | Done       | True  |
 |  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | True  |
 |  2 | Tensor<[512]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | True  |
 |  3 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ? | Done     | Done       | True  |
 ### aten.clone.default
 |    | ATen Input Variations                                                                             | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 512]> self = ?                                                                   | Done     | Done       | True  |
-|  1 | Tensor<[1, 16, 16, 16, 16, 3]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Done     | Done       | True  |
+|  0 | Tensor<[1, 1024, 512]> self = ?                                                                   | Fallback | Done       | True  |
+|  1 | Tensor<[1, 16, 16, 16, 16, 3]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Fallback | Done       | True  |
 |  2 | Tensor<[1, 256, 256]> self = ?                                                                    | Done     | Done       | True  |
 |  3 | Tensor<[1, 256, 512]> self = ?                                                                    | Done     | Done       | True  |
 ### aten.convolution.default

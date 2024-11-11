@@ -1,17 +1,17 @@
 # High Level Operations Status
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 19 |           0 |         0 |          0 | ✘           |       0 |
-|  1 | aten.add.Tensor                                   |                  6 |           6 |         0 |          0 | ✅          |       1 |
-|  2 | aten.addmm.default                                |                  2 |           2 |         0 |          0 | ✅          |       1 |
-|  3 | aten.convolution.default                          |                 44 |           0 |         0 |          0 | ✘           |       0 |
-|  4 | aten.hardsigmoid.default                          |                  5 |           0 |         0 |          0 | ✘           |       0 |
-|  5 | aten.hardswish.default                            |                 10 |           0 |         0 |          0 | ✘           |       0 |
-|  6 | aten.mean.dim                                     |                  6 |           6 |         0 |          0 | ✅          |       1 |
-|  7 | aten.mul.Tensor                                   |                  6 |           6 |         0 |          0 | ✅          |       1 |
-|  8 | aten.relu.default                                 |                 11 |          11 |         0 |          0 | ✅          |       1 |
-|  9 | aten.t.default                                    |                  2 |           2 |         0 |          0 | ✅          |       1 |
-| 10 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  0 | aten._native_batch_norm_legit_no_training.default |                 19 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten.add.Tensor                                   |                  6 |           0 |         0 |          6 | ✘           |    0    |
+|  2 | aten.addmm.default                                |                  2 |           0 |         0 |          2 | ✘           |    0    |
+|  3 | aten.convolution.default                          |                 44 |           0 |         0 |          0 | ✘           |    0    |
+|  4 | aten.hardsigmoid.default                          |                  5 |           0 |         0 |          0 | ✘           |    0    |
+|  5 | aten.hardswish.default                            |                 10 |           0 |         0 |          0 | ✘           |    0    |
+|  6 | aten.mean.dim                                     |                  6 |           1 |         0 |          5 | 🚧          |    0.17 |
+|  7 | aten.mul.Tensor                                   |                  6 |           0 |         0 |          6 | ✘           |    0    |
+|  8 | aten.relu.default                                 |                 11 |           2 |         0 |          9 | 🚧          |    0.18 |
+|  9 | aten.t.default                                    |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 10 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                               | Status   | Isolated   | PCC   |
@@ -38,17 +38,17 @@
 ### aten.add.Tensor
 |    | ATen Input Variations                                                      | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 112, 14, 14]> self = ?,<br>Tensor<[1, 112, 14, 14]> other = ?   | Done     | Done       | True  |
-|  1 | Tensor<[1, 16, 112, 112]> self = ?,<br>Tensor<[1, 16, 112, 112]> other = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 160, 7, 7]> self = ?,<br>Tensor<[1, 160, 7, 7]> other = ?       | Done     | Done       | True  |
-|  3 | Tensor<[1, 24, 56, 56]> self = ?,<br>Tensor<[1, 24, 56, 56]> other = ?     | Done     | Done       | True  |
-|  4 | Tensor<[1, 40, 28, 28]> self = ?,<br>Tensor<[1, 40, 28, 28]> other = ?     | Done     | Done       | True  |
-|  5 | Tensor<[1, 80, 14, 14]> self = ?,<br>Tensor<[1, 80, 14, 14]> other = ?     | Done     | Done       | True  |
+|  0 | Tensor<[1, 112, 14, 14]> self = ?,<br>Tensor<[1, 112, 14, 14]> other = ?   | Fallback | Done       | True  |
+|  1 | Tensor<[1, 16, 112, 112]> self = ?,<br>Tensor<[1, 16, 112, 112]> other = ? | Fallback | Done       | True  |
+|  2 | Tensor<[1, 160, 7, 7]> self = ?,<br>Tensor<[1, 160, 7, 7]> other = ?       | Fallback | Done       | True  |
+|  3 | Tensor<[1, 24, 56, 56]> self = ?,<br>Tensor<[1, 24, 56, 56]> other = ?     | Fallback | Done       | True  |
+|  4 | Tensor<[1, 40, 28, 28]> self = ?,<br>Tensor<[1, 40, 28, 28]> other = ?     | Fallback | Done       | True  |
+|  5 | Tensor<[1, 80, 14, 14]> self = ?,<br>Tensor<[1, 80, 14, 14]> other = ?     | Fallback | Done       | True  |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ? | Done     | Done       | True  |
-|  1 | Tensor<[1280]> self = ?,<br>Tensor<[1, 960]> mat1 = ?,<br>Tensor<[960, 1280]> mat2 = ?   | Done     | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ? | Fallback | Done       | True  |
+|  1 | Tensor<[1280]> self = ?,<br>Tensor<[1, 960]> mat1 = ?,<br>Tensor<[960, 1280]> mat2 = ?   | Fallback | Done       | True  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                           | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -120,35 +120,35 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                                                            | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 120, 28, 28]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
-|  1 | Tensor<[1, 480, 14, 14]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
-|  2 | Tensor<[1, 672, 14, 14]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
-|  3 | Tensor<[1, 672, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Done     | Done       | True  |
-|  4 | Tensor<[1, 72, 28, 28]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True  | Done     | Done       | True  |
+|  0 | Tensor<[1, 120, 28, 28]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Fallback | Done       | True  |
+|  1 | Tensor<[1, 480, 14, 14]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Fallback | Done       | True  |
+|  2 | Tensor<[1, 672, 14, 14]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Fallback | Done       | True  |
+|  3 | Tensor<[1, 672, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Fallback | Done       | True  |
+|  4 | Tensor<[1, 72, 28, 28]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True  | Fallback | Done       | True  |
 |  5 | Tensor<[1, 960, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True   | Done     | Done       | True  |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 120, 1, 1]> self = ?,<br>Tensor<[1, 120, 28, 28]> other = ? | Done     | Done       | True  |
-|  1 | Tensor<[1, 480, 1, 1]> self = ?,<br>Tensor<[1, 480, 14, 14]> other = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 672, 1, 1]> self = ?,<br>Tensor<[1, 672, 14, 14]> other = ? | Done     | Done       | True  |
-|  3 | Tensor<[1, 672, 1, 1]> self = ?,<br>Tensor<[1, 672, 7, 7]> other = ?   | Done     | Done       | True  |
-|  4 | Tensor<[1, 72, 1, 1]> self = ?,<br>Tensor<[1, 72, 28, 28]> other = ?   | Done     | Done       | True  |
-|  5 | Tensor<[1, 960, 1, 1]> self = ?,<br>Tensor<[1, 960, 7, 7]> other = ?   | Done     | Done       | True  |
+|  0 | Tensor<[1, 120, 1, 1]> self = ?,<br>Tensor<[1, 120, 28, 28]> other = ? | Fallback | Done       | True  |
+|  1 | Tensor<[1, 480, 1, 1]> self = ?,<br>Tensor<[1, 480, 14, 14]> other = ? | Fallback | Done       | True  |
+|  2 | Tensor<[1, 672, 1, 1]> self = ?,<br>Tensor<[1, 672, 14, 14]> other = ? | Fallback | Done       | True  |
+|  3 | Tensor<[1, 672, 1, 1]> self = ?,<br>Tensor<[1, 672, 7, 7]> other = ?   | Fallback | Done       | True  |
+|  4 | Tensor<[1, 72, 1, 1]> self = ?,<br>Tensor<[1, 72, 28, 28]> other = ?   | Fallback | Done       | True  |
+|  5 | Tensor<[1, 960, 1, 1]> self = ?,<br>Tensor<[1, 960, 7, 7]> other = ?   | Fallback | Done       | True  |
 ### aten.relu.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 120, 1, 1]> self = ?    | Done     | Done       | True  |
+|  0 | Tensor<[1, 120, 1, 1]> self = ?    | Fallback | Done       | True  |
 |  1 | Tensor<[1, 120, 28, 28]> self = ?  | Done     | Done       | True  |
-|  2 | Tensor<[1, 16, 112, 112]> self = ? | Done     | Done       | True  |
-|  3 | Tensor<[1, 168, 1, 1]> self = ?    | Done     | Done       | True  |
-|  4 | Tensor<[1, 24, 1, 1]> self = ?     | Done     | Done       | True  |
-|  5 | Tensor<[1, 240, 1, 1]> self = ?    | Done     | Done       | True  |
-|  6 | Tensor<[1, 32, 1, 1]> self = ?     | Done     | Done       | True  |
-|  7 | Tensor<[1, 64, 112, 112]> self = ? | Done     | Done       | True  |
-|  8 | Tensor<[1, 64, 56, 56]> self = ?   | Done     | Done       | True  |
+|  2 | Tensor<[1, 16, 112, 112]> self = ? | Fallback | Done       | True  |
+|  3 | Tensor<[1, 168, 1, 1]> self = ?    | Fallback | Done       | True  |
+|  4 | Tensor<[1, 24, 1, 1]> self = ?     | Fallback | Done       | True  |
+|  5 | Tensor<[1, 240, 1, 1]> self = ?    | Fallback | Done       | True  |
+|  6 | Tensor<[1, 32, 1, 1]> self = ?     | Fallback | Done       | True  |
+|  7 | Tensor<[1, 64, 112, 112]> self = ? | Fallback | Done       | True  |
+|  8 | Tensor<[1, 64, 56, 56]> self = ?   | Fallback | Done       | True  |
 |  9 | Tensor<[1, 72, 28, 28]> self = ?   | Done     | Done       | True  |
-| 10 | Tensor<[1, 72, 56, 56]> self = ?   | Done     | Done       | True  |
+| 10 | Tensor<[1, 72, 56, 56]> self = ?   | Fallback | Done       | True  |
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   | PCC   |
 |---:|:------------------------------|:---------|:-----------|:------|

@@ -8,8 +8,8 @@
 |  4 | Tensor<[1, 1920, s1, s2]> self = ? | Unknown  | Unknown    | N/A   |
 |  5 | Tensor<[1, 2560, 8, 8]> self = ?   | Unknown  | Done       | True  |
 |  6 | Tensor<[1, 2560, s0, s1]> self = ? | Unknown  | Unknown    | N/A   |
-|  7 | Tensor<[1, 32, 256, 256]> self = ? | Done     | Done       | True  |
-|  8 | Tensor<[1, 320, 64, 64]> self = ?  | Done     | Done       | True  |
+|  7 | Tensor<[1, 32, 256, 256]> self = ? | Fallback | Done       | True  |
+|  8 | Tensor<[1, 320, 64, 64]> self = ?  | Unknown  | Done       | True  |
 |  9 | Tensor<[1, 320, s0, s1]> self = ?  | Unknown  | Unknown    | N/A   |
 | 10 | Tensor<[1, 320, s1, s2]> self = ?  | Unknown  | Unknown    | N/A   |
 | 11 | Tensor<[1, 640, s0, s1]> self = ?  | Unknown  | Unknown    | N/A   |

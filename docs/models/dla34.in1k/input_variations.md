@@ -1,15 +1,15 @@
 # High Level Operations Status
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                  6 |           0 |         0 |          0 | ✘           |       0 |
-|  1 | aten.add.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |       1 |
-|  2 | aten.cat.default                                  |                  6 |           0 |         0 |          0 | ✘           |       0 |
-|  3 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  4 | aten.convolution.default                          |                 22 |           0 |         0 |          0 | ✘           |       0 |
-|  5 | aten.max_pool2d_with_indices.default              |                  4 |           0 |         0 |          0 | ✘           |       0 |
-|  6 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  7 | aten.relu.default                                 |                  6 |           6 |         0 |          0 | ✅          |       1 |
-|  8 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  0 | aten._native_batch_norm_legit_no_training.default |                  6 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten.add.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |    1    |
+|  2 | aten.cat.default                                  |                  6 |           0 |         0 |          0 | ✘           |    0    |
+|  3 | aten.clone.default                                |                  1 |           0 |         0 |          1 | ✘           |    0    |
+|  4 | aten.convolution.default                          |                 22 |           0 |         0 |          0 | ✘           |    0    |
+|  5 | aten.max_pool2d_with_indices.default              |                  4 |           0 |         0 |          0 | ✘           |    0    |
+|  6 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  7 | aten.relu.default                                 |                  6 |           1 |         0 |          5 | 🚧          |    0.17 |
+|  8 | aten.view.default                                 |                  1 |           0 |         0 |          1 | ✘           |    0    |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                              | Status   | Isolated   | PCC   |
@@ -39,7 +39,7 @@
 ### aten.clone.default
 |    | ATen Input Variations           | Status   | Isolated   | PCC   |
 |---:|:--------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 512, 1, 1]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 512, 1, 1]> self = ? | Fallback | Done       | True  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                             | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -79,14 +79,14 @@
 ### aten.relu.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128, 28, 28]> self = ?  | Done     | Done       | True  |
-|  1 | Tensor<[1, 16, 224, 224]> self = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 256, 14, 14]> self = ?  | Done     | Done       | True  |
-|  3 | Tensor<[1, 32, 112, 112]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 128, 28, 28]> self = ?  | Fallback | Done       | True  |
+|  1 | Tensor<[1, 16, 224, 224]> self = ? | Fallback | Done       | True  |
+|  2 | Tensor<[1, 256, 14, 14]> self = ?  | Fallback | Done       | True  |
+|  3 | Tensor<[1, 32, 112, 112]> self = ? | Fallback | Done       | True  |
 |  4 | Tensor<[1, 512, 7, 7]> self = ?    | Done     | Done       | True  |
-|  5 | Tensor<[1, 64, 56, 56]> self = ?   | Done     | Done       | True  |
+|  5 | Tensor<[1, 64, 56, 56]> self = ?   | Fallback | Done       | True  |
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1000, 1, 1]> self = ?,<br>List[int] size = [1, 1000] | Done     | Done       | True  |
+|  0 | Tensor<[1, 1000, 1, 1]> self = ?,<br>List[int] size = [1, 1000] | Fallback | Done       | True  |
 

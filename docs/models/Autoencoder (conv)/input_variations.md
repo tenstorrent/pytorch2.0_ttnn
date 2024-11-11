@@ -3,7 +3,7 @@
 |---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten.convolution.default             |                  4 |           0 |         0 |          0 | ✘           |       0 |
 |  1 | aten.max_pool2d_with_indices.default |                  2 |           0 |         0 |          0 | ✘           |       0 |
-|  2 | aten.relu.default                    |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  2 | aten.relu.default                    |                  3 |           0 |         0 |          3 | ✘           |       0 |
 ***
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                       | Status   | Isolated   | PCC   |
@@ -20,7 +20,7 @@
 ### aten.relu.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 14, 14]> self = ? | Done     | Done       | True  |
-|  1 | Tensor<[1, 16, 28, 28]> self = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 4, 14, 14]> self = ?  | Done     | Done       | True  |
+|  0 | Tensor<[1, 16, 14, 14]> self = ? | Fallback | Done       | True  |
+|  1 | Tensor<[1, 16, 28, 28]> self = ? | Fallback | Done       | True  |
+|  2 | Tensor<[1, 4, 14, 14]> self = ?  | Fallback | Done       | True  |
 

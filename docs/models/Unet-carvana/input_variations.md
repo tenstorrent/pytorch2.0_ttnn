@@ -5,7 +5,7 @@
 |  1 | aten.cat.default                                  |                  4 |           0 |         0 |          0 | ✘           |       0 |
 |  2 | aten.convolution.default                          |                 19 |           0 |         0 |          0 | ✘           |       0 |
 |  3 | aten.max_pool2d_with_indices.default              |                  4 |           0 |         0 |          0 | ✘           |       0 |
-|  4 | aten.relu.default                                 |                  5 |           5 |         0 |          0 | ✅          |       1 |
+|  4 | aten.relu.default                                 |                  5 |           0 |         0 |          5 | ✘           |       0 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                   | Status   | Isolated   | PCC   |
@@ -54,9 +54,9 @@
 ### aten.relu.default
 |    | ATen Input Variations               | Status   | Isolated   | PCC   |
 |---:|:------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 14, 14]> self = ?  | Done     | Done       | True  |
-|  1 | Tensor<[1, 128, 112, 112]> self = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 256, 56, 56]> self = ?   | Done     | Done       | True  |
-|  3 | Tensor<[1, 512, 28, 28]> self = ?   | Done     | Done       | True  |
-|  4 | Tensor<[1, 64, 224, 224]> self = ?  | Done     | Done       | True  |
+|  0 | Tensor<[1, 1024, 14, 14]> self = ?  | Fallback | Done       | True  |
+|  1 | Tensor<[1, 128, 112, 112]> self = ? | Fallback | Done       | True  |
+|  2 | Tensor<[1, 256, 56, 56]> self = ?   | Fallback | Done       | True  |
+|  3 | Tensor<[1, 512, 28, 28]> self = ?   | Fallback | Done       | True  |
+|  4 | Tensor<[1, 64, 224, 224]> self = ?  | Fallback | Done       | True  |
 

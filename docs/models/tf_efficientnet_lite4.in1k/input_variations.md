@@ -2,8 +2,8 @@
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._native_batch_norm_legit_no_training.default |                 19 |           0 |         0 |          0 | ✘           |       0 |
-|  1 | aten.add.Tensor                                   |                  5 |           5 |         0 |          0 | ✅          |       1 |
-|  2 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  1 | aten.add.Tensor                                   |                  5 |           0 |         0 |          5 | ✘           |       0 |
+|  2 | aten.addmm.default                                |                  1 |           0 |         0 |          1 | ✘           |       0 |
 |  3 | aten.constant_pad_nd.default                      |                  5 |           0 |         0 |          0 | ✘           |       0 |
 |  4 | aten.convolution.default                          |                 32 |           0 |         0 |          0 | ✘           |       0 |
 |  5 | aten.hardtanh.default                             |                 12 |           0 |         0 |          0 | ✘           |       0 |
@@ -36,15 +36,15 @@
 ### aten.add.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 112, 24, 24]> self = ?,<br>Tensor<[1, 112, 24, 24]> other = ? | Done     | Done       | True  |
-|  1 | Tensor<[1, 160, 24, 24]> self = ?,<br>Tensor<[1, 160, 24, 24]> other = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 272, 12, 12]> self = ?,<br>Tensor<[1, 272, 12, 12]> other = ? | Done     | Done       | True  |
-|  3 | Tensor<[1, 32, 95, 95]> self = ?,<br>Tensor<[1, 32, 95, 95]> other = ?   | Done     | Done       | True  |
-|  4 | Tensor<[1, 56, 48, 48]> self = ?,<br>Tensor<[1, 56, 48, 48]> other = ?   | Done     | Done       | True  |
+|  0 | Tensor<[1, 112, 24, 24]> self = ?,<br>Tensor<[1, 112, 24, 24]> other = ? | Fallback | Done       | True  |
+|  1 | Tensor<[1, 160, 24, 24]> self = ?,<br>Tensor<[1, 160, 24, 24]> other = ? | Fallback | Done       | True  |
+|  2 | Tensor<[1, 272, 12, 12]> self = ?,<br>Tensor<[1, 272, 12, 12]> other = ? | Fallback | Done       | True  |
+|  3 | Tensor<[1, 32, 95, 95]> self = ?,<br>Tensor<[1, 32, 95, 95]> other = ?   | Fallback | Done       | True  |
+|  4 | Tensor<[1, 56, 48, 48]> self = ?,<br>Tensor<[1, 56, 48, 48]> other = ?   | Fallback | Done       | True  |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ? | Done     | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ? | Fallback | Done       | True  |
 ### aten.constant_pad_nd.default
 |    | ATen Input Variations                                                                       | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|:------|

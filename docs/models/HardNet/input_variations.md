@@ -2,7 +2,7 @@
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._native_batch_norm_legit_no_training.default |                 29 |           0 |         0 |          0 | ✘           |       0 |
-|  1 | aten.addmm.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  1 | aten.addmm.default                                |                  1 |           0 |         0 |          1 | ✘           |       0 |
 |  2 | aten.cat.default                                  |                 32 |           0 |         0 |          0 | ✘           |       0 |
 |  3 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  4 | aten.convolution.default                          |                 51 |           0 |         0 |          0 | ✘           |       0 |
@@ -47,7 +47,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ? | Done     | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ? | Fallback | Done       | True  |
 ### aten.cat.default
 |    | ATen Input Variations                                                                                                                                                                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
