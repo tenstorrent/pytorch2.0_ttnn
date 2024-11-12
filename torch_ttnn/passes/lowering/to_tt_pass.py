@@ -956,9 +956,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return tensor
 
-            # PEP 8 suggests this explicit statement
-            return None
-
             if node.target == torch.ops.aten.select.int:
                 tensor, dim, start = args
 
