@@ -332,16 +332,6 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     new_nodes = list()
     with g.inserting_before(dst_node):
         kwargs = {}
-        # if (
-        #     (dst_node.target == ttnn.slice and has_valid_page_size(dst_node, strict=True))
-        #     or dst_node.target == ttnn.embedding
-        #     or dst_node.target == ttnn.zeros_like
-        #     or dst_node.target == target_wrappers.repeat
-        #     or (dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node))
-        # ):
-        #     kwargs["layout"] = TtnnRowMajorLayout()
-        # else:
-        #     kwargs["layout"] = TtnnTileLayout()
         if dst_node.target == ttnn.embedding or (
             dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node)
         ):
@@ -371,13 +361,6 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
         return None
     if not is_function_call(dst_node):
         return None
-    # if (
-    #     not is_tt(src_node)
-    #     or dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
-    #     or (dst_node.target == ttnn.reshape and not have_unsupported_ranks(src_node, dst_node))
-    #     or (dst_node.target == ttnn.full and can_be_tilized(dst_node))
-    #     or (dst_node.target == ttnn.slice and not has_valid_page_size(dst_node, strict=True))
-    # ):
 
     need_from_device = False
     need_to_layout = False
@@ -405,12 +388,6 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
     g = dst_node.graph
     new_nodes = []
     with g.inserting_before(dst_node):
-        #     new_nodes.append(g.call_function(ttnn.to_layout, (src_node, TtnnRowMajorLayout())))
-        #     if len(get_shape(dst_node)) > 4 or len(get_shape(dst_node)) == 1:
-        #         new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
-
-        # insert_node_between(src_node, dst_idx, dst_node, new_nodes)
-
         new_nodes = [src_node]
         if need_from_device:
             new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
@@ -435,7 +412,6 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
         or src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
         or (src_node.target == ttnn.reshape and can_reshape(src_node))
         or (src_node.target == ttnn.full and can_be_tilized(src_node))
-        # or (src_node.target == ttnn.slice and get_shape(src_node)[-1] < 32)
     ):
         return None
 

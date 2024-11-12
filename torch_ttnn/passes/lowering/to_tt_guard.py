@@ -35,15 +35,25 @@ aten_view_default_blocklist += [
     ["Tensor<[16, 7, 64]> self = ?", "List[int] size = [2, 8, 7, 64]"],
     ["Tensor<[14, 2048]> self = ?", "List[int] size = [2, 7, 2048]"],
     ["Tensor<[2, 7, 2048]> self = ?", "List[int] size = [14, 2048]"],
+]
+
+# albert inputs that do not support TILE_LAYOUT
+aten_view_default_blocklist += [
+    # albert-base-v2-eval, albert-large-v2-eval
     ["Tensor<[9, 30000]> self = ?", "List[int] size = [1, 9, 30000]"],
+    # albert-xlarge-v2-eval
     ["Tensor<[9, 8192]> self = ?", "List[int] size = [1, 9, 8192]"],
     ["Tensor<[1, 9, 8192]> self = ?", "List[int] size = [9, 8192]"],
+    # albert-xxlarge-v2-eval
     ["Tensor<[9, 16384]> self = ?", "List[int] size = [1, 9, 16384]"],
     ["Tensor<[1, 9, 16384]> self = ?", "List[int] size = [9, 16384]"],
+]
+
+# Falcon inputs that do not support TILE_LAYOUT
+aten_view_default_blocklist += [
     ["Tensor<[7, 18176]> self = ?", "List[int] size = [1, 7, 18176]"],
     ["Tensor<[1, 7, 18176]> self = ?", "List[int] size = [7, 18176]"],
 ]
-
 
 aten__to_copy_default_blocklist = [
     ["Tensor<[1, 3, 224, 224]> self = ?", "Optional[int] dtype = torch.bfloat16"],
