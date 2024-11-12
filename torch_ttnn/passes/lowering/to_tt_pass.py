@@ -193,11 +193,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.gelu.default:
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
 
-        if target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
-            # aten.hardtanh args are positional but ttnn.clip uses kw args
-            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")))
+        if target == torch.ops.aten.hardtanh.default:
+            new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")))
             new_args = (args[0],)
-            return self.call_function_prop_meta(ttnn.clip, new_args, new_kwargs)
+            return self.call_function_prop_meta(ttnn.hardtanh, new_args, new_kwargs)
 
         if target == torch.ops.aten.isinf.default:
             return self.call_function_prop_meta(ttnn.isinf, args, kwargs)
