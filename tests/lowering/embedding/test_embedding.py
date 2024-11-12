@@ -72,8 +72,6 @@ def test_embedding_tile_layout(device, batch_size, sentence_size, vocabulary_siz
     assert torch.allclose(result_before, result_after)
 
 
-# NOTE(bdrazic) This is unit test for embedding layer from SqueezeBERT. Enable when ttnn.embedding supports any input shape.
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "batch_size, sentence_size, vocabulary_size, hidden_embedding_dim",
     [
