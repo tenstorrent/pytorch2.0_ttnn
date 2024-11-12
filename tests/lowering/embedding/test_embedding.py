@@ -21,15 +21,12 @@ class EmbeddingTileLayoutModule(torch.nn.Module):
         return torch.nn.functional.embedding(input, weights)
 
 
-# NOTE(kevinwuTT) Re-enable after conversion to ttnn.embedding with both ROW_MAJOR_LAYOUT and TILE_LAYOUT
-@pytest.mark.xfail
 @pytest.mark.parametrize(
     "input_shapes",
     [[((1, 2, 4, 5), (4, 3, 2, 9)), (10, 4)]],
 )
 def test_embedding(device, input_shapes):
     m = EmbeddingModule()
-    input_shapes = m.input_shapes()
     input = torch.tensor(input_shapes[0])
     weight = torch.rand(input_shapes[1], dtype=torch.bfloat16)
     result_before = m.forward(input, weight)
