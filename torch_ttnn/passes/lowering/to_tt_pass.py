@@ -806,6 +806,29 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 else:
                     return None
 
+            if node.target == torch.ops.aten.sum.dim_IntList:
+                tensor, dims, keepdim = args
+
+                if not keepdim:
+                    return None
+
+                shape = tensor.meta["val"].size()
+                dims = (n if n >= 0 else len(shape) + n for n in dims)
+                dims = [n for n in dims if shape[n] > 1]
+                dims.sort(reverse=True)
+
+                for n in dims:
+                    if n == 0:
+                        tensor = g.call_function(ttnn.to_layout, (tensor, TtnnRowMajorLayout()))
+                        tensor = g.call_function(ttnn.unsqueeze, (tensor, 0))
+                        tensor = g.call_function(ttnn.sum, (tensor, 1))
+                        tensor = g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
+                        tensor = g.call_function(ttnn.squeeze, (tensor, 0))
+                    else:
+                        tensor = g.call_function(ttnn.sum, (tensor, n))
+
+                return tensor
+
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
                 input_shape = tensor.meta["val"].size()
@@ -828,6 +851,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_4d = g.call_function(ttnn.reshape, (tensor, input_4d_shape))
                 output_4d = g.call_function(ttnn.moreh_cumsum, (input_4d, dim), kwargs)
                 return g.call_function(ttnn.reshape, (output_4d, input_shape))
+
+            # PEP 8 suggests this explicit statement
+            return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
