@@ -20,42 +20,42 @@
 ### aten._log_softmax.default
 |    | ATen Input Variations                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1,<br>bool half_to_float = False | Fallback | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1,<br>bool half_to_float = False | Fallback | Unknown    | N/A   |
 ### aten._log_softmax_backward_data.default
 |    | ATen Input Variations                                                                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> grad_output = ?,<br>Tensor<[1, 10]> output = ?,<br>int dim = 1,<br>int input_dtype = torch.bfloat16 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 10]> grad_output = ?,<br>Tensor<[1, 10]> output = ?,<br>int dim = 1,<br>int input_dtype = torch.bfloat16 | None     | Unknown    | N/A   |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[10]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 10]> mat2 = ?     | Done     | Done       | True  |
-|  1 | Tensor<[128]> self = ?,<br>Tensor<[1, 9216]> mat1 = ?,<br>Tensor<[9216, 128]> mat2 = ? | Done     | Done       | True  |
+|  0 | Tensor<[10]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 10]> mat2 = ?     | Done     | Unknown    | N/A   |
+|  1 | Tensor<[128]> self = ?,<br>Tensor<[1, 9216]> mat1 = ?,<br>Tensor<[9216, 128]> mat2 = ? | Done     | Unknown    | N/A   |
 ### aten.clone.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128]> self = ?        | Fallback | Done       | True  |
-|  1 | Tensor<[1, 64, 12, 12]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 128]> self = ?        | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 64, 12, 12]> self = ? | Done     | Unknown    | N/A   |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                         | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1   | None     | Fallback   | True  |
-|  1 | Tensor<[1, 32, 26, 26]> input = ?,<br>Tensor<[64, 32, 3, 3]> weight = ?,<br>Optional[Tensor]<[64]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1   | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 32, 26, 26]> input = ?,<br>Tensor<[64, 32, 3, 3]> weight = ?,<br>Optional[Tensor]<[64]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Unknown    | N/A   |
 ### aten.convolution_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                                           | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 32, 26, 26]> grad_output = ?,<br>Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[List[int]] bias_sizes = [32],<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True]   | None     | Fallback   | True  |
-|  1 | Tensor<[1, 64, 24, 24]> grad_output = ?,<br>Tensor<[1, 32, 26, 26]> input = ?,<br>Tensor<[64, 32, 3, 3]> weight = ?,<br>Optional[List[int]] bias_sizes = [64],<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 32, 26, 26]> grad_output = ?,<br>Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[List[int]] bias_sizes = [32],<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True]   | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 64, 24, 24]> grad_output = ?,<br>Tensor<[1, 32, 26, 26]> input = ?,<br>Tensor<[64, 32, 3, 3]> weight = ?,<br>Optional[List[int]] bias_sizes = [64],<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True] | None     | Unknown    | N/A   |
 ### aten.detach.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?         | None     | Fallback   | True  |
-|  1 | Tensor<[1, 128]> self = ?        | None     | Fallback   | True  |
-|  2 | Tensor<[1, 32, 26, 26]> self = ? | None     | Fallback   | True  |
-|  3 | Tensor<[1, 64, 24, 24]> self = ? | None     | Fallback   | True  |
+|  0 | Tensor<[1, 10]> self = ?         | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 128]> self = ?        | None     | Unknown    | N/A   |
+|  2 | Tensor<[1, 32, 26, 26]> self = ? | None     | Unknown    | N/A   |
+|  3 | Tensor<[1, 64, 24, 24]> self = ? | None     | Unknown    | N/A   |
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 64, 24, 24]> self = ?,<br>List[int] kernel_size = [2, 2] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 64, 24, 24]> self = ?,<br>List[int] kernel_size = [2, 2] | None     | Unknown    | N/A   |
 ### aten.max_pool2d_with_indices_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                       | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -63,41 +63,41 @@
 ### aten.mm.default
 |    | ATen Input Variations                                      | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 128]> mat2 = ?    | Fallback | Done       | True  |
-|  1 | Tensor<[1, 128]> self = ?,<br>Tensor<[128, 9216]> mat2 = ? | Done     | Done       | True  |
-|  2 | Tensor<[10, 1]> self = ?,<br>Tensor<[1, 128]> mat2 = ?     | Done     | Done       | True  |
-|  3 | Tensor<[128, 1]> self = ?,<br>Tensor<[1, 9216]> mat2 = ?   | Done     | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 128]> mat2 = ?    | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 128]> self = ?,<br>Tensor<[128, 9216]> mat2 = ? | Done     | Unknown    | N/A   |
+|  2 | Tensor<[10, 1]> self = ?,<br>Tensor<[1, 128]> mat2 = ?     | Done     | Unknown    | N/A   |
+|  3 | Tensor<[128, 1]> self = ?,<br>Tensor<[1, 9216]> mat2 = ?   | Done     | Unknown    | N/A   |
 ### aten.relu.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128]> self = ?        | Fallback | Done       | True  |
-|  1 | Tensor<[1, 32, 26, 26]> self = ? | Fallback | Done       | True  |
-|  2 | Tensor<[1, 64, 24, 24]> self = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1, 128]> self = ?        | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 32, 26, 26]> self = ? | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 64, 24, 24]> self = ? | Fallback | Unknown    | N/A   |
 ### aten.sum.dim_IntList
 |    | ATen Input Variations                                                               | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True  | None     | Fallback   | True  |
-|  1 | Tensor<[1, 128]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True | None     | Fallback   | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True  | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 128]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True | None     | Unknown    | N/A   |
 ### aten.t.default
 |    | ATen Input Variations        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?     | Done     | Done       | True  |
-|  1 | Tensor<[1, 128]> self = ?    | Done     | Done       | True  |
-|  2 | Tensor<[10, 128]> self = ?   | Done     | Done       | True  |
-|  3 | Tensor<[128, 10]> self = ?   | Fallback | Done       | True  |
-|  4 | Tensor<[128, 9216]> self = ? | Done     | Done       | True  |
-|  5 | Tensor<[9216, 128]> self = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?     | Done     | Unknown    | N/A   |
+|  1 | Tensor<[1, 128]> self = ?    | Done     | Unknown    | N/A   |
+|  2 | Tensor<[10, 128]> self = ?   | Done     | Unknown    | N/A   |
+|  3 | Tensor<[128, 10]> self = ?   | Fallback | Unknown    | N/A   |
+|  4 | Tensor<[128, 9216]> self = ? | Done     | Unknown    | N/A   |
+|  5 | Tensor<[9216, 128]> self = ? | Fallback | Unknown    | N/A   |
 ### aten.threshold_backward.default
 |    | ATen Input Variations                                                                                 | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128]> grad_output = ?,<br>Tensor<[1, 128]> self = ?,<br>number threshold = 0               | None     | Fallback   | True  |
-|  1 | Tensor<[1, 32, 26, 26]> grad_output = ?,<br>Tensor<[1, 32, 26, 26]> self = ?,<br>number threshold = 0 | None     | Fallback   | True  |
-|  2 | Tensor<[1, 64, 24, 24]> grad_output = ?,<br>Tensor<[1, 64, 24, 24]> self = ?,<br>number threshold = 0 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 128]> grad_output = ?,<br>Tensor<[1, 128]> self = ?,<br>number threshold = 0               | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 32, 26, 26]> grad_output = ?,<br>Tensor<[1, 32, 26, 26]> self = ?,<br>number threshold = 0 | None     | Unknown    | N/A   |
+|  2 | Tensor<[1, 64, 24, 24]> grad_output = ?,<br>Tensor<[1, 64, 24, 24]> self = ?,<br>number threshold = 0 | None     | Unknown    | N/A   |
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>List[int] size = [10]              | Fallback | Done       | True  |
-|  1 | Tensor<[1, 128]> self = ?,<br>List[int] size = [128]            | Fallback | Done       | True  |
-|  2 | Tensor<[1, 64, 12, 12]> self = ?,<br>List[int] size = [1, 9216] | Fallback | Done       | True  |
-|  3 | Tensor<[1, 9216]> self = ?,<br>List[int] size = [1, 64, 12, 12] | Fallback | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>List[int] size = [10]              | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 128]> self = ?,<br>List[int] size = [128]            | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 64, 12, 12]> self = ?,<br>List[int] size = [1, 9216] | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1, 9216]> self = ?,<br>List[int] size = [1, 64, 12, 12] | Fallback | Unknown    | N/A   |
 

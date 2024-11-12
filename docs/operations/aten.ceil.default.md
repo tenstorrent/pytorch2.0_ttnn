@@ -1,7 +1,7 @@
 ### aten.ceil.default
 |    | ATen Input Variations   | Status   | Isolated   | PCC   |
 |---:|:------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1066]> self = ? | None     | Fallback   | True  |
+|  0 | Tensor<[1066]> self = ? | None     | Unknown    | N/A   |
 |  1 | Tensor<[120]> self = ?  | None     | Fallback   | True  |
 |  2 | Tensor<[128]> self = ?  | None     | Fallback   | True  |
 |  3 | Tensor<[160]> self = ?  | None     | Fallback   | True  |
@@ -13,6 +13,6 @@
 |  9 | Tensor<[480]> self = ?  | None     | Fallback   | True  |
 | 10 | Tensor<[60]> self = ?   | None     | Fallback   | True  |
 | 11 | Tensor<[640]> self = ?  | None     | Fallback   | True  |
-| 12 | Tensor<[800]> self = ?  | None     | Fallback   | True  |
+| 12 | Tensor<[800]> self = ?  | None     | Unknown    | N/A   |
 | 13 | Tensor<[80]> self = ?   | None     | Fallback   | True  |
 

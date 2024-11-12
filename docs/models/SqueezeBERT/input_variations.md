@@ -14,43 +14,43 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | None     | Unknown    | N/A   |
 ### aten.add.Tensor
 |    | ATen Input Variations                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 8, 768]> self = ?,<br>Tensor<[1, 8, 768]> other = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 8, 768]> self = ?,<br>Tensor<[1, 8, 768]> other = ? | Done     | Unknown    | N/A   |
 ### aten.clone.default
 |    | ATen Input Variations        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 8, 768]> self = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1, 8, 768]> self = ? | Fallback | Unknown    | N/A   |
 ### aten.embedding.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                             | None     | Fallback   | True  |
-|  1 | Tensor<[30528, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?,<br>int padding_idx = 0 | None     | Fallback   | True  |
-|  2 | Tensor<[512, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                           | None     | Fallback   | True  |
+|  0 | Tensor<[2, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                             | None     | Unknown    | N/A   |
+|  1 | Tensor<[30528, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?,<br>int padding_idx = 0 | None     | Unknown    | N/A   |
+|  2 | Tensor<[512, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                           | None     | Unknown    | N/A   |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Fallback | Done       | True  |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Fallback | Unknown    | N/A   |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12 | Done     | Done       | N/A   |
+|  0 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12 | Done     | Unknown    | N/A   |
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0 | Done     | Unknown    | N/A   |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                 | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
-|  1 | Tensor<[1, 512]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807     | Removed  | Fallback   | True  |
-|  2 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 8                       | Fallback | Done       | True  |
-|  3 | Tensor<[1, 8]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Unknown    | N/A   |
+|  1 | Tensor<[1, 512]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807     | Removed  | Unknown    | N/A   |
+|  2 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 8                       | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1, 8]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Unknown    | N/A   |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                      | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 8]> self = ?,<br>int dim = 2 | Fallback | Done       | True  |
-|  1 | Tensor<[1, 8]> self = ?,<br>int dim = 1    | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 8]> self = ?,<br>int dim = 2 | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 8]> self = ?,<br>int dim = 1    | Done     | Unknown    | N/A   |
 

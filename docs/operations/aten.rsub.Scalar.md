@@ -3,7 +3,7 @@
 |---:|:-----------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1, 1, 10]> self = ?,<br>number other = 1.0      | Done     | Done       | True  |
 |  1 | Tensor<[1, 1, 1, 12]> self = ?,<br>number other = 1.0      | Done     | Done       | True  |
-|  2 | Tensor<[1, 1, 1, 14]> self = ?,<br>number other = 1.0      | Done     | Done       | True  |
+|  2 | Tensor<[1, 1, 1, 14]> self = ?,<br>number other = 1.0      | Done     | Unknown    | N/A   |
 |  3 | Tensor<[1, 1, 1, 15]> self = ?,<br>number other = 1.0      | None     | Fallback   | True  |
 |  4 | Tensor<[1, 1, 1, 17]> self = ?,<br>number other = 1.0      | Unknown  | Fallback   | True  |
 |  5 | Tensor<[1, 1, 1, 1]> self = ?,<br>number other = 1.0       | None     | Fallback   | True  |
@@ -19,7 +19,7 @@
 | 15 | Tensor<[1, 1, 1, 60]> self = ?,<br>number other = 1.0      | Unknown  | Fallback   | True  |
 | 16 | Tensor<[1, 1, 1, 6]> self = ?,<br>number other = 1.0       | Unknown  | Done       | True  |
 | 17 | Tensor<[1, 1, 1, 7]> self = ?,<br>number other = 1.0       | Unknown  | Fallback   | True  |
-| 18 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0       | Done     | Done       | True  |
+| 18 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0       | Done     | Unknown    | N/A   |
 | 19 | Tensor<[1, 1, 1, 9]> self = ?,<br>number other = 1.0       | None     | Fallback   | True  |
 | 20 | Tensor<[1, 1, 1, s0 + 1]> self = ?,<br>number other = 1.0  | Unknown  | Unknown    | N/A   |
 | 21 | Tensor<[1, 1, 1, s10 + 1]> self = ?,<br>number other = 1.0 | Unknown  | Unknown    | N/A   |
@@ -30,10 +30,10 @@
 | 26 | Tensor<[1, 1, 32, 32]> self = ?,<br>number other = 1.0     | Fallback | Done       | True  |
 | 27 | Tensor<[1, 1, 45, 45]> self = ?,<br>number other = 1.0     | Unknown  | Fallback   | True  |
 | 28 | Tensor<[1, 1, 59, 59]> self = ?,<br>number other = 1.0     | None     | Fallback   | True  |
-| 29 | Tensor<[1066]> self = ?,<br>number other = 1.0             | None     | Fallback   | True  |
+| 29 | Tensor<[1066]> self = ?,<br>number other = 1.0             | None     | Unknown    | N/A   |
 | 30 | Tensor<[120, 1]> self = ?,<br>number other = 1.0           | None     | Fallback   | True  |
-| 31 | Tensor<[128, 1]> self = ?,<br>number other = 1.0           | None     | Fallback   | True  |
-| 32 | Tensor<[128]> self = ?,<br>number other = 1.0              | None     | Fallback   | True  |
+| 31 | Tensor<[128, 1]> self = ?,<br>number other = 1.0           | None     | Unknown    | N/A   |
+| 32 | Tensor<[128]> self = ?,<br>number other = 1.0              | None     | Unknown    | N/A   |
 | 33 | Tensor<[160]> self = ?,<br>number other = 1.0              | None     | Fallback   | True  |
 | 34 | Tensor<[2, 1, 7, 7]> self = ?,<br>number other = 1.0       | None     | Fallback   | True  |
 | 35 | Tensor<[240, 1]> self = ?,<br>number other = 1.0           | None     | Fallback   | True  |
@@ -46,6 +46,6 @@
 | 42 | Tensor<[480, 1]> self = ?,<br>number other = 1.0           | None     | Fallback   | True  |
 | 43 | Tensor<[60, 1]> self = ?,<br>number other = 1.0            | None     | Fallback   | True  |
 | 44 | Tensor<[640]> self = ?,<br>number other = 1.0              | None     | Fallback   | True  |
-| 45 | Tensor<[800, 1]> self = ?,<br>number other = 1.0           | None     | Fallback   | True  |
+| 45 | Tensor<[800, 1]> self = ?,<br>number other = 1.0           | None     | Unknown    | N/A   |
 | 46 | Tensor<[80]> self = ?,<br>number other = 1.0               | None     | Fallback   | True  |
 

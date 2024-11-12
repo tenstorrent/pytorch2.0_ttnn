@@ -39,254 +39,254 @@
 ### aten._softmax.default
 |    | ATen Input Variations                                                              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Fallback | Done       | True  |
+|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Fallback | Unknown    | N/A   |
 ### aten._softmax_backward_data.default
 |    | ATen Input Variations                                                                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 197, 197]> grad_output = ?,<br>Tensor<[1, 16, 197, 197]> output = ?,<br>int dim = -1,<br>int input_dtype = torch.bfloat16 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 16, 197, 197]> grad_output = ?,<br>Tensor<[1, 16, 197, 197]> output = ?,<br>int dim = -1,<br>int input_dtype = torch.bfloat16 | None     | Unknown    | N/A   |
 ### aten._unsafe_view.default
 |    | ATen Input Variations                                                 | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] size = [1, 197, 1024] | Fallback | Done       | True  |
+|  0 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] size = [1, 197, 1024] | Fallback | Unknown    | N/A   |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                      | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.8999999985098839           | Fallback | Done       | True  |
-|  1 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9043478220701218           | Fallback | Done       | True  |
-|  2 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9086956530809402           | Fallback | Done       | True  |
-|  3 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9130434766411781           | Fallback | Done       | True  |
-|  4 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.917391300201416            | Fallback | Done       | True  |
-|  5 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9217391312122345           | Fallback | Done       | True  |
-|  6 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9260869547724724           | Fallback | Done       | True  |
-|  7 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9304347857832909           | Fallback | Done       | True  |
-|  8 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9347826093435287           | Fallback | Done       | True  |
-|  9 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9391304366290569           | Fallback | Done       | True  |
-| 10 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9434782639145851           | Fallback | Done       | True  |
-| 11 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.947826087474823            | Fallback | Done       | True  |
-| 12 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9521739110350609           | Fallback | Done       | True  |
-| 13 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9565217345952988           | Fallback | Done       | True  |
-| 14 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.960869561880827            | Fallback | Done       | True  |
-| 15 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9652173891663551           | Fallback | Done       | True  |
-| 16 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9695652164518833           | Fallback | Done       | True  |
-| 17 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9739130418747663           | Fallback | Done       | True  |
-| 18 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9782608672976494           | Fallback | Done       | True  |
-| 19 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9826086945831776           | Fallback | Done       | True  |
-| 20 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9869565209373832           | Fallback | Done       | True  |
-| 21 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9913043472915888           | Fallback | Done       | True  |
-| 22 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9956521736457944           | Fallback | Done       | True  |
-| 23 | Tensor<[1, 16, 197, 197]> self = ?,<br>Tensor<[1, 16, 197, 197]> other = ? | Done     | Done       | True  |
-| 24 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1, 197, 1024]> other = ?       | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.8999999985098839           | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9043478220701218           | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9086956530809402           | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9130434766411781           | Fallback | Unknown    | N/A   |
+|  4 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.917391300201416            | Fallback | Unknown    | N/A   |
+|  5 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9217391312122345           | Fallback | Unknown    | N/A   |
+|  6 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9260869547724724           | Fallback | Unknown    | N/A   |
+|  7 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9304347857832909           | Fallback | Unknown    | N/A   |
+|  8 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9347826093435287           | Fallback | Unknown    | N/A   |
+|  9 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9391304366290569           | Fallback | Unknown    | N/A   |
+| 10 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9434782639145851           | Fallback | Unknown    | N/A   |
+| 11 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.947826087474823            | Fallback | Unknown    | N/A   |
+| 12 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9521739110350609           | Fallback | Unknown    | N/A   |
+| 13 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9565217345952988           | Fallback | Unknown    | N/A   |
+| 14 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.960869561880827            | Fallback | Unknown    | N/A   |
+| 15 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9652173891663551           | Fallback | Unknown    | N/A   |
+| 16 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9695652164518833           | Fallback | Unknown    | N/A   |
+| 17 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9739130418747663           | Fallback | Unknown    | N/A   |
+| 18 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9782608672976494           | Fallback | Unknown    | N/A   |
+| 19 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9826086945831776           | Fallback | Unknown    | N/A   |
+| 20 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9869565209373832           | Fallback | Unknown    | N/A   |
+| 21 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9913043472915888           | Fallback | Unknown    | N/A   |
+| 22 | Tensor<[1, 1, 1]> self = ?,<br>Tensor other = 0.9956521736457944           | Fallback | Unknown    | N/A   |
+| 23 | Tensor<[1, 16, 197, 197]> self = ?,<br>Tensor<[1, 16, 197, 197]> other = ? | Done     | Unknown    | N/A   |
+| 24 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1, 197, 1024]> other = ?       | Done     | Unknown    | N/A   |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                      | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?   | Fallback | Done       | True  |
-|  1 | Tensor<[1024]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ? | Fallback | Done       | True  |
-|  2 | Tensor<[1024]> self = ?,<br>Tensor<[197, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ? | Fallback | Done       | True  |
-|  3 | Tensor<[4096]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?   | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1024]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ? | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1024]> self = ?,<br>Tensor<[197, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ? | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[4096]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ? | Fallback | Unknown    | N/A   |
 ### aten.bmm.default
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[16, 197, 197]> self = ?,<br>Tensor<[16, 197, 64]> mat2 = ? | Fallback | Done       | True  |
-|  1 | Tensor<[16, 197, 64]> self = ?,<br>Tensor<[16, 64, 197]> mat2 = ?  | Fallback | Done       | True  |
-|  2 | Tensor<[16, 64, 197]> self = ?,<br>Tensor<[16, 197, 197]> mat2 = ? | Done     | Done       | True  |
+|  0 | Tensor<[16, 197, 197]> self = ?,<br>Tensor<[16, 197, 64]> mat2 = ? | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[16, 197, 64]> self = ?,<br>Tensor<[16, 64, 197]> mat2 = ?  | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[16, 64, 197]> self = ?,<br>Tensor<[16, 197, 197]> mat2 = ? | Done     | Unknown    | N/A   |
 ### aten.cat.default
 |    | ATen Input Variations                                                     | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | List[Tensor] tensors = [<[1, 1, 1024]>, <[1, 196, 1024]>],<br>int dim = 1 | None     | Fallback   | True  |
+|  0 | List[Tensor] tensors = [<[1, 1, 1024]>, <[1, 196, 1024]>],<br>int dim = 1 | None     | Unknown    | N/A   |
 ### aten.clone.default
 |    | ATen Input Variations                                                                       | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 197, 197]> self = ?                                                          | Fallback | Done       | True  |
-|  1 | Tensor<[1, 197, 1024]> self = ?                                                             | Fallback | Done       | True  |
-|  2 | Tensor<[1, 197, 16, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Done     | Done       | True  |
-|  3 | Tensor<[16, 197, 197]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Done     | Done       | True  |
+|  0 | Tensor<[1, 16, 197, 197]> self = ?                                                          | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 1024]> self = ?                                                             | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 197, 16, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Done     | Unknown    | N/A   |
+|  3 | Tensor<[16, 197, 197]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Done     | Unknown    | N/A   |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                 | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[1024, 3, 16, 16]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[1024, 3, 16, 16]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Unknown    | N/A   |
 ### aten.convolution_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                                                     | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 14, 14]> grad_output = ?,<br>Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[1024, 3, 16, 16]> weight = ?,<br>Optional[List[int]] bias_sizes = [1024],<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1024, 14, 14]> grad_output = ?,<br>Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[1024, 3, 16, 16]> weight = ?,<br>Optional[List[int]] bias_sizes = [1024],<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True] | None     | Unknown    | N/A   |
 ### aten.detach.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 197, 197]> self = ? | None     | Fallback   | True  |
+|  0 | Tensor<[1, 16, 197, 197]> self = ? | None     | Unknown    | N/A   |
 ### aten.div.Scalar
 |    | ATen Input Variations                                  | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 1024]> self = ?,<br>number other = 196 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 196, 1024]> self = ?,<br>number other = 196 | None     | Unknown    | N/A   |
 ### aten.div.Tensor
 |    | ATen Input Variations                                                 | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>Tensor other = 8.0             | None     | Fallback   | True  |
-|  1 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.8999999985098839 | Done     | Done       | True  |
-|  2 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9043478220701218 | Done     | Done       | True  |
-|  3 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9086956530809402 | Done     | Done       | True  |
-|  4 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9130434766411781 | Done     | Done       | True  |
-|  5 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.917391300201416  | Done     | Done       | True  |
-|  6 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9217391312122345 | Done     | Done       | True  |
-|  7 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9260869547724724 | Done     | Done       | True  |
-|  8 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9304347857832909 | Done     | Done       | True  |
-|  9 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9347826093435287 | Done     | Done       | True  |
-| 10 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9391304366290569 | Done     | Done       | True  |
-| 11 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9434782639145851 | Done     | Done       | True  |
-| 12 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.947826087474823  | Done     | Done       | True  |
-| 13 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9521739110350609 | Done     | Done       | True  |
-| 14 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9565217345952988 | Done     | Done       | True  |
-| 15 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.960869561880827  | Done     | Done       | True  |
-| 16 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9652173891663551 | Done     | Done       | True  |
-| 17 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9695652164518833 | Done     | Done       | True  |
-| 18 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9739130418747663 | Done     | Done       | True  |
-| 19 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9782608672976494 | Done     | Done       | True  |
-| 20 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9826086945831776 | Done     | Done       | True  |
-| 21 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9869565209373832 | Done     | Done       | True  |
-| 22 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9913043472915888 | Done     | Done       | True  |
-| 23 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9956521736457944 | Done     | Done       | True  |
+|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>Tensor other = 8.0             | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.8999999985098839 | Done     | Unknown    | N/A   |
+|  2 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9043478220701218 | Done     | Unknown    | N/A   |
+|  3 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9086956530809402 | Done     | Unknown    | N/A   |
+|  4 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9130434766411781 | Done     | Unknown    | N/A   |
+|  5 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.917391300201416  | Done     | Unknown    | N/A   |
+|  6 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9217391312122345 | Done     | Unknown    | N/A   |
+|  7 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9260869547724724 | Done     | Unknown    | N/A   |
+|  8 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9304347857832909 | Done     | Unknown    | N/A   |
+|  9 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9347826093435287 | Done     | Unknown    | N/A   |
+| 10 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9391304366290569 | Done     | Unknown    | N/A   |
+| 11 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9434782639145851 | Done     | Unknown    | N/A   |
+| 12 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.947826087474823  | Done     | Unknown    | N/A   |
+| 13 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9521739110350609 | Done     | Unknown    | N/A   |
+| 14 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9565217345952988 | Done     | Unknown    | N/A   |
+| 15 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.960869561880827  | Done     | Unknown    | N/A   |
+| 16 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9652173891663551 | Done     | Unknown    | N/A   |
+| 17 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9695652164518833 | Done     | Unknown    | N/A   |
+| 18 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9739130418747663 | Done     | Unknown    | N/A   |
+| 19 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9782608672976494 | Done     | Unknown    | N/A   |
+| 20 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9826086945831776 | Done     | Unknown    | N/A   |
+| 21 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9869565209373832 | Done     | Unknown    | N/A   |
+| 22 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9913043472915888 | Done     | Unknown    | N/A   |
+| 23 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor other = 0.9956521736457944 | Done     | Unknown    | N/A   |
 ### aten.expand.default
 |    | ATen Input Variations                                                     | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, -1, -1]            | Removed  | Fallback   | True  |
-|  1 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, 196, 1024]         | Fallback | Done       | True  |
-|  2 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | Removed  | Fallback   | True  |
-|  3 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | Removed  | Fallback   | True  |
-|  4 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [1, 16, 64, 197]   | Removed  | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, -1, -1]            | Removed  | Unknown    | N/A   |
+|  1 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, 196, 1024]         | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | Removed  | Unknown    | N/A   |
+|  3 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | Removed  | Unknown    | N/A   |
+|  4 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [1, 16, 64, 197]   | Removed  | Unknown    | N/A   |
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   | Isolated   | PCC   |
 |---:|:--------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 197, 4096]> self = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1, 197, 4096]> self = ? | Fallback | Unknown    | N/A   |
 ### aten.gelu_backward.default
 |    | ATen Input Variations                                                      | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 197, 4096]> grad_output = ?,<br>Tensor<[1, 197, 4096]> self = ? | None     | Fallback   | True  |
+|  0 | Tensor<[1, 197, 4096]> grad_output = ?,<br>Tensor<[1, 197, 4096]> self = ? | None     | Unknown    | N/A   |
 ### aten.index.Tensor
 |    | ATen Input Variations                                                       | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[732, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[38809]>] | None     | Fallback   | True  |
+|  0 | Tensor<[732, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[38809]>] | None     | Unknown    | N/A   |
 ### aten.index_put.default
 |    | ATen Input Variations                                                                                                                     | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[732, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[38809]>],<br>Tensor<[38809, 16]> values = ?,<br>bool accumulate = True | None     | Fallback   | True  |
+|  0 | Tensor<[732, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[38809]>],<br>Tensor<[38809, 16]> values = ?,<br>bool accumulate = True | None     | Unknown    | N/A   |
 ### aten.mean.dim
 |    | ATen Input Variations                                             | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | None     | Unknown    | N/A   |
 ### aten.mm.default
 |    | ATen Input Variations                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 1024]> mat2 = ?   | Fallback | Done       | True  |
-|  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 1024]> mat2 = ?      | Done     | Done       | True  |
-|  2 | Tensor<[1024, 197]> self = ?,<br>Tensor<[197, 1024]> mat2 = ?  | Done     | Done       | True  |
-|  3 | Tensor<[1024, 197]> self = ?,<br>Tensor<[197, 4096]> mat2 = ?  | Done     | Done       | True  |
-|  4 | Tensor<[197, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ? | Fallback | Done       | True  |
-|  5 | Tensor<[197, 1024]> self = ?,<br>Tensor<[1024, 4096]> mat2 = ? | Fallback | Done       | True  |
-|  6 | Tensor<[197, 4096]> self = ?,<br>Tensor<[4096, 1024]> mat2 = ? | Fallback | Done       | True  |
-|  7 | Tensor<[4096, 197]> self = ?,<br>Tensor<[197, 1024]> mat2 = ?  | Done     | Done       | True  |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 1024]> mat2 = ?   | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 1024]> mat2 = ?      | Done     | Unknown    | N/A   |
+|  2 | Tensor<[1024, 197]> self = ?,<br>Tensor<[197, 1024]> mat2 = ?  | Done     | Unknown    | N/A   |
+|  3 | Tensor<[1024, 197]> self = ?,<br>Tensor<[197, 4096]> mat2 = ?  | Done     | Unknown    | N/A   |
+|  4 | Tensor<[197, 1024]> self = ?,<br>Tensor<[1024, 1024]> mat2 = ? | Fallback | Unknown    | N/A   |
+|  5 | Tensor<[197, 1024]> self = ?,<br>Tensor<[1024, 4096]> mat2 = ? | Fallback | Unknown    | N/A   |
+|  6 | Tensor<[197, 4096]> self = ?,<br>Tensor<[4096, 1024]> mat2 = ? | Fallback | Unknown    | N/A   |
+|  7 | Tensor<[4096, 197]> self = ?,<br>Tensor<[197, 1024]> mat2 = ?  | Done     | Unknown    | N/A   |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1, 1, 1]> other = ?      | Done     | Done       | True  |
-|  1 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1, 197, 1024]> other = ? | Fallback | Done       | True  |
-|  2 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1024]> other = ?         | Fallback | Done       | True  |
-|  3 | Tensor<[1024]> self = ?,<br>Tensor<[1, 197, 1024]> other = ?         | Done     | Done       | True  |
+|  0 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1, 1, 1]> other = ?      | Done     | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1, 197, 1024]> other = ? | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 197, 1024]> self = ?,<br>Tensor<[1024]> other = ?         | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1024]> self = ?,<br>Tensor<[1, 197, 1024]> other = ?         | Done     | Unknown    | N/A   |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float eps = 1e-12      | Fallback | Done       | N/A   |
-|  1 | Tensor<[1, 197, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float eps = 1e-12 | Fallback | Done       | N/A   |
+|  0 | Tensor<[1, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float eps = 1e-12      | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float eps = 1e-12 | Fallback | Unknown    | N/A   |
 ### aten.native_layer_norm_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                            | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024]> grad_out = ?,<br>Tensor<[1, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Tensor<[1, 1]> mean = ?,<br>Tensor<[1, 1]> rstd = ?,<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[bool] output_mask = [True, True, True]                     | None     | Fallback   | True  |
-|  1 | Tensor<[1, 197, 1024]> grad_out = ?,<br>Tensor<[1, 197, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Tensor<[1, 197, 1]> mean = ?,<br>Tensor<[1, 197, 1]> rstd = ?,<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[bool] output_mask = [True, True, True] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1024]> grad_out = ?,<br>Tensor<[1, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Tensor<[1, 1]> mean = ?,<br>Tensor<[1, 1]> rstd = ?,<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[bool] output_mask = [True, True, True]                     | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 1024]> grad_out = ?,<br>Tensor<[1, 197, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Tensor<[1, 197, 1]> mean = ?,<br>Tensor<[1, 197, 1]> rstd = ?,<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[bool] output_mask = [True, True, True] | None     | Unknown    | N/A   |
 ### aten.new_zeros.default
 |    | ATen Input Variations                                                                                                                                                           | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[38809, 16]> self = ?,<br>List[int] size = [732, 16],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | None     | Fallback   | True  |
+|  0 | Tensor<[38809, 16]> self = ?,<br>List[int] size = [732, 16],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | None     | Unknown    | N/A   |
 ### aten.permute.default
 |    | ATen Input Variations                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Fallback | Done       | True  |
-|  1 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Fallback | Done       | True  |
-|  2 | Tensor<[16, 197, 197]> self = ?,<br>List[int] dims = [1, 2, 0]      | None     | Fallback   | True  |
-|  3 | Tensor<[197, 197, 16]> self = ?,<br>List[int] dims = [2, 0, 1]      | Done     | Done       | True  |
+|  0 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[16, 197, 197]> self = ?,<br>List[int] dims = [1, 2, 0]      | None     | Unknown    | N/A   |
+|  3 | Tensor<[197, 197, 16]> self = ?,<br>List[int] dims = [2, 0, 1]      | Done     | Unknown    | N/A   |
 ### aten.rand.default
 |    | ATen Input Variations                                                                                                                       | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | List[int] size = [1, 1, 1],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False | None     | Fallback   | True  |
+|  0 | List[int] size = [1, 1, 1],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False | None     | Unknown    | N/A   |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 1024]> self = ?,<br>int dim = 2,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
-|  1 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
-|  2 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 1                   | Fallback | Done       | True  |
-|  3 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = 197                 | Done     | Done       | True  |
-|  4 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = 9223372036854775807 | Fallback | Done       | True  |
+|  0 | Tensor<[1, 196, 1024]> self = ?,<br>int dim = 2,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Unknown    | N/A   |
+|  2 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 1                   | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = 197                 | Done     | Unknown    | N/A   |
+|  4 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = 9223372036854775807 | Fallback | Unknown    | N/A   |
 ### aten.slice_backward.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 1024]> grad_output = ?,<br>List[int] input_sizes = [1, 196, 1024],<br>int dim = 2,<br>int start = 0,<br>int end = 9223372036854775807,<br>int step = 1 | None     | Fallback   | True  |
-|  1 | Tensor<[1, 196, 1024]> grad_output = ?,<br>List[int] input_sizes = [1, 197, 1024],<br>int dim = 1,<br>int start = 1,<br>int end = 9223372036854775807,<br>int step = 1 | None     | Fallback   | True  |
-|  2 | Tensor<[1, 197, 1024]> grad_output = ?,<br>List[int] input_sizes = [1, 197, 1024],<br>int dim = 0,<br>int start = 0,<br>int end = 9223372036854775807,<br>int step = 1 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 196, 1024]> grad_output = ?,<br>List[int] input_sizes = [1, 196, 1024],<br>int dim = 2,<br>int start = 0,<br>int end = 9223372036854775807,<br>int step = 1 | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 196, 1024]> grad_output = ?,<br>List[int] input_sizes = [1, 197, 1024],<br>int dim = 1,<br>int start = 1,<br>int end = 9223372036854775807,<br>int step = 1 | None     | Unknown    | N/A   |
+|  2 | Tensor<[1, 197, 1024]> grad_output = ?,<br>List[int] input_sizes = [1, 197, 1024],<br>int dim = 0,<br>int start = 0,<br>int end = 9223372036854775807,<br>int step = 1 | None     | Unknown    | N/A   |
 ### aten.squeeze.dim
 |    | ATen Input Variations                              | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = 0 | Fallback | Done       | True  |
+|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = 0 | Fallback | Unknown    | N/A   |
 ### aten.sum.dim_IntList
 |    | ATen Input Variations                                                                        | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True         | None     | Fallback   | True  |
-|  1 | Tensor<[1, 197, 1024]> self = ?,<br>Optional[List[int]] dim = [0, 1],<br>bool keepdim = True | None     | Fallback   | True  |
-|  2 | Tensor<[197, 1024]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True       | None     | Fallback   | True  |
-|  3 | Tensor<[197, 4096]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True       | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True         | None     | Unknown    | N/A   |
+|  1 | Tensor<[1, 197, 1024]> self = ?,<br>Optional[List[int]] dim = [0, 1],<br>bool keepdim = True | None     | Unknown    | N/A   |
+|  2 | Tensor<[197, 1024]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True       | None     | Unknown    | N/A   |
+|  3 | Tensor<[197, 4096]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True       | None     | Unknown    | N/A   |
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   | PCC   |
 |---:|:------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1000]> self = ?    | Done     | Done       | True  |
-|  1 | Tensor<[1000, 1024]> self = ? | Done     | Done       | True  |
-|  2 | Tensor<[1024, 1000]> self = ? | Fallback | Done       | True  |
-|  3 | Tensor<[1024, 1024]> self = ? | Fallback | Done       | True  |
-|  4 | Tensor<[1024, 4096]> self = ? | Fallback | Done       | True  |
-|  5 | Tensor<[197, 1024]> self = ?  | Done     | Done       | True  |
-|  6 | Tensor<[197, 4096]> self = ?  | Done     | Done       | True  |
-|  7 | Tensor<[4096, 1024]> self = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1, 1000]> self = ?    | Done     | Unknown    | N/A   |
+|  1 | Tensor<[1000, 1024]> self = ? | Done     | Unknown    | N/A   |
+|  2 | Tensor<[1024, 1000]> self = ? | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1024, 1024]> self = ? | Fallback | Unknown    | N/A   |
+|  4 | Tensor<[1024, 4096]> self = ? | Fallback | Unknown    | N/A   |
+|  5 | Tensor<[197, 1024]> self = ?  | Done     | Unknown    | N/A   |
+|  6 | Tensor<[197, 4096]> self = ?  | Done     | Unknown    | N/A   |
+|  7 | Tensor<[4096, 1024]> self = ? | Fallback | Unknown    | N/A   |
 ### aten.transpose.int
 |    | ATen Input Variations                                                 | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 196]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Fallback | Done       | True  |
-|  1 | Tensor<[1, 16, 197, 64]> self = ?,<br>int dim0 = -1,<br>int dim1 = -2 | Fallback | Done       | True  |
-|  2 | Tensor<[1, 16, 64, 197]> self = ?,<br>int dim0 = -1,<br>int dim1 = -2 | None     | Fallback   | True  |
-|  3 | Tensor<[1, 196, 1024]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Done     | Done       | True  |
-|  4 | Tensor<[16, 197, 197]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | None     | Fallback   | True  |
-|  5 | Tensor<[16, 197, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2      | Done     | Done       | True  |
-|  6 | Tensor<[16, 64, 197]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2      | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1024, 196]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 16, 197, 64]> self = ?,<br>int dim0 = -1,<br>int dim1 = -2 | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 16, 64, 197]> self = ?,<br>int dim0 = -1,<br>int dim1 = -2 | None     | Unknown    | N/A   |
+|  3 | Tensor<[1, 196, 1024]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Done     | Unknown    | N/A   |
+|  4 | Tensor<[16, 197, 197]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | None     | Unknown    | N/A   |
+|  5 | Tensor<[16, 197, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2      | Done     | Unknown    | N/A   |
+|  6 | Tensor<[16, 64, 197]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2      | None     | Unknown    | N/A   |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                           | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024]> self = ?,<br>int dim = 1      | Done     | Done       | True  |
-|  1 | Tensor<[16, 197, 197]> self = ?,<br>int dim = 0 | Done     | Done       | True  |
+|  0 | Tensor<[1, 1024]> self = ?,<br>int dim = 1      | Done     | Unknown    | N/A   |
+|  1 | Tensor<[16, 197, 197]> self = ?,<br>int dim = 0 | Done     | Unknown    | N/A   |
 ### aten.view.default
 |    | ATen Input Variations                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1024]              | Fallback | Done       | True  |
-|  1 | Tensor<[1, 1000]> self = ?,<br>List[int] size = [1000]                 | Fallback | Done       | True  |
-|  2 | Tensor<[1, 1024, 14, 14]> self = ?,<br>List[int] size = [1, 1024, 196] | None     | Fallback   | True  |
-|  3 | Tensor<[1, 1024, 196]> self = ?,<br>List[int] size = [1, 1024, 14, 14] | Fallback | Done       | True  |
-|  4 | Tensor<[1, 1024]> self = ?,<br>List[int] size = [1024]                 | Fallback | Done       | True  |
-|  5 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [16, 197, 197] | None     | Fallback   | True  |
-|  6 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] size = [16, 197, 64]   | None     | Fallback   | True  |
-|  7 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [16, 64, 197]   | None     | Fallback   | True  |
-|  8 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [1, 197, 16, 64]  | None     | Fallback   | True  |
-|  9 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [197, 1024]       | None     | Fallback   | True  |
-| 10 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] size = [1, 197, 1024]  | None     | Fallback   | True  |
-| 11 | Tensor<[1, 197, 4096]> self = ?,<br>List[int] size = [197, 4096]       | None     | Fallback   | True  |
-| 12 | Tensor<[1, 4096]> self = ?,<br>List[int] size = [4096]                 | Fallback | Done       | True  |
-| 13 | Tensor<[16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | None     | Fallback   | True  |
-| 14 | Tensor<[16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | None     | Fallback   | True  |
-| 15 | Tensor<[16, 64, 197]> self = ?,<br>List[int] size = [1, 16, 64, 197]   | Fallback | Done       | True  |
-| 16 | Tensor<[197, 1024]> self = ?,<br>List[int] size = [1, 197, 1024]       | None     | Fallback   | True  |
-| 17 | Tensor<[197, 197, 16]> self = ?,<br>List[int] size = [38809, 16]       | Fallback | Done       | True  |
-| 18 | Tensor<[197, 197]> self = ?,<br>List[int] size = [-1]                  | None     | Fallback   | True  |
-| 19 | Tensor<[197, 4096]> self = ?,<br>List[int] size = [1, 197, 4096]       | None     | Fallback   | True  |
-| 20 | Tensor<[38809, 16]> self = ?,<br>List[int] size = [197, 197, -1]       | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1024]              | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 1000]> self = ?,<br>List[int] size = [1000]                 | Fallback | Unknown    | N/A   |
+|  2 | Tensor<[1, 1024, 14, 14]> self = ?,<br>List[int] size = [1, 1024, 196] | None     | Unknown    | N/A   |
+|  3 | Tensor<[1, 1024, 196]> self = ?,<br>List[int] size = [1, 1024, 14, 14] | Fallback | Unknown    | N/A   |
+|  4 | Tensor<[1, 1024]> self = ?,<br>List[int] size = [1024]                 | Fallback | Unknown    | N/A   |
+|  5 | Tensor<[1, 16, 197, 197]> self = ?,<br>List[int] size = [16, 197, 197] | None     | Unknown    | N/A   |
+|  6 | Tensor<[1, 16, 197, 64]> self = ?,<br>List[int] size = [16, 197, 64]   | None     | Unknown    | N/A   |
+|  7 | Tensor<[1, 16, 64, 197]> self = ?,<br>List[int] size = [16, 64, 197]   | None     | Unknown    | N/A   |
+|  8 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [1, 197, 16, 64]  | None     | Unknown    | N/A   |
+|  9 | Tensor<[1, 197, 1024]> self = ?,<br>List[int] size = [197, 1024]       | None     | Unknown    | N/A   |
+| 10 | Tensor<[1, 197, 16, 64]> self = ?,<br>List[int] size = [1, 197, 1024]  | None     | Unknown    | N/A   |
+| 11 | Tensor<[1, 197, 4096]> self = ?,<br>List[int] size = [197, 4096]       | None     | Unknown    | N/A   |
+| 12 | Tensor<[1, 4096]> self = ?,<br>List[int] size = [4096]                 | Fallback | Unknown    | N/A   |
+| 13 | Tensor<[16, 197, 197]> self = ?,<br>List[int] size = [1, 16, 197, 197] | None     | Unknown    | N/A   |
+| 14 | Tensor<[16, 197, 64]> self = ?,<br>List[int] size = [1, 16, 197, 64]   | None     | Unknown    | N/A   |
+| 15 | Tensor<[16, 64, 197]> self = ?,<br>List[int] size = [1, 16, 64, 197]   | Fallback | Unknown    | N/A   |
+| 16 | Tensor<[197, 1024]> self = ?,<br>List[int] size = [1, 197, 1024]       | None     | Unknown    | N/A   |
+| 17 | Tensor<[197, 197, 16]> self = ?,<br>List[int] size = [38809, 16]       | Fallback | Unknown    | N/A   |
+| 18 | Tensor<[197, 197]> self = ?,<br>List[int] size = [-1]                  | None     | Unknown    | N/A   |
+| 19 | Tensor<[197, 4096]> self = ?,<br>List[int] size = [1, 197, 4096]       | None     | Unknown    | N/A   |
+| 20 | Tensor<[38809, 16]> self = ?,<br>List[int] size = [197, 197, -1]       | None     | Unknown    | N/A   |
 

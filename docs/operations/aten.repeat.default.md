@@ -2,7 +2,7 @@
 |    | ATen Input Variations                                                    | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1, 1]> self = ?,<br>List[int] repeats = [1, 1, 1]             | Unknown  | Fallback   | True  |
-|  1 | Tensor<[1, 1, 2048, 2048]> self = ?,<br>List[int] repeats = [1, 1, 1, 1] | Removed  | Fallback   | True  |
+|  1 | Tensor<[1, 1, 2048, 2048]> self = ?,<br>List[int] repeats = [1, 1, 1, 1] | Removed  | Unknown    | N/A   |
 |  2 | Tensor<[100, 1, 256]> self = ?,<br>List[int] repeats = [1, 1, 1]         | Unknown  | Fallback   | True  |
 |  3 | Tensor<[4, 2]> self = ?,<br>List[int] repeats = [1, 1]                   | Unknown  | Fallback   | True  |
 |  4 | Tensor<[4, 2]> self = ?,<br>List[int] repeats = [1444, 1]                | Fallback | Done       | True  |

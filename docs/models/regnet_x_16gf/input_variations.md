@@ -59,25 +59,25 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                                                           | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 2048, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
+|  0 | Tensor<[1, 2048, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Unknown    | N/A   |
 ### aten.relu.default
 |    | ATen Input Variations               | Status   | Isolated   | PCC   |
 |---:|:------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 2048, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  1 | Tensor<[1, 2048, 7, 7]> self = ?    | Done     | Done       | True  |
-|  2 | Tensor<[1, 256, 112, 112]> self = ? | Fallback | Done       | True  |
-|  3 | Tensor<[1, 256, 56, 56]> self = ?   | Fallback | Done       | True  |
-|  4 | Tensor<[1, 32, 112, 112]> self = ?  | Fallback | Done       | True  |
-|  5 | Tensor<[1, 512, 28, 28]> self = ?   | Fallback | Done       | True  |
-|  6 | Tensor<[1, 512, 56, 56]> self = ?   | Fallback | Done       | True  |
-|  7 | Tensor<[1, 896, 14, 14]> self = ?   | Fallback | Done       | True  |
-|  8 | Tensor<[1, 896, 28, 28]> self = ?   | Fallback | Done       | True  |
+|  0 | Tensor<[1, 2048, 14, 14]> self = ?  | Fallback | Unknown    | N/A   |
+|  1 | Tensor<[1, 2048, 7, 7]> self = ?    | Done     | Unknown    | N/A   |
+|  2 | Tensor<[1, 256, 112, 112]> self = ? | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1, 256, 56, 56]> self = ?   | Fallback | Unknown    | N/A   |
+|  4 | Tensor<[1, 32, 112, 112]> self = ?  | Fallback | Unknown    | N/A   |
+|  5 | Tensor<[1, 512, 28, 28]> self = ?   | Fallback | Unknown    | N/A   |
+|  6 | Tensor<[1, 512, 56, 56]> self = ?   | Fallback | Unknown    | N/A   |
+|  7 | Tensor<[1, 896, 14, 14]> self = ?   | Fallback | Unknown    | N/A   |
+|  8 | Tensor<[1, 896, 28, 28]> self = ?   | Fallback | Unknown    | N/A   |
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   | PCC   |
 |---:|:------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000, 2048]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1000, 2048]> self = ? | Done     | Unknown    | N/A   |
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 2048, 1, 1]> self = ?,<br>List[int] size = [1, 2048] | Done     | Done       | True  |
+|  0 | Tensor<[1, 2048, 1, 1]> self = ?,<br>List[int] size = [1, 2048] | Done     | Unknown    | N/A   |
 
