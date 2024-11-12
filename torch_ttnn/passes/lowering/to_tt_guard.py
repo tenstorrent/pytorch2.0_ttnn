@@ -55,6 +55,12 @@ aten_view_default_blocklist += [
     ["Tensor<[1, 7, 18176]> self = ?", "List[int] size = [7, 18176]"],
 ]
 
+# XGLM inputs that do not support TILE_LAYOUT
+aten_view_default_blocklist += [
+    ["Tensor<[19, 256008]> self = ?", "List[int] size = [1, 19, 256008]"],
+    ["Tensor<[1, 19, 256008]> self = ?", "List[int] size = [-1, 256008]"],
+]
+
 aten__to_copy_default_blocklist = [
     ["Tensor<[1, 3, 224, 224]> self = ?", "Optional[int] dtype = torch.bfloat16"],
     ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
