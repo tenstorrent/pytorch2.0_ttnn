@@ -832,9 +832,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return tensor
 
-            # PEP 8 suggests this explicit statement
-            return None
-
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
                 input_shape = tensor.meta["val"].size()
@@ -857,6 +854,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_4d = g.call_function(ttnn.reshape, (tensor, input_4d_shape))
                 output_4d = g.call_function(ttnn.moreh_cumsum, (input_4d, dim), kwargs)
                 return g.call_function(ttnn.reshape, (output_4d, input_shape))
+
+            # PEP 8 suggests this explicit statement
+            return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
