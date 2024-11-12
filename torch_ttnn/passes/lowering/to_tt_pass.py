@@ -515,8 +515,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.embedding.default:
                 tiled = args[1].meta["val"].size()[-1] % ttnn.TILE_SIZE == 0
                 layout = TtnnTileLayout() if tiled else TtnnRowMajorLayout()
-                tensor = g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs={"layout": layout})
-                return tensor if tiled else g.call_function(ttnn.to_layout, args=(tensor, TtnnTileLayout()))
+                tensor = g.call_function(ttnn.embedding, (args[1], args[0]), {"layout": layout})
+                return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten._log_softmax.default:
                 softmax_node = g.call_function(
