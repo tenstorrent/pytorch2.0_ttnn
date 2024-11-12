@@ -619,7 +619,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
-                if len(get_shape(args[0])) > 4 and len(get_shape(node)) >= 4:
+                if len(get_shape(args[0])) > 4:
                     return None
                 if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
                     # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
@@ -767,7 +767,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     multiplier = np_tensor_shp // np_mask_shp
                     mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
 
-                    kwargs = {"dtype": TtnnBfloat16(), "device": TtnnDevice()}
+                    kwargs = {"dtype": TtnnBfloat16(), "device": TtnnDevice(), "layout": TtnnTileLayout()}
                     ones = g.call_function(ttnn.ones, (tensor_shape,), kwargs)
                     mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
                     tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))

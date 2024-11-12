@@ -332,17 +332,12 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     new_nodes = list()
     with g.inserting_before(dst_node):
         kwargs = {}
-        if dst_node.target == ttnn.embedding or (
-            dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node)
-        ):
+        if dst_node.target == ttnn.embedding:
             kwargs["layout"] = TtnnRowMajorLayout()
         else:
             kwargs["layout"] = TtnnTileLayout()
 
-        if not (dst_node.target == ttnn.reshape and have_unsupported_ranks(src_node, dst_node)):
-            kwargs["device"] = device
-
-        # kwargs = {"layout": TtnnTileLayout(), "device": device}
+        kwargs["device"] = device
 
         if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
             kwargs["dtype"] = TtnnUint32()
@@ -410,7 +405,6 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
         or dst_node.target == ttnn.embedding
         or dst_node.target == target_wrappers.repeat
         or src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
-        or (src_node.target == ttnn.reshape and can_reshape(src_node))
         or (src_node.target == ttnn.full and can_be_tilized(src_node))
     ):
         return None

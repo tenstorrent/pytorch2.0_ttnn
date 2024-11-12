@@ -56,7 +56,7 @@ class SqueezeNoneDimModule(torch.nn.Module):
         pytest.param((64, 1, 32, 16, 1, 32, 32), marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT.")),
         pytest.param((1, 1, 55, 23, 44, 32, 32), marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT.")),
         pytest.param((22, 1, 55, 23, 44, 32, 1), marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT.")),
-        ((1, 1, 55, 1, 1, 1, 1)),
+        pytest.param((1, 1, 55, 1, 1, 1, 1), marks=pytest.mark.xfail(reason="Does not support TILE_LAYOUT.")),
     ],
 )
 def test_squeeze_none_dim(device, input_shape):
