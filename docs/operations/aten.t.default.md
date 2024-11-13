@@ -5,8 +5,8 @@
 |   1 | Tensor<[1, 10]> self = ?        | Done     | Done       | True  |
 |   2 | Tensor<[1, 128]> self = ?       | Done     | Done       | True  |
 |   3 | Tensor<[1, 12]> self = ?        | Done     | Done       | True  |
-|   4 | Tensor<[1, 21843]> self = ?     | None     | Fallback   | True  |
-|   5 | Tensor<[1, 3]> self = ?         | None     | Fallback   | True  |
+|   4 | Tensor<[1, 21843]> self = ?     | Done     | Done       | True  |
+|   5 | Tensor<[1, 3]> self = ?         | Done     | Done       | True  |
 |   6 | Tensor<[1, 512]> self = ?       | Done     | Done       | True  |
 |   7 | Tensor<[1, 64]> self = ?        | Done     | Done       | True  |
 |   8 | Tensor<[1, 768]> self = ?       | Done     | Done       | True  |
@@ -35,7 +35,7 @@
 |  31 | Tensor<[1000, 784]> self = ?    | Done     | Done       | True  |
 |  32 | Tensor<[1000, 888]> self = ?    | Done     | Done       | True  |
 |  33 | Tensor<[1000, 912]> self = ?    | Done     | Done       | True  |
-|  34 | Tensor<[1024, 1000]> self = ?   | Done     | Done       | True  |
+|  34 | Tensor<[1024, 1000]> self = ?   | Fallback | Done       | True  |
 |  35 | Tensor<[1024, 1024]> self = ?   | Done     | Done       | True  |
 |  36 | Tensor<[1024, 128]> self = ?    | Done     | Done       | True  |
 |  37 | Tensor<[1024, 160]> self = ?    | Unknown  | Done       | True  |
@@ -47,11 +47,11 @@
 |  43 | Tensor<[1024, 640]> self = ?    | Unknown  | Done       | True  |
 |  44 | Tensor<[10240, 1280]> self = ?  | Unknown  | Done       | True  |
 |  45 | Tensor<[1152, 384]> self = ?    | Done     | Done       | True  |
-|  46 | Tensor<[12, 3]> self = ?        | None     | Fallback   | True  |
+|  46 | Tensor<[12, 3]> self = ?        | Done     | Done       | True  |
 |  47 | Tensor<[12, 512]> self = ?      | Done     | Done       | True  |
 |  48 | Tensor<[12, 64]> self = ?       | Done     | Done       | True  |
 |  49 | Tensor<[128, 1024]> self = ?    | Done     | Done       | True  |
-|  50 | Tensor<[128, 10]> self = ?      | Done     | Done       | True  |
+|  50 | Tensor<[128, 10]> self = ?      | Fallback | Done       | True  |
 |  51 | Tensor<[128, 128]> self = ?     | Done     | Done       | True  |
 |  52 | Tensor<[128, 2048]> self = ?    | Done     | Done       | True  |
 |  53 | Tensor<[128, 32]> self = ?      | Done     | Done       | True  |
@@ -61,7 +61,7 @@
 |  57 | Tensor<[128, 768]> self = ?     | Done     | Done       | True  |
 |  58 | Tensor<[128, 784]> self = ?     | Done     | Done       | True  |
 |  59 | Tensor<[128, 9216]> self = ?    | Done     | Done       | True  |
-|  60 | Tensor<[1280, 1000]> self = ?   | Done     | Done       | True  |
+|  60 | Tensor<[1280, 1000]> self = ?   | Fallback | Done       | True  |
 |  61 | Tensor<[1280, 1280]> self = ?   | Done     | Done       | True  |
 |  62 | Tensor<[1280, 320]> self = ?    | Done     | Done       | True  |
 |  63 | Tensor<[1280, 5120]> self = ?   | Done     | Done       | True  |
@@ -69,7 +69,7 @@
 |  65 | Tensor<[1280, 960]> self = ?    | Done     | Done       | True  |
 |  66 | Tensor<[14, 2048]> self = ?     | Done     | Done       | True  |
 |  67 | Tensor<[14, 512]> self = ?      | Done     | Done       | True  |
-|  68 | Tensor<[1536, 1000]> self = ?   | Done     | Done       | True  |
+|  68 | Tensor<[1536, 1000]> self = ?   | Fallback | Done       | True  |
 |  69 | Tensor<[1536, 1536]> self = ?   | Done     | Done       | True  |
 |  70 | Tensor<[1536, 384]> self = ?    | Done     | Done       | True  |
 |  71 | Tensor<[1536, 512]> self = ?    | Done     | Done       | True  |
@@ -97,7 +97,7 @@
 |  93 | Tensor<[2, 1]> self = ?         | None     | Fallback   | True  |
 |  94 | Tensor<[2, 512]> self = ?       | Done     | Done       | True  |
 |  95 | Tensor<[2, 768]> self = ?       | Done     | Done       | True  |
-|  96 | Tensor<[2048, 1000]> self = ?   | Done     | Done       | True  |
+|  96 | Tensor<[2048, 1000]> self = ?   | Fallback | Done       | True  |
 |  97 | Tensor<[2048, 128]> self = ?    | Done     | Done       | True  |
 |  98 | Tensor<[2048, 2048]> self = ?   | Done     | Done       | True  |
 |  99 | Tensor<[2048, 256]> self = ?    | Done     | Done       | True  |
@@ -150,7 +150,7 @@
 | 146 | Tensor<[4096, 1024]> self = ?   | Done     | Done       | True  |
 | 147 | Tensor<[4096, 128]> self = ?    | Done     | Done       | True  |
 | 148 | Tensor<[4096, 16384]> self = ?  | Done     | Done       | True  |
-| 149 | Tensor<[4096, 25088]> self = ?  | Done     | Done       | True  |
+| 149 | Tensor<[4096, 25088]> self = ?  | Fallback | Done       | True  |
 | 150 | Tensor<[4096, 256]> self = ?    | Unknown  | Done       | True  |
 | 151 | Tensor<[4096, 4096]> self = ?   | Done     | Done       | True  |
 | 152 | Tensor<[4096, 64]> self = ?     | Unknown  | Done       | True  |
@@ -159,7 +159,7 @@
 | 155 | Tensor<[50, 768]> self = ?      | Done     | Done       | True  |
 | 156 | Tensor<[50257, 768]> self = ?   | Unknown  | Done       | True  |
 | 157 | Tensor<[50272, 512]> self = ?   | Done     | Done       | True  |
-| 158 | Tensor<[512, 1000]> self = ?    | Done     | Done       | True  |
+| 158 | Tensor<[512, 1000]> self = ?    | Fallback | Done       | True  |
 | 159 | Tensor<[512, 1024]> self = ?    | Done     | Done       | True  |
 | 160 | Tensor<[512, 128]> self = ?     | Done     | Done       | True  |
 | 161 | Tensor<[512, 1]> self = ?       | None     | Fallback   | True  |
@@ -186,24 +186,24 @@
 | 182 | Tensor<[640, 2560]> self = ?    | Unknown  | Done       | True  |
 | 183 | Tensor<[640, 640]> self = ?     | Unknown  | Done       | True  |
 | 184 | Tensor<[640, 768]> self = ?     | Unknown  | Done       | True  |
-| 185 | Tensor<[768, 1000]> self = ?    | Done     | Done       | True  |
+| 185 | Tensor<[768, 1000]> self = ?    | Fallback | Done       | True  |
 | 186 | Tensor<[768, 1280]> self = ?    | Done     | Done       | True  |
 | 187 | Tensor<[768, 128]> self = ?     | Done     | Done       | True  |
 | 188 | Tensor<[768, 1536]> self = ?    | Done     | Done       | True  |
 | 189 | Tensor<[768, 192]> self = ?     | Done     | Done       | True  |
 | 190 | Tensor<[768, 196]> self = ?     | Done     | Done       | True  |
-| 191 | Tensor<[768, 21843]> self = ?   | None     | Fallback   | True  |
+| 191 | Tensor<[768, 21843]> self = ?   | Fallback | Done       | True  |
 | 192 | Tensor<[768, 256]> self = ?     | Done     | Done       | True  |
 | 193 | Tensor<[768, 3072]> self = ?    | Done     | Done       | True  |
 | 194 | Tensor<[768, 384]> self = ?     | Done     | Done       | True  |
-| 195 | Tensor<[768, 512]> self = ?     | Done     | Done       | True  |
+| 195 | Tensor<[768, 512]> self = ?     | Fallback | Done       | True  |
 | 196 | Tensor<[768, 768]> self = ?     | Done     | Done       | True  |
 | 197 | Tensor<[784, 128]> self = ?     | Done     | Done       | True  |
 | 198 | Tensor<[8, 512]> self = ?       | Done     | Done       | True  |
 | 199 | Tensor<[8192, 2048]> self = ?   | Done     | Done       | True  |
 | 200 | Tensor<[92, 192]> self = ?      | Done     | Done       | True  |
 | 201 | Tensor<[92, 256]> self = ?      | Done     | Done       | True  |
-| 202 | Tensor<[9216, 128]> self = ?    | Done     | Done       | True  |
+| 202 | Tensor<[9216, 128]> self = ?    | Fallback | Done       | True  |
 | 203 | Tensor<[96, 384]> self = ?      | Done     | Done       | True  |
 | 204 | Tensor<[96, 96]> self = ?       | Done     | Done       | True  |
 

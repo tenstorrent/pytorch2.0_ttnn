@@ -1,20 +1,20 @@
 # High Level Operations Status
 |    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._to_copy.default          |                  1 |           0 |         1 |          0 | ✅          |       1 |
-|  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  2 | aten.clone.default             |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  3 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |       0 |
-|  4 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  5 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  6 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  7 | aten.slice.Tensor              |                  4 |           1 |         3 |          0 | ✅          |       1 |
-|  8 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  0 | aten._to_copy.default          |                  1 |           0 |         0 |          0 | ✘           |     0   |
+|  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  2 | aten.clone.default             |                  1 |           0 |         0 |          1 | ✘           |     0   |
+|  3 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |     1   |
+|  4 | aten.mul.Tensor                |                  1 |           0 |         0 |          1 | ✘           |     0   |
+|  5 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  6 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  7 | aten.slice.Tensor              |                  4 |           1 |         3 |          0 | ✅          |     1   |
+|  8 | aten.unsqueeze.default         |                  2 |           1 |         0 |          1 | 🚧          |     0.5 |
 ***
 ### aten._to_copy.default
 |    | ATen Input Variations                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Removed  | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | None     | Fallback   | True  |
 ### aten.add.Tensor
 |    | ATen Input Variations                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------|:---------|:-----------|:------|
@@ -22,17 +22,17 @@
 ### aten.clone.default
 |    | ATen Input Variations        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 8, 768]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 8, 768]> self = ? | Fallback | Done       | True  |
 ### aten.embedding.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                             | None     | Fallback   | True  |
-|  1 | Tensor<[30528, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?,<br>int padding_idx = 0 | None     | Fallback   | True  |
-|  2 | Tensor<[512, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                           | None     | Fallback   | True  |
+|  0 | Tensor<[2, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                             | Done     | Done       | True  |
+|  1 | Tensor<[30528, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?,<br>int padding_idx = 0 | Done     | Done       | True  |
+|  2 | Tensor<[512, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                           | Done     | Done       | True  |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Fallback | Done       | True  |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -51,6 +51,6 @@
 ### aten.unsqueeze.default
 |    | ATen Input Variations                      | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 8]> self = ?,<br>int dim = 2 | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 8]> self = ?,<br>int dim = 2 | Fallback | Done       | True  |
 |  1 | Tensor<[1, 8]> self = ?,<br>int dim = 1    | Done     | Done       | True  |
 
