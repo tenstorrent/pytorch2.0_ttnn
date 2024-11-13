@@ -769,6 +769,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 dst_dtype = kwargs["dtype"]
                 # Some aten op need it to cast specific dtype (ex, index_select)
                 # Keep it if casting from int to float or reverse
+
+                try:
+                    ttnn_dtype = torch_dtype_to_ttnn_dtype(dst_dtype)
+                    return g.call_function(ttnn.typecast, args=(node.args[0], ttnn_dtype))
+                except:
+                    pass
+
                 if dst_dtype in [torch.int32, torch.int64] and src_dtype not in [torch.int32, torch.int64]:
                     return None
                 if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
