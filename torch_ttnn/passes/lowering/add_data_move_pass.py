@@ -236,19 +236,20 @@ def try_call_aten__to_copy_with_meta(g, to_torch_node):
     # TODO: If to_torch can specify dtype, then can merge to_copy on it
 
     # if user only output, then no need to add
+    # return None
     if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
         dtype = to_torch_node.meta["val"].dtype
-        call_func = g.call_function(
-            torch.ops.aten._to_copy.default,
-            (to_torch_node,),
-            {"dtype": dtype},
-        )
-        call_func.meta = to_torch_node.meta
-        if "original_input_variations" in call_func.meta:
-            call_func.meta["original_input_variations"] = None
-        return call_func
-    else:
-        return None
+        if dtype != torch.bfloat16:
+            call_func = g.call_function(
+                torch.ops.aten._to_copy.default,
+                (to_torch_node,),
+                {"dtype": dtype},
+            )
+            call_func.meta = to_torch_node.meta
+            if "original_input_variations" in call_func.meta:
+                call_func.meta["original_input_variations"] = None
+            return call_func
+    return None
 
 
 def should_add_data_move_in(src_node, dst_node) -> bool:
