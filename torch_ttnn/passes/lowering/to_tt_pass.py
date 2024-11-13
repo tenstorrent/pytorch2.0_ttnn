@@ -193,11 +193,10 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.gelu.default:
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
 
-        if target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
-            # aten.hardtanh args are positional but ttnn.clip uses kw args
-            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")))
+        if target == torch.ops.aten.hardtanh.default:
+            new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")))
             new_args = (args[0],)
-            return self.call_function_prop_meta(ttnn.clip, new_args, new_kwargs)
+            return self.call_function_prop_meta(ttnn.hardtanh, new_args, new_kwargs)
 
         if target == torch.ops.aten.isinf.default:
             return self.call_function_prop_meta(ttnn.isinf, args, kwargs)
@@ -514,13 +513,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.add, args=(beta_node, new_node))
 
             if node.target == torch.ops.aten.embedding.default:
-                if args[1].meta["val"].size()[-1] % ttnn.TILE_SIZE == 0:
-                    # TODO(kevinwuTT): Add support for ROW_MAJOR_LAYOUT
-                    new_kwargs = {"layout": TtnnTileLayout()}
-                    return g.call_function(ttnn.embedding, args=(args[1], args[0]), kwargs=new_kwargs)
-                else:
-                    # TODO: remove fallback to torch when ttnn supports embedding inputs with any size of last dim not just TILE_SIZE multiples
-                    return g.call_function(torch.ops.aten.embedding.default, args, kwargs)
+                tiled = args[1].meta["val"].size()[-1] % ttnn.TILE_SIZE == 0
+                layout = TtnnTileLayout() if tiled else TtnnRowMajorLayout()
+                tensor = g.call_function(ttnn.embedding, (args[1], args[0]), {"layout": layout})
+                return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten._log_softmax.default:
                 softmax_node = g.call_function(
