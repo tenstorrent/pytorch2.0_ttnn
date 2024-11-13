@@ -9,14 +9,14 @@
 |  5 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |    1    |
 |  6 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
 |  7 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  8 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |    0    |
+|  8 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |    1    |
 |  9 | aten.expand.default            |                  3 |           0 |         3 |          0 | ✅          |    1    |
 | 10 | aten.mul.Tensor                |                  5 |           5 |         0 |          0 | ✅          |    1    |
 | 11 | aten.native_layer_norm.default |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 12 | aten.permute.default           |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 13 | aten.pow.Tensor_Scalar         |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 14 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |    1    |
-| 15 | aten.slice.Tensor              |                  2 |           0 |         1 |          1 | 🚧          |    0.5  |
+| 15 | aten.slice.Tensor              |                  2 |           1 |         1 |          0 | ✅          |    1    |
 | 16 | aten.t.default                 |                  5 |           5 |         0 |          0 | ✅          |    1    |
 | 17 | aten.tanh.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 18 | aten.transpose.int             |                  2 |           2 |         0 |          0 | ✅          |    1    |
@@ -70,9 +70,9 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                   | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                             | None     | Fallback   | True  |
-|  1 | Tensor<[30000, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?,<br>int padding_idx = 0 | None     | Fallback   | True  |
-|  2 | Tensor<[512, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                           | None     | Fallback   | True  |
+|  0 | Tensor<[2, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                             | Done     | Done       | True  |
+|  1 | Tensor<[30000, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?,<br>int padding_idx = 0 | Done     | Done       | True  |
+|  2 | Tensor<[512, 128]> weight = ?,<br>Tensor<[1, 12]> indices = ?                           | Done     | Done       | True  |
 ### aten.expand.default
 |    | ATen Input Variations                                                 | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|:------|
@@ -108,7 +108,7 @@
 |    | ATen Input Variations                                                                                             | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 512]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
-|  1 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 12                  | Fallback | Done       | True  |
+|  1 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 12                  | Done     | Done       | True  |
 ### aten.t.default
 |    | ATen Input Variations        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------|:---------|:-----------|:------|

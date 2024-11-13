@@ -133,8 +133,8 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[51200, 1024]> weight = ?,<br>Tensor<[1, 1]> indices = ? | Unknown  | Fallback   | True  |
-|  1 | Tensor<[51200, 1024]> weight = ?,<br>Tensor<[1, 5]> indices = ? | Unknown  | Fallback   | True  |
+|  0 | Tensor<[51200, 1024]> weight = ?,<br>Tensor<[1, 1]> indices = ? | Unknown  | Done       | True  |
+|  1 | Tensor<[51200, 1024]> weight = ?,<br>Tensor<[1, 5]> indices = ? | Unknown  | Done       | True  |
 ### aten.eq.Scalar
 |    | ATen Input Variations                         | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------|:---------|:-----------|:------|

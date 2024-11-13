@@ -10,7 +10,7 @@
 |  6 | aten.convolution_backward.default                |                 32 |           0 |         0 |          0 | ✘           |    0    |
 |  7 | aten.div.Scalar                                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  8 | aten.expand.default                              |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  9 | aten.hardtanh.default                            |                 12 |           0 |         0 |          0 | ✘           |    0    |
+|  9 | aten.hardtanh.default                            |                 12 |           1 |         0 |         11 | 🚧          |    0.08 |
 | 10 | aten.hardtanh_backward.default                   |                 12 |           0 |         0 |          0 | ✘           |    0    |
 | 11 | aten.mean.dim                                    |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 12 | aten.mm.default                                  |                  2 |           1 |         0 |          1 | 🚧          |    0.5  |
@@ -165,18 +165,18 @@
 ### aten.hardtanh.default
 |    | ATen Input Variations                                                                | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1152, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-|  1 | Tensor<[1, 1280, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-|  2 | Tensor<[1, 144, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  3 | Tensor<[1, 144, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  4 | Tensor<[1, 240, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  5 | Tensor<[1, 240, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  6 | Tensor<[1, 32, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
-|  7 | Tensor<[1, 480, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  8 | Tensor<[1, 672, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  9 | Tensor<[1, 672, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
-| 10 | Tensor<[1, 96, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
-| 11 | Tensor<[1, 96, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1152, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Fallback | Done       | True  |
+|  1 | Tensor<[1, 1280, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+|  2 | Tensor<[1, 144, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  3 | Tensor<[1, 144, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  4 | Tensor<[1, 240, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  5 | Tensor<[1, 240, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  6 | Tensor<[1, 32, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Fallback | Done       | True  |
+|  7 | Tensor<[1, 480, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  8 | Tensor<[1, 672, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  9 | Tensor<[1, 672, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | Fallback | Done       | True  |
+| 10 | Tensor<[1, 96, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Fallback | Done       | True  |
+| 11 | Tensor<[1, 96, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Fallback | Done       | True  |
 ### aten.hardtanh_backward.default
 |    | ATen Input Variations                                                                                                              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|

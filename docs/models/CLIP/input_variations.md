@@ -13,7 +13,7 @@
 |  9 | aten.clone.default              |                  6 |           4 |         0 |          2 | 🚧          |    0.67 |
 | 10 | aten.convolution.default        |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 11 | aten.div.Tensor                 |                  2 |           0 |         0 |          2 | ✘           |    0    |
-| 12 | aten.embedding.default          |                  3 |           0 |         0 |          0 | ✘           |    0    |
+| 12 | aten.embedding.default          |                  3 |           3 |         0 |          0 | ✅          |    1    |
 | 13 | aten.exp.default                |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 14 | aten.expand.default             |                  3 |           0 |         0 |          0 | ✘           |    0    |
 | 15 | aten.full.default               |                  1 |           0 |         0 |          0 | ✘           |    0    |
@@ -26,7 +26,7 @@
 | 22 | aten.rsub.Scalar                |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 23 | aten.select.int                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 24 | aten.sigmoid.default            |                  2 |           0 |         0 |          2 | ✘           |    0    |
-| 25 | aten.slice.Tensor               |                  8 |           0 |         7 |          1 | 🚧          |    0.88 |
+| 25 | aten.slice.Tensor               |                  8 |           1 |         7 |          0 | ✅          |    1    |
 | 26 | aten.t.default                  |                  9 |           8 |         0 |          0 | 🚧          |    0.89 |
 | 27 | aten.transpose.int              |                  7 |           6 |         0 |          0 | 🚧          |    0.86 |
 | 28 | aten.unsqueeze.default          |                  4 |           2 |         0 |          2 | 🚧          |    0.5  |
@@ -105,9 +105,9 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[49408, 512]> weight = ?,<br>Tensor<[2, 7]> indices = ? | None     | Fallback   | True  |
-|  1 | Tensor<[50, 768]> weight = ?,<br>Tensor<[1, 50]> indices = ?   | None     | Fallback   | True  |
-|  2 | Tensor<[77, 512]> weight = ?,<br>Tensor<[1, 7]> indices = ?    | None     | Fallback   | True  |
+|  0 | Tensor<[49408, 512]> weight = ?,<br>Tensor<[2, 7]> indices = ? | Done     | Done       | True  |
+|  1 | Tensor<[50, 768]> weight = ?,<br>Tensor<[1, 50]> indices = ?   | Done     | Done       | True  |
+|  2 | Tensor<[77, 512]> weight = ?,<br>Tensor<[1, 7]> indices = ?    | Done     | Done       | True  |
 ### aten.exp.default
 |    | ATen Input Variations   | Status   | Isolated   | PCC   |
 |---:|:------------------------|:---------|:-----------|:------|
@@ -178,7 +178,7 @@
 |  2 | Tensor<[1, 50, 768]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
 |  3 | Tensor<[1, 768]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807     | Removed  | Fallback   | True  |
 |  4 | Tensor<[1, 77]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807      | Removed  | Fallback   | True  |
-|  5 | Tensor<[1, 77]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 7                        | Fallback | Done       | True  |
+|  5 | Tensor<[1, 77]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 7                        | Done     | Done       | True  |
 |  6 | Tensor<[2, 1, 1, 7]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
 |  7 | Tensor<[2, 7]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Fallback   | True  |
 ### aten.t.default

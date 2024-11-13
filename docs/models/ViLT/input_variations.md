@@ -8,12 +8,12 @@
 |  4 | aten.cat.default               |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  5 | aten.clone.default             |                  1 |           0 |         0 |          1 | ✘           |    0    |
 |  6 | aten.convolution.default       |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  7 | aten.embedding.default         |                  3 |           0 |         0 |          0 | ✘           |    0    |
+|  7 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |    1    |
 |  8 | aten.expand.default            |                  2 |           0 |         0 |          1 | ✘           |    0    |
 |  9 | aten.mul.Tensor                |                  2 |           0 |         0 |          0 | ✘           |    0    |
 | 10 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 11 | aten.select.int                |                  4 |           0 |         0 |          0 | ✘           |    0    |
-| 12 | aten.slice.Tensor              |                 11 |           1 |         9 |          1 | 🚧          |    0.91 |
+| 12 | aten.slice.Tensor              |                 11 |           2 |         9 |          0 | ✅          |    1    |
 | 13 | aten.stack.default             |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 14 | aten.sum.dim_IntList           |                  2 |           0 |         0 |          0 | ✘           |    0    |
 | 15 | aten.transpose.int             |                  2 |           1 |         0 |          1 | 🚧          |    0.5  |
@@ -59,9 +59,9 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?     | None     | Fallback   | True  |
-|  1 | Tensor<[30522, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ? | None     | Fallback   | True  |
-|  2 | Tensor<[40, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?    | None     | Fallback   | True  |
+|  0 | Tensor<[2, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?     | Done     | Done       | True  |
+|  1 | Tensor<[30522, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ? | Done     | Done       | True  |
+|  2 | Tensor<[40, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?    | Done     | Done       | True  |
 ### aten.expand.default
 |    | ATen Input Variations                                  | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------|:---------|:-----------|:------|
@@ -96,7 +96,7 @@
 |  7 | Tensor<[1, 16]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807          | Removed  | Fallback   | True  |
 |  8 | Tensor<[1, 384, 512]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807    | Removed  | Fallback   | True  |
 |  9 | Tensor<[1, 40]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807          | Removed  | Fallback   | True  |
-| 10 | Tensor<[1, 40]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 8                            | Fallback | Done       | True  |
+| 10 | Tensor<[1, 40]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 8                            | Done     | Done       | True  |
 ### aten.stack.default
 |    | ATen Input Variations                                            | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|:------|

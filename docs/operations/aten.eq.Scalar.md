@@ -1,7 +1,7 @@
 ### aten.eq.Scalar
 |    | ATen Input Variations                              | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16]> self = ?,<br>number other = 0      | None     | Unknown    | N/A   |
+|  0 | Tensor<[1, 16]> self = ?,<br>number other = 0      | None     | Fallback   | True  |
 |  1 | Tensor<[1, 1]> self = ?,<br>number other = 0       | None     | Fallback   | True  |
 |  2 | Tensor<[1, 7]> self = ?,<br>number other = 1       | None     | Fallback   | True  |
 |  3 | Tensor<[1, 7]> self = ?,<br>number other = 50256   | Unknown  | Fallback   | True  |

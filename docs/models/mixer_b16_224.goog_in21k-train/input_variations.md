@@ -23,49 +23,49 @@
 ### aten.add.Tensor
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 768]> self = ?,<br>Tensor<[1, 196, 768]> other = ? | Done     | Unknown    | N/A   |
-|  1 | Tensor<[1, 768, 384]> self = ?,<br>Tensor<[384]> other = ?         | Fallback | Unknown    | N/A   |
+|  0 | Tensor<[1, 196, 768]> self = ?,<br>Tensor<[1, 196, 768]> other = ? | Done     | Done       | True  |
+|  1 | Tensor<[1, 768, 384]> self = ?,<br>Tensor<[384]> other = ?         | Fallback | Done       | True  |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[196]> self = ?,<br>Tensor<[768, 384]> mat1 = ?,<br>Tensor<[384, 196]> mat2 = ?   | Done     | Unknown    | N/A   |
-|  1 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ? | Fallback | Unknown    | N/A   |
-|  2 | Tensor<[3072]> self = ?,<br>Tensor<[196, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Unknown    | N/A   |
-|  3 | Tensor<[768]> self = ?,<br>Tensor<[196, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Unknown    | N/A   |
+|  0 | Tensor<[196]> self = ?,<br>Tensor<[768, 384]> mat1 = ?,<br>Tensor<[384, 196]> mat2 = ?   | Done     | Done       | True  |
+|  1 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ? | Fallback | Done       | True  |
+|  2 | Tensor<[3072]> self = ?,<br>Tensor<[196, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Done       | True  |
+|  3 | Tensor<[768]> self = ?,<br>Tensor<[196, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | True  |
 ### aten.clone.default
 |    | ATen Input Variations           | Status   | Isolated   | PCC   |
 |---:|:--------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 3072]> self = ? | Done     | Unknown    | N/A   |
-|  1 | Tensor<[1, 196, 768]> self = ?  | Done     | Unknown    | N/A   |
-|  2 | Tensor<[1, 768, 196]> self = ?  | Done     | Unknown    | N/A   |
-|  3 | Tensor<[1, 768, 384]> self = ?  | Done     | Unknown    | N/A   |
-|  4 | Tensor<[1, 768]> self = ?       | Fallback | Unknown    | N/A   |
+|  0 | Tensor<[1, 196, 3072]> self = ? | Done     | Done       | True  |
+|  1 | Tensor<[1, 196, 768]> self = ?  | Done     | Done       | True  |
+|  2 | Tensor<[1, 768, 196]> self = ?  | Done     | Done       | True  |
+|  3 | Tensor<[1, 768, 384]> self = ?  | Done     | Done       | True  |
+|  4 | Tensor<[1, 768]> self = ?       | Fallback | Done       | True  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                               | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[768, 3, 16, 16]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Unknown    | N/A   |
+|  0 | Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[768, 3, 16, 16]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Fallback   | True  |
 ### aten.convolution_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                                                  | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 768, 14, 14]> grad_output = ?,<br>Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[768, 3, 16, 16]> weight = ?,<br>Optional[List[int]] bias_sizes = [768],<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True] | None     | Unknown    | N/A   |
+|  0 | Tensor<[1, 768, 14, 14]> grad_output = ?,<br>Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[768, 3, 16, 16]> weight = ?,<br>Optional[List[int]] bias_sizes = [768],<br>List[int] stride = [16, 16],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1,<br>List[bool] output_mask = [True, True, True] | None     | Fallback   | True  |
 ### aten.div.Scalar
 |    | ATen Input Variations                                 | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 768]> self = ?,<br>number other = 196 | None     | Unknown    | N/A   |
+|  0 | Tensor<[1, 196, 768]> self = ?,<br>number other = 196 | None     | Fallback   | True  |
 ### aten.expand.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 768]> self = ?,<br>List[int] size = [1, 196, 768] | Fallback | Unknown    | N/A   |
+|  0 | Tensor<[1, 1, 768]> self = ?,<br>List[int] size = [1, 196, 768] | Fallback | Done       | True  |
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   | Isolated   | PCC   |
 |---:|:--------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 3072]> self = ? | Done     | Done       | True  |
-|  1 | Tensor<[1, 768, 384]> self = ?  | Done     | Unknown    | N/A   |
+|  0 | Tensor<[1, 196, 3072]> self = ? | Done     | Unknown    | N/A   |
+|  1 | Tensor<[1, 768, 384]> self = ?  | Done     | Done       | True  |
 ### aten.gelu_backward.default
 |    | ATen Input Variations                                                      | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 3072]> grad_output = ?,<br>Tensor<[1, 196, 3072]> self = ? | None     | Unknown    | N/A   |
-|  1 | Tensor<[1, 768, 384]> grad_output = ?,<br>Tensor<[1, 768, 384]> self = ?   | None     | Unknown    | N/A   |
+|  0 | Tensor<[1, 196, 3072]> grad_output = ?,<br>Tensor<[1, 196, 3072]> self = ? | None     | Fallback   | True  |
+|  1 | Tensor<[1, 768, 384]> grad_output = ?,<br>Tensor<[1, 768, 384]> self = ?   | None     | Fallback   | True  |
 ### aten.mean.dim
 |    | ATen Input Variations                                            | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|:------|

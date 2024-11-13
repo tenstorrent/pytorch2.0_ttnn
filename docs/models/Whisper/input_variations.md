@@ -8,7 +8,7 @@
 |  4 | aten.cat.default                                 |                 26 |           0 |         0 |          0 | ✘           |    0    |
 |  5 | aten.clone.default                               |                  8 |           4 |         0 |          1 | 🚧          |    0.5  |
 |  6 | aten.convolution.default                         |                  2 |           0 |         0 |          0 | ✘           |    0    |
-|  7 | aten.embedding.default                           |                  2 |           0 |         0 |          0 | ✘           |    0    |
+|  7 | aten.embedding.default                           |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
 |  8 | aten.gelu.default                                |                  5 |           3 |         0 |          1 | 🚧          |    0.6  |
 |  9 | aten.mm.default                                  |                  5 |           3 |         0 |          0 | 🚧          |    0.6  |
 | 10 | aten.mul.Tensor                                  |                  4 |           0 |         0 |          3 | ✘           |    0    |
@@ -24,7 +24,7 @@
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                                                                        | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                     | None     | Fallback   | True  |
+|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                     | None     | Fallback   | False |
 |  1 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                               | None     | Fallback   | True  |
 |  2 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 5, 64]> key = ?,<br>Tensor<[1, 12, 5, 64]> value = ?                                                     | Unknown  | Fallback   | False |
 |  3 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s10 + 1, 64]> key = ?,<br>Tensor<[1, 12, s11 + 1, 64]> value = ?                                         | Unknown  | Unknown    | N/A   |
@@ -115,8 +115,8 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                      | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 50257 | None     | Fallback   | True  |
-|  1 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 4]> indices = ?,<br>int padding_idx = 50257 | Unknown  | Fallback   | True  |
+|  0 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 50257 | Done     | Done       | True  |
+|  1 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 4]> indices = ?,<br>int padding_idx = 50257 | Unknown  | Done       | True  |
 ### aten.gelu.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|

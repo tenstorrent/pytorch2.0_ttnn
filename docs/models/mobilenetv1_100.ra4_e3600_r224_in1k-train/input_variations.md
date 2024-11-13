@@ -8,7 +8,7 @@
 |  4 | aten.convolution_backward.default                |                 19 |           0 |         0 |          0 | ✘           |    0    |
 |  5 | aten.div.Scalar                                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  6 | aten.expand.default                              |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  7 | aten.hardtanh.default                            |                 10 |           0 |         0 |          0 | ✘           |    0    |
+|  7 | aten.hardtanh.default                            |                 10 |           1 |         0 |          9 | 🚧          |    0.1  |
 |  8 | aten.hardtanh_backward.default                   |                 10 |           0 |         0 |          0 | ✘           |    0    |
 |  9 | aten.mean.dim                                    |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 10 | aten.mm.default                                  |                  2 |           1 |         0 |          1 | 🚧          |    0.5  |
@@ -98,16 +98,16 @@
 ### aten.hardtanh.default
 |    | ATen Input Variations                                                                | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-|  1 | Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  2 | Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  3 | Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  4 | Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  5 | Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
-|  6 | Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | None     | Fallback   | True  |
-|  7 | Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | None     | Fallback   | True  |
-|  8 | Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
-|  9 | Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+|  1 | Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  2 | Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  3 | Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  4 | Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  5 | Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Fallback | Done       | True  |
+|  6 | Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
+|  7 | Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | Fallback | Done       | True  |
+|  8 | Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Fallback | Done       | True  |
+|  9 | Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Fallback | Done       | True  |
 ### aten.hardtanh_backward.default
 |    | ATen Input Variations                                                                                                              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|

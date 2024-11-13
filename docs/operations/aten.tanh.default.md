@@ -5,7 +5,7 @@
 |  1 | Tensor<[1, 1, 3072]> self = ?  | Unknown  | Done       | True  |
 |  2 | Tensor<[1, 1, 4096]> self = ?  | Unknown  | Done       | True  |
 |  3 | Tensor<[1, 12, 3072]> self = ? | Done     | Done       | True  |
-|  4 | Tensor<[1, 14, 3072]> self = ? | Done     | Unknown    | N/A   |
+|  4 | Tensor<[1, 14, 3072]> self = ? | Done     | Done       | True  |
 |  5 | Tensor<[1, 15, 1024]> self = ? | Done     | Done       | True  |
 |  6 | Tensor<[1, 32, 6144]> self = ? | Done     | Done       | True  |
 |  7 | Tensor<[1, 45, 3072]> self = ? | Unknown  | Done       | True  |

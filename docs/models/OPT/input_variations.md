@@ -4,13 +4,13 @@
 |  0 | aten._softmax.default          |                  3 |           1 |         0 |          0 | 🚧          |    0.33 |
 |  1 | aten._to_copy.default          |                  7 |           0 |         0 |          0 | ✘           |    0    |
 |  2 | aten._unsafe_view.default      |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  3 | aten.add.Tensor                |                  9 |           3 |         0 |          1 | 🚧          |    0.33 |
+|  3 | aten.add.Tensor                |                  9 |           4 |         0 |          0 | 🚧          |    0.44 |
 |  4 | aten.addmm.default             |                  6 |           3 |         0 |          0 | 🚧          |    0.5  |
 |  5 | aten.bmm.default               |                  6 |           2 |         0 |          0 | 🚧          |    0.33 |
 |  6 | aten.cat.default               |                  4 |           0 |         0 |          0 | ✘           |    0    |
 |  7 | aten.clone.default             |                 10 |           4 |         0 |          1 | 🚧          |    0.4  |
 |  8 | aten.cumsum.default            |                  3 |           1 |         0 |          0 | 🚧          |    0.33 |
-|  9 | aten.embedding.default         |                  4 |           0 |         0 |          0 | ✘           |    0    |
+|  9 | aten.embedding.default         |                  4 |           2 |         0 |          0 | 🚧          |    0.5  |
 | 10 | aten.eq.Scalar                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 11 | aten.expand.default            |                  4 |           0 |         0 |          0 | ✘           |    0    |
 | 12 | aten.full.default              |                  1 |           0 |         0 |          0 | ✘           |    0    |
@@ -32,7 +32,7 @@
 | 28 | aten.t.default                 |                  6 |           6 |         0 |          0 | ✅          |    1    |
 | 29 | aten.transpose.int             |                  7 |           3 |         0 |          0 | 🚧          |    0.43 |
 | 30 | aten.unsqueeze.default         |                  8 |           3 |         0 |          1 | 🚧          |    0.38 |
-| 31 | aten.view.default              |                 31 |          11 |         0 |          2 | 🚧          |    0.35 |
+| 31 | aten.view.default              |                 31 |          12 |         0 |          1 | 🚧          |    0.39 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                             | Status   | Isolated   | PCC   |
@@ -64,7 +64,7 @@
 |  4 | Tensor<[1, 16, 59, 59]> self = ?,<br>Tensor<[1, 1, 59, 59]> other = ?         | Done     | Done       | True  |
 |  5 | Tensor<[1, 1]> self = ?,<br>Tensor other = 2                                  | Unknown  | Done       | True  |
 |  6 | Tensor<[1, 59, 1024]> self = ?,<br>Tensor<[1, 59, 1024]> other = ?            | Done     | Done       | True  |
-|  7 | Tensor<[1, 59]> self = ?,<br>Tensor other = 2                                 | Fallback | Done       | True  |
+|  7 | Tensor<[1, 59]> self = ?,<br>Tensor other = 2                                 | Done     | Done       | True  |
 |  8 | Tensor<[59, 1024]> self = ?,<br>Tensor<[59, 1024]> other = ?                  | Done     | Done       | True  |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                     | Status   | Isolated   | PCC   |
@@ -113,10 +113,10 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                                   | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2050, 1024]> weight = ?,<br>Tensor<[1, 1]> indices = ?                          | Unknown  | Fallback   | True  |
-|  1 | Tensor<[2050, 1024]> weight = ?,<br>Tensor<[1, 59]> indices = ?                         | None     | Fallback   | True  |
-|  2 | Tensor<[50272, 512]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 1  | Unknown  | Fallback   | True  |
-|  3 | Tensor<[50272, 512]> weight = ?,<br>Tensor<[1, 59]> indices = ?,<br>int padding_idx = 1 | None     | Fallback   | True  |
+|  0 | Tensor<[2050, 1024]> weight = ?,<br>Tensor<[1, 1]> indices = ?                          | Unknown  | Done       | True  |
+|  1 | Tensor<[2050, 1024]> weight = ?,<br>Tensor<[1, 59]> indices = ?                         | Done     | Done       | True  |
+|  2 | Tensor<[50272, 512]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 1  | Unknown  | Done       | True  |
+|  3 | Tensor<[50272, 512]> weight = ?,<br>Tensor<[1, 59]> indices = ?,<br>int padding_idx = 1 | Done     | Done       | True  |
 ### aten.eq.Scalar
 |    | ATen Input Variations                     | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------|:---------|:-----------|:------|
@@ -279,7 +279,7 @@
 | 19 | Tensor<[1, 59, 1024]> self = ?,<br>List[int] size = [1, 59, 16, 64]          | Done     | Done       | True  |
 | 20 | Tensor<[1, 59, 1024]> self = ?,<br>List[int] size = [59, 1024]               | Done     | Done       | True  |
 | 21 | Tensor<[1, 59, 512]> self = ?,<br>List[int] size = [59, 512]                 | Done     | Done       | True  |
-| 22 | Tensor<[1, 59]> self = ?,<br>List[int] size = [-1, 59]                       | Fallback | Done       | True  |
+| 22 | Tensor<[1, 59]> self = ?,<br>List[int] size = [-1, 59]                       | Done     | Done       | True  |
 | 23 | Tensor<[16, 1, 60]> self = ?,<br>List[int] size = [1, 16, 1, 60]             | Unknown  | Done       | True  |
 | 24 | Tensor<[16, 1, 64]> self = ?,<br>List[int] size = [1, 16, 1, 64]             | Unknown  | Done       | True  |
 | 25 | Tensor<[16, 1, s10 + 1]> self = ?,<br>List[int] size = [1, 16, 1, <s10 + 1>] | Unknown  | Unknown    | N/A   |
