@@ -27,12 +27,19 @@ class AtenOpTestExporter(InputVarPerOp):
             metrics_filename = opname
             model_name_ = model_name_.replace("/", "_")
             filename = f"test_{model_name_}_{opname_}.py"
+
+            extra_accessor = ""
+            # TODO(tt-metal#12099): ttnn.max_pool2d currently doesn't return indices so we only check the value for eval
+            if opname == "aten.max_pool2d_with_indices.default" and not model_name.endswith("-train"):
+                extra_accessor = "[0]"
+
             with open(template_path, "r") as f:
                 text = f.read()
             text = self.render_string(text, "opname", opname)
             text = self.render_string(text, "inputs_strings", str(inputs_strings))
             text = self.render_string(text, "metrics_dir", metrics_dir)
             text = self.render_string(text, "metrics_filename", metrics_filename)
+            text = self.render_string(text, "extra_accessor", extra_accessor)
             with open(basedir / filename, "w") as f:
                 f.write(text)
         os.system(f"pre-commit run --files {basedir}/* > /dev/null")
