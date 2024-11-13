@@ -73,7 +73,6 @@ def teardown_module(module):
         ["Tensor<[2, 768]> weight = ?", "Tensor<[1, 8]> indices = ?"],
         ["Tensor<[30522, 768]> weight = ?", "Tensor<[1, 8]> indices = ?"],
         ["Tensor<[40, 768]> weight = ?", "Tensor<[1, 8]> indices = ?"],
-        ["Tensor<[2, 768]> weight = ?", "Tensor<[1, 193]> indices = ?"],
         ["Tensor<[51865, 768]> weight = ?", "Tensor<[1, 1]> indices = ?", "int padding_idx = 50257"],
         ["Tensor<[51865, 768]> weight = ?", "Tensor<[1, 4]> indices = ?", "int padding_idx = 50257"],
         ["Tensor<[256008, 1024]> weight = ?", "Tensor<[1, 19]> indices = ?", "int padding_idx = 1"],

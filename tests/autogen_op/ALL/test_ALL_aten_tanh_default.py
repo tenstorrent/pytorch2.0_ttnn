@@ -40,7 +40,6 @@ def teardown_module(module):
         ["Tensor<[1, 7, 3072]> self = ?"],
         ["Tensor<[1, 45, 3072]> self = ?"],
         ["Tensor<[1, 1, 3072]> self = ?"],
-        ["Tensor<[1, 768]> self = ?"],
         ["Tensor<[1, 9, 3072]> self = ?"],
         ["Tensor<[1, 9, 128]> self = ?"],
         ["Tensor<[1, 12, 3072]> self = ?"],
@@ -49,8 +48,7 @@ def teardown_module(module):
         ["Tensor<[1, 9, 16384]> self = ?"],
         ["Tensor<[1, 5, 4096]> self = ?"],
         ["Tensor<[1, 1, 4096]> self = ?"],
-        ["Tensor<[1, 256, 98]> self = ?"],
-        ["Tensor<[1, 1, 25088]> self = ?"],
+        ["Tensor<[1, 768]> self = ?"],
         ["Tensor<[1, 14, 3072]> self = ?"],
     ],
 )

@@ -35,7 +35,6 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[2, 7, 512]> self = ?", "List[Optional[Tensor]] indices = [<[2]>, <[2]>]"],
-        ["Tensor<[1, 7, 73, 64]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[1]>]"],
         ["Tensor<[7, 64]> self = ?", "List[Optional[Tensor]] indices = [<[1, 7]>]"],
         ["Tensor<[1, 7, 2]> self = ?", "List[Optional[Tensor]] indices = [<[1]>, <[1]>]"],
         ["Tensor<[2048, 32]> self = ?", "List[Optional[Tensor]] indices = [<[1, 5]>]"],

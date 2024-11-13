@@ -37,17 +37,6 @@ def teardown_module(module):
         ["Tensor<[768]> self = ?", "Tensor<[24, 768]> mat1 = ?", "Tensor<[768, 768]> mat2 = ?"],
         ["Tensor<[3072]> self = ?", "Tensor<[24, 768]> mat1 = ?", "Tensor<[768, 3072]> mat2 = ?"],
         ["Tensor<[768]> self = ?", "Tensor<[24, 3072]> mat1 = ?", "Tensor<[3072, 768]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[1, 80]> mat1 = ?", "Tensor<[80, 256]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[1, 256]> mat1 = ?", "Tensor<[256, 256]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[1, 256]> mat1 = ?", "Tensor<[256, 768]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[1, 1280]> mat1 = ?", "Tensor<[1280, 768]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[1, 768]> mat1 = ?", "Tensor<[768, 768]> mat2 = ?"],
-        ["Tensor<[3072]> self = ?", "Tensor<[1, 768]> mat1 = ?", "Tensor<[768, 3072]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[1, 3072]> mat1 = ?", "Tensor<[3072, 768]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[s0, 80]> mat1 = ?", "Tensor<[80, 256]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[s0, 256]> mat1 = ?", "Tensor<[256, 256]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[s0, 256]> mat1 = ?", "Tensor<[256, 768]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[s0, 1280]> mat1 = ?", "Tensor<[1280, 768]> mat2 = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

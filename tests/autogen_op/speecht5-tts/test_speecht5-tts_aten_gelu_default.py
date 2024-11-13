@@ -31,7 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/speecht5-tts", "aten.gelu.default")
 
 
-@pytest.mark.parametrize("input_strings", [["Tensor<[1, 24, 3072]> self = ?"], ["Tensor<[1, 1, 3072]> self = ?"]])
+@pytest.mark.parametrize("input_strings", [["Tensor<[1, 24, 3072]> self = ?"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.gelu.default",

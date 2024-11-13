@@ -46,7 +46,6 @@ def teardown_module(module):
         ["Tensor<[1, 16, 112, 112]> self = ?", "int dim = 0"],
         ["Tensor<[1, 12, 197, 197]> self = ?", "int dim = 0"],
         ["Tensor<[1, 16, 197, 197]> self = ?", "int dim = 0"],
-        ["Tensor<[1, 1, 25088]> self = ?", "int dim = 0"],
         ["Tensor<[1, 14, 1]> self = ?", "int dim = -1"],
         ["Tensor<[3, 197, 1, 1, 768]> self = ?", "int dim = -2"],
         ["Tensor<[3, 50, 1, 1, 768]> self = ?", "int dim = -2"],

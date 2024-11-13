@@ -91,13 +91,6 @@ def teardown_module(module):
             "float eps = 1e-12",
         ],
         [
-            "Tensor<[1, 7, 4544]> input = ?",
-            "List[int] normalized_shape = [4544]",
-            "Optional[Tensor]<[4544]> weight = ?",
-            "Optional[Tensor]<[4544]> bias = ?",
-            "float eps = 1e-05",
-        ],
-        [
             "Tensor<[1, 19200, 64]> input = ?",
             "List[int] normalized_shape = [64]",
             "Optional[Tensor]<[64]> weight = ?",
@@ -284,20 +277,6 @@ def teardown_module(module):
             "List[int] normalized_shape = [1280]",
             "Optional[Tensor]<[1280]> weight = ?",
             "Optional[Tensor]<[1280]> bias = ?",
-            "float eps = 1e-05",
-        ],
-        [
-            "Tensor<[1, 201, 768]> input = ?",
-            "List[int] normalized_shape = [768]",
-            "Optional[Tensor]<[768]> weight = ?",
-            "Optional[Tensor]<[768]> bias = ?",
-            "float eps = 1e-12",
-        ],
-        [
-            "Tensor<[1, 1536]> input = ?",
-            "List[int] normalized_shape = [1536]",
-            "Optional[Tensor]<[1536]> weight = ?",
-            "Optional[Tensor]<[1536]> bias = ?",
             "float eps = 1e-05",
         ],
         [

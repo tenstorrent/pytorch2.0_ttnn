@@ -36,7 +36,6 @@ def teardown_module(module):
     [
         ["Tensor<[1, 512]> self = ?", "number ord = 2", "Optional[List[int]] dim = [-1]", "bool keepdim = True"],
         ["Tensor<[2, 512]> self = ?", "number ord = 2", "Optional[List[int]] dim = [-1]", "bool keepdim = True"],
-        ["Tensor<[1, 512]> self = ?", "number ord = 2.0", "Optional[List[int]] dim = [1]", "bool keepdim = True"],
         [
             "Tensor<[1, 512, 38, 38]> self = ?",
             "number ord = 2.0",

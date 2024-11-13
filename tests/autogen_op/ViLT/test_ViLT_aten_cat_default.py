@@ -31,14 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/ViLT", "aten.cat.default")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["List[Tensor] tensors = [<[1, 768, 12, 16]>]"],
-        ["List[Tensor] tensors = [<[1, 8, 768]>, <[1, 193, 768]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 8]>, <[1, 193]>]", "int dim = 1"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["List[Tensor] tensors = [<[1, 768, 12, 16]>]"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.cat.default",

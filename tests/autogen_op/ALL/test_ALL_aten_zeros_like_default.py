@@ -40,14 +40,7 @@ def teardown_module(module):
         ["Tensor<[2, 2]> self = ?", "Optional[bool] pin_memory = False"],
         ["Tensor<[s0 + 1, s0 + 1]> self = ?", "Optional[bool] pin_memory = False"],
         ["Tensor<[17, 17]> self = ?", "Optional[bool] pin_memory = False"],
-        ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
-        [
-            "Tensor<[1, 8]> self = ?",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

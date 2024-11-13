@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.scalar_tensor.default(*args, **kwargs)
+        return torch.ops.aten.cos.default(*args, **kwargs)
 
 
 metrics = []
@@ -28,23 +28,13 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/speecht5-tts", "aten.scalar_tensor.default")
+    save_pickle(metrics, "metrics-autogen-op/Llama", "aten.cos.default")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        [
-            "number s = 0",
-            "Optional[int] dtype = torch.bfloat16",
-            "Optional[int] layout = torch.strided",
-            "Optional[Device] device = cpu",
-        ]
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor<[1, 32, 128]> self = ?"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.scalar_tensor.default",
+        "opname": "aten.cos.default",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -52,9 +42,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "convert_to_ttnn": "N/A",
     }
     m = AtenModule()
-    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
-        "aten.scalar_tensor.default", input_strings
-    )
+    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.cos.default", input_strings)
     if status == False:
         pytest.skip("Invalid input strings")
     try:

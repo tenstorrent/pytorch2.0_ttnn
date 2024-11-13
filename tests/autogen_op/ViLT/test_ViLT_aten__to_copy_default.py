@@ -38,7 +38,6 @@ def teardown_module(module):
         ["Tensor<[12]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[16]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 1, 12, 16]> self = ?", "Optional[int] dtype = torch.int64"],
-        ["Tensor<[1, 1, 1, 201]> self = ?", "Optional[int] dtype = torch.bfloat16"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

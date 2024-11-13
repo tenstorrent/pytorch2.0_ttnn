@@ -31,13 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/Falcon", "aten.index.Tensor")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[1, 7, 73, 64]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[1]>]"],
-        ["Tensor<[7, 64]> self = ?", "List[Optional[Tensor]] indices = [<[1, 7]>]"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor<[7, 64]> self = ?", "List[Optional[Tensor]] indices = [<[1, 7]>]"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.index.Tensor",
