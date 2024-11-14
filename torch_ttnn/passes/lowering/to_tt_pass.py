@@ -448,6 +448,27 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             args = node.args
             kwargs = node.kwargs
 
+            def batch_norm_post_process(output, weight, bias):
+                if weight is not None:
+                    output = g.call_function(ttnn.mul, (output, weight))
+                if bias is not None:
+                    output = g.call_function(ttnn.add, (output, bias))
+                return output
+
+            # Non-training batch normalization
+            def batch_norm_inference(input, weight, bias, mean, var, momentum, eps):
+                ndims = len(input.meta["val"].size())
+                permutation = 0, *range(2, ndims), 1
+                input = g.call_function(ttnn.permute, (input, permutation))
+
+                invstd = g.call_function(ttnn.rsqrt, (g.call_function(ttnn.add, (var, eps)),))
+                output = g.call_function(ttnn.sub, (input, mean))
+                output = g.call_function(ttnn.mul, (output, invstd))
+                output = batch_norm_post_process(output, weight, bias)
+
+                permutation = 0, ndims - 1, *range(1, ndims - 1)
+                return g.call_function(ttnn.permute, (output, permutation))
+
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
                 try:
@@ -937,6 +958,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_tensor = insert_sharded_nhwc_to_nchw(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
                 return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
+
+            if node.target == torch.ops.aten._native_batch_norm_legit_no_training.default:
+                return batch_norm_inference(*args)
 
             # PEP 8 suggests this explicit statement
             return None
