@@ -274,28 +274,28 @@
 ### aten.relu.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128, 17, 17]> self = ?  | Fallback | Unknown    | N/A   |
-|  1 | Tensor<[1, 192, 17, 17]> self = ?  | Fallback | Unknown    | N/A   |
-|  2 | Tensor<[1, 192, 35, 35]> self = ?  | Fallback | Done       | True  |
-|  3 | Tensor<[1, 192, 8, 8]> self = ?    | Fallback | Unknown    | N/A   |
-|  4 | Tensor<[1, 224, 17, 17]> self = ?  | Fallback | Unknown    | N/A   |
-|  5 | Tensor<[1, 224, 35, 35]> self = ?  | Fallback | Unknown    | N/A   |
-|  6 | Tensor<[1, 256, 17, 17]> self = ?  | Fallback | Unknown    | N/A   |
-|  7 | Tensor<[1, 256, 8, 8]> self = ?    | Fallback | Unknown    | N/A   |
-|  8 | Tensor<[1, 32, 147, 147]> self = ? | Fallback | Done       | True  |
-|  9 | Tensor<[1, 32, 149, 149]> self = ? | Fallback | Done       | True  |
-| 10 | Tensor<[1, 320, 17, 17]> self = ?  | Fallback | Unknown    | N/A   |
-| 11 | Tensor<[1, 320, 8, 8]> self = ?    | Fallback | Unknown    | N/A   |
-| 12 | Tensor<[1, 384, 17, 17]> self = ?  | Fallback | Unknown    | N/A   |
-| 13 | Tensor<[1, 384, 8, 8]> self = ?    | Fallback | Unknown    | N/A   |
-| 14 | Tensor<[1, 448, 8, 8]> self = ?    | Fallback | Unknown    | N/A   |
-| 15 | Tensor<[1, 512, 8, 8]> self = ?    | Fallback | Unknown    | N/A   |
-| 16 | Tensor<[1, 64, 147, 147]> self = ? | Fallback | Done       | True  |
-| 17 | Tensor<[1, 64, 35, 35]> self = ?   | Fallback | Unknown    | N/A   |
-| 18 | Tensor<[1, 64, 73, 73]> self = ?   | Fallback | Done       | True  |
-| 19 | Tensor<[1, 96, 35, 35]> self = ?   | Fallback | Unknown    | N/A   |
-| 20 | Tensor<[1, 96, 71, 71]> self = ?   | Fallback | Done       | True  |
-| 21 | Tensor<[1, 96, 73, 73]> self = ?   | Fallback | Done       | True  |
+|  0 | Tensor<[1, 128, 17, 17]> self = ?  | Fallback | Done       | True  |
+|  1 | Tensor<[1, 192, 17, 17]> self = ?  | Fallback | Done       | True  |
+|  2 | Tensor<[1, 192, 35, 35]> self = ?  | Fallback | Unknown    | N/A   |
+|  3 | Tensor<[1, 192, 8, 8]> self = ?    | Fallback | Done       | True  |
+|  4 | Tensor<[1, 224, 17, 17]> self = ?  | Fallback | Done       | True  |
+|  5 | Tensor<[1, 224, 35, 35]> self = ?  | Fallback | Done       | True  |
+|  6 | Tensor<[1, 256, 17, 17]> self = ?  | Fallback | Done       | True  |
+|  7 | Tensor<[1, 256, 8, 8]> self = ?    | Fallback | Done       | True  |
+|  8 | Tensor<[1, 32, 147, 147]> self = ? | Fallback | Unknown    | N/A   |
+|  9 | Tensor<[1, 32, 149, 149]> self = ? | Fallback | Unknown    | N/A   |
+| 10 | Tensor<[1, 320, 17, 17]> self = ?  | Fallback | Done       | True  |
+| 11 | Tensor<[1, 320, 8, 8]> self = ?    | Fallback | Done       | True  |
+| 12 | Tensor<[1, 384, 17, 17]> self = ?  | Fallback | Done       | True  |
+| 13 | Tensor<[1, 384, 8, 8]> self = ?    | Fallback | Done       | True  |
+| 14 | Tensor<[1, 448, 8, 8]> self = ?    | Fallback | Done       | True  |
+| 15 | Tensor<[1, 512, 8, 8]> self = ?    | Fallback | Done       | True  |
+| 16 | Tensor<[1, 64, 147, 147]> self = ? | Fallback | Unknown    | N/A   |
+| 17 | Tensor<[1, 64, 35, 35]> self = ?   | Fallback | Done       | True  |
+| 18 | Tensor<[1, 64, 73, 73]> self = ?   | Fallback | Unknown    | N/A   |
+| 19 | Tensor<[1, 96, 35, 35]> self = ?   | Fallback | Done       | True  |
+| 20 | Tensor<[1, 96, 71, 71]> self = ?   | Fallback | Unknown    | N/A   |
+| 21 | Tensor<[1, 96, 73, 73]> self = ?   | Fallback | Unknown    | N/A   |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                         | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|

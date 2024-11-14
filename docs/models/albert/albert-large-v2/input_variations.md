@@ -143,17 +143,17 @@
 ### aten.view.default
 |    | ATen Input Variations                                             | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 64, 9]> self = ?,<br>List[int] size = [16, 64, 9]  | Done     | Unknown    | N/A   |
-|  1 | Tensor<[1, 16, 9, 64]> self = ?,<br>List[int] size = [16, 9, 64]  | Done     | Unknown    | N/A   |
-|  2 | Tensor<[1, 16, 9, 9]> self = ?,<br>List[int] size = [16, 9, 9]    | Done     | Unknown    | N/A   |
-|  3 | Tensor<[1, 9, 1024]> self = ?,<br>List[int] size = [1, 9, 16, 64] | Done     | Unknown    | N/A   |
-|  4 | Tensor<[1, 9, 1024]> self = ?,<br>List[int] size = [9, 1024]      | Done     | Unknown    | N/A   |
-|  5 | Tensor<[1, 9, 128]> self = ?,<br>List[int] size = [9, 128]        | Done     | Done       | True  |
-|  6 | Tensor<[1, 9, 4096]> self = ?,<br>List[int] size = [9, 4096]      | Done     | Unknown    | N/A   |
-|  7 | Tensor<[16, 9, 64]> self = ?,<br>List[int] size = [1, 16, 9, 64]  | Done     | Unknown    | N/A   |
-|  8 | Tensor<[16, 9, 9]> self = ?,<br>List[int] size = [1, 16, 9, 9]    | Fallback | Unknown    | N/A   |
-|  9 | Tensor<[9, 1024]> self = ?,<br>List[int] size = [1, 9, 1024]      | Done     | Done       | True  |
-| 10 | Tensor<[9, 128]> self = ?,<br>List[int] size = [1, 9, 128]        | Done     | Unknown    | N/A   |
-| 11 | Tensor<[9, 30000]> self = ?,<br>List[int] size = [1, 9, 30000]    | Fallback | Unknown    | N/A   |
-| 12 | Tensor<[9, 4096]> self = ?,<br>List[int] size = [1, 9, 4096]      | Done     | Unknown    | N/A   |
+|  0 | Tensor<[1, 16, 64, 9]> self = ?,<br>List[int] size = [16, 64, 9]  | Done     | Done       | True  |
+|  1 | Tensor<[1, 16, 9, 64]> self = ?,<br>List[int] size = [16, 9, 64]  | Done     | Done       | True  |
+|  2 | Tensor<[1, 16, 9, 9]> self = ?,<br>List[int] size = [16, 9, 9]    | Done     | Done       | True  |
+|  3 | Tensor<[1, 9, 1024]> self = ?,<br>List[int] size = [1, 9, 16, 64] | Done     | Done       | True  |
+|  4 | Tensor<[1, 9, 1024]> self = ?,<br>List[int] size = [9, 1024]      | Done     | Done       | True  |
+|  5 | Tensor<[1, 9, 128]> self = ?,<br>List[int] size = [9, 128]        | Done     | Unknown    | N/A   |
+|  6 | Tensor<[1, 9, 4096]> self = ?,<br>List[int] size = [9, 4096]      | Done     | Done       | True  |
+|  7 | Tensor<[16, 9, 64]> self = ?,<br>List[int] size = [1, 16, 9, 64]  | Done     | Done       | True  |
+|  8 | Tensor<[16, 9, 9]> self = ?,<br>List[int] size = [1, 16, 9, 9]    | Fallback | Done       | True  |
+|  9 | Tensor<[9, 1024]> self = ?,<br>List[int] size = [1, 9, 1024]      | Done     | Unknown    | N/A   |
+| 10 | Tensor<[9, 128]> self = ?,<br>List[int] size = [1, 9, 128]        | Done     | Done       | True  |
+| 11 | Tensor<[9, 30000]> self = ?,<br>List[int] size = [1, 9, 30000]    | Fallback | Done       | True  |
+| 12 | Tensor<[9, 4096]> self = ?,<br>List[int] size = [1, 9, 4096]      | Done     | Done       | True  |
 
