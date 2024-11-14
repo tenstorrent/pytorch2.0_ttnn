@@ -590,16 +590,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_shape[-len(input_tensor_shape) :] = input_tensor_shape
                 multiplier = np.array(output_shape) // np.array(input_shape)
 
-                expand_index = np.where(multiplier > 1)[0]
-                use_ttnn = (input_tensor_shape[-1] % 2 == 0) and np.all(expand_index > 0)
-                if use_ttnn:
+                np_output_shape = np.array(list(output_shape))
+                expand_multiplier = np_output_shape[np_output_shape > 1] // input_shape[np_output_shape > 1]
+                expand_index = np.where(expand_multiplier > 1)[0]
+
+                if input_tensor_shape[-1] % 2 == 0 and np.all(expand_index == np.arange(len(expand_index))):
                     return g.call_function(ttnn.expand, args=(args[0], list(output_shape)))
 
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
                 # Repeat fails if last dimension of input is 1
-                if input_tensor_shape[-1] != 1:
+                if input_tensor_shape[-1] != 1 and len(input_tensor_shape) == len(output_shape):
                     return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
 
                 return None
