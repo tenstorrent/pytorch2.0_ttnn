@@ -806,6 +806,24 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 else:
                     return None
 
+            if node.target == torch.ops.aten.select.int:
+                tensor, dim, start = args
+
+                input_size = tensor.meta["val"].size()
+                output_size = node.meta["val"].size()
+
+                if input_size.numel() != output_size.numel():
+                    slice_start, slice_end = [0] * len(input_size), list(input_size)
+                    slice_start[dim], slice_end[dim] = start, start + 1
+
+                    slice_tensor = g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
+                else:
+                    slice_tensor = tensor
+                    if len(output_size) == 0:
+                        return g.call_function(torch.ops.aten.squeeze.dim, args=(tensor, 0))
+
+                return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
+
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
                 input_shape = tensor.meta["val"].size()
@@ -841,35 +859,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     return gm
 
 
-def RewriteAtenOp(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    """
-    Rewrites Aten operations in the Aten IR domain.
-    """
-
-    nodes = list(gm.graph.nodes)
-    for node in nodes:
-        g = GraphWrapper(node)
-
-        def rewrite_node(node):
-            args = node.args
-            kwargs = node.kwargs
-
-            if node.target == torch.ops.aten.select.int:
-                tensor, dim, start = args
-                slice_node = g.call_function(torch.ops.aten.slice.Tensor, (tensor, dim, start, start + 1))
-                return g.call_function(torch.ops.aten.squeeze.dim, args=(slice_node, dim))
-
-        with g.inserting_before(node):
-            new_node = rewrite_node(node)
-            if new_node is not None:
-                node.replace_all_uses_with(
-                    new_node,
-                    delete_user_cb=lambda node: node != new_node,
-                )
-
-    gm = GraphCleanup(gm)
-    return gm
-
 
 class ToTtPass(PassBase):
     def __init__(self, device, use_less_ttnn_op_types):
@@ -877,8 +866,6 @@ class ToTtPass(PassBase):
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
-        gm = RewriteAtenOp(gm)
-
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
