@@ -136,6 +136,8 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.clone,
     target_wrappers.repeat,
     target_wrappers.pack_to_tuple,
+    target_wrappers.move_to_host,
+    target_wrappers.conv2d,
 ]
 
 TTNN_NORM_OPS = [
