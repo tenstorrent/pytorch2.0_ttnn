@@ -590,9 +590,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_shape[-len(input_tensor_shape) :] = input_tensor_shape
                 multiplier = np.array(output_shape) // np.array(input_shape)
 
-                expand_multiplier = multiplier[multiplier > 1]
-                use_ttnn = input_tensor_shape[-1] % 2 == 0
-                use_ttnn = np.all(expand_multiplier == multiplier[: len(expand_multiplier)]) and use_ttnn
+                expand_index = np.where(multiplier > 1)[0]
+                use_ttnn = (input_tensor_shape[-1] % 2 == 0) and np.all(expand_index > 0)
                 if use_ttnn:
                     return g.call_function(ttnn.expand, args=(args[0], list(output_shape)))
 
