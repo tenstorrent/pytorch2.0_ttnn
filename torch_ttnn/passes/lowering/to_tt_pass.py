@@ -737,6 +737,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
             if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
+                input_tensor_num_element = args[0].meta["val"].numel()
+                output_shape_num_element = node.meta["val"].numel()
+                if input_tensor_num_element == 0 or output_shape_num_element == 0:
+                    return None
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
