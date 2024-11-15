@@ -299,8 +299,8 @@ def is_target_a_user_of_curr_node(curr_node, target):
     if curr_node.target == target:
         return True
 
-    # Only trace certain nodes that support different layouts
-    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS:
+    # Only trace certain nodes that support different layouts, including reshape
+    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([ttnn.reshape])):
         return False
 
     for user in list(curr_node.users.keys()):
