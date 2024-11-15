@@ -799,7 +799,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     if len(output_size) == 0:
                         return g.call_function(torch.ops.aten.squeeze.dim, args=(tensor, 0))
 
-                if len(slice_end) > 4 or len(output_size) == 1:
+                if len(output_size) > 4 or len(output_size) == 1:
                     return g.call_function(torch.ops.aten.reshape.default, args=(slice_tensor, list(output_size)))
                 else:
                     return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
