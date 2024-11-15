@@ -30,6 +30,8 @@ def expand_param_tuple(*shape):
         *expand_param_tuple(1, 640, 14, 14),
         *expand_param_tuple(1, 640, 7, 7),
         *expand_param_tuple(1, 672, 15, 15),
+        *expand_param_tuple(1, 64, 30, 40),
+        *expand_param_tuple(2, 15, 30, 40),
     ),
 )
 def test_batch_norm_inference(device, input_shape, weight, bias):
