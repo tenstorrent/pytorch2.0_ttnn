@@ -232,20 +232,6 @@ aten_maximum_default_blocklist = [
     ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
 ]
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
-aten_expand_default_blocklist = [
-    ["Tensor<[1, 1, 1, 19]> self = ?", "List[int] size = [1, 1, 19, 19]"],
-    ["Tensor<[1, 5]> self = ?", "List[int] size = [5, 5]"],
-    ["Tensor<[1, 3]> self = ?", "List[int] size = [3, 3]"],
-    ["Tensor<[1, 17]> self = ?", "List[int] size = [13, 17]"],
-    ["Tensor<[1, 9]> self = ?", "List[int] size = [7, 9]"],
-    ["Tensor<[768]> self = ?", "List[int] size = [1, 1, -1]"],
-    ["Tensor<[1, 1, 7, 7]> self = ?", "List[int] size = [2, 1, 7, 7]"],
-    ["Tensor<[2, 1, 1, 7]> self = ?", "List[int] size = [2, 1, 7, 7]"],
-    ["Tensor<[1, 1, 64, 7]> self = ?", "List[int] size = [1, 71, 64, 7]"],
-    ["Tensor<[1, 19]> self = ?", "List[int] size = [19, 19]"],
-    ["Tensor<[1, 1, 1, 45]> self = ?", "List[int] size = [1, 1, 45, 45]"],
-    ["Tensor<[1, 1, 1, 59]> self = ?", "List[int] size = [1, 1, 59, 59]"],
-]
 aten_full_default_blocklist = [
     [
         "List[int] size = [19, 19]",
@@ -578,7 +564,6 @@ GUARD = {
     torch.ops.aten.clamp.default: partial(guard_aten, aten_clamp_default_blocklist),
     torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
-    torch.ops.aten.expand.default: partial(guard_aten, aten_expand_default_blocklist),
     torch.ops.aten.full.default: partial(guard_aten, aten_full_default_blocklist),
     torch.ops.aten.rsub.Scalar: partial(guard_aten, aten_rsub_Scalar_blocklist),
     torch.ops.aten.addmm.default: partial(guard_aten, aten_addmm_default_blocklist),
@@ -617,7 +602,6 @@ guard_ops = [
     "torch.ops.aten.clamp.default",
     "torch.ops.aten.maximum.default",
     "torch.ops.aten._log_softmax.default",
-    "torch.ops.aten.expand.default",
     "torch.ops.aten.full.default",
     "torch.ops.aten.rsub.Scalar",
     "torch.ops.aten.addmm.default",
