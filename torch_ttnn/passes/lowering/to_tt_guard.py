@@ -48,29 +48,6 @@ aten_masked_fill_scalar_blocklist += [
 ]
 
 
-# swin_s
-# swin_v2_t
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [64, 64, 96]"])
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [1, 64, 64, 96]"])
-aten__unsafe_view_default_blocklist.remove(["Tensor<[8, 8, 8, 8]> self = ?", "List[int] size = [64, 64]"])
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 4, 4, 8, 8, 192]> self = ?", "List[int] size = [16, 64, 192]"])
-aten__unsafe_view_default_blocklist.remove(
-    ["Tensor<[1, 4, 8, 4, 8, 192]> self = ?", "List[int] size = [1, 32, 32, 192]"]
-)
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 2, 2, 8, 8, 384]> self = ?", "List[int] size = [4, 64, 384]"])
-
-# swin_v2_s
-# swin_v2_b
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [64, 64, 128]"])
-aten__unsafe_view_default_blocklist.remove(
-    ["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [1, 64, 64, 128]"]
-)
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 4, 4, 8, 8, 256]> self = ?", "List[int] size = [16, 64, 256]"])
-aten__unsafe_view_default_blocklist.remove(
-    ["Tensor<[1, 4, 8, 4, 8, 256]> self = ?", "List[int] size = [1, 32, 32, 256]"]
-)
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 2, 2, 8, 8, 512]> self = ?", "List[int] size = [4, 64, 512]"])
-
 ############################################################
 # EXTRA BLOCKLIST OF vgg*
 ############################################################

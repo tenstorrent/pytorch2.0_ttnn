@@ -99,21 +99,7 @@ aten_permute_default_blocklist = [
     ["Tensor<[16, 197, 197]> self = ?", "List[int] dims = [1, 2, 0]"],
 ]
 
-aten__unsafe_view_default_blocklist = [
-    ["Tensor<[1, 16, 16, 16, 16, 3]> self = ?", "List[int] size = [1, 256, 768]"],
-    ["Tensor<[1, 3, 16, 16, 16, 16]> self = ?", "List[int] size = [1, 3, 256, 256]"],
-    ["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [64, 64, 96]"],
-    ["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [1, 64, 64, 96]"],
-    ["Tensor<[8, 8, 8, 8]> self = ?", "List[int] size = [64, 64]"],
-    ["Tensor<[1, 4, 4, 8, 8, 192]> self = ?", "List[int] size = [16, 64, 192]"],
-    ["Tensor<[1, 4, 8, 4, 8, 192]> self = ?", "List[int] size = [1, 32, 32, 192]"],
-    ["Tensor<[1, 2, 2, 8, 8, 384]> self = ?", "List[int] size = [4, 64, 384]"],
-    ["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [64, 64, 128]"],
-    ["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [1, 64, 64, 128]"],
-    ["Tensor<[1, 4, 4, 8, 8, 256]> self = ?", "List[int] size = [16, 64, 256]"],
-    ["Tensor<[1, 4, 8, 4, 8, 256]> self = ?", "List[int] size = [1, 32, 32, 256]"],
-    ["Tensor<[1, 2, 2, 8, 8, 512]> self = ?", "List[int] size = [4, 64, 512]"],
-]
+
 aten_clamp_default_blocklist = [
     ["Tensor<[128]> self = ?", "Optional[number] min = 0.0"],
     ["Tensor<[128]> self = ?", "Optional[number] min = ?", "Optional[number] max = 127"],
@@ -511,7 +497,6 @@ def guard_aten(blocklist, node):
 
 GUARD = {
     torch.ops.aten.permute.default: partial(guard_aten, aten_permute_default_blocklist),
-    torch.ops.aten._unsafe_view.default: partial(guard_aten, aten__unsafe_view_default_blocklist),
     torch.ops.aten.clamp.default: partial(guard_aten, aten_clamp_default_blocklist),
     torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
