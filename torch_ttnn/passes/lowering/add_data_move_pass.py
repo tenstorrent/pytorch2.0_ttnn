@@ -365,11 +365,11 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
     need_from_device = False
     need_to_layout = False
     need_to_device = False
-    if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node) and not can_be_tilized(dst_node):
+    if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
         need_from_device = True
         need_to_layout = True
-    if dst_node.target == ttnn.slice:
-        need_to_layout = True
+    # if dst_node.target == ttnn.slice:
+    #     need_to_layout = True
 
     # # TODO(#372): #322 will enable tile layout for more layout change ops
     # if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
@@ -405,21 +405,38 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
     if not is_function_call(src_node):
         return None
-    if (
-        not is_tt_compute(dst_node)
-        or dst_node.target == ttnn.embedding
-        or dst_node.target == target_wrappers.repeat
-        or src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
-        or (src_node.target == ttnn.full and can_be_tilized(src_node))
-    ):
+
+    need_from_device = False
+    need_to_layout = False
+    need_to_device = False
+    if src_node.target in TTNN_LAYOUT_CHANGE_OPS and is_tt(dst_node):
+        need_to_device = True
+        need_to_layout = True
+
+    # These nodes use ROW_MAJOR_LAYOUT to create tensors
+    if src_node.target in [ttnn.ones, target_wrappers.repeat]:
+        need_to_layout = True
+
+    # if src_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
+    #     # TODO: Only uint32 needs to to_layout on host
+    #     need_from_device = True
+    #     need_to_layout = True
+    #     need_to_device = True
+
+    if not any((need_from_device, need_to_layout, need_to_device)):
         return None
 
     g = dst_node.graph
     new_nodes = []
     with g.inserting_before(dst_node):
-        new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1] if new_nodes else src_node, TtnnTileLayout())))
-        if len(get_shape(src_node)) > 4 or len(get_shape(src_node)) == 1 or not can_reshape(src_node):
-            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1], TtnnDevice())))
+        new_nodes = [src_node]
+        if need_from_device:
+            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
+        if need_to_layout:
+            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout())))
+        if need_to_device:
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1],), {"device": device}))
+        new_nodes = new_nodes[1:]
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 

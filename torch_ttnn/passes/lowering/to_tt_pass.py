@@ -768,7 +768,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     multiplier = np_tensor_shp // np_mask_shp
                     mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
 
-                    kwargs = {"dtype": TtnnBfloat16(), "device": TtnnDevice(), "layout": TtnnTileLayout()}
+                    kwargs = {"dtype": TtnnBfloat16(), "layout": TtnnRowMajorLayout(), "device": TtnnDevice()}
                     ones = g.call_function(ttnn.ones, (tensor_shape,), kwargs)
                     mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
                     tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))
@@ -799,7 +799,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     if len(output_size) == 0:
                         return g.call_function(torch.ops.aten.squeeze.dim, args=(tensor, 0))
 
-                return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
+                if len(slice_end) > 4 or len(output_size) == 1:
+                    return g.call_function(torch.ops.aten.reshape.default, args=(slice_tensor, list(output_size)))
+                else:
+                    return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
 
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
