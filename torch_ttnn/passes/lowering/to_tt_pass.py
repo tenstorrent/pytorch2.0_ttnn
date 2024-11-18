@@ -590,17 +590,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_shape[-len(input_tensor_shape) :] = input_tensor_shape
                 multiplier = np.array(output_shape) // np.array(input_shape)
 
-                expand_multiplier = multiplier[multiplier > 1]
-                use_ttnn = input_tensor_shape[-1] % 2 == 0
-                use_ttnn = np.all(expand_multiplier == multiplier[: len(expand_multiplier)]) and use_ttnn
-                if use_ttnn:
+                np_output_shape = np.array(list(output_shape))
+                expand_multiplier = np_output_shape[np_output_shape > 1] // input_shape[np_output_shape > 1]
+                expand_index = np.where(expand_multiplier > 1)[0]
+
+                if input_tensor_shape[-1] % 2 == 0 and np.all(expand_index == np.arange(len(expand_index))):
                     return g.call_function(ttnn.expand, args=(args[0], list(output_shape)))
 
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
                 # Repeat fails if last dimension of input is 1
-                if input_tensor_shape[-1] != 1:
+                if input_tensor_shape[-1] != 1 and len(input_tensor_shape) == len(output_shape):
                     return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
 
                 return None
@@ -736,6 +737,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
             if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
+                input_tensor_num_element = args[0].meta["val"].numel()
+                output_shape_num_element = node.meta["val"].numel()
+                if input_tensor_num_element == 0 or output_shape_num_element == 0:
+                    return None
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
@@ -811,6 +816,24 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return masked_fill
                 else:
                     return None
+
+            if node.target == torch.ops.aten.select.int:
+                tensor, dim, start = args
+
+                input_size = tensor.meta["val"].size()
+                output_size = node.meta["val"].size()
+
+                if input_size.numel() != output_size.numel():
+                    slice_start, slice_end = [0] * len(input_size), list(input_size)
+                    slice_start[dim], slice_end[dim] = start, start + 1
+
+                    slice_tensor = g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
+                else:
+                    slice_tensor = tensor
+                    if len(output_size) == 0:
+                        return g.call_function(torch.ops.aten.squeeze.dim, args=(tensor, 0))
+
+                return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
 
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
