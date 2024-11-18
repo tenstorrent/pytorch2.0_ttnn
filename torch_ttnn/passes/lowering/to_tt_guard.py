@@ -215,25 +215,9 @@ aten_masked_fill_scalar_blocklist += [
 aten_mul_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 50258"]]
 
 ############################################################
-# EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224-train
-############################################################
-# see issue #364
-# microsoft/beit-base-patch16-224
-# self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
-# function_args = (ttnn.Tensor(<buffer is not allocated>,
-# shape=Shape([1, 1[32], 1000[1024]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), (1, 0))
-# function_kwargs = {}
-# RuntimeError: TT_FATAL @ .../permute.cpp:170: input_rank == dims.size()
-# don't know why block aten.mean can avoid this error
-aten_mean_dim_blocklist = [["Tensor<[1, 196, 768]> self = ?", "Optional[List[int]] dim = [1]"]]
-# microsoft/beit-large-patch16-224: same issue
-aten_mean_dim_blocklist += [["Tensor<[1, 196, 1024]> self = ?", "Optional[List[int]] dim = [1]"]]
-
-############################################################
 
 GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
-GUARD[torch.ops.aten.mean.dim] = partial(guard_aten, aten_mean_dim_blocklist)
 GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
 
 
