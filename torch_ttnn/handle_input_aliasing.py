@@ -51,13 +51,15 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
 
     get_attrs = get_nodes_with_op(gm, "get_attr")
     for node in get_attrs:
-        with gm.graph.inserting_after(node):
-            clone_node = gm.graph.call_function(torch.ops.aten.clone.default, args=(node,))
-            node.replace_all_uses_with(
-                clone_node,
-                delete_user_cb=lambda node: node != clone_node,
-            )
-            modified = True
+        example_value = node.meta.get("example_value")
+        if isinstance(example_value, torch._subclasses.fake_tensor.FakeTensor):
+            with gm.graph.inserting_after(node):
+                clone_node = gm.graph.call_function(torch.ops.aten.clone.default, args=(node,))
+                node.replace_all_uses_with(
+                    clone_node,
+                    delete_user_cb=lambda node: node != clone_node,
+                )
+                modified = True
     if modified:
         gm = graph_cleanup(gm)
 
