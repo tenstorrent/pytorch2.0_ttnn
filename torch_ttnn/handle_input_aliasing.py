@@ -30,17 +30,18 @@ def get_nodes_with_op(gm: torch.fx.GraphModule, op: str) -> List[torch.fx.Node]:
     return input_nodes
 
 
-def insert_clones_after_op_type(gm: torch.fx.GraphModule, op: str):
-    op_list = get_nodes_with_op(gm, op)
+# Insert aten.clone nodes after every input to prevent input aliasing
+def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+    placeholders = get_nodes_with_op(gm, "placeholder")
     modified = False
 
-    for node in op_list:
+    for node in placeholders:
         """NOTE: Torch assumes placeholder nodes are laid out consecutively at this stage.
         If we insert nodes in between, the list of input arguments will be truncated.
         We will get this error: `TypeError: forward() missing `n` required positional arguments`.
         Workaround is to insert nodes after the last placeholder node.
         """
-        with gm.graph.inserting_after(op_list[-1]):
+        with gm.graph.inserting_after(placeholders[-1]):
             clone_node = gm.graph.call_function(torch.ops.aten.clone.default, args=(node,))
             node.replace_all_uses_with(
                 clone_node,
@@ -48,16 +49,18 @@ def insert_clones_after_op_type(gm: torch.fx.GraphModule, op: str):
             )
             modified = True
 
+    get_attrs = get_nodes_with_op(gm, "get_attr")
+    for node in get_attrs:
+        with gm.graph.inserting_after(node):
+            clone_node = gm.graph.call_function(torch.ops.aten.clone.default, args=(node,))
+            node.replace_all_uses_with(
+                clone_node,
+                delete_user_cb=lambda node: node != clone_node,
+            )
+            modified = True
     if modified:
         gm = graph_cleanup(gm)
 
-    return gm
-
-
-# Insert aten.clone nodes after every input to prevent input aliasing
-def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    gm = insert_clones_after_op_type(gm, "placeholder")
-    gm = insert_clones_after_op_type(gm, "get_attr")
     return gm
 
 
