@@ -39,7 +39,7 @@ def test_eq_tensor(device, input_shapes):
     assert torch.allclose(result_before, result_after.to(torch.bool))
 
 
-@pytest.mark.parametrize("input_shape", ((64, 128),))
+@pytest.mark.parametrize("input_shape", ((64, 128), (1, 1, 256)))
 def test_eq_scalar(device, input_shape):
     m = EqModule()
     input = torch.randint(0, 2, input_shape, dtype=torch.bfloat16)
