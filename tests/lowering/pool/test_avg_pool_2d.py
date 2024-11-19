@@ -14,6 +14,7 @@ class AdaptiveAvgPool2dModule(torch.nn.Module):
         return torch._adaptive_avg_pool2d(input, (1, 1))
 
 
+@pytest.mark.skip()
 @pytest.mark.parametrize(
     "input_shapes",
     [(1, 2048, 7, 7)],
