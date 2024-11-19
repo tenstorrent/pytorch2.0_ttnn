@@ -298,6 +298,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Pointwise binary
         ############################################################
+        if target in relational_scalar_ops:
+            return self.call_function_prop_meta(relational_scalar_ops[target], args, kwargs)
+
         if target == torch.ops.aten.add.Tensor:
 
             def is_zero_dim(meta):
@@ -483,25 +486,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if args[0] >= 2:
                     new_args = (args[0], args[1], args[2])
                     return g.call_function(ttnn.arange, args=new_args)
-                return None
-
-            if node.target in relational_scalar_ops:
-                # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
-                # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
-                # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
-                arg_metadata = node.meta["val"]
-                if HasValidPageSize(arg_metadata.size(), strict=True):
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                    }
-                    full_node = g.call_function(ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs)
-                    return g.call_function(
-                        relational_scalar_ops[node.target],
-                        args=(args[0], full_node),
-                        kwargs={},
-                    )
                 return None
 
             if node.target == torch.ops.aten.eq.Tensor:
