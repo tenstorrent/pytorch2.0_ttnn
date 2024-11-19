@@ -346,10 +346,21 @@ class ReplaceMoreTt(torch.fx.Transformer):
         # Reduction
         ############################################################
         if target == torch.ops.aten.mean.dim:
+            new_args = []
+            new_args.append(args[0])
             # change dim parameter to tuple
-            new_args = list(args)
-            new_args[1] = tuple(args[1]) if len(args[1]) > 1 else args[1][0]
-            return self.call_function_prop_meta(ttnn.mean, tuple(new_args), kwargs)
+            new_args.append(tuple(args[1]) if len(args[1]) > 1 else args[1][0])
+            keep_dim = False
+            if len(args) > 2:
+                keep_dim = args[2]
+            elif "keepdim" in kwargs:
+                keep_dim = kwargs["keepdim"]
+            if keep_dim:
+                return self.call_function_prop_meta(ttnn.mean, tuple(new_args), {})
+            # ttnn.mean does not support keep_dim==False, need reshape to remove dim
+            mean_shape = list(fx_traceback.get_current_meta()["val"].shape)
+            mean = self.call_function_prop_meta(ttnn.mean, tuple(new_args), {})
+            return self.call_function_prop_meta(ttnn.reshape, (mean, mean_shape))
 
         if target == torch.ops.aten.min.default:
             return self.call_function_prop_meta(ttnn.min, args, kwargs)
@@ -710,8 +721,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
                 # Skip if either dimensions is larger than 5
-                if len(get_shape(args[0])) > 4 or len(args[1]) > 4 or len(args[1]) < 2:
-                    return g.call_function(torch.ops.aten.reshape.default, args, {})
+                input_tensor_num_element = args[0].meta["val"].numel()
+                output_shape_num_element = node.meta["val"].numel()
+                # Skip if either dimensions is larger than 5
+                if (
+                    input_tensor_num_element == 0
+                    or output_shape_num_element == 0
+                    or len(get_shape(args[0])) > 4
+                    or len(args[1]) > 4
+                    or len(args[1]) < 2
+                ):
+                    return None
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
