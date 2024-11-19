@@ -348,7 +348,6 @@ aten_log_default_blocklist = [
 ]
 aten_rsqrt_default_blocklist = [["Tensor<[1, 1, 1]> self = ?"]]
 aten_bernoulli_p_blocklist = [["Tensor<[1, 256]> self = ?", "float p = 0.5"]]
-aten_eq_Scalar_blocklist = [["Tensor<[1, 1, 256]> self = ?", "number other = 1"]]
 aten_native_dropout_default_blocklist = [
     ["Tensor<[1, 1280]> input = ?", "float p = 0.2", "Optional[bool] train = True"]
 ]
@@ -412,7 +411,6 @@ GUARD = {
     torch.ops.aten.log.default: partial(guard_aten, aten_log_default_blocklist),
     torch.ops.aten.rsqrt.default: partial(guard_aten, aten_rsqrt_default_blocklist),
     torch.ops.aten.bernoulli.p: partial(guard_aten, aten_bernoulli_p_blocklist),
-    torch.ops.aten.eq.Scalar: partial(guard_aten, aten_eq_Scalar_blocklist),
     torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
     torch.ops.aten.new_empty_strided.default: partial(guard_aten, aten_new_empty_strided_default_blocklist),
     torch.ops.aten.mm.default: partial(guard_aten, aten_mm_default_blocklist),
