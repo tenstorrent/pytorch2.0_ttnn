@@ -39,11 +39,11 @@ def test_eq_tensor(device, input_shapes):
     assert torch.allclose(result_before, result_after.to(torch.bool))
 
 
-@pytest.mark.parametrize("input_shape", ((64, 128), (1, 1, 256)))
+@pytest.mark.parametrize("input_shape", ((64, 128), (1, 1, 256), (2, 377, 355)))
 def test_eq_scalar(device, input_shape):
     m = EqModule()
-    input = torch.randint(0, 2, input_shape, dtype=torch.bfloat16)
-    scalar = torch.randint(0, 2, (1,)).item()
+    input = torch.randint(0, 10, input_shape, dtype=torch.bfloat16)
+    scalar = torch.randint(0, 10, ()).item()
     result_before = m.forward(input, scalar)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
@@ -54,13 +54,7 @@ def test_eq_scalar(device, input_shape):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    target = [node.target for node in nodes]
-    assert target.count(ttnn.full) == 1
-    assert target.count(ttnn.eq) == 1
-    assert target.index(ttnn.full) < target.index(ttnn.eq)
-    # Intermediate node meta check if preserved
-    for node in nodes:
-        if node.target == ttnn.full:
-            assert node.meta["val"].size() == input_shape
+    assert [node.target for node in nodes].count(ttnn.eq) == 1
+
     # Check inference result
     assert torch.allclose(result_before, result_after.to(torch.bool))
