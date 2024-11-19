@@ -236,7 +236,6 @@ def try_call_aten__to_copy_with_meta(g, to_torch_node):
     # TODO: If to_torch can specify dtype, then can merge to_copy on it
 
     # if user only output, then no need to add
-    # return None
     if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
         dtype = to_torch_node.meta["val"].dtype
         if dtype != torch.bfloat16:

@@ -25,22 +25,22 @@ https://github.com/pytorch/TensorRT/commit/7daa1120dc1bc72d6f92f1e7aa2b357a65b6e
 
 
 # torch.fx defines a placeholder node as a function input
-def get_input_nodes(gm: torch.fx.GraphModule) -> List[torch.fx.Node]:
-    input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder")]
+def get_nodes_with_op(gm: torch.fx.GraphModule, op: str) -> List[torch.fx.Node]:
+    input_nodes = [node for node in gm.graph.nodes if (node.op == op)]
     return input_nodes
 
 
-# Insert aten.clone nodes after every input to prevent input aliasing
-def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    input_nodes = get_input_nodes(gm)
+def insert_clones_after_op_type(gm: torch.fx.GraphModule, op: str):
+    op_list = get_nodes_with_op(gm, op)
     modified = False
-    for node in input_nodes:
-        """TODO(kevinwuTT): This does not work if inserting right after the node itself.
-        Only works if inserting after all of the input_nodes.
-        TypeError: forward() missing `n` required positional arguments
-        Somehow the argument list will get truncated.
+
+    for node in op_list:
+        """NOTE: Torch assumes placeholder nodes are laid out consecutively at this stage.
+        If we insert nodes in between, the list of input arguments will be truncated.
+        We will get this error: `TypeError: forward() missing `n` required positional arguments`.
+        Workaround is to insert nodes after the last placeholder node.
         """
-        with gm.graph.inserting_after(input_nodes[-1]):
+        with gm.graph.inserting_after(op_list[-1]):
             clone_node = gm.graph.call_function(torch.ops.aten.clone.default, args=(node,))
             node.replace_all_uses_with(
                 clone_node,
@@ -51,6 +51,13 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
     if modified:
         gm = graph_cleanup(gm)
 
+    return gm
+
+
+# Insert aten.clone nodes after every input to prevent input aliasing
+def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+    gm = insert_clones_after_op_type(gm, "placeholder")
+    gm = insert_clones_after_op_type(gm, "get_attr")
     return gm
 
 
