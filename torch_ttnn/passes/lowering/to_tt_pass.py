@@ -946,6 +946,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
                 return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
 
+            # PEP 8 suggests this explicit statement
+            return None
+
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
