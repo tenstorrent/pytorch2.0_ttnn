@@ -216,7 +216,7 @@ def try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops):
     if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
         dtype = to_torch_node.meta["val"].dtype
         # if user only output and output type is float-like, then no need to add
-        if target_users_ops == ["output"] and dtype in [torch.float32, torch.float64, torch.bfloat16]:
+        if target_users_ops.count("output") and dtype in [torch.float32, torch.float64, torch.bfloat16]:
             return None
         call_func = g.call_function(
             torch.ops.aten._to_copy.default,
