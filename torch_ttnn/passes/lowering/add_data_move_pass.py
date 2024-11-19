@@ -38,6 +38,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     #  ttnn.clone,  in target_wrappers
     ttnn.cos,
     ttnn.cosh,
+    ttnn.elu,
     ttnn.erf,
     ttnn.exp,
     ttnn.expm1,
