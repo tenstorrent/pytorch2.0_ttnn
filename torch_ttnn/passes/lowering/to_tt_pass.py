@@ -731,7 +731,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     or len(args[1]) > 4
                     or len(args[1]) < 2
                 ):
-                    return None
+                    return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
