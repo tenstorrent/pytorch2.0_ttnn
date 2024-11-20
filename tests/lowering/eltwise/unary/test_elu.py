@@ -23,7 +23,7 @@ class EluModule(torch.nn.Module):
         pytest.param((28,), 1.0, marks=pytest.mark.xfail(reason="lost 1D shape with tile layout (tt-metal#12671)")),
     ],
 )
-def test_gelu(device, input_shape, alpha):
+def test_elu(device, input_shape, alpha):
     m = EluModule()
     input_tensor = torch.rand(input_shape, dtype=torch.bfloat16)
     result_before = m.forward(input_tensor, alpha)
