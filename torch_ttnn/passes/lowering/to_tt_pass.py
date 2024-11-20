@@ -448,26 +448,25 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             args = node.args
             kwargs = node.kwargs
 
-            def batch_norm_post_process(output, weight, bias):
+            def batch_norm_post_process(output, shape, weight, bias):
                 if weight is not None:
+                    weight = g.call_function(ttnn.reshape, (weight, shape))
                     output = g.call_function(ttnn.mul, (output, weight))
                 if bias is not None:
+                    bias = g.call_function(ttnn.reshape, (bias, shape))
                     output = g.call_function(ttnn.add, (output, bias))
                 return output
 
             # Non-training batch normalization
             def batch_norm_inference(input, weight, bias, mean, var, momentum, eps):
-                ndims = len(input.meta["val"].size())
-                permutation = 0, *range(2, ndims), 1
-                input = g.call_function(ttnn.permute, (input, permutation))
-
+                shape = input.meta["val"].size()
+                shape = (1, shape[1]) + (1,) * (len(shape) - 2)
                 invstd = g.call_function(ttnn.rsqrt, (g.call_function(ttnn.add, (var, eps)),))
+                invstd = g.call_function(ttnn.reshape, (invstd, shape))
+                mean = g.call_function(ttnn.reshape, (mean, shape))
                 output = g.call_function(ttnn.sub, (input, mean))
                 output = g.call_function(ttnn.mul, (output, invstd))
-                output = batch_norm_post_process(output, weight, bias)
-
-                permutation = 0, ndims - 1, *range(1, ndims - 1)
-                return g.call_function(ttnn.permute, (output, permutation))
+                return batch_norm_post_process(output, shape, weight, bias)
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
