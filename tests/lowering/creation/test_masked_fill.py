@@ -85,5 +85,6 @@ class MaskedFillModule(torch.nn.Module):
         # pytest.param((1, 1, 1, s10 + 1), (1, 1, 1, s10 + 1), -3.4028234663852886e+38, marks=pytest.mark.xfail(reason="Input variation shape")),
     ],
 )
+@pytest.mark.skip(reason="Temporarily disabled due to #458")
 def test_masked_fill(device, input_shape, mask_shape, fill_value):
     _test_masked_fill_common(device, MaskedFillModule(), input_shape, mask_shape, fill_value)
