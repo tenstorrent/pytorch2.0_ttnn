@@ -314,12 +314,6 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     new_nodes = list()
     with g.inserting_before(dst_node):
         kwargs = {"layout": TtnnTileLayout(), "device": device}
-
-        if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
-            kwargs["dtype"] = TtnnUint32()
-        else:
-            kwargs["dtype"] = TtnnBfloat16()
-
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
