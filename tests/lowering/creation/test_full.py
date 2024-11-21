@@ -24,7 +24,7 @@ def test_full(device, input_shapes):
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(input_shapes[0], fill_value)
+    result_after = m.forward(input_shapes[0], fill_value).to(torch.bfloat16)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops

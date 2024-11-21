@@ -141,11 +141,6 @@ TTNN_LAYOUT_CHANGE_OPS = set(
 )
 
 
-def can_be_tilized(node):
-    size = node.meta["val"].size()
-    return len(size) >= 2 and size[-1] % 32 == 0 and size[-2] % 32 == 0
-
-
 # For operations limitations
 # See https://github.com/tenstorrent-metal/tt-metal/blob/main/ttnn/README.md?plain=1#L19
 def is_tt_compute(node) -> bool:
@@ -172,11 +167,14 @@ def is_tt_compute(node) -> bool:
             ttnn.arange,
             ttnn.zeros_like,
             ttnn.mean,
+            ttnn.moreh_cumsum,
             ttnn.global_avg_pool2d,
             ttnn.clip,
             ttnn.squeeze,
             ttnn.full,
             ttnn.as_tensor,
+            ttnn.expand,
+            ttnn.moreh_cumsum,
         ]
     )
 
@@ -203,7 +201,32 @@ def call_to_torch_with_meta(g, src_node):
     call_func = g.call_function(ttnn.to_torch, (src_node,))
     if src_node.meta is not None:
         call_func.meta = src_node.meta
+    if "original_input_variations" in call_func.meta:
+        call_func.meta["original_input_variations"] = None
     return call_func
+
+
+def try_call_aten__to_copy_with_meta(g, to_torch_node):
+    # try_add_data_move_in will change dtype to bfloat16
+    # so the to_torch's output dtype will be bfloat16, which is incorrect
+    # luckly, the meta remain the origin correct dtype
+    # so add aten._to_copy(dtype) to correct the dtype
+    # TODO: If to_torch can specify dtype, then can merge to_copy on it
+
+    # if user only output, then no need to add
+    if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
+        dtype = to_torch_node.meta["val"].dtype
+        call_func = g.call_function(
+            torch.ops.aten._to_copy.default,
+            (to_torch_node,),
+            {"dtype": dtype},
+        )
+        call_func.meta = to_torch_node.meta
+        if "original_input_variations" in call_func.meta:
+            call_func.meta["original_input_variations"] = None
+        return call_func
+    else:
+        return None
 
 
 def should_add_data_move_in(src_node, dst_node) -> bool:
@@ -290,26 +313,12 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        kwargs = {}
-        if (
-            (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and not can_be_tilized(dst_node))
-            or dst_node.target == ttnn.embedding
-            or dst_node.target == ttnn.zeros_like
-            or dst_node.target == target_wrappers.repeat
-        ):
-            kwargs["layout"] = TtnnRowMajorLayout()
-        else:
-            kwargs["layout"] = TtnnTileLayout()
+        kwargs = {"layout": TtnnTileLayout(), "device": device}
 
         if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
             kwargs["dtype"] = TtnnUint32()
         else:
             kwargs["dtype"] = TtnnBfloat16()
-
-        if (is_tt_compute(dst_node) and dst_node.target not in TTNN_LAYOUT_CHANGE_OPS) or (
-            dst_node.target in TTNN_LAYOUT_CHANGE_OPS and HasValidPageSize(src_node.meta["val"].size(), strict=True)
-        ):
-            kwargs["device"] = device
 
         new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
 
@@ -317,28 +326,43 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     return new_nodes[-1]
 
 
-def try_add_layout_change_before_node(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
+def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
     # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
     if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return None
     if not is_function_call(dst_node):
         return None
-    if (
-        dst_node.target not in TTNN_LAYOUT_CHANGE_OPS
-        or dst_idx != 0
-        or not is_tt(src_node)
-        or (dst_node.target in TTNN_LAYOUT_CHANGE_OPS and can_be_tilized(dst_node))
-    ):
+
+    need_from_device = False
+    need_to_layout = False
+    need_to_device = False
+    # TODO(#372): #322 will enable tile layout for more layout change ops
+    if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
+        need_from_device = True
+        need_to_layout = True
+
+    if dst_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
+        # TODO: Only uint32 needs to to_layout on host
+        need_from_device = True
+        need_to_layout = True
+        need_to_device = True
+
+    if not any((need_from_device, need_to_layout, need_to_device)):
         return None
 
     g = dst_node.graph
     with g.inserting_before(dst_node):
-        from_device = g.call_function(ttnn.from_device, (src_node,))
-        to_layout = g.call_function(ttnn.to_layout, (from_device, TtnnRowMajorLayout()))
+        new_nodes = [src_node]
+        if need_from_device:
+            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
+        if need_to_layout:
+            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnRowMajorLayout())))
+        if need_to_device:
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1],), {"device": device}))
+        new_nodes = new_nodes[1:]
 
-    insert_node_between(src_node, dst_idx, dst_node, [from_device, to_layout])
-
-    return to_layout
+    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
+    return new_nodes[-1]
 
 
 def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
@@ -378,9 +402,15 @@ def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
         if should_add_data_move_out(src_node, dst_node):
             g = dst_node.graph
             with g.inserting_before(dst_node):
-                new_nodes.append(call_to_torch_with_meta(g, src_node))
+                to_torch_node = call_to_torch_with_meta(g, src_node)
+                copy_node = try_call_aten__to_copy_with_meta(g, to_torch_node)
+                if copy_node:
+                    new_node = copy_node
+                else:
+                    new_node = to_torch_node
         else:
-            new_nodes.append(src_node)
+            new_node = src_node
+        new_nodes.append(new_node)
 
     if new_nodes:
         dst_node.update_arg(dst_idx, new_nodes)
@@ -396,8 +426,10 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        new_nodes.append(call_to_torch_with_meta(g, new_nodes[-1] if new_nodes else src_node))
-
+        new_nodes.append(call_to_torch_with_meta(g, src_node))
+        copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1])
+        if copy_node:
+            new_nodes.append(copy_node)
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
     return new_nodes[-1]
 
@@ -411,6 +443,9 @@ def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.f
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
             new_nodes.append(call_to_torch_with_meta(g, src_node))
+            copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1])
+            if copy_node:
+                new_nodes.append(copy_node)
 
     # Workaround to output the same layer_norm output
     # Before: layer_norm = aten.layer_norm
@@ -462,15 +497,16 @@ class AddDataMovePass(PassBase):
                     and node.target not in TTNN_LAYOUT_CHANGE_OPS
                 ):
                     node.update_arg(idx, data_move_in_hash[arg])
-                elif to_device := try_add_data_move_in(arg, idx, node, device):
-                    data_move_in_hash[arg] = to_device
-                    i += 1
-                elif to_layout := try_add_layout_change_before_node(arg, idx, node):
-                    data_move_in_hash[arg] = to_layout
-                    i += 1
-                elif to_layout := try_add_layout_change_after_node(arg, idx, node, device):
-                    data_move_in_hash[arg] = to_layout
-                    i += 1
+                else:
+                    if to_device := try_add_data_move_in(arg, idx, node, device):
+                        data_move_in_hash[arg] = to_device
+                        i += 1
+                    updated_arg = data_move_in_hash.get(arg, arg)
+                    if to_layout := try_add_layout_change_before_node(updated_arg, idx, node, device):
+                        i += 1
+                    elif to_layout := try_add_layout_change_after_node(updated_arg, idx, node, device):
+                        data_move_in_hash[arg] = to_layout
+                        i += 1
 
                 if arg in data_move_out_hash and node.op == "output":
                     old_arg = node.args[0]
@@ -490,38 +526,3 @@ class AddDataMovePass(PassBase):
 
         modified = i > 0
         return PassResult(gm, modified)
-
-    def ensures(self, gm: torch.fx.GraphModule) -> None:
-        # Because of the mixing of ttnn and aten ops, some types need to be fixed
-        for node in gm.graph.nodes:
-            if node.target == ttnn.to_torch:
-                # Recast back to int64 type for a select list of aten ops
-                fallback_ops = set(
-                    [
-                        torch.ops.aten.embedding.default,
-                        torch.ops.aten._unsafe_index.Tensor,
-                        torch.ops.aten._unsafe_index_put,
-                        torch.ops.aten.index.Tensor,
-                        torch.ops.aten.index_put,
-                        torch.ops.aten.index_select,
-                        torch.ops.aten.masked_fill.Scalar,
-                        torch.ops.aten.masked_fill.Tensor,
-                    ]
-                )
-                node_meta_dtype = node.meta["val"].dtype
-                fallback_types = [torch.int64, torch.int32, torch.bool]
-                if node_meta_dtype in fallback_types and fallback_ops.intersection(
-                    set([user.target for user in node.users.keys()])
-                ):
-                    g = node.graph
-                    with g.inserting_after(node):
-                        # TODO: Is _to_copy the right op?
-                        new_node = g.call_function(
-                            torch.ops.aten._to_copy.default,
-                            (node,),
-                            {"dtype": node_meta_dtype},
-                        )
-                        new_node.meta = dict(node.meta)
-                        # Remove "original_input_variations" data if exists since this is not a conversion
-                        new_node.meta.pop("original_input_variations")
-                        node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)

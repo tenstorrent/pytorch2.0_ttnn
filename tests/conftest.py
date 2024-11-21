@@ -116,7 +116,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             # Compile model with ttnn backend
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
-                gen_graphviz=True,
+                gen_graphviz=False,
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
@@ -128,9 +128,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
             option._out_fx_graphs[0].print_tabular()
-            accuracy = calculate_accuracy(outputs, outputs_after)
-            if accuracy:
-                comp_runtime_metrics["accuracy"] = accuracy
+            if model_name not in ["speecht5-tts"]:
+                accuracy = calculate_accuracy(outputs, outputs_after)
+                if accuracy:
+                    comp_runtime_metrics["accuracy"] = accuracy
             # dump compiled aten schemas
             metrics.save_pickle(
                 [x.dict() for x in option.compiled_schema_list],

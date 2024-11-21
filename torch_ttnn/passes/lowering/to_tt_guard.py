@@ -2,191 +2,21 @@ from functools import partial
 from .to_tt_guard_autogen import *
 
 ############################################################
-# EXTRA BLOCKLIST OF CLIP
-############################################################
-aten_mul_Tensor_blocklist += [
-    ["Tensor<[1, 50, 768]> self = ?", "Tensor other = 0.125"],
-    ["Tensor<[1, 50, 3072]> self = ?", "Tensor other = 1.702"],
-    ["Tensor<[1, 50, 3072]> self = ?", "Tensor<[1, 50, 3072]> other = ?"],
-    ["Tensor<[2, 7, 512]> self = ?", "Tensor other = 0.125"],
-    ["Tensor<[2, 7, 2048]> self = ?", "Tensor other = 1.702"],
-    ["Tensor<[2, 7, 2048]> self = ?", "Tensor<[2, 7, 2048]> other = ?"],
-    ["Tensor<[2, 1]> self = ?", "Tensor<[]> other = ?"],
-]
-
-aten_view_default_blocklist += [
-    ["Tensor<[1, 768, 7, 7]> self = ?", "List[int] size = [1, 768, 49]"],
-    ["Tensor<[1, 50, 768]> self = ?", "List[int] size = [50, 768]"],
-    ["Tensor<[50, 768]> self = ?", "List[int] size = [1, 50, 768]"],
-    ["Tensor<[1, 50, 768]> self = ?", "List[int] size = [1, -1, 12, 64]"],
-    ["Tensor<[1, 50, 768]> self = ?", "List[int] size = [1, 50, 12, 64]"],
-    ["Tensor<[1, 12, 50, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-    ["Tensor<[12, 50, 64]> self = ?", "List[int] size = [1, 12, 50, 64]"],
-    ["Tensor<[50, 3072]> self = ?", "List[int] size = [1, 50, 3072]"],
-    ["Tensor<[1, 50, 3072]> self = ?", "List[int] size = [50, 3072]"],
-    ["Tensor<[2, 7]> self = ?", "List[int] size = [-1, 7]"],
-    ["Tensor<[2, 7, 512]> self = ?", "List[int] size = [14, 512]"],
-    ["Tensor<[14, 512]> self = ?", "List[int] size = [2, 7, 512]"],
-    ["Tensor<[2, 7, 512]> self = ?", "List[int] size = [2, -1, 8, 64]"],
-    ["Tensor<[2, 7, 512]> self = ?", "List[int] size = [2, 7, 8, 64]"],
-    ["Tensor<[2, 8, 7, 64]> self = ?", "List[int] size = [16, -1, 64]"],
-    ["Tensor<[16, 7, 7]> self = ?", "List[int] size = [2, 8, 7, 7]"],
-    ["Tensor<[2, 8, 7, 7]> self = ?", "List[int] size = [16, 7, 7]"],
-    ["Tensor<[16, 7, 64]> self = ?", "List[int] size = [2, 8, 7, 64]"],
-    ["Tensor<[14, 2048]> self = ?", "List[int] size = [2, 7, 2048]"],
-    ["Tensor<[2, 7, 2048]> self = ?", "List[int] size = [14, 2048]"],
-]
-
-aten__to_copy_default_blocklist = [
-    ["Tensor<[1, 3, 224, 224]> self = ?", "Optional[int] dtype = torch.bfloat16"],
-    ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
-    ["Tensor<[2, 1, 7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
-    ["Tensor<[2, 1, 7, 7]> self = ?", "Optional[int] dtype = torch.bool"],
-    ["Tensor<[2, 7]> self = ?", "Optional[int] dtype = torch.int32", "Optional[Device] device = cpu"],
-]
-
-aten_native_layer_norm_default_blocklist += [
-    [
-        "Tensor<[1, 50, 768]> input = ?",
-        "List[int] normalized_shape = [768]",
-        "Optional[Tensor]<[768]> weight = ?",
-        "Optional[Tensor]<[768]> bias = ?",
-        "float eps = 1e-05",
-    ],
-    [
-        "Tensor<[1, 768]> input = ?",
-        "List[int] normalized_shape = [768]",
-        "Optional[Tensor]<[768]> weight = ?",
-        "Optional[Tensor]<[768]> bias = ?",
-        "float eps = 1e-05",
-    ],
-    [
-        "Tensor<[2, 7, 512]> input = ?",
-        "List[int] normalized_shape = [512]",
-        "Optional[Tensor]<[512]> weight = ?",
-        "Optional[Tensor]<[512]> bias = ?",
-        "float eps = 1e-05",
-    ],
-]
-
-# Need to remove this from the blocklist so that yolos can pass
-aten_view_default_blocklist.remove(["Tensor<[1, 192, 32, 42]> self = ?", "List[int] size = [1, 192, 1344]"])
-
-
-############################################################
-# EXTRA BLOCKLIST OF albert/albert-base-v2-classification
-############################################################
-# If enable, then ttnn._ttnn.operations.binary.add_t will encounter this inputs and failed:
-# (ttnn.Tensor([[[ 0.74219,  0.07324,  ...,  1.32812,  0.25391],
-#               [ 0.57031,  0.38086,  ...,  0.37695, -0.16309],
-#               ...,
-#               [ 0.71875,  0.25000,  ...,  0.36133,  0.04224],
-#               [ 0.44727,  0.45312,  ...,  0.42188, -0.65234]]],
-#       shape=Shape([1, 12, 768]), dtype=DataType::BFLOAT16, layout=Layout::ROW_MAJOR),
-#   ttnn.Tensor(<buffer is not allocated>, shape=Shape([1, 12[32], 768]),
-#       dtype=DataType::BFLOAT16, layout=Layout::TILE))
-# And I don't know why its inputs[1] become ([1, 12[32], 768])
-# Reproduce method: comment this line and run "pytest tests/models/albert/test_albert_token_classification.py"
-aten_add_Tensor_blocklist += [["Tensor<[1, 12, 768]> self = ?", "Tensor<[1, 12, 768]> other = ?"]]
-### EXTRA BLOCKLIST OF albert/albert-base-v2-classification END ###
-
-### EXTRA BLOCKLIST OF other albert START ###
-# other albert models have the same issue as albert/albert-base-v2-classification
-# albert/albert-base-v2: inputs[1].shape become ([1, 9[32], 768]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 768]> self = ?", "Tensor<[1, 9, 768]> other = ?"]]
-# albert/albert-large-v2: inputs[1].shape become ([1, 9[32], 1024]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 1024]> self = ?", "Tensor<[1, 9, 1024]> other = ?"]]
-# albert/albert-xlarge-v2: inputs[1].shape become ([1, 9[32], 2048]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 2048]> self = ?", "Tensor<[1, 9, 2048]> other = ?"]]
-# albert/albert-xxlarge-v2: inputs[1].shape become ([1, 9[32], 4096]) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 9, 4096]> self = ?", "Tensor<[1, 9, 4096]> other = ?"]]
-# twmkn9/albert-base-v2-squad2: inputs[1].shape become ([1, 14[32], 768) during inference
-aten_add_Tensor_blocklist += [["Tensor<[1, 14, 768]> self = ?", "Tensor<[1, 14, 768]> other = ?"]]
-
-
-############################################################
 # EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224
 ############################################################
-# This pattern origin is
-# view_37 -> aten::index.Tensor
-# after is
-# ttnn_reshape_39 -> aten::index.Tensor
-# And the error msg is "IndexError: tensors used as indices must be long, int, byte or bool tensors"
-# It means origin dtype of view_37 is int64
-# But after it convert to ttnn.reshape, the dtype of ttnn_reshape_39 is NOT int64
-# So there disable view lowering to avoid it become ttnn.reshape
+# error value let 731 become 732 and cause index error (shape is [732, 12])
+# see issue #420
 
-# beit-base-patch16-224
-aten_view_default_blocklist += [
-    ["Tensor<[1, 768, 14, 14]> self = ?", "List[int] size = [1, 768, 196]"],
-    ["Tensor<[1, 197, 768]> self = ?", "List[int] size = [197, 768]"],
-    ["Tensor<[197, 768]> self = ?", "List[int] size = [1, 197, 768]"],
-    ["Tensor<[1, 197, 768]> self = ?", "List[int] size = [1, 197, 12, 64]"],
-    ["Tensor<[1, 12, 197, 64]> self = ?", "List[int] size = [12, 197, 64]"],
-    ["Tensor<[1, 12, 64, 197]> self = ?", "List[int] size = [12, 64, 197]"],
-    ["Tensor<[12, 197, 197]> self = ?", "List[int] size = [1, 12, 197, 197]"],
+aten_view_default_blocklist = [
     ["Tensor<[197, 197]> self = ?", "List[int] size = [-1]"],
-    ["Tensor<[38809, 12]> self = ?", "List[int] size = [197, 197, -1]"],
-    ["Tensor<[1, 12, 197, 197]> self = ?", "List[int] size = [12, 197, 197]"],
-    ["Tensor<[12, 197, 64]> self = ?", "List[int] size = [1, 12, 197, 64]"],
-    ["Tensor<[1, 197, 12, 64]> self = ?", "List[int] size = [1, 197, 768]"],
-    ["Tensor<[197, 3072]> self = ?", "List[int] size = [1, 197, 3072]"],
-    ["Tensor<[1, 197, 3072]> self = ?", "List[int] size = [197, 3072]"],
-]
-
-# beit-large-patch16-224
-aten_view_default_blocklist += [
-    ["Tensor<[1, 1024, 14, 14]> self = ?", "List[int] size = [1, 1024, 196]"],
-    ["Tensor<[1, 197, 1024]> self = ?", "List[int] size = [197, 1024]"],
-    ["Tensor<[197, 1024]> self = ?", "List[int] size = [1, 197, 1024]"],
-    ["Tensor<[1, 197, 1024]> self = ?", "List[int] size = [1, 197, 16, 64]"],
-    ["Tensor<[1, 16, 197, 64]> self = ?", "List[int] size = [16, 197, 64]"],
-    ["Tensor<[1, 16, 64, 197]> self = ?", "List[int] size = [16, 64, 197]"],
-    ["Tensor<[16, 197, 197]> self = ?", "List[int] size = [1, 16, 197, 197]"],
-    ["Tensor<[197, 197]> self = ?", "List[int] size = [-1]"],
-    ["Tensor<[38809, 16]> self = ?", "List[int] size = [197, 197, -1]"],
-    ["Tensor<[1, 16, 197, 197]> self = ?", "List[int] size = [16, 197, 197]"],
-    ["Tensor<[16, 197, 64]> self = ?", "List[int] size = [1, 16, 197, 64]"],
-    ["Tensor<[1, 197, 16, 64]> self = ?", "List[int] size = [1, 197, 1024]"],
-    ["Tensor<[197, 4096]> self = ?", "List[int] size = [1, 197, 4096]"],
-    ["Tensor<[1, 197, 4096]> self = ?", "List[int] size = [197, 4096]"],
 ]
 
 ############################################################
 # EXTRA BLOCKLIST OF XGLM
 ############################################################
-# Error msg:
-# self = <OpOverload(op='aten.index_select', overload='default')>
-# args = (tensor([[ 0.0000,  0.0000,  0.0000,  ...,  1.0000,  1.0000,  1.0000],
-#         [ 0.0000,  0.0000,  0.0000,  ...,  0.00....,  5.,  6.,  7.,  8.,  9., 10., 11., 12., 13., 14.,
-#              15., 16., 17., 18., 19., 20.], dtype=torch.bfloat16))
-# kwargs = {}
-#     def __call__(self, *args, **kwargs):
-# >       return self._op(*args, **(kwargs or {}))
-# E       RuntimeError: index_select(): Expected dtype int32 or int64 for index
-#
-# open "metrics/XGLM/00.origin.dot.svg" and search "index_select", you can see this pattern...
-# aten::arange.start -> aten::unsqueeze -> aten::add.Tensor ->
-# aten::squeeze.dim -> aten::unsqueeze -> aten::view -> 3rd input of aten::index_select
-# 3rd input of aten::index_select should be int32 or int64, but after lowering, it is bf16
-#
-# I disable above pattern to avoid it become ttnn op
-
-# aten::arange.start: it's not lowering, no need to block
-# aten::unsqueeze
-aten_unsqueeze_default_blocklist = [["Tensor<[19]> self = ?", "int dim = 0"]]
-# aten::add.Tensor
-aten_add_Tensor_blocklist += [["Tensor<[1, 19]> self = ?", "Tensor other = 2"]]
-# aten::squeeze.dim
-aten_squeeze_dim_blocklist = [["Tensor<[1, 19]> self = ?", "int dim = 0"]]
-# aten::unsqueeze: same with above, no need to block
-# aten::view
-aten_view_default_blocklist += [
-    ["Tensor<[1, 19]> self = ?", "List[int] size = [-1]"],
-]
-
-#  For valid non-interleaved buffers page size 38 must equal buffer size 720.
-#  For interleaved-buffers page size should be divisible by buffer size
+# see issue #361
+# For valid non-interleaved buffers page size 38 must equal buffer size 720.
+# For interleaved-buffers page size should be divisible by buffer size
 aten_masked_fill_scalar_blocklist += [
     ["Tensor<[1, 1, 19, 19]> self = ?", "Tensor<[1, 1, 19, 19]> mask = ?", "number value = -3.3895313892515355e+38"]
 ]
@@ -194,8 +24,6 @@ aten_masked_fill_scalar_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF FALCON
 ############################################################
-
-aten_unsqueeze_default_blocklist += [["Tensor<[7]> self = ?", "int dim = 0"]]
 
 aten_masked_fill_scalar_blocklist += [["Tensor<[7, 7]> self = ?", "Tensor<[7, 7]> mask = ?", "number value = -inf"]]
 
@@ -206,12 +34,10 @@ aten_masked_fill_scalar_blocklist += [["Tensor<[7, 7]> self = ?", "Tensor<[7, 7]
 # This input vars become pass without blocking, and if blocking, the err msg shown:
 # RuntimeError: view size is not compatible with input tensor's size and stride
 # (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
-aten_view_default_blocklist.remove(["Tensor<[64, 49, 128]> self = ?", "List[int] size = [3136, 128]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 128]> self = ?", "List[int] size = [3136, 128]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 512]> self = ?", "List[int] size = [3136, 512]"])
 
 # TT_FATAL @ .../buffer.cpp:41: page_size % sizeof(uint32_t) == 0
 
+# see issue #361
 aten_masked_fill_scalar_blocklist += [
     ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = -100.0"],
     ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = 0.0"],
@@ -221,46 +47,11 @@ aten_masked_fill_scalar_blocklist += [
     ["Tensor<[4, 49, 49]> self = ?", "Tensor<[4, 49, 49]> mask = ?", "number value = 0.0"],
 ]
 
-# swin_t
-aten_view_default_blocklist.remove(["Tensor<[64, 49, 96]> self = ?", "List[int] size = [3136, 96]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 96]> self = ?", "List[int] size = [3136, 96]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 56, 56, 384]> self = ?", "List[int] size = [3136, 384]"])
-
-# swin_s
-# swin_v2_t
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [64, 64, 96]"])
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 96]> self = ?", "List[int] size = [1, 64, 64, 96]"])
-aten__unsafe_view_default_blocklist.remove(["Tensor<[8, 8, 8, 8]> self = ?", "List[int] size = [64, 64]"])
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 4, 4, 8, 8, 192]> self = ?", "List[int] size = [16, 64, 192]"])
-aten__unsafe_view_default_blocklist.remove(
-    ["Tensor<[1, 4, 8, 4, 8, 192]> self = ?", "List[int] size = [1, 32, 32, 192]"]
-)
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 2, 2, 8, 8, 384]> self = ?", "List[int] size = [4, 64, 384]"])
-
-aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 384]> self = ?", "List[int] size = [256, 384]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 1536]> self = ?", "List[int] size = [256, 1536]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 768]> self = ?", "List[int] size = [64, 768]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 3072]> self = ?", "List[int] size = [64, 3072]"])
-# swin_v2_s
-# swin_v2_b
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [64, 64, 128]"])
-aten__unsafe_view_default_blocklist.remove(
-    ["Tensor<[1, 8, 8, 8, 8, 128]> self = ?", "List[int] size = [1, 64, 64, 128]"]
-)
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 4, 4, 8, 8, 256]> self = ?", "List[int] size = [16, 64, 256]"])
-aten__unsafe_view_default_blocklist.remove(
-    ["Tensor<[1, 4, 8, 4, 8, 256]> self = ?", "List[int] size = [1, 32, 32, 256]"]
-)
-aten__unsafe_view_default_blocklist.remove(["Tensor<[1, 2, 2, 8, 8, 512]> self = ?", "List[int] size = [4, 64, 512]"])
-
-aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 512]> self = ?", "List[int] size = [256, 512]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 16, 16, 2048]> self = ?", "List[int] size = [256, 2048]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 1024]> self = ?", "List[int] size = [64, 1024]"])
-aten_view_default_blocklist.remove(["Tensor<[1, 8, 8, 4096]> self = ?", "List[int] size = [64, 4096]"])
 
 ############################################################
 # EXTRA BLOCKLIST OF vgg*
 ############################################################
+# see issue #362
 # vgg11
 # aten::_adaptive_avg_pool2d => aten::view
 # if aten avgpool lowering to ttnn avgpool,
@@ -274,19 +65,6 @@ aten__adaptive_avg_pool2d_default_blocklist = [["Tensor<[1, 512, 7, 7]> self = ?
 # EXTRA BLOCKLIST OF t5*
 ############################################################
 
-# aten::view => aten::embedding
-# current aten::view output shape will be bf16 if it convert to ttnn op
-# and will caue emb error
-# E       RuntimeError: Expected tensor for argument #1 'indices' to have
-# one of the following scalar types: Long, Int; but got CPUBFloat16Type instead
-# (while checking arguments for embedding)
-aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [-1, 10]"]]
-
-# TODO: Another pattern is
-# aten::arange => aten::unsqueeze => aten::slice.Tensor => aten::sub.Tensor
-# => aten::gt.Scalar => aten::_to_copy => aten::mul.Tensor => aten::add.Tensor
-# => aten::add.Tensor => aten::embedding
-# it is too long to block, so just wait the to_tt_pass fix
 
 ############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn*
@@ -304,37 +82,11 @@ aten_view_default_blocklist += [["Tensor<[1, 10]> self = ?", "List[int] size = [
 # EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
 ############################################################
 
+# see issue #390
 # ghostnetv2_100.in1k
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsqueeze => unsafe_index
-
-aten_arange_default_blocklist = [
-    [
-        "number end = 56",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "number end = 28",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "number end = 14",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "number end = 7",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-]
-
+aten_add_Tensor_blocklist = []
 aten_add_Tensor_blocklist += [
     ["Tensor<[56]> self = ?", "Tensor other = 0.0"],
     ["Tensor<[28]> self = ?", "Tensor other = 0.0"],
@@ -347,21 +99,6 @@ aten_mul_Tensor_blocklist += [
     ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
     ["Tensor<[14]> self = ?", "Tensor other = 0.5"],
     ["Tensor<[7]> self = ?", "Tensor other = 0.42857142857142855"],
-]
-
-
-aten__to_copy_default_blocklist += [
-    ["Tensor<[56]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[28]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[14]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[7]> self = ?", "Optional[int] dtype = torch.int64"],
-]
-
-aten_unsqueeze_default_blocklist += [
-    ["Tensor<[56]> self = ?", "int dim = -1"],
-    ["Tensor<[28]> self = ?", "int dim = -1"],
-    ["Tensor<[14]> self = ?", "int dim = -1"],
-    ["Tensor<[7]> self = ?", "int dim = -1"],
 ]
 
 # ghostnetv2_100.in1k-train
@@ -381,7 +118,7 @@ aten_unsqueeze_default_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF hrnet_w18.ms_aug_in1k*
 ############################################################
-
+# see issue #363
 # self = <OpOverload(op='aten.convolution', overload='default')>
 # args = (TorchTensor([[[[[6.6797e-01, 1.5703e+00, 1.1562e+00,  ..., 5.8203e-01,
 #                  3.3936e-02, 1.1953e+00],
@@ -422,6 +159,7 @@ aten_mul_Tensor_blocklist += [
 ############################################################
 # EXTRA BLOCKLIST OF ViLT
 ############################################################
+# see issue #390
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # arange => add => mul => to_copy => unsafe_index
 
@@ -435,15 +173,10 @@ aten_mul_Tensor_blocklist += [
     ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
 ]
 
-aten__to_copy_default_blocklist += [
-    ["Tensor<[12]> self = ?", "Optional[int] dtype = torch.int64"],
-    ["Tensor<[16]> self = ?", "Optional[int] dtype = torch.int64"],
-]
-
 ############################################################
 # EXTRA BLOCKLIST OF speecht5-tts
 ############################################################
-
+# see issue 361
 # self = FastOperation(python_fully_qualified_name='ttnn.ones',
 #   function=<ttnn._ttnn.operations.creation.ones_t object at
 #   0x7f6...<function default_postprocess_golden_function_outputs at 0x7f6e7f0ddca0>,
@@ -467,37 +200,6 @@ aten_masked_fill_scalar_blocklist += [
     ["Tensor<[1, 1, 1, 24]> self = ?", "Tensor<[1, 1, 1, 24]> mask = ?", "number value = -3.3895313892515355e+38"],
 ]
 
-# RuntimeError: Expected tensor for argument #1 'indices' to have one of the following scalar types:
-# Long, Int; but got CPUBFloat16Type instead (while checking arguments for embedding)
-# arange(0, 24)
-# slice(arange, 0, 0, 9223372036854775807)
-# unsqueeze(slice, 1)
-# unsqueeze_2(arange, 0)
-# slice_2(unsqueeze_2, 1, 0, 9223372036854775807)
-# sub(unsqueeze, slice_2)
-# add(sub, 160)
-# embedding(arg4_1, add)
-# add output is bf16 type, which is wrong
-
-aten_slice_Tensor_blocklist += [
-    ["Tensor<[24]> self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
-    [
-        "Tensor<[1, 24]> self = ?",
-        "int dim = 1",
-        "Optional[int] start = 0",
-        "Optional[int] end = 9223372036854775807",
-    ],
-]
-
-
-aten_unsqueeze_default_blocklist += [["Tensor<[24]> self = ?", "int dim = 1"], ["Tensor<[24]> self = ?", "int dim = 0"]]
-
-# ttnn.add
-# shape=Shape([1, 24[32], 768]
-# MemoryConfig can only be obtained for a tensor with DeviceStorage
-
-aten_add_Tensor_blocklist += [["Tensor<[1, 24, 768]> self = ?", "Tensor<[1, 24, 768]> other = ?"]]
-
 ############################################################
 # EXTRA BLOCKLIST OF Whisper
 ############################################################
@@ -512,48 +214,11 @@ aten_add_Tensor_blocklist += [["Tensor<[1, 24, 768]> self = ?", "Tensor<[1, 24, 
 
 aten_mul_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 50258"]]
 
-aten_view_default_blocklist += [["Tensor<[1, 1]> self = ?", "List[int] size = [-1, 1]"]]
-
-
-############################################################
-# EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224-train
-############################################################
-# microsoft/beit-base-patch16-224
-# self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
-# function_args = (ttnn.Tensor(<buffer is not allocated>,
-# shape=Shape([1, 1[32], 1000[1024]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), (1, 0))
-# function_kwargs = {}
-# RuntimeError: TT_FATAL @ .../permute.cpp:170: input_rank == dims.size()
-# don't know why block aten.mean can avoid this error
-aten_mean_dim_blocklist = [["Tensor<[1, 196, 768]> self = ?", "Optional[List[int]] dim = [1]"]]
-# microsoft/beit-large-patch16-224: same issue
-aten_mean_dim_blocklist += [["Tensor<[1, 196, 1024]> self = ?", "Optional[List[int]] dim = [1]"]]
-
-############################################################
-# EXTRA BLOCKLIST OF mixer_b16_224.goog_in21k-train
-############################################################
-# self = FastOperation(python_fully_qualified_name='ttnn.permute', ...)
-# function_args = (ttnn.Tensor(<buffer is not allocated>,
-# shape=Shape([768, 21843[21856]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), (1, 0))
-# function_kwargs = {}
-# RuntimeError: TT_FATAL @ .../buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
-
-aten_t_default_blocklist += [["Tensor<[768, 21843]> self = ?"]]
-# shape=Shape([1[32], 21843[21856]] same issue
-aten_t_default_blocklist += [["Tensor<[1, 21843]> self = ?"]]
-# ttnn.add
-# shape=Shape([1, 196[224], 768])
-aten_add_Tensor_blocklist += [["Tensor<[1, 196, 768]> self = ?", "Tensor<[1, 196, 768]> other = ?"]]
-
-
 ############################################################
 
-GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
-GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
-GUARD[torch.ops.aten.squeeze.dim] = partial(guard_aten, aten_squeeze_dim_blocklist)
+GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
-GUARD[torch.ops.aten.arange.default] = partial(guard_aten, aten_arange_default_blocklist)
-GUARD[torch.ops.aten.mean.dim] = partial(guard_aten, aten_mean_dim_blocklist)
+GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):
