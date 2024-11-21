@@ -127,7 +127,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.to_layout,
 ]
 
-TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
+TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat, target_wrappers.crop]
 
 TTNN_NORM_OPS = [
     ttnn.group_norm,
