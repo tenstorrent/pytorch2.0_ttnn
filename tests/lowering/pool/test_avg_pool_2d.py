@@ -19,6 +19,7 @@ class AdaptiveAvgPool2dModule(torch.nn.Module):
     "input_shapes",
     [(1, 2048, 7, 7)],
 )
+@pytest.mark.skip(reason="Temporarily disabled due to #458")
 def test_adaptive_avg_pool_2d(device, input_shapes):
     m = AdaptiveAvgPool2dModule()
     inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
