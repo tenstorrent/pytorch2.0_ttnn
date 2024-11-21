@@ -649,6 +649,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if output_shape_num_element == 0:
                     return args[0]
                 output_size = list(node.meta["val"].size())
+                # FIXME: ttnn.reshape does not support > 4D outputs with TILE_LAYOUT currently
+                if len(output_size) > 4:
+                    return None
                 return g.call_function(ttnn.reshape, args=(args[0], output_size))
 
             if node.target in [torch.ops.aten.transpose.int, torch.ops.aten.t.default]:
