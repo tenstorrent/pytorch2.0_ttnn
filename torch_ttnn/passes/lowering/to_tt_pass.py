@@ -645,19 +645,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
 
             if node.target == torch.ops.aten.unsqueeze.default:
-                if args[0].op == "get_attr":
-                    value = getattr(gm, args[0].target)
-                    input_size = value.size()
-                else:
-                    input_size = args[0].meta["val"].size()
-
+                output_shape_num_element = node.meta["val"].numel()
+                if output_shape_num_element == 0:
+                    return args[0]
                 output_size = list(node.meta["val"].size())
-
-                # FIXME: Cannot reshape a 4D tensor if size[-1] >= 32.
-                can_unsqueeze_4d = (len(input_size) >= 4 and input_size[-1] < 32) or len(input_size) < 4
-                if output_size[-1] == input_size[-1] and can_unsqueeze_4d:
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
-                return None
+                return g.call_function(ttnn.reshape, args=(args[0], output_size))
 
             if node.target in [torch.ops.aten.transpose.int, torch.ops.aten.t.default]:
                 output_size = node.meta["val"].size()
@@ -698,6 +690,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # and this can then go to ReplaceMoreTt class.
                 output_size = node.meta["val"].size()
                 rank = len(output_size)
+                # TODO(tt-metal#15165): ttnn.permute > 4D shape is not supported yet
+                if rank > 4:
+                    return None
                 new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
                 return new_nodes[-1]
 

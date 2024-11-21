@@ -236,11 +236,24 @@ aten_view_default_blocklist += [
     ["Tensor<[1, 19, 256008]> self = ?", "List[int] size = [-1, 256008]"],
 ]
 
+
+############################################################
+# EXTRA BLOCKLIST OF GPTNeo
+############################################################
+# RuntimeError: TT_FATAL @ xxx/ttnn/cpp/ttnn/operations/data_movement/slice/slice.cpp:110:
+# modified_ends[idx] >= modified_begins[idx]
+
+aten_select_int_blocklist = [["Tensor<[1, 45]> self = ?", "int dim = 1", "int index = -1"]]
+
+# ERROR tests/models/gpt_neo/test_gpt_neo.py::test_gpt_neo[eval] -
+# RuntimeError: probability tensor contains either `inf`, `nan` or element < 0
+
 ############################################################
 
 GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
 GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
+GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist)
 
 
 def can_lowering_to_ttnn(node):

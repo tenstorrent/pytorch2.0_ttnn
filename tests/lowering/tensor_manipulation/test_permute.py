@@ -13,26 +13,30 @@ class PermuteModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shapes",
+    "input_shape, permute_order",
     [
-        [(4, 4)],
+        ((4, 4), (1, 0)),
+        pytest.param(
+            (1, 3, 16, 16, 16, 16),
+            (0, 2, 4, 3, 5, 1),
+            marks=pytest.mark.xfail(reason="not support > 4D shape (tt-metal#15165)"),
+        ),
     ],
 )
-def test_permute(device, input_shapes):
+def test_permute(device, input_shape, permute_order):
     m = PermuteModule()
-    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
-    order = (1, 0)
-    torch_result = m.forward(*inputs, order)
+    input_tensor = torch.rand(input_shape, dtype=torch.bfloat16)
+    torch_result = m.forward(input_tensor, permute_order)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    ttnn_result = m.forward(*inputs, order)
+    ttnn_result = m.forward(input_tensor, permute_order)
     option._out_fx_graphs[0].print_tabular()
 
-    # Check the graph has be rewritten and contain ttnn ops
+    # Check the graph has be rewritten and not contain aten ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.permute) == 1
+    assert not any(node.target == torch.ops.aten.permute.default for node in nodes)
     # Check shape or result
     assert torch_result.size() == ttnn_result.size()
     # Check inference result
@@ -160,9 +164,9 @@ def test_permute_missing_dim(device, input_shape, permute_order):
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     ttnn_result = m.forward(inputs, permute_order)
     option._out_fx_graphs[0].print_tabular()
-    # Check the graph has be rewritten and contain ttnn ops
+    # Check the graph has be rewritten and not contain aten ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.permute) == 1
+    assert not any(node.target == torch.ops.aten.permute.default for node in nodes)
     # Check shape or result
     assert torch_result.size() == ttnn_result.size()
     # Check inference result
