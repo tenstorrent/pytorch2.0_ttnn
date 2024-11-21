@@ -876,6 +876,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(torch.ops.aten.squeeze.default, args=(sum_tensor,))
 
+            if node.target == torch.ops.aten.masked_fill.Scalar:
+                new_kwargs = {
+                    "fill_value": args[2],
+                    "device": TtnnDevice(),
+                    "dtype": torch_dtype_to_ttnn_dtype(node.meta["val"].dtype),
+                }
+                value_node = g.call_function(ttnn.full, args=((1,),), kwargs=new_kwargs)
+                return g.call_function(ttnn.where, args=(args[1], args[0], value_node))
+
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
