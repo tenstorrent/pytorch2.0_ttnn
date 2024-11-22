@@ -12,7 +12,7 @@
 |  8 | aten.cat.default                                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  9 | aten.ceil.default                                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 10 | aten.clamp.default                                |                  5 |           0 |         0 |          0 | ✘           |    0    |
-| 11 | aten.clone.default                                |                 21 |          21 |         0 |          0 | ✅          |    1    |
+| 11 | aten.clone.default                                |                 21 |           0 |         0 |          0 | ✘           |    0    |
 | 12 | aten.convolution.default                          |                 13 |           0 |         0 |          0 | ✘           |    0    |
 | 13 | aten.div.Tensor                                   |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 14 | aten.expand.default                               |                 15 |           0 |         0 |          0 | ✘           |    0    |
@@ -20,14 +20,14 @@
 | 16 | aten.mm.default                                   |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 17 | aten.mul.Tensor                                   |                  6 |           6 |         0 |          0 | ✅          |    1    |
 | 18 | aten.native_layer_norm.default                    |                  7 |           7 |         0 |          0 | ✅          |    1    |
-| 19 | aten.permute.default                              |                 25 |          25 |         0 |          0 | ✅          |    1    |
-| 20 | aten.relu.default                                 |                  1 |           1 |         0 |          0 | ✅          |    1    |
-| 21 | aten.rsub.Scalar                                  |                  2 |           0 |         0 |          0 | ✘           |    0    |
-| 22 | aten.sub.Tensor                                   |                  3 |           3 |         0 |          0 | ✅          |    1    |
+| 19 | aten.permute.default                              |                 25 |          22 |         0 |          0 | 🚧          |    0.88 |
+| 20 | aten.relu.default                                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 21 | aten.rsub.Scalar                                  |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 22 | aten.sub.Tensor                                   |                  3 |           2 |         0 |          0 | 🚧          |    0.67 |
 | 23 | aten.t.default                                    |                 14 |          14 |         0 |          0 | ✅          |    1    |
 | 24 | aten.transpose.int                                |                 16 |          16 |         0 |          0 | ✅          |    1    |
-| 25 | aten.unsqueeze.default                            |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 26 | aten.view.default                                 |                 83 |          77 |         0 |          0 | 🚧          |    0.93 |
+| 25 | aten.unsqueeze.default                            |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 26 | aten.view.default                                 |                 83 |          73 |         0 |          0 | 🚧          |    0.88 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                | Status   | Isolated   | PCC   |
@@ -48,7 +48,7 @@
 |  2 | Tensor<[1, 256, 16, 16]> self = ?,<br>Optional[int] dtype = torch.float32    | Unknown  | Fallback   | True  |
 |  3 | Tensor<[1, 256, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32    | Unknown  | Fallback   | True  |
 |  4 | Tensor<[1, 256, 64, 64]> self = ?,<br>Optional[int] dtype = torch.float32    | Unknown  | Fallback   | True  |
-|  5 | Tensor<[128]> self = ?,<br>Optional[int] dtype = torch.int64                 | Unknown  | Fallback   | True  |
+|  5 | Tensor<[128]> self = ?,<br>Optional[int] dtype = torch.int64                 | None     | Fallback   | True  |
 ### aten._unsafe_index.Tensor
 |    | ATen Input Variations                                                                                      | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -121,27 +121,27 @@
 ### aten.clone.default
 |    | ATen Input Variations                                                                        | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 16384, 256]> self = ?                                                          | Done     | Done       | True  |
-|  1 | Tensor<[1, 1024, 160]> self = ?                                                              | Done     | Done       | True  |
-|  2 | Tensor<[1, 1024, 5, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Done     | Done       | True  |
-|  3 | Tensor<[1, 1024, 640]> self = ?                                                              | Done     | Done       | True  |
-|  4 | Tensor<[1, 160, 32, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Done     | Done       | True  |
-|  5 | Tensor<[1, 16384, 128]> self = ?                                                             | Done     | Done       | True  |
-|  6 | Tensor<[1, 16384, 32]> self = ?                                                              | Done     | Done       | True  |
-|  7 | Tensor<[1, 2, 4096, 256]> self = ?                                                           | Done     | Done       | True  |
-|  8 | Tensor<[1, 256, 1024]> self = ?                                                              | Done     | Done       | True  |
-|  9 | Tensor<[1, 256, 128, 128]> self = ?                                                          | Done     | Done       | True  |
-| 10 | Tensor<[1, 256, 128, 128]> self = ?,<br>Optional[int] memory_format = torch.channels_last    | Done     | Done       | True  |
-| 11 | Tensor<[1, 256, 16, 16]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Done     | Done       | True  |
-| 12 | Tensor<[1, 256, 256]> self = ?                                                               | Done     | Done       | True  |
-| 13 | Tensor<[1, 256, 8, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Done     | Done       | True  |
-| 14 | Tensor<[1, 32, 128, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Done     | Done       | True  |
-| 15 | Tensor<[1, 4096, 2, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Done     | Done       | True  |
-| 16 | Tensor<[1, 4096, 256]> self = ?                                                              | Done     | Done       | True  |
-| 17 | Tensor<[1, 4096, 64]> self = ?                                                               | Done     | Done       | True  |
-| 18 | Tensor<[1, 5, 1024, 256]> self = ?                                                           | Done     | Done       | True  |
-| 19 | Tensor<[1, 64, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Done     | Done       | True  |
-| 20 | Tensor<[1, 8, 256, 256]> self = ?                                                            | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 16384, 256]> self = ?                                                          | Unknown  | Fallback   | True  |
+|  1 | Tensor<[1, 1024, 160]> self = ?                                                              | Unknown  | Fallback   | True  |
+|  2 | Tensor<[1, 1024, 5, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Unknown  | Fallback   | True  |
+|  3 | Tensor<[1, 1024, 640]> self = ?                                                              | Unknown  | Fallback   | True  |
+|  4 | Tensor<[1, 160, 32, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Unknown  | Fallback   | True  |
+|  5 | Tensor<[1, 16384, 128]> self = ?                                                             | Unknown  | Fallback   | True  |
+|  6 | Tensor<[1, 16384, 32]> self = ?                                                              | Unknown  | Fallback   | True  |
+|  7 | Tensor<[1, 2, 4096, 256]> self = ?                                                           | Unknown  | Fallback   | True  |
+|  8 | Tensor<[1, 256, 1024]> self = ?                                                              | Unknown  | Fallback   | True  |
+|  9 | Tensor<[1, 256, 128, 128]> self = ?                                                          | Unknown  | Fallback   | True  |
+| 10 | Tensor<[1, 256, 128, 128]> self = ?,<br>Optional[int] memory_format = torch.channels_last    | Unknown  | Fallback   | True  |
+| 11 | Tensor<[1, 256, 16, 16]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Unknown  | Fallback   | True  |
+| 12 | Tensor<[1, 256, 256]> self = ?                                                               | Unknown  | Fallback   | True  |
+| 13 | Tensor<[1, 256, 8, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Unknown  | Fallback   | True  |
+| 14 | Tensor<[1, 32, 128, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Unknown  | Fallback   | True  |
+| 15 | Tensor<[1, 4096, 2, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format  | Unknown  | Fallback   | True  |
+| 16 | Tensor<[1, 4096, 256]> self = ?                                                              | Unknown  | Fallback   | True  |
+| 17 | Tensor<[1, 4096, 64]> self = ?                                                               | Unknown  | Fallback   | True  |
+| 18 | Tensor<[1, 5, 1024, 256]> self = ?                                                           | Unknown  | Fallback   | True  |
+| 19 | Tensor<[1, 64, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Unknown  | Fallback   | True  |
+| 20 | Tensor<[1, 8, 256, 256]> self = ?                                                            | Unknown  | Fallback   | True  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                 | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -219,45 +219,45 @@
 ### aten.permute.default
 |    | ATen Input Variations                                                | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 16384, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Done     | Done       | True  |
-|  1 | Tensor<[1, 1024, 160]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Done       | True  |
-|  2 | Tensor<[1, 1024, 256]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Done       | True  |
-|  3 | Tensor<[1, 1024, 5, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Done       | True  |
-|  4 | Tensor<[1, 128, 128, 32]> self = ?,<br>List[int] dims = [0, 3, 1, 2] | Done     | Done       | True  |
-|  5 | Tensor<[1, 16, 16, 256]> self = ?,<br>List[int] dims = [0, 3, 1, 2]  | Done     | Done       | True  |
-|  6 | Tensor<[1, 160, 256]> self = ?,<br>List[int] dims = [0, 2, 1]        | Done     | Done       | True  |
-|  7 | Tensor<[1, 16384, 1, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Done     | Done       | True  |
-|  8 | Tensor<[1, 16384, 256]> self = ?,<br>List[int] dims = [0, 2, 1]      | Done     | Done       | True  |
-|  9 | Tensor<[1, 16384, 32]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Done       | True  |
-| 10 | Tensor<[1, 2, 4096, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Done       | True  |
-| 11 | Tensor<[1, 256, 1, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Done       | True  |
-| 12 | Tensor<[1, 256, 2, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Done       | True  |
-| 13 | Tensor<[1, 256, 256]> self = ?,<br>List[int] dims = [0, 2, 1]        | Done     | Unknown    | N/A   |
-| 14 | Tensor<[1, 256, 5, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Done       | True  |
-| 15 | Tensor<[1, 256, 8, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Done       | True  |
-| 16 | Tensor<[1, 32, 256]> self = ?,<br>List[int] dims = [0, 2, 1]         | Done     | Done       | True  |
-| 17 | Tensor<[1, 32, 32, 160]> self = ?,<br>List[int] dims = [0, 3, 1, 2]  | Done     | Done       | True  |
-| 18 | Tensor<[1, 4096, 2, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Done       | True  |
-| 19 | Tensor<[1, 4096, 256]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Done       | True  |
-| 20 | Tensor<[1, 4096, 64]> self = ?,<br>List[int] dims = [0, 2, 1]        | Done     | Done       | True  |
-| 21 | Tensor<[1, 5, 1024, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Done       | True  |
-| 22 | Tensor<[1, 64, 256]> self = ?,<br>List[int] dims = [0, 2, 1]         | Done     | Done       | True  |
-| 23 | Tensor<[1, 64, 64, 64]> self = ?,<br>List[int] dims = [0, 3, 1, 2]   | Done     | Done       | True  |
-| 24 | Tensor<[1, 8, 256, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 16384, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Done     | Unknown    | N/A   |
+|  1 | Tensor<[1, 1024, 160]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Unknown    | N/A   |
+|  2 | Tensor<[1, 1024, 256]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Unknown    | N/A   |
+|  3 | Tensor<[1, 1024, 5, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Unknown    | N/A   |
+|  4 | Tensor<[1, 128, 128, 32]> self = ?,<br>List[int] dims = [0, 3, 1, 2] | Unknown  | Unknown    | N/A   |
+|  5 | Tensor<[1, 16, 16, 256]> self = ?,<br>List[int] dims = [0, 3, 1, 2]  | Done     | Unknown    | N/A   |
+|  6 | Tensor<[1, 160, 256]> self = ?,<br>List[int] dims = [0, 2, 1]        | Done     | Unknown    | N/A   |
+|  7 | Tensor<[1, 16384, 1, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3] | Done     | Unknown    | N/A   |
+|  8 | Tensor<[1, 16384, 256]> self = ?,<br>List[int] dims = [0, 2, 1]      | Done     | Unknown    | N/A   |
+|  9 | Tensor<[1, 16384, 32]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Unknown    | N/A   |
+| 10 | Tensor<[1, 2, 4096, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Unknown    | N/A   |
+| 11 | Tensor<[1, 256, 1, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Unknown    | N/A   |
+| 12 | Tensor<[1, 256, 2, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Unknown    | N/A   |
+| 13 | Tensor<[1, 256, 256]> self = ?,<br>List[int] dims = [0, 2, 1]        | Done     | Done       | True  |
+| 14 | Tensor<[1, 256, 5, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Unknown    | N/A   |
+| 15 | Tensor<[1, 256, 8, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Unknown    | N/A   |
+| 16 | Tensor<[1, 32, 256]> self = ?,<br>List[int] dims = [0, 2, 1]         | Done     | Unknown    | N/A   |
+| 17 | Tensor<[1, 32, 32, 160]> self = ?,<br>List[int] dims = [0, 3, 1, 2]  | Unknown  | Unknown    | N/A   |
+| 18 | Tensor<[1, 4096, 2, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Unknown    | N/A   |
+| 19 | Tensor<[1, 4096, 256]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Unknown    | N/A   |
+| 20 | Tensor<[1, 4096, 64]> self = ?,<br>List[int] dims = [0, 2, 1]        | Done     | Unknown    | N/A   |
+| 21 | Tensor<[1, 5, 1024, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]  | Done     | Unknown    | N/A   |
+| 22 | Tensor<[1, 64, 256]> self = ?,<br>List[int] dims = [0, 2, 1]         | Done     | Unknown    | N/A   |
+| 23 | Tensor<[1, 64, 64, 64]> self = ?,<br>List[int] dims = [0, 3, 1, 2]   | Unknown  | Unknown    | N/A   |
+| 24 | Tensor<[1, 8, 256, 32]> self = ?,<br>List[int] dims = [0, 2, 1, 3]   | Done     | Unknown    | N/A   |
 ### aten.relu.default
 |    | ATen Input Variations               | Status   | Isolated   | PCC   |
 |---:|:------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 256, 128, 128]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 256, 128, 128]> self = ? | Unknown  | Done       | True  |
 ### aten.rsub.Scalar
 |    | ATen Input Variations                            | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[128, 1]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
-|  1 | Tensor<[128]> self = ?,<br>number other = 1.0    | None     | Fallback   | True  |
+|  0 | Tensor<[128, 1]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
+|  1 | Tensor<[128]> self = ?,<br>number other = 1.0    | Done     | Done       | True  |
 ### aten.sub.Tensor
 |    | ATen Input Variations                                    | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[128, 1]> self = ?,<br>Tensor<[128, 1]> other = ? | Done     | Done       | True  |
-|  1 | Tensor<[128]> self = ?,<br>Tensor other = 0.5            | Done     | Done       | True  |
+|  1 | Tensor<[128]> self = ?,<br>Tensor other = 0.5            | Unknown  | Done       | True  |
 |  2 | Tensor<[128]> self = ?,<br>Tensor<[128]> other = ?       | Done     | Done       | True  |
 ### aten.t.default
 |    | ATen Input Variations        | Status   | Isolated   | PCC   |
@@ -298,7 +298,7 @@
 ### aten.unsqueeze.default
 |    | ATen Input Variations                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[128]> self = ?,<br>int dim = 1 | None     | Fallback   | True  |
+|  0 | Tensor<[128]> self = ?,<br>int dim = 1 | Done     | Done       | True  |
 ### aten.view.default
 |    | ATen Input Variations                                                    | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -306,19 +306,19 @@
 |  1 | Tensor<[1, 1, 16384, 32]> self = ?,<br>List[int] size = [1, 16384, 32]   | Done     | Done       | True  |
 |  2 | Tensor<[1, 1, 256, 32]> self = ?,<br>List[int] size = [1, 256, 32]       | Done     | Done       | True  |
 |  3 | Tensor<[1, 1, 32, 256]> self = ?,<br>List[int] size = [1, 32, 256]       | Done     | Done       | True  |
-|  4 | Tensor<[1, 1024, 16, 16]> self = ?,<br>List[int] size = [1, 1024, 256]   | None     | Fallback   | True  |
+|  4 | Tensor<[1, 1024, 16, 16]> self = ?,<br>List[int] size = [1, 1024, 256]   | Done     | Done       | True  |
 |  5 | Tensor<[1, 1024, 160]> self = ?,<br>List[int] size = [1, 1024, 5, 32]    | Done     | Done       | True  |
 |  6 | Tensor<[1, 1024, 160]> self = ?,<br>List[int] size = [1, 32, 32, -1]     | Done     | Done       | True  |
 |  7 | Tensor<[1, 1024, 160]> self = ?,<br>List[int] size = [1024, 160]         | Done     | Done       | True  |
-|  8 | Tensor<[1, 1024, 256]> self = ?,<br>List[int] size = [1, 1024, 16, 16]   | Done     | Done       | True  |
+|  8 | Tensor<[1, 1024, 256]> self = ?,<br>List[int] size = [1, 1024, 16, 16]   | Unknown  | Done       | True  |
 |  9 | Tensor<[1, 1024, 5, 32]> self = ?,<br>List[int] size = [1, 1024, 160]    | Done     | Done       | True  |
 | 10 | Tensor<[1, 1024, 640]> self = ?,<br>List[int] size = [1024, 640]         | Done     | Done       | True  |
 | 11 | Tensor<[1, 128, 128, 128]> self = ?,<br>List[int] size = [1, 128, 16384] | Done     | Done       | True  |
-| 12 | Tensor<[1, 128, 16384]> self = ?,<br>List[int] size = [1, 128, 128, 128] | Done     | Done       | True  |
-| 13 | Tensor<[1, 160, 1024]> self = ?,<br>List[int] size = [1, 160, 32, 32]    | Done     | Done       | True  |
-| 14 | Tensor<[1, 160, 16, 16]> self = ?,<br>List[int] size = [1, 160, 256]     | None     | Fallback   | True  |
+| 12 | Tensor<[1, 128, 16384]> self = ?,<br>List[int] size = [1, 128, 128, 128] | Unknown  | Done       | True  |
+| 13 | Tensor<[1, 160, 1024]> self = ?,<br>List[int] size = [1, 160, 32, 32]    | Unknown  | Done       | True  |
+| 14 | Tensor<[1, 160, 16, 16]> self = ?,<br>List[int] size = [1, 160, 256]     | Done     | Done       | True  |
 | 15 | Tensor<[1, 160, 32, 32]> self = ?,<br>List[int] size = [1, 160, 1024]    | Done     | Done       | True  |
-| 16 | Tensor<[1, 16384, 1, 32]> self = ?,<br>List[int] size = [1, 16384, 32]   | None     | Fallback   | True  |
+| 16 | Tensor<[1, 16384, 1, 32]> self = ?,<br>List[int] size = [1, 16384, 32]   | Done     | Done       | False |
 | 17 | Tensor<[1, 16384, 128]> self = ?,<br>List[int] size = [16384, 128]       | Done     | Done       | True  |
 | 18 | Tensor<[1, 16384, 256]> self = ?,<br>List[int] size = [1, 1, 16384, 256] | Done     | Done       | True  |
 | 19 | Tensor<[1, 16384, 32]> self = ?,<br>List[int] size = [1, 1, 16384, 32]   | Done     | Done       | True  |
@@ -329,26 +329,26 @@
 | 24 | Tensor<[1, 2, 32, 256]> self = ?,<br>List[int] size = [2, 32, 256]       | Done     | Done       | True  |
 | 25 | Tensor<[1, 2, 4096, 256]> self = ?,<br>List[int] size = [2, 4096, 256]   | Done     | Done       | True  |
 | 26 | Tensor<[1, 2, 4096, 32]> self = ?,<br>List[int] size = [2, 4096, 32]     | Done     | Done       | True  |
-| 27 | Tensor<[1, 256, 1024]> self = ?,<br>List[int] size = [1, 256, 32, 32]    | Done     | Done       | True  |
+| 27 | Tensor<[1, 256, 1024]> self = ?,<br>List[int] size = [1, 256, 32, 32]    | Unknown  | Done       | True  |
 | 28 | Tensor<[1, 256, 1024]> self = ?,<br>List[int] size = [256, 1024]         | Done     | Done       | True  |
-| 29 | Tensor<[1, 256, 16, 16]> self = ?,<br>List[int] size = [1, 256, 256]     | None     | Fallback   | True  |
+| 29 | Tensor<[1, 256, 16, 16]> self = ?,<br>List[int] size = [1, 256, 256]     | Done     | Done       | True  |
 | 30 | Tensor<[1, 256, 160]> self = ?,<br>List[int] size = [1, 256, 5, 32]      | Done     | Done       | True  |
 | 31 | Tensor<[1, 256, 160]> self = ?,<br>List[int] size = [256, 160]           | Done     | Done       | True  |
-| 32 | Tensor<[1, 256, 16384]> self = ?,<br>List[int] size = [1, 256, 128, 128] | Done     | Done       | True  |
+| 32 | Tensor<[1, 256, 16384]> self = ?,<br>List[int] size = [1, 256, 128, 128] | Unknown  | Done       | True  |
 | 33 | Tensor<[1, 256, 256]> self = ?,<br>List[int] size = [1, 16, 16, -1]      | Done     | Done       | True  |
-| 34 | Tensor<[1, 256, 256]> self = ?,<br>List[int] size = [1, 256, 16, 16]     | Done     | Done       | True  |
+| 34 | Tensor<[1, 256, 256]> self = ?,<br>List[int] size = [1, 256, 16, 16]     | Unknown  | Done       | True  |
 | 35 | Tensor<[1, 256, 256]> self = ?,<br>List[int] size = [1, 256, 8, 32]      | Done     | Done       | True  |
 | 36 | Tensor<[1, 256, 256]> self = ?,<br>List[int] size = [256, 256]           | Done     | Done       | True  |
 | 37 | Tensor<[1, 256, 32]> self = ?,<br>List[int] size = [1, 256, 1, 32]       | Done     | Done       | True  |
 | 38 | Tensor<[1, 256, 32]> self = ?,<br>List[int] size = [256, 32]             | Done     | Done       | True  |
-| 39 | Tensor<[1, 256, 4096]> self = ?,<br>List[int] size = [1, 256, 64, 64]    | Done     | Done       | True  |
+| 39 | Tensor<[1, 256, 4096]> self = ?,<br>List[int] size = [1, 256, 64, 64]    | Unknown  | Done       | True  |
 | 40 | Tensor<[1, 256, 64, 64]> self = ?,<br>List[int] size = [1, 256, 4096]    | Done     | Done       | True  |
 | 41 | Tensor<[1, 256, 64]> self = ?,<br>List[int] size = [1, 256, 2, 32]       | Done     | Done       | True  |
 | 42 | Tensor<[1, 256, 64]> self = ?,<br>List[int] size = [256, 64]             | Done     | Done       | True  |
 | 43 | Tensor<[1, 256, 8, 32]> self = ?,<br>List[int] size = [1, 256, 256]      | Done     | Done       | True  |
 | 44 | Tensor<[1, 32, 128, 128]> self = ?,<br>List[int] size = [1, 32, 16384]   | Done     | Done       | True  |
-| 45 | Tensor<[1, 32, 16, 16]> self = ?,<br>List[int] size = [1, 32, 256]       | None     | Fallback   | True  |
-| 46 | Tensor<[1, 32, 16384]> self = ?,<br>List[int] size = [1, 32, 128, 128]   | Done     | Done       | True  |
+| 45 | Tensor<[1, 32, 16, 16]> self = ?,<br>List[int] size = [1, 32, 256]       | Done     | Done       | True  |
+| 46 | Tensor<[1, 32, 16384]> self = ?,<br>List[int] size = [1, 32, 128, 128]   | Unknown  | Done       | True  |
 | 47 | Tensor<[1, 4096, 2, 32]> self = ?,<br>List[int] size = [1, 4096, 64]     | Done     | Done       | True  |
 | 48 | Tensor<[1, 4096, 256]> self = ?,<br>List[int] size = [4096, 256]         | Done     | Done       | True  |
 | 49 | Tensor<[1, 4096, 64]> self = ?,<br>List[int] size = [1, 4096, 2, 32]     | Done     | Done       | True  |
@@ -358,10 +358,10 @@
 | 53 | Tensor<[1, 5, 1024, 32]> self = ?,<br>List[int] size = [5, 1024, 32]     | Done     | Done       | True  |
 | 54 | Tensor<[1, 5, 256, 32]> self = ?,<br>List[int] size = [5, 256, 32]       | Done     | Done       | True  |
 | 55 | Tensor<[1, 5, 32, 256]> self = ?,<br>List[int] size = [5, 32, 256]       | Done     | Done       | True  |
-| 56 | Tensor<[1, 64, 16, 16]> self = ?,<br>List[int] size = [1, 64, 256]       | None     | Fallback   | True  |
-| 57 | Tensor<[1, 64, 4096]> self = ?,<br>List[int] size = [1, 64, 64, 64]      | Done     | Done       | True  |
+| 56 | Tensor<[1, 64, 16, 16]> self = ?,<br>List[int] size = [1, 64, 256]       | Done     | Done       | True  |
+| 57 | Tensor<[1, 64, 4096]> self = ?,<br>List[int] size = [1, 64, 64, 64]      | Unknown  | Done       | True  |
 | 58 | Tensor<[1, 64, 64, 64]> self = ?,<br>List[int] size = [1, 64, 4096]      | Done     | Done       | True  |
-| 59 | Tensor<[1, 640, 1024]> self = ?,<br>List[int] size = [1, 640, 32, 32]    | Done     | Done       | True  |
+| 59 | Tensor<[1, 640, 1024]> self = ?,<br>List[int] size = [1, 640, 32, 32]    | Unknown  | Done       | True  |
 | 60 | Tensor<[1, 640, 32, 32]> self = ?,<br>List[int] size = [1, 640, 1024]    | Done     | Done       | True  |
 | 61 | Tensor<[1, 8, 256, 256]> self = ?,<br>List[int] size = [8, 256, 256]     | Done     | Done       | True  |
 | 62 | Tensor<[1, 8, 256, 32]> self = ?,<br>List[int] size = [8, 256, 32]       | Done     | Done       | True  |

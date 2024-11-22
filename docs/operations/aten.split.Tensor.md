@@ -9,7 +9,7 @@
 |  5 | Tensor<[1, 4096, 2560]> self = ?,<br>int split_size = 1280,<br>int dim = -1   | Unknown  | Done       | True  |
 |  6 | Tensor<[1, 5, 32]> self = ?,<br>int split_size = 16,<br>int dim = -1          | Unknown  | Done       | True  |
 |  7 | Tensor<[1, 5, 4, 768]> self = ?,<br>int split_size = 256,<br>int dim = -1     | Unknown  | Done       | True  |
-|  8 | Tensor<[1, 7, 2304]> self = ?,<br>int split_size = 768,<br>int dim = 2        | None     | Fallback   | True  |
+|  8 | Tensor<[1, 7, 2304]> self = ?,<br>int split_size = 768,<br>int dim = 2        | Unknown  | Fallback   | True  |
 |  9 | Tensor<[1, s0*s1, 10240]> self = ?,<br>int split_size = 5120,<br>int dim = -1 | Unknown  | Unknown    | N/A   |
 | 10 | Tensor<[1, s0*s1, 5120]> self = ?,<br>int split_size = 2560,<br>int dim = -1  | Unknown  | Unknown    | N/A   |
 | 11 | Tensor<[1, s1*s2, 10240]> self = ?,<br>int split_size = 5120,<br>int dim = -1 | Unknown  | Unknown    | N/A   |

@@ -46,9 +46,9 @@
 | 42 | Tensor<[2, 7, 512]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True         | None     | Fallback   | True  |
 | 43 | Tensor<[256, 1024]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True         | Unknown  | Fallback   | True  |
 | 44 | Tensor<[256, 160]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True          | Unknown  | Fallback   | True  |
-| 45 | Tensor<[256, 256]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True          | Unknown  | Fallback   | True  |
+| 45 | Tensor<[256, 256]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True          | None     | Fallback   | True  |
 | 46 | Tensor<[256, 32]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True           | Unknown  | Fallback   | True  |
-| 47 | Tensor<[256, 512]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True          | Unknown  | Fallback   | True  |
+| 47 | Tensor<[256, 512]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True          | None     | Fallback   | True  |
 | 48 | Tensor<[256, 64]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True           | Unknown  | Fallback   | True  |
 | 49 | Tensor<[4096, 256]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True         | Unknown  | Fallback   | True  |
 | 50 | Tensor<[4096, 64]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True          | Unknown  | Fallback   | True  |
