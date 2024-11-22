@@ -39,7 +39,8 @@ def input_var_check_ttnn(request):
 
 @pytest.fixture(scope="session")
 def device():
-    device = ttnn.open_device(device_id=0)
+    # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined
+    device = ttnn.open_device(device_id=0, l1_small_size=1024)
     yield device
     ttnn.close_device(device)
 

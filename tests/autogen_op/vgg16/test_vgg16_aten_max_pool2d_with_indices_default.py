@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.max_pool2d_with_indices.default(*args, **kwargs)
+        return torch.ops.aten.max_pool2d_with_indices.default(*args, **kwargs)[0]
 
 
 metrics = []
