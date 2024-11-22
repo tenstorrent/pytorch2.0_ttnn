@@ -3,12 +3,12 @@ import ttnn
 import math
 from torch_ttnn.utils import (
     GraphCleanup,
+    HasValidPageSize,
     TtnnBfloat16,
     TtnnDevice,
-    TtnnTileLayout,
-    TtnnDramMemoryConfig,
+    TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
-    HasValidPageSize,
+    TtnnTileLayout,
 )
 import numpy as np
 from typing import Tuple
@@ -56,14 +56,20 @@ def create_call_function(transformer, target, args, kwargs):
     transformer.call_function(target, args, kwargs)
 
 
-def map_args_to_kwargs(args, kw_map):
+def map_args_to_kwargs(args, kw_map, default_none=False):
     """
-    kw_map format:
-    tuple(("index in args" : int, "keyword name" : str))
+    Args:
+        args (List): the input arguments
+        kw_map (List[str]): the list of ("index in args" : int, "keyword name" : str)
+        default_none (bool): put none if the value is missing in args; otherwise don't add the key
+    Returns:
+        Dict[str, Any]: the extracted values
     """
     kwargs = {}
     for idx, kw in kw_map:
-        kwargs[kw] = args[idx] if len(args) > idx else None
+        if idx >= len(args) and not default_none:
+            break
+        kwargs[kw] = args[idx] if idx < len(args) else None
     return kwargs
 
 
@@ -72,6 +78,24 @@ def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
     if rank == 3 and output_size[0] == 1:
         new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
     return new_nodes
+
+
+def is_getitem_0_only_user(node):
+    return all(
+        user.op == "call_function" and user.target.__name__ == "getitem" and user.args[1] == 0
+        for user in node.users.keys()
+    )
+
+
+def insert_nchw_to_nhwc(g, input_tensor):
+    return g.call_function(ttnn.permute, (input_tensor, (0, 2, 3, 1)))
+
+
+def insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape):
+    batch_size, out_c, out_h, out_w = output_shape
+    output_tensor = g.call_function(ttnn.sharded_to_interleaved, (output_tensor, TtnnL1MemoryConfig()))
+    output_tensor = g.call_function(ttnn.reshape, (output_tensor, (batch_size, out_h, out_w, out_c)))
+    return g.call_function(ttnn.permute, (output_tensor, (0, 3, 1, 2)))
 
 
 class ReplaceMoreTt(torch.fx.Transformer):
@@ -168,7 +192,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.clamp.default:
             # aten.clamp args are positional but ttnn.clip uses kw args
-            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")))
+            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")), default_none=True)
             new_args = (args[0],)
             return self.call_function_prop_meta(ttnn.clip, new_args, new_kwargs)
 
@@ -197,7 +221,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
 
         if target == torch.ops.aten.hardtanh.default:
-            new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")))
+            new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")), default_none=True)
             new_args = (args[0],)
             return self.call_function_prop_meta(ttnn.hardtanh, new_args, new_kwargs)
 
@@ -873,6 +897,64 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     sum_tensor = g.call_function(ttnn.sum, (args[0],))
 
                 return g.call_function(torch.ops.aten.squeeze.default, args=(sum_tensor,))
+
+            if node.target == torch.ops.aten.max_pool2d_with_indices.default:
+                params = map_args_to_kwargs(
+                    args,
+                    (
+                        (0, "input_tensor"),
+                        (1, "kernel_size"),
+                        (2, "stride"),
+                        (3, "padding"),
+                        (4, "dilation"),
+                        (5, "ceil_mode"),
+                    ),
+                )
+                input_tensor = params["input_tensor"]
+                kernel_size = params["kernel_size"]
+                batch_size, in_c, in_h, in_w = input_tensor.meta["val"].size()
+                stride = params.get("stride", kernel_size)
+                padding = params.get("padding", (0, 0))
+                dilation = params.get("dilation", (1, 1))
+                ceil_mode = params.get("ceil_mode", False)
+                # Assume the element size is bfloat16
+                volume = (batch_size * in_c * in_h * in_w) * 2
+                if (
+                    # TODO(tt-metal#14976): ceil mode isn't supported yet
+                    ceil_mode
+                    # TODO(#385): OOM
+                    or volume > 16 * 1024 * 1024
+                    # TODO(tt-metal#13901): Non-pow-of-2 channel isn't supported yet
+                    or (in_c & (in_c - 1)) != 0
+                    # TODO(#419): Currently fails with in_c < 16
+                    or in_c < 16
+                    # TODO(tt-metal#12099): Currently it doesn't return indices. Convert if only the value is used
+                    or not is_getitem_0_only_user(node)
+                ):
+                    return None
+
+                input_tensor = insert_nchw_to_nhwc(g, input_tensor)
+                # TODO(#423): reshape can be removed if (N, H, W, C) is supported
+                input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
+                # TODO(#418): max_pool2d fails with input tensors in tile layout for some shapes
+                input_tensor = g.call_function(ttnn.to_layout, (input_tensor, TtnnRowMajorLayout()))
+                output_tensor = g.call_function(
+                    ttnn.max_pool2d,
+                    (
+                        input_tensor,
+                        batch_size,
+                        in_h,
+                        in_w,
+                        in_c,
+                        kernel_size,
+                        stride,
+                        padding,
+                        dilation,
+                    ),
+                )
+                output_tensor = insert_sharded_nhwc_to_nchw(g, output_tensor, node.meta["val"][0].size())
+                # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
+                return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)

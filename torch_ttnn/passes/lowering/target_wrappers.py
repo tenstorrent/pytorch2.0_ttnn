@@ -10,3 +10,9 @@ def clone(t):
 @torch.fx.wrap
 def repeat(t, sizes):
     return ttnn.repeat(t, ttnn.Shape(sizes))
+
+
+# Helper function to pack multiple values into a tuple on the graph
+@torch.fx.wrap
+def pack_to_tuple(*args):
+    return tuple(args)

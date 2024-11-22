@@ -125,13 +125,23 @@ TTNN_DATAMOVE_OPS = [
     ttnn.split,
     ttnn.slice,
     ttnn.to_layout,
+    ttnn.sharded_to_interleaved,
 ]
 
-TTNN_TARGET_WRAPPERS = [target_wrappers.clone, target_wrappers.repeat]
+TTNN_TARGET_WRAPPERS = [
+    target_wrappers.clone,
+    target_wrappers.repeat,
+    target_wrappers.pack_to_tuple,
+]
 
 TTNN_NORM_OPS = [
     ttnn.group_norm,
     ttnn.layer_norm,
+]
+
+TTNN_POOL_OPS = [
+    ttnn.global_avg_pool2d,
+    ttnn.max_pool2d,
 ]
 
 TTNN_LAYOUT_CHANGE_OPS = set(
@@ -161,6 +171,7 @@ def is_tt_compute(node) -> bool:
         + TTNN_TARGET_WRAPPERS
         + TTNN_DATAMOVE_OPS
         + TTNN_NORM_OPS
+        + TTNN_POOL_OPS
         + [
             ttnn.embedding,
             ttnn.ones,
@@ -169,7 +180,6 @@ def is_tt_compute(node) -> bool:
             ttnn.zeros_like,
             ttnn.mean,
             ttnn.moreh_cumsum,
-            ttnn.global_avg_pool2d,
             ttnn.clip,
             ttnn.squeeze,
             ttnn.full,
