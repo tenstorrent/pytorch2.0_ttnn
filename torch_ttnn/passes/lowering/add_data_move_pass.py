@@ -38,6 +38,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     #  ttnn.clone,  in target_wrappers
     ttnn.cos,
     ttnn.cosh,
+    ttnn.elu,
     ttnn.erf,
     ttnn.exp,
     ttnn.expm1,
@@ -174,6 +175,8 @@ def is_tt_compute(node) -> bool:
             ttnn.full,
             ttnn.as_tensor,
             ttnn.expand,
+            ttnn.moreh_cumsum,
+            ttnn.sum,
             ttnn.typecast,
         ]
     )

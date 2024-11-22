@@ -178,6 +178,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.cosh.default:
             return self.call_function_prop_meta(ttnn.cosh, args, kwargs)
 
+        if target == torch.ops.aten.elu.default:
+            return self.call_function_prop_meta(ttnn.elu, args, kwargs)
+
         if target == torch.ops.aten.erf.default:
             return self.call_function_prop_meta(ttnn.erf, args, kwargs)
 
@@ -524,7 +527,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.add, args=(beta_node, new_node))
 
             if node.target == torch.ops.aten.embedding.default:
-                tiled = args[1].meta["val"].size()[-1] % ttnn.TILE_SIZE == 0
+                tiled = args[1].meta.get("val")
+                tiled = False if tiled is None else tiled.size()[-1] % ttnn.TILE_SIZE == 0
                 layout = TtnnTileLayout() if tiled else TtnnRowMajorLayout()
                 tensor = g.call_function(ttnn.embedding, (args[1], args[0]), {"layout": layout})
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
@@ -672,17 +676,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
 
             if node.target == torch.ops.aten.unsqueeze.default:
-                if args[0].op == "get_attr":
-                    value = getattr(gm, args[0].target)
-                    input_size = value.size()
-                else:
-                    input_size = args[0].meta["val"].size()
-
-                output_size = node.meta["val"].size()
-                output_size = list(output_size)
-                if output_size[-1] == input_size[-1]:
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
-                return None
+                output_shape_num_element = node.meta["val"].numel()
+                if output_shape_num_element == 0:
+                    return args[0]
+                output_size = list(node.meta["val"].size())
+                return g.call_function(ttnn.reshape, args=(args[0], output_size))
 
             if node.target in [torch.ops.aten.transpose.int, torch.ops.aten.t.default]:
                 output_size = node.meta["val"].size()
@@ -723,6 +721,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # and this can then go to ReplaceMoreTt class.
                 output_size = node.meta["val"].size()
                 rank = len(output_size)
+                # TODO(tt-metal#15165): ttnn.permute > 4D shape is not supported yet
+                if rank > 4:
+                    return None
                 new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
                 return new_nodes[-1]
 
@@ -868,6 +869,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_4d = g.call_function(ttnn.reshape, (tensor, input_4d_shape))
                 output_4d = g.call_function(ttnn.moreh_cumsum, (input_4d, dim), kwargs)
                 return g.call_function(ttnn.reshape, (output_4d, input_shape))
+
+            if node.target == torch.ops.aten.sum.default:
+                input_size = args[0].meta["val"].size()
+                output_size = node.meta["val"].size()
+
+                sum_tensor = args[0]
+                if input_size.numel() != output_size.numel():
+                    sum_tensor = g.call_function(ttnn.sum, (args[0],))
+
+                return g.call_function(torch.ops.aten.squeeze.default, args=(sum_tensor,))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
