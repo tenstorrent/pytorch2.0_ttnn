@@ -187,6 +187,7 @@ def is_tt_compute(node) -> bool:
             ttnn.expand,
             ttnn.moreh_cumsum,
             ttnn.sum,
+            ttnn.typecast,
         ]
     )
 
@@ -218,16 +219,18 @@ def call_to_torch_with_meta(g, src_node):
     return call_func
 
 
-def try_call_aten__to_copy_with_meta(g, to_torch_node):
+def try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops):
     # try_add_data_move_in will change dtype to bfloat16
     # so the to_torch's output dtype will be bfloat16, which is incorrect
     # luckly, the meta remain the origin correct dtype
     # so add aten._to_copy(dtype) to correct the dtype
     # TODO: If to_torch can specify dtype, then can merge to_copy on it
 
-    # if user only output, then no need to add
     if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
         dtype = to_torch_node.meta["val"].dtype
+        # if user only output and output type is float-like, then no need to add
+        if target_users_ops.count("output") and dtype in [torch.float32, torch.float64, torch.bfloat16]:
+            return None
         call_func = g.call_function(
             torch.ops.aten._to_copy.default,
             (to_torch_node,),
@@ -414,8 +417,9 @@ def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
         if should_add_data_move_out(src_node, dst_node):
             g = dst_node.graph
             with g.inserting_before(dst_node):
+                target_users_ops = [user.target for user in src_node.users.keys()]
                 to_torch_node = call_to_torch_with_meta(g, src_node)
-                copy_node = try_call_aten__to_copy_with_meta(g, to_torch_node)
+                copy_node = try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops)
                 if copy_node:
                     new_node = copy_node
                 else:
@@ -438,8 +442,9 @@ def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
+        target_users_ops = [user.target for user in src_node.users.keys()]
         new_nodes.append(call_to_torch_with_meta(g, src_node))
-        copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1])
+        copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1], target_users_ops)
         if copy_node:
             new_nodes.append(copy_node)
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
@@ -454,8 +459,9 @@ def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.f
     new_nodes = list()
     with g.inserting_before(dst_node):
         if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
+            target_users_ops = [user.target for user in src_node.users.keys()]
             new_nodes.append(call_to_torch_with_meta(g, src_node))
-            copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1])
+            copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1], target_users_ops)
             if copy_node:
                 new_nodes.append(copy_node)
 
