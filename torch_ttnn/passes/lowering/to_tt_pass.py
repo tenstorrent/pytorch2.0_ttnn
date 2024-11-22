@@ -220,6 +220,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.gelu.default:
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
 
+        if target == torch.ops.aten.hardsigmoid.default:
+            return self.call_function_prop_meta(ttnn.hardsigmoid, args, kwargs)
+
         if target == torch.ops.aten.hardtanh.default:
             new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")), default_none=True)
             new_args = (args[0],)
