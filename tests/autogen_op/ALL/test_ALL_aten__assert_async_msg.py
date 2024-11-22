@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.rsub.Scalar(*args, **kwargs)
+        return torch.ops.aten._assert_async.msg(*args, **kwargs)
 
 
 metrics = []
@@ -28,16 +28,13 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/ViLT", "aten.rsub.Scalar")
+    save_pickle(metrics, "metrics-autogen-op/ALL", "aten._assert_async.msg")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [["Tensor<[1, 192]> self = ?", "number other = 1"], ["Tensor<[1, 1, 1, 201]> self = ?", "number other = 1.0"]],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor<[]> self = ?", "str assert_msg = assertion error"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.rsub.Scalar",
+        "opname": "aten._assert_async.msg",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -45,7 +42,9 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "convert_to_ttnn": "N/A",
     }
     m = AtenModule()
-    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.rsub.Scalar", input_strings)
+    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
+        "aten._assert_async.msg", input_strings
+    )
     if status == False:
         pytest.skip("Invalid input strings")
     try:

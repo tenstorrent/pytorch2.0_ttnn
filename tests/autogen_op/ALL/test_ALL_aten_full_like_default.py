@@ -39,13 +39,6 @@ def teardown_module(module):
         ["Tensor<[2, 2]> self = ?", "number fill_value = 31", "Optional[bool] pin_memory = False"],
         ["Tensor<[s0 + 1, s0 + 1]> self = ?", "number fill_value = 31", "Optional[bool] pin_memory = False"],
         ["Tensor<[17, 17]> self = ?", "number fill_value = 31", "Optional[bool] pin_memory = False"],
-        [
-            "Tensor<[1, 193]> self = ?",
-            "number fill_value = 1",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
         ["Tensor<[10, 10]> self = ?", "number fill_value = 15", "Optional[bool] pin_memory = False"],
     ],
 )

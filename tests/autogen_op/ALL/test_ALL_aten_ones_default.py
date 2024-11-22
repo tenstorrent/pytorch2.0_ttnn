@@ -67,12 +67,6 @@ def teardown_module(module):
             "Optional[Device] device = cpu",
             "Optional[bool] pin_memory = False",
         ],
-        [
-            "List[int] size = [7, 7]",
-            "Optional[int] dtype = torch.bool",
-            "Optional[int] layout = torch.strided",
-            "Optional[Device] device = cpu",
-        ],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

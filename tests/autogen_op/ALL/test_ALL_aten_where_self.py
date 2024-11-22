@@ -50,8 +50,6 @@ def teardown_module(module):
         ["Tensor<[1, 1, 5, 5]> condition = ?", "Tensor<[1, 16, 5, 5]> self = ?", "Tensor<[]> other = ?"],
         ["Tensor<[1, 1, 1, 6]> condition = ?", "Tensor<[1, 16, 1, 6]> self = ?", "Tensor<[]> other = ?"],
         ["Tensor<[1, 1, 1, s10 + 1]> condition = ?", "Tensor<[1, 16, 1, s10 + 1]> self = ?", "Tensor<[]> other = ?"],
-        ["Tensor<[1, 1, 256]> condition = ?", "Tensor<[1, 1, 256]> self = ?", "Tensor<[]> other = ?"],
-        ["Tensor<[1, s0, 256]> condition = ?", "Tensor<[1, s0, 256]> self = ?", "Tensor<[]> other = ?"],
         ["Tensor<[10, 10]> condition = ?", "Tensor<[10, 10]> self = ?", "Tensor<[10, 10]> other = ?"],
     ],
 )

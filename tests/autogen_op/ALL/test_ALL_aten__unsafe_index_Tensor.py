@@ -46,8 +46,8 @@ def teardown_module(module):
         ["Tensor<[1, 256, 32, 32]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
         ["Tensor<[1, 256, 16, 16]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
         ["Tensor<[1, 1280, 8, 8]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[16, 1]>, <[16]>]"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[32, 1]>, <[32]>]"],
-        ["Tensor<[1, 640, 32, 32]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[64, 1]>, <[64]>]"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[2*s0, 1]>, <[2*s1]>]"],
+        ["Tensor<[1, s0, s1, s2]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[2*s1, 1]>, <[2*s2]>]"],
         ["Tensor<[1, 1, 384, 512]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[12, 1]>, <[16]>]"],
         [
             "Tensor<[1, 192, 50, 83]> self = ?",

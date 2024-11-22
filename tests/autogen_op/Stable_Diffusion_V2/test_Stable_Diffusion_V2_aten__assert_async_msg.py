@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.lift_fresh_copy.default(*args, **kwargs)
+        return torch.ops.aten._assert_async.msg(*args, **kwargs)
 
 
 metrics = []
@@ -28,13 +28,13 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/Falcon", "aten.lift_fresh_copy.default")
+    save_pickle(metrics, "metrics-autogen-op/Stable Diffusion V2", "aten._assert_async.msg")
 
 
-@pytest.mark.parametrize("input_strings", [["Tensor self = ?"]])
+@pytest.mark.parametrize("input_strings", [["Tensor<[]> self = ?", "str assert_msg = assertion error"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.lift_fresh_copy.default",
+        "opname": "aten._assert_async.msg",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -43,7 +43,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     }
     m = AtenModule()
     input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
-        "aten.lift_fresh_copy.default", input_strings
+        "aten._assert_async.msg", input_strings
     )
     if status == False:
         pytest.skip("Invalid input strings")

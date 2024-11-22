@@ -28,19 +28,12 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/speecht5-tts", "aten.scalar_tensor.default")
+    save_pickle(metrics, "metrics-autogen-op/Stable Diffusion V2", "aten.scalar_tensor.default")
 
 
 @pytest.mark.parametrize(
     "input_strings",
-    [
-        [
-            "number s = 0",
-            "Optional[int] dtype = torch.bfloat16",
-            "Optional[int] layout = torch.strided",
-            "Optional[Device] device = cpu",
-        ]
-    ],
+    [["number<Eq(s0, 640)> s = ?", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"]],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {

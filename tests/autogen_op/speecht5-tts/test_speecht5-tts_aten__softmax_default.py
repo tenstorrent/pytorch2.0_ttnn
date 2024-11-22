@@ -32,19 +32,7 @@ def teardown_module(module):
 
 
 @pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[12, 24, 24]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, 24]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, 2]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s0 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s2 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s4 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s6 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s8 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s10 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-    ],
+    "input_strings", [["Tensor<[12, 24, 24]> self = ?", "int dim = -1", "bool half_to_float = False"]]
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {

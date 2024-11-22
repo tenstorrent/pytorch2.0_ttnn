@@ -40,14 +40,7 @@ def teardown_module(module):
             "Optional[Tensor]<[768]> weight = ?",
             "Optional[Tensor]<[768]> bias = ?",
             "float eps = 1e-05",
-        ],
-        [
-            "Tensor<[1, 1, 768]> input = ?",
-            "List[int] normalized_shape = [768]",
-            "Optional[Tensor]<[768]> weight = ?",
-            "Optional[Tensor]<[768]> bias = ?",
-            "float eps = 1e-05",
-        ],
+        ]
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

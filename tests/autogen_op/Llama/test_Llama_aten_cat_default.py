@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.permute.default(*args, **kwargs)
+        return torch.ops.aten.cat.default(*args, **kwargs)
 
 
 metrics = []
@@ -28,19 +28,13 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/ViLT", "aten.permute.default")
+    save_pickle(metrics, "metrics-autogen-op/Llama", "aten.cat.default")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[1, 201, 12, 64]> self = ?", "List[int] dims = [0, 2, 1, 3]"],
-        ["Tensor<[1, 12, 201, 64]> self = ?", "List[int] dims = [0, 2, 1, 3]"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["List[Tensor] tensors = [<[1, 32, 64]>, <[1, 32, 64]>]", "int dim = -1"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.permute.default",
+        "opname": "aten.cat.default",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -48,9 +42,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "convert_to_ttnn": "N/A",
     }
     m = AtenModule()
-    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
-        "aten.permute.default", input_strings
-    )
+    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.cat.default", input_strings)
     if status == False:
         pytest.skip("Invalid input strings")
     try:

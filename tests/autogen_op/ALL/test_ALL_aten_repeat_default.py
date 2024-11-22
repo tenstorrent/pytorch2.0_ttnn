@@ -43,8 +43,6 @@ def teardown_module(module):
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [9, 1]"],
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [4, 1]"],
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [1, 1]"],
-        ["Tensor<[1, 1, 256]> self = ?", "List[int] repeats = [1, 1, 1]"],
-        ["Tensor<[1, s0, 256]> self = ?", "List[int] repeats = [1, 1, 1]"],
         ["Tensor<[4, 2]> self = ?", "List[int] repeats = [1444, 1]"],
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [361, 1]"],
         ["Tensor<[4, 2]> self = ?", "List[int] repeats = [9, 1]"],

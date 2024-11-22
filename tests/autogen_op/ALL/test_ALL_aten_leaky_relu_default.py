@@ -47,12 +47,6 @@ def teardown_module(module):
         ["Tensor<[1, 512, 16, 16]> self = ?", "number negative_slope = 0.1"],
         ["Tensor<[1, 256, 16, 16]> self = ?", "number negative_slope = 0.1"],
         ["Tensor<[1, 128, 32, 32]> self = ?", "number negative_slope = 0.1"],
-        ["Tensor<[1, 512, 98]> self = ?", "number negative_slope = 0.1"],
-        ["Tensor<[1, 256, 392]> self = ?", "number negative_slope = 0.1"],
-        ["Tensor<[1, 128, 1568]> self = ?", "number negative_slope = 0.1"],
-        ["Tensor<[1, 64, 6272]> self = ?", "number negative_slope = 0.1"],
-        ["Tensor<[1, 32, 25088]> self = ?", "number negative_slope = 0.1"],
-        ["Tensor<[1, 32, 25088]> self = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

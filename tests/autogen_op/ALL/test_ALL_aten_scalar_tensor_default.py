@@ -33,14 +33,7 @@ def teardown_module(module):
 
 @pytest.mark.parametrize(
     "input_strings",
-    [
-        [
-            "number s = 0",
-            "Optional[int] dtype = torch.bfloat16",
-            "Optional[int] layout = torch.strided",
-            "Optional[Device] device = cpu",
-        ]
-    ],
+    [["number<Eq(s0, 640)> s = ?", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"]],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
