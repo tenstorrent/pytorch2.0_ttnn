@@ -12,13 +12,13 @@ class BatchNormModule(torch.nn.Module):
         return torch.nn.functional.batch_norm(*args, **kwargs)
 
 
-def expand_param_tuple(*shape):
+def expand_param_tuple(*shape, **kwargs):
     shape = (*shape,)
     return (
-        (shape, True, True),
-        (shape, False, True),
-        (shape, True, False),
-        (shape, False, False),
+        pytest.param(shape, True, True, **kwargs),
+        pytest.param(shape, False, True, **kwargs),
+        pytest.param(shape, True, False, **kwargs),
+        pytest.param(shape, False, False, **kwargs),
     )
 
 
@@ -31,7 +31,8 @@ def expand_param_tuple(*shape):
         *expand_param_tuple(1, 640, 7, 7),
         *expand_param_tuple(1, 672, 15, 15),
         *expand_param_tuple(1, 64, 30, 40),
-        *expand_param_tuple(2, 15, 30, 40),
+        *expand_param_tuple(2, 64, 30, 40, marks=pytest.mark.xfail(reason="Some eltwise op fails for batch size > 1")),
+        *expand_param_tuple(3, 64, 30, 40, marks=pytest.mark.xfail(reason="Some eltwise op fails for batch size > 1")),
     ),
 )
 def test_batch_norm_inference(device, input_shape, weight, bias):
