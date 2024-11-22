@@ -33,16 +33,7 @@ class Conv2dModule(torch.nn.Module):
             False,
             marks=pytest.mark.xfail(reason="weight tensor fails to load for large shapes (tt-metal#15032)"),
         ),
-        pytest.param(
-            (1, 16, 28, 28),
-            (16, 4, 3, 3),
-            (1, 1),
-            (1, 1),
-            (1, 1),
-            4,
-            False,
-            marks=pytest.mark.xfail(reason="groups > 0 is not supported yet (#416)"),
-        ),
+        ((1, 16, 28, 28), (16, 4, 3, 3), (1, 1), (1, 1), (1, 1), 4, False),
         pytest.param(
             (1, 32, 7, 7),
             (32, 32, 2, 2),
