@@ -9,7 +9,7 @@ class IfModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, x):
-        if torch.sum(x) > 0:
+        if torch.sum(x).item() > 0:
             return x + x
         else:
             return torch.matmul(x, x)
@@ -38,8 +38,8 @@ def test_if(device, input_shape):
     nodes_0 = list(option._out_fx_graphs[0].nodes)
     target_0 = [node.target for node in nodes_0]
     assert target_0.count(ttnn.sum) == 1
-    # This `gt` is not converted yet because its shape does not fit tiled layout
-    assert target_0.count(torch.ops.aten.gt.Scalar) == 1
+    # This `gt` is not converted yet because we force evaluation to avoid 0-D tensor
+    # assert target_0.count(ttnn.gt) == 1
     nodes_1 = list(option._out_fx_graphs[1].nodes)
     target_1 = [node.target for node in nodes_1]
     assert target_1.count(ttnn.add) == 1
