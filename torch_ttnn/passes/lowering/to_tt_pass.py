@@ -42,6 +42,7 @@ ops_incompatible_with_grayskull = {
     torch.ops.aten.ceil.default,
     torch.ops.aten.floor.default,
     torch.ops.aten.round.default,
+    torch.ops.aten.round.decimals,
     torch.ops.aten.trunc.default,
 }
 
@@ -411,7 +412,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return unsqueeze_to_2d(TTNN_POINTWISE_UNARY_OPS[node.target])
 
             if node.target == torch.ops.aten.round.default:
-                return unsqueeze_to_2d(ttnn.round, (args[0], 0))
+                return unsqueeze_to_2d(ttnn.round, (args[0],), {"decimals": 0})
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
