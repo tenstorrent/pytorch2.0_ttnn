@@ -142,7 +142,6 @@ aten_transpose_int_blocklist = [
     ["Tensor<[16, 64, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
     ["Tensor<[1, 16, 64, 197]> self = ?", "int dim0 = -1", "int dim1 = -2"],
 ]
-aten_embedding_default_blocklist = [["Tensor<[2048, 768]> weight = ?", "Tensor indices = ?"]]
 aten_zeros_like_default_blocklist = [
     ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
     ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
@@ -398,7 +397,6 @@ GUARD = {
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
     torch.ops.aten.transpose.int: partial(guard_aten, aten_transpose_int_blocklist),
-    torch.ops.aten.embedding.default: partial(guard_aten, aten_embedding_default_blocklist),
     torch.ops.aten.zeros_like.default: partial(guard_aten, aten_zeros_like_default_blocklist),
     torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.mul.Tensor: partial(guard_aten, aten_mul_Tensor_blocklist),

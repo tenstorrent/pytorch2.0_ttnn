@@ -48,6 +48,7 @@ def test_embedding(device, input_shapes):
     "batch_size, sentence_size, vocabulary_size, hidden_embedding_dim",
     [
         (8, 384, 250880, 1024),
+        (8, 384, 2048, 768),
     ],
 )
 def test_embedding_tile_layout(device, batch_size, sentence_size, vocabulary_size, hidden_embedding_dim):
@@ -73,6 +74,7 @@ def test_embedding_tile_layout(device, batch_size, sentence_size, vocabulary_siz
     "batch_size, sentence_size, vocabulary_size, hidden_embedding_dim",
     [
         (1, 8, 30528, 768),
+        (1, 8, 2048, 768),
     ],
 )
 def test_embedding_squeezebert(device, batch_size, sentence_size, vocabulary_size, hidden_embedding_dim):

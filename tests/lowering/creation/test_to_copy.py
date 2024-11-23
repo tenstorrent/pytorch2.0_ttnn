@@ -136,7 +136,7 @@ def test_reshape_test1(device, module, ttnn_op, dtype):
     if dtype == torch.bfloat16:
         count = 0
     else:
-        count = 1
+        count = 2
     assert target.count(torch.ops.aten._to_copy.default) == count
     assert [node.target for node in nodes].count(ttnn_op) == 1
     # Check inference result
