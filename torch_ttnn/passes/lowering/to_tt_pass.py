@@ -86,6 +86,24 @@ def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
     return new_nodes
 
 
+def is_getitem_0_only_user(node):
+    return all(
+        user.op == "call_function" and user.target.__name__ == "getitem" and user.args[1] == 0
+        for user in node.users.keys()
+    )
+
+
+def insert_nchw_to_nhwc(g, input_tensor):
+    return g.call_function(ttnn.permute, (input_tensor, (0, 2, 3, 1)))
+
+
+def insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape):
+    batch_size, out_c, out_h, out_w = output_shape
+    output_tensor = g.call_function(ttnn.sharded_to_interleaved, (output_tensor, TtnnL1MemoryConfig()))
+    output_tensor = g.call_function(ttnn.reshape, (output_tensor, (batch_size, out_h, out_w, out_c)))
+    return g.call_function(ttnn.permute, (output_tensor, (0, 3, 1, 2)))
+
+
 TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.abs.default: ttnn.abs,
     torch.ops.aten.acos.default: ttnn.acos,
