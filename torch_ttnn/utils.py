@@ -29,13 +29,6 @@ def has_valid_page_size(node_or_shape, strict=False):
     return False
 
 
-def can_be_tilized(node_or_shape):
-    if (shape := get_shape(node_or_shape)) is not None:
-        if len(shape) >= 2 and len(shape) <= 4 and shape[-1] > 0 and shape[-2] > 1:
-            return shape[-1] % 32 == 0 or shape[-2] % 32 == 0
-    return False
-
-
 # Ttnn globals added with torch.fx._register_custom_builtin
 class TtnnDevice:
     def __repr__(self):

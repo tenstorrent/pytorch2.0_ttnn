@@ -212,6 +212,8 @@ aten_masked_fill_scalar_blocklist += [
 # embedding = torch.ops.aten.embedding.default(arg188_1, view_192, 50257);  arg188_1 = view_192 = None
 # TODO: not pass yet
 
+aten_mul_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 50258"]]
+
 # albert inputs that do not support TILE_LAYOUT
 aten_view_default_blocklist += [
     # albert-base-v2-eval, albert-large-v2-eval

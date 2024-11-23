@@ -6,8 +6,7 @@ from torch_ttnn.utils import (
     TtnnDevice,
     TtnnBfloat16,
     TtnnUint32,
-    has_valid_page_size,
-    can_be_tilized,
+    get_shape,
 )
 
 
@@ -142,26 +141,6 @@ TTNN_LAYOUT_CHANGE_OPS = set(
         ttnn.full,
     ]
 )
-
-
-# FIXME: Workaround function for unsupported features for ttnn.reshape
-# BUG (https://github.com/tenstorrent/tt-metal/issues/13889)
-def can_reshape(node):
-    shape = node.meta["val"].size()
-    supported_H_dim = len(shape) >= 2 and ((shape[-2] >= 32 and shape[-2] % 32 == 0))
-    # Unsupported if output rank is > 4
-    return supported_H_dim and len(shape) <= 4
-
-
-# FIXME: Workaround functions for unsupported features for ttnn.reshape
-def get_shape(node):
-    return node.meta["val"].size()
-
-
-def have_unsupported_ranks(src_node, dst_node):
-    dst_node_shape = get_shape(dst_node)
-    src_node_shape = get_shape(src_node)
-    return len(dst_node_shape) > 5 or len(dst_node_shape) == 1
 
 
 # For operations limitations
@@ -369,13 +348,6 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
     if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
         need_from_device = True
         need_to_layout = True
-    # if dst_node.target == ttnn.slice:
-    #     need_to_layout = True
-
-    # # TODO(#372): #322 will enable tile layout for more layout change ops
-    # if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
-    #     need_from_device = True
-    #     need_to_layout = True
 
     if dst_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
         # TODO: Only uint32 needs to to_layout on host
@@ -417,12 +389,6 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     # These nodes use ROW_MAJOR_LAYOUT to create tensors
     if src_node.target in [ttnn.ones, target_wrappers.repeat]:
         need_to_layout = True
-
-    # if src_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
-    #     # TODO: Only uint32 needs to to_layout on host
-    #     need_from_device = True
-    #     need_to_layout = True
-    #     need_to_device = True
 
     if not any((need_from_device, need_to_layout, need_to_device)):
         return None

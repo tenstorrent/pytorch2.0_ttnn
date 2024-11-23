@@ -9,7 +9,6 @@ from torch_ttnn.utils import (
     TtnnDramMemoryConfig,
     TtnnRowMajorLayout,
     has_valid_page_size,
-    can_be_tilized,
     get_shape,
 )
 import numpy as np
