@@ -46,7 +46,15 @@ def test_round_default(device, input_shape):
         ((1, 1, 32, 1), 2),
         ((4, 4), 3),
         ((4, 32), 0),
-        ((1066,), -1),
+        ((1066,), 2),
+        ((1066,), 1),
+        ((1066,), 0),
+        pytest.param(
+            (1066,),
+            -1,
+            # NOTE(jdh8): skip instead of xfail because it takes a long time
+            marks=pytest.mark.skip(reason="decimals < 0 not supported (until tt-metal#13851?)"),
+        ),
     ),
 )
 def test_round_decimals(device, input_shape, decimals):
