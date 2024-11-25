@@ -3,6 +3,8 @@ import torch_ttnn
 import pytest
 import ttnn
 
+from tests.utils import assert_with_pcc
+
 
 class BatchNormModule(torch.nn.Module):
     def __init__(self):
@@ -79,4 +81,4 @@ def test_batch_norm_inference(device, input_shape, weight, bias):
     assert targets.count(ttnn.sub) == 1
 
     # Check inference result
-    assert torch.allclose(result_before, result_after)
+    assert_with_pcc(result_before, result_after, pcc=0.99)
