@@ -16,15 +16,12 @@ class TransposeModule(torch.nn.Module):
 @pytest.mark.parametrize(
     "input_shape, dim0, dim1",
     [
-        # Constraint: Last dim of input should be even.
-        # If not, this runtime error will be thrown:
-        # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
         ((5, 3, 2), 0, 2),
         ((5, 3, 1), 0, 2),
         ((5, 3, 1), 1, 2),
         ((5, 3, 1), 0, 1),
         ((1, 3), 0, 1),
-        pytest.param((3, 1), 1, 0, marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
+        ((3, 1), 1, 0),
     ],
 )
 def test_transpose(device, input_shape, dim0, dim1):

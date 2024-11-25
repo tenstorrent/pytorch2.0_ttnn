@@ -118,14 +118,15 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
 ]
 
 TTNN_DATAMOVE_OPS = [
-    ttnn.reshape,
+    ttnn.concat,
     ttnn.pad,
     ttnn.permute,
-    ttnn.concat,
-    ttnn.split,
-    ttnn.slice,
-    ttnn.to_layout,
+    ttnn.reshape,
     ttnn.sharded_to_interleaved,
+    ttnn.slice,
+    ttnn.split,
+    ttnn.to_layout,
+    ttnn.transpose,
 ]
 
 TTNN_TARGET_WRAPPERS = [

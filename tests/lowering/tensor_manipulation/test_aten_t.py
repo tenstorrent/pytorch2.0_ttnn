@@ -39,8 +39,8 @@ def _t(device, input_shapes):
         [(12, 3)],
         [(1, 21843)],
         [(768, 21843)],
-        pytest.param((2, 1), marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
-        pytest.param((512, 1), marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
+        [(2, 1)],
+        [(512, 1)],
     ],
 )
 def test_aten_t(device, input_shapes):
