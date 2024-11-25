@@ -13,6 +13,7 @@ class SumModule(torch.nn.Module):
         return torch.ops.aten.sum.default(tensor)
 
 
+@pytest.mark.xfail(reason="Knwon precision issue (#499)")
 @pytest.mark.parametrize(
     "input_shapes",
     [

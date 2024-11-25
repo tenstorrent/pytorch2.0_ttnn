@@ -45,6 +45,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.floor,
     ttnn.gelu,
     ttnn.hardsigmoid,
+    ttnn.hardswish,
     ttnn.hardtanh,
     ttnn.isinf,
     ttnn.isnan,
