@@ -122,6 +122,8 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.expm1.default: ttnn.expm1,
     torch.ops.aten.floor.default: ttnn.floor,
     torch.ops.aten.gelu.default: ttnn.gelu,
+    torch.ops.aten.hardsigmoid.default: ttnn.hardsigmoid,
+    torch.ops.aten.hardswish.default: ttnn.hardswish,
     torch.ops.aten.isinf.default: ttnn.isinf,
     torch.ops.aten.isnan.default: ttnn.isnan,
     torch.ops.aten.log.default: ttnn.log,
