@@ -707,12 +707,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.reshape, args=(args[0], output_size))
 
             if node.target in [torch.ops.aten.transpose.int, torch.ops.aten.t.default]:
+                rank = len(node.meta["val"].size())
+                if rank < 2:
+                    # Less 2D transpose is no-op
+                    return args[0]
                 if node.target == torch.ops.aten.t.default:
-                    rank = len(node.meta["val"].size())
-                    assert rank >= 0 and rank <= 2, "Input tensor can only be 0D, 1D or 2D"
-                    if rank < 2:
-                        # Less 2D transpose is no-op
-                        return args[0]
+                    assert rank == 2, "Input tensor should only be 2D here"
                     dim0 = 0
                     dim1 = 1
                 else:

@@ -16,6 +16,7 @@ class TransposeModule(torch.nn.Module):
 @pytest.mark.parametrize(
     "input_shape, dim0, dim1",
     [
+        ((32,), 0, 0),
         ((5, 3, 2), 0, 2),
         ((5, 3, 1), 0, 2),
         ((5, 3, 1), 1, 2),
