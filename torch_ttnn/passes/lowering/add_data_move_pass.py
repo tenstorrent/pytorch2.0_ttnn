@@ -6,7 +6,7 @@ from torch_ttnn.utils import (
     TtnnDevice,
     TtnnBfloat16,
     TtnnUint32,
-    HasValidPageSize,
+    get_shape,
 )
 
 
@@ -73,6 +73,7 @@ TTNN_POINTWISE_UNARY_OPS = [
 
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
+    ttnn.div,
     ttnn.eqz,
     ttnn.gez,
     ttnn.ge,
@@ -146,8 +147,8 @@ TTNN_POOL_OPS = [
 
 TTNN_LAYOUT_CHANGE_OPS = set(
     [
-        ttnn.reshape,
         ttnn.slice,
+        ttnn.full,
     ]
 )
 
@@ -291,8 +292,8 @@ def is_target_a_user_of_curr_node(curr_node, target):
     if curr_node.target == target:
         return True
 
-    # Only trace certain nodes that support different layouts
-    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS:
+    # Only trace certain nodes that support different layouts, including reshape
+    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([ttnn.reshape])):
         return False
 
     for user in list(curr_node.users.keys()):
@@ -328,7 +329,13 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
     g = dst_node.graph
     new_nodes = list()
     with g.inserting_before(dst_node):
-        kwargs = {"layout": TtnnTileLayout(), "device": device}
+        kwargs = {}
+        if dst_node.target == ttnn.embedding:
+            kwargs["layout"] = TtnnRowMajorLayout()
+        else:
+            kwargs["layout"] = TtnnTileLayout()
+
+        kwargs["device"] = device
 
         if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
             kwargs["dtype"] = TtnnUint32()
@@ -351,7 +358,6 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
     need_from_device = False
     need_to_layout = False
     need_to_device = False
-    # TODO(#372): #322 will enable tile layout for more layout change ops
     if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
         need_from_device = True
         need_to_layout = True
@@ -366,6 +372,7 @@ def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> to
         return None
 
     g = dst_node.graph
+    new_nodes = []
     with g.inserting_before(dst_node):
         new_nodes = [src_node]
         if need_from_device:
@@ -384,23 +391,32 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
     if not is_function_call(src_node):
         return None
-    if (
-        src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
-        or not is_tt_compute(dst_node)
-        or dst_node.target == ttnn.embedding
-    ):
+
+    need_from_device = False
+    need_to_layout = False
+    need_to_device = False
+    if src_node.target in TTNN_LAYOUT_CHANGE_OPS and is_tt(dst_node):
+        need_to_device = True
+        need_to_layout = True
+
+    # These nodes use ROW_MAJOR_LAYOUT to create tensors
+    if src_node.target in [ttnn.ones, target_wrappers.repeat]:
+        need_to_layout = True
+
+    if not any((need_from_device, need_to_layout, need_to_device)):
         return None
 
     g = dst_node.graph
     new_nodes = []
     with g.inserting_before(dst_node):
-        if dst_node.target != target_wrappers.repeat:
-            new_nodes.append(
-                g.call_function(ttnn.to_layout, (new_nodes[-1] if new_nodes else src_node, TtnnTileLayout()))
-            )
-        new_nodes.append(
-            g.call_function(ttnn.to_device, (new_nodes[-1] if new_nodes else src_node,), {"device": device})
-        )
+        new_nodes = [src_node]
+        if need_from_device:
+            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
+        if need_to_layout:
+            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout())))
+        if need_to_device:
+            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1],), {"device": device}))
+        new_nodes = new_nodes[1:]
 
     insert_node_between(src_node, dst_idx, dst_node, new_nodes)
 

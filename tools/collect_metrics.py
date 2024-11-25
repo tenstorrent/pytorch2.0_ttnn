@@ -221,8 +221,6 @@ class InputVarPerOp(defaultdict):
                 opname = op["opname"]
                 inputs = _join_br(op["inputs"])
                 self[opname][inputs]
-                if opname == "aten.cat.default":
-                    print(op)
             # If exist, map converted ops to the original op
             if compiled_schema_metrics:
                 # Hold ops that require revisiting the original dict to determine the status
@@ -232,8 +230,6 @@ class InputVarPerOp(defaultdict):
                         opname = op["opname"]
                         original_opname = op["original_inputs"]["opname"]
                         original_inputs = _join_br(op["original_inputs"]["inputs"])
-                        if opname == "aten.cat.default":
-                            print(op)
                         # NOTE(kevinwuTT): Some ttnn ops are wrapped, so they have no `ttnn` prefix. Should this be more strict?
                         if opname != original_opname:
                             # Some aten ops are converted to other aten ops

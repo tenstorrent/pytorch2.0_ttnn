@@ -12,6 +12,7 @@ class RemainderModule(torch.nn.Module):
         return input % mod
 
 
+@pytest.mark.skip_platform("grayskull")
 @pytest.mark.parametrize(
     "input_shape, mod, converted",
     [

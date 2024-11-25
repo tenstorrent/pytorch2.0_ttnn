@@ -214,6 +214,30 @@ aten_masked_fill_scalar_blocklist += [
 
 aten_mul_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 50258"]]
 
+# albert inputs that do not support TILE_LAYOUT
+aten_view_default_blocklist += [
+    # albert-base-v2-eval, albert-large-v2-eval
+    ["Tensor<[9, 30000]> self = ?", "List[int] size = [1, 9, 30000]"],
+    # albert-xlarge-v2-eval
+    ["Tensor<[9, 8192]> self = ?", "List[int] size = [1, 9, 8192]"],
+    ["Tensor<[1, 9, 8192]> self = ?", "List[int] size = [9, 8192]"],
+    # albert-xxlarge-v2-eval
+    ["Tensor<[9, 16384]> self = ?", "List[int] size = [1, 9, 16384]"],
+    ["Tensor<[1, 9, 16384]> self = ?", "List[int] size = [9, 16384]"],
+]
+
+# Falcon inputs that do not support TILE_LAYOUT
+aten_view_default_blocklist += [
+    ["Tensor<[7, 18176]> self = ?", "List[int] size = [1, 7, 18176]"],
+    ["Tensor<[1, 7, 18176]> self = ?", "List[int] size = [7, 18176]"],
+]
+
+# XGLM inputs that do not support TILE_LAYOUT
+aten_view_default_blocklist += [
+    ["Tensor<[19, 256008]> self = ?", "List[int] size = [1, 19, 256008]"],
+    ["Tensor<[1, 19, 256008]> self = ?", "List[int] size = [-1, 256008]"],
+]
+
 
 ############################################################
 # EXTRA BLOCKLIST OF GPTNeo

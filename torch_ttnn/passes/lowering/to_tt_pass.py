@@ -2,12 +2,13 @@ import torch
 import ttnn
 import math
 from torch_ttnn.utils import (
-    GraphCleanup,
-    HasValidPageSize,
+    graph_cleanup,
     TtnnBfloat16,
     TtnnDevice,
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
+    has_valid_page_size,
+    get_shape,
     TtnnTileLayout,
 )
 import numpy as np
@@ -138,6 +139,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         pseudo_node = PseudoNode(target, args, kwargs)
         if not can_lowering_to_ttnn(pseudo_node):
+            # Fallback: aten.reshape is more stable if the input nodes have changed
+            if target == torch.ops.aten.view.default or target == torch.ops.aten._unsafe_view.default:
+                target = torch.ops.aten.reshape.default
             return self.call_function_prop_meta(target, args, kwargs)
 
         if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
@@ -394,6 +398,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # assumes output size is (1, 1)
             return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
 
+        if target == torch.ops.aten.clone.default:
+            return args[0]
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
@@ -439,15 +446,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             args = node.args
             kwargs = node.kwargs
 
-            if node.target == torch.ops.aten.clone.default:
-                arg_metadata = node.meta["val"]
-                try:
-                    ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
-                except:
-                    return None
-                # Add additional logic to choose the appropriate memory_config type: DRAM or L1
-                return g.call_function(target_wrappers.clone, args=(args[0],))
-
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(
                     ttnn.layer_norm,
@@ -490,13 +488,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
                 # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
                 arg_metadata = node.meta["val"]
-                if HasValidPageSize(arg_metadata.size(), strict=True):
+                if has_valid_page_size(arg_metadata.size(), strict=True):
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
                     }
                     full_node = g.call_function(ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs)
+                    full_node = g.call_function(ttnn.to_layout, (full_node, TtnnTileLayout()), {})
                     return g.call_function(
                         relational_scalar_ops[node.target],
                         args=(args[0], full_node),
@@ -520,9 +518,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     new_kwargs = {
                         "fill_value": args[1],
                         "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
                     }
-                    return g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
+                    full = g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
+                    return g.call_function(ttnn.to_layout, (full, TtnnTileLayout()), {})
                 # Replace op with scalar for eltwise ops
                 # TODO: Generalize this to support all eltwise ops
                 node_users = list(node.users.keys())
@@ -569,52 +567,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.rsub.Scalar:
-                # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
-                # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
-                node_metadata = node.meta["val"]
-                shape = node_metadata.size()
-                # If last dim == 1, then the follow error will appear:
-                # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and HasValidPageSize(shape):
-                    # NOTE(kevinwuTT): Only bfloat16 seems to work for now
-                    # TODO(kevinwuTT): Use ttnn.full instead of aten
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                    }
-                    full = g.call_function(
-                        ttnn.full,
-                        args=(tuple(shape),),
-                        kwargs=new_kwargs,
-                    )
-                    to_layout = g.call_function(ttnn.to_layout, (full,), {"layout": TtnnTileLayout()})
-                    return g.call_function(ttnn.sub, args=(to_layout, args[0]), kwargs={})
-                return None
+                # aten.rsub(tensor, scalar) = sub(scalar, tensor)
+                # However, ttnn.sub does not support scalar as the first argument
+                # Instead: ttnn.add(ttnn.negate(tensor), scalar))
+                ttnn_neg = g.call_function(ttnn.neg, (args[0],))
+                return g.call_function(ttnn.add, (ttnn_neg, args[1]))
 
             if node.target == torch.ops.aten.div.Tensor:
-                # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
-                # TODO(kevinwuTT): Use a ttnn equivalent
-                node_metadata = node.meta["val"]
-                shape = node_metadata.size()
-                # If last dim == 1, then the follow error will appear:
-                # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and HasValidPageSize(shape):
-                    if isinstance(args[1], float):
-                        new_kwargs = {
-                            "fill_value": args[1],
-                            "device": TtnnDevice(),
-                        }
-                        full = g.call_function(
-                            ttnn.full,
-                            args=(tuple(shape),),
-                            kwargs=new_kwargs,
-                        )
-                        to_layout = g.call_function(ttnn.to_layout, (full,), {"layout": TtnnTileLayout()})
-                        recip = g.call_function(ttnn.reciprocal, (to_layout,), {})
-                    else:
-                        recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                if not isinstance(args[1], float) and (get_shape(args[0]) != get_shape(args[1])):
+                    recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     return g.call_function(ttnn.mul, (args[0], recip), {})
-                return None
+                return g.call_function(ttnn.div, args, {})
 
             if node.target == torch.ops.aten.expand.default:
                 input_tensor_shape = args[0].meta["val"].size()
@@ -691,11 +654,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
+                if len(get_shape(args[0])) > 4:
+                    return None
                 if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
                     # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
                     # squeezing is the same as reshaping to shape of output tensor of squeeze
                     output_size = list(node.meta["val"].size())
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
+                    # FIXME: Reshape has issues with 1D outputs for TILE_LAYOUT
+                    if len(output_size) > 1:
+                        return g.call_function(ttnn.reshape, args=(args[0], output_size))
+                    else:
+                        return None
                 else:
                     return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
 
@@ -704,6 +673,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if output_shape_num_element == 0:
                     return args[0]
                 output_size = list(node.meta["val"].size())
+                # FIXME: ttnn.reshape does not support > 4D outputs with TILE_LAYOUT currently
+                if len(output_size) > 4:
+                    return None
                 return g.call_function(ttnn.reshape, args=(args[0], output_size))
 
             if node.target in [torch.ops.aten.transpose.int, torch.ops.aten.t.default]:
@@ -773,10 +745,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
             if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
+                # Skip if either dimensions is larger than 5
                 input_tensor_num_element = args[0].meta["val"].numel()
                 output_shape_num_element = node.meta["val"].numel()
-                if input_tensor_num_element == 0 or output_shape_num_element == 0:
-                    return None
+                # Skip if either dimensions is larger than 5
+                if (
+                    input_tensor_num_element == 0
+                    or output_shape_num_element == 0
+                    or len(get_shape(args[0])) > 4
+                    or len(args[1]) > 4
+                    or len(args[1]) < 2
+                ):
+                    return g.call_function(torch.ops.aten.reshape.default, args, kwargs)
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
@@ -799,15 +779,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
+                src_dtype = node.args[0].meta["val"].dtype
+                dst_dtype = kwargs["dtype"]
                 # Keep it if casting to bool type(bool may be problematic)
-                if kwargs["dtype"] in [torch.bool]:
+                if dst_dtype in [torch.bool]:
                     return None
-                # Keep it if the graph output uses this op
+
+                # Keep it if the graph output uses this op, unless it's bfloat
                 target_users_ops = [user.target for user in node.users.keys()]
                 if "output" in target_users_ops:
                     return None
-                src_dtype = node.args[0].meta["val"].dtype
-                dst_dtype = kwargs["dtype"]
                 # Some aten op need it to cast specific dtype (ex, index_select)
                 # Keep it if casting from int to float or reverse
 
@@ -819,8 +800,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 if dst_dtype in [torch.int32, torch.int64] and src_dtype not in [torch.int32, torch.int64]:
                     return None
-                if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
-                    return None
+                # if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
+                #     return None
+
                 # Essentially remove this op
                 return node.args[0]
 
@@ -839,12 +821,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     multiplier = np_tensor_shp // np_mask_shp
                     mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
 
-                    kwargs = {"dtype": TtnnBfloat16(), "layout": TtnnTileLayout(), "device": TtnnDevice()}
+                    kwargs = {"dtype": TtnnBfloat16(), "layout": TtnnRowMajorLayout(), "device": TtnnDevice()}
                     ones = g.call_function(ttnn.ones, (tensor_shape,), kwargs)
                     mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
                     tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))
 
                     full = g.call_function(ttnn.full, (tensor_shape, fill_value), kwargs)
+                    full = g.call_function(ttnn.to_layout, (full, TtnnTileLayout()), {})
                     full_masked = g.call_function(ttnn.multiply, (mask_bcst, full))
 
                     masked_fill = g.call_function(ttnn.add, (tensor_masked, full_masked))
@@ -869,7 +852,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     if len(output_size) == 0:
                         return g.call_function(torch.ops.aten.squeeze.dim, args=(tensor, 0))
 
-                return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
+                if len(input_size) > 4 or len(output_size) > 4 or len(output_size) == 1:
+                    return g.call_function(torch.ops.aten.reshape.default, args=(slice_tensor, list(output_size)))
+                else:
+                    return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
 
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
@@ -970,7 +956,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     delete_user_cb=lambda node: node != new_node,
                 )
 
-    gm = GraphCleanup(gm)
+    gm = graph_cleanup(gm)
     return gm
 
 

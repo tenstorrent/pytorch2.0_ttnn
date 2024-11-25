@@ -20,6 +20,7 @@ class TransposeModule(torch.nn.Module):
         # If not, this runtime error will be thrown:
         # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:41: page_size % sizeof(uint32_t) == 0
         ((5, 3, 2), 0, 2),
+        ((1, 4150, 192), 1, 2),
         ((5, 3, 1), 0, 2),
         ((5, 3, 1), 1, 2),
         ((5, 3, 1), 0, 1),

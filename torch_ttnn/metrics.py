@@ -125,6 +125,8 @@ def collect_input_variation(target, args, kwargs):
             inputs.append(Inputs(dtype, name, shape, value))
 
         return InputVariation(target, inputs)
+    elif hasattr(target, "python_fully_qualified_name"):
+        return InputVariation(target.python_fully_qualified_name, [])
     else:
         return None
 
