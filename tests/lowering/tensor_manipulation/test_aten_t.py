@@ -34,29 +34,17 @@ def _t(device, input_shapes):
 @pytest.mark.parametrize(
     "input_shapes",
     [
+        [(5,)],
         [(1, 32)],
         [(1, 3)],
         [(12, 3)],
         [(1, 21843)],
         [(768, 21843)],
-        pytest.param((2, 1), marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
-        pytest.param((512, 1), marks=pytest.mark.xfail(reason="inner-most dim can't be 1 (#377)")),
+        [(2, 1)],
+        [(512, 1)],
     ],
 )
 def test_aten_t(device, input_shapes):
-    nodes = _t(device, input_shapes)
-    # Check the graph has be rewritten and aten ops are replaced
-    assert not any(node.target == torch.ops.aten.t.default for node in nodes)
-
-
-@pytest.mark.parametrize(
-    "input_shapes",
-    [
-        [5],
-        [(5)],
-    ],
-)
-def test_aten_t_less_2d(device, input_shapes):
     nodes = _t(device, input_shapes)
     # Check the graph has be rewritten and aten ops are replaced
     assert not any(node.target == torch.ops.aten.t.default for node in nodes)
