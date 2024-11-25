@@ -861,7 +861,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 if input_size.numel() != output_size.numel():
                     slice_start, slice_end = [0] * len(input_size), list(input_size)
-                    slice_start[dim], slice_end[dim] = start, start + 1
+                    slice_start[dim] = (start + input_size[dim]) % input_size[dim]
+                    slice_end[dim] = slice_start[dim] + 1
 
                     slice_tensor = g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
                 else:
