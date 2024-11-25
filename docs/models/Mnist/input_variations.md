@@ -1,19 +1,19 @@
 # High Level Operations Status
 |    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._log_softmax.default            |                  1 |           0 |         0 |          1 | ✘           |    0    |
-|  1 | aten.addmm.default                   |                  2 |           2 |         0 |          0 | ✅          |    1    |
-|  2 | aten.clone.default                   |                  2 |           2 |         0 |          0 | ✅          |    1    |
-|  3 | aten.convolution.default             |                  2 |           0 |         0 |          0 | ✘           |    0    |
-|  4 | aten.max_pool2d_with_indices.default |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  5 | aten.relu.default                    |                  3 |           1 |         0 |          2 | 🚧          |    0.33 |
-|  6 | aten.t.default                       |                  2 |           2 |         0 |          0 | ✅          |    1    |
-|  7 | aten.view.default                    |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  0 | aten._log_softmax.default            |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  1 | aten.addmm.default                   |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  2 | aten.clone.default                   |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  3 | aten.convolution.default             |                  2 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.max_pool2d_with_indices.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  5 | aten.relu.default                    |                  3 |           2 |         1 |          0 | ✅          |       1 |
+|  6 | aten.t.default                       |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  7 | aten.view.default                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._log_softmax.default
 |    | ATen Input Variations                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1,<br>bool half_to_float = False | Fallback | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1,<br>bool half_to_float = False | Removed  | Done       | True  |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -32,13 +32,13 @@
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 64, 24, 24]> self = ?,<br>List[int] kernel_size = [2, 2] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 64, 24, 24]> self = ?,<br>List[int] kernel_size = [2, 2] | Done     | Done       | True  |
 ### aten.relu.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 128]> self = ?        | Done     | Done       | True  |
-|  1 | Tensor<[1, 32, 26, 26]> self = ? | Fallback | Done       | True  |
-|  2 | Tensor<[1, 64, 24, 24]> self = ? | Fallback | Done       | True  |
+|  1 | Tensor<[1, 32, 26, 26]> self = ? | Removed  | Done       | True  |
+|  2 | Tensor<[1, 64, 24, 24]> self = ? | Done     | Done       | True  |
 ### aten.t.default
 |    | ATen Input Variations        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------|:---------|:-----------|:------|

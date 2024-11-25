@@ -1,26 +1,26 @@
 # High Level Operations Status
 |    | Operations                                    |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:----------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._log_softmax.default                     |                  1 |           0 |         0 |          1 | ✘           |    0    |
-|  1 | aten._log_softmax_backward_data.default       |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  2 | aten.addmm.default                            |                  2 |           2 |         0 |          0 | ✅          |    1    |
-|  3 | aten.clone.default                            |                  2 |           1 |         0 |          1 | 🚧          |    0.5  |
-|  4 | aten.convolution.default                      |                  2 |           0 |         0 |          0 | ✘           |    0    |
-|  5 | aten.convolution_backward.default             |                  2 |           0 |         0 |          0 | ✘           |    0    |
-|  6 | aten.detach.default                           |                  4 |           0 |         0 |          0 | ✘           |    0    |
-|  7 | aten.max_pool2d_with_indices.default          |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  8 | aten.max_pool2d_with_indices_backward.default |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  9 | aten.mm.default                               |                  4 |           3 |         0 |          1 | 🚧          |    0.75 |
-| 10 | aten.relu.default                             |                  3 |           0 |         0 |          3 | ✘           |    0    |
-| 11 | aten.sum.dim_IntList                          |                  2 |           0 |         0 |          0 | ✘           |    0    |
-| 12 | aten.t.default                                |                  6 |           4 |         0 |          2 | 🚧          |    0.67 |
-| 13 | aten.threshold_backward.default               |                  3 |           0 |         0 |          0 | ✘           |    0    |
-| 14 | aten.view.default                             |                  4 |           0 |         0 |          4 | ✘           |    0    |
+|  0 | aten._log_softmax.default                     |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  1 | aten._log_softmax_backward_data.default       |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  2 | aten.addmm.default                            |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  3 | aten.clone.default                            |                  2 |           1 |         1 |          0 | ✅          |       1 |
+|  4 | aten.convolution.default                      |                  2 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.convolution_backward.default             |                  2 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.detach.default                           |                  4 |           0 |         0 |          0 | ✘           |       0 |
+|  7 | aten.max_pool2d_with_indices.default          |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  8 | aten.max_pool2d_with_indices_backward.default |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  9 | aten.mm.default                               |                  4 |           3 |         1 |          0 | ✅          |       1 |
+| 10 | aten.relu.default                             |                  3 |           0 |         3 |          0 | ✅          |       1 |
+| 11 | aten.sum.dim_IntList                          |                  2 |           0 |         0 |          0 | ✘           |       0 |
+| 12 | aten.t.default                                |                  6 |           6 |         0 |          0 | ✅          |       1 |
+| 13 | aten.threshold_backward.default               |                  3 |           0 |         0 |          0 | ✘           |       0 |
+| 14 | aten.view.default                             |                  4 |           0 |         4 |          0 | ✅          |       1 |
 ***
 ### aten._log_softmax.default
 |    | ATen Input Variations                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1,<br>bool half_to_float = False | Fallback | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1,<br>bool half_to_float = False | Removed  | Done       | True  |
 ### aten._log_softmax_backward_data.default
 |    | ATen Input Variations                                                                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -33,7 +33,7 @@
 ### aten.clone.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128]> self = ?        | Fallback | Done       | True  |
+|  0 | Tensor<[1, 128]> self = ?        | Removed  | Done       | True  |
 |  1 | Tensor<[1, 64, 12, 12]> self = ? | Done     | Done       | True  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                         | Status   | Isolated   | PCC   |
@@ -63,16 +63,16 @@
 ### aten.mm.default
 |    | ATen Input Variations                                      | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 128]> mat2 = ?    | Fallback | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>Tensor<[10, 128]> mat2 = ?    | Removed  | Done       | True  |
 |  1 | Tensor<[1, 128]> self = ?,<br>Tensor<[128, 9216]> mat2 = ? | Done     | Done       | True  |
 |  2 | Tensor<[10, 1]> self = ?,<br>Tensor<[1, 128]> mat2 = ?     | Done     | Done       | True  |
 |  3 | Tensor<[128, 1]> self = ?,<br>Tensor<[1, 9216]> mat2 = ?   | Done     | Done       | True  |
 ### aten.relu.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128]> self = ?        | Fallback | Done       | True  |
-|  1 | Tensor<[1, 32, 26, 26]> self = ? | Fallback | Done       | True  |
-|  2 | Tensor<[1, 64, 24, 24]> self = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1, 128]> self = ?        | Removed  | Done       | True  |
+|  1 | Tensor<[1, 32, 26, 26]> self = ? | Removed  | Done       | True  |
+|  2 | Tensor<[1, 64, 24, 24]> self = ? | Removed  | Done       | True  |
 ### aten.sum.dim_IntList
 |    | ATen Input Variations                                                               | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -84,9 +84,9 @@
 |  0 | Tensor<[1, 10]> self = ?     | Done     | Done       | True  |
 |  1 | Tensor<[1, 128]> self = ?    | Done     | Done       | True  |
 |  2 | Tensor<[10, 128]> self = ?   | Done     | Done       | True  |
-|  3 | Tensor<[128, 10]> self = ?   | Fallback | Done       | True  |
+|  3 | Tensor<[128, 10]> self = ?   | Done     | Done       | True  |
 |  4 | Tensor<[128, 9216]> self = ? | Done     | Done       | True  |
-|  5 | Tensor<[9216, 128]> self = ? | Fallback | Done       | True  |
+|  5 | Tensor<[9216, 128]> self = ? | Done     | Done       | True  |
 ### aten.threshold_backward.default
 |    | ATen Input Variations                                                                                 | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -96,8 +96,8 @@
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>List[int] size = [10]              | Fallback | Done       | True  |
-|  1 | Tensor<[1, 128]> self = ?,<br>List[int] size = [128]            | Fallback | Done       | True  |
-|  2 | Tensor<[1, 64, 12, 12]> self = ?,<br>List[int] size = [1, 9216] | Fallback | Done       | True  |
-|  3 | Tensor<[1, 9216]> self = ?,<br>List[int] size = [1, 64, 12, 12] | Fallback | Done       | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>List[int] size = [10]              | Removed  | Done       | True  |
+|  1 | Tensor<[1, 128]> self = ?,<br>List[int] size = [128]            | Removed  | Done       | True  |
+|  2 | Tensor<[1, 64, 12, 12]> self = ?,<br>List[int] size = [1, 9216] | Removed  | Done       | True  |
+|  3 | Tensor<[1, 9216]> self = ?,<br>List[int] size = [1, 64, 12, 12] | Removed  | Done       | True  |
 

@@ -1,13 +1,13 @@
 # High Level Operations Status
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                 10 |           0 |         0 |          0 | ✘           |     0   |
-|  1 | aten.addmm.default                                |                  1 |           0 |         0 |          1 | ✘           |     0   |
-|  2 | aten.convolution.default                          |                 19 |           0 |         0 |          0 | ✘           |     0   |
-|  3 | aten.hardtanh.default                             |                 10 |           1 |         0 |          9 | 🚧          |     0.1 |
-|  4 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |     1   |
-|  5 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |     1   |
-|  6 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  0 | aten._native_batch_norm_legit_no_training.default |                 10 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.addmm.default                                |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  2 | aten.convolution.default                          |                 19 |           0 |         0 |          0 | ✘           |       0 |
+|  3 | aten.hardtanh.default                             |                 10 |           1 |         9 |          0 | ✅          |       1 |
+|  4 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  5 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  6 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                 | Status   | Isolated   | PCC   |
@@ -25,7 +25,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ? | Removed  | Done       | True  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                       | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -52,19 +52,19 @@
 |    | ATen Input Variations                                                                | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
-|  1 | Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
-|  2 | Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
-|  3 | Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
-|  4 | Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
-|  5 | Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Fallback | Done       | True  |
-|  6 | Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Fallback | Done       | True  |
-|  7 | Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | Fallback | Done       | True  |
-|  8 | Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Fallback | Done       | True  |
-|  9 | Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Fallback | Done       | True  |
+|  1 | Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Removed  | Done       | True  |
+|  2 | Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Removed  | Done       | True  |
+|  3 | Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Removed  | Done       | True  |
+|  4 | Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Removed  | Done       | True  |
+|  5 | Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Removed  | Done       | True  |
+|  6 | Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Removed  | Done       | True  |
+|  7 | Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0    | Removed  | Done       | True  |
+|  8 | Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Removed  | Done       | True  |
+|  9 | Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
 ### aten.mean.dim
 |    | ATen Input Variations                                                                           | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
+|  0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | False |
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   | PCC   |
 |---:|:------------------------------|:---------|:-----------|:------|

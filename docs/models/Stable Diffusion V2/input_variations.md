@@ -41,8 +41,8 @@
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                                | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 8, 4096, 40]> query = ?,<br>Tensor<[1, 8, 4096, 40]> key = ?,<br>Tensor<[1, 8, 4096, 40]> value = ?       | Unknown  | Fallback   | False |
-|  1 | Tensor<[1, 8, 4096, 40]> query = ?,<br>Tensor<[1, 8, 9, 40]> key = ?,<br>Tensor<[1, 8, 9, 40]> value = ?             | Unknown  | Fallback   | False |
+|  0 | Tensor<[1, 8, 4096, 40]> query = ?,<br>Tensor<[1, 8, 4096, 40]> key = ?,<br>Tensor<[1, 8, 4096, 40]> value = ?       | Unknown  | Fallback   | True  |
+|  1 | Tensor<[1, 8, 4096, 40]> query = ?,<br>Tensor<[1, 8, 9, 40]> key = ?,<br>Tensor<[1, 8, 9, 40]> value = ?             | Unknown  | Fallback   | True  |
 |  2 | Tensor<[1, 8, s0*s1, 160]> query = ?,<br>Tensor<[1, 8, 9, 160]> key = ?,<br>Tensor<[1, 8, 9, 160]> value = ?         | Unknown  | Unknown    | N/A   |
 |  3 | Tensor<[1, 8, s0*s1, 160]> query = ?,<br>Tensor<[1, 8, s0*s1, 160]> key = ?,<br>Tensor<[1, 8, s0*s1, 160]> value = ? | Unknown  | Unknown    | N/A   |
 |  4 | Tensor<[1, 8, s0*s1, 80]> query = ?,<br>Tensor<[1, 8, 9, 80]> key = ?,<br>Tensor<[1, 8, 9, 80]> value = ?            | Unknown  | Unknown    | N/A   |
@@ -432,13 +432,13 @@
 |    | ATen Input Variations                         | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1280, 1]> self = ?,<br>int dim = 3 | Unknown  | Done       | True  |
-|  1 | Tensor<[1, 1280]> self = ?,<br>int dim = 2    | Unknown  | Fallback   | True  |
+|  1 | Tensor<[1, 1280]> self = ?,<br>int dim = 2    | Unknown  | Done       | True  |
 |  2 | Tensor<[1, 320, 1]> self = ?,<br>int dim = 3  | Unknown  | Done       | True  |
-|  3 | Tensor<[1, 320]> self = ?,<br>int dim = 2     | Unknown  | Fallback   | True  |
+|  3 | Tensor<[1, 320]> self = ?,<br>int dim = 2     | Unknown  | Done       | True  |
 |  4 | Tensor<[1, 640, 1]> self = ?,<br>int dim = 3  | Unknown  | Done       | True  |
-|  5 | Tensor<[1, 640]> self = ?,<br>int dim = 2     | Unknown  | Fallback   | True  |
+|  5 | Tensor<[1, 640]> self = ?,<br>int dim = 2     | Unknown  | Done       | True  |
 |  6 | Tensor<[160]> self = ?,<br>int dim = 0        | Unknown  | Done       | True  |
-|  7 | Tensor<[16]> self = ?,<br>int dim = -1        | Unknown  | Fallback   | True  |
+|  7 | Tensor<[16]> self = ?,<br>int dim = -1        | Unknown  | Done       | True  |
 |  8 | Tensor<[1]> self = ?,<br>int dim = 1          | Unknown  | Done       | True  |
 |  9 | Tensor<[2*s0]> self = ?,<br>int dim = -1      | Unknown  | Unknown    | N/A   |
 | 10 | Tensor<[2*s1]> self = ?,<br>int dim = -1      | Unknown  | Unknown    | N/A   |

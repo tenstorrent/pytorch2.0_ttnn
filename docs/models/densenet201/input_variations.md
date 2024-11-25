@@ -1,16 +1,16 @@
 # High Level Operations Status
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                105 |           0 |         0 |          0 | ✘           |    0    |
-|  1 | aten.addmm.default                                |                  1 |           0 |         0 |          1 | ✘           |    0    |
-|  2 | aten.avg_pool2d.default                           |                  3 |           0 |         0 |          0 | ✘           |    0    |
-|  3 | aten.cat.default                                  |                102 |           0 |         0 |          0 | ✘           |    0    |
-|  4 | aten.convolution.default                          |                106 |           0 |         0 |          0 | ✘           |    0    |
-|  5 | aten.max_pool2d_with_indices.default              |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  6 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  7 | aten.relu.default                                 |                105 |           1 |         0 |        104 | 🚧          |    0.01 |
-|  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  9 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  0 | aten._native_batch_norm_legit_no_training.default |                105 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.addmm.default                                |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  2 | aten.avg_pool2d.default                           |                  3 |           0 |         0 |          0 | ✘           |       0 |
+|  3 | aten.cat.default                                  |                102 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.convolution.default                          |                106 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.max_pool2d_with_indices.default              |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  6 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  7 | aten.relu.default                                 |                105 |           2 |       103 |          0 | ✅          |       1 |
+|  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  9 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |     | ATen Input Variations                                                                                                                                                                                                                   | Status   | Isolated   | PCC   |
@@ -123,7 +123,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1920]> mat1 = ?,<br>Tensor<[1920, 1000]> mat2 = ? | Fallback | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1920]> mat1 = ?,<br>Tensor<[1920, 1000]> mat2 = ? | Removed  | Done       | True  |
 ### aten.avg_pool2d.default
 |    | ATen Input Variations                                                                              | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -347,119 +347,119 @@
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                                                                                              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 64, 112, 112]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 64, 112, 112]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1] | Done     | Done       | True  |
 ### aten.mean.dim
 |    | ATen Input Variations                                                                           | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1920, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
+|  0 | Tensor<[1, 1920, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | False |
 ### aten.relu.default
 |     | ATen Input Variations              | Status   | Isolated   | PCC   |
 |----:|:-----------------------------------|:---------|:-----------|:------|
-|   0 | Tensor<[1, 1024, 14, 14]> self = ? | Fallback | Done       | True  |
-|   1 | Tensor<[1, 1024, 7, 7]> self = ?   | Fallback | Done       | True  |
-|   2 | Tensor<[1, 1056, 14, 14]> self = ? | Fallback | Done       | True  |
-|   3 | Tensor<[1, 1056, 7, 7]> self = ?   | Fallback | Done       | True  |
-|   4 | Tensor<[1, 1088, 14, 14]> self = ? | Fallback | Done       | True  |
-|   5 | Tensor<[1, 1088, 7, 7]> self = ?   | Fallback | Done       | True  |
-|   6 | Tensor<[1, 1120, 14, 14]> self = ? | Fallback | Done       | True  |
-|   7 | Tensor<[1, 1120, 7, 7]> self = ?   | Fallback | Done       | True  |
-|   8 | Tensor<[1, 1152, 14, 14]> self = ? | Fallback | Done       | True  |
-|   9 | Tensor<[1, 1152, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  10 | Tensor<[1, 1184, 14, 14]> self = ? | Fallback | Done       | True  |
-|  11 | Tensor<[1, 1184, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  12 | Tensor<[1, 1216, 14, 14]> self = ? | Fallback | Done       | True  |
-|  13 | Tensor<[1, 1216, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  14 | Tensor<[1, 1248, 14, 14]> self = ? | Fallback | Done       | True  |
-|  15 | Tensor<[1, 1248, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  16 | Tensor<[1, 128, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  17 | Tensor<[1, 128, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  18 | Tensor<[1, 128, 56, 56]> self = ?  | Fallback | Done       | True  |
-|  19 | Tensor<[1, 128, 7, 7]> self = ?    | Fallback | Done       | True  |
-|  20 | Tensor<[1, 1280, 14, 14]> self = ? | Fallback | Done       | True  |
-|  21 | Tensor<[1, 1280, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  22 | Tensor<[1, 1312, 14, 14]> self = ? | Fallback | Done       | True  |
-|  23 | Tensor<[1, 1312, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  24 | Tensor<[1, 1344, 14, 14]> self = ? | Fallback | Done       | True  |
-|  25 | Tensor<[1, 1344, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  26 | Tensor<[1, 1376, 14, 14]> self = ? | Fallback | Done       | True  |
-|  27 | Tensor<[1, 1376, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  28 | Tensor<[1, 1408, 14, 14]> self = ? | Fallback | Done       | True  |
-|  29 | Tensor<[1, 1408, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  30 | Tensor<[1, 1440, 14, 14]> self = ? | Fallback | Done       | True  |
-|  31 | Tensor<[1, 1440, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  32 | Tensor<[1, 1472, 14, 14]> self = ? | Fallback | Done       | True  |
-|  33 | Tensor<[1, 1472, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  34 | Tensor<[1, 1504, 14, 14]> self = ? | Fallback | Done       | True  |
-|  35 | Tensor<[1, 1504, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  36 | Tensor<[1, 1536, 14, 14]> self = ? | Fallback | Done       | True  |
-|  37 | Tensor<[1, 1536, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  38 | Tensor<[1, 1568, 14, 14]> self = ? | Fallback | Done       | True  |
-|  39 | Tensor<[1, 1568, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  40 | Tensor<[1, 160, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  41 | Tensor<[1, 160, 56, 56]> self = ?  | Fallback | Done       | True  |
-|  42 | Tensor<[1, 1600, 14, 14]> self = ? | Fallback | Done       | True  |
-|  43 | Tensor<[1, 1600, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  44 | Tensor<[1, 1632, 14, 14]> self = ? | Fallback | Done       | True  |
-|  45 | Tensor<[1, 1632, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  46 | Tensor<[1, 1664, 14, 14]> self = ? | Fallback | Done       | True  |
-|  47 | Tensor<[1, 1664, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  48 | Tensor<[1, 1696, 14, 14]> self = ? | Fallback | Done       | True  |
-|  49 | Tensor<[1, 1696, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  50 | Tensor<[1, 1728, 14, 14]> self = ? | Fallback | Done       | True  |
-|  51 | Tensor<[1, 1728, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  52 | Tensor<[1, 1760, 14, 14]> self = ? | Fallback | Done       | True  |
-|  53 | Tensor<[1, 1760, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  54 | Tensor<[1, 1792, 14, 14]> self = ? | Fallback | Done       | True  |
-|  55 | Tensor<[1, 1792, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  56 | Tensor<[1, 1824, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  57 | Tensor<[1, 1856, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  58 | Tensor<[1, 1888, 7, 7]> self = ?   | Fallback | Done       | True  |
-|  59 | Tensor<[1, 192, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  60 | Tensor<[1, 192, 56, 56]> self = ?  | Fallback | Done       | True  |
+|   0 | Tensor<[1, 1024, 14, 14]> self = ? | Removed  | Done       | True  |
+|   1 | Tensor<[1, 1024, 7, 7]> self = ?   | Removed  | Done       | True  |
+|   2 | Tensor<[1, 1056, 14, 14]> self = ? | Removed  | Done       | True  |
+|   3 | Tensor<[1, 1056, 7, 7]> self = ?   | Removed  | Done       | True  |
+|   4 | Tensor<[1, 1088, 14, 14]> self = ? | Removed  | Done       | True  |
+|   5 | Tensor<[1, 1088, 7, 7]> self = ?   | Removed  | Done       | True  |
+|   6 | Tensor<[1, 1120, 14, 14]> self = ? | Removed  | Done       | True  |
+|   7 | Tensor<[1, 1120, 7, 7]> self = ?   | Removed  | Done       | True  |
+|   8 | Tensor<[1, 1152, 14, 14]> self = ? | Removed  | Done       | True  |
+|   9 | Tensor<[1, 1152, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  10 | Tensor<[1, 1184, 14, 14]> self = ? | Removed  | Done       | True  |
+|  11 | Tensor<[1, 1184, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  12 | Tensor<[1, 1216, 14, 14]> self = ? | Removed  | Done       | True  |
+|  13 | Tensor<[1, 1216, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  14 | Tensor<[1, 1248, 14, 14]> self = ? | Removed  | Done       | True  |
+|  15 | Tensor<[1, 1248, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  16 | Tensor<[1, 128, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  17 | Tensor<[1, 128, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  18 | Tensor<[1, 128, 56, 56]> self = ?  | Removed  | Done       | True  |
+|  19 | Tensor<[1, 128, 7, 7]> self = ?    | Removed  | Done       | True  |
+|  20 | Tensor<[1, 1280, 14, 14]> self = ? | Removed  | Done       | True  |
+|  21 | Tensor<[1, 1280, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  22 | Tensor<[1, 1312, 14, 14]> self = ? | Removed  | Done       | True  |
+|  23 | Tensor<[1, 1312, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  24 | Tensor<[1, 1344, 14, 14]> self = ? | Removed  | Done       | True  |
+|  25 | Tensor<[1, 1344, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  26 | Tensor<[1, 1376, 14, 14]> self = ? | Removed  | Done       | True  |
+|  27 | Tensor<[1, 1376, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  28 | Tensor<[1, 1408, 14, 14]> self = ? | Removed  | Done       | True  |
+|  29 | Tensor<[1, 1408, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  30 | Tensor<[1, 1440, 14, 14]> self = ? | Removed  | Done       | True  |
+|  31 | Tensor<[1, 1440, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  32 | Tensor<[1, 1472, 14, 14]> self = ? | Removed  | Done       | True  |
+|  33 | Tensor<[1, 1472, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  34 | Tensor<[1, 1504, 14, 14]> self = ? | Removed  | Done       | True  |
+|  35 | Tensor<[1, 1504, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  36 | Tensor<[1, 1536, 14, 14]> self = ? | Removed  | Done       | True  |
+|  37 | Tensor<[1, 1536, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  38 | Tensor<[1, 1568, 14, 14]> self = ? | Removed  | Done       | True  |
+|  39 | Tensor<[1, 1568, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  40 | Tensor<[1, 160, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  41 | Tensor<[1, 160, 56, 56]> self = ?  | Removed  | Done       | True  |
+|  42 | Tensor<[1, 1600, 14, 14]> self = ? | Removed  | Done       | True  |
+|  43 | Tensor<[1, 1600, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  44 | Tensor<[1, 1632, 14, 14]> self = ? | Removed  | Done       | True  |
+|  45 | Tensor<[1, 1632, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  46 | Tensor<[1, 1664, 14, 14]> self = ? | Removed  | Done       | True  |
+|  47 | Tensor<[1, 1664, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  48 | Tensor<[1, 1696, 14, 14]> self = ? | Removed  | Done       | True  |
+|  49 | Tensor<[1, 1696, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  50 | Tensor<[1, 1728, 14, 14]> self = ? | Removed  | Done       | True  |
+|  51 | Tensor<[1, 1728, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  52 | Tensor<[1, 1760, 14, 14]> self = ? | Removed  | Done       | True  |
+|  53 | Tensor<[1, 1760, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  54 | Tensor<[1, 1792, 14, 14]> self = ? | Removed  | Done       | True  |
+|  55 | Tensor<[1, 1792, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  56 | Tensor<[1, 1824, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  57 | Tensor<[1, 1856, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  58 | Tensor<[1, 1888, 7, 7]> self = ?   | Removed  | Done       | True  |
+|  59 | Tensor<[1, 192, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  60 | Tensor<[1, 192, 56, 56]> self = ?  | Removed  | Done       | True  |
 |  61 | Tensor<[1, 1920, 7, 7]> self = ?   | Done     | Done       | True  |
-|  62 | Tensor<[1, 224, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  63 | Tensor<[1, 224, 56, 56]> self = ?  | Fallback | Done       | True  |
-|  64 | Tensor<[1, 256, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  65 | Tensor<[1, 256, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  66 | Tensor<[1, 256, 56, 56]> self = ?  | Fallback | Done       | True  |
-|  67 | Tensor<[1, 288, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  68 | Tensor<[1, 288, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  69 | Tensor<[1, 320, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  70 | Tensor<[1, 320, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  71 | Tensor<[1, 352, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  72 | Tensor<[1, 352, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  73 | Tensor<[1, 384, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  74 | Tensor<[1, 384, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  75 | Tensor<[1, 416, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  76 | Tensor<[1, 416, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  77 | Tensor<[1, 448, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  78 | Tensor<[1, 448, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  79 | Tensor<[1, 480, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  80 | Tensor<[1, 480, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  81 | Tensor<[1, 512, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  82 | Tensor<[1, 512, 28, 28]> self = ?  | Fallback | Done       | True  |
-|  83 | Tensor<[1, 544, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  84 | Tensor<[1, 576, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  85 | Tensor<[1, 608, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  86 | Tensor<[1, 64, 112, 112]> self = ? | Fallback | Done       | True  |
-|  87 | Tensor<[1, 64, 56, 56]> self = ?   | Fallback | Done       | True  |
-|  88 | Tensor<[1, 640, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  89 | Tensor<[1, 672, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  90 | Tensor<[1, 704, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  91 | Tensor<[1, 736, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  92 | Tensor<[1, 768, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  93 | Tensor<[1, 800, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  94 | Tensor<[1, 832, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  95 | Tensor<[1, 864, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  96 | Tensor<[1, 896, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  97 | Tensor<[1, 896, 7, 7]> self = ?    | Fallback | Done       | True  |
-|  98 | Tensor<[1, 928, 14, 14]> self = ?  | Fallback | Done       | True  |
-|  99 | Tensor<[1, 928, 7, 7]> self = ?    | Fallback | Done       | True  |
-| 100 | Tensor<[1, 96, 56, 56]> self = ?   | Fallback | Done       | True  |
-| 101 | Tensor<[1, 960, 14, 14]> self = ?  | Fallback | Done       | True  |
-| 102 | Tensor<[1, 960, 7, 7]> self = ?    | Fallback | Done       | True  |
-| 103 | Tensor<[1, 992, 14, 14]> self = ?  | Fallback | Done       | True  |
-| 104 | Tensor<[1, 992, 7, 7]> self = ?    | Fallback | Done       | True  |
+|  62 | Tensor<[1, 224, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  63 | Tensor<[1, 224, 56, 56]> self = ?  | Removed  | Done       | True  |
+|  64 | Tensor<[1, 256, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  65 | Tensor<[1, 256, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  66 | Tensor<[1, 256, 56, 56]> self = ?  | Removed  | Done       | True  |
+|  67 | Tensor<[1, 288, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  68 | Tensor<[1, 288, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  69 | Tensor<[1, 320, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  70 | Tensor<[1, 320, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  71 | Tensor<[1, 352, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  72 | Tensor<[1, 352, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  73 | Tensor<[1, 384, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  74 | Tensor<[1, 384, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  75 | Tensor<[1, 416, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  76 | Tensor<[1, 416, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  77 | Tensor<[1, 448, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  78 | Tensor<[1, 448, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  79 | Tensor<[1, 480, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  80 | Tensor<[1, 480, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  81 | Tensor<[1, 512, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  82 | Tensor<[1, 512, 28, 28]> self = ?  | Removed  | Done       | True  |
+|  83 | Tensor<[1, 544, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  84 | Tensor<[1, 576, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  85 | Tensor<[1, 608, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  86 | Tensor<[1, 64, 112, 112]> self = ? | Done     | Done       | True  |
+|  87 | Tensor<[1, 64, 56, 56]> self = ?   | Removed  | Done       | True  |
+|  88 | Tensor<[1, 640, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  89 | Tensor<[1, 672, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  90 | Tensor<[1, 704, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  91 | Tensor<[1, 736, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  92 | Tensor<[1, 768, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  93 | Tensor<[1, 800, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  94 | Tensor<[1, 832, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  95 | Tensor<[1, 864, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  96 | Tensor<[1, 896, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  97 | Tensor<[1, 896, 7, 7]> self = ?    | Removed  | Done       | True  |
+|  98 | Tensor<[1, 928, 14, 14]> self = ?  | Removed  | Done       | True  |
+|  99 | Tensor<[1, 928, 7, 7]> self = ?    | Removed  | Done       | True  |
+| 100 | Tensor<[1, 96, 56, 56]> self = ?   | Removed  | Done       | True  |
+| 101 | Tensor<[1, 960, 14, 14]> self = ?  | Removed  | Done       | True  |
+| 102 | Tensor<[1, 960, 7, 7]> self = ?    | Removed  | Done       | True  |
+| 103 | Tensor<[1, 992, 14, 14]> self = ?  | Removed  | Done       | True  |
+| 104 | Tensor<[1, 992, 7, 7]> self = ?    | Removed  | Done       | True  |
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   | PCC   |
 |---:|:------------------------------|:---------|:-----------|:------|

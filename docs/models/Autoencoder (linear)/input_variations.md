@@ -1,9 +1,9 @@
 # High Level Operations Status
 |    | Operations         |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten.addmm.default |                  8 |           7 |         0 |          1 | 🚧          |    0.88 |
-|  1 | aten.relu.default  |                  3 |           3 |         0 |          0 | ✅          |    1    |
-|  2 | aten.t.default     |                  8 |           8 |         0 |          0 | ✅          |    1    |
+|  0 | aten.addmm.default |                  8 |           7 |         1 |          0 | ✅          |       1 |
+|  1 | aten.relu.default  |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  2 | aten.t.default     |                  8 |           8 |         0 |          0 | ✅          |       1 |
 ***
 ### aten.addmm.default
 |    | ATen Input Variations                                                                | Status   | Isolated   | PCC   |
@@ -15,7 +15,7 @@
 |  4 | Tensor<[3]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 3]> mat2 = ?       | Done     | Done       | True  |
 |  5 | Tensor<[64]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 64]> mat2 = ?   | Done     | Done       | True  |
 |  6 | Tensor<[64]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 64]> mat2 = ?     | Done     | Done       | True  |
-|  7 | Tensor<[784]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 784]> mat2 = ? | Fallback | Done       | True  |
+|  7 | Tensor<[784]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 784]> mat2 = ? | Removed  | Done       | True  |
 ### aten.relu.default
 |    | ATen Input Variations     | Status   | Isolated   | PCC   |
 |---:|:--------------------------|:---------|:-----------|:------|

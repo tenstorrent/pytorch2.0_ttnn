@@ -1,13 +1,13 @@
 # High Level Operations Status
 |    | Operations             |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-----------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten.all.default       |                  1 |           0 |         0 |          0 | ✘           |     0   |
-|  1 | aten.arange.start      |                  1 |           0 |         1 |          0 | ✅          |     1   |
-|  2 | aten.embedding.default |                  1 |           0 |         0 |          1 | ✘           |     0   |
-|  3 | aten.eq.Scalar         |                  1 |           0 |         0 |          0 | ✘           |     0   |
-|  4 | aten.index.Tensor      |                  1 |           0 |         0 |          0 | ✘           |     0   |
-|  5 | aten.slice.Tensor      |                  1 |           0 |         0 |          1 | ✘           |     0   |
-|  6 | aten.unsqueeze.default |                  2 |           0 |         1 |          1 | 🚧          |     0.5 |
+|  0 | aten.all.default       |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  1 | aten.arange.start      |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  2 | aten.embedding.default |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  3 | aten.eq.Scalar         |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  4 | aten.index.Tensor      |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.slice.Tensor      |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  6 | aten.unsqueeze.default |                  2 |           0 |         2 |          0 | ✅          |       1 |
 ***
 ### aten.all.default
 |    | ATen Input Variations   | Status   | Isolated   | PCC   |
@@ -20,7 +20,7 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ? | Fallback | Done       | True  |
+|  0 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ? | Removed  | Done       | True  |
 ### aten.eq.Scalar
 |    | ATen Input Variations                        | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------|:---------|:-----------|:------|
@@ -32,10 +32,10 @@
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                             | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2048, 64]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 7 | Fallback | Done       | True  |
+|  0 | Tensor<[2048, 64]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 7 | Removed  | Done       | True  |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                       | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 7, 64]> self = ?,<br>int dim = 1 | Fallback | Done       | True  |
+|  0 | Tensor<[1, 7, 64]> self = ?,<br>int dim = 1 | Removed  | Done       | True  |
 |  1 | Tensor<[7]> self = ?,<br>int dim = 0        | Removed  | Done       | True  |
 

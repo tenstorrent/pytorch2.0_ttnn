@@ -2,39 +2,39 @@
 |     | ATen Input Variations                                                             | Status   | Isolated   | PCC   |
 |----:|:----------------------------------------------------------------------------------|:---------|:-----------|:------|
 |   0 | Tensor<[1, 1, 1, 16, 1]> self = ?,<br>List[int] size = [1, 1, 1, 16, 2]           | Unknown  | Fallback   | True  |
-|   1 | Tensor<[1, 1, 1, 16]> self = ?,<br>List[int] size = [1, 12, 16, 16]               | Fallback | Done       | True  |
-|   2 | Tensor<[1, 1, 1, 19]> self = ?,<br>List[int] size = [1, 1, 19, 19]                | None     | Fallback   | True  |
+|   1 | Tensor<[1, 1, 1, 16]> self = ?,<br>List[int] size = [1, 12, 16, 16]               | Removed  | Done       | True  |
+|   2 | Tensor<[1, 1, 1, 19]> self = ?,<br>List[int] size = [1, 1, 19, 19]                | Done     | Done       | True  |
 |   3 | Tensor<[1, 1, 1, 24]> self = ?,<br>List[int] size = [1, 1, 1, 24]                 | Removed  | Fallback   | True  |
-|   4 | Tensor<[1, 1, 1, 24]> self = ?,<br>List[int] size = [1, 1, 24, 24]                | Fallback | Done       | True  |
-|   5 | Tensor<[1, 1, 1, 32]> self = ?,<br>List[int] size = [1, 1, 32, 32]                | Fallback | Done       | True  |
-|   6 | Tensor<[1, 1, 1, 45]> self = ?,<br>List[int] size = [1, 1, 45, 45]                | Unknown  | Fallback   | True  |
+|   4 | Tensor<[1, 1, 1, 24]> self = ?,<br>List[int] size = [1, 1, 24, 24]                | Done     | Done       | True  |
+|   5 | Tensor<[1, 1, 1, 32]> self = ?,<br>List[int] size = [1, 1, 32, 32]                | Done     | Done       | True  |
+|   6 | Tensor<[1, 1, 1, 45]> self = ?,<br>List[int] size = [1, 1, 45, 45]                | Unknown  | Done       | True  |
 |   7 | Tensor<[1, 1, 1, 46]> self = ?,<br>List[int] size = [1, 1, 1, 46]                 | Unknown  | Fallback   | True  |
-|   8 | Tensor<[1, 1, 1, 59]> self = ?,<br>List[int] size = [1, 1, 59, 59]                | None     | Fallback   | True  |
+|   8 | Tensor<[1, 1, 1, 59]> self = ?,<br>List[int] size = [1, 1, 59, 59]                | Done     | Done       | True  |
 |   9 | Tensor<[1, 1, 1, 60]> self = ?,<br>List[int] size = [1, 1, 1, 60]                 | Unknown  | Fallback   | True  |
 |  10 | Tensor<[1, 1, 1, 920]> self = ?,<br>List[int] size = [-1, 8, -1, -1]              | Done     | Done       | True  |
 |  11 | Tensor<[1, 1, 1, s10 + 1]> self = ?,<br>List[int] size = [1, 1, 1, <s10 + 1>]     | Unknown  | Unknown    | N/A   |
 |  12 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, -1, -1]                    | Removed  | Fallback   | True  |
-|  13 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, 196, 1024]                 | Fallback | Done       | True  |
+|  13 | Tensor<[1, 1, 1024]> self = ?,<br>List[int] size = [1, 196, 1024]                 | Removed  | Done       | True  |
 |  14 | Tensor<[1, 1, 1280]> self = ?,<br>List[int] size = [1, -1, -1]                    | Removed  | Fallback   | True  |
-|  15 | Tensor<[1, 1, 16384, 256]> self = ?,<br>List[int] size = [1, 1, 16384, 256]       | Unknown  | Fallback   | True  |
-|  16 | Tensor<[1, 1, 16384, 32]> self = ?,<br>List[int] size = [1, 1, 16384, 32]         | Unknown  | Fallback   | True  |
+|  15 | Tensor<[1, 1, 16384, 256]> self = ?,<br>List[int] size = [1, 1, 16384, 256]       | Removed  | Fallback   | True  |
+|  16 | Tensor<[1, 1, 16384, 32]> self = ?,<br>List[int] size = [1, 1, 16384, 32]         | Removed  | Fallback   | True  |
 |  17 | Tensor<[1, 1, 19, 19]> self = ?,<br>List[int] size = [1, 1, 19, 19]               | Removed  | Fallback   | True  |
 |  18 | Tensor<[1, 1, 19200, 300]> self = ?,<br>List[int] size = [1, 1, 19200, 300]       | Unknown  | Fallback   | True  |
 |  19 | Tensor<[1, 1, 19200, 64]> self = ?,<br>List[int] size = [1, 1, 19200, 64]         | Unknown  | Fallback   | True  |
 |  20 | Tensor<[1, 1, 192]> self = ?,<br>List[int] size = [1, -1, -1]                     | Removed  | Fallback   | True  |
-|  21 | Tensor<[1, 1, 256, 32]> self = ?,<br>List[int] size = [1, 1, 256, 32]             | Unknown  | Fallback   | True  |
+|  21 | Tensor<[1, 1, 256, 32]> self = ?,<br>List[int] size = [1, 1, 256, 32]             | Removed  | Fallback   | True  |
 |  22 | Tensor<[1, 1, 300, 64]> self = ?,<br>List[int] size = [1, 1, 300, 64]             | Unknown  | Fallback   | True  |
-|  23 | Tensor<[1, 1, 32, 256]> self = ?,<br>List[int] size = [1, 1, 32, 256]             | Unknown  | Fallback   | True  |
+|  23 | Tensor<[1, 1, 32, 256]> self = ?,<br>List[int] size = [1, 1, 32, 256]             | Removed  | Fallback   | True  |
 |  24 | Tensor<[1, 1, 32, 32]> self = ?,<br>List[int] size = [1, 1, 32, 32]               | Removed  | Fallback   | True  |
 |  25 | Tensor<[1, 1, 32]> self = ?,<br>List[int] size = [1, 1, 32]                       | Removed  | Unknown    | N/A   |
-|  26 | Tensor<[1, 1, 38, 38]> self = ?,<br>List[int] size = [1, 512, 38, 38]             | Fallback | Done       | True  |
+|  26 | Tensor<[1, 1, 38, 38]> self = ?,<br>List[int] size = [1, 512, 38, 38]             | Unknown  | Done       | False |
 |  27 | Tensor<[1, 1, 45, 45]> self = ?,<br>List[int] size = [1, 1, 45, 45]               | Unknown  | Fallback   | True  |
 |  28 | Tensor<[1, 1, 45]> self = ?,<br>List[int] size = [1, 1, 45]                       | Unknown  | Fallback   | True  |
 |  29 | Tensor<[1, 1, 59, 59]> self = ?,<br>List[int] size = [1, 1, 59, 59]               | Unknown  | Fallback   | True  |
 |  30 | Tensor<[1, 1, 64, 300]> self = ?,<br>List[int] size = [1, 1, 64, 300]             | Unknown  | Fallback   | True  |
-|  31 | Tensor<[1, 1, 7, 7]> self = ?,<br>List[int] size = [2, 1, 7, 7]                   | None     | Fallback   | True  |
+|  31 | Tensor<[1, 1, 7, 7]> self = ?,<br>List[int] size = [2, 1, 7, 7]                   | Done     | Done       | True  |
 |  32 | Tensor<[1, 1, 768]> self = ?,<br>List[int] size = [1, -1, -1]                     | Removed  | Fallback   | True  |
-|  33 | Tensor<[1, 1, 768]> self = ?,<br>List[int] size = [1, 196, 768]                   | Fallback | Done       | True  |
+|  33 | Tensor<[1, 1, 768]> self = ?,<br>List[int] size = [1, 196, 768]                   | Removed  | Done       | True  |
 |  34 | Tensor<[1, 100, 192]> self = ?,<br>List[int] size = [1, -1, -1]                   | Removed  | Fallback   | True  |
 |  35 | Tensor<[1, 1024, 1, 1]> self = ?,<br>List[int] size = [1, 1024, 7, 7]             | None     | Fallback   | True  |
 |  36 | Tensor<[1, 10]> self = ?,<br>List[int] size = [1, 10]                             | Removed  | Fallback   | True  |
@@ -72,12 +72,12 @@
 |  68 | Tensor<[1, 12, 64, 2]> self = ?,<br>List[int] size = [1, 12, 64, 2]               | Unknown  | Fallback   | True  |
 |  69 | Tensor<[1, 12, 64, 45]> self = ?,<br>List[int] size = [1, 12, 64, 45]             | Unknown  | Fallback   | True  |
 |  70 | Tensor<[1, 12, 64, 46]> self = ?,<br>List[int] size = [1, 12, 64, 46]             | Unknown  | Fallback   | True  |
-|  71 | Tensor<[1, 12, 64, 7]> self = ?,<br>List[int] size = [1, 12, 64, 7]               | Unknown  | Fallback   | True  |
+|  71 | Tensor<[1, 12, 64, 7]> self = ?,<br>List[int] size = [1, 12, 64, 7]               | Removed  | Fallback   | True  |
 |  72 | Tensor<[1, 12, 64, 9]> self = ?,<br>List[int] size = [1, 12, 64, 9]               | Removed  | Fallback   | True  |
 |  73 | Tensor<[1, 12, 64, s0 + 1]> self = ?,<br>List[int] size = [1, 12, 64, <s0 + 1>]   | Unknown  | Unknown    | N/A   |
 |  74 | Tensor<[1, 12, 64, s10 + 1]> self = ?,<br>List[int] size = [1, 12, 64, <s10 + 1>] | Unknown  | Unknown    | N/A   |
-|  75 | Tensor<[1, 12, 7, 64]> self = ?,<br>List[int] size = [1, 12, 7, 64]               | Unknown  | Fallback   | True  |
-|  76 | Tensor<[1, 12, 7, 7]> self = ?,<br>List[int] size = [1, 12, 7, 7]                 | Unknown  | Fallback   | True  |
+|  75 | Tensor<[1, 12, 7, 64]> self = ?,<br>List[int] size = [1, 12, 7, 64]               | Removed  | Fallback   | True  |
+|  76 | Tensor<[1, 12, 7, 7]> self = ?,<br>List[int] size = [1, 12, 7, 7]                 | Removed  | Fallback   | True  |
 |  77 | Tensor<[1, 12, 9, 64]> self = ?,<br>List[int] size = [1, 12, 9, 64]               | Removed  | Fallback   | True  |
 |  78 | Tensor<[1, 12, 9, 9]> self = ?,<br>List[int] size = [1, 12, 9, 9]                 | Removed  | Fallback   | True  |
 |  79 | Tensor<[1, 12, s0 + 1, 64]> self = ?,<br>List[int] size = [1, 12, <s0 + 1>, 64]   | Unknown  | Unknown    | N/A   |
@@ -88,7 +88,7 @@
 |  84 | Tensor<[1, 1280, 1, 1]> self = ?,<br>List[int] size = [1, 1280, 7, 7]             | None     | Fallback   | True  |
 |  85 | Tensor<[1, 1280, 1, 1]> self = ?,<br>List[int] size = [1, 1280, 8, 8]             | None     | Fallback   | True  |
 |  86 | Tensor<[1, 1280, 1, 1]> self = ?,<br>List[int] size = [1, 1280, 9, 9]             | None     | Fallback   | True  |
-|  87 | Tensor<[1, 136]> self = ?,<br>List[int] size = [100, 136]                         | Fallback | Done       | True  |
+|  87 | Tensor<[1, 136]> self = ?,<br>List[int] size = [100, 136]                         | Unknown  | Done       | True  |
 |  88 | Tensor<[1, 1536, 1, 1]> self = ?,<br>List[int] size = [1, 1536, 8, 8]             | None     | Fallback   | True  |
 |  89 | Tensor<[1, 16, 1, 10]> self = ?,<br>List[int] size = [1, 16, 1, 10]               | Unknown  | Fallback   | True  |
 |  90 | Tensor<[1, 16, 1, 1]> self = ?,<br>List[int] size = [1, 16, 1, 1]                 | Unknown  | Fallback   | True  |
@@ -123,15 +123,15 @@
 | 119 | Tensor<[1, 16, 9, 9]> self = ?,<br>List[int] size = [1, 16, 9, 9]                 | Removed  | Fallback   | True  |
 | 120 | Tensor<[1, 16, s0 + 1, 64]> self = ?,<br>List[int] size = [1, 16, <s0 + 1>, 64]   | Unknown  | Unknown    | N/A   |
 | 121 | Tensor<[1, 16, s10 + 1, 64]> self = ?,<br>List[int] size = [1, 16, <s10 + 1>, 64] | Unknown  | Unknown    | N/A   |
-| 122 | Tensor<[1, 16]> self = ?,<br>List[int] size = [12, 16]                            | Fallback | Done       | True  |
-| 123 | Tensor<[1, 17]> self = ?,<br>List[int] size = [13, 17]                            | None     | Fallback   | True  |
-| 124 | Tensor<[1, 19]> self = ?,<br>List[int] size = [19, 19]                            | None     | Fallback   | True  |
+| 122 | Tensor<[1, 16]> self = ?,<br>List[int] size = [12, 16]                            | Removed  | Done       | True  |
+| 123 | Tensor<[1, 17]> self = ?,<br>List[int] size = [13, 17]                            | Unknown  | Done       | True  |
+| 124 | Tensor<[1, 19]> self = ?,<br>List[int] size = [19, 19]                            | Done     | Done       | True  |
 | 125 | Tensor<[1, 1]> self = ?,<br>List[int] size = [1, 1]                               | Unknown  | Fallback   | True  |
-| 126 | Tensor<[1, 2, 256, 32]> self = ?,<br>List[int] size = [1, 2, 256, 32]             | Unknown  | Fallback   | True  |
+| 126 | Tensor<[1, 2, 256, 32]> self = ?,<br>List[int] size = [1, 2, 256, 32]             | Removed  | Fallback   | True  |
 | 127 | Tensor<[1, 2, 300, 64]> self = ?,<br>List[int] size = [1, 2, 300, 64]             | Unknown  | Fallback   | True  |
-| 128 | Tensor<[1, 2, 32, 256]> self = ?,<br>List[int] size = [1, 2, 32, 256]             | Unknown  | Fallback   | True  |
-| 129 | Tensor<[1, 2, 4096, 256]> self = ?,<br>List[int] size = [1, 2, 4096, 256]         | Unknown  | Fallback   | True  |
-| 130 | Tensor<[1, 2, 4096, 32]> self = ?,<br>List[int] size = [1, 2, 4096, 32]           | Unknown  | Fallback   | True  |
+| 128 | Tensor<[1, 2, 32, 256]> self = ?,<br>List[int] size = [1, 2, 32, 256]             | Removed  | Fallback   | True  |
+| 129 | Tensor<[1, 2, 4096, 256]> self = ?,<br>List[int] size = [1, 2, 4096, 256]         | Removed  | Fallback   | True  |
+| 130 | Tensor<[1, 2, 4096, 32]> self = ?,<br>List[int] size = [1, 2, 4096, 32]           | Removed  | Fallback   | True  |
 | 131 | Tensor<[1, 2, 4800, 300]> self = ?,<br>List[int] size = [1, 2, 4800, 300]         | Unknown  | Fallback   | True  |
 | 132 | Tensor<[1, 2, 4800, 64]> self = ?,<br>List[int] size = [1, 2, 4800, 64]           | Unknown  | Fallback   | True  |
 | 133 | Tensor<[1, 2, 64, 300]> self = ?,<br>List[int] size = [1, 2, 64, 300]             | Unknown  | Fallback   | True  |
@@ -158,23 +158,23 @@
 | 154 | Tensor<[1, 32, 64, 1]> self = ?,<br>List[int] size = [1, 32, 64, 32]              | None     | Fallback   | True  |
 | 155 | Tensor<[1, 32, 64, 32]> self = ?,<br>List[int] size = [1, 32, 64, 32]             | Removed  | Fallback   | True  |
 | 156 | Tensor<[1, 32, 64, 64]> self = ?,<br>List[int] size = [1, 32, 64, 64]             | Removed  | Fallback   | True  |
-| 157 | Tensor<[1, 34]> self = ?,<br>List[int] size = [25, 34]                            | Fallback | Done       | True  |
+| 157 | Tensor<[1, 34]> self = ?,<br>List[int] size = [25, 34]                            | Unknown  | Done       | True  |
 | 158 | Tensor<[1, 38]> self = ?,<br>List[int] size = [38, 38]                            | Done     | Done       | True  |
-| 159 | Tensor<[1, 3]> self = ?,<br>List[int] size = [3, 3]                               | None     | Fallback   | True  |
+| 159 | Tensor<[1, 3]> self = ?,<br>List[int] size = [3, 3]                               | Done     | Done       | True  |
 | 160 | Tensor<[1, 480, 1, 1]> self = ?,<br>List[int] size = [1, 480, 14, 14]             | None     | Fallback   | True  |
 | 161 | Tensor<[1, 5, 1, 16, 1]> self = ?,<br>List[int] size = [1, 5, 1, 16, 2]           | Unknown  | Fallback   | True  |
-| 162 | Tensor<[1, 5, 1024, 256]> self = ?,<br>List[int] size = [1, 5, 1024, 256]         | Unknown  | Fallback   | True  |
-| 163 | Tensor<[1, 5, 1024, 32]> self = ?,<br>List[int] size = [1, 5, 1024, 32]           | Unknown  | Fallback   | True  |
+| 162 | Tensor<[1, 5, 1024, 256]> self = ?,<br>List[int] size = [1, 5, 1024, 256]         | Removed  | Fallback   | True  |
+| 163 | Tensor<[1, 5, 1024, 32]> self = ?,<br>List[int] size = [1, 5, 1024, 32]           | Removed  | Fallback   | True  |
 | 164 | Tensor<[1, 5, 1200, 300]> self = ?,<br>List[int] size = [1, 5, 1200, 300]         | Unknown  | Fallback   | True  |
 | 165 | Tensor<[1, 5, 1200, 64]> self = ?,<br>List[int] size = [1, 5, 1200, 64]           | Unknown  | Fallback   | True  |
-| 166 | Tensor<[1, 5, 256, 32]> self = ?,<br>List[int] size = [1, 5, 256, 32]             | Unknown  | Fallback   | True  |
+| 166 | Tensor<[1, 5, 256, 32]> self = ?,<br>List[int] size = [1, 5, 256, 32]             | Removed  | Fallback   | True  |
 | 167 | Tensor<[1, 5, 300, 64]> self = ?,<br>List[int] size = [1, 5, 300, 64]             | Unknown  | Fallback   | True  |
-| 168 | Tensor<[1, 5, 32, 256]> self = ?,<br>List[int] size = [1, 5, 32, 256]             | Unknown  | Fallback   | True  |
+| 168 | Tensor<[1, 5, 32, 256]> self = ?,<br>List[int] size = [1, 5, 32, 256]             | Removed  | Fallback   | True  |
 | 169 | Tensor<[1, 5, 64, 300]> self = ?,<br>List[int] size = [1, 5, 64, 300]             | Unknown  | Fallback   | True  |
 | 170 | Tensor<[1, 512, 1, 1]> self = ?,<br>List[int] size = [1, 512, 28, 28]             | None     | Fallback   | True  |
 | 171 | Tensor<[1, 512, 1, 1]> self = ?,<br>List[int] size = [1, 512, 7, 7]               | None     | Fallback   | True  |
-| 172 | Tensor<[1, 512, 1]> self = ?,<br>List[int] size = [1, 512, 256]                   | Unknown  | Fallback   | True  |
-| 173 | Tensor<[1, 5]> self = ?,<br>List[int] size = [5, 5]                               | None     | Fallback   | True  |
+| 172 | Tensor<[1, 512, 1]> self = ?,<br>List[int] size = [1, 512, 256]                   | None     | Fallback   | True  |
+| 173 | Tensor<[1, 5]> self = ?,<br>List[int] size = [5, 5]                               | Done     | Done       | True  |
 | 174 | Tensor<[1, 6, 1, 15]> self = ?,<br>List[int] size = [1, 6, 1, 15]                 | Unknown  | Fallback   | True  |
 | 175 | Tensor<[1, 6, 1, 17]> self = ?,<br>List[int] size = [1, 6, 1, 17]                 | Unknown  | Fallback   | True  |
 | 176 | Tensor<[1, 6, 1, 1]> self = ?,<br>List[int] size = [1, 6, 1, 1]                   | Unknown  | Fallback   | True  |
@@ -198,7 +198,7 @@
 | 194 | Tensor<[1, 64, 9, 9]> self = ?,<br>List[int] size = [1, 64, 9, 9]                 | Removed  | Fallback   | True  |
 | 195 | Tensor<[1, 672, 1, 1]> self = ?,<br>List[int] size = [1, 672, 14, 14]             | None     | Fallback   | True  |
 | 196 | Tensor<[1, 672, 1, 1]> self = ?,<br>List[int] size = [1, 672, 7, 7]               | None     | Fallback   | True  |
-| 197 | Tensor<[1, 68]> self = ?,<br>List[int] size = [50, 68]                            | Fallback | Done       | True  |
+| 197 | Tensor<[1, 68]> self = ?,<br>List[int] size = [50, 68]                            | Unknown  | Done       | True  |
 | 198 | Tensor<[1, 72, 1, 1]> self = ?,<br>List[int] size = [1, 72, 28, 28]               | None     | Fallback   | True  |
 | 199 | Tensor<[1, 768, 1, 1]> self = ?,<br>List[int] size = [1, 768, 14, 14]             | None     | Fallback   | True  |
 | 200 | Tensor<[1, 8, 1, 10]> self = ?,<br>List[int] size = [1, 8, 1, 10]                 | Unknown  | Fallback   | True  |
@@ -228,7 +228,7 @@
 | 224 | Tensor<[1, 8, 64, s0 + 1]> self = ?,<br>List[int] size = [1, 8, 64, <s0 + 1>]     | Unknown  | Unknown    | N/A   |
 | 225 | Tensor<[1, 8, s0 + 1, 64]> self = ?,<br>List[int] size = [1, 8, <s0 + 1>, 64]     | Unknown  | Unknown    | N/A   |
 | 226 | Tensor<[1, 960, 1, 1]> self = ?,<br>List[int] size = [1, 960, 7, 7]               | None     | Fallback   | True  |
-| 227 | Tensor<[1, 9]> self = ?,<br>List[int] size = [7, 9]                               | None     | Fallback   | True  |
+| 227 | Tensor<[1, 9]> self = ?,<br>List[int] size = [7, 9]                               | Unknown  | Done       | True  |
 | 228 | Tensor<[10, 1]> self = ?,<br>List[int] size = [10, 10]                            | None     | Fallback   | True  |
 | 229 | Tensor<[100, 1]> self = ?,<br>List[int] size = [100, 136]                         | None     | Fallback   | True  |
 | 230 | Tensor<[12, 1]> self = ?,<br>List[int] size = [12, 16]                            | None     | Fallback   | True  |
@@ -249,7 +249,7 @@
 | 245 | Tensor<[16, 8, 64, 64]> self = ?,<br>List[int] size = [16, 8, 64, 64]             | Removed  | Fallback   | True  |
 | 246 | Tensor<[19, 1]> self = ?,<br>List[int] size = [19, 19]                            | None     | Fallback   | True  |
 | 247 | Tensor<[1]> self = ?,<br>List[int] size = [1]                                     | Unknown  | Fallback   | True  |
-| 248 | Tensor<[2, 1, 1, 7]> self = ?,<br>List[int] size = [2, 1, 7, 7]                   | None     | Fallback   | True  |
+| 248 | Tensor<[2, 1, 1, 7]> self = ?,<br>List[int] size = [2, 1, 7, 7]                   | Done     | Done       | True  |
 | 249 | Tensor<[2, 1]> self = ?,<br>List[int] size = [2, 2]                               | None     | Fallback   | True  |
 | 250 | Tensor<[20, 1]> self = ?,<br>List[int] size = [20, 20]                            | None     | Fallback   | True  |
 | 251 | Tensor<[2048, 768]> self = ?,<br>List[int] size = [1, -1, -1]                     | Done     | Done       | True  |
@@ -290,5 +290,5 @@
 | 286 | Tensor<[64, 4, 64, 32]> self = ?,<br>List[int] size = [64, 4, 64, 32]             | Removed  | Fallback   | True  |
 | 287 | Tensor<[64, 4, 64, 64]> self = ?,<br>List[int] size = [64, 4, 64, 64]             | Removed  | Fallback   | True  |
 | 288 | Tensor<[7, 1]> self = ?,<br>List[int] size = [7, 9]                               | None     | Fallback   | True  |
-| 289 | Tensor<[768]> self = ?,<br>List[int] size = [1, 1, -1]                            | None     | Fallback   | True  |
+| 289 | Tensor<[768]> self = ?,<br>List[int] size = [1, 1, -1]                            | Removed  | Done       | True  |
 

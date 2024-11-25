@@ -43,7 +43,7 @@
 | 39 | Tensor<[1, 24, 112, 112]> grad_output = ?,<br>Tensor<[1, 24, 112, 112]> self = ?,<br>number threshold = 0   | None     | Fallback   | True  |
 | 40 | Tensor<[1, 240, 1, 1]> grad_output = ?,<br>Tensor<[1, 240, 1, 1]> self = ?,<br>number threshold = 0         | None     | Fallback   | True  |
 | 41 | Tensor<[1, 240, 14, 14]> grad_output = ?,<br>Tensor<[1, 240, 14, 14]> self = ?,<br>number threshold = 0     | None     | Fallback   | True  |
-| 42 | Tensor<[1, 256, 128, 128]> grad_output = ?,<br>Tensor<[1, 256, 128, 128]> self = ?,<br>number threshold = 0 | Unknown  | Fallback   | True  |
+| 42 | Tensor<[1, 256, 128, 128]> grad_output = ?,<br>Tensor<[1, 256, 128, 128]> self = ?,<br>number threshold = 0 | None     | Fallback   | True  |
 | 43 | Tensor<[1, 256, 14, 14]> grad_output = ?,<br>Tensor<[1, 256, 14, 14]> self = ?,<br>number threshold = 0     | None     | Fallback   | True  |
 | 44 | Tensor<[1, 256, 17, 17]> grad_output = ?,<br>Tensor<[1, 256, 17, 17]> self = ?,<br>number threshold = 0     | None     | Fallback   | True  |
 | 45 | Tensor<[1, 256, 28, 28]> grad_output = ?,<br>Tensor<[1, 256, 28, 28]> self = ?,<br>number threshold = 0     | None     | Fallback   | True  |

@@ -2,15 +2,15 @@
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._native_batch_norm_legit_no_training.default |                 13 |           0 |         0 |          0 | ✘           |    0    |
-|  1 | aten._to_copy.default                             |                  6 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten._to_copy.default                             |                  6 |           0 |         4 |          0 | 🚧          |    0.67 |
 |  2 | aten._unsafe_index.Tensor                         |                  2 |           0 |         0 |          0 | ✘           |    0    |
-|  3 | aten.add.Tensor                                   |                  7 |           2 |         0 |          5 | 🚧          |    0.29 |
+|  3 | aten.add.Tensor                                   |                  7 |           2 |         5 |          0 | ✅          |    1    |
 |  4 | aten.arange.default                               |                  2 |           0 |         0 |          0 | ✘           |    0    |
 |  5 | aten.cat.default                                  |                  2 |           0 |         0 |          0 | ✘           |    0    |
 |  6 | aten.convolution.default                          |                 23 |           0 |         0 |          0 | ✘           |    0    |
-|  7 | aten.leaky_relu.default                           |                 13 |           2 |         0 |         11 | 🚧          |    0.15 |
-|  8 | aten.mul.Tensor                                   |                  2 |           0 |         0 |          2 | ✘           |    0    |
-|  9 | aten.unsqueeze.default                            |                  2 |           0 |         0 |          0 | ✘           |    0    |
+|  7 | aten.leaky_relu.default                           |                 13 |           7 |         6 |          0 | ✅          |    1    |
+|  8 | aten.mul.Tensor                                   |                  2 |           0 |         2 |          0 | ✅          |    1    |
+|  9 | aten.unsqueeze.default                            |                  2 |           0 |         2 |          0 | ✅          |    1    |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                    | Status   | Isolated   | PCC   |
@@ -31,10 +31,10 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                                      | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 128, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32  | Unknown  | Fallback   | True  |
-|  1 | Tensor<[1, 128, 64, 64]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Unknown  | Fallback   | True  |
-|  2 | Tensor<[1, 256, 16, 16]> self = ?,<br>Optional[int] dtype = torch.float32  | Unknown  | Fallback   | True  |
-|  3 | Tensor<[1, 256, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Unknown  | Fallback   | True  |
+|  0 | Tensor<[1, 128, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32  | Removed  | Fallback   | True  |
+|  1 | Tensor<[1, 128, 64, 64]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Removed  | Fallback   | True  |
+|  2 | Tensor<[1, 256, 16, 16]> self = ?,<br>Optional[int] dtype = torch.float32  | Removed  | Fallback   | True  |
+|  3 | Tensor<[1, 256, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Removed  | Fallback   | True  |
 |  4 | Tensor<[32]> self = ?,<br>Optional[int] dtype = torch.int64                | None     | Fallback   | True  |
 |  5 | Tensor<[64]> self = ?,<br>Optional[int] dtype = torch.int64                | None     | Fallback   | True  |
 ### aten._unsafe_index.Tensor
@@ -45,11 +45,11 @@
 ### aten.add.Tensor
 |    | ATen Input Variations                                                        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 16, 16]> self = ?,<br>Tensor<[1, 1024, 16, 16]> other = ?   | Fallback | Done       | True  |
-|  1 | Tensor<[1, 128, 128, 128]> self = ?,<br>Tensor<[1, 128, 128, 128]> other = ? | Fallback | Done       | True  |
-|  2 | Tensor<[1, 256, 64, 64]> self = ?,<br>Tensor<[1, 256, 64, 64]> other = ?     | Fallback | Done       | True  |
-|  3 | Tensor<[1, 512, 32, 32]> self = ?,<br>Tensor<[1, 512, 32, 32]> other = ?     | Fallback | Done       | True  |
-|  4 | Tensor<[1, 64, 256, 256]> self = ?,<br>Tensor<[1, 64, 256, 256]> other = ?   | Fallback | Done       | True  |
+|  0 | Tensor<[1, 1024, 16, 16]> self = ?,<br>Tensor<[1, 1024, 16, 16]> other = ?   | Removed  | Done       | True  |
+|  1 | Tensor<[1, 128, 128, 128]> self = ?,<br>Tensor<[1, 128, 128, 128]> other = ? | Removed  | Done       | True  |
+|  2 | Tensor<[1, 256, 64, 64]> self = ?,<br>Tensor<[1, 256, 64, 64]> other = ?     | Removed  | Done       | True  |
+|  3 | Tensor<[1, 512, 32, 32]> self = ?,<br>Tensor<[1, 512, 32, 32]> other = ?     | Removed  | Done       | True  |
+|  4 | Tensor<[1, 64, 256, 256]> self = ?,<br>Tensor<[1, 64, 256, 256]> other = ?   | Removed  | Done       | True  |
 |  5 | Tensor<[32]> self = ?,<br>Tensor other = 0.0                                 | Done     | Done       | True  |
 |  6 | Tensor<[64]> self = ?,<br>Tensor other = 0.0                                 | Done     | Done       | True  |
 ### aten.arange.default
@@ -91,27 +91,27 @@
 ### aten.leaky_relu.default
 |    | ATen Input Variations                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 16, 16]> self = ?,<br>number negative_slope = 0.1  | Fallback | Done       | True  |
+|  0 | Tensor<[1, 1024, 16, 16]> self = ?,<br>number negative_slope = 0.1  | Done     | Done       | True  |
 |  1 | Tensor<[1, 128, 128, 128]> self = ?,<br>number negative_slope = 0.1 | Done     | Done       | True  |
-|  2 | Tensor<[1, 128, 32, 32]> self = ?,<br>number negative_slope = 0.1   | Fallback | Done       | True  |
-|  3 | Tensor<[1, 128, 64, 64]> self = ?,<br>number negative_slope = 0.1   | Fallback | Done       | True  |
-|  4 | Tensor<[1, 256, 16, 16]> self = ?,<br>number negative_slope = 0.1   | Fallback | Done       | True  |
-|  5 | Tensor<[1, 256, 32, 32]> self = ?,<br>number negative_slope = 0.1   | Fallback | Done       | True  |
-|  6 | Tensor<[1, 256, 64, 64]> self = ?,<br>number negative_slope = 0.1   | Fallback | Done       | True  |
-|  7 | Tensor<[1, 32, 256, 256]> self = ?,<br>number negative_slope = 0.1  | Fallback | Done       | True  |
-|  8 | Tensor<[1, 32, 512, 512]> self = ?,<br>number negative_slope = 0.1  | Fallback | Done       | True  |
-|  9 | Tensor<[1, 512, 16, 16]> self = ?,<br>number negative_slope = 0.1   | Fallback | Done       | True  |
-| 10 | Tensor<[1, 512, 32, 32]> self = ?,<br>number negative_slope = 0.1   | Fallback | Done       | True  |
-| 11 | Tensor<[1, 64, 128, 128]> self = ?,<br>number negative_slope = 0.1  | Fallback | Done       | True  |
+|  2 | Tensor<[1, 128, 32, 32]> self = ?,<br>number negative_slope = 0.1   | Done     | Done       | True  |
+|  3 | Tensor<[1, 128, 64, 64]> self = ?,<br>number negative_slope = 0.1   | Removed  | Done       | True  |
+|  4 | Tensor<[1, 256, 16, 16]> self = ?,<br>number negative_slope = 0.1   | Done     | Done       | True  |
+|  5 | Tensor<[1, 256, 32, 32]> self = ?,<br>number negative_slope = 0.1   | Removed  | Done       | True  |
+|  6 | Tensor<[1, 256, 64, 64]> self = ?,<br>number negative_slope = 0.1   | Done     | Done       | True  |
+|  7 | Tensor<[1, 32, 256, 256]> self = ?,<br>number negative_slope = 0.1  | Removed  | Done       | True  |
+|  8 | Tensor<[1, 32, 512, 512]> self = ?,<br>number negative_slope = 0.1  | Removed  | Done       | True  |
+|  9 | Tensor<[1, 512, 16, 16]> self = ?,<br>number negative_slope = 0.1   | Removed  | Done       | True  |
+| 10 | Tensor<[1, 512, 32, 32]> self = ?,<br>number negative_slope = 0.1   | Done     | Done       | True  |
+| 11 | Tensor<[1, 64, 128, 128]> self = ?,<br>number negative_slope = 0.1  | Removed  | Done       | True  |
 | 12 | Tensor<[1, 64, 256, 256]> self = ?,<br>number negative_slope = 0.1  | Done     | Done       | True  |
 ### aten.mul.Tensor
 |    | ATen Input Variations                        | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[32]> self = ?,<br>Tensor other = 0.5 | Fallback | Done       | True  |
-|  1 | Tensor<[64]> self = ?,<br>Tensor other = 0.5 | Fallback | Done       | True  |
+|  0 | Tensor<[32]> self = ?,<br>Tensor other = 0.5 | Removed  | Done       | True  |
+|  1 | Tensor<[64]> self = ?,<br>Tensor other = 0.5 | Removed  | Done       | True  |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[32]> self = ?,<br>int dim = -1 | None     | Fallback   | True  |
-|  1 | Tensor<[64]> self = ?,<br>int dim = -1 | None     | Fallback   | True  |
+|  0 | Tensor<[32]> self = ?,<br>int dim = -1 | Removed  | Done       | True  |
+|  1 | Tensor<[64]> self = ?,<br>int dim = -1 | Removed  | Done       | True  |
 

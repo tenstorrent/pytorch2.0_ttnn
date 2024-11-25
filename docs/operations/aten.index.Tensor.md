@@ -1,7 +1,7 @@
 ### aten.index.Tensor
 |    | ATen Input Variations                                                            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [<[1]>, <[1]>]   | Unknown  | Fallback   | True  |
+|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [<[1]>, <[1]>]   | None     | Fallback   | True  |
 |  1 | Tensor<[169, 12]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]       | None     | Fallback   | True  |
 |  2 | Tensor<[169, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]       | None     | Fallback   | True  |
 |  3 | Tensor<[169, 24]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]       | None     | Fallback   | True  |
