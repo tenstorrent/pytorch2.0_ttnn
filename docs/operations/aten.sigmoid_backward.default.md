@@ -7,9 +7,9 @@
 |  3 | Tensor<[1, 200, 7, 7]> grad_output = ?,<br>Tensor<[1, 200, 7, 7]> output = ?     | None     | Fallback   | True  |
 |  4 | Tensor<[1, 240, 14, 14]> grad_output = ?,<br>Tensor<[1, 240, 14, 14]> output = ? | None     | Fallback   | True  |
 |  5 | Tensor<[1, 480, 7, 7]> grad_output = ?,<br>Tensor<[1, 480, 7, 7]> output = ?     | None     | Fallback   | True  |
-|  6 | Tensor<[1, 50, 3072]> grad_output = ?,<br>Tensor<[1, 50, 3072]> output = ?       | None     | Fallback   | True  |
+|  6 | Tensor<[1, 50, 3072]> grad_output = ?,<br>Tensor<[1, 50, 3072]> output = ?       | Unknown  | Fallback   | True  |
 |  7 | Tensor<[1, 672, 7, 7]> grad_output = ?,<br>Tensor<[1, 672, 7, 7]> output = ?     | None     | Fallback   | True  |
 |  8 | Tensor<[1, 72, 28, 28]> grad_output = ?,<br>Tensor<[1, 72, 28, 28]> output = ?   | None     | Fallback   | True  |
 |  9 | Tensor<[1, 960, 3, 3]> grad_output = ?,<br>Tensor<[1, 960, 3, 3]> output = ?     | None     | Fallback   | True  |
-| 10 | Tensor<[2, 7, 2048]> grad_output = ?,<br>Tensor<[2, 7, 2048]> output = ?         | None     | Fallback   | True  |
+| 10 | Tensor<[2, 7, 2048]> grad_output = ?,<br>Tensor<[2, 7, 2048]> output = ?         | Unknown  | Fallback   | True  |
 

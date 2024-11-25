@@ -1,9 +1,9 @@
 # High Level Operations Status
 |    | Operations                           |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten.convolution.default             |                  4 |           0 |         0 |          0 | ✘           |       0 |
-|  1 | aten.max_pool2d_with_indices.default |                  2 |           0 |         0 |          0 | ✘           |       0 |
-|  2 | aten.relu.default                    |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  0 | aten.convolution.default             |                  4 |           0 |         0 |          0 | ✘           |     0   |
+|  1 | aten.max_pool2d_with_indices.default |                  2 |           1 |         0 |          0 | 🚧          |     0.5 |
+|  2 | aten.relu.default                    |                  3 |           1 |         2 |          0 | ✅          |     1   |
 ***
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                       | Status   | Isolated   | PCC   |
@@ -15,12 +15,12 @@
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                                                             | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 28, 28]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 16, 28, 28]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2] | Done     | Done       | True  |
 |  1 | Tensor<[1, 4, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]  | None     | Fallback   | True  |
 ### aten.relu.default
 |    | ATen Input Variations            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 14, 14]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 16, 14, 14]> self = ? | Removed  | Done       | True  |
 |  1 | Tensor<[1, 16, 28, 28]> self = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 4, 14, 14]> self = ?  | Done     | Done       | True  |
+|  2 | Tensor<[1, 4, 14, 14]> self = ?  | Removed  | Done       | True  |
 

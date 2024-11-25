@@ -1,7 +1,7 @@
 ### aten.detach.default
 |     | ATen Input Variations               | Status   | Isolated   | PCC   |
 |----:|:------------------------------------|:---------|:-----------|:------|
-|   0 | Tensor<[1, 1, 16384, 256]> self = ? | Unknown  | Fallback   | True  |
+|   0 | Tensor<[1, 1, 16384, 256]> self = ? | None     | Fallback   | True  |
 |   1 | Tensor<[1, 1, 256, 256]> self = ?   | None     | Fallback   | True  |
 |   2 | Tensor<[1, 100, 14, 14]> self = ?   | None     | Fallback   | True  |
 |   3 | Tensor<[1, 1024, 10, 10]> self = ?  | None     | Fallback   | True  |
@@ -42,8 +42,8 @@
 |  38 | Tensor<[1, 192, 17, 17]> self = ?   | None     | Fallback   | True  |
 |  39 | Tensor<[1, 192, 35, 35]> self = ?   | None     | Fallback   | True  |
 |  40 | Tensor<[1, 192, 8, 8]> self = ?     | None     | Fallback   | True  |
-|  41 | Tensor<[1, 1]> self = ?             | None     | Fallback   | True  |
-|  42 | Tensor<[1, 2, 4096, 256]> self = ?  | Unknown  | Fallback   | True  |
+|  41 | Tensor<[1, 1]> self = ?             | Unknown  | Fallback   | True  |
+|  42 | Tensor<[1, 2, 4096, 256]> self = ?  | None     | Fallback   | True  |
 |  43 | Tensor<[1, 20, 1, 1]> self = ?      | None     | Fallback   | True  |
 |  44 | Tensor<[1, 200, 7, 7]> self = ?     | None     | Fallback   | True  |
 |  45 | Tensor<[1, 2048, 10, 10]> self = ?  | None     | Fallback   | True  |
@@ -54,7 +54,7 @@
 |  50 | Tensor<[1, 24, 112, 112]> self = ?  | None     | Fallback   | True  |
 |  51 | Tensor<[1, 240, 1, 1]> self = ?     | None     | Fallback   | True  |
 |  52 | Tensor<[1, 240, 14, 14]> self = ?   | None     | Fallback   | True  |
-|  53 | Tensor<[1, 256, 128, 128]> self = ? | Unknown  | Fallback   | True  |
+|  53 | Tensor<[1, 256, 128, 128]> self = ? | None     | Fallback   | True  |
 |  54 | Tensor<[1, 256, 14, 14]> self = ?   | None     | Fallback   | True  |
 |  55 | Tensor<[1, 256, 17, 17]> self = ?   | None     | Fallback   | True  |
 |  56 | Tensor<[1, 256, 28, 28]> self = ?   | None     | Fallback   | True  |
@@ -83,8 +83,8 @@
 |  79 | Tensor<[1, 4, 14, 14]> self = ?     | None     | Fallback   | True  |
 |  80 | Tensor<[1, 448, 8, 8]> self = ?     | None     | Fallback   | True  |
 |  81 | Tensor<[1, 480, 7, 7]> self = ?     | None     | Fallback   | True  |
-|  82 | Tensor<[1, 5, 1024, 256]> self = ?  | Unknown  | Fallback   | True  |
-|  83 | Tensor<[1, 50, 3072]> self = ?      | None     | Fallback   | True  |
+|  82 | Tensor<[1, 5, 1024, 256]> self = ?  | None     | Fallback   | True  |
+|  83 | Tensor<[1, 50, 3072]> self = ?      | Unknown  | Fallback   | True  |
 |  84 | Tensor<[1, 512, 14, 14]> self = ?   | None     | Fallback   | True  |
 |  85 | Tensor<[1, 512, 16, 16]> self = ?   | None     | Fallback   | True  |
 |  86 | Tensor<[1, 512, 28, 28]> self = ?   | None     | Fallback   | True  |
@@ -109,16 +109,16 @@
 | 105 | Tensor<[1, 728, 38, 38]> self = ?   | None     | Fallback   | True  |
 | 106 | Tensor<[1, 768, 14, 14]> self = ?   | None     | Fallback   | True  |
 | 107 | Tensor<[1, 8, 112, 112]> self = ?   | None     | Fallback   | True  |
-| 108 | Tensor<[1, 8, 256, 256]> self = ?   | Unknown  | Fallback   | True  |
+| 108 | Tensor<[1, 8, 256, 256]> self = ?   | None     | Fallback   | True  |
 | 109 | Tensor<[1, 92, 14, 14]> self = ?    | None     | Fallback   | True  |
 | 110 | Tensor<[1, 96, 35, 35]> self = ?    | None     | Fallback   | True  |
 | 111 | Tensor<[1, 96, 71, 71]> self = ?    | None     | Fallback   | True  |
 | 112 | Tensor<[1, 96, 73, 73]> self = ?    | None     | Fallback   | True  |
 | 113 | Tensor<[1, 960, 3, 3]> self = ?     | None     | Fallback   | True  |
 | 114 | Tensor<[1, 960, 7, 7]> self = ?     | None     | Fallback   | True  |
-| 115 | Tensor<[12, 50, 50]> self = ?       | None     | Fallback   | True  |
-| 116 | Tensor<[16, 7, 7]> self = ?         | None     | Fallback   | True  |
-| 117 | Tensor<[2, 1]> self = ?             | None     | Fallback   | True  |
-| 118 | Tensor<[2, 7, 2048]> self = ?       | None     | Fallback   | True  |
-| 119 | Tensor<[]> self = ?                 | None     | Fallback   | True  |
+| 115 | Tensor<[12, 50, 50]> self = ?       | Unknown  | Fallback   | True  |
+| 116 | Tensor<[16, 7, 7]> self = ?         | Unknown  | Fallback   | True  |
+| 117 | Tensor<[2, 1]> self = ?             | Unknown  | Fallback   | True  |
+| 118 | Tensor<[2, 7, 2048]> self = ?       | Unknown  | Fallback   | True  |
+| 119 | Tensor<[]> self = ?                 | Unknown  | Fallback   | True  |
 
