@@ -220,6 +220,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.gelu.default:
             return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
 
+        if target == torch.ops.aten.hardsigmoid.default:
+            return self.call_function_prop_meta(ttnn.hardsigmoid, args, kwargs)
+
         if target == torch.ops.aten.hardtanh.default:
             new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")), default_none=True)
             new_args = (args[0],)
@@ -707,33 +710,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.reshape, args=(args[0], output_size))
 
             if node.target in [torch.ops.aten.transpose.int, torch.ops.aten.t.default]:
-                output_size = node.meta["val"].size()
-                rank = len(output_size)
+                rank = len(node.meta["val"].size())
+                if rank < 2:
+                    # Less 2D transpose is no-op
+                    return args[0]
                 if node.target == torch.ops.aten.t.default:
-                    assert rank >= 0 and rank <= 2, "Input tensor can only be 0D, 1D or 2D"
-                    if rank < 2:
-                        # Less 2D transpose is no-op
-                        return args[0]
+                    assert rank == 2, "Input tensor should only be 2D here"
                     dim0 = 0
                     dim1 = 1
                 else:
                     dim0 = args[1]
                     dim1 = args[2]
-                permutation = list(range(rank))
-                permutation[dim0], permutation[dim1] = (
-                    permutation[dim1],
-                    permutation[dim0],
-                )
-                # TODO(#377): ttnn.permute fails when swapping inner-most dim = 1 for 2D
-                if rank == 2 and output_size[0] == 1:
-                    return None
-                new_nodes = list()
-                new_nodes.append(g.call_function(ttnn.permute, args=(args[0], permutation)))
-                new_nodes[-1].meta["val"] = node.meta["val"]
-                # strange workaround when dim 0 is 1 for rank 3
-                # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
-                new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
-                return new_nodes[-1]
+                return g.call_function(ttnn.transpose, args=(args[0], dim0, dim1))
 
             if node.target == torch.ops.aten.permute.default:
                 new_nodes = list()
@@ -861,7 +849,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 if input_size.numel() != output_size.numel():
                     slice_start, slice_end = [0] * len(input_size), list(input_size)
-                    slice_start[dim], slice_end[dim] = start, start + 1
+                    slice_start[dim] = (start + input_size[dim]) % input_size[dim]
+                    slice_end[dim] = slice_start[dim] + 1
 
                     slice_tensor = g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
                 else:
