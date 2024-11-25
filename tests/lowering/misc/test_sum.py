@@ -22,6 +22,7 @@ class SumModule(torch.nn.Module):
         (1,),
     ],
 )
+@pytest.mark.skip(reason="Temporarily disabled due to reset issue in ttnn.sum")
 def test_sum(device, input_shapes):
     m = SumModule()
     inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
