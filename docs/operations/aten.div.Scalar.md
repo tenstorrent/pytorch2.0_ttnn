@@ -15,7 +15,7 @@
 | 11 | Tensor<[1, 2048, 7, 7]> self = ?,<br>number other = 49    | None     | Fallback   | True  |
 | 12 | Tensor<[1, 256, 56, 56]> self = ?,<br>number other = 3136 | None     | Fallback   | True  |
 | 13 | Tensor<[1, 480, 14, 14]> self = ?,<br>number other = 196  | None     | Fallback   | True  |
-| 14 | Tensor<[1, 512, 256]> self = ?,<br>number other = 256     | Unknown  | Fallback   | True  |
+| 14 | Tensor<[1, 512, 256]> self = ?,<br>number other = 256     | None     | Fallback   | True  |
 | 15 | Tensor<[1, 512, 28, 28]> self = ?,<br>number other = 784  | None     | Fallback   | True  |
 | 16 | Tensor<[1, 512, 7, 7]> self = ?,<br>number other = 49     | None     | Fallback   | True  |
 | 17 | Tensor<[1, 672, 14, 14]> self = ?,<br>number other = 196  | None     | Fallback   | True  |

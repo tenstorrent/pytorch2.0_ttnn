@@ -44,6 +44,8 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.expm1,
     ttnn.floor,
     ttnn.gelu,
+    ttnn.hardsigmoid,
+    ttnn.hardswish,
     ttnn.hardtanh,
     ttnn.isinf,
     ttnn.isnan,
@@ -118,14 +120,15 @@ TTNN_MATRIX_MULPIPLICATION_OPS = [
 ]
 
 TTNN_DATAMOVE_OPS = [
-    ttnn.reshape,
+    ttnn.concat,
     ttnn.pad,
     ttnn.permute,
-    ttnn.concat,
-    ttnn.split,
-    ttnn.slice,
-    ttnn.to_layout,
+    ttnn.reshape,
     ttnn.sharded_to_interleaved,
+    ttnn.slice,
+    ttnn.split,
+    ttnn.to_layout,
+    ttnn.transpose,
 ]
 
 TTNN_TARGET_WRAPPERS = [
@@ -229,7 +232,7 @@ def try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops):
     if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
         dtype = to_torch_node.meta["val"].dtype
         # if user only output and output type is float-like, then no need to add
-        if target_users_ops.count("output") and dtype in [torch.float32, torch.float64, torch.bfloat16]:
+        if dtype in [torch.float32, torch.float64, torch.bfloat16]:
             return None
         call_func = g.call_function(
             torch.ops.aten._to_copy.default,

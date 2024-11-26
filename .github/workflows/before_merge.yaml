@@ -129,7 +129,7 @@ jobs:
 
   collect-model-artifacts-from-matrix-jobs:
     needs: model-tests
-    runs-on: ["in-service"]
+    runs-on: ubuntu-latest
     env:
       pytest_verbosity: 0
     steps:
@@ -152,7 +152,7 @@ jobs:
 
   collect-op-artifacts-from-matrix-jobs:
     needs: model-autogen-op-tests
-    runs-on: ["in-service"]
+    runs-on: ubuntu-latest
     env:
       pytest_verbosity: 0
     steps:
