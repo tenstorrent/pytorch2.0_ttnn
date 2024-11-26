@@ -459,7 +459,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             # Non-training batch normalization
             def batch_norm_inference(input, weight, bias, mean, var, momentum, eps):
-                assert is_getitem_0_only_user(node), "non-training batch_norm should only has first return value used"
+                assert is_getitem_0_only_user(node), "non-training batch_norm should only have first return value used"
                 shape = input.meta["val"].size()
                 shape = (1, shape[1]) + (1,) * (len(shape) - 2)
                 invstd = g.call_function(ttnn.rsqrt, (g.call_function(ttnn.add, (var, eps)),))
