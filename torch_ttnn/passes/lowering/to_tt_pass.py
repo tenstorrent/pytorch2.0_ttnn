@@ -448,6 +448,28 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             args = node.args
             kwargs = node.kwargs
 
+            def batch_norm_post_process(output, shape, weight, bias):
+                if weight is not None:
+                    weight = g.call_function(ttnn.reshape, (weight, shape))
+                    output = g.call_function(ttnn.mul, (output, weight))
+                if bias is not None:
+                    bias = g.call_function(ttnn.reshape, (bias, shape))
+                    output = g.call_function(ttnn.add, (output, bias))
+                return output
+
+            # Non-training batch normalization
+            def batch_norm_inference(input, weight, bias, mean, var, momentum, eps):
+                assert is_getitem_0_only_user(node), "non-training batch_norm should only have first return value used"
+                shape = input.meta["val"].size()
+                shape = (1, shape[1]) + (1,) * (len(shape) - 2)
+                invstd = g.call_function(ttnn.rsqrt, (g.call_function(ttnn.add, (var, eps)),))
+                invstd = g.call_function(ttnn.reshape, (invstd, shape))
+                mean = g.call_function(ttnn.reshape, (mean, shape))
+                output = g.call_function(ttnn.sub, (input, mean))
+                output = g.call_function(ttnn.mul, (output, invstd))
+                output = batch_norm_post_process(output, shape, weight, bias)
+                return g.call_function(target_wrappers.pack_to_tuple, (output,))
+
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
                 try:
@@ -945,6 +967,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_tensor = insert_sharded_nhwc_to_nchw(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
                 return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
+
+            if node.target == torch.ops.aten._native_batch_norm_legit_no_training.default:
+                return batch_norm_inference(*args)
 
             # PEP 8 suggests this explicit statement
             return None

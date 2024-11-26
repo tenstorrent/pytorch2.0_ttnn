@@ -13,7 +13,7 @@ class AtenOpTestExporter(InputVarPerOp):
         result = template.replace("{" + key + "}", replacement)
         return result
 
-    def export_tests(self, template_path: Path, basedir: Path, model_name: str, model_name_: str):
+    def export_tests(self, template_dir: Path, basedir: Path, model_name: str, model_name_: str):
         # undo _join_br
         def _unjoin_br(str_br: str):
             return str_br.split(",<br>")
@@ -21,6 +21,9 @@ class AtenOpTestExporter(InputVarPerOp):
         sort_by_opname = dict(sorted(self.items()))
         basedir.mkdir(parents=True, exist_ok=True)
         for opname, inputs_variations in sort_by_opname.items():
+            if opname != "aten._native_batch_norm_legit_no_training.default":
+                continue
+
             inputs_strings = [_unjoin_br(input_variations) for input_variations in inputs_variations.keys()]
             opname_ = opname.replace(".", "_")
             metrics_dir = f"metrics-autogen-op/{model_name}"
@@ -29,19 +32,24 @@ class AtenOpTestExporter(InputVarPerOp):
             filename = f"test_{model_name_}_{opname_}.py"
 
             extra_accessor = ""
+            module_template = "aten_test_generic_module.tmpl"
             # TODO(tt-metal#12099): ttnn.max_pool2d currently doesn't return indices so we only check the value for eval
             if opname == "aten.max_pool2d_with_indices.default" and not model_name.endswith("-train"):
-                extra_accessor = "[0]"
+                module_template = "aten_test_check_only_first_output_module.tmpl"
+            # For non-training mode, only the first return value is meaningful
+            elif opname == "aten._native_batch_norm_legit_no_training.default":
+                module_template = "aten_test_check_only_first_output_module.tmpl"
 
-            with open(template_path, "r") as f:
-                text = f.read()
+            module_text = (template_dir / module_template).read_text()
+            module_text = self.render_string(module_text, "opname", opname)
+
+            text = (template_dir / "aten_test.tmpl").read_text()
+            text = self.render_string(text, "test_module", module_text)
             text = self.render_string(text, "opname", opname)
             text = self.render_string(text, "inputs_strings", str(inputs_strings))
             text = self.render_string(text, "metrics_dir", metrics_dir)
             text = self.render_string(text, "metrics_filename", metrics_filename)
-            text = self.render_string(text, "extra_accessor", extra_accessor)
-            with open(basedir / filename, "w") as f:
-                f.write(text)
+            (basedir / filename).write_text(text)
         os.system(f"pre-commit run --files {basedir}/* > /dev/null")
 
 
@@ -55,7 +63,7 @@ if __name__ == "__main__":
 
     if args.merge:
         all_exporter = AtenOpTestExporter()
-    template_path = os.path.dirname(os.path.abspath(__file__)) + "/aten_test.tmpl"
+    template_dir = Path(os.path.abspath(__file__)).parent / "templates"
 
     # Assumed directory structure example. Some files will not exist if test failed.
     """
@@ -90,8 +98,8 @@ if __name__ == "__main__":
         model_ = model.replace(" ", "_").replace("(", "").replace(")", "").replace(".", "_")
 
         if not args.merge:
-            input_var_per_op.export_tests(template_path, Path(f"tests/autogen_op/{model_}"), model, model_)
+            input_var_per_op.export_tests(template_dir, Path(f"tests/autogen_op/{model_}"), model, model_)
         else:
             all_exporter.merge(input_var_per_op)
     if args.merge:
-        all_exporter.export_tests(template_path, Path(f"tests/autogen_op/ALL"), "ALL", "ALL")
+        all_exporter.export_tests(template_dir, Path(f"tests/autogen_op/ALL"), "ALL", "ALL")
