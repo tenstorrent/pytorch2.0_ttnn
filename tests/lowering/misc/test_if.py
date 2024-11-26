@@ -19,7 +19,7 @@ class IfModule(torch.nn.Module):
     "input_shape",
     [(4, 4)],
 )
-@pytest.mark.skip(reason="Temporarily disabled due to reset issue in ttnn.sum")
+@pytest.mark.skip(reason="Temporarily disabled due to issue#499")
 def test_if(device, input_shape):
     m = IfModule()
     inputs_then = [torch.tensor(range(1, 17)).reshape(input_shape).to(torch.bfloat16)]
