@@ -102,7 +102,17 @@ def test_rsub(device, input_shapes):
 
 @pytest.mark.parametrize(
     "input_shape",
-    ((4, 4), (32, 32)),
+    (
+        (4, 4),
+        (32, 32),
+        (1, 1, 1, 10),
+        (1, 1, 1, 1),
+        (1, 1, 1, 2048),
+        (1, 1, 1, 60),
+        pytest.param((1006,), marks=pytest.mark.xfail(reason="1D cases solved in #198, waiting for review")),
+        (120, 1),
+        (128, 1),
+    ),
 )
 def test_rsub_scalar(device, input_shape):
     m = RSubScalarModule()
