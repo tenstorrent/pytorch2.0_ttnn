@@ -12,19 +12,6 @@ aten_view_default_blocklist = [
 ]
 
 ############################################################
-# EXTRA BLOCKLIST OF vgg*
-############################################################
-# see issue #362
-# vgg11
-# aten::_adaptive_avg_pool2d => aten::view
-# if aten avgpool lowering to ttnn avgpool,
-# then its output shape become torch.Size([1, 1, 1, 7]) and cause aten::view error
-# RuntimeError: shape '[1, 25088]' is invalid for input of size 7
-# vgg11/vgg11_bn/vgg13/vgg13_bn/vgg16/vgg16_bn/vgg19/vgg19_bn all have this input var
-aten__adaptive_avg_pool2d_default_blocklist = [["Tensor<[1, 512, 7, 7]> self = ?", "List[int] output_size = [7, 7]"]]
-
-
-############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn*
 ############################################################
 
@@ -357,7 +344,6 @@ aten_embedding_default_blocklist = [
 ############################################################
 
 GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
-GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
 GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
 GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist)
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)

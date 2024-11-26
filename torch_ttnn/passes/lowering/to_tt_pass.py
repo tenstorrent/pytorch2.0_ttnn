@@ -318,14 +318,12 @@ class ReplaceMoreTt(torch.fx.Transformer):
                     return True
                 return False
 
-            if hasattr(args[0], "node") and args[0].node.name in self._input_node_meta:
-                arg0_meta = self._input_node_meta[args[0].node.name]
-            else:
-                arg0_meta = None
-            if hasattr(args[1], "node") and args[1].node.name in self._input_node_meta:
-                arg1_meta = self._input_node_meta[args[1].node.name]
-            else:
-                arg1_meta = None
+            arg0_meta = None
+            arg1_meta = None
+            if hasattr(args[0], "node") and hasattr(args[0].node, "meta"):
+                arg0_meta = args[0].node.meta
+            if hasattr(args[1], "node") and hasattr(args[1].node, "meta"):
+                arg1_meta = args[1].node.meta
             if is_zero_dim(arg0_meta) or is_zero_dim(arg1_meta):
                 return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
@@ -401,8 +399,18 @@ class ReplaceMoreTt(torch.fx.Transformer):
         # Other ops
         ############################################################
         if target == torch.ops.aten._adaptive_avg_pool2d.default:
-            # assumes output size is (1, 1)
-            return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
+            arg0_size = None
+            if hasattr(args[0], "node") and hasattr(args[0].node, "meta"):
+                arg0_size = list(args[0].node.meta["val"].size())
+            output_size = None
+            if len(args) > 1:
+                output_size = args[1]
+            elif "output_size" in kwargs:
+                output_size = kwargs["output_size"]
+            if arg0_size is not None and output_size is not None and arg0_size[-2:] == output_size:
+                return args[0]
+            # TODO: no ttnn op can convert _adaptive_avg_pool2d
+            return self.call_function_prop_meta(target, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 

@@ -146,7 +146,6 @@ TTNN_NORM_OPS = [
 ]
 
 TTNN_POOL_OPS = [
-    ttnn.global_avg_pool2d,
     ttnn.max_pool2d,
 ]
 
