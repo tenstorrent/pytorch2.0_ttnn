@@ -676,6 +676,17 @@ aten_convolution_default_blocklist = [
         "int groups = 1",
     ],
     [
+        "Tensor<[1, 1024, 45, 80]> input = ?",
+        "Tensor<[2048, 1024, 1, 1]> weight = ?",
+        "Optional[Tensor]<[2048]> bias = ?",
+        "List[int] stride = [2, 2]",
+        "List[int] padding = [0, 0]",
+        "List[int] dilation = [1, 1]",
+        "bool transposed = False",
+        "List[int] output_padding = [0, 0]",
+        "int groups = 1",
+    ],
+    [
         "Tensor<[1, 32, 192, 192]> input = ?",
         "Tensor<[528, 32, 1, 1]> weight = ?",
         "Optional[Tensor] bias = ?",
