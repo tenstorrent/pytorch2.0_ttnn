@@ -223,6 +223,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.hardsigmoid.default:
             return self.call_function_prop_meta(ttnn.hardsigmoid, args, kwargs)
 
+        if target == torch.ops.aten.hardswish.default:
+            return self.call_function_prop_meta(ttnn.hardswish, args, kwargs)
+
         if target == torch.ops.aten.hardtanh.default:
             new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")), default_none=True)
             new_args = (args[0],)
@@ -301,6 +304,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Pointwise binary
         ############################################################
+        if target in relational_scalar_ops:
+            return self.call_function_prop_meta(relational_scalar_ops[target], args, kwargs)
+
         if target == torch.ops.aten.add.Tensor:
 
             def is_zero_dim(meta):
@@ -442,6 +448,28 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             args = node.args
             kwargs = node.kwargs
 
+            def batch_norm_post_process(output, shape, weight, bias):
+                if weight is not None:
+                    weight = g.call_function(ttnn.reshape, (weight, shape))
+                    output = g.call_function(ttnn.mul, (output, weight))
+                if bias is not None:
+                    bias = g.call_function(ttnn.reshape, (bias, shape))
+                    output = g.call_function(ttnn.add, (output, bias))
+                return output
+
+            # Non-training batch normalization
+            def batch_norm_inference(input, weight, bias, mean, var, momentum, eps):
+                assert is_getitem_0_only_user(node), "non-training batch_norm should only have first return value used"
+                shape = input.meta["val"].size()
+                shape = (1, shape[1]) + (1,) * (len(shape) - 2)
+                invstd = g.call_function(ttnn.rsqrt, (g.call_function(ttnn.add, (var, eps)),))
+                invstd = g.call_function(ttnn.reshape, (invstd, shape))
+                mean = g.call_function(ttnn.reshape, (mean, shape))
+                output = g.call_function(ttnn.sub, (input, mean))
+                output = g.call_function(ttnn.mul, (output, invstd))
+                output = batch_norm_post_process(output, shape, weight, bias)
+                return g.call_function(target_wrappers.pack_to_tuple, (output,))
+
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
                 try:
@@ -486,25 +514,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if args[0] >= 2:
                     new_args = (args[0], args[1], args[2])
                     return g.call_function(ttnn.arange, args=new_args)
-                return None
-
-            if node.target in relational_scalar_ops:
-                # NOTE(kevinwuTT): ttnn.eq shows error if passing a literal scalar as an argument.
-                # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
-                # NOTE(jdh8): after broadcasting support is complete, we should fill a (1,) tensor
-                arg_metadata = node.meta["val"]
-                if HasValidPageSize(arg_metadata.size(), strict=True):
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                    }
-                    full_node = g.call_function(ttnn.full, args=(arg_metadata.size(),), kwargs=new_kwargs)
-                    return g.call_function(
-                        relational_scalar_ops[node.target],
-                        args=(args[0], full_node),
-                        kwargs={},
-                    )
                 return None
 
             if node.target == torch.ops.aten.eq.Tensor:
@@ -930,6 +939,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_tensor = insert_sharded_nhwc_to_nchw(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
                 return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
+
+            if node.target == torch.ops.aten._native_batch_norm_legit_no_training.default:
+                return batch_norm_inference(*args)
+
+            # PEP 8 suggests this explicit statement
+            return None
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)

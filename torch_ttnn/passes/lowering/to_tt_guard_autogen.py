@@ -104,9 +104,6 @@ aten_rsub_Scalar_blocklist = [
     ["Tensor<[1, 1, 1, 15]> self = ?", "number other = 1.0"],
     ["Tensor<[1, 1, 1, 17]> self = ?", "number other = 1.0"],
 ]
-aten_addmm_default_blocklist = [
-    ["Tensor<[4096]> self = ?", "Tensor<[1, 25088]> mat1 = ?", "Tensor<[25088, 4096]> mat2 = ?"]
-]
 aten__scaled_dot_product_flash_attention_default_blocklist = [
     ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
     ["Tensor<[1, 12, 197, 64]> query = ?", "Tensor<[1, 12, 197, 64]> key = ?", "Tensor<[1, 12, 197, 64]> value = ?"],
@@ -348,7 +345,6 @@ aten_log_default_blocklist = [
 ]
 aten_rsqrt_default_blocklist = [["Tensor<[1, 1, 1]> self = ?"]]
 aten_bernoulli_p_blocklist = [["Tensor<[1, 256]> self = ?", "float p = 0.5"]]
-aten_eq_Scalar_blocklist = [["Tensor<[1, 1, 256]> self = ?", "number other = 1"]]
 aten_native_dropout_default_blocklist = [
     ["Tensor<[1, 1280]> input = ?", "float p = 0.2", "Optional[bool] train = True"]
 ]
@@ -392,7 +388,6 @@ GUARD = {
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
     torch.ops.aten.full.default: partial(guard_aten, aten_full_default_blocklist),
     torch.ops.aten.rsub.Scalar: partial(guard_aten, aten_rsub_Scalar_blocklist),
-    torch.ops.aten.addmm.default: partial(guard_aten, aten_addmm_default_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
@@ -412,7 +407,6 @@ GUARD = {
     torch.ops.aten.log.default: partial(guard_aten, aten_log_default_blocklist),
     torch.ops.aten.rsqrt.default: partial(guard_aten, aten_rsqrt_default_blocklist),
     torch.ops.aten.bernoulli.p: partial(guard_aten, aten_bernoulli_p_blocklist),
-    torch.ops.aten.eq.Scalar: partial(guard_aten, aten_eq_Scalar_blocklist),
     torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
     torch.ops.aten.new_empty_strided.default: partial(guard_aten, aten_new_empty_strided_default_blocklist),
     torch.ops.aten.mm.default: partial(guard_aten, aten_mm_default_blocklist),
@@ -428,7 +422,6 @@ guard_ops = [
     "torch.ops.aten._log_softmax.default",
     "torch.ops.aten.full.default",
     "torch.ops.aten.rsub.Scalar",
-    "torch.ops.aten.addmm.default",
     "torch.ops.aten._scaled_dot_product_flash_attention.default",
     "torch.ops.aten.transpose.int",
     "torch.ops.aten.embedding.default",
