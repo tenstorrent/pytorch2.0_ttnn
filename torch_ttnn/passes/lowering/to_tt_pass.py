@@ -9,6 +9,7 @@ from torch_ttnn.utils import (
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
+    get_shape,
 )
 import numpy as np
 from typing import Tuple
