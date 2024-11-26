@@ -572,11 +572,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.rsub.Scalar:
-                # aten.rsub(tensor, scalar) = sub(scalar, tensor)
-                # However, ttnn.sub does not support scalar as the first argument
-                # Instead: ttnn.add(ttnn.negate(tensor), scalar))
-                ttnn_neg = g.call_function(ttnn.neg, (args[0],))
-                return g.call_function(ttnn.add, (ttnn_neg, args[1]))
+                return g.call_function(ttnn.rsub, args, {})
 
             if node.target == torch.ops.aten.div.Tensor:
                 # ttnn.recip does not support scalars. Call an ttnn.full and pass that to ttnn.recip
