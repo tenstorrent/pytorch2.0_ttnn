@@ -45,6 +45,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.floor,
     ttnn.gelu,
     ttnn.hardsigmoid,
+    ttnn.hardswish,
     ttnn.hardtanh,
     ttnn.isinf,
     ttnn.isnan,
@@ -215,7 +216,7 @@ def is_tt(node):
 def call_to_torch_with_meta(g, src_node):
     call_func = g.call_function(ttnn.to_torch, (src_node,))
     if src_node.meta is not None:
-        call_func.meta = src_node.meta
+        call_func.meta = src_node.meta.copy()
     if "original_input_variations" in call_func.meta:
         call_func.meta["original_input_variations"] = None
     return call_func
@@ -238,7 +239,7 @@ def try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops):
             (to_torch_node,),
             {"dtype": dtype},
         )
-        call_func.meta = to_torch_node.meta
+        call_func.meta = to_torch_node.meta.copy()
         if "original_input_variations" in call_func.meta:
             call_func.meta["original_input_variations"] = None
         return call_func

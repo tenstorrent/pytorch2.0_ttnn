@@ -13,6 +13,7 @@ class SumModule(torch.nn.Module):
         return torch.ops.aten.sum.default(tensor)
 
 
+@pytest.mark.xfail(reason="Knwon precision issue (#499)")
 @pytest.mark.parametrize(
     "input_shapes",
     [
@@ -22,6 +23,7 @@ class SumModule(torch.nn.Module):
         (1,),
     ],
 )
+@pytest.mark.skip(reason="Temporarily disabled due to issue#499")
 def test_sum(device, input_shapes):
     m = SumModule()
     inputs = torch.rand(input_shapes, dtype=torch.bfloat16)

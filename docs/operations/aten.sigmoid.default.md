@@ -1,9 +1,9 @@
 ### aten.sigmoid.default
 |    | ATen Input Variations             | Status   | Isolated   | PCC   |
 |---:|:----------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 256, 256]> self = ? | Done     | Done       | True  |
+|  0 | Tensor<[1, 1, 256, 256]> self = ? | Removed  | Done       | True  |
 |  1 | Tensor<[1, 1, 480, 640]> self = ? | Done     | Done       | True  |
-|  2 | Tensor<[1, 100, 4]> self = ?      | Done     | Done       | True  |
+|  2 | Tensor<[1, 100, 4]> self = ?      | Removed  | Done       | True  |
 |  3 | Tensor<[1, 104, 1, 1]> self = ?   | Done     | Done       | True  |
 |  4 | Tensor<[1, 1056, 1, 1]> self = ?  | Done     | Done       | True  |
 |  5 | Tensor<[1, 12, 64, 64]> self = ?  | Done     | Done       | True  |
