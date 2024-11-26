@@ -222,7 +222,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Pointwise unary
         ############################################################
-        if target == torch.ops.aten.hardtanh.default and args[1] == -1.0 and args[2] == 1.0:
+        if target == torch.ops.aten.hardtanh.default:
             # aten.hardtanh args are positional but ttnn.clip uses kw args
             new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")), default_none=True)
             new_args = (args[0],)
