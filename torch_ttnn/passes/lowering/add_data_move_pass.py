@@ -388,7 +388,15 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     if not is_function_call(src_node):
         return None
     if (
-        src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
+        src_node.target
+        not in TTNN_LAYOUT_CHANGE_OPS.union(
+            set(
+                [
+                    target_wrappers.repeat,
+                    ttnn.concat,
+                ]
+            )
+        )
         or not is_tt_compute(dst_node)
         or dst_node.target == ttnn.embedding
     ):

@@ -874,7 +874,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensors, dim = args
                 tensor_list = []
                 for tensor in tensors:
-                    tensor_list.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnTileLayout()}))
+                    tensor_list.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnRowMajorLayout()}))
+
                 return g.call_function(ttnn.concat, (tensor_list, dim))
 
             if node.target == torch.ops.aten.sum.default:
