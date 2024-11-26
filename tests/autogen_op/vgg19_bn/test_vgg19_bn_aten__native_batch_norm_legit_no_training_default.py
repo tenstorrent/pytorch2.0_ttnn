@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten._native_batch_norm_legit_no_training.default(*args, **kwargs)
+        return torch.ops.aten._native_batch_norm_legit_no_training.default(*args, **kwargs)[0]
 
 
 metrics = []
