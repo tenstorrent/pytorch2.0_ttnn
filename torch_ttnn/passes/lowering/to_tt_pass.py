@@ -12,7 +12,6 @@ from torch_ttnn.utils import (
     get_shape,
 )
 import numpy as np
-from typing import Tuple
 import torch_ttnn.metrics as metrics
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
@@ -974,6 +973,79 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten._native_batch_norm_legit_no_training.default:
                 return batch_norm_inference(*args)
+
+            if node.target == torch.ops.aten.convolution.default:
+                params = map_args_to_kwargs(
+                    args,
+                    (
+                        (0, "input_tensor"),
+                        (1, "weight_tensor"),
+                        (2, "bias_tensor"),
+                        (3, "stride"),
+                        (4, "padding"),
+                        (5, "dilation"),
+                        (6, "transposed"),
+                        (7, "output_padding"),
+                        (8, "groups"),
+                    ),
+                )
+                input_node = params["input_tensor"]
+                weight_node = params["weight_tensor"]
+                transposed = params.get("transposed", False)
+                groups = params.get("groups", 1)
+                stride = params.get("stride", [1, 1])
+                padding = params.get("padding", [0, 0])
+                dilation = params.get("dilation", [1, 1])
+                output_padding = params.get("output_padding", [0, 0])
+
+                input_shape = input_node.meta["val"].size()
+                if len(input_shape) < 4:
+                    return None
+
+                batch_size, in_c, in_h, in_w = input_shape
+                out_a, out_b, kernel_h, kernel_w = weight_node.meta["val"].size()
+                out_c = out_b if transposed else out_a
+
+                input_tensor = insert_nchw_to_nhwc(g, input_node)
+                # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
+                input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
+                # TODO(#417): weight currently needs to be on host
+                weight_tensor = g.call_function(
+                    target_wrappers.move_to_host,
+                    (weight_node, TtnnRowMajorLayout()),
+                )
+                bias_node = params.get("bias_tensor", None)
+                if bias_node is None:
+                    bias_tensor = None
+                else:
+                    bias_shape = bias_node.meta["val"].size()
+                    bias_tensor = g.call_function(
+                        ttnn.reshape,
+                        (bias_node, (1,) * (4 - len(bias_shape)) + bias_shape),
+                    )
+                output_tensor = g.call_function(
+                    target_wrappers.conv2d,
+                    (
+                        input_tensor,
+                        weight_tensor,
+                        bias_tensor,
+                        batch_size,
+                        in_c,
+                        out_c,
+                        in_h,
+                        in_w,
+                        (kernel_h, kernel_w),
+                        stride,
+                        padding,
+                        dilation,
+                        groups,
+                        TtnnDevice(),
+                        transposed,
+                        output_padding if transposed else None,
+                    ),
+                )
+                output_shape = node.meta["val"].size()
+                return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
 
             # PEP 8 suggests this explicit statement
             return None
