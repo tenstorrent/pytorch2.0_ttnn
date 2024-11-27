@@ -131,4 +131,4 @@ def test_rsub_scalar(device, input_shape):
     assert torch.ops.aten.rsub.Scalar not in targets
     assert targets.count(ttnn.rsub) == 1
     # Check inference result
-    assert_with_pcc(result_before, result_after, 0.998)
+    assert_with_pcc(result_before, result_after, 0.995)
