@@ -75,6 +75,7 @@ TTNN_POINTWISE_UNARY_OPS = [
 
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
+    ttnn.div,
     ttnn.eqz,
     ttnn.gez,
     ttnn.ge,
@@ -136,6 +137,8 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.clone,
     target_wrappers.repeat,
     target_wrappers.pack_to_tuple,
+    target_wrappers.move_to_host,
+    target_wrappers.conv2d,
 ]
 
 TTNN_NORM_OPS = [
@@ -389,7 +392,15 @@ def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> tor
     if not is_function_call(src_node):
         return None
     if (
-        src_node.target not in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat]))
+        src_node.target
+        not in TTNN_LAYOUT_CHANGE_OPS.union(
+            set(
+                [
+                    target_wrappers.repeat,
+                    ttnn.concat,
+                ]
+            )
+        )
         or not is_tt_compute(dst_node)
         or dst_node.target == ttnn.embedding
     ):
