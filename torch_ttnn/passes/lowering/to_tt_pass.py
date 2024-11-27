@@ -874,6 +874,22 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_4d = g.call_function(ttnn.moreh_cumsum, (input_4d, dim), kwargs)
                 return g.call_function(ttnn.reshape, (output_4d, input_shape))
 
+            if node.target == torch.ops.aten.cat.default:
+                tensors = args[0]
+                if len(tensors) == 1:
+                    return tensors[0]
+
+                dim = args[1]
+                rank = len(node.meta["val"].size())
+                dim = (dim + rank) % rank
+                layout = TtnnTileLayout() if rank == 4 else TtnnRowMajorLayout()
+
+                tensor_list = []
+                for tensor in tensors:
+                    tensor_list.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": layout}))
+
+                return g.call_function(ttnn.concat, (tensor_list, dim))
+
             if node.target == torch.ops.aten.sum.default:
                 input_size = args[0].meta["val"].size()
                 output_size = node.meta["val"].size()
