@@ -422,9 +422,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output = batch_norm_post_process(output, shape, weight, bias)
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
 
-            if node.target in TTNN_POINTWISE_UNARY_OPS:
-                code = TTNN_POINTWISE_UNARY_OPS[node.target]
-
             # NOTE(jdh8): Workaround for tenstorrent/tt-metal#12671
             # Passing a tensor shaped `(N,)` to the kernel results in `(1, N)`.
             # Reshape the tensor back to get the correct shape.
