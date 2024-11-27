@@ -75,6 +75,7 @@ TTNN_POINTWISE_UNARY_OPS = [
 
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
+    ttnn.div,
     ttnn.eqz,
     ttnn.gez,
     ttnn.ge,
