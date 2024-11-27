@@ -1,14 +1,14 @@
 # High Level Operations Status
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._native_batch_norm_legit_no_training.default |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  0 | aten._native_batch_norm_legit_no_training.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  1 | aten.convolution.default                          |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  2 | aten.silu.default                                 |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  2 | aten.silu.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                            | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 32, 256, 256]> input = ?,<br>Optional[Tensor]<[32]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>Tensor<[32]> running_mean = ?,<br>Tensor<[32]> running_var = ?,<br>float momentum = 0.03,<br>float eps = 0.001 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 32, 256, 256]> input = ?,<br>Optional[Tensor]<[32]> weight = ?,<br>Optional[Tensor]<[32]> bias = ?,<br>Tensor<[32]> running_mean = ?,<br>Tensor<[32]> running_var = ?,<br>float momentum = 0.03,<br>float eps = 0.001 | Done     | Done       | True  |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                   | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -16,5 +16,5 @@
 ### aten.silu.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 32, 256, 256]> self = ? | Removed  | Done       | True  |
+|  0 | Tensor<[1, 32, 256, 256]> self = ? | Done     | Done       | True  |
 
