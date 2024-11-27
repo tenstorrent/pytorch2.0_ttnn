@@ -1,7 +1,7 @@
 ### aten.clamp_min.default
 |    | ATen Input Variations                                  | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 38, 38]> self = ?,<br>number min = 1e-12 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1, 38, 38]> self = ?,<br>number min = 1e-12 | Unknown  | Fallback   | True  |
 |  1 | Tensor<[1, 24, 64, 1]> self = ?,<br>number min = 1e-12 | None     | Fallback   | True  |
 |  2 | Tensor<[1, 32, 64, 1]> self = ?,<br>number min = 1e-12 | None     | Fallback   | True  |
 |  3 | Tensor<[16, 6, 64, 1]> self = ?,<br>number min = 1e-12 | None     | Fallback   | True  |

@@ -15,12 +15,12 @@
 | 11 | aten.masked_fill.Scalar        |                  2 |           0 |         0 |          0 | ✘           |     0   |
 | 12 | aten.mul.Tensor                |                  2 |           1 |         0 |          0 | 🚧          |     0.5 |
 | 13 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |     1   |
-| 14 | aten.rsub.Scalar               |                  2 |           0 |         2 |          0 | ✅          |     1   |
-| 15 | aten.slice.Tensor              |                  6 |           0 |         6 |          0 | ✅          |     1   |
+| 14 | aten.rsub.Scalar               |                  2 |           2 |         0 |          0 | ✅          |     1   |
+| 15 | aten.slice.Tensor              |                  6 |           1 |         5 |          0 | ✅          |     1   |
 | 16 | aten.sub.Tensor                |                  1 |           0 |         0 |          0 | ✘           |     0   |
 | 17 | aten.t.default                 |                  3 |           3 |         0 |          0 | ✅          |     1   |
 | 18 | aten.transpose.int             |                  6 |           6 |         0 |          0 | ✅          |     1   |
-| 19 | aten.unsqueeze.default         |                  4 |           2 |         2 |          0 | ✅          |     1   |
+| 19 | aten.unsqueeze.default         |                  4 |           3 |         1 |          0 | ✅          |     1   |
 | 20 | aten.view.default              |                 15 |          15 |         0 |          0 | ✅          |     1   |
 ***
 ### aten._softmax.default
@@ -102,8 +102,8 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                  | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 24]> self = ?,<br>number other = 1.0  | Removed  | Done       | True  |
-|  1 | Tensor<[1, 1, 24, 24]> self = ?,<br>number other = 1.0 | Removed  | Done       | True  |
+|  0 | Tensor<[1, 1, 1, 24]> self = ?,<br>number other = 1.0  | Done     | Done       | True  |
+|  1 | Tensor<[1, 1, 24, 24]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -111,7 +111,7 @@
 |  1 | Tensor<[1, 24]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Fallback   | True  |
 |  2 | Tensor<[1, 24]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Fallback   | True  |
 |  3 | Tensor<[1, 600, 768]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
-|  4 | Tensor<[1, 600, 768]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 24                  | Removed  | Done       | True  |
+|  4 | Tensor<[1, 600, 768]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 24                  | Done     | Done       | True  |
 |  5 | Tensor<[24]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807          | Removed  | Fallback   | True  |
 ### aten.sub.Tensor
 |    | ATen Input Variations                                  | Status   | Isolated   | PCC   |
@@ -138,7 +138,7 @@
 |  0 | Tensor<[1, 1, 24]> self = ?,<br>int dim = 2 | Done     | Done       | True  |
 |  1 | Tensor<[1, 24]> self = ?,<br>int dim = 1    | Done     | Done       | True  |
 |  2 | Tensor<[24]> self = ?,<br>int dim = 0       | Removed  | Done       | True  |
-|  3 | Tensor<[24]> self = ?,<br>int dim = 1       | Removed  | Done       | True  |
+|  3 | Tensor<[24]> self = ?,<br>int dim = 1       | Done     | Done       | True  |
 ### aten.view.default
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:------|
