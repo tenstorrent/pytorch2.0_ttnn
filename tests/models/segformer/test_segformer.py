@@ -37,7 +37,6 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_segformer(record_property, mode):
     model_name = "SegFormer"
     record_property("model_name", model_name)

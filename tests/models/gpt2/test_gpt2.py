@@ -25,7 +25,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_gpt2(record_property, mode):
     model_name = "GPT-2"
     record_property("model_name", model_name)
