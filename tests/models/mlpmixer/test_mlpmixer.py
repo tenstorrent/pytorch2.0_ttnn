@@ -23,7 +23,6 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-@pytest.mark.compilation_xfail
 def test_mlpmixer(record_property, mode):
     model_name = "MLPMixer"
     record_property("model_name", model_name)
