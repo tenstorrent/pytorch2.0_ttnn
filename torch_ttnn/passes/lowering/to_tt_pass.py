@@ -829,13 +829,22 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 np_tensor_shp = np.array(tensor_shape)
                 np_mask_shp = np.array(mask_shape)
                 if np.sum(np_tensor_shp % np_mask_shp) == 0:
-                    if isinstance(fill_value, (float,)):
-                        fill_real_value = fill_value
-                    elif fill_value.op == "get_attr":
+                    # check if the fill_value is a constant
+                    if isinstance(fill_value, torch.fx.node.Node) and fill_value.op == "get_attr":
                         with unset_fake_temporarily():
                             fill_value_attr = getattr(gm, fill_value.target)
-                            fill_real_value = fill_value_attr.item()
+                            if fill_value_attr.numel() == 1:
+                                # extract single fill value
+                                fill_value = fill_value_attr.item()
+                            else:
+                                # extract torch.tensor constant
+                                fill_value = fill_value_attr.data
+
+                    if isinstance(fill_value, (float,)):
+                        full_kwargs = {"fill_value": fill_value, "device": TtnnDevice(), "layout": TtnnTileLayout()}
+                        full = g.call_function(ttnn.full, (list(tensor_shape),), full_kwargs)
                     else:
+                        # No cases for non-scalar fill value.
                         return None
 
                     mask_bcst = mask
@@ -848,8 +857,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
                     tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))
 
-                    full_kwargs = {"fill_value": fill_real_value, "device": TtnnDevice(), "layout": TtnnTileLayout()}
-                    full = g.call_function(ttnn.full, (list(tensor_shape),), full_kwargs)
                     full_masked = g.call_function(ttnn.multiply, (mask_bcst, full))
                     masked_fill = g.call_function(ttnn.add, (tensor_masked, full_masked))
 
