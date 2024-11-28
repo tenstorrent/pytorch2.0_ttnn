@@ -7,7 +7,7 @@
 |  3 | aten.add.Tensor                |                  5 |           5 |         0 |          0 | ✅          |       1 |
 |  4 | aten.addmm.default             |                  5 |           5 |         0 |          0 | ✅          |       1 |
 |  5 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |       1 |
-|  6 | aten.clone.default             |                  5 |           4 |         1 |          0 | ✅          |       1 |
+|  6 | aten.clone.default             |                  5 |           5 |         0 |          0 | ✅          |       1 |
 |  7 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  8 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |       1 |
 |  9 | aten.expand.default            |                  3 |           0 |         3 |          0 | ✅          |       1 |
@@ -65,7 +65,7 @@
 |  1 | Tensor<[1, 14, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Done     | Done       | True  |
 |  2 | Tensor<[1, 14, 128]> self = ?                                                              | Done     | Done       | True  |
 |  3 | Tensor<[1, 14, 768]> self = ?                                                              | Done     | Done       | True  |
-|  4 | Tensor<[1, 14]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format         | Removed  | Done       | True  |
+|  4 | Tensor<[1, 14]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format         | Done     | Done       | True  |
 ### aten.div.Tensor
 |    | ATen Input Variations                                   | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------|:---------|:-----------|:------|

@@ -3,9 +3,9 @@
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._to_copy.default          |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  1 | aten.add.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  2 | aten.clone.default             |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  2 | aten.clone.default             |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  3 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |       1 |
-|  4 | aten.mul.Tensor                |                  1 |           0 |         1 |          0 | ✅          |       1 |
+|  4 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  5 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  6 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  7 | aten.slice.Tensor              |                  4 |           1 |         3 |          0 | ✅          |       1 |
@@ -22,7 +22,7 @@
 ### aten.clone.default
 |    | ATen Input Variations        | Status   | Isolated   | PCC   |
 |---:|:-----------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 8, 768]> self = ? | Removed  | Done       | True  |
+|  0 | Tensor<[1, 8, 768]> self = ? | Done     | Done       | True  |
 ### aten.embedding.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -32,7 +32,7 @@
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Removed  | Done       | True  |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       | True  |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|

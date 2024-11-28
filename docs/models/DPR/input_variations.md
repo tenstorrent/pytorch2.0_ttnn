@@ -2,7 +2,7 @@
 |    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  1 | aten._to_copy.default          |                  1 |           0 |         1 |          0 | ✅          |    1    |
+|  1 | aten._to_copy.default          |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  2 | aten.add.Tensor                |                  2 |           2 |         0 |          0 | ✅          |    1    |
 |  3 | aten.addmm.default             |                  5 |           5 |         0 |          0 | ✅          |    1    |
 |  4 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |    1    |
@@ -22,7 +22,7 @@
 | 18 | aten.t.default                 |                  5 |           5 |         0 |          0 | ✅          |    1    |
 | 19 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 20 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |    1    |
-| 21 | aten.view.default              |                 14 |          11 |         3 |          0 | ✅          |    1    |
+| 21 | aten.view.default              |                 14 |          14 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   | Isolated   | PCC   |
@@ -31,7 +31,7 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 25]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Removed  | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1, 25]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Done     | Fallback   | True  |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|:------|
@@ -139,13 +139,13 @@
 |  0 | Tensor<[1, 12, 25, 25]> self = ?,<br>List[int] size = [12, 25, 25] | Done     | Done       | True  |
 |  1 | Tensor<[1, 12, 25, 64]> self = ?,<br>List[int] size = [12, 25, 64] | Done     | Done       | True  |
 |  2 | Tensor<[1, 12, 64, 25]> self = ?,<br>List[int] size = [12, 64, 25] | Done     | Done       | True  |
-|  3 | Tensor<[1, 1]> self = ?,<br>List[int] size = [1]                   | Removed  | Done       | True  |
+|  3 | Tensor<[1, 1]> self = ?,<br>List[int] size = [1]                   | Done     | Done       | True  |
 |  4 | Tensor<[1, 25, 12, 64]> self = ?,<br>List[int] size = [1, 25, 768] | Done     | Done       | True  |
 |  5 | Tensor<[1, 25, 3072]> self = ?,<br>List[int] size = [25, 3072]     | Done     | Done       | True  |
 |  6 | Tensor<[1, 25, 768]> self = ?,<br>List[int] size = [1, 25, 12, 64] | Done     | Done       | True  |
 |  7 | Tensor<[1, 25, 768]> self = ?,<br>List[int] size = [25, 768]       | Done     | Done       | True  |
-|  8 | Tensor<[1, 25]> self = ?,<br>List[int] size = [1, 25]              | Removed  | Done       | True  |
-|  9 | Tensor<[12, 25, 25]> self = ?,<br>List[int] size = [1, 12, 25, 25] | Removed  | Done       | True  |
+|  8 | Tensor<[1, 25]> self = ?,<br>List[int] size = [1, 25]              | Done     | Done       | True  |
+|  9 | Tensor<[12, 25, 25]> self = ?,<br>List[int] size = [1, 12, 25, 25] | Done     | Done       | True  |
 | 10 | Tensor<[12, 25, 64]> self = ?,<br>List[int] size = [1, 12, 25, 64] | Done     | Done       | True  |
 | 11 | Tensor<[25, 2]> self = ?,<br>List[int] size = [1, 25, 2]           | Done     | Done       | True  |
 | 12 | Tensor<[25, 3072]> self = ?,<br>List[int] size = [1, 25, 3072]     | Done     | Done       | True  |
