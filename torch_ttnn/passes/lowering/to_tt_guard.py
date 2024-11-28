@@ -226,7 +226,7 @@ aten_mul_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 50258"
 
 aten_select_int_blocklist = [["Tensor<[1, 45]> self = ?", "int dim = 1", "int index = -1"]]
 
-# ERROR tests/models/gpt_neo/test_gpt_neo.py::test_gpt_neo[eval] -
+# ERROR tests/models/gpt_neo/test_gpt_neo.py::test_gpt_neo[eval], see issue #503
 # RuntimeError: probability tensor contains either `inf`, `nan` or element < 0
 # TODO: not pass yet
 
@@ -254,8 +254,8 @@ aten_gt_Scalar_blocklist = [["Tensor<[]> self = ?", "number other = 0"]]
 # TypeError: __call__(): incompatible function arguments. The following argument types are supported: ...
 aten_div_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 16"]]
 
-#             torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
-#             Exception: unhashable type: non-singleton SymInt
+# torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
+# Exception: unhashable type: non-singleton SymInt
 # TODO: not pass yet
 
 ############################################################
@@ -321,6 +321,103 @@ aten_zeros_like_default_blocklist += [
     ["Tensor<[100, 1, 256]> self = ?", "Optional[bool] pin_memory = False"],
 ]
 
+
+############################################################
+# EXTRA BLOCKLIST OF ssd300_vgg16
+############################################################
+# IndexError: index 480 is out of bounds for dimension 0 with size 480, see issue #420
+# add => multiply => subtract => unsqueeze
+aten_add_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 0.5"]]
+aten_mul_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 1.6"]]
+aten_sub_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 0.5"]]
+aten_unsqueeze_default_blocklist += [["Tensor<[300]> self = ?", "int dim = 1"]]
+# RuntimeError: expected scalar type BFloat16 but found Float
+# convolution_default_5 weight dtype is float32, this is
+# because RuntimeError: "nms_kernel" not implemented for 'BFloat16' so cannot model.to(torch.bfloat16)
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF ssdlite320_mobilenet_v3_large
+############################################################
+# IndexError: IndexError: index 640 is out of bounds for dimension 1 with size 640, see issue #420
+# add => multiply => subtract => unsqueeze
+aten_add_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
+aten_mul_Tensor_blocklist += [
+    ["Tensor<[320]> self = ?", "Tensor other = 1.5"],
+    ["Tensor<[320]> self = ?", "Tensor other = 2.0"],
+]
+aten_sub_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
+aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
+# tt_metal/common/math.hpp:16: b > 0
+# Divide by 0 error
+aten_convolution_default_blocklist += [
+    [
+        "Tensor<[1, 128, 5, 5]> input = ?",
+        "Tensor<[128, 1, 3, 3]> weight = ?",
+        "Optional[Tensor] bias = ?",
+        "List[int] stride = [2, 2]",
+        "List[int] padding = [1, 1]",
+        "List[int] dilation = [1, 1]",
+        "bool transposed = False",
+        "List[int] output_padding = [0, 0]",
+        "int groups = 128",
+    ]
+]
+
+# RuntimeError: expected scalar type BFloat16 but found Float
+# convolution_default_66 weight dtype is float32, this is
+# because RuntimeError: "nms_kernel" not implemented for 'BFloat16' so cannot model.to(torch.bfloat16)
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF MobileNetSSD
+############################################################
+# IndexError: index 320 is out of bounds for dimension 0 with size 320, see issue #420
+# add => multiply => subtract => unsqueeze
+aten_add_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
+aten_mul_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 1.0"]]
+aten_sub_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
+aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
+# RuntimeError: expected scalar type BFloat16 but found Float
+# convolution_default_66 weight dtype is float32, this is
+# because RuntimeError: "nms_kernel" not implemented for 'BFloat16' so cannot model.to(torch.bfloat16)
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF retinanet_resnet50_fpn
+############################################################
+# IndexError: index 480 is out of bounds for dimension 0 with size 480, see issue #420
+aten_add_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.5"]]
+aten_mul_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.6"]]
+aten_sub_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.5"]]
+aten_unsqueeze_default_blocklist += [["Tensor<[800]> self = ?", "int dim = 1"]]
+# RuntimeError: expected scalar type BFloat16 but found Float
+# convolution_default weight dtype is float32, this is
+# because RuntimeError: "nms_kernel" not implemented for 'BFloat16' so cannot model.to(torch.bfloat16)
+# TODO: not pass yet
+
+
+############################################################
+# EXTRA BLOCKLIST OF retinanet_resnet50_fpn_v2
+############################################################
+# RuntimeError: expected scalar type BFloat16 but found Float
+# convolution_default weight dtype is float32, this is
+# because RuntimeError: "nms_kernel" not implemented for 'BFloat16' so cannot model.to(torch.bfloat16)
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF RoBERTa
+############################################################
+# RuntimeError: TT_FATAL @ xxx/embedding.cpp:32: input_tensor_arg.get_layout() == ttnn::ROW_MAJOR_LAYOUT
+# info:
+# Indices tensor must be in row major layout.
+# ttnn_embedding = ttnn_decorators_ttnn_embedding(ttnn_from_torch_2, ttnn_to_device_3, layout = ttnn_ROW_MAJOR_LAYOUT)
+# (Pdb) ttnn_from_torch_2.layout
+# <Layout.TILE: 1>
+aten_embedding_default_blocklist = [
+    ["Tensor<[250002, 768]> weight = ?", "Tensor<[1, 10]> indices = ?", "int padding_idx = 1"]
+]
+
 ############################################################
 
 GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
@@ -330,6 +427,7 @@ GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
+GUARD[torch.ops.aten.embedding.default] = partial(guard_aten, aten_embedding_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):
