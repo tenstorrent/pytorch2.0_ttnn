@@ -62,11 +62,6 @@ aten__adaptive_avg_pool2d_default_blocklist = [["Tensor<[1, 512, 7, 7]> self = ?
 
 
 ############################################################
-# EXTRA BLOCKLIST OF t5*
-############################################################
-
-
-############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn*
 ############################################################
 
@@ -77,6 +72,8 @@ aten__adaptive_avg_pool2d_default_blocklist = [["Tensor<[1, 512, 7, 7]> self = ?
 # RuntimeError: _unsafe_index found unexpected index type BFloat16
 # ... => aten::sub.Tensor => aten::div.Tensor => unsqueeze => unsafe_index
 # it is too long to block, so just wait the to_tt_pass fix
+
+# TODO: not pass yet
 
 ############################################################
 # EXTRA BLOCKLIST OF ghostnetv2_100.in1k*
@@ -127,7 +124,7 @@ aten_mul_Tensor_blocklist += [
 # kwargs = {}
 #     def __call__(self, *args, **kwargs):
 # >       return self._op(*args, **(kwargs or {}))
-# E       RuntimeError: Expected 4-dimensional input for 4-dimensional weight [18, 18, 3, 3], but got 5-dimensional input of size [1, 18, 18, 56, 56] instead
+# RuntimeError: Expected 4-dimensional input for 4-dimensional weight [18, 18, 3, 3], but got 5-dimensional input of size [1, 18, 18, 56, 56] instead
 # gm.code:
 # add_tensor = torch.ops.aten.add.Tensor(arange_default, 0.0);  arange_default = None
 # mul_tensor = torch.ops.aten.mul.Tensor(add_tensor, 0.5)
@@ -153,7 +150,7 @@ aten_mul_Tensor_blocklist += [
 # hrnet_w18.ms_aug_in1k train
 #     def __call__(self, *args, **kwargs):
 # >       return self._op(*args, **(kwargs or {}))
-# E       RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
+# RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
 
 
 ############################################################
@@ -187,7 +184,7 @@ aten_mul_Tensor_blocklist += [
 
 #     def __call__(self, *function_args, **function_kwargs):
 # >       return self.function(*function_args, **function_kwargs)
-# E       RuntimeError: TT_FATAL @ .../functions.hpp:66: shape[-1] % tt::constants::TILE_WIDTH == 0
+# RuntimeError: TT_FATAL @ .../functions.hpp:66: shape[-1] % tt::constants::TILE_WIDTH == 0
 
 # torch.ops.aten.masked_fill.Scalar is converted as ttnn.ones and it is failed at single op test
 
@@ -210,10 +207,16 @@ aten_masked_fill_scalar_blocklist += [
 # mul = torch.ops.aten.mul.Tensor(ones, 50258);  ones = None
 # view_192 = torch.ops.aten.view.default(mul, [-1, 1]);  mul = None
 # embedding = torch.ops.aten.embedding.default(arg188_1, view_192, 50257);  arg188_1 = view_192 = None
-# TODO: not pass yet
 
 aten_mul_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 50258"]]
 
+# torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
+# RuntimeError: aten::clone() Expected a value of type 'Tensor' for argument 'self' but instead found type 'SymInt'.
+# Position: 0
+# Value: s1
+# Declaration: aten::clone(Tensor self, *, MemoryFormat? memory_format=None) -> Tensor
+# Cast error details: Unable to cast s1 to Tensor
+# TODO: not pass yet
 
 ############################################################
 # EXTRA BLOCKLIST OF GPTNeo
@@ -225,6 +228,98 @@ aten_select_int_blocklist = [["Tensor<[1, 45]> self = ?", "int dim = 1", "int in
 
 # ERROR tests/models/gpt_neo/test_gpt_neo.py::test_gpt_neo[eval] -
 # RuntimeError: probability tensor contains either `inf`, `nan` or element < 0
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF codegen
+############################################################
+# ttnn.from_torch(torch.tensor(False)) => ttnn.gt
+# ttnn.from_torch not support sclar of bool dtype
+# RuntimeError: TT_FATAL @ tensor/types.cpp:209: normalized_index >= 0 and normalized_index < rank
+# not lowering ttnn.gt to avoid ttnn.from_torch of sclar of bool dtype
+aten_gt_Scalar_blocklist = [["Tensor<[]> self = ?", "number other = 0"]]
+
+# torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
+# RuntimeError: aten::clone() Expected a value of type 'Tensor' for argument 'self' but instead found type 'SymInt'.
+# Position: 0
+# Value: s0
+# Declaration: aten::clone(Tensor self, *, MemoryFormat? memory_format=None) -> Tensor
+# Cast error details: Unable to cast s0 to Tensor
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF FLAN-T5
+############################################################
+# This div converted to reciprocal & mul, and reciprocal show this err msg:
+# TypeError: __call__(): incompatible function arguments. The following argument types are supported: ...
+aten_div_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 16"]]
+
+#             torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
+#             Exception: unhashable type: non-singleton SymInt
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF GLPN-KITTI
+############################################################
+# index out of bound, see issue #420
+# clamp => unsqueeze => unsafe_index
+aten_unsqueeze_default_blocklist = [["Tensor<[240]> self = ?", "int dim = 1"]]
+
+# IndexError: shape mismatch: indexing tensors could not be broadcast together with shapes [1, 1, 240], [1, 320]
+# guess is issue #390
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF OPT
+############################################################
+
+# ttnn.from_torch(torch.tensor(-3.3895e+38)) => ttnn.maximum
+# ttnn.from_torch not support scalar
+# RuntimeError: TT_FATAL @ tensor/types.cpp:209: normalized_index >= 0 and normalized_index < rank
+# not lowering ttnn.maximum to avoid ttnn.from_torch of scalar
+aten_maximum_default_blocklist += [["Tensor<[1, 16, 59, 59]> self = ?", "Tensor other = ?"]]
+
+# torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
+# RuntimeError: aten::clone() Expected a value of type 'Tensor' for argument 'self' but instead found type 'SymInt'.
+# Position: 0
+# Value: s0
+# Declaration: aten::clone(Tensor self, *, MemoryFormat? memory_format=None) -> Tensor
+# Cast error details: Unable to cast s0 to Tensor
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF t5
+############################################################
+# torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
+# Exception: unhashable type: non-singleton SymInt
+# TODO: not pass yet
+
+############################################################
+# EXTRA BLOCKLIST OF DETR
+############################################################
+# TypeError: __call__(): incompatible function arguments. The following argument types are supported:
+#     1. (self: ttnn._ttnn.operations.moreh.moreh_cumsum_t, input: ttnn._ttnn.tensor.Tensor, dim: int, *, output: Optional[ttnn._ttnn.tensor.Tensor] = None, memory_config: Optional[ttnn._ttnn.tensor.MemoryConfig] = None, compute_kernel_config: Optional[Union[ttnn._ttnn.operations.core.GrayskullComputeKernelConfig, ttnn._ttnn.operations.core.WormholeComputeKernelConfig]] = None) -> ttnn._ttnn.tensor.Tensor
+#
+# Invoked with: <ttnn._ttnn.operations.moreh.moreh_cumsum_t object at 0x7faef0b78b30>, ttnn.Tensor([[[[ 0.00000,  0.00000,  ...,  0.00000,  0.00000],
+#               ...,
+#                [ 0.00000,  0.00000,  ...,  0.00000,  0.00000]]]], shape=Shape([1, 23, 40[64], 1[32]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), 1; kwargs: dtype=torch.float32
+aten_cumsum_default_blocklist = [["Tensor<[1, 23, 40]> self = ?", "int dim = 1", "Optional[int] dtype = torch.float32"]]
+
+# TypeError: __call__(): incompatible function arguments. The following argument types are supported:
+#     1. (self: ttnn._ttnn.operations.unary.reciprocal_t, input_tensor: ttnn._ttnn.tensor.Tensor, *, memory_config: Optional[ttnn._ttnn.tensor.MemoryConfig] = None, output_tensor: Optional[ttnn._ttnn.tensor.Tensor] = None, queue_id: int = 0) -> ttnn._ttnn.tensor.Tensor
+#     2. (self: ttnn._ttnn.operations.unary.reciprocal_t, input_tensor: ttnn::operations::complex::ComplexTensor, *, memory_config: ttnn._ttnn.tensor.MemoryConfig) -> ttnn::operations::complex::ComplexTensor
+#
+# Invoked with: <ttnn._ttnn.operations.unary.reciprocal_t object at 0x7f08ea7a0e30>, 128
+aten_div_Tensor_blocklist += [["Tensor<[128]> self = ?", "Tensor other = 128"]]
+
+# RuntimeError: TT_FATAL @ binary_device_operation.cpp:68: input_tensor_a.get_layout() == Layout::TILE
+# info:
+# Input to eltwise binary must be tilized
+# zero_like([1, 920]) & subtract([1[32], 920[928]]) => mul
+aten_zeros_like_default_blocklist += [
+    ["Tensor<[1, 920]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[bool] pin_memory = False"],
+    ["Tensor<[100, 1, 256]> self = ?", "Optional[bool] pin_memory = False"],
+]
 
 ############################################################
 
@@ -232,6 +327,9 @@ GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist
 GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
 GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
 GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist)
+GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
+GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
+GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):

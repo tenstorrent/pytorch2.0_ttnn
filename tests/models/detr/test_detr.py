@@ -36,7 +36,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_detr(record_property, mode):
     model_name = "DETR"
     record_property("model_name", model_name)
