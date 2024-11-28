@@ -118,6 +118,7 @@ def aten_backend(
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
     from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
+    from torch_ttnn.passes.mm_fusion_pass import MMFusionPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
     from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
@@ -127,6 +128,7 @@ def aten_backend(
 
     passes = [
         ConstantFoldingPass(),
+        MMFusionPass(),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         AddDataMovePass(),
         EliminateCoreopsPass(),
