@@ -348,6 +348,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.pow.Tensor_Scalar:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
+        if target == torch.ops.aten.rsub.Scalar:
+            return self.call_function_prop_meta(ttnn.rsub, args, kwargs)
+
         if target == torch.ops.aten.rsub.Tensor:
             # TODO(kevinwuMCW): handle alpha parameter if exists
             return self.call_function_prop_meta(ttnn.sub, (args[1], args[0]), kwargs)
@@ -588,29 +591,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     },
                 )
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
-
-            if node.target == torch.ops.aten.rsub.Scalar:
-                # NOTE(kevinwuTT): ttnn.sub shows error if passing a literal scalar as the first argument.
-                # Instead, fill a tensor with the same size as args[0] with the scalar value using ttnn.full
-                node_metadata = node.meta["val"]
-                shape = node_metadata.size()
-                # If last dim == 1, then the follow error will appear:
-                # Page size must be divisible by sizeof(uint32_t) because buffers hold uint32_t values
-                if shape[-1] != 1 and HasValidPageSize(shape):
-                    # NOTE(kevinwuTT): Only bfloat16 seems to work for now
-                    # TODO(kevinwuTT): Use ttnn.full instead of aten
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                    }
-                    full = g.call_function(
-                        ttnn.full,
-                        args=(tuple(shape),),
-                        kwargs=new_kwargs,
-                    )
-                    to_layout = g.call_function(ttnn.to_layout, (full,), {"layout": TtnnTileLayout()})
-                    return g.call_function(ttnn.sub, args=(to_layout, args[0]), kwargs={})
-                return None
 
             if node.target == torch.ops.aten.div.Tensor:
                 if not isinstance(args[1], float) and (get_shape(args[0]) != get_shape(args[1])):

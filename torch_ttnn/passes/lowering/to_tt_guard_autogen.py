@@ -94,16 +94,6 @@ aten_full_default_blocklist = [
         "Optional[bool] pin_memory = False",
     ],
 ]
-aten_rsub_Scalar_blocklist = [
-    ["Tensor<[1, 1, 19, 19]> self = ?", "number other = 1.0"],
-    ["Tensor<[1, 1, 1, 9]> self = ?", "number other = 1.0"],
-    ["Tensor<[1, 1, 1, 25]> self = ?", "number other = 1.0"],
-    ["Tensor<[2, 1, 7, 7]> self = ?", "number other = 1.0"],
-    ["Tensor<[1, 1, 1, 7]> self = ?", "number other = 1.0"],
-    ["Tensor<[1, 1, 1, 5]> self = ?", "number other = 1.0"],
-    ["Tensor<[1, 1, 1, 15]> self = ?", "number other = 1.0"],
-    ["Tensor<[1, 1, 1, 17]> self = ?", "number other = 1.0"],
-]
 aten__scaled_dot_product_flash_attention_default_blocklist = [
     ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
     ["Tensor<[1, 12, 197, 64]> query = ?", "Tensor<[1, 12, 197, 64]> key = ?", "Tensor<[1, 12, 197, 64]> value = ?"],
@@ -1830,7 +1820,6 @@ GUARD = {
     torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
     torch.ops.aten.full.default: partial(guard_aten, aten_full_default_blocklist),
-    torch.ops.aten.rsub.Scalar: partial(guard_aten, aten_rsub_Scalar_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
