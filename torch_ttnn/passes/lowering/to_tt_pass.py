@@ -910,8 +910,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensors = args[0]
                 if len(tensors) == 1:
                     return tensors[0]
-
-                dim = args[1]
+                dim = 0
+                if len(args) > 1:
+                    dim = args[1]
                 rank = len(node.meta["val"].size())
                 dim = (dim + rank) % rank
                 layout = TtnnTileLayout() if rank == 4 else TtnnRowMajorLayout()
