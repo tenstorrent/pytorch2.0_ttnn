@@ -1,6 +1,7 @@
 import torch
 import ttnn
 import math
+from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
     HasValidPageSize,
@@ -816,7 +817,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # Essentially remove this op
                 return node.args[0]
 
-            if node.target == torch.ops.aten.masked_fill.Scalar:
+            if node.target in [torch.ops.aten.masked_fill.Scalar, torch.ops.aten.masked_fill.Tensor]:
                 # aten.masked_fill is equivalent to the following:
                 # masked_fill = (tensor * (ones - mask)) + (mask * full)
 
@@ -828,17 +829,35 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 np_tensor_shp = np.array(tensor_shape)
                 np_mask_shp = np.array(mask_shape)
                 if np.sum(np_tensor_shp % np_mask_shp) == 0:
-                    multiplier = np_tensor_shp // np_mask_shp
-                    mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
+                    # check if the fill_value is a constant
+                    if isinstance(fill_value, torch.fx.node.Node) and fill_value.op == "get_attr":
+                        with unset_fake_temporarily():
+                            fill_value_attr = getattr(gm, fill_value.target)
+                            if fill_value_attr.numel() == 1:
+                                # extract single fill value
+                                fill_value = fill_value_attr.item()
+                            else:
+                                # extract torch.tensor constant
+                                fill_value = fill_value_attr.data
+
+                    if isinstance(fill_value, (float,)):
+                        full_kwargs = {"fill_value": fill_value, "device": TtnnDevice(), "layout": TtnnTileLayout()}
+                        full = g.call_function(ttnn.full, (list(tensor_shape),), full_kwargs)
+                    else:
+                        # No cases for non-scalar fill value.
+                        return None
+
+                    mask_bcst = mask
+                    if not np.all(np_tensor_shp == np_mask_shp):
+                        multiplier = np_tensor_shp // np_mask_shp
+                        mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
 
                     kwargs = {"dtype": TtnnBfloat16(), "layout": TtnnTileLayout(), "device": TtnnDevice()}
                     ones = g.call_function(ttnn.ones, (tensor_shape,), kwargs)
                     mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
                     tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))
 
-                    full = g.call_function(ttnn.full, (tensor_shape, fill_value), kwargs)
                     full_masked = g.call_function(ttnn.multiply, (mask_bcst, full))
-
                     masked_fill = g.call_function(ttnn.add, (tensor_masked, full_masked))
 
                     return masked_fill
