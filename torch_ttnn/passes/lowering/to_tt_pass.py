@@ -1060,7 +1060,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
-                end = min(tensor_shape[dim], end) if end >= 0 else (end + tensor_shape[dim])
+                end = end if end >= 0 else (end + tensor_shape[dim])
+                end = 0 if end < 0 else min(tensor_shape[dim], end)
                 [step] = step or [1]
 
                 if step != 1 or dim >= rank:
