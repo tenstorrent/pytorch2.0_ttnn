@@ -2,6 +2,7 @@ import torch
 import torch_ttnn
 import pytest
 import ttnn
+from tests.utils import assert_with_pcc
 
 
 class FloorModule(torch.nn.Module):
@@ -15,7 +16,13 @@ class FloorModule(torch.nn.Module):
 @pytest.mark.skip_platform("grayskull")
 @pytest.mark.parametrize(
     "input_shape",
-    [(4, 4)],
+    (
+        (1, 1, 1, 42),
+        (1, 1, 32, 1),
+        (4, 4),
+        (4, 32),
+        (1066,),
+    ),
 )
 def test_floor(device, input_shape):
     m = FloorModule()
@@ -33,6 +40,4 @@ def test_floor(device, input_shape):
     assert [node.target for node in nodes].count(ttnn.floor) == 1
 
     # Check inference result
-    from tests.utils import assert_with_pcc
-
     assert_with_pcc(result_before, result_after)
