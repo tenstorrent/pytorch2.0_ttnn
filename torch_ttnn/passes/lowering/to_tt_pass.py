@@ -1067,6 +1067,55 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_shape = node.meta["val"].size()
                 return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
 
+            if node.target == torch.ops.aten.slice_scatter.default:
+                tensor, src_tensor, dim, start, end, *step = args
+
+                tensor_shape = tensor.meta["val"].size()
+                src_tensor_shape = src_tensor.meta["val"].size()
+
+                # nothing to slice, result tensors == src_tensor
+                if tensor_shape == src_tensor_shape:
+                    return src_tensor
+
+                # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
+                rank = len(tensor_shape)
+                [step] = step or [1]
+                if step != 1:
+                    return None
+
+                assert dim < rank, f"The slice dim {dim} should be less than rank {rank}"
+
+                dim = (dim + rank) % rank
+                start = start if start is not None else 0
+                end = end if end is not None else tensor_shape[dim]
+                end = end if end >= 0 else (end + tensor_shape[dim])
+                end = 0 if end < 0 else min(tensor_shape[dim], end)
+
+                tensors_list = []
+                # pre_slice_tensor
+                if start > 0:
+                    slice_start = [0] * rank
+                    slice_end = list(tensor_shape)
+                    slice_end[dim] = start
+                    tensors_list.append(g.call_function(ttnn.slice, (tensor, slice_start, slice_end)))
+
+                # src_tensor
+                tensors_list.append(src_tensor)
+
+                # post_slice_tensor
+                if end < tensor_shape[dim]:
+                    slice_start = [0] * rank
+                    slice_start[dim] = end
+                    slice_end = list(tensor_shape)
+                    tensors_list.append(g.call_function(ttnn.slice, (tensor, slice_start, slice_end)))
+
+                # concat all together
+                tensors_to_concat = []
+                for tensor in tensors_list:
+                    tensors_to_concat.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnTileLayout()}))
+
+                return g.call_function(ttnn.concat, (tensors_to_concat, dim))
+
             # PEP 8 suggests this explicit statement
             return None
 
