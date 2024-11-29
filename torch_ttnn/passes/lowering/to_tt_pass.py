@@ -1060,30 +1060,35 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
+                [step] = step or [1]
+                if step != 1:
+                    return None
+
+                assert dim < rank, f"The slice dim {dim} should be less than rank {rank}"
+
+                dim = (dim + rank) % rank
+                start = start if start is not None else 0
+                end = end if end is not None else tensor_shape[dim]
                 end = end if end >= 0 else (end + tensor_shape[dim])
                 end = 0 if end < 0 else min(tensor_shape[dim], end)
-                [step] = step or [1]
-
-                if step != 1 or dim >= rank:
-                    return None
 
                 tensors_list = []
                 # pre_slice_tensor
                 if start > 0:
-                    slice_start = np.zeros(rank, dtype=int)
+                    slice_start = [0] * rank
                     slice_end = list(tensor_shape)
                     slice_end[dim] = start
-                    tensors_list.append(g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end])))
+                    tensors_list.append(g.call_function(ttnn.slice, (tensor, slice_start, slice_end)))
 
                 # src_tensor
                 tensors_list.append(src_tensor)
 
                 # post_slice_tensor
                 if end < tensor_shape[dim]:
-                    slice_start = np.zeros(rank, dtype=int)
+                    slice_start = [0] * rank
                     slice_start[dim] = end
                     slice_end = list(tensor_shape)
-                    tensors_list.append(g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end])))
+                    tensors_list.append(g.call_function(ttnn.slice, (tensor, slice_start, slice_end)))
 
                 # concat all together
                 tensors_to_concat = []
