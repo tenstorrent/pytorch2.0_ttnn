@@ -344,6 +344,8 @@ def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.N
 
         if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
             kwargs["dtype"] = TtnnUint32()
+        elif is_target_a_user_of_curr_node(dst_node, ttnn.reshape) and dst_idx == 0:
+            pass
         else:
             kwargs["dtype"] = TtnnBfloat16()
 
