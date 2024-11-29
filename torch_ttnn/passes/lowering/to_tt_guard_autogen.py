@@ -195,22 +195,6 @@ aten_mul_Tensor_blocklist = [
     ["Tensor<[]> self = ?", "Tensor<[1, 24, 768]> other = ?"],
     ["Tensor<[]> self = ?", "Tensor<[1, 1, 768]> other = ?"],
 ]
-aten_slice_Tensor_blocklist = [
-    ["Tensor<[1, 512]> self = ?", "int dim = 1", "Optional[int] start = 0", "Optional[int] end = 9"],
-    ["Tensor<[1, 512]> self = ?", "int dim = 1", "Optional[int] start = 0", "Optional[int] end = 25"],
-    ["Tensor<[1, 1, 7, 1024]> self = ?", "int dim = 3", "Optional[int] start = 0", "Optional[int] end = 7"],
-    ["Tensor<[1, 1, 45, 2048]> self = ?", "int dim = 3", "Optional[int] start = 0", "Optional[int] end = 45"],
-    [
-        "Tensor<[1, 1, 2048, 2048]> self = ?",
-        "int dim = 2",
-        "Optional[int]<s10> start = ?",
-        "Optional[int]<s10 + 1> end = ?",
-    ],
-    ["Tensor<[1, 1, 1, 2048]> self = ?", "int dim = 3", "Optional[int] start = 0", "Optional[int]<s10 + 1> end = ?"],
-    ["Tensor<[1, 1, 5, 2048]> self = ?", "int dim = 3", "Optional[int] start = 0", "Optional[int] end = 5"],
-    ["Tensor<[1, 1876, 768]> self = ?", "int dim = 1", "Optional[int] start = 0", "Optional[int]<s0> end = ?"],
-    ["Tensor<[448, 768]> self = ?", "int dim = 0", "Optional[int]<s2> start = ?", "Optional[int]<s2 + 1> end = ?"],
-]
 aten_native_layer_norm_default_blocklist = [
     [
         "Tensor<[1, 9, 4096]> input = ?",
@@ -308,9 +292,6 @@ aten_new_empty_strided_default_blocklist = [
     ["Tensor<[1, 40, 28, 28]> self = ?", "List[int] size = [1, 40, 28, 28]", "List[int] stride = [31360, 784, 28, 1]"],
 ]
 aten_mm_default_blocklist = [["Tensor<[1, 21843]> self = ?", "Tensor<[21843, 768]> mat2 = ?"]]
-aten_masked_fill_scalar_blocklist = [
-    ["Tensor<[2, 1, 7, 7]> self = ?", "Tensor<[2, 1, 7, 7]> mask = ?", "number value = -3.3895313892515355e+38"],
-]
 aten_convolution_default_blocklist = [
     # TODO(#385): Guard and fallback (likely) OOM cases
     [
@@ -1846,7 +1827,6 @@ GUARD = {
     torch.ops.aten.zeros_like.default: partial(guard_aten, aten_zeros_like_default_blocklist),
     torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.mul.Tensor: partial(guard_aten, aten_mul_Tensor_blocklist),
-    torch.ops.aten.slice.Tensor: partial(guard_aten, aten_slice_Tensor_blocklist),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
     torch.ops.aten.sub.Tensor: partial(guard_aten, aten_sub_Tensor_blocklist),
     torch.ops.aten.exp.default: partial(guard_aten, aten_exp_default_blocklist),
@@ -1860,7 +1840,6 @@ GUARD = {
     torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
     torch.ops.aten.new_empty_strided.default: partial(guard_aten, aten_new_empty_strided_default_blocklist),
     torch.ops.aten.mm.default: partial(guard_aten, aten_mm_default_blocklist),
-    torch.ops.aten.masked_fill.Scalar: partial(guard_aten, aten_masked_fill_scalar_blocklist),
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
 }
 
@@ -1879,7 +1858,6 @@ guard_ops = [
     "torch.ops.aten.zeros_like.default",
     "torch.ops.aten.div.Tensor",
     "torch.ops.aten.mul.Tensor",
-    "torch.ops.aten.slice.Tensor",
     "torch.ops.aten.native_layer_norm.default",
     "torch.ops.aten.sub.Tensor",
     "torch.ops.aten.exp.default",
@@ -1895,6 +1873,5 @@ guard_ops = [
     "torch.ops.aten.native_dropout.default",
     "torch.ops.aten.new_empty_strided.default",
     "torch.ops.aten.mm.default",
-    "torch.ops.aten.masked_fill.Scalar",
     "torch.ops.aten.convolution.default",
 ]

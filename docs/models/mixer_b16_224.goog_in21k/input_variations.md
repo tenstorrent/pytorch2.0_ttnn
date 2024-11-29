@@ -2,7 +2,7 @@
 |    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten.add.Tensor                |                  2 |           2 |         0 |          0 | ✅          |       1 |
-|  1 | aten.addmm.default             |                  4 |           3 |         1 |          0 | ✅          |       1 |
+|  1 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |       1 |
 |  2 | aten.clone.default             |                  5 |           5 |         0 |          0 | ✅          |       1 |
 |  3 | aten.convolution.default       |                  1 |           0 |         0 |          0 | ✘           |       0 |
 |  4 | aten.gelu.default              |                  2 |           2 |         0 |          0 | ✅          |       1 |
@@ -22,7 +22,7 @@
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[196]> self = ?,<br>Tensor<[768, 384]> mat1 = ?,<br>Tensor<[384, 196]> mat2 = ?   | Done     | Done       | True  |
-|  1 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ? | Removed  | Done       | True  |
+|  1 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ? | Done     | Done       | True  |
 |  2 | Tensor<[3072]> self = ?,<br>Tensor<[196, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Done       | True  |
 |  3 | Tensor<[768]> self = ?,<br>Tensor<[196, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | True  |
 ### aten.clone.default
@@ -45,7 +45,7 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                            | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | True  |
+|  0 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | False |
 ### aten.mm.default
 |    | ATen Input Variations                                       | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------|:---------|:-----------|:------|

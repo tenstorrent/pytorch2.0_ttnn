@@ -21,7 +21,7 @@
 | 17 | aten.tanh.default              |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 18 | aten.transpose.int             |                  2 |           2 |         0 |          0 | ✅          |       1 |
 | 19 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |       1 |
-| 20 | aten.view.default              |                 12 |          11 |         1 |          0 | ✅          |       1 |
+| 20 | aten.view.default              |                 12 |          12 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   | Isolated   | PCC   |
@@ -143,7 +143,7 @@
 |  6 | Tensor<[1, 12, 768]> self = ?,<br>List[int] size = [12, 768]       | Done     | Done       | True  |
 |  7 | Tensor<[12, 12, 12]> self = ?,<br>List[int] size = [1, 12, 12, 12] | Done     | Done       | True  |
 |  8 | Tensor<[12, 12, 64]> self = ?,<br>List[int] size = [1, 12, 12, 64] | Done     | Done       | True  |
-|  9 | Tensor<[12, 2]> self = ?,<br>List[int] size = [1, 12, 2]           | Removed  | Done       | True  |
+|  9 | Tensor<[12, 2]> self = ?,<br>List[int] size = [1, 12, 2]           | Done     | Done       | True  |
 | 10 | Tensor<[12, 3072]> self = ?,<br>List[int] size = [1, 12, 3072]     | Done     | Done       | True  |
 | 11 | Tensor<[12, 768]> self = ?,<br>List[int] size = [1, 12, 768]       | Done     | Done       | True  |
 

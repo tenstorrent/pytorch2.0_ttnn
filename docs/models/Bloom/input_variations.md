@@ -15,13 +15,13 @@
 | 11 | aten.expand.default            |                  2 |           1 |         1 |          0 | ✅          |    1    |
 | 12 | aten.full.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 13 | aten.lift_fresh_copy.default   |                  1 |           0 |         1 |          0 | ✅          |    1    |
-| 14 | aten.masked_fill.Scalar        |                  2 |           1 |         1 |          0 | ✅          |    1    |
+| 14 | aten.masked_fill.Scalar        |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 15 | aten.mm.default                |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 16 | aten.mul.Tensor                |                  7 |           6 |         1 |          0 | ✅          |    1    |
 | 17 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 18 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 19 | aten.pow.Tensor_Tensor         |                  1 |           0 |         1 |          0 | ✅          |    1    |
-| 20 | aten.rsub.Scalar               |                  1 |           0 |         1 |          0 | ✅          |    1    |
+| 20 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 21 | aten.select.int                |                  3 |           3 |         0 |          0 | ✅          |    1    |
 | 22 | aten.slice.Tensor              |                  6 |           0 |         6 |          0 | ✅          |    1    |
 | 23 | aten.sub.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
@@ -29,7 +29,7 @@
 | 25 | aten.tanh.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 26 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 27 | aten.unsqueeze.default         |                  5 |           4 |         1 |          0 | ✅          |    1    |
-| 28 | aten.view.default              |                 13 |          11 |         2 |          0 | ✅          |    1    |
+| 28 | aten.view.default              |                 13 |          13 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   | Isolated   | PCC   |
@@ -103,7 +103,7 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>Tensor<[1, 1, 32, 32]> mask = ?,<br>number value = -3.3895313892515355e+38  | Removed  | Done       | True  |
+|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>Tensor<[1, 1, 32, 32]> mask = ?,<br>number value = -3.3895313892515355e+38  | Done     | Done       | True  |
 |  1 | Tensor<[1, 16, 32, 32]> self = ?,<br>Tensor<[1, 1, 32, 32]> mask = ?,<br>number value = -3.3895313892515355e+38 | Done     | Done       | True  |
 ### aten.mm.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
@@ -135,7 +135,7 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                  | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>number other = 1.0 | Removed  | Done       | True  |
+|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
 ### aten.select.int
 |    | ATen Input Variations                                                 | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|:------|
@@ -185,14 +185,14 @@
 |  0 | Tensor<[1, 16, 32, 32]> self = ?,<br>List[int] size = [16, 32, 32]     | Done     | Done       | True  |
 |  1 | Tensor<[1, 16, 32, 96]> self = ?,<br>List[int] size = [16, 32, 96]     | Done     | Done       | True  |
 |  2 | Tensor<[1, 16, 32]> self = ?,<br>List[int] size = [16, 1, 32]          | Done     | Done       | True  |
-|  3 | Tensor<[1, 16, 96, 32]> self = ?,<br>List[int] size = [16, 96, 32]     | Removed  | Done       | True  |
+|  3 | Tensor<[1, 16, 96, 32]> self = ?,<br>List[int] size = [16, 96, 32]     | Done     | Done       | True  |
 |  4 | Tensor<[1, 32, 1536]> self = ?,<br>List[int] size = [32, 1536]         | Done     | Done       | True  |
 |  5 | Tensor<[1, 32, 4608]> self = ?,<br>List[int] size = [1, 32, 16, 3, 96] | Done     | Done       | True  |
 |  6 | Tensor<[1, 32, 6144]> self = ?,<br>List[int] size = [32, 6144]         | Done     | Done       | True  |
 |  7 | Tensor<[16, 32, 32]> self = ?,<br>List[int] size = [1, 16, 32, 32]     | Done     | Done       | True  |
 |  8 | Tensor<[16, 32, 96]> self = ?,<br>List[int] size = [1, 16, 32, 96]     | Done     | Done       | True  |
 |  9 | Tensor<[32, 1536]> self = ?,<br>List[int] size = [1, 32, 1536]         | Done     | Done       | True  |
-| 10 | Tensor<[32, 250880]> self = ?,<br>List[int] size = [1, 32, 250880]     | Removed  | Done       | True  |
+| 10 | Tensor<[32, 250880]> self = ?,<br>List[int] size = [1, 32, 250880]     | Done     | Done       | True  |
 | 11 | Tensor<[32, 4608]> self = ?,<br>List[int] size = [1, 32, 4608]         | Done     | Done       | True  |
 | 12 | Tensor<[32, 6144]> self = ?,<br>List[int] size = [1, 32, 6144]         | Done     | Done       | True  |
 

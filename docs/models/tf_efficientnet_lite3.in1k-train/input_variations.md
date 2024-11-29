@@ -1,23 +1,23 @@
 # High Level Operations Status
 |    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._native_batch_norm_legit_functional.default |                 19 |           0 |         0 |          0 | ✘           |       0 |
-|  1 | aten._to_copy.default                            |                 14 |           0 |         0 |          0 | ✘           |       0 |
-|  2 | aten.add.Tensor                                  |                  5 |           0 |         5 |          0 | ✅          |       1 |
-|  3 | aten.addmm.default                               |                  1 |           0 |         1 |          0 | ✅          |       1 |
-|  4 | aten.constant_pad_nd.default                     |                 10 |           0 |         0 |          0 | ✘           |       0 |
-|  5 | aten.convolution.default                         |                 32 |           0 |         0 |          0 | ✘           |       0 |
-|  6 | aten.convolution_backward.default                |                 32 |           0 |         0 |          0 | ✘           |       0 |
-|  7 | aten.div.Scalar                                  |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  8 | aten.expand.default                              |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  9 | aten.hardtanh.default                            |                 12 |           1 |        11 |          0 | ✅          |       1 |
-| 10 | aten.hardtanh_backward.default                   |                 12 |           0 |         0 |          0 | ✘           |       0 |
-| 11 | aten.mean.dim                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 12 | aten.mm.default                                  |                  2 |           2 |         0 |          0 | ✅          |       1 |
-| 13 | aten.native_batch_norm_backward.default          |                 19 |           0 |         0 |          0 | ✘           |       0 |
-| 14 | aten.sum.dim_IntList                             |                  1 |           0 |         0 |          0 | ✘           |       0 |
-| 15 | aten.t.default                                   |                  3 |           3 |         0 |          0 | ✅          |       1 |
-| 16 | aten.view.default                                |                  3 |           0 |         3 |          0 | ✅          |       1 |
+|  0 | aten._native_batch_norm_legit_functional.default |                 19 |           0 |         0 |          0 | ✘           |    0    |
+|  1 | aten._to_copy.default                            |                 14 |           0 |         0 |          0 | ✘           |    0    |
+|  2 | aten.add.Tensor                                  |                  5 |           5 |         0 |          0 | ✅          |    1    |
+|  3 | aten.addmm.default                               |                  1 |           1 |         0 |          0 | ✅          |    1    |
+|  4 | aten.constant_pad_nd.default                     |                 10 |           0 |         0 |          0 | ✘           |    0    |
+|  5 | aten.convolution.default                         |                 32 |          30 |         0 |          0 | 🚧          |    0.94 |
+|  6 | aten.convolution_backward.default                |                 32 |           0 |         0 |          0 | ✘           |    0    |
+|  7 | aten.div.Scalar                                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  8 | aten.expand.default                              |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  9 | aten.hardtanh.default                            |                 12 |          12 |         0 |          0 | ✅          |    1    |
+| 10 | aten.hardtanh_backward.default                   |                 12 |           0 |         0 |          0 | ✘           |    0    |
+| 11 | aten.mean.dim                                    |                  1 |           1 |         0 |          0 | ✅          |    1    |
+| 12 | aten.mm.default                                  |                  2 |           2 |         0 |          0 | ✅          |    1    |
+| 13 | aten.native_batch_norm_backward.default          |                 19 |           0 |         0 |          0 | ✘           |    0    |
+| 14 | aten.sum.dim_IntList                             |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 15 | aten.t.default                                   |                  3 |           3 |         0 |          0 | ✅          |    1    |
+| 16 | aten.view.default                                |                  3 |           3 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._native_batch_norm_legit_functional.default
 |    | ATen Input Variations                                                                                                                                                                                                                                            | Status   | Isolated   | PCC   |
@@ -61,15 +61,15 @@
 ### aten.add.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 136, 19, 19]> self = ?,<br>Tensor<[1, 136, 19, 19]> other = ? | Removed  | Done       | True  |
-|  1 | Tensor<[1, 232, 10, 10]> self = ?,<br>Tensor<[1, 232, 10, 10]> other = ? | Removed  | Done       | True  |
-|  2 | Tensor<[1, 32, 75, 75]> self = ?,<br>Tensor<[1, 32, 75, 75]> other = ?   | Removed  | Done       | True  |
-|  3 | Tensor<[1, 48, 38, 38]> self = ?,<br>Tensor<[1, 48, 38, 38]> other = ?   | Removed  | Done       | True  |
-|  4 | Tensor<[1, 96, 19, 19]> self = ?,<br>Tensor<[1, 96, 19, 19]> other = ?   | Removed  | Done       | True  |
+|  0 | Tensor<[1, 136, 19, 19]> self = ?,<br>Tensor<[1, 136, 19, 19]> other = ? | Done     | Done       | True  |
+|  1 | Tensor<[1, 232, 10, 10]> self = ?,<br>Tensor<[1, 232, 10, 10]> other = ? | Done     | Done       | True  |
+|  2 | Tensor<[1, 32, 75, 75]> self = ?,<br>Tensor<[1, 32, 75, 75]> other = ?   | Done     | Done       | True  |
+|  3 | Tensor<[1, 48, 38, 38]> self = ?,<br>Tensor<[1, 48, 38, 38]> other = ?   | Done     | Done       | True  |
+|  4 | Tensor<[1, 96, 19, 19]> self = ?,<br>Tensor<[1, 96, 19, 19]> other = ?   | Done     | Done       | True  |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ? | Removed  | Done       | True  |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ? | Done     | Done       | True  |
 ### aten.constant_pad_nd.default
 |    | ATen Input Variations                                                                       | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -86,38 +86,38 @@
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                         | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 136, 19, 19]> input = ?,<br>Tensor<[816, 136, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | None     | Fallback   | True  |
-|  1 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[1392, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1392 | None     | Fallback   | True  |
-|  2 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[1392, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [2, 2],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1392 | None     | Fallback   | True  |
-|  3 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[232, 1392, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | None     | Fallback   | True  |
-|  4 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[384, 1392, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | None     | Fallback   | True  |
-|  5 | Tensor<[1, 144, 151, 151]> input = ?,<br>Tensor<[144, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 144  | None     | Fallback   | True  |
-|  6 | Tensor<[1, 144, 75, 75]> input = ?,<br>Tensor<[32, 144, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | None     | Fallback   | True  |
-|  7 | Tensor<[1, 192, 38, 38]> input = ?,<br>Tensor<[48, 192, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | None     | Fallback   | True  |
-|  8 | Tensor<[1, 192, 75, 75]> input = ?,<br>Tensor<[192, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 192    | None     | Fallback   | True  |
-|  9 | Tensor<[1, 192, 75, 75]> input = ?,<br>Tensor<[32, 192, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | None     | Fallback   | True  |
-| 10 | Tensor<[1, 192, 79, 79]> input = ?,<br>Tensor<[192, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 192    | None     | Fallback   | True  |
-| 11 | Tensor<[1, 232, 10, 10]> input = ?,<br>Tensor<[1392, 232, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1   | None     | Fallback   | True  |
-| 12 | Tensor<[1, 24, 150, 150]> input = ?,<br>Tensor<[144, 24, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | None     | Fallback   | True  |
-| 13 | Tensor<[1, 288, 19, 19]> input = ?,<br>Tensor<[96, 288, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | None     | Fallback   | True  |
-| 14 | Tensor<[1, 288, 38, 38]> input = ?,<br>Tensor<[288, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [2, 2],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 288    | None     | Fallback   | True  |
-| 15 | Tensor<[1, 288, 38, 38]> input = ?,<br>Tensor<[48, 288, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | None     | Fallback   | True  |
-| 16 | Tensor<[1, 288, 39, 39]> input = ?,<br>Tensor<[288, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 288    | None     | Fallback   | True  |
-| 17 | Tensor<[1, 3, 301, 301]> input = ?,<br>Tensor<[32, 3, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1       | None     | Fallback   | True  |
-| 18 | Tensor<[1, 32, 150, 150]> input = ?,<br>Tensor<[24, 32, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | None     | Fallback   | True  |
-| 19 | Tensor<[1, 32, 150, 150]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 32     | None     | Fallback   | True  |
-| 20 | Tensor<[1, 32, 75, 75]> input = ?,<br>Tensor<[192, 32, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1      | None     | Fallback   | True  |
-| 21 | Tensor<[1, 384, 10, 10]> input = ?,<br>Tensor<[1280, 384, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1   | None     | Fallback   | True  |
-| 22 | Tensor<[1, 48, 38, 38]> input = ?,<br>Tensor<[288, 48, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1      | None     | Fallback   | True  |
-| 23 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[136, 576, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | None     | Fallback   | True  |
-| 24 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[576, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 576    | None     | Fallback   | True  |
-| 25 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[576, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [2, 2],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 576    | None     | Fallback   | True  |
-| 26 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[96, 576, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | None     | Fallback   | True  |
-| 27 | Tensor<[1, 816, 10, 10]> input = ?,<br>Tensor<[232, 816, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | None     | Fallback   | True  |
-| 28 | Tensor<[1, 816, 19, 19]> input = ?,<br>Tensor<[136, 816, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | None     | Fallback   | True  |
+|  0 | Tensor<[1, 136, 19, 19]> input = ?,<br>Tensor<[816, 136, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | Done     | Done       | True  |
+|  1 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[1392, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1392 | Done     | Done       | True  |
+|  2 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[1392, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [2, 2],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1392 | Done     | Done       | True  |
+|  3 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[232, 1392, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | True  |
+|  4 | Tensor<[1, 1392, 10, 10]> input = ?,<br>Tensor<[384, 1392, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | True  |
+|  5 | Tensor<[1, 144, 151, 151]> input = ?,<br>Tensor<[144, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 144  | Done     | Done       | True  |
+|  6 | Tensor<[1, 144, 75, 75]> input = ?,<br>Tensor<[32, 144, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | True  |
+|  7 | Tensor<[1, 192, 38, 38]> input = ?,<br>Tensor<[48, 192, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | True  |
+|  8 | Tensor<[1, 192, 75, 75]> input = ?,<br>Tensor<[192, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 192    | Done     | Done       | True  |
+|  9 | Tensor<[1, 192, 75, 75]> input = ?,<br>Tensor<[32, 192, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | True  |
+| 10 | Tensor<[1, 192, 79, 79]> input = ?,<br>Tensor<[192, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 192    | Done     | Done       | True  |
+| 11 | Tensor<[1, 232, 10, 10]> input = ?,<br>Tensor<[1392, 232, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1   | Done     | Done       | True  |
+| 12 | Tensor<[1, 24, 150, 150]> input = ?,<br>Tensor<[144, 24, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | Done     | Done       | True  |
+| 13 | Tensor<[1, 288, 19, 19]> input = ?,<br>Tensor<[96, 288, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | True  |
+| 14 | Tensor<[1, 288, 38, 38]> input = ?,<br>Tensor<[288, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [2, 2],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 288    | Done     | Done       | True  |
+| 15 | Tensor<[1, 288, 38, 38]> input = ?,<br>Tensor<[48, 288, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | True  |
+| 16 | Tensor<[1, 288, 39, 39]> input = ?,<br>Tensor<[288, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 288    | Done     | Done       | True  |
+| 17 | Tensor<[1, 3, 301, 301]> input = ?,<br>Tensor<[32, 3, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1       | Done     | Done       | True  |
+| 18 | Tensor<[1, 32, 150, 150]> input = ?,<br>Tensor<[24, 32, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | True  |
+| 19 | Tensor<[1, 32, 150, 150]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 32     | Done     | Done       | True  |
+| 20 | Tensor<[1, 32, 75, 75]> input = ?,<br>Tensor<[192, 32, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1      | Done     | Done       | True  |
+| 21 | Tensor<[1, 384, 10, 10]> input = ?,<br>Tensor<[1280, 384, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1   | Done     | Done       | True  |
+| 22 | Tensor<[1, 48, 38, 38]> input = ?,<br>Tensor<[288, 48, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1      | Done     | Done       | True  |
+| 23 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[136, 576, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | Done     | Done       | True  |
+| 24 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[576, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 576    | Done     | Done       | True  |
+| 25 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[576, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [2, 2],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 576    | Done     | Done       | True  |
+| 26 | Tensor<[1, 576, 19, 19]> input = ?,<br>Tensor<[96, 576, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | True  |
+| 27 | Tensor<[1, 816, 10, 10]> input = ?,<br>Tensor<[232, 816, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | Done     | Done       | True  |
+| 28 | Tensor<[1, 816, 19, 19]> input = ?,<br>Tensor<[136, 816, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | Done     | Done       | True  |
 | 29 | Tensor<[1, 816, 19, 19]> input = ?,<br>Tensor<[816, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [2, 2],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 816    | None     | Fallback   | True  |
 | 30 | Tensor<[1, 816, 23, 23]> input = ?,<br>Tensor<[816, 1, 5, 5]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 816    | None     | Fallback   | True  |
-| 31 | Tensor<[1, 96, 19, 19]> input = ?,<br>Tensor<[576, 96, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1      | None     | Fallback   | True  |
+| 31 | Tensor<[1, 96, 19, 19]> input = ?,<br>Tensor<[576, 96, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1      | Done     | Done       | True  |
 ### aten.convolution_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                                                   | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -165,17 +165,17 @@
 |    | ATen Input Variations                                                                 | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1280, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Done     | Done       | True  |
-|  1 | Tensor<[1, 1392, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Removed  | Done       | True  |
-|  2 | Tensor<[1, 144, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Removed  | Done       | True  |
-|  3 | Tensor<[1, 144, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
-|  4 | Tensor<[1, 192, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
-|  5 | Tensor<[1, 192, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
-|  6 | Tensor<[1, 288, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
-|  7 | Tensor<[1, 288, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
-|  8 | Tensor<[1, 32, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Removed  | Done       | True  |
-|  9 | Tensor<[1, 576, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
-| 10 | Tensor<[1, 816, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
-| 11 | Tensor<[1, 816, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Removed  | Done       | True  |
+|  1 | Tensor<[1, 1392, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Done     | Done       | True  |
+|  2 | Tensor<[1, 144, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Done     | Done       | True  |
+|  3 | Tensor<[1, 144, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+|  4 | Tensor<[1, 192, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+|  5 | Tensor<[1, 192, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+|  6 | Tensor<[1, 288, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+|  7 | Tensor<[1, 288, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+|  8 | Tensor<[1, 32, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0  | Done     | Done       | True  |
+|  9 | Tensor<[1, 576, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+| 10 | Tensor<[1, 816, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
+| 11 | Tensor<[1, 816, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       | True  |
 ### aten.hardtanh_backward.default
 |    | ATen Input Variations                                                                                                                | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
@@ -235,7 +235,7 @@
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1000]> self = ?,<br>List[int] size = [1000]          | Removed  | Done       | True  |
-|  1 | Tensor<[1, 1280, 1, 1]> self = ?,<br>List[int] size = [1, 1280] | Removed  | Done       | True  |
-|  2 | Tensor<[1, 1280]> self = ?,<br>List[int] size = [1, 1280, 1, 1] | Removed  | Done       | True  |
+|  0 | Tensor<[1, 1000]> self = ?,<br>List[int] size = [1000]          | Done     | Done       | True  |
+|  1 | Tensor<[1, 1280, 1, 1]> self = ?,<br>List[int] size = [1, 1280] | Done     | Done       | True  |
+|  2 | Tensor<[1, 1280]> self = ?,<br>List[int] size = [1, 1280, 1, 1] | Done     | Done       | True  |
 

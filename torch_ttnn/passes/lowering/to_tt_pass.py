@@ -1,6 +1,7 @@
 import torch
 import ttnn
 import math
+from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
     HasValidPageSize,
@@ -317,14 +318,12 @@ class ReplaceMoreTt(torch.fx.Transformer):
                     return True
                 return False
 
-            if hasattr(args[0], "node") and args[0].node.name in self._input_node_meta:
-                arg0_meta = self._input_node_meta[args[0].node.name]
-            else:
-                arg0_meta = None
-            if hasattr(args[1], "node") and args[1].node.name in self._input_node_meta:
-                arg1_meta = self._input_node_meta[args[1].node.name]
-            else:
-                arg1_meta = None
+            arg0_meta = None
+            arg1_meta = None
+            if hasattr(args[0], "node") and hasattr(args[0].node, "meta"):
+                arg0_meta = args[0].node.meta
+            if hasattr(args[1], "node") and hasattr(args[1].node, "meta"):
+                arg1_meta = args[1].node.meta
             if is_zero_dim(arg0_meta) or is_zero_dim(arg1_meta):
                 return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
@@ -403,8 +402,18 @@ class ReplaceMoreTt(torch.fx.Transformer):
         # Other ops
         ############################################################
         if target == torch.ops.aten._adaptive_avg_pool2d.default:
-            # assumes output size is (1, 1)
-            return self.call_function_prop_meta(ttnn.global_avg_pool2d, (args[0],), kwargs)
+            arg0_size = None
+            if hasattr(args[0], "node") and hasattr(args[0].node, "meta"):
+                arg0_size = list(args[0].node.meta["val"].size())
+            output_size = None
+            if len(args) > 1:
+                output_size = args[1]
+            elif "output_size" in kwargs:
+                output_size = kwargs["output_size"]
+            if arg0_size is not None and output_size is not None and arg0_size[-2:] == output_size:
+                return args[0]
+            # TODO: no ttnn op can convert _adaptive_avg_pool2d
+            return self.call_function_prop_meta(target, args, kwargs)
 
         return self.call_function_prop_meta(target, args, kwargs)
 
@@ -796,7 +805,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # Essentially remove this op
                 return node.args[0]
 
-            if node.target == torch.ops.aten.masked_fill.Scalar:
+            if node.target in [torch.ops.aten.masked_fill.Scalar, torch.ops.aten.masked_fill.Tensor]:
                 # aten.masked_fill is equivalent to the following:
                 # masked_fill = (tensor * (ones - mask)) + (mask * full)
 
@@ -808,17 +817,35 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 np_tensor_shp = np.array(tensor_shape)
                 np_mask_shp = np.array(mask_shape)
                 if np.sum(np_tensor_shp % np_mask_shp) == 0:
-                    multiplier = np_tensor_shp // np_mask_shp
-                    mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
+                    # check if the fill_value is a constant
+                    if isinstance(fill_value, torch.fx.node.Node) and fill_value.op == "get_attr":
+                        with unset_fake_temporarily():
+                            fill_value_attr = getattr(gm, fill_value.target)
+                            if fill_value_attr.numel() == 1:
+                                # extract single fill value
+                                fill_value = fill_value_attr.item()
+                            else:
+                                # extract torch.tensor constant
+                                fill_value = fill_value_attr.data
+
+                    if isinstance(fill_value, (float,)):
+                        full_kwargs = {"fill_value": fill_value, "device": TtnnDevice(), "layout": TtnnTileLayout()}
+                        full = g.call_function(ttnn.full, (list(tensor_shape),), full_kwargs)
+                    else:
+                        # No cases for non-scalar fill value.
+                        return None
+
+                    mask_bcst = mask
+                    if not np.all(np_tensor_shp == np_mask_shp):
+                        multiplier = np_tensor_shp // np_mask_shp
+                        mask_bcst = g.call_function(target_wrappers.repeat, args=(mask, multiplier.tolist()))
 
                     kwargs = {"dtype": TtnnBfloat16(), "layout": TtnnTileLayout(), "device": TtnnDevice()}
                     ones = g.call_function(ttnn.ones, (tensor_shape,), kwargs)
                     mask_flip = g.call_function(ttnn.subtract, (ones, mask_bcst))
                     tensor_masked = g.call_function(ttnn.multiply, (tensor, mask_flip))
 
-                    full = g.call_function(ttnn.full, (tensor_shape, fill_value), kwargs)
                     full_masked = g.call_function(ttnn.multiply, (mask_bcst, full))
-
                     masked_fill = g.call_function(ttnn.add, (tensor_masked, full_masked))
 
                     return masked_fill
@@ -871,8 +898,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensors = args[0]
                 if len(tensors) == 1:
                     return tensors[0]
-
-                dim = args[1]
+                dim = 0
+                if len(args) > 1:
+                    dim = args[1]
                 rank = len(node.meta["val"].size())
                 dim = (dim + rank) % rank
                 layout = TtnnTileLayout() if rank == 4 else TtnnRowMajorLayout()
@@ -919,8 +947,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ceil_mode
                     # TODO(#385): OOM
                     or volume > 16 * 1024 * 1024
-                    # TODO(tt-metal#13901): Non-pow-of-2 channel isn't supported yet
-                    or (in_c & (in_c - 1)) != 0
+                    # TODO(tt-metal#13901): Wide input channels can only be multiple of 8 tiles
+                    or (in_c > (ttnn.TILE_SIZE * 8) and in_c % (ttnn.TILE_SIZE * 8) != 0)
                     # TODO(#419): Currently fails with in_c < 16
                     or in_c < 16
                     # TODO(tt-metal#12099): Currently it doesn't return indices. Convert if only the value is used
@@ -1026,6 +1054,55 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 )
                 output_shape = node.meta["val"].size()
                 return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
+
+            if node.target == torch.ops.aten.slice_scatter.default:
+                tensor, src_tensor, dim, start, end, *step = args
+
+                tensor_shape = tensor.meta["val"].size()
+                src_tensor_shape = src_tensor.meta["val"].size()
+
+                # nothing to slice, result tensors == src_tensor
+                if tensor_shape == src_tensor_shape:
+                    return src_tensor
+
+                # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
+                rank = len(tensor_shape)
+                [step] = step or [1]
+                if step != 1:
+                    return None
+
+                assert dim < rank, f"The slice dim {dim} should be less than rank {rank}"
+
+                dim = (dim + rank) % rank
+                start = start if start is not None else 0
+                end = end if end is not None else tensor_shape[dim]
+                end = end if end >= 0 else (end + tensor_shape[dim])
+                end = 0 if end < 0 else min(tensor_shape[dim], end)
+
+                tensors_list = []
+                # pre_slice_tensor
+                if start > 0:
+                    slice_start = [0] * rank
+                    slice_end = list(tensor_shape)
+                    slice_end[dim] = start
+                    tensors_list.append(g.call_function(ttnn.slice, (tensor, slice_start, slice_end)))
+
+                # src_tensor
+                tensors_list.append(src_tensor)
+
+                # post_slice_tensor
+                if end < tensor_shape[dim]:
+                    slice_start = [0] * rank
+                    slice_start[dim] = end
+                    slice_end = list(tensor_shape)
+                    tensors_list.append(g.call_function(ttnn.slice, (tensor, slice_start, slice_end)))
+
+                # concat all together
+                tensors_to_concat = []
+                for tensor in tensors_list:
+                    tensors_to_concat.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnTileLayout()}))
+
+                return g.call_function(ttnn.concat, (tensors_to_concat, dim))
 
             # PEP 8 suggests this explicit statement
             return None

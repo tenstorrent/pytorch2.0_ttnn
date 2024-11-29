@@ -147,7 +147,6 @@ TTNN_NORM_OPS = [
 ]
 
 TTNN_POOL_OPS = [
-    ttnn.global_avg_pool2d,
     ttnn.max_pool2d,
 ]
 
@@ -235,9 +234,15 @@ def try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops):
 
     if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
         dtype = to_torch_node.meta["val"].dtype
-        # if user only output and output type is float-like, then no need to add
         if dtype in [torch.float32, torch.float64, torch.bfloat16]:
-            return None
+            # segformer: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
+            # _unsafe_index_put_default = torch.ops.aten._unsafe_index_put.default(new_zeros_default, [None, None, unsqueeze_11, _to_copy_22], ttnn_to_torch, True)
+            # (Pdb) new_zeros_default.dtype
+            # torch.float32
+            # (Pdb) ttnn_to_torch.dtype
+            # torch.bfloat16 => should have to_copy to be torch.float32
+            if torch.ops.aten._unsafe_index_put.default not in target_users_ops:
+                return None
         call_func = g.call_function(
             torch.ops.aten._to_copy.default,
             (to_torch_node,),
