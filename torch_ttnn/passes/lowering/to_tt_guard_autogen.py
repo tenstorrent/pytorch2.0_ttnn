@@ -993,6 +993,17 @@ aten_convolution_default_blocklist = [
     ],
     # TODO(#385): OOM after 0.53.1-rc4 or v0.53.1-rc3
     [
+        "Tensor<[1, 1024, 128, 128]> input = ?",
+        "Tensor<[256, 1024, 1, 1]> weight = ?",
+        "Optional[Tensor] bias = ?",
+        "List[int] stride = [1, 1]",
+        "List[int] padding = [0, 0]",
+        "List[int] dilation = [1, 1]",
+        "bool transposed = False",
+        "List[int] output_padding = [0, 0]",
+        "int groups = 1",
+    ],
+    [
         "Tensor<[1, 256, 64, 64]> input = ?",
         "Tensor<[256, 1, 3, 3]> weight = ?",
         "Optional[Tensor]<[256]> bias = ?",
