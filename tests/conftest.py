@@ -128,7 +128,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
-            option._out_fx_graphs[0].print_tabular()
+            if len(option._out_fx_graphs) > 0:
+                option._out_fx_graphs[0].print_tabular()
             if model_name not in ["speecht5-tts"]:
                 accuracy = calculate_accuracy(outputs, outputs_after)
                 if accuracy:

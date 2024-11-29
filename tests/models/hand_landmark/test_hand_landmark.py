@@ -39,7 +39,6 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.usefixtures("manage_dependencies")
-@pytest.mark.compilation_xfail
 def test_hand_landmark(record_property, mode):
     model_name = "Hand Landmark"
     record_property("model_name", model_name)
