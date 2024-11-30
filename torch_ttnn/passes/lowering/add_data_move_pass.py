@@ -14,12 +14,6 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
 
 
-class _Kwarg:
-    def __init__(self, key, value):
-        self.key = key
-        self.value = value
-
-
 def is_function_call(node) -> bool:
     if not isinstance(node, torch.fx.node.Node):
         return False
@@ -256,42 +250,20 @@ def try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops):
         return None
 
 
-def should_add_data_move_in(src_node, dst_node) -> bool:
+def is_torch_to_ttnn(src_node, dst_node) -> bool:
     if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return False
     return is_tt_compute(dst_node) and not is_tt(src_node) and not (dst_node.target == ttnn.as_tensor)
 
 
-def should_add_data_move_out(src_node, dst_node) -> bool:
+def is_ttnn_to_torch(src_node, dst_node) -> bool:
     return is_tt_compute(src_node) and not is_tt(dst_node)
 
 
-def insert_node_between(src_node, dst_idx, dst_node, new_nodes):
-    """
-    Insert new_node between src_node and dest_node's dst_idx-th arg
-
-    If dst_node is output, the args is stored in dst_node.args[0], and it is a tuple,
-    so we need to check if dst_node is output and handle it separately.
-    """
-    new_nodes[0].update_arg(0, src_node)
-    if dst_node.op != "output":
-        dst_node.update_arg(dst_idx, new_nodes[-1])
-    else:
-        old_arg = dst_node.args[0]
-        new_arg = list(old_arg)
-        new_arg[dst_idx] = new_nodes[-1]
-        dst_node.update_arg(0, tuple(new_arg))
-
-
-def insert_node_between_kwarg(src_node, key, dst_node, new_nodes):
-    """
-    Insert new_node between src_node and dest_node's keyword arg.
-
-    Output does not have keyword args.
-    """
-    assert dst_node.op != "output"
-    new_nodes[0].update_arg(0, src_node)
-    dst_node.update_kwarg(key, new_nodes[-1])
+def is_ttnn_to_ttnn(src_node, dst_node):
+    if not is_tt(src_node) or not is_tt(dst_node):
+        return False
+    return True
 
 
 def is_target_a_user_of_curr_node(curr_node, target):
@@ -315,252 +287,228 @@ def is_target_a_user_of_curr_node(curr_node, target):
     return False
 
 
-def try_add_data_move_in_kwargs(src_node_kwarg, dst_node, device) -> torch.fx.node.Node:
-    if not isinstance(src_node_kwarg, _Kwarg):
-        return None
-    key = src_node_kwarg.key
-    src_node = src_node_kwarg.value
-    if not should_add_data_move_in(src_node, dst_node):
-        return None
+class NodeInputAligner:
+    def __init__(self, graph):
+        self.graph = graph
+        self.aligned_node_dict = {}
 
-    g = dst_node.graph
-    new_nodes = list()
-    with g.inserting_before(dst_node):
-        kwargs = {"layout": TtnnTileLayout(), "device": device}
-        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
+    class AlignSpecFromTorch:
+        def __init__(self, input_node, device, layout, dtype):
+            self.input_node = input_node
+            self.device = device
+            self.layout = layout
+            self.dtype = dtype
 
-    insert_node_between_kwarg(src_node, key, dst_node, new_nodes)
-    return new_nodes[-1]
+        def __eq__(self, other):
+            if not isinstance(other, self.__class__):
+                return False
+            return (
+                self.input_node == other.input_node
+                and self.device == other.device
+                and self.layout == other.layout
+                and self.dtype == other.dtype
+            )
 
+        def __hash__(self):
+            return hash((self.input_node, self.device, self.layout, self.dtype))
 
-def try_add_data_move_in(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
-    if not should_add_data_move_in(src_node, dst_node):
-        return None
+    class AlignSpecToTorch:
+        def __init__(self, input_node, dtype):
+            self.input_node = input_node
+            self.dtype = dtype
 
-    g = dst_node.graph
-    new_nodes = list()
-    with g.inserting_before(dst_node):
-        kwargs = {"layout": TtnnTileLayout(), "device": device}
+        def __eq__(self, other):
+            if not isinstance(other, self.__class__):
+                return False
+            return self.input_node == other.input_node and self.dtype == other.dtype
 
-        if is_target_a_user_of_curr_node(dst_node, ttnn.embedding) and dst_idx == 0:
-            kwargs["dtype"] = TtnnUint32()
-        else:
-            kwargs["dtype"] = TtnnBfloat16()
+        def __hash__(self):
+            return hash((self.input_node, self.dtype))
 
-        new_nodes.append(g.call_function(ttnn.from_torch, (src_node,), kwargs))
+    class AlignSpecInTtnn:
+        def __init__(self, input_node, device, layout, dtype):
+            self.input_node = input_node
+            self.device = device
+            self.layout = layout
+            self.dtype = dtype
 
-    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
-    return new_nodes[-1]
+        def __eq__(self, other):
+            if not isinstance(other, self.__class__):
+                return False
+            return (
+                self.input_node == other.input_node
+                and self.device == other.device
+                and self.layout == other.layout
+                and self.dtype == other.dtype
+            )
 
+        def __hash__(self):
+            return hash((self.input_node, self.device, self.layout, self.dtype))
 
-def try_add_layout_change_before_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
-    # Consider dst_node is ttnn.repeat, and src_node are any tt nodes that ttnn.repeat uses
-    if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
-        return None
-    if not is_function_call(dst_node):
-        return None
+    def _align_for_special_layout(self, node, spec, input_site, input_site_type):
+        if is_target_a_user_of_curr_node(node, ttnn.embedding) and (input_site_type == "args" and input_site == 0):
+            spec.dtype = TtnnUint32()
+        # TODO(#372): #322 will enable tile layout for more layout change ops
+        if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == "args" and input_site == 0):
+            spec.layout = TtnnRowMajorLayout()
+            spec.device = None
+        if node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
+            # TODO: Only uint32 needs to to_layout on host
+            spec.layout = TtnnRowMajorLayout()
+            spec.device = TtnnDevice()
+        return spec
 
-    need_from_device = False
-    need_to_layout = False
-    need_to_device = False
-    # TODO(#372): #322 will enable tile layout for more layout change ops
-    if dst_node.target in TTNN_LAYOUT_CHANGE_OPS and dst_idx == 0 and is_tt(src_node):
-        need_from_device = True
-        need_to_layout = True
-
-    if dst_node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
-        # TODO: Only uint32 needs to to_layout on host
-        need_from_device = True
-        need_to_layout = True
-        need_to_device = True
-
-    if not any((need_from_device, need_to_layout, need_to_device)):
-        return None
-
-    g = dst_node.graph
-    with g.inserting_before(dst_node):
-        new_nodes = [src_node]
-        if need_from_device:
-            new_nodes.append(g.call_function(ttnn.from_device, (new_nodes[-1],)))
-        if need_to_layout:
-            new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnRowMajorLayout())))
-        if need_to_device:
-            new_nodes.append(g.call_function(ttnn.to_device, (new_nodes[-1],), {"device": device}))
-        new_nodes = new_nodes[1:]
-
-    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
-    return new_nodes[-1]
-
-
-def try_add_layout_change_after_node(src_node, dst_idx, dst_node, device) -> torch.fx.node.Node:
-    # Consider src_node is ttnn.repeat, and dst_node should be any tt_compute node that uses ttnn.repeat
-    if not is_function_call(src_node):
-        return None
-    if (
-        src_node.target
-        not in TTNN_LAYOUT_CHANGE_OPS.union(
+    def _reset_to_default_layout(self, input_node, spec):
+        # legalize to the default layout and device
+        if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(
             set(
                 [
                     target_wrappers.repeat,
                     ttnn.concat,
                 ]
             )
-        )
-        or not is_tt_compute(dst_node)
-        or dst_node.target == ttnn.embedding
-    ):
+        ):
+            spec.layout = TtnnTileLayout()
+            spec.device = TtnnDevice()
+        return spec
+
+    def _get_align_spec(self, node, input_node, input_site, input_site_type):
+        if is_torch_to_ttnn(input_node, node):
+            # default layout
+            spec = self.AlignSpecFromTorch(input_node, TtnnDevice(), TtnnTileLayout(), TtnnBfloat16())
+            spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
+            return spec
+        elif is_ttnn_to_torch(input_node, node):
+            spec = self.AlignSpecToTorch(input_node, "by_node_meta")
+            return spec
+        elif is_ttnn_to_ttnn(input_node, node):
+            spec = self.AlignSpecInTtnn(input_node, None, None, None)
+            spec = self._reset_to_default_layout(input_node, spec)
+            spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
+            if spec.device is None and spec.layout is None and spec.dtype is None:
+                return None
+            return spec
         return None
 
-    g = dst_node.graph
-    new_nodes = []
-    with g.inserting_before(dst_node):
-        if dst_node.target != target_wrappers.repeat:
-            new_nodes.append(
-                g.call_function(ttnn.to_layout, (new_nodes[-1] if new_nodes else src_node, TtnnTileLayout()))
-            )
-        new_nodes.append(
-            g.call_function(ttnn.to_device, (new_nodes[-1] if new_nodes else src_node,), {"device": device})
-        )
-
-    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
-
-    return new_nodes[-1]
-
-
-def try_add_data_move_out_for_list_args(src_nodes, dst_idx, dst_node):
-    # Handle list type arguments from ops like cat
-    if not isinstance(src_nodes, list):
-        return None
-
-    new_nodes = list()
-    for src_node in src_nodes:
-        if should_add_data_move_out(src_node, dst_node):
-            g = dst_node.graph
-            with g.inserting_before(dst_node):
-                target_users_ops = [user.target for user in src_node.users.keys()]
-                to_torch_node = call_to_torch_with_meta(g, src_node)
-                copy_node = try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops)
+    def _create_aligned_node(self, spec):
+        aligner_nodes = []
+        g = self.graph
+        if isinstance(spec, self.AlignSpecFromTorch):
+            kwargs = {}
+            if spec.device is not None:
+                kwargs["device"] = spec.device
+            if spec.layout is not None:
+                kwargs["layout"] = spec.layout
+            if spec.dtype is not None:
+                kwargs["dtype"] = spec.dtype
+            aligner_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
+        elif isinstance(spec, self.AlignSpecToTorch):
+            target_users_ops = [user.target for user in spec.input_node.users.keys()]
+            aligner_nodes.append(call_to_torch_with_meta(g, spec.input_node))
+            if spec.dtype == "by_node_meta":
+                copy_node = try_call_aten__to_copy_with_meta(g, aligner_nodes[-1], target_users_ops)
                 if copy_node:
-                    new_node = copy_node
-                else:
-                    new_node = to_torch_node
-        else:
-            new_node = src_node
-        new_nodes.append(new_node)
+                    aligner_nodes.append(copy_node)
+        elif isinstance(spec, self.AlignSpecInTtnn):
+            if spec.device is None:
+                aligner_nodes.append(g.call_function(ttnn.from_device, (spec.input_node,)))
+            else:
+                aligner_nodes.append(
+                    g.call_function(
+                        ttnn.to_device,
+                        (aligner_nodes[-1] if aligner_nodes else spec.input_node,),
+                        {"device": spec.device},
+                    )
+                )
+            if spec.layout is not None:
+                aligner_nodes.append(
+                    g.call_function(
+                        ttnn.to_layout, (aligner_nodes[-1] if aligner_nodes else spec.input_node, spec.layout)
+                    )
+                )
+        return aligner_nodes[-1]
 
-    if new_nodes:
-        dst_node.update_arg(dst_idx, new_nodes)
-        return new_nodes
-    else:
-        return None
+    def _connect_aligned_node(self, node, aligned_node, input_site, input_site_type):
+        if input_site_type == "args":
+            input_idx = input_site
+            node.update_arg(input_idx, aligned_node)
+        elif input_site_type == "kwargs":
+            key = input_site
+            node.update_kwarg(key, aligned_node)
+        elif input_site_type == "args_tuple":
+            input_idx = input_site[0]
+            tuple_idx = input_site[1]
+            old_arg = node.args[input_idx]
+            new_arg = list(old_arg)
+            new_arg[tuple_idx] = aligned_node
+            node.update_arg(input_idx, tuple(new_arg))
+        elif input_site_type == "kwargs_tuple":
+            key = input_site[0]
+            tuple_idx = input_site[1]
+            old_arg = node.kwargs[key]
+            new_arg = list(old_arg)
+            new_arg[tuple_idx] = aligned_node
+            node.update_kwarg(key, tuple(new_arg))
 
-
-def try_add_data_move_out(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
-    if not should_add_data_move_out(src_node, dst_node):
-        return None
-
-    g = dst_node.graph
-    new_nodes = list()
-    with g.inserting_before(dst_node):
-        target_users_ops = [user.target for user in src_node.users.keys()]
-        new_nodes.append(call_to_torch_with_meta(g, src_node))
-        copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1], target_users_ops)
-        if copy_node:
-            new_nodes.append(copy_node)
-    insert_node_between(src_node, dst_idx, dst_node, new_nodes)
-    return new_nodes[-1]
-
-
-def try_add_data_move_out_for_layer_norm(src_node, dst_idx, dst_node) -> torch.fx.node.Node:
-    if not should_add_data_move_out(src_node, dst_node):
-        return None
-
-    g = dst_node.graph
-    new_nodes = list()
-    with g.inserting_before(dst_node):
-        if is_tt_compute(src_node) and src_node.target == ttnn.layer_norm:
-            target_users_ops = [user.target for user in src_node.users.keys()]
-            new_nodes.append(call_to_torch_with_meta(g, src_node))
-            copy_node = try_call_aten__to_copy_with_meta(g, new_nodes[-1], target_users_ops)
-            if copy_node:
-                new_nodes.append(copy_node)
-
-    # Workaround to output the same layer_norm output
-    # Before: layer_norm = aten.layer_norm
-    #          getitem = getitem(layer_norm, 0)
-    #          return ((getitem,),)
-    # After: layer_norm = ttnn.layer_norm
-    #        return (layer_norm,)
-    # Need to match the tuple in the original return statement
-    if new_nodes:
-        old_args = dst_node.args[0]
+    def _connect_aligned_node_layer_norm(self, node, input_node, aligned_node, input_site, input_site_type):
+        # Workaround to output the same layer_norm output
+        # Before: layer_norm = aten.layer_norm
+        #          getitem = getitem(layer_norm, 0)
+        #          return ((getitem,),)
+        # After: layer_norm = ttnn.layer_norm
+        #        return (layer_norm,)
+        # Need to match the tuple in the original return statement
+        old_args = node.args[0]
         if isinstance(old_args, tuple):
             new_args = list(old_args)
             for idx, old_arg in enumerate(old_args):
-                if old_arg == src_node:
-                    new_args[idx] = new_nodes[-1]
-            dst_node.update_arg(0, tuple(new_args))
+                if old_arg == input_node:
+                    new_args[idx] = aligned_node
+            node.update_arg(0, tuple(new_args))
         else:
-            dst_node.update_arg(dst_idx, new_nodes[-1])
-        return new_nodes[-1]
-    else:
-        return None
+            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
+
+    def align(self, node, input_node, input_site, input_site_type):
+        assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
+        align_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
+        if align_spec is None:
+            # No need to align input_node
+            return 0
+        if align_spec in self.aligned_node_dict:
+            aligned_node = self.aligned_node_dict[align_spec]
+        else:
+            with self.graph.inserting_before(node):
+                aligned_node = self._create_aligned_node(align_spec)
+            self.aligned_node_dict[align_spec] = aligned_node
+        if node.target != ttnn.layer_norm:
+            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
+        else:
+            self._connect_aligned_node_layer_norm(node, input_node, aligned_node, input_site, input_site_type)
+        return 1
 
 
 class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
-        device = TtnnDevice()
         i = 0
+        node_input_aligner = NodeInputAligner(gm.graph)
         nodes = list(gm.graph.nodes)
-        # Track argument reuse
-        data_move_in_hash = {}
-        # This might not be needed if workaround is not needed
-        data_move_out_hash = {}
+
         for node in nodes:
-            args = node.args[0] if node.op == "output" else node.args
-            kwargs = tuple(_Kwarg(k, v) for k, v in node.kwargs.items() if isinstance(v, torch.fx.node.Node))
-            if isinstance(args, tuple):
-                args += kwargs
-
+            args = node.args
+            kwargs = node.kwargs
             for idx, arg in enumerate(args):
-                if isinstance(arg, _Kwarg):
-                    try_add_data_move_in_kwargs(arg, node, device)
-                elif (
-                    arg in data_move_in_hash
-                    and not isinstance(node.target, torch._ops.OpOverload)
-                    and node.op != "output"
-                    # TODO: Multiple ops with different layout requirements can have the same input
-                    # There should be a better implementation than skipping certain ops
-                    and node.target not in TTNN_LAYOUT_CHANGE_OPS
-                ):
-                    node.update_arg(idx, data_move_in_hash[arg])
+                if type(arg) not in [tuple, list, torch.fx.immutable_collections.immutable_list]:
+                    i += node_input_aligner.align(node, arg, idx, "args")
                 else:
-                    if to_device := try_add_data_move_in(arg, idx, node, device):
-                        data_move_in_hash[arg] = to_device
-                        i += 1
-                    updated_arg = data_move_in_hash.get(arg, arg)
-                    if to_layout := try_add_layout_change_before_node(updated_arg, idx, node, device):
-                        i += 1
-                    elif to_layout := try_add_layout_change_after_node(updated_arg, idx, node, device):
-                        data_move_in_hash[arg] = to_layout
-                        i += 1
-
-                if arg in data_move_out_hash and node.op == "output":
-                    old_arg = node.args[0]
-                    new_arg = list(old_arg)
-                    new_arg[idx] = data_move_out_hash[arg]
-                    node.update_arg(0, tuple(new_arg))
-                    i += 1
-                elif (node.target != ttnn.layer_norm) and (to_torch := try_add_data_move_out(arg, idx, node)):
-                    data_move_out_hash[arg] = to_torch
-                    i += 1
-                elif to_torch := try_add_data_move_out_for_layer_norm(arg, idx, node):
-                    data_move_out_hash[arg] = to_torch
-                    i += 1
-                elif to_torch := try_add_data_move_out_for_list_args(arg, idx, node):
-                    data_move_out_hash[arg] = to_torch
-                    i += 1
+                    for tuple_idx, tuple_arg in enumerate(arg):
+                        i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], "args_tuple")
+            for key, arg in kwargs.items():
+                if type(arg) not in [tuple, list, torch.fx.immutable_collections.immutable_list]:
+                    i += node_input_aligner.align(node, arg, key, "kwargs")
+                else:
+                    for tuple_idx, tuple_arg in enumerate(arg):
+                        i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], "kwargs_tuple")
 
         modified = i > 0
         return PassResult(gm, modified)
