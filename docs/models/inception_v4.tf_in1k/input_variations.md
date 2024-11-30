@@ -7,7 +7,7 @@
 |  3 | aten.cat.default                                  |                  9 |           9 |         0 |          0 | ✅          |    1    |
 |  4 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  5 | aten.convolution.default                          |                 38 |          37 |         0 |          0 | 🚧          |    0.97 |
-|  6 | aten.max_pool2d_with_indices.default              |                  4 |           2 |         0 |          0 | 🚧          |    0.5  |
+|  6 | aten.max_pool2d_with_indices.default              |                  4 |           3 |         0 |          0 | 🚧          |    0.75 |
 |  7 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  8 | aten.relu.default                                 |                 22 |          22 |         0 |          0 | ✅          |    1    |
 |  9 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |    1    |
@@ -109,7 +109,7 @@
 |    | ATen Input Variations                                                                               | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1024, 17, 17]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2] | Done     | Done       | True  |
-|  1 | Tensor<[1, 192, 71, 71]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2]  | None     | Fallback   | True  |
+|  1 | Tensor<[1, 192, 71, 71]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2]  | Done     | Done       | True  |
 |  2 | Tensor<[1, 384, 35, 35]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2]  | None     | Fallback   | True  |
 |  3 | Tensor<[1, 64, 147, 147]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2] | Done     | Done       | True  |
 ### aten.mean.dim

@@ -158,7 +158,7 @@
 | 154 | Tensor<[50, 3072]> self = ?     | Unknown  | Done       | True  |
 | 155 | Tensor<[50, 768]> self = ?      | Unknown  | Done       | True  |
 | 156 | Tensor<[50257, 768]> self = ?   | Unknown  | Done       | True  |
-| 157 | Tensor<[50272, 512]> self = ?   | Unknown  | Done       | True  |
+| 157 | Tensor<[50272, 512]> self = ?   | Done     | Done       | True  |
 | 158 | Tensor<[512, 1000]> self = ?    | Done     | Done       | True  |
 | 159 | Tensor<[512, 1024]> self = ?    | Done     | Done       | True  |
 | 160 | Tensor<[512, 128]> self = ?     | Done     | Done       | True  |

@@ -1,7 +1,7 @@
 # High Level Operations Status
 |    | Operations                                        |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:--------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._adaptive_avg_pool2d.default                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  0 | aten._adaptive_avg_pool2d.default                 |                  1 |           0 |         1 |          0 | ✅          |    1    |
 |  1 | aten._native_batch_norm_legit_no_training.default |                  5 |           5 |         0 |          0 | ✅          |    1    |
 |  2 | aten.addmm.default                                |                  3 |           3 |         0 |          0 | ✅          |    1    |
 |  3 | aten.clone.default                                |                  1 |           1 |         0 |          0 | ✅          |    1    |
@@ -14,7 +14,7 @@
 ### aten._adaptive_avg_pool2d.default
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 512, 7, 7]> self = ?,<br>List[int] output_size = [7, 7] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 512, 7, 7]> self = ?,<br>List[int] output_size = [7, 7] | Removed  | Fallback   | True  |
 ### aten._native_batch_norm_legit_no_training.default
 |    | ATen Input Variations                                                                                                                                                                                                                | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|

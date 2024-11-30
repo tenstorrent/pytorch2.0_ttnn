@@ -60,7 +60,7 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                                                          | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 912, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | False |
+|  0 | Tensor<[1, 912, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | True  |
 ### aten.relu.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------|:---------|:-----------|:------|

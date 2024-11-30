@@ -6,7 +6,7 @@
 |  2 | aten.avg_pool2d.default                           |                  3 |           0 |         0 |          0 | ✘           |    0    |
 |  3 | aten.cat.default                                  |                 82 |          78 |         4 |          0 | ✅          |    1    |
 |  4 | aten.convolution.default                          |                 86 |          85 |         0 |          0 | 🚧          |    0.99 |
-|  5 | aten.max_pool2d_with_indices.default              |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  5 | aten.max_pool2d_with_indices.default              |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  6 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  7 | aten.relu.default                                 |                 85 |          85 |         0 |          0 | ✅          |    1    |
 |  8 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |    1    |
@@ -287,7 +287,7 @@
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                                                                                              | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 96, 112, 112]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1] | None     | Fallback   | True  |
+|  0 | Tensor<[1, 96, 112, 112]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1] | Done     | Done       | True  |
 ### aten.mean.dim
 |    | ATen Input Variations                                                                           | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|:------|

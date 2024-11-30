@@ -22,7 +22,7 @@
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                       | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 16, 50, 64]> query = ?,<br>Tensor<[1, 16, 50, 64]> key = ?,<br>Tensor<[1, 16, 50, 64]> value = ? | None     | Fallback   | True  |
+|  0 | Tensor<[1, 16, 50, 64]> query = ?,<br>Tensor<[1, 16, 50, 64]> key = ?,<br>Tensor<[1, 16, 50, 64]> value = ? | None     | Fallback   | False |
 ### aten.add.Tensor
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:------|

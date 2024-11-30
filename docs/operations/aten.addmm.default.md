@@ -42,8 +42,8 @@
 |  38 | Tensor<[1024]> self = ?,<br>Tensor<[5, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?     | Unknown  | Done       | True  |
 |  39 | Tensor<[1024]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
 |  40 | Tensor<[1024]> self = ?,<br>Tensor<[50, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  41 | Tensor<[1024]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Unknown  | Done       | True  |
-|  42 | Tensor<[1024]> self = ?,<br>Tensor<[59, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Unknown  | Done       | True  |
+|  41 | Tensor<[1024]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
+|  42 | Tensor<[1024]> self = ?,<br>Tensor<[59, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
 |  43 | Tensor<[1024]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
 |  44 | Tensor<[1024]> self = ?,<br>Tensor<[64, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
 |  45 | Tensor<[1024]> self = ?,<br>Tensor<[784, 256]> mat1 = ?,<br>Tensor<[256, 1024]> mat2 = ?     | Done     | Done       | True  |
@@ -190,7 +190,7 @@
 | 186 | Tensor<[4096]> self = ?,<br>Tensor<[49, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
 | 187 | Tensor<[4096]> self = ?,<br>Tensor<[5, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?     | Unknown  | Done       | True  |
 | 188 | Tensor<[4096]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
-| 189 | Tensor<[4096]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Unknown  | Done       | True  |
+| 189 | Tensor<[4096]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
 | 190 | Tensor<[4096]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
 | 191 | Tensor<[4096]> self = ?,<br>Tensor<[9, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?     | Done     | Done       | True  |
 | 192 | Tensor<[4096]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 4096]> mat2 = ?       | Done     | Done       | True  |

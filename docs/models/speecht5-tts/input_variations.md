@@ -12,7 +12,7 @@
 |  8 | aten.embedding.default         |                  2 |           2 |         0 |          0 | ✅          |     1   |
 |  9 | aten.expand.default            |                  4 |           1 |         3 |          0 | ✅          |     1   |
 | 10 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |     1   |
-| 11 | aten.masked_fill.Scalar        |                  2 |           0 |         0 |          0 | ✘           |     0   |
+| 11 | aten.masked_fill.Scalar        |                  2 |           2 |         0 |          0 | ✅          |     1   |
 | 12 | aten.mul.Tensor                |                  2 |           1 |         0 |          0 | 🚧          |     0.5 |
 | 13 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 14 | aten.rsub.Scalar               |                  2 |           2 |         0 |          0 | ✅          |     1   |
@@ -88,8 +88,8 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                          | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 24]> self = ?,<br>Tensor<[1, 1, 1, 24]> mask = ?,<br>number value = -3.3895313892515355e+38   | None     | Fallback   | True  |
-|  1 | Tensor<[1, 1, 24, 24]> self = ?,<br>Tensor<[1, 1, 24, 24]> mask = ?,<br>number value = -3.3895313892515355e+38 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1, 24]> self = ?,<br>Tensor<[1, 1, 1, 24]> mask = ?,<br>number value = -3.3895313892515355e+38   | Done     | Done       | True  |
+|  1 | Tensor<[1, 1, 24, 24]> self = ?,<br>Tensor<[1, 1, 24, 24]> mask = ?,<br>number value = -3.3895313892515355e+38 | Done     | Done       | True  |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                  | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------|:---------|:-----------|:------|
