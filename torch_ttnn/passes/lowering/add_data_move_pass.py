@@ -309,6 +309,14 @@ class NodeInputAligner:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout
             spec.device = TtnnDevice
+        if (
+            node.target == ttnn.reshape
+            and hasattr(spec.input_node, "meta")
+            and "val" in spec.input_node.meta
+            and hasattr(spec.input_node.meta["val"], "dtype")
+            and spec.input_node.meta["val"].dtype in [torch.int32, torch.int64]
+        ):
+            spec.dtype = TtnnUint32
         return spec
 
     def _reset_to_default_layout(self, input_node, spec):
