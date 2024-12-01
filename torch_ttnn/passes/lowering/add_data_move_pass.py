@@ -351,7 +351,7 @@ class NodeInputAligner:
         # TODO(#372): #322 will enable tile layout for more layout change ops
         if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == "args" and input_site == 0):
             spec.layout = TtnnRowMajorLayout()
-            spec.device = None
+            spec.device = "host"
         if node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout()
@@ -374,7 +374,7 @@ class NodeInputAligner:
 
     def _get_align_spec(self, node, input_node, input_site, input_site_type):
         if is_torch_to_ttnn(input_node, node):
-            # default layout
+            # default set these layout for torch to ttnn
             spec = self.AlignSpecFromTorch(input_node, TtnnDevice(), TtnnTileLayout(), TtnnBfloat16())
             spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
             return spec
@@ -382,6 +382,7 @@ class NodeInputAligner:
             spec = self.AlignSpecToTorch(input_node, "by_node_meta")
             return spec
         elif is_ttnn_to_ttnn(input_node, node):
+            # default do nothing between ttnn to ttnn
             spec = self.AlignSpecInTtnn(input_node, None, None, None)
             spec = self._reset_to_default_layout(input_node, spec)
             spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
@@ -395,7 +396,7 @@ class NodeInputAligner:
         g = self.graph
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
-            if spec.device is not None:
+            if spec.device is not None and spec.device != "host":
                 kwargs["device"] = spec.device
             if spec.layout is not None:
                 kwargs["layout"] = spec.layout
@@ -410,7 +411,7 @@ class NodeInputAligner:
                 if copy_node:
                     aligner_nodes.append(copy_node)
         elif isinstance(spec, self.AlignSpecInTtnn):
-            if spec.device is None:
+            if spec.device == "host":
                 aligner_nodes.append(g.call_function(ttnn.from_device, (spec.input_node,)))
             else:
                 aligner_nodes.append(
