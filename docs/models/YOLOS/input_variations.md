@@ -20,7 +20,7 @@
 | 16 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 17 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |     1   |
 | 18 | aten.relu.default              |                  1 |           1 |         0 |          0 | ✅          |     1   |
-| 19 | aten.rsub.Scalar               |                  4 |           0 |         0 |          0 | ✘           |     0   |
+| 19 | aten.rsub.Scalar               |                  4 |           4 |         0 |          0 | ✅          |     1   |
 | 20 | aten.select.int                |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 21 | aten.sigmoid.default           |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 22 | aten.slice.Tensor              |                  9 |           3 |         6 |          0 | ✅          |     1   |
@@ -151,10 +151,10 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                 | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
-|  1 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 2.0 | None     | Fallback   | True  |
-|  2 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
-|  3 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 2.0 | None     | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
+|  1 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 2.0 | Done     | Done       | True  |
+|  2 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
+|  3 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 2.0 | Done     | Done       | True  |
 ### aten.select.int
 |    | ATen Input Variations                                             | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------|:---------|:-----------|:------|

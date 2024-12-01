@@ -60,7 +60,7 @@
 |  56 | Tensor<[1, 197, 768]> self = ?,<br>Tensor other = 0.9727272726595402     | Done     | Done       | True  |
 |  57 | Tensor<[1, 197, 768]> self = ?,<br>Tensor other = 0.9818181823939085     | Done     | Done       | True  |
 |  58 | Tensor<[1, 197, 768]> self = ?,<br>Tensor other = 0.9909090911969543     | Done     | Done       | True  |
-|  59 | Tensor<[1, 1]> self = ?,<br>Tensor other = 16                            | Done     | Failed     | N/A   |
+|  59 | Tensor<[1, 1]> self = ?,<br>Tensor other = 16                            | None     | Fallback   | True  |
 |  60 | Tensor<[1, 1]> self = ?,<br>Tensor other = 2.0794415416798357            | Done     | Done       | True  |
 |  61 | Tensor<[1, 2, 4096, 256]> self = ?,<br>Tensor other = 5.656854249492381  | Done     | Done       | True  |
 |  62 | Tensor<[1, 2, 4800, 300]> self = ?,<br>Tensor other = 8.0                | Done     | Done       | True  |
@@ -80,7 +80,7 @@
 |  76 | Tensor<[1, 5, 1024, 256]> self = ?,<br>Tensor other = 5.656854249492381  | Done     | Done       | True  |
 |  77 | Tensor<[1, 5, 1200, 300]> self = ?,<br>Tensor other = 8.0                | Done     | Done       | True  |
 |  78 | Tensor<[1, 50257]> self = ?,<br>Tensor other = 0.9                       | Unknown  | Done       | True  |
-|  79 | Tensor<[1, 512, 38, 38]> self = ?,<br>Tensor<[1, 512, 38, 38]> other = ? | Unknown  | Done       | True  |
+|  79 | Tensor<[1, 512, 38, 38]> self = ?,<br>Tensor<[1, 512, 38, 38]> other = ? | Done     | Done       | True  |
 |  80 | Tensor<[1, 512]> self = ?,<br>Tensor<[1, 1]> other = ?                   | Done     | Done       | True  |
 |  81 | Tensor<[1, 64, 1280]> self = ?,<br>Tensor other = 1.0                    | Unknown  | Done       | True  |
 |  82 | Tensor<[1, 64, 9, 9]> self = ?,<br>Tensor other = 8.0                    | None     | Fallback   | True  |
@@ -91,35 +91,35 @@
 |  87 | Tensor<[1, 8, 300, 300]> self = ?,<br>Tensor other = 8.0                 | Done     | Done       | True  |
 |  88 | Tensor<[10, 10]> self = ?,<br>Tensor other = 2.772588722239781           | Done     | Done       | True  |
 |  89 | Tensor<[10, 10]> self = ?,<br>Tensor other = 8                           | None     | Fallback   | True  |
-|  90 | Tensor<[10]> self = ?,<br>Tensor other = 10                              | Unknown  | Failed     | N/A   |
-|  91 | Tensor<[10]> self = ?,<br>Tensor other = 9.375                           | Unknown  | Done       | True  |
-|  92 | Tensor<[128]> self = ?,<br>Tensor other = 128                            | Done     | Failed     | N/A   |
+|  90 | Tensor<[10]> self = ?,<br>Tensor other = 10                              | Done     | Failed     | N/A   |
+|  91 | Tensor<[10]> self = ?,<br>Tensor other = 9.375                           | Done     | Done       | True  |
+|  92 | Tensor<[128]> self = ?,<br>Tensor other = 128                            | None     | Fallback   | True  |
 |  93 | Tensor<[15, 15]> self = ?,<br>Tensor other = 2.772588722239781           | None     | Fallback   | True  |
 |  94 | Tensor<[15, 15]> self = ?,<br>Tensor other = 8                           | None     | Fallback   | True  |
 |  95 | Tensor<[16, 6, 64, 32]> self = ?,<br>Tensor<[16, 6, 64, 32]> other = ?   | Done     | Done       | True  |
-|  96 | Tensor<[16, 8, 64, 32]> self = ?,<br>Tensor<[16, 8, 64, 32]> other = ?   | Done     | Done       | False |
+|  96 | Tensor<[16, 8, 64, 32]> self = ?,<br>Tensor<[16, 8, 64, 32]> other = ?   | Done     | Done       | True  |
 |  97 | Tensor<[160]> self = ?,<br>Tensor other = 160                            | Unknown  | Failed     | N/A   |
 |  98 | Tensor<[17, 17]> self = ?,<br>Tensor other = 16                          | Unknown  | Fallback   | True  |
 |  99 | Tensor<[17, 17]> self = ?,<br>Tensor other = 2.0794415416798357          | Unknown  | Fallback   | True  |
-| 100 | Tensor<[19]> self = ?,<br>Tensor other = 18.75                           | Unknown  | Done       | True  |
-| 101 | Tensor<[1]> self = ?,<br>Tensor other = 1                                | Unknown  | Failed     | N/A   |
-| 102 | Tensor<[1]> self = ?,<br>Tensor other = 1.0                              | Unknown  | Done       | True  |
+| 100 | Tensor<[19]> self = ?,<br>Tensor other = 18.75                           | Done     | Done       | True  |
+| 101 | Tensor<[1]> self = ?,<br>Tensor other = 1                                | Done     | Failed     | N/A   |
+| 102 | Tensor<[1]> self = ?,<br>Tensor other = 1.0                              | Done     | Done       | True  |
 | 103 | Tensor<[2, 2]> self = ?,<br>Tensor other = 16                            | Unknown  | Fallback   | True  |
 | 104 | Tensor<[2, 2]> self = ?,<br>Tensor other = 2.0794415416798357            | Unknown  | Done       | True  |
 | 105 | Tensor<[2, 512]> self = ?,<br>Tensor<[2, 1]> other = ?                   | Done     | Done       | True  |
-| 106 | Tensor<[20]> self = ?,<br>Tensor other = 20                              | Unknown  | Failed     | N/A   |
-| 107 | Tensor<[2]> self = ?,<br>Tensor other = 2                                | Unknown  | Failed     | N/A   |
-| 108 | Tensor<[3, 320, 320]> self = ?,<br>Tensor<[3, 1, 1]> other = ?           | Unknown  | Done       | True  |
-| 109 | Tensor<[3, 480, 640]> self = ?,<br>Tensor<[3, 1, 1]> other = ?           | Unknown  | Done       | True  |
+| 106 | Tensor<[20]> self = ?,<br>Tensor other = 20                              | Done     | Failed     | N/A   |
+| 107 | Tensor<[2]> self = ?,<br>Tensor other = 2                                | Done     | Failed     | N/A   |
+| 108 | Tensor<[3, 320, 320]> self = ?,<br>Tensor<[3, 1, 1]> other = ?           | Done     | Done       | True  |
+| 109 | Tensor<[3, 480, 640]> self = ?,<br>Tensor<[3, 1, 1]> other = ?           | Done     | Done       | True  |
 | 110 | Tensor<[3234, 1]> self = ?,<br>Tensor other = 10.0                       | Unknown  | Done       | True  |
 | 111 | Tensor<[3234, 1]> self = ?,<br>Tensor other = 5.0                        | Unknown  | Done       | True  |
-| 112 | Tensor<[38]> self = ?,<br>Tensor other = 37.5                            | Unknown  | Done       | True  |
-| 113 | Tensor<[3]> self = ?,<br>Tensor other = 3                                | Unknown  | Failed     | N/A   |
-| 114 | Tensor<[3]> self = ?,<br>Tensor other = 3.0                              | Unknown  | Done       | True  |
+| 112 | Tensor<[38]> self = ?,<br>Tensor other = 37.5                            | Done     | Done       | True  |
+| 113 | Tensor<[3]> self = ?,<br>Tensor other = 3                                | Done     | Failed     | N/A   |
+| 114 | Tensor<[3]> self = ?,<br>Tensor other = 3.0                              | Done     | Done       | True  |
 | 115 | Tensor<[4, 12, 64, 32]> self = ?,<br>Tensor<[4, 12, 64, 32]> other = ?   | Done     | Done       | True  |
 | 116 | Tensor<[4, 16, 64, 32]> self = ?,<br>Tensor<[4, 16, 64, 32]> other = ?   | Done     | Done       | True  |
-| 117 | Tensor<[5]> self = ?,<br>Tensor other = 4.6875                           | Unknown  | Done       | True  |
-| 118 | Tensor<[5]> self = ?,<br>Tensor other = 5                                | Unknown  | Failed     | N/A   |
+| 117 | Tensor<[5]> self = ?,<br>Tensor other = 4.6875                           | Done     | Done       | True  |
+| 118 | Tensor<[5]> self = ?,<br>Tensor other = 5                                | Done     | Failed     | N/A   |
 | 119 | Tensor<[64, 3, 64, 32]> self = ?,<br>Tensor<[64, 3, 64, 32]> other = ?   | Done     | Done       | True  |
 | 120 | Tensor<[64, 4, 64, 32]> self = ?,<br>Tensor<[64, 4, 64, 32]> other = ?   | Done     | Done       | True  |
 | 121 | Tensor<[8, 100, 32]> self = ?,<br>Tensor other = 5.656854249492381       | Done     | Done       | True  |

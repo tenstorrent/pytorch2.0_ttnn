@@ -59,8 +59,8 @@
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   | Isolated   | PCC   |
 |---:|:--------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 196, 3072]> self = ? | Done     | Unknown    | N/A   |
-|  1 | Tensor<[1, 768, 384]> self = ?  | Done     | Done       | True  |
+|  0 | Tensor<[1, 196, 3072]> self = ? | Done     | Done       | True  |
+|  1 | Tensor<[1, 768, 384]> self = ?  | Done     | Unknown    | N/A   |
 ### aten.gelu_backward.default
 |    | ATen Input Variations                                                      | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|:------|

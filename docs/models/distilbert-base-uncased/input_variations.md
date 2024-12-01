@@ -12,7 +12,7 @@
 |  8 | aten.expand.default            |                  4 |           1 |         3 |          0 | ✅          |       1 |
 |  9 | aten.gelu.default              |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 10 | aten.lift_fresh_copy.default   |                  1 |           0 |         1 |          0 | ✅          |       1 |
-| 11 | aten.masked_fill.Tensor        |                  1 |           0 |         1 |          0 | ✅          |       1 |
+| 11 | aten.masked_fill.Tensor        |                  2 |           1 |         1 |          0 | ✅          |       1 |
 | 12 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 13 | aten.slice.Tensor              |                  2 |           1 |         1 |          0 | ✅          |       1 |
 | 14 | aten.t.default                 |                  3 |           3 |         0 |          0 | ✅          |       1 |
@@ -75,7 +75,8 @@
 ### aten.masked_fill.Tensor
 |    | ATen Input Variations                                                                          | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 12, 16, 16]> self = ?,<br>Tensor<[1, 12, 16, 16]> mask = ?,<br>Tensor<[]> value = ? | Removed  | Unknown    | N/A   |
+|  0 | Tensor<[1, 12, 16, 16]> self = ?,<br>Tensor<[1, 12, 16, 16]> mask = ?,<br>Tensor value = ?     | Done     | Unknown    | N/A   |
+|  1 | Tensor<[1, 12, 16, 16]> self = ?,<br>Tensor<[1, 12, 16, 16]> mask = ?,<br>Tensor<[]> value = ? | Removed  | Unknown    | N/A   |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|

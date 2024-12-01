@@ -19,11 +19,11 @@
 | 15 | aten.full.default               |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 16 | aten.index.Tensor               |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 17 | aten.linalg_vector_norm.default |                  2 |           0 |         0 |          0 | ✘           |    0    |
-| 18 | aten.masked_fill.Scalar         |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 18 | aten.masked_fill.Scalar         |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 19 | aten.mm.default                 |                  3 |           3 |         0 |          0 | ✅          |    1    |
 | 20 | aten.mul.Tensor                 |                  7 |           6 |         0 |          0 | 🚧          |    0.86 |
 | 21 | aten.native_layer_norm.default  |                  3 |           3 |         0 |          0 | ✅          |    1    |
-| 22 | aten.rsub.Scalar                |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 22 | aten.rsub.Scalar                |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 23 | aten.select.int                 |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 24 | aten.sigmoid.default            |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 25 | aten.slice.Tensor               |                  8 |           1 |         7 |          0 | ✅          |    1    |
@@ -134,7 +134,7 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                      | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2, 1, 7, 7]> self = ?,<br>Tensor<[2, 1, 7, 7]> mask = ?,<br>number value = -3.3895313892515355e+38 | None     | Fallback   | True  |
+|  0 | Tensor<[2, 1, 7, 7]> self = ?,<br>Tensor<[2, 1, 7, 7]> mask = ?,<br>number value = -3.3895313892515355e+38 | Done     | Done       | True  |
 ### aten.mm.default
 |    | ATen Input Variations                                     | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------|:---------|:-----------|:------|
@@ -160,7 +160,7 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2, 1, 7, 7]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
+|  0 | Tensor<[2, 1, 7, 7]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
 ### aten.select.int
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|

@@ -5,7 +5,7 @@
 |  1 | aten._softmax.default                             |                  4 |           4 |         0 |          0 | ✅          |    1    |
 |  2 | aten._to_copy.default                             |                 20 |          10 |         0 |          0 | 🚧          |    0.5  |
 |  3 | aten._unsafe_index.Tensor                         |                  5 |           0 |         0 |          0 | ✘           |    0    |
-|  4 | aten.add.Tensor                                   |                 19 |          19 |         0 |          0 | ✅          |    1    |
+|  4 | aten.add.Tensor                                   |                 19 |          18 |         0 |          0 | 🚧          |    0.95 |
 |  5 | aten.addmm.default                                |                 15 |          15 |         0 |          0 | ✅          |    1    |
 |  6 | aten.arange.default                               |                 10 |           0 |         0 |          0 | ✘           |    0    |
 |  7 | aten.bmm.default                                  |                  8 |           8 |         0 |          0 | ✅          |    1    |
@@ -21,15 +21,15 @@
 | 17 | aten.native_layer_norm.default                    |                  7 |           7 |         0 |          0 | ✅          |    1    |
 | 18 | aten.permute.default                              |                 21 |          21 |         0 |          0 | ✅          |    1    |
 | 19 | aten.relu.default                                 |                  7 |           7 |         0 |          0 | ✅          |    1    |
-| 20 | aten.rsub.Scalar                                  |                 10 |           0 |         0 |          0 | ✘           |    0    |
+| 20 | aten.rsub.Scalar                                  |                 10 |          10 |         0 |          0 | ✅          |    1    |
 | 21 | aten.select.int                                   |                  6 |           6 |         0 |          0 | ✅          |    1    |
 | 22 | aten.sigmoid.default                              |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 23 | aten.slice.Tensor                                 |                  9 |           0 |         0 |          0 | ✘           |    0    |
 | 24 | aten.squeeze.dim                                  |                  1 |           1 |         0 |          0 | ✅          |    1    |
-| 25 | aten.sub.Tensor                                   |                 20 |          20 |         0 |          0 | ✅          |    1    |
+| 25 | aten.sub.Tensor                                   |                 20 |          19 |         0 |          0 | 🚧          |    0.95 |
 | 26 | aten.t.default                                    |                 12 |          12 |         0 |          0 | ✅          |    1    |
 | 27 | aten.transpose.int                                |                 16 |          16 |         0 |          0 | ✅          |    1    |
-| 28 | aten.unsqueeze.default                            |                  8 |           8 |         0 |          0 | ✅          |    1    |
+| 28 | aten.unsqueeze.default                            |                  8 |           7 |         0 |          0 | 🚧          |    0.88 |
 | 29 | aten.view.default                                 |                 78 |          78 |         0 |          0 | ✅          |    1    |
 ***
 ### aten._native_batch_norm_legit_no_training.default
@@ -95,7 +95,7 @@
 | 10 | Tensor<[160]> self = ?,<br>Tensor other = 0.5                              | Done     | Done       | True  |
 | 11 | Tensor<[240]> self = ?,<br>Tensor other = 0.5                              | Done     | Done       | True  |
 | 12 | Tensor<[30]> self = ?,<br>Tensor other = 0.5                               | Done     | Done       | True  |
-| 13 | Tensor<[320]> self = ?,<br>Tensor other = 0.5                              | Done     | Done       | True  |
+| 13 | Tensor<[320]> self = ?,<br>Tensor other = 0.5                              | None     | Fallback   | True  |
 | 14 | Tensor<[40]> self = ?,<br>Tensor other = 0.5                               | Done     | Done       | True  |
 | 15 | Tensor<[480]> self = ?,<br>Tensor other = 0.5                              | Done     | Done       | True  |
 | 16 | Tensor<[60]> self = ?,<br>Tensor other = 0.5                               | Done     | Done       | True  |
@@ -341,16 +341,16 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                            | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[120, 1]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
-|  1 | Tensor<[160]> self = ?,<br>number other = 1.0    | None     | Fallback   | True  |
-|  2 | Tensor<[240, 1]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
-|  3 | Tensor<[30, 1]> self = ?,<br>number other = 1.0  | None     | Fallback   | True  |
-|  4 | Tensor<[320]> self = ?,<br>number other = 1.0    | None     | Fallback   | True  |
-|  5 | Tensor<[40]> self = ?,<br>number other = 1.0     | None     | Fallback   | True  |
-|  6 | Tensor<[480, 1]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
-|  7 | Tensor<[60, 1]> self = ?,<br>number other = 1.0  | None     | Fallback   | True  |
-|  8 | Tensor<[640]> self = ?,<br>number other = 1.0    | None     | Fallback   | True  |
-|  9 | Tensor<[80]> self = ?,<br>number other = 1.0     | None     | Fallback   | True  |
+|  0 | Tensor<[120, 1]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
+|  1 | Tensor<[160]> self = ?,<br>number other = 1.0    | Done     | Done       | True  |
+|  2 | Tensor<[240, 1]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
+|  3 | Tensor<[30, 1]> self = ?,<br>number other = 1.0  | Done     | Done       | True  |
+|  4 | Tensor<[320]> self = ?,<br>number other = 1.0    | Done     | Done       | True  |
+|  5 | Tensor<[40]> self = ?,<br>number other = 1.0     | Done     | Done       | True  |
+|  6 | Tensor<[480, 1]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
+|  7 | Tensor<[60, 1]> self = ?,<br>number other = 1.0  | Done     | Done       | True  |
+|  8 | Tensor<[640]> self = ?,<br>number other = 1.0    | Done     | Done       | True  |
+|  9 | Tensor<[80]> self = ?,<br>number other = 1.0     | Done     | Done       | True  |
 ### aten.select.int
 |    | ATen Input Variations                                               | Status   | Isolated   | PCC   |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|:------|
@@ -394,7 +394,7 @@
 |  5 | Tensor<[240]> self = ?,<br>Tensor other = 0.5            | Done     | Done       | True  |
 |  6 | Tensor<[30, 1]> self = ?,<br>Tensor<[30, 1]> other = ?   | Done     | Done       | True  |
 |  7 | Tensor<[30]> self = ?,<br>Tensor other = 0.5             | Done     | Done       | True  |
-|  8 | Tensor<[320]> self = ?,<br>Tensor other = 0.5            | Done     | Done       | True  |
+|  8 | Tensor<[320]> self = ?,<br>Tensor other = 0.5            | None     | Fallback   | True  |
 |  9 | Tensor<[320]> self = ?,<br>Tensor<[320]> other = ?       | Done     | Done       | True  |
 | 10 | Tensor<[40]> self = ?,<br>Tensor other = 0.5             | Done     | Done       | True  |
 | 11 | Tensor<[40]> self = ?,<br>Tensor<[40]> other = ?         | Done     | Done       | True  |
@@ -447,7 +447,7 @@
 |  1 | Tensor<[1, 30, 40]> self = ?,<br>int dim = 1   | Done     | Done       | True  |
 |  2 | Tensor<[1, 60, 80]> self = ?,<br>int dim = 1   | Done     | Done       | True  |
 |  3 | Tensor<[120]> self = ?,<br>int dim = 1         | Done     | Done       | True  |
-|  4 | Tensor<[240]> self = ?,<br>int dim = 1         | Done     | Done       | True  |
+|  4 | Tensor<[240]> self = ?,<br>int dim = 1         | None     | Fallback   | True  |
 |  5 | Tensor<[30]> self = ?,<br>int dim = 1          | Done     | Done       | True  |
 |  6 | Tensor<[480]> self = ?,<br>int dim = 1         | Done     | Done       | True  |
 |  7 | Tensor<[60]> self = ?,<br>int dim = 1          | Done     | Done       | True  |

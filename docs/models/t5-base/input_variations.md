@@ -9,7 +9,7 @@
 |  5 | aten.bmm.default        |                 10 |           2 |         0 |          0 | 🚧          |    0.2  |
 |  6 | aten.cat.default        |                  4 |           0 |         0 |          0 | ✘           |    0    |
 |  7 | aten.clone.default      |                 10 |           4 |         0 |          0 | 🚧          |    0.4  |
-|  8 | aten.div.Tensor         |                  8 |           3 |         0 |          0 | 🚧          |    0.38 |
+|  8 | aten.div.Tensor         |                  8 |           2 |         0 |          0 | 🚧          |    0.25 |
 |  9 | aten.embedding.default  |                  6 |           3 |         0 |          0 | 🚧          |    0.5  |
 | 10 | aten.expand.default     |                 13 |           0 |         0 |          0 | ✘           |    0    |
 | 11 | aten.full_like.default  |                  4 |           0 |         0 |          0 | ✘           |    0    |
@@ -28,7 +28,7 @@
 | 24 | aten.relu.default       |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
 | 25 | aten.repeat.default     |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 26 | aten.rsqrt.default      |                  2 |           1 |         0 |          0 | 🚧          |    0.5  |
-| 27 | aten.rsub.Scalar        |                  4 |           1 |         0 |          0 | 🚧          |    0.25 |
+| 27 | aten.rsub.Scalar        |                  4 |           2 |         0 |          0 | 🚧          |    0.5  |
 | 28 | aten.slice.Tensor       |                 38 |           0 |         0 |          0 | ✘           |    0    |
 | 29 | aten.sub.Tensor         |                  4 |           1 |         0 |          0 | 🚧          |    0.25 |
 | 30 | aten.sym_size.int       |                  1 |           0 |         0 |          0 | ✘           |    0    |
@@ -152,7 +152,7 @@
 ### aten.div.Tensor
 |    | ATen Input Variations                                                   | Status   | Isolated   | PCC   |
 |---:|:------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1]> self = ?,<br>Tensor other = 16                           | Done     | Failed     | N/A   |
+|  0 | Tensor<[1, 1]> self = ?,<br>Tensor other = 16                           | None     | Fallback   | True  |
 |  1 | Tensor<[1, 1]> self = ?,<br>Tensor other = 2.0794415416798357           | Done     | Done       | True  |
 |  2 | Tensor<[10, 10]> self = ?,<br>Tensor other = 2.772588722239781          | Done     | Done       | True  |
 |  3 | Tensor<[10, 10]> self = ?,<br>Tensor other = 8                          | None     | Fallback   | True  |
@@ -302,7 +302,7 @@
 |    | ATen Input Variations                                     | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1, 1, 10]> self = ?,<br>number other = 1.0     | Done     | Done       | True  |
-|  1 | Tensor<[1, 1, 1, 1]> self = ?,<br>number other = 1.0      | None     | Fallback   | True  |
+|  1 | Tensor<[1, 1, 1, 1]> self = ?,<br>number other = 1.0      | Done     | Done       | True  |
 |  2 | Tensor<[1, 1, 1, 2]> self = ?,<br>number other = 1.0      | Unknown  | Done       | True  |
 |  3 | Tensor<[1, 1, 1, s0 + 1]> self = ?,<br>number other = 1.0 | Unknown  | Unknown    | N/A   |
 ### aten.slice.Tensor
