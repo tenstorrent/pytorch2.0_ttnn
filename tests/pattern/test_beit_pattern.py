@@ -23,3 +23,4 @@ def test_beit_pattern(device):
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m.forward(arg1_1, arg223_1)
     assert torch.allclose(result_before, result_after, rtol=0.1, atol=0.1)
+    assert not any(node.target == torch.ops.aten.view.default for node in option._out_fx_graphs[0].nodes)

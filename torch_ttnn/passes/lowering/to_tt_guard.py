@@ -2,16 +2,6 @@ from functools import partial
 from .to_tt_guard_autogen import *
 
 ############################################################
-# EXTRA BLOCKLIST OF microsoft/beit-*-patch16-224
-############################################################
-# error value let 731 become 732 and cause index error (shape is [732, 12])
-# see issue #420
-
-aten_view_default_blocklist = [
-    ["Tensor<[197, 197]> self = ?", "List[int] size = [-1]"],
-]
-
-############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn*
 ############################################################
 
@@ -292,7 +282,6 @@ aten_unsqueeze_default_blocklist += [["Tensor<[800]> self = ?", "int dim = 1"]]
 ############################################################
 
 GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
-GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
 GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist)
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
