@@ -15,19 +15,18 @@ class DivModule(torch.nn.Module):
 
 # ttnn.div does not support broadcasting some combination of shapes. Fallback to reciprocal and multiply.
 @pytest.mark.parametrize(
-    "input_shapes, use_ttnn_div",
+    "input_shapes",
     (
-        (((32, 32), (32, 32)), True),
-        (((64,), (32, 64)), False),
-        (((64, 32), (64, 1)), False),
+        ((32, 32), (32, 32)),
+        ((64,), (32, 64)),
+        ((64, 32), (64, 1)),
         pytest.param(
             ((64, 1), (1, 64)),
-            False,
             marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
         ),
     ),
 )
-def test_div(device, input_shapes, use_ttnn_div):
+def test_div(device, input_shapes):
     m = DivModule()
     inputs = [torch.randint(1, 15, shape).to(torch.bfloat16) for shape in input_shapes]
     result_before = m.forward(*inputs)
@@ -39,15 +38,17 @@ def test_div(device, input_shapes, use_ttnn_div):
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    target = [node.target for node in nodes]
-    if use_ttnn_div:
-        assert target.count(ttnn.div) == 1
+    nodes = (*(option._out_fx_graphs[0].nodes),)
+    targets = (*(node.target for node in nodes),)
+    div_count = targets.count(ttnn.div)
+    assert torch.ops.aten.div.Tensor not in targets
+
+    if div_count > 0:
+        assert div_count == 1
     else:
-        assert target.count(ttnn.reciprocal) == 1
-        assert target.count(ttnn.mul) == 1
-        assert target.index(ttnn.reciprocal) < target.index(ttnn.mul)
-        assert nodes[target.index(ttnn.mul)].args[1].target == ttnn.reciprocal
+        assert targets.count(ttnn.reciprocal) == 1
+        assert targets.count(ttnn.mul) == 1
+        assert nodes[targets.index(ttnn.mul)].args[1].target == ttnn.reciprocal
 
     # Check inference result
     assert_with_pcc(result_before, result_after)
