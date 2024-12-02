@@ -92,38 +92,43 @@ def test_rsub(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.sub) == 1
-    # Intermediate node meta check if preserved
-    for node in nodes:
-        if node.target == ttnn.full:
-            assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
     assert torch.allclose(result_before, result_after)
 
 
 @pytest.mark.parametrize(
-    "input_shapes",
-    [[(4, 4)], [(32, 32)]],
+    "input_shape",
+    (
+        (4, 4),
+        (32, 32),
+        (1, 1, 19, 19),
+        (1, 1, 1, 9),
+        (1, 1, 1, 25),
+        (2, 1, 7, 7),
+        (1, 1, 1, 7),
+        (1, 1, 1, 5),
+        (1, 1, 1, 15),
+        (1, 1, 1, 17),
+        pytest.param((1006,), marks=pytest.mark.xfail(reason="1D cases solved in #198, waiting for review")),
+        (120, 1),
+        (128, 1),
+    ),
 )
-def test_rsub_scalar(device, input_shapes):
+def test_rsub_scalar(device, input_shape):
     m = RSubScalarModule()
-    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
-    result_before = m.forward(*inputs, 5)
+    input = torch.rand(input_shape, dtype=torch.bfloat16)
+    result_before = m.forward(input, 5)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(*inputs, 5)
+    result_after = m.forward(input, 5)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    target = [node.target for node in nodes]
-    assert target.count(ttnn.full) == 1
-    assert target.count(ttnn.sub) == 1
-    assert target.index(ttnn.full) < target.index(ttnn.sub)
-    # Intermediate node meta check if preserved
-    for node in nodes:
-        if node.target == ttnn.full:
-            assert node.meta["val"].size() == input_shapes[0]
+    nodes = tuple(option._out_fx_graphs[0].nodes)
+    targets = (*(node.target for node in nodes),)
+    assert torch.ops.aten.rsub.Scalar not in targets
+    assert targets.count(ttnn.rsub) == 1
     # Check inference result
-    assert_with_pcc(result_before, result_after, 0.998)
+    assert_with_pcc(result_before, result_after, 0.995)

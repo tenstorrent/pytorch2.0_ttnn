@@ -25,14 +25,14 @@
 | 21 | aten.index.Tensor                       |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 22 | aten.index_put.default                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 23 | aten.linalg_vector_norm.default         |                  2 |           0 |         0 |          0 | ✘           |    0    |
-| 24 | aten.masked_fill.Scalar                 |                  3 |           0 |         0 |          0 | ✘           |    0    |
+| 24 | aten.masked_fill.Scalar                 |                  3 |           1 |         0 |          0 | 🚧          |    0.33 |
 | 25 | aten.mm.default                         |                 20 |           3 |         0 |          0 | 🚧          |    0.15 |
 | 26 | aten.mul.Tensor                         |                 13 |           6 |         0 |          0 | 🚧          |    0.46 |
 | 27 | aten.native_layer_norm.default          |                  3 |           3 |         0 |          0 | ✅          |    1    |
 | 28 | aten.native_layer_norm_backward.default |                  3 |           0 |         0 |          0 | ✘           |    0    |
 | 29 | aten.neg.default                        |                  2 |           0 |         0 |          0 | ✘           |    0    |
 | 30 | aten.new_zeros.default                  |                  1 |           0 |         0 |          0 | ✘           |    0    |
-| 31 | aten.rsub.Scalar                        |                  1 |           0 |         0 |          0 | ✘           |    0    |
+| 31 | aten.rsub.Scalar                        |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 32 | aten.select.int                         |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 33 | aten.select_backward.default            |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 34 | aten.sigmoid.default                    |                  2 |           2 |         0 |          0 | ✅          |    1    |
@@ -192,9 +192,9 @@
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                      | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 512]> self = ?,<br>Tensor<[1, 1]> mask = ?,<br>number value = 0                                 | Unknown  | Failed     | N/A   |
-|  1 | Tensor<[2, 1, 7, 7]> self = ?,<br>Tensor<[2, 1, 7, 7]> mask = ?,<br>number value = -3.3895313892515355e+38 | None     | Fallback   | True  |
-|  2 | Tensor<[2, 512]> self = ?,<br>Tensor<[2, 1]> mask = ?,<br>number value = 0                                 | Unknown  | Failed     | N/A   |
+|  0 | Tensor<[1, 512]> self = ?,<br>Tensor<[1, 1]> mask = ?,<br>number value = 0                                 | Unknown  | Fallback   | True  |
+|  1 | Tensor<[2, 1, 7, 7]> self = ?,<br>Tensor<[2, 1, 7, 7]> mask = ?,<br>number value = -3.3895313892515355e+38 | Done     | Done       | True  |
+|  2 | Tensor<[2, 512]> self = ?,<br>Tensor<[2, 1]> mask = ?,<br>number value = 0                                 | Unknown  | Fallback   | True  |
 ### aten.mm.default
 |    | ATen Input Variations                                        | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------|:---------|:-----------|:------|
@@ -258,7 +258,7 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[2, 1, 7, 7]> self = ?,<br>number other = 1.0 | None     | Fallback   | True  |
+|  0 | Tensor<[2, 1, 7, 7]> self = ?,<br>number other = 1.0 | Done     | Done       | True  |
 ### aten.select.int
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|
@@ -332,18 +332,18 @@
 ### aten.transpose.int
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 12, 50, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2 | Done     | Unknown    | N/A   |
-|  1 | Tensor<[1, 49, 768]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Unknown  | Unknown    | N/A   |
-|  2 | Tensor<[1, 50, 12, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2 | Done     | Unknown    | N/A   |
-|  3 | Tensor<[1, 768, 49]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | None     | Fallback   | True  |
-|  4 | Tensor<[12, 50, 50]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Unknown  | Unknown    | N/A   |
-|  5 | Tensor<[12, 50, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Done     | Unknown    | N/A   |
-|  6 | Tensor<[12, 64, 50]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Unknown  | Unknown    | N/A   |
-|  7 | Tensor<[16, 64, 7]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Unknown  | Unknown    | N/A   |
-|  8 | Tensor<[16, 7, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Done     | Unknown    | N/A   |
-|  9 | Tensor<[16, 7, 7]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2      | Unknown  | Unknown    | N/A   |
-| 10 | Tensor<[2, 7, 8, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2   | Done     | Unknown    | N/A   |
-| 11 | Tensor<[2, 8, 7, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2   | Done     | Unknown    | N/A   |
+|  0 | Tensor<[1, 12, 50, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2 | Done     | Done       | True  |
+|  1 | Tensor<[1, 49, 768]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Unknown  | Done       | True  |
+|  2 | Tensor<[1, 50, 12, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2 | Done     | Done       | True  |
+|  3 | Tensor<[1, 768, 49]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | None     | Unknown    | N/A   |
+|  4 | Tensor<[12, 50, 50]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Unknown  | Done       | True  |
+|  5 | Tensor<[12, 50, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Done     | Done       | True  |
+|  6 | Tensor<[12, 64, 50]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2    | Unknown  | Done       | True  |
+|  7 | Tensor<[16, 64, 7]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Unknown  | Fallback   | True  |
+|  8 | Tensor<[16, 7, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Done     | Done       | True  |
+|  9 | Tensor<[16, 7, 7]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2      | Unknown  | Fallback   | True  |
+| 10 | Tensor<[2, 7, 8, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2   | Done     | Done       | True  |
+| 11 | Tensor<[2, 8, 7, 64]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2   | Done     | Done       | True  |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                      | Status   | Isolated   | PCC   |
 |---:|:-------------------------------------------|:---------|:-----------|:------|

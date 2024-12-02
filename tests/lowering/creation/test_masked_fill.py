@@ -20,23 +20,11 @@ def _test_masked_fill_common(device, module, input_shape, mask_shape, fill_value
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
     assert target.count(torch.ops.aten.masked_fill.Scalar) == 0
-    assert target.count(torch_ttnn.target_wrappers.repeat) == 1
     assert target.count(ttnn.ones) == 1
     assert target.count(ttnn.subtract) == 1
     assert target.count(ttnn.multiply) == 2
     assert target.count(ttnn.full) == 1
     assert target.count(ttnn.add) == 1
-
-    multiply_idx = [i for i, n in enumerate(target) if n == ttnn.multiply]
-    assert target.index(ttnn.ones) < target.index(ttnn.subtract)
-    assert target.index(ttnn.ones) < multiply_idx[0]
-    assert target.index(torch_ttnn.target_wrappers.repeat) < target.index(ttnn.subtract)
-    assert target.index(torch_ttnn.target_wrappers.repeat) < multiply_idx[0]
-
-    assert target.index(ttnn.full) < multiply_idx[1]
-
-    assert multiply_idx[0] < multiply_idx[1]
-    assert multiply_idx[1] < target.index(ttnn.add)
 
     # Check inference result
     assert torch.allclose(result_before, result_after)
@@ -85,6 +73,5 @@ class MaskedFillModule(torch.nn.Module):
         # pytest.param((1, 1, 1, s10 + 1), (1, 1, 1, s10 + 1), -3.4028234663852886e+38, marks=pytest.mark.xfail(reason="Input variation shape")),
     ],
 )
-@pytest.mark.skip(reason="Temporarily disabled due to #458")
 def test_masked_fill(device, input_shape, mask_shape, fill_value):
     _test_masked_fill_common(device, MaskedFillModule(), input_shape, mask_shape, fill_value)

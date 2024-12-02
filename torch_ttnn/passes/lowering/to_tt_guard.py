@@ -12,56 +12,6 @@ aten_view_default_blocklist = [
 ]
 
 ############################################################
-# EXTRA BLOCKLIST OF XGLM
-############################################################
-# see issue #361
-# For valid non-interleaved buffers page size 38 must equal buffer size 720.
-# For interleaved-buffers page size should be divisible by buffer size
-aten_masked_fill_scalar_blocklist += [
-    ["Tensor<[1, 1, 19, 19]> self = ?", "Tensor<[1, 1, 19, 19]> mask = ?", "number value = -3.3895313892515355e+38"]
-]
-
-############################################################
-# EXTRA BLOCKLIST OF FALCON
-############################################################
-
-aten_masked_fill_scalar_blocklist += [["Tensor<[7, 7]> self = ?", "Tensor<[7, 7]> mask = ?", "number value = -inf"]]
-
-############################################################
-# EXTRA BLOCKLIST OF swin_*
-############################################################
-# swin_b
-# This input vars become pass without blocking, and if blocking, the err msg shown:
-# RuntimeError: view size is not compatible with input tensor's size and stride
-# (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
-
-# TT_FATAL @ .../buffer.cpp:41: page_size % sizeof(uint32_t) == 0
-
-# see issue #361
-aten_masked_fill_scalar_blocklist += [
-    ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = -100.0"],
-    ["Tensor<[64, 49, 49]> self = ?", "Tensor<[64, 49, 49]> mask = ?", "number value = 0.0"],
-    ["Tensor<[16, 49, 49]> self = ?", "Tensor<[16, 49, 49]> mask = ?", "number value = -100.0"],
-    ["Tensor<[16, 49, 49]> self = ?", "Tensor<[16, 49, 49]> mask = ?", "number value = 0.0"],
-    ["Tensor<[4, 49, 49]> self = ?", "Tensor<[4, 49, 49]> mask = ?", "number value = -100.0"],
-    ["Tensor<[4, 49, 49]> self = ?", "Tensor<[4, 49, 49]> mask = ?", "number value = 0.0"],
-]
-
-
-############################################################
-# EXTRA BLOCKLIST OF vgg*
-############################################################
-# see issue #362
-# vgg11
-# aten::_adaptive_avg_pool2d => aten::view
-# if aten avgpool lowering to ttnn avgpool,
-# then its output shape become torch.Size([1, 1, 1, 7]) and cause aten::view error
-# RuntimeError: shape '[1, 25088]' is invalid for input of size 7
-# vgg11/vgg11_bn/vgg13/vgg13_bn/vgg16/vgg16_bn/vgg19/vgg19_bn all have this input var
-aten__adaptive_avg_pool2d_default_blocklist = [["Tensor<[1, 512, 7, 7]> self = ?", "List[int] output_size = [7, 7]"]]
-
-
-############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn*
 ############################################################
 
@@ -168,33 +118,6 @@ aten_add_Tensor_blocklist += [
 aten_mul_Tensor_blocklist += [
     ["Tensor<[12]> self = ?", "Tensor other = 32.0"],
     ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
-]
-
-############################################################
-# EXTRA BLOCKLIST OF speecht5-tts
-############################################################
-# see issue 361
-# self = FastOperation(python_fully_qualified_name='ttnn.ones',
-#   function=<ttnn._ttnn.operations.creation.ones_t object at
-#   0x7f6...<function default_postprocess_golden_function_outputs at 0x7f6e7f0ddca0>,
-#   is_cpp_operation=True, is_experimental=False)
-# function_args = ((1, 1, 24, 24),)
-# function_kwargs = {'device': <ttnn._ttnn.device.Device object at 0x7f6e6358bcf0>,
-#   'dtype': <DataType.BFLOAT16: 0>, 'layout': <Layout.TILE: 1>}
-
-#     def __call__(self, *function_args, **function_kwargs):
-# >       return self.function(*function_args, **function_kwargs)
-# RuntimeError: TT_FATAL @ .../functions.hpp:66: shape[-1] % tt::constants::TILE_WIDTH == 0
-
-# torch.ops.aten.masked_fill.Scalar is converted as ttnn.ones and it is failed at single op test
-
-aten_masked_fill_scalar_blocklist += [
-    [
-        "Tensor<[1, 1, 24, 24]> self = ?",
-        "Tensor<[1, 1, 24, 24]> mask = ?",
-        "number value = -3.3895313892515355e+38",
-    ],
-    ["Tensor<[1, 1, 1, 24]> self = ?", "Tensor<[1, 1, 1, 24]> mask = ?", "number value = -3.3895313892515355e+38"],
 ]
 
 ############################################################
@@ -421,7 +344,6 @@ aten_embedding_default_blocklist = [
 ############################################################
 
 GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
-GUARD[torch.ops.aten._adaptive_avg_pool2d.default] = partial(guard_aten, aten__adaptive_avg_pool2d_default_blocklist)
 GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
 GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist)
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)

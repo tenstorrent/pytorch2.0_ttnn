@@ -102,6 +102,7 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.mul,
     ttnn.ne,
     ttnn.pow,
+    ttnn.rsub,
     ttnn.sub,
     ttnn.xlogy,
     # ttnn.add_and_apply_activation,  # ttnn has no add_and_apply_activation, remote the comment in the future when it has
@@ -146,7 +147,6 @@ TTNN_NORM_OPS = [
 ]
 
 TTNN_POOL_OPS = [
-    ttnn.global_avg_pool2d,
     ttnn.max_pool2d,
 ]
 

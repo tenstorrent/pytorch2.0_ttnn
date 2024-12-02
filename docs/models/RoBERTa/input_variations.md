@@ -2,22 +2,22 @@
 |    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  1 | aten._to_copy.default          |                  4 |           1 |         0 |          0 | 🚧          |    0.25 |
+|  1 | aten._to_copy.default          |                  4 |           1 |         2 |          0 | 🚧          |    0.75 |
 |  2 | aten.add.Tensor                |                  4 |           4 |         0 |          0 | ✅          |    1    |
 |  3 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |    1    |
 |  4 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |    1    |
 |  5 | aten.clone.default             |                  3 |           3 |         0 |          0 | ✅          |    1    |
 |  6 | aten.cumsum.default            |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  7 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |    1    |
-|  8 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |    1    |
-|  9 | aten.expand.default            |                  4 |           0 |         0 |          0 | ✘           |    0    |
+|  8 | aten.embedding.default         |                  3 |           2 |         0 |          0 | 🚧          |    0.67 |
+|  9 | aten.expand.default            |                  4 |           0 |         4 |          0 | ✅          |    1    |
 | 10 | aten.gelu.default              |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 11 | aten.mul.Tensor                |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 12 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 13 | aten.ne.Scalar                 |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 14 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 15 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |    1    |
-| 16 | aten.slice.Tensor              |                  4 |           1 |         0 |          0 | 🚧          |    0.25 |
+| 16 | aten.slice.Tensor              |                  4 |           1 |         3 |          0 | ✅          |    1    |
 | 17 | aten.t.default                 |                  4 |           4 |         0 |          0 | ✅          |    1    |
 | 18 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |    1    |
 | 19 | aten.unsqueeze.default         |                  2 |           2 |         0 |          0 | ✅          |    1    |
@@ -32,8 +32,8 @@
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 1, 1, 10]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                   | Done     | Fallback   | True  |
 |  1 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32                                                                            | None     | Fallback   | True  |
-|  2 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | Unknown  | Fallback   | True  |
-|  3 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int64                                                                            | Unknown  | Fallback   | True  |
+|  2 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu | Removed  | Fallback   | True  |
+|  3 | Tensor<[1, 10]> self = ?,<br>Optional[int] dtype = torch.int64                                                                            | Removed  | Fallback   | True  |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                | Status   | Isolated   | PCC   |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|:------|
@@ -71,15 +71,15 @@
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|
 |  0 | Tensor<[1, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?                              | Done     | Done       | True  |
-|  1 | Tensor<[250002, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?,<br>int padding_idx = 1 | Done     | Done       | True  |
+|  1 | Tensor<[250002, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?,<br>int padding_idx = 1 | None     | Fallback   | True  |
 |  2 | Tensor<[514, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?,<br>int padding_idx = 1    | Done     | Done       | True  |
 ### aten.expand.default
 |    | ATen Input Variations                                                 | Status   | Isolated   | PCC   |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 10]> self = ?,<br>List[int] size = [1, 10]                 | Unknown  | Fallback   | True  |
-|  1 | Tensor<[1, 12, 10, 10]> self = ?,<br>List[int] size = [1, 12, 10, 10] | Unknown  | Fallback   | True  |
-|  2 | Tensor<[1, 12, 10, 64]> self = ?,<br>List[int] size = [1, 12, 10, 64] | Unknown  | Fallback   | True  |
-|  3 | Tensor<[1, 12, 64, 10]> self = ?,<br>List[int] size = [1, 12, 64, 10] | Unknown  | Fallback   | True  |
+|  0 | Tensor<[1, 10]> self = ?,<br>List[int] size = [1, 10]                 | Removed  | Fallback   | True  |
+|  1 | Tensor<[1, 12, 10, 10]> self = ?,<br>List[int] size = [1, 12, 10, 10] | Removed  | Fallback   | True  |
+|  2 | Tensor<[1, 12, 10, 64]> self = ?,<br>List[int] size = [1, 12, 10, 64] | Removed  | Fallback   | True  |
+|  3 | Tensor<[1, 12, 64, 10]> self = ?,<br>List[int] size = [1, 12, 64, 10] | Removed  | Fallback   | True  |
 ### aten.gelu.default
 |    | ATen Input Variations          | Status   | Isolated   | PCC   |
 |---:|:-------------------------------|:---------|:-----------|:------|
@@ -110,9 +110,9 @@
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                  | Status   | Isolated   | PCC   |
 |---:|:-----------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 10]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Unknown  | Fallback   | True  |
-|  1 | Tensor<[1, 10]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Unknown  | Fallback   | True  |
-|  2 | Tensor<[1, 514]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807      | Unknown  | Fallback   | True  |
+|  0 | Tensor<[1, 1, 1, 10]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Fallback   | True  |
+|  1 | Tensor<[1, 10]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Fallback   | True  |
+|  2 | Tensor<[1, 514]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807      | Removed  | Fallback   | True  |
 |  3 | Tensor<[1, 514]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 10                       | Done     | Done       | True  |
 ### aten.t.default
 |    | ATen Input Variations          | Status   | Isolated   | PCC   |
