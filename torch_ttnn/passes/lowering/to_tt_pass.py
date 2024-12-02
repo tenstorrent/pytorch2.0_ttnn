@@ -327,6 +327,14 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 arg1_meta = None
             if is_zero_dim(arg0_meta) or is_zero_dim(arg1_meta):
                 return self.call_function_prop_meta(target, args, kwargs)
+
+            # TODO(tt-metal#15585): Issue with broadcasting on dim -3 when rank > 4
+            if hasattr(args[0], "node") and hasattr(args[1], "node"):
+                arg0_shape = list(args[0].node.meta["val"].size())
+                arg1_shape = list(args[1].node.meta["val"].size())
+                if len(arg0_shape) == len(arg1_shape) and len(arg0_shape) > 4 and arg0_shape[-3] != arg1_shape[-3]:
+                    return None
+
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
 
         if target == torch.ops.aten.atan2.default:
