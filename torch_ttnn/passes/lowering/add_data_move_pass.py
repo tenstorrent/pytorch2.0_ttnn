@@ -347,15 +347,15 @@ class NodeInputAligner:
 
     def _align_for_special_layout(self, node, spec, input_site, input_site_type):
         if is_target_a_user_of_curr_node(node, ttnn.embedding) and (input_site_type == "args" and input_site == 0):
-            spec.dtype = TtnnUint32()
+            spec.dtype = TtnnUint32
         # TODO(#372): #322 will enable tile layout for more layout change ops
         if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == "args" and input_site == 0):
-            spec.layout = TtnnRowMajorLayout()
+            spec.layout = TtnnRowMajorLayout
             spec.device = "host"
         if node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
             # TODO: Only uint32 needs to to_layout on host
-            spec.layout = TtnnRowMajorLayout()
-            spec.device = TtnnDevice()
+            spec.layout = TtnnRowMajorLayout
+            spec.device = TtnnDevice
         return spec
 
     def _reset_to_default_layout(self, input_node, spec):
@@ -368,14 +368,14 @@ class NodeInputAligner:
                 ]
             )
         ):
-            spec.layout = TtnnTileLayout()
-            spec.device = TtnnDevice()
+            spec.layout = TtnnTileLayout
+            spec.device = TtnnDevice
         return spec
 
     def _get_align_spec(self, node, input_node, input_site, input_site_type):
         if is_torch_to_ttnn(input_node, node):
             # default set these layout for torch to ttnn
-            spec = self.AlignSpecFromTorch(input_node, TtnnDevice(), TtnnTileLayout(), TtnnBfloat16())
+            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, TtnnBfloat16)
             spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
             return spec
         elif is_ttnn_to_torch(input_node, node):
@@ -397,11 +397,11 @@ class NodeInputAligner:
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
             if spec.device is not None and spec.device != "host":
-                kwargs["device"] = spec.device
+                kwargs["device"] = spec.device()
             if spec.layout is not None:
-                kwargs["layout"] = spec.layout
+                kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
-                kwargs["dtype"] = spec.dtype
+                kwargs["dtype"] = spec.dtype()
             aligner_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
         elif isinstance(spec, self.AlignSpecToTorch):
             target_users_ops = [user.target for user in spec.input_node.users.keys()]
@@ -418,13 +418,13 @@ class NodeInputAligner:
                     g.call_function(
                         ttnn.to_device,
                         (aligner_nodes[-1] if aligner_nodes else spec.input_node,),
-                        {"device": spec.device},
+                        {"device": spec.device()},
                     )
                 )
             if spec.layout is not None:
                 aligner_nodes.append(
                     g.call_function(
-                        ttnn.to_layout, (aligner_nodes[-1] if aligner_nodes else spec.input_node, spec.layout)
+                        ttnn.to_layout, (aligner_nodes[-1] if aligner_nodes else spec.input_node, spec.layout())
                     )
                 )
         return aligner_nodes[-1]
