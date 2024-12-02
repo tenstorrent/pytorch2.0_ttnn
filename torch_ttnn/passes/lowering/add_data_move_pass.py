@@ -392,7 +392,7 @@ class NodeInputAligner:
         return None
 
     def _create_aligned_node(self, spec):
-        aligner_nodes = []
+        aligning_nodes = []
         g = self.graph
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
@@ -402,32 +402,32 @@ class NodeInputAligner:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
-            aligner_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
+            aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
         elif isinstance(spec, self.AlignSpecToTorch):
             target_users_ops = [user.target for user in spec.input_node.users.keys()]
-            aligner_nodes.append(call_to_torch_with_meta(g, spec.input_node))
+            aligning_nodes.append(call_to_torch_with_meta(g, spec.input_node))
             if spec.dtype == "by_node_meta":
-                copy_node = try_call_aten__to_copy_with_meta(g, aligner_nodes[-1], target_users_ops)
+                copy_node = try_call_aten__to_copy_with_meta(g, aligning_nodes[-1], target_users_ops)
                 if copy_node:
-                    aligner_nodes.append(copy_node)
+                    aligning_nodes.append(copy_node)
         elif isinstance(spec, self.AlignSpecInTtnn):
             if spec.device == "host":
-                aligner_nodes.append(g.call_function(ttnn.from_device, (spec.input_node,)))
-            else:
-                aligner_nodes.append(
+                aligning_nodes.append(g.call_function(ttnn.from_device, (spec.input_node,)))
+            if spec.layout is not None:
+                aligning_nodes.append(
+                    g.call_function(
+                        ttnn.to_layout, (aligning_nodes[-1] if aligning_nodes else spec.input_node, spec.layout())
+                    )
+                )
+            if spec.device != "host" and spec.device is not None:
+                aligning_nodes.append(
                     g.call_function(
                         ttnn.to_device,
-                        (aligner_nodes[-1] if aligner_nodes else spec.input_node,),
+                        (aligning_nodes[-1] if aligning_nodes else spec.input_node,),
                         {"device": spec.device()},
                     )
                 )
-            if spec.layout is not None:
-                aligner_nodes.append(
-                    g.call_function(
-                        ttnn.to_layout, (aligner_nodes[-1] if aligner_nodes else spec.input_node, spec.layout())
-                    )
-                )
-        return aligner_nodes[-1]
+        return aligning_nodes[-1]
 
     def _connect_aligned_node(self, node, aligned_node, input_site, input_site_type):
         if input_site_type == "args":
