@@ -411,15 +411,26 @@ class NodeInputAligner:
                 if copy_node:
                     aligning_nodes.append(copy_node)
         elif isinstance(spec, self.AlignSpecInTtnn):
+            need_from_device = False
+            need_to_layout = False
+            need_to_device = False
             if spec.device == "host":
-                aligning_nodes.append(g.call_function(ttnn.from_device, (spec.input_node,)))
+                need_from_device = True
+            elif spec.device is not None:
+                need_from_device = True
+                need_to_device = True
             if spec.layout is not None:
+                need_to_layout = True
+
+            if need_from_device:
+                aligning_nodes.append(g.call_function(ttnn.from_device, (spec.input_node,)))
+            if need_to_layout:
                 aligning_nodes.append(
                     g.call_function(
                         ttnn.to_layout, (aligning_nodes[-1] if aligning_nodes else spec.input_node, spec.layout())
                     )
                 )
-            if spec.device != "host" and spec.device is not None:
+            if need_to_device:
                 aligning_nodes.append(
                     g.call_function(
                         ttnn.to_device,
