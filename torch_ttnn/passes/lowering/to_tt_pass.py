@@ -332,7 +332,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 arg0_shape = list(args[0].node.meta["val"].size())
                 arg1_shape = list(args[1].node.meta["val"].size())
                 if len(arg0_shape) == len(arg1_shape) and len(arg0_shape) > 4 and arg0_shape[-3] != arg1_shape[-3]:
-                    return None
+                    return self.call_function_prop_meta(target, args, kwargs)
 
             return self.call_function_prop_meta(ttnn.add, args, kwargs)
 
