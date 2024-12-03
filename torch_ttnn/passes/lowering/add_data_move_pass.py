@@ -391,18 +391,57 @@ class NodeInputAligner:
             return spec
         return None
 
+    def _change_layout(self, spec, aligning_nodes):
+        g = self.graph
+        need_from_device = False
+        need_to_layout = False
+        need_to_device = False
+        if spec.device == "host":
+            need_from_device = True
+        elif spec.device is not None:
+            need_from_device = True
+            need_to_device = True
+        if spec.layout is not None:
+            need_to_layout = True
+
+        if need_from_device:
+            aligning_nodes.append(
+                g.call_function(ttnn.from_device, (aligning_nodes[-1] if aligning_nodes else spec.input_node,))
+            )
+        if need_to_layout:
+            aligning_nodes.append(
+                g.call_function(
+                    ttnn.to_layout, (aligning_nodes[-1] if aligning_nodes else spec.input_node, spec.layout())
+                )
+            )
+        if need_to_device:
+            aligning_nodes.append(
+                g.call_function(
+                    ttnn.to_device,
+                    (aligning_nodes[-1] if aligning_nodes else spec.input_node,),
+                    {"device": spec.device()},
+                )
+            )
+
     def _create_aligned_node(self, spec):
         aligning_nodes = []
         g = self.graph
         if isinstance(spec, self.AlignSpecFromTorch):
-            kwargs = {}
-            if spec.device is not None and spec.device != "host":
-                kwargs["device"] = spec.device()
-            if spec.layout is not None:
-                kwargs["layout"] = spec.layout()
+            kwargs = {"layout": TtnnTileLayout(), "device": TtnnDevice()}
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
             aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
+            self._change_layout(spec, aligning_nodes)
+            # cannot implement by this, or perceiver_io will get this error
+            # allocator.cpp:145: Out of Memory: Not enough space to allocate 6442450944 B DRAM buffer across 12 banks, where each bank needs to store 536870912 B
+            # kwargs = {}
+            # if spec.device is not None and spec.device != "host":
+            #     kwargs["device"] = spec.device()
+            # if spec.layout is not None:
+            #     kwargs["layout"] = spec.layout()
+            # if spec.dtype is not None:
+            #     kwargs["dtype"] = spec.dtype()
+            # aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
         elif isinstance(spec, self.AlignSpecToTorch):
             target_users_ops = [user.target for user in spec.input_node.users.keys()]
             aligning_nodes.append(call_to_torch_with_meta(g, spec.input_node))
@@ -411,33 +450,7 @@ class NodeInputAligner:
                 if copy_node:
                     aligning_nodes.append(copy_node)
         elif isinstance(spec, self.AlignSpecInTtnn):
-            need_from_device = False
-            need_to_layout = False
-            need_to_device = False
-            if spec.device == "host":
-                need_from_device = True
-            elif spec.device is not None:
-                need_from_device = True
-                need_to_device = True
-            if spec.layout is not None:
-                need_to_layout = True
-
-            if need_from_device:
-                aligning_nodes.append(g.call_function(ttnn.from_device, (spec.input_node,)))
-            if need_to_layout:
-                aligning_nodes.append(
-                    g.call_function(
-                        ttnn.to_layout, (aligning_nodes[-1] if aligning_nodes else spec.input_node, spec.layout())
-                    )
-                )
-            if need_to_device:
-                aligning_nodes.append(
-                    g.call_function(
-                        ttnn.to_device,
-                        (aligning_nodes[-1] if aligning_nodes else spec.input_node,),
-                        {"device": spec.device()},
-                    )
-                )
+            self._change_layout(spec, aligning_nodes)
         return aligning_nodes[-1]
 
     def _connect_aligned_node(self, node, aligned_node, input_site, input_site_type):
