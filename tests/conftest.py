@@ -41,6 +41,7 @@ def input_var_check_ttnn(request):
 def device():
     # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined
     device = ttnn.open_device(device_id=0, l1_small_size=16384)
+    ttnn.enable_program_cache(device)
     yield device
     ttnn.close_device(device)
 
