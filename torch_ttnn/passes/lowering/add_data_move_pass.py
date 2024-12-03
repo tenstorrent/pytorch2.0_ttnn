@@ -8,7 +8,8 @@ from torch_ttnn.utils import (
     TtnnUint32,
     HasValidPageSize,
 )
-
+from dataclasses import dataclass
+from enum import Enum
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -292,38 +293,30 @@ class NodeInputAligner:
         self.graph = graph
         self.aligned_node_dict = {}
 
+    class InputSiteType(Enum):
+        ARGS = 1
+        KWARGS = 2
+        ARGS_TUPLE = 3
+        KWARGS_TUPLE = 4
+
+    @dataclass(unsafe_hash=True)
     class AlignSpecFromTorch:
-        def __init__(self, input_node, device, layout, dtype):
-            self.input_node = input_node
-            self.device = device
-            self.layout = layout
-            self.dtype = dtype
+        input_node: torch.fx.node.Node
+        device: ttnn.Device
+        layout: object
+        dtype: object
 
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return False
-            return (
-                self.input_node == other.input_node
-                and self.device == other.device
-                and self.layout == other.layout
-                and self.dtype == other.dtype
-            )
-
-        def __hash__(self):
-            return hash((self.input_node, self.device, self.layout, self.dtype))
-
+    @dataclass(unsafe_hash=True)
     class AlignSpecToTorch:
-        def __init__(self, input_node, dtype):
-            self.input_node = input_node
-            self.dtype = dtype
+        input_node: torch.fx.node.Node
+        dtype: object
 
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return False
-            return self.input_node == other.input_node and self.dtype == other.dtype
-
-        def __hash__(self):
-            return hash((self.input_node, self.dtype))
+    @dataclass(unsafe_hash=True)
+    class AlignSpecInTtnn:
+        input_node: torch.fx.node.Node
+        device: ttnn.Device
+        layout: object
+        dtype: object
 
     class AlignSpecInTtnn:
         def __init__(self, input_node, device, layout, dtype):
@@ -345,11 +338,13 @@ class NodeInputAligner:
         def __hash__(self):
             return hash((self.input_node, self.device, self.layout, self.dtype))
 
-    def _align_for_special_layout(self, node, spec, input_site, input_site_type):
-        if is_target_a_user_of_curr_node(node, ttnn.embedding) and (input_site_type == "args" and input_site == 0):
+    def _align_for_special_layout(self, node, spec, input_site, input_site_type: InputSiteType):
+        if is_target_a_user_of_curr_node(node, ttnn.embedding) and (
+            input_site_type == self.InputSiteType.ARGS and input_site == 0
+        ):
             spec.dtype = TtnnUint32
         # TODO(#372): #322 will enable tile layout for more layout change ops
-        if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == "args" and input_site == 0):
+        if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
         if node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
@@ -372,7 +367,7 @@ class NodeInputAligner:
             spec.device = TtnnDevice
         return spec
 
-    def _get_align_spec(self, node, input_node, input_site, input_site_type):
+    def _get_align_spec(self, node, input_node, input_site, input_site_type: InputSiteType):
         if is_torch_to_ttnn(input_node, node):
             # default set these layout for torch to ttnn
             spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, TtnnBfloat16)
@@ -453,21 +448,21 @@ class NodeInputAligner:
             self._change_layout(spec, aligning_nodes)
         return aligning_nodes[-1]
 
-    def _connect_aligned_node(self, node, aligned_node, input_site, input_site_type):
-        if input_site_type == "args":
+    def _connect_aligned_node(self, node, aligned_node, input_site, input_site_type: InputSiteType):
+        if input_site_type == self.InputSiteType.ARGS:
             input_idx = input_site
             node.update_arg(input_idx, aligned_node)
-        elif input_site_type == "kwargs":
+        elif input_site_type == self.InputSiteType.KWARGS:
             key = input_site
             node.update_kwarg(key, aligned_node)
-        elif input_site_type == "args_tuple":
+        elif input_site_type == self.InputSiteType.ARGS_TUPLE:
             input_idx = input_site[0]
             tuple_idx = input_site[1]
             old_arg = node.args[input_idx]
             new_arg = list(old_arg)
             new_arg[tuple_idx] = aligned_node
             node.update_arg(input_idx, tuple(new_arg))
-        elif input_site_type == "kwargs_tuple":
+        elif input_site_type == self.InputSiteType.KWARGS_TUPLE:
             key = input_site[0]
             tuple_idx = input_site[1]
             old_arg = node.kwargs[key]
@@ -475,7 +470,9 @@ class NodeInputAligner:
             new_arg[tuple_idx] = aligned_node
             node.update_kwarg(key, tuple(new_arg))
 
-    def _connect_aligned_node_layer_norm(self, node, input_node, aligned_node, input_site, input_site_type):
+    def _connect_aligned_node_layer_norm(
+        self, node, input_node, aligned_node, input_site, input_site_type: InputSiteType
+    ):
         # Workaround to output the same layer_norm output
         # Before: layer_norm = aten.layer_norm
         #          getitem = getitem(layer_norm, 0)
@@ -493,8 +490,8 @@ class NodeInputAligner:
         else:
             self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
 
-    def align(self, node, input_node, input_site, input_site_type):
-        assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
+    def align(self, node, input_node, input_site, input_site_type: InputSiteType):
+        # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
         align_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
         if align_spec is None:
             # No need to align input_node
@@ -518,22 +515,22 @@ class AddDataMovePass(PassBase):
         i = 0
         node_input_aligner = NodeInputAligner(gm.graph)
         nodes = list(gm.graph.nodes)
-
+        SiteType = NodeInputAligner.InputSiteType
         for node in nodes:
             args = node.args
             kwargs = node.kwargs
             for idx, arg in enumerate(args):
-                if type(arg) not in [tuple, list, torch.fx.immutable_collections.immutable_list]:
-                    i += node_input_aligner.align(node, arg, idx, "args")
+                if not isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS)
                 else:
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], "args_tuple")
+                        i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE)
             for key, arg in kwargs.items():
-                if type(arg) not in [tuple, list, torch.fx.immutable_collections.immutable_list]:
-                    i += node_input_aligner.align(node, arg, key, "kwargs")
+                if not isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS)
                 else:
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], "kwargs_tuple")
+                        i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE)
 
         modified = i > 0
         return PassResult(gm, modified)
