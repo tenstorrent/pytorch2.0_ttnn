@@ -24,6 +24,10 @@ class DivModule(torch.nn.Module):
             ((64, 1), (1, 64)),
             marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
         ),
+        pytest.param(
+            ((1, 23, 40, 1), (128,)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+        ),
     ),
 )
 def test_div(device, input_shapes):
@@ -38,39 +42,52 @@ def test_div(device, input_shapes):
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = (*(option._out_fx_graphs[0].nodes),)
-    targets = (*(node.target for node in nodes),)
-    div_count = targets.count(ttnn.div)
+    targets = (*(node.target for node in option._out_fx_graphs[0].nodes),)
     assert torch.ops.aten.div.Tensor not in targets
-
-    if div_count > 0:
-        assert div_count == 1
-    else:
-        assert targets.count(ttnn.reciprocal) == 1
-        assert targets.count(ttnn.mul) == 1
-        assert nodes[targets.index(ttnn.mul)].args[1].target == ttnn.reciprocal
+    assert targets.count(ttnn.mul) + targets.count(ttnn.div) == 1
 
     # Check inference result
     assert_with_pcc(result_before, result_after)
 
 
 @pytest.mark.parametrize(
-    "input_shapes",
-    [[(4, 4)], [(32, 32)], [(1, 197, 1024)]],
+    "input_shape",
+    (
+        (4, 4),
+        (32, 32),
+        (1, 197, 1024),
+        (1, 1),
+        (1, 12, 9, 9),
+        (1, 64, 9, 9),
+        (1, 12, 25, 25),
+        (1, 16, 9, 9),
+        (1, 12, 7, 7),
+        (1, 1280, 8, 8),
+        (10, 10),
+        (2, 2),
+        (1, 128, 1568),
+        (1, 64, 6272),
+        (1, 32, 25088),
+        (15, 15),
+        (17, 17),
+    ),
 )
-def test_div_scalar_denom(device, input_shapes):
+def test_div_scalar_denom(device, input_shape):
     m = DivModule()
-    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
-    result_before = m.forward(*inputs, 5.0)
+    input = torch.randint(1, 15, input_shape).to(torch.bfloat16)
+    result_before = m.forward(input, 5.0)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(*inputs, 5.0)
+    result_after = m.forward(input, 5.0)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    target = [node.target for node in nodes]
-    assert target.count(ttnn.div) == 1
+    targets = (*(node.target for node in option._out_fx_graphs[0].nodes),)
+    assert torch.ops.aten.div.Scalar not in targets
+    assert torch.ops.aten.div.Tensor not in targets
+    assert targets.count(ttnn.mul) == 1
+
+    # Check inference result
     assert_with_pcc(result_before, result_after)
