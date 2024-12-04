@@ -11,6 +11,8 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.pow.Tensor_Tensor,
             torch.ops.aten.arange.start,
             torch.ops.aten.unsqueeze.default,
+            torch.ops.aten.arange.default,
+            torch.ops.aten.view.default,
         }
 
     def call(self, gm: torch.fx.GraphModule):
@@ -27,7 +29,7 @@ class ConstantFoldingPass(PassBase):
 
     def _can_fold(self, gm: torch.fx.GraphModule, node):
         for arg in node.args:
-            if isinstance(arg, torch.fx.Node):
+            if not isinstance(arg, (int,)) and isinstance(arg, torch.fx.Node):
                 if arg.op not in ("get_attr", "constant"):
                     return False
         return True
@@ -52,6 +54,10 @@ class ConstantFoldingPass(PassBase):
             return torch.arange(*args, **node.kwargs)
         elif node.target == torch.ops.aten.unsqueeze.default:
             return torch.unsqueeze(*args)
+        elif node.target == torch.ops.aten.arange.default:
+            return torch.arange(*args, **node.kwargs)
+        elif node.target == torch.ops.aten.view.default:
+            return torch.ops.aten.view.default(*args)
 
         # Add handlers for other operations...
 
