@@ -84,3 +84,30 @@ def conv2d(
             device=device,
         )
     return output_tensor
+
+
+@torch.fx.wrap
+def group_norm(
+    input_tensor, input_mask, weight, bias, num_groups, epsilon, inplace, grid_size_x, grid_size_y, shard_shape
+):
+    grid_coord = ttnn.CoreCoord(grid_size_x - 1, grid_size_y - 1)
+    shard_grid = ttnn.CoreRangeSet({ttnn.CoreRange(ttnn.CoreCoord(0, 0), grid_coord)})
+    shard_spec = ttnn.ShardSpec(shard_grid, shard_shape, ttnn.ShardOrientation.COL_MAJOR, False)
+    sharded_mem_config = ttnn.MemoryConfig(
+        ttnn.types.TensorMemoryLayout.BLOCK_SHARDED, ttnn.types.BufferType.L1, shard_spec
+    )
+    input_tensor_sharded = ttnn.to_memory_config(input_tensor, sharded_mem_config)
+    output_tensor = ttnn.group_norm(
+        input_tensor_sharded,
+        num_groups=num_groups,
+        epsilon=epsilon,
+        input_mask=input_mask,
+        weight=weight,
+        bias=bias,
+        memory_config=sharded_mem_config,
+        core_grid=ttnn.CoreGrid(y=grid_size_y, x=grid_size_x),
+        inplace=inplace,
+    )
+
+    output_tensor_l1 = ttnn.to_memory_config(output_tensor, ttnn.L1_MEMORY_CONFIG)
+    return output_tensor_l1
