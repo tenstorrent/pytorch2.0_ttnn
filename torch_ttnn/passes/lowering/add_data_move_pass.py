@@ -426,9 +426,11 @@ class NodeInputAligner:
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
             aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
-            self._change_layout(spec, aligning_nodes)
+            if spec.layout != TtnnTileLayout:
+                self._change_layout(spec, aligning_nodes)
             # cannot implement by this, or perceiver_io will get this error
             # allocator.cpp:145: Out of Memory: Not enough space to allocate 6442450944 B DRAM buffer across 12 banks, where each bank needs to store 536870912 B
+            # see issue #552
             # kwargs = {}
             # if spec.device is not None and spec.device != "host":
             #     kwargs["device"] = spec.device()
