@@ -6,6 +6,9 @@ from torch_ttnn.utils import (
     TtnnDevice,
     TtnnBfloat16,
     TtnnUint32,
+    TtnnBfloat8_B,
+    TtnnDramMemoryConfig,
+    TtnnL1MemoryConfig,
     HasValidPageSize,
     get_dtype,
 )
@@ -136,10 +139,10 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.pack_to_tuple,
     target_wrappers.move_to_host,
     target_wrappers.conv2d,
+    target_wrappers.group_norm,
 ]
 
 TTNN_NORM_OPS = [
-    ttnn.group_norm,
     ttnn.layer_norm,
 ]
 
@@ -280,6 +283,7 @@ class NodeInputAligner:
         device: Union[None, Type[TtnnDevice], Literal["host"]]
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
+        mem_config: Union[None, Type[TtnnDramMemoryConfig], Type[TtnnL1MemoryConfig]]
 
     @dataclass(unsafe_hash=True)
     class AlignSpecToTorch:
@@ -292,6 +296,7 @@ class NodeInputAligner:
         device: Union[None, Type[TtnnDevice], Literal["host"]]
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
+        mem_config: Union[None, Type[TtnnDramMemoryConfig], Type[TtnnL1MemoryConfig]]
 
     def _align_for_special_layout(self, node, spec, input_site, input_site_type: InputSiteType):
         if is_target_a_user_of_curr_node(node, ttnn.embedding) and (
@@ -306,6 +311,35 @@ class NodeInputAligner:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout
             spec.device = TtnnDevice
+        return spec
+
+    def _align_for_group_norm(self, node, spec, input_site, input_site_type: InputSiteType):
+        if node.target != target_wrappers.group_norm:
+            return spec
+        # input tensor
+        if input_site_type == self.InputSiteType.ARGS and input_site == 0:
+            spec.device = TtnnDevice
+            spec.layout = TtnnTileLayout
+            spec.dtype = TtnnBfloat16
+            spec.mem_config = TtnnDramMemoryConfig
+        # input mask
+        if input_site_type == self.InputSiteType.KWARGS and input_site == "input_mask":
+            spec.device = TtnnDevice
+            spec.layout = TtnnTileLayout
+            spec.dtype = TtnnBfloat8_B
+            spec.mem_config = TtnnDramMemoryConfig
+        # gamma
+        if input_site_type == self.InputSiteType.KWARGS and input_site == "weight":
+            spec.device = TtnnDevice
+            spec.layout = TtnnRowMajorLayout
+            spec.dtype = TtnnBfloat16
+            spec.mem_config = TtnnDramMemoryConfig
+        # beta
+        if input_site_type == self.InputSiteType.KWARGS and input_site == "bias":
+            spec.device = TtnnDevice
+            spec.layout = TtnnRowMajorLayout
+            spec.dtype = TtnnBfloat16
+            spec.mem_config = TtnnDramMemoryConfig
         return spec
 
     def _reset_to_default_layout(self, input_node, spec):
@@ -325,18 +359,20 @@ class NodeInputAligner:
     def _get_align_spec(self, node, input_node, input_site, input_site_type: InputSiteType):
         if is_torch_to_ttnn(input_node, node):
             # default set these layout for torch to ttnn
-            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, TtnnBfloat16)
+            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, TtnnBfloat16, None)
             spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
+            spec = self._align_for_group_norm(node, spec, input_site, input_site_type)
             return spec
         elif is_ttnn_to_torch(input_node, node):
             spec = self.AlignSpecToTorch(input_node, "by_node_meta")
             return spec
         elif is_ttnn_to_ttnn(input_node, node):
             # default do nothing between ttnn to ttnn
-            spec = self.AlignSpecInTtnn(input_node, None, None, None)
+            spec = self.AlignSpecInTtnn(input_node, None, None, None, None)
             spec = self._reset_to_default_layout(input_node, spec)
             spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
-            if spec.device is None and spec.layout is None and spec.dtype is None:
+            spec = self._align_for_group_norm(node, spec, input_site, input_site_type)
+            if spec.device is None and spec.layout is None and spec.dtype is None and spec.mem_config is None:
                 return None
             return spec
         return None
@@ -380,6 +416,8 @@ class NodeInputAligner:
             kwargs = {"layout": TtnnTileLayout(), "device": TtnnDevice()}
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
+            if spec.mem_config is not None:
+                kwargs["memory_config"] = spec.mem_config()
             aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
             if spec.layout != TtnnTileLayout:
                 self._change_layout(spec, aligning_nodes)
@@ -399,6 +437,8 @@ class NodeInputAligner:
             aligning_nodes.append(call_to_torch_with_meta(g, spec.input_node, spec.dtype))
         elif isinstance(spec, self.AlignSpecInTtnn):
             self._change_layout(spec, aligning_nodes)
+            if spec.mem_config is not None:
+                aligning_nodes.append(g.call_function(ttnn.to_memory_config, (aligning_nodes[-1], spec.mem_config())))
         return aligning_nodes[-1]
 
     def _connect_aligned_node(self, node, aligned_node, input_site, input_site_type: InputSiteType):
@@ -423,9 +463,7 @@ class NodeInputAligner:
             new_arg[tuple_idx] = aligned_node
             node.update_kwarg(key, tuple(new_arg))
 
-    def _connect_aligned_node_layer_norm(
-        self, node, input_node, aligned_node, input_site, input_site_type: InputSiteType
-    ):
+    def _connect_aligned_node_norm(self, node, input_node, aligned_node, input_site, input_site_type: InputSiteType):
         # Workaround to output the same layer_norm output
         # Before: layer_norm = aten.layer_norm
         #          getitem = getitem(layer_norm, 0)
@@ -455,10 +493,10 @@ class NodeInputAligner:
             with self.graph.inserting_before(node):
                 aligned_node = self._create_aligned_node(align_spec)
             self.aligned_node_dict[align_spec] = aligned_node
-        if node.target != ttnn.layer_norm:
+        if node.target not in [ttnn.layer_norm, target_wrappers.group_norm]:
             self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
         else:
-            self._connect_aligned_node_layer_norm(node, input_node, aligned_node, input_site, input_site_type)
+            self._connect_aligned_node_norm(node, input_node, aligned_node, input_site, input_site_type)
         return 1
 
 

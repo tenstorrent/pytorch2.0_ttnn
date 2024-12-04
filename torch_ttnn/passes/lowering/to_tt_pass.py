@@ -10,6 +10,7 @@ from torch_ttnn.utils import (
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
+    TtnnCoreGrid,
     get_shape,
 )
 import numpy as np
@@ -423,7 +424,7 @@ class GraphWrapper:
         return self.g.inserting_before(node)
 
 
-def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
+def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
         if not can_lowering_to_ttnn(node):
@@ -490,6 +491,57 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return None
                 # Add additional logic to choose the appropriate memory_config type: DRAM or L1
                 return g.call_function(target_wrappers.clone, args=(args[0],))
+
+            # reference: tt-metal/tests/ttnn/operations/test_group_norm.py::test_group_norm_with_block_sharded_v2_8x8_grid_tile_layout
+            if node.target == torch.ops.aten.native_group_norm.default:
+                arg0_shape = get_shape(args[0])
+                if len(arg0_shape) != 4:
+                    return None
+                N, C, H, W = arg0_shape
+                input_tensor = args[0]
+                weight_tensor = args[1]
+                bias_tensor = args[2]
+                num_groups = args[6]
+                epsilon = args[7]
+                inplace = False
+                grid_size_x = device.compute_with_storage_grid_size().x
+                grid_size_y = device.compute_with_storage_grid_size().y
+                shard_shape = N * H * W // grid_size_x, C // grid_size_y
+                # input tensor
+                input_tensor_permute = g.call_function(ttnn.permute, args=(input_tensor, (0, 2, 3, 1)))
+                input_tensor_reshape = g.call_function(ttnn.reshape, args=(input_tensor_permute, (N, 1, W * H, C)))
+                # input mask
+                input_mask_tensor = g.call_function(
+                    ttnn.create_group_norm_input_mask, args=(C, num_groups, grid_size_y)
+                )
+                # gamma/beta
+                gamma = g.call_function(ttnn.create_group_norm_weight_bias_rm, args=(weight_tensor, C, grid_size_y))
+                beta = g.call_function(ttnn.create_group_norm_weight_bias_rm, args=(bias_tensor, C, grid_size_y))
+                output_tensor_l1 = g.call_function(
+                    target_wrappers.group_norm,
+                    args=(input_tensor_reshape,),
+                    kwargs={
+                        "input_mask": input_mask_tensor,
+                        "weight": gamma,
+                        "bias": beta,
+                        "num_groups": num_groups,
+                        "epsilon": epsilon,
+                        "inplace": inplace,
+                        "grid_size_x": grid_size_x,
+                        "grid_size_y": grid_size_y,
+                        "shard_shape": shard_shape,
+                    },
+                )
+
+                output_tensor_l1_reshape = g.call_function(ttnn.reshape, (output_tensor_l1, (N, H, W, C)))
+                output_tensor_l1_permute = g.call_function(ttnn.permute, (output_tensor_l1_reshape, (0, 3, 1, 2)))
+                new_node = output_tensor_l1_permute
+
+                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
+                node_users = list(new_node.users.keys())
+                for node_user in node_users:
+                    node_user.replace_all_uses_with(new_node)
+                return None
 
             if node.target == torch.ops.aten.native_layer_norm.default:
                 new_node = g.call_function(
@@ -1188,6 +1240,6 @@ class ToTtPass(PassBase):
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
         # Replace patterns manually
-        gm = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
+        gm = ReplaceMoreTtManually(gm, self.device, self.use_less_ttnn_op_types)
 
         return PassResult(gm, True)
