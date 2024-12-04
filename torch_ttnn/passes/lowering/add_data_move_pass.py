@@ -319,7 +319,8 @@ class NodeInputAligner:
         # input tensor
         if input_site_type == self.InputSiteType.ARGS and input_site == 0:
             spec.device = TtnnDevice
-            spec.layout = TtnnTileLayout
+            # If set TtnnTileLayout some shape like (1, 320, 32, 32) accuracy will failed, see issue #555
+            spec.layout = TtnnRowMajorLayout
             spec.dtype = TtnnBfloat16
             spec.mem_config = TtnnDramMemoryConfig
         # input mask
