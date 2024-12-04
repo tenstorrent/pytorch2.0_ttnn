@@ -318,26 +318,6 @@ class NodeInputAligner:
         layout: object
         dtype: object
 
-    class AlignSpecInTtnn:
-        def __init__(self, input_node, device, layout, dtype):
-            self.input_node = input_node
-            self.device = device
-            self.layout = layout
-            self.dtype = dtype
-
-        def __eq__(self, other):
-            if not isinstance(other, self.__class__):
-                return False
-            return (
-                self.input_node == other.input_node
-                and self.device == other.device
-                and self.layout == other.layout
-                and self.dtype == other.dtype
-            )
-
-        def __hash__(self):
-            return hash((self.input_node, self.device, self.layout, self.dtype))
-
     def _align_for_special_layout(self, node, spec, input_site, input_site_type: InputSiteType):
         if is_target_a_user_of_curr_node(node, ttnn.embedding) and (
             input_site_type == self.InputSiteType.ARGS and input_site == 0
