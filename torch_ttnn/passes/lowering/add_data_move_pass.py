@@ -10,6 +10,7 @@ from torch_ttnn.utils import (
 )
 from dataclasses import dataclass
 from enum import Enum
+from typing import Union, Type, Literal
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -302,21 +303,21 @@ class NodeInputAligner:
     @dataclass(unsafe_hash=True)
     class AlignSpecFromTorch:
         input_node: torch.fx.node.Node
-        device: ttnn.Device
-        layout: object
-        dtype: object
+        device: Union[None, Type[TtnnDevice], Literal["host"]]
+        layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
+        dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
     @dataclass(unsafe_hash=True)
     class AlignSpecToTorch:
         input_node: torch.fx.node.Node
-        dtype: object
+        dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32], Literal["by_node_meta"]]
 
     @dataclass(unsafe_hash=True)
     class AlignSpecInTtnn:
         input_node: torch.fx.node.Node
-        device: ttnn.Device
-        layout: object
-        dtype: object
+        device: Union[None, Type[TtnnDevice], Literal["host"]]
+        layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
+        dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
     def _align_for_special_layout(self, node, spec, input_site, input_site_type: InputSiteType):
         if is_target_a_user_of_curr_node(node, ttnn.embedding) and (
