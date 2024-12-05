@@ -74,13 +74,6 @@ def register_ttnn_objects(option: TorchTtnnOption):
         "",
         ttnn.L1_MEMORY_CONFIG,
     )
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_CORE_GRID",
-        "",
-        ttnn.CoreGrid(
-            y=option.device.compute_with_storage_grid_size().y, x=option.device.compute_with_storage_grid_size().x
-        ),
-    )
 
 
 # The backend for torch.compile that converts a graph to use ttnn.
