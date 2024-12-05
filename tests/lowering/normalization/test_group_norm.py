@@ -16,23 +16,25 @@ class GroupNormModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shape, num_groups",
+    "input_shape, num_groups, is_lowered",
     [
-        [(1, 320, 32, 32), 32],
-        [(1, 1280, 16, 16), 32],
-        [(2, 320, 64, 64), 32],
-        [(1, 1280, 1, 512), 32],
+        [(1, 320, 32, 32), 32, True],
+        [(1, 1280, 16, 16), 32, True],
+        [(2, 320, 64, 64), 32, True],
+        [(1, 1280, 1, 512), 32, True],
         # These two cases appeared in stable diffusion v2 and accuracy failed
-        pytest.param((1, 1280, 8, 8), 32, marks=pytest.mark.xfail(reason="see #555")),
-        pytest.param((1, 2560, 8, 8), 32, marks=pytest.mark.xfail(reason="see #555")),
+        pytest.param((1, 1280, 8, 8), 32, True, marks=pytest.mark.xfail(reason="see #555")),
+        pytest.param((1, 2560, 8, 8), 32, True, marks=pytest.mark.xfail(reason="see #555")),
         # These four cases appeared in retinanet_resnet50_fpn_v2 and RuntimeError
-        pytest.param((1, 256, 50, 68), 32, marks=pytest.mark.xfail(reason="see #555")),
-        pytest.param((1, 256, 25, 34), 32, marks=pytest.mark.xfail(reason="see #555")),
-        pytest.param((1, 256, 13, 17), 32, marks=pytest.mark.xfail(reason="see #555")),
-        pytest.param((1, 256, 7, 9), 32, marks=pytest.mark.xfail(reason="see #555")),
+        pytest.param((1, 256, 50, 68), 32, True, marks=pytest.mark.xfail(reason="see #555")),
+        pytest.param((1, 256, 25, 34), 32, True, marks=pytest.mark.xfail(reason="see #555")),
+        pytest.param((1, 256, 13, 17), 32, True, marks=pytest.mark.xfail(reason="see #555")),
+        pytest.param((1, 256, 7, 9), 32, True, marks=pytest.mark.xfail(reason="see #555")),
+        [(1, 32, 2, 2), 32, False],
+        [(2, 2, 2, 2), 2, False],
     ],
 )
-def test_group_norm(device, input_shape, num_groups):
+def test_group_norm(device, input_shape, num_groups, is_lowered):
     m = GroupNormModule()
     input = torch.rand(input_shape, dtype=torch.bfloat16)
     weight = torch.ones(input_shape[1], dtype=torch.bfloat16)
@@ -45,7 +47,8 @@ def test_group_norm(device, input_shape, num_groups):
     # option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(target_wrappers.group_norm) == 1
+    if is_lowered:
+        nodes = list(option._out_fx_graphs[0].nodes)
+        assert [node.target for node in nodes].count(target_wrappers.group_norm) == 1
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.9997)

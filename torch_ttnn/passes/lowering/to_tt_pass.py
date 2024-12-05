@@ -10,7 +10,6 @@ from torch_ttnn.utils import (
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
-    TtnnCoreGrid,
     get_shape,
 )
 import numpy as np
@@ -507,6 +506,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 grid_size_x = device.compute_with_storage_grid_size().x
                 grid_size_y = device.compute_with_storage_grid_size().y
                 shard_shape = N * H * W // grid_size_x, C // grid_size_y
+                if shard_shape[0] == 0 or shard_shape[1] == 0:
+                    return None
                 # input tensor
                 input_tensor_permute = g.call_function(ttnn.permute, args=(input_tensor, (0, 2, 3, 1)))
                 input_tensor_reshape = g.call_function(ttnn.reshape, args=(input_tensor_permute, (N, 1, W * H, C)))

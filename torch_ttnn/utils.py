@@ -75,8 +75,3 @@ class TtnnDramMemoryConfig:
 class TtnnL1MemoryConfig:
     def __repr__(self):
         return f"ttnn_L1_MEMORY_CONFIG"
-
-
-class TtnnCoreGrid:
-    def __repr__(self):
-        return f"ttnn_CORE_GRID"
