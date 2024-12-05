@@ -1142,13 +1142,28 @@ def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             kwargs = node.kwargs
 
             if node.target == torch.ops.aten.index.Tensor:
+
+                def broadcast_indices(indices):
+                    import numpy as np
+
+                    indices_shapes = [get_shape(indices[i]) for i in range(len(indices))]
+                    broadcasted_shape = torch.Size(np.broadcast_shapes(*indices_shapes))
+                    broadcasted_indices = []
+                    for i in range(len(indices)):
+                        if indices_shapes[i] == broadcasted_shape:
+                            broadcasted_indices.append(indices[i])
+                        else:
+                            broadcasted_indices.append(
+                                g.call_function(torch.ops.aten.expand.default, (indices[i], broadcasted_shape))
+                            )
+                    return broadcasted_shape, broadcasted_indices
+
                 # for example, input.shape = (3, 4, 5), indices = [tensor([[0, 1, 1]]), tensor([[2, 1, 2]])]
                 # then output is [[input[0][2], input[1][1], input[1][2]]]
                 input_tensor, indices = args
+                index_shape, indices = broadcast_indices(indices)
                 input_shape = get_shape(input_tensor)
                 num_index = len(indices)
-                # TODO: support broadcasting
-                index_shape = get_shape(indices[0])
                 index_size = index_shape.numel()
                 remained_shape = input_shape[num_index:]
                 reshape_shape = index_shape + remained_shape
