@@ -29,7 +29,13 @@ class ConstantFoldingPass(PassBase):
 
     def _can_fold(self, gm: torch.fx.GraphModule, node):
         for arg in node.args:
-            if not isinstance(arg, (int, float,)) and isinstance(arg, torch.fx.Node):
+            if not isinstance(
+                arg,
+                (
+                    int,
+                    float,
+                ),
+            ) and isinstance(arg, torch.fx.Node):
                 if arg.op not in ("get_attr", "constant"):
                     return False
         return True
