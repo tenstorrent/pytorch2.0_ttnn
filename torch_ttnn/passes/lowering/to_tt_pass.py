@@ -508,6 +508,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 grid_size_x = device.compute_with_storage_grid_size().x
                 grid_size_y = device.compute_with_storage_grid_size().y
                 shard_shape = N * H * W // grid_size_x, C // grid_size_y
+                # TODO: Add support for shard_shape = 0
                 if shard_shape[0] == 0 or shard_shape[1] == 0:
                     return None
                 # input tensor
