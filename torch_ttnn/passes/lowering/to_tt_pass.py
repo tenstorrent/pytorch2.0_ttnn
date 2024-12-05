@@ -493,6 +493,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
             # reference: tt-metal/tests/ttnn/operations/test_group_norm.py::test_group_norm_with_block_sharded_v2_8x8_grid_tile_layout
             if node.target == torch.ops.aten.native_group_norm.default:
+                if not is_getitem_0_only_user(node):
+                    return None
                 arg0_shape = get_shape(args[0])
                 if len(arg0_shape) != 4:
                     return None
@@ -536,25 +538,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 output_tensor_l1_reshape = g.call_function(ttnn.reshape, (output_tensor_l1, (N, H, W, C)))
                 output_tensor_l1_permute = g.call_function(ttnn.permute, (output_tensor_l1_reshape, (0, 3, 1, 2)))
-                new_node = output_tensor_l1_permute
-
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
-                node_users = list(new_node.users.keys())
-                for node_user in node_users:
-                    node_user.replace_all_uses_with(new_node)
-                return None
+                return g.call_function(target_wrappers.pack_to_tuple, (output_tensor_l1_permute,))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
+                if not is_getitem_0_only_user(node):
+                    return None
                 new_node = g.call_function(
                     ttnn.layer_norm,
                     args=(args[0],),
                     kwargs={"epsilon": args[4], "weight": args[2], "bias": args[3]},
                 )
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
-                node_users = list(new_node.users.keys())
-                for node_user in node_users:
-                    node_user.replace_all_uses_with(new_node)
-                return None
+                return g.call_function(target_wrappers.pack_to_tuple, (new_node,))
 
             if node.target == torch.ops.aten.ones.default:
                 return g.call_function(ttnn.ones, args=args, kwargs={"device": TtnnDevice()})
