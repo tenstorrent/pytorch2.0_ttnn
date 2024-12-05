@@ -19,6 +19,7 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
 from .to_tt_guard import can_lowering_to_ttnn
+from operator import getitem
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -1131,12 +1132,57 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     return gm
 
 
+def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+    g = gm.graph
+    nodes = list(gm.graph.nodes)
+    for node in nodes:
+
+        def rewrite_node(node):
+            args = node.args
+            kwargs = node.kwargs
+
+            if node.target == torch.ops.aten.index.Tensor:
+                # for example, input.shape = (3, 4, 5), indices = [tensor([[0, 1, 1]]), tensor([[2, 1, 2]])]
+                # then output is [[input[0][2], input[1][1], input[1][2]]]
+                input_tensor, indices = args
+                input_shape = get_shape(input_tensor)
+                num_index = len(indices)
+                # TODO: support broadcasting
+                index_shape = get_shape(indices[0])
+                index_size = index_shape.numel()
+                remained_shape = input_shape[num_index:]
+                reshape_shape = index_shape + remained_shape
+                indices_flatten = [g.call_function(torch.ops.aten.flatten, args=(idx,)) for idx in indices]
+                output = []
+                for i in range(index_size):
+                    indexing = [g.call_function(getitem, args=(indices_flatten[n], i)) for n in range(num_index)]
+                    output.append(g.call_function(getitem, args=(input_tensor, indexing)))
+                # aten.cat cannot concat zero dim tensor
+                if len(remained_shape) == 0:
+                    output = [g.call_function(torch.ops.aten.reshape, args=(o, [1])) for o in output]
+                output_cat = g.call_function(torch.ops.aten.cat, args=(output,))
+                output_reshape = g.call_function(torch.ops.aten.reshape, args=(output_cat, reshape_shape))
+                return output_reshape
+
+        with g.inserting_before(node):
+            new_node = rewrite_node(node)
+            if new_node is not None:
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
+
+    gm = GraphCleanup(gm)
+    return gm
+
+
 class ToTtPass(PassBase):
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
+        gm = DigestAtenOps(gm)
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
