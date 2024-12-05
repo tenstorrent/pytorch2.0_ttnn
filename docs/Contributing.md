@@ -9,7 +9,7 @@ In practice, we heavily rely on CI and the Model Test Suite to uphold these prin
 
 # What is Model's Lifecycle in the test suite?
 Every model in the test suite goes through the following stages: <br>
-`Traced` -> `Compiled` -> `E2E on device` -> `Performant`
+`Traced` -> `Compiled` -> `E2E TT-NN` -> `E2E on Device` -> `Performant`
 
 ### Traced
 In this stage, a properly added model runs on the CPU to collect operation traces, which guide further development for both the compiler and TT-NN.
@@ -19,8 +19,12 @@ Examples: [Model trace](https://github.com/tenstorrent/pytorch2.0_ttnn/blob/main
 At this stage, the compiler has successfully transformed PyTorch ATen operations into TT-NN operations, allowing the model to complete its run. 
 Not all operations may be converted, and fallbacks can still be used if TT-NN or the compiler does not fully handle specific inputs.
 
+### E2E TT-NN
+This status requires that model is fully running with TT-NN calls and no ATen calls remain in the graph.
+Model accuracy must be above 98%.
+
 ### E2E on Device
-This status requires that no fallbacks remain; every ATen call is fully replaced by a TT-NN call on the device.
+There must be no fallbacks to host.
 
 ### Performant
 The performance target is not yet established. We will revisit this section once more than 50% of test models run E2E on the device.
