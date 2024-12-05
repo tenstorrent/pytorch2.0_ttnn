@@ -10,34 +10,31 @@ class MMFusionPass(PassBase):
         self.mm_ops = {
             torch.ops.aten.mm.default,
             torch.ops.aten.bmm.default,
-            # torch.ops.aten.addmm.default,
-            # torch.ops.aten.linear.default,
-            # torch.ops.aten.baddbmm.default,
         }
 
         self.activation_ops_map = {
             torch.ops.aten.relu.default : 'relu',
             torch.ops.aten.gelu.default : 'gelu',
             torch.ops.aten.silu.default : 'silu',
-            torch.ops.aten.sigmoid.default : 'sigmoid',
-            torch.ops.aten.sqrt.default : 'sqrt',
-            torch.ops.aten.exp.default : 'exp',
-            torch.ops.aten.reciprocal.default : 'recip',
-            torch.ops.aten.log.default : 'log',
-            torch.ops.aten.tanh.default : 'tanh',
-            torch.ops.aten.log2.default : 'log2',
-            torch.ops.aten.log10.default : 'log10',
-            torch.ops.aten.sin.default : 'sin',
-            torch.ops.aten.cos.default : 'cos',
-            torch.ops.aten.abs.default : 'abs',
-            torch.ops.aten.sign.default : 'sign',
-            torch.ops.aten.pow.Tensor_Scalar : 'square',
-            torch.ops.aten.softplus.default : 'softplus',
+            # (Issue #15745) Inside ttnn/cpp/ttnn/operations/matmul/matmul.cpp, function bound_matmul only supports the three activations above
+            # torch.ops.aten.sigmoid.default : 'sigmoid',
+            # torch.ops.aten.sqrt.default : 'sqrt',
+            # torch.ops.aten.exp.default : 'exp',
+            # torch.ops.aten.reciprocal.default : 'recip',
+            # torch.ops.aten.log.default : 'log',
+            # torch.ops.aten.tanh.default : 'tanh',
+            # torch.ops.aten.log2.default : 'log2',
+            # torch.ops.aten.log10.default : 'log10',
+            # torch.ops.aten.sin.default : 'sin',
+            # torch.ops.aten.cos.default : 'cos',
+            # torch.ops.aten.abs.default : 'abs',
+            # torch.ops.aten.sign.default : 'sign',
+            # torch.ops.aten.pow.Tensor_Scalar : 'square',
+            # torch.ops.aten.softplus.default : 'softplus',
         }
         
     def call(self, gm: torch.fx.GraphModule):
         g = gm.graph
-        #with unset_fake_temporarily():
         for node in gm.graph.nodes:
             # Find nodes that are mat mul and don't already have an activation fuinction fused to them
             if node.op == "call_function" and node.target in self.mm_ops and 'activation' not in node.kwargs:

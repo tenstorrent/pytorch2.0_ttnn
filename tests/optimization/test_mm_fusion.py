@@ -20,7 +20,7 @@ class MatmulModule(torch.nn.Module):
      ([(64, 64), (64, 64)], torch.nn.functional.gelu),
      ([(64, 64), (64, 64)], torch.nn.functional.silu),
      
-     # Inside ttnn/cpp/ttnn/operations/matmul/matmul.cpp, function bound_matmul only supports the thre activations above
+     # (Issue #15745) Inside ttnn/cpp/ttnn/operations/matmul/matmul.cpp, function bound_matmul only supports the three activations above
      pytest.param([(64, 64), (64, 64)], torch.nn.functional.sigmoid, marks=pytest.mark.xfail()),
      pytest.param([(64, 64), (64, 64)], torch.sqrt, marks=pytest.mark.xfail()),
      pytest.param([(64, 64), (64, 64)], torch.exp, marks=pytest.mark.xfail()),
@@ -72,7 +72,7 @@ class BmmModule(torch.nn.Module):
      ([(3, 64, 64), (3, 64, 64)], torch.nn.functional.gelu),
      ([(3, 64, 64), (3, 64, 64)], torch.nn.functional.silu),
 
-     # Inside ttnn/cpp/ttnn/operations/matmul/matmul.cpp, function bound_matmul only supports the thre activations above
+     # (Issue #15745) Inside ttnn/cpp/ttnn/operations/matmul/matmul.cpp, function bound_matmul only supports the three activations above
      pytest.param([(3, 64, 64), (3, 64, 64)], torch.nn.functional.sigmoid, marks=pytest.mark.xfail()),
      pytest.param([(3, 64, 64), (3, 64, 64)], torch.sqrt, marks=pytest.mark.xfail()),
      pytest.param([(3, 64, 64), (3, 64, 64)], torch.exp, marks=pytest.mark.xfail()),
