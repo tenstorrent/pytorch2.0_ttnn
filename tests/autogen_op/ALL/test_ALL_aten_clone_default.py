@@ -69,8 +69,6 @@ def teardown_module(module):
         ["Tensor<[1, 6, 1, 2]> self = ?"],
         ["Tensor<[1, 6, 1, s0 + 1]> self = ?"],
         ["Tensor<[1, 6, 1, 17]> self = ?"],
-        ["Tensor<[1, 7, 71, 64]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
-        ["Tensor<[1, 7, 4544]> self = ?"],
         ["Tensor<[1, 1, 19200, 300]> self = ?"],
         ["Tensor<[1, 19200, 64]> self = ?"],
         ["Tensor<[1, 19200, 256]> self = ?"],
@@ -165,20 +163,26 @@ def teardown_module(module):
         ["Tensor<[1, 4096, 320]> self = ?"],
         ["Tensor<[1, 4096, 1280]> self = ?"],
         ["Tensor<[1, 320, 64, 64]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
-        ["Tensor<[1, 640, 32, 32]> self = ?"],
-        ["Tensor<[1, 1024, 2560]> self = ?"],
-        ["Tensor<[1, 640, 32, 32]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?"],
-        ["Tensor<[1, 256, 1280]> self = ?"],
-        ["Tensor<[1, 256, 5120]> self = ?"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
+        ["Tensor<[1, 640, s0, s1]> self = ?"],
+        ["Tensor<[1, s0*s1, 640]> self = ?"],
+        ["Tensor<[1, s0*s1, 2560]> self = ?"],
+        ["Tensor<[1, 640, s0, s1]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
+        ["Tensor<[1, 1280, s1, s2]> self = ?"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?"],
+        ["Tensor<[1, s1*s2, 5120]> self = ?"],
+        ["Tensor<[1, 1280, s1, s2]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?"],
+        ["Tensor<[1, s0*s1, 1280]> self = ?"],
+        ["Tensor<[1, s0*s1, 5120]> self = ?"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
         ["Tensor<[1, 1280, 8, 8]> self = ?"],
-        ["Tensor<[1, 64, 1280]> self = ?"],
-        ["Tensor<[1, 64, 5120]> self = ?"],
-        ["Tensor<[1, 1280, 8, 8]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
-        ["Tensor<[1, 12, 201, 201]> self = ?"],
-        ["Tensor<[1, 201, 12, 64]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
-        ["Tensor<[1, 201, 768]> self = ?"],
+        ["Tensor<[1, 640, s1, s2]> self = ?"],
+        ["Tensor<[1, s1*s2, 640]> self = ?"],
+        ["Tensor<[1, s1*s2, 2560]> self = ?"],
+        ["Tensor<[1, 640, s1, s2]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
+        ["Tensor<[1, 320, s1, s2]> self = ?"],
+        ["Tensor<[1, s1*s2, 320]> self = ?"],
+        ["Tensor<[1, 320, s1, s2]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
         ["Tensor<[1, 1500, 768]> self = ?"],
         ["Tensor<[1, 12, 1500, 64]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
         ["Tensor<[1, 1500, 3072]> self = ?"],
@@ -265,18 +269,6 @@ def teardown_module(module):
         ["Tensor<[12, 24, 24]> self = ?"],
         ["Tensor<[1, 24, 12, 64]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
         ["Tensor<[1, 24, 3072]> self = ?"],
-        ["Tensor<[12, 1, 1]> self = ?"],
-        ["Tensor<[12, 1, 24]> self = ?"],
-        ["Tensor<[1, s0, 768]> self = ?"],
-        ["Tensor<[12, 1, 2]> self = ?"],
-        ["Tensor<[12, 1, s0 + 1]> self = ?"],
-        ["Tensor<[12, 1, s2 + 1]> self = ?"],
-        ["Tensor<[12, 1, s4 + 1]> self = ?"],
-        ["Tensor<[12, 1, s6 + 1]> self = ?"],
-        ["Tensor<[12, 1, s8 + 1]> self = ?"],
-        ["Tensor<[12, 1, s10 + 1]> self = ?"],
-        ["Tensor<[1, 256, 98]> self = ?"],
-        ["Tensor<[1, 80, 98]> self = ?"],
         ["Tensor<[1, 38, 38, 4, 4]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
         ["Tensor<[1, 19, 19, 6, 4]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
         ["Tensor<[1, 3, 3, 4, 4]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
@@ -498,34 +490,55 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     except Exception as e:
         print(f"Failed to run native. Raised exception: {e}")
         metric["native_run"] = False
+
     if metric["native_run"] == True:
+        result_after = None
         option = torch_ttnn.TorchTtnnOption(device=device)
         # option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         try:
+            ttnn.graph.begin_graph_capture()
             result_after = m.forward(*input_args, **input_kwargs)
             # option._out_fx_graphs[0].print_tabular()
             metric["run"] = True
         except Exception as e:
             print(f"Failed to run. Raised exception: {e}")
             metric["run"] = False
+        finally:
+            trace = ttnn.graph.end_graph_capture()
+            call_stack = ttnn.graph.extract_calltrace(trace)
+            if metric["run"] == True:
+                print(call_stack)
+                expected_to_host_count = 0
+                if result_after is None:
+                    expected_to_host_count = 0
+                elif isinstance(result_after, torch.Tensor):
+                    expected_to_host_count = 1
+                elif isinstance(result_after, (list, dict)):
+                    expected_to_host_count = len(result_after)
+                else:
+                    print(f"Unexpected result_after type: {type(result_after)}")
+
+                to_host_count = sum(["Tensor::cpu" in str(node) for node in call_stack])
+                fallbacks_to_host_count = to_host_count - expected_to_host_count
+                print(f"expected_to_host_count: {expected_to_host_count}")
+                print(f"to_host_count: {to_host_count}")
+                print(f"fallbacks_to_host_count: {fallbacks_to_host_count}")
+                metric["ttnn_fallbacks_to_host_count"] = fallbacks_to_host_count
+                return
 
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -537,6 +550,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

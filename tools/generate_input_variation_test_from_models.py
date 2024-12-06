@@ -21,9 +21,6 @@ class AtenOpTestExporter(InputVarPerOp):
         sort_by_opname = dict(sorted(self.items()))
         basedir.mkdir(parents=True, exist_ok=True)
         for opname, inputs_variations in sort_by_opname.items():
-            if opname != "aten._native_batch_norm_legit_no_training.default":
-                continue
-
             inputs_strings = [_unjoin_br(input_variations) for input_variations in inputs_variations.keys()]
             opname_ = opname.replace(".", "_")
             metrics_dir = f"metrics-autogen-op/{model_name}"
@@ -32,7 +29,10 @@ class AtenOpTestExporter(InputVarPerOp):
             filename = f"test_{model_name_}_{opname_}.py"
 
             extra_accessor = ""
-            module_template = "aten_test_generic_module.tmpl"
+            if opname == "aten._native_batch_norm_legit_no_training.default":
+                module_template = "aten_test_check_only_first_output_module.tmpl"
+            else:
+                module_template = "aten_test_generic_module.tmpl"
             # TODO(tt-metal#12099): ttnn.max_pool2d currently doesn't return indices so we only check the value for eval
             if opname == "aten.max_pool2d_with_indices.default" and not model_name.endswith("-train"):
                 module_template = "aten_test_check_only_first_output_module.tmpl"
@@ -96,7 +96,6 @@ if __name__ == "__main__":
         # Remove the "metrics" root directory and convert to string
         model = str(Path(*model_path.parts[1:]))
         model_ = model.replace(" ", "_").replace("(", "").replace(")", "").replace(".", "_")
-
         if not args.merge:
             input_var_per_op.export_tests(template_dir, Path(f"tests/autogen_op/{model_}"), model, model_)
         else:

@@ -329,19 +329,6 @@ aten_unsqueeze_default_blocklist += [["Tensor<[800]> self = ?", "int dim = 1"]]
 # TODO: not pass yet
 
 ############################################################
-# EXTRA BLOCKLIST OF RoBERTa
-############################################################
-# RuntimeError: TT_FATAL @ xxx/embedding.cpp:32: input_tensor_arg.get_layout() == ttnn::ROW_MAJOR_LAYOUT
-# info:
-# Indices tensor must be in row major layout.
-# ttnn_embedding = ttnn_decorators_ttnn_embedding(ttnn_from_torch_2, ttnn_to_device_3, layout = ttnn_ROW_MAJOR_LAYOUT)
-# (Pdb) ttnn_from_torch_2.layout
-# <Layout.TILE: 1>
-aten_embedding_default_blocklist = [
-    ["Tensor<[250002, 768]> weight = ?", "Tensor<[1, 10]> indices = ?", "int padding_idx = 1"]
-]
-
-############################################################
 
 GUARD[torch.ops.aten.add.Tensor] = partial(guard_aten, aten_add_Tensor_blocklist)
 GUARD[torch.ops.aten.view.default] = partial(guard_aten, aten_view_default_blocklist)
@@ -349,7 +336,6 @@ GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
-GUARD[torch.ops.aten.embedding.default] = partial(guard_aten, aten_embedding_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):

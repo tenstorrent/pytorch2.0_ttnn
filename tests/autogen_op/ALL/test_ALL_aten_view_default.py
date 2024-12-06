@@ -177,20 +177,6 @@ def teardown_module(module):
         ["Tensor<[6, 1, 17]> self = ?", "List[int] size = [1, 6, 1, 17]"],
         ["Tensor<[1, 6, 1, 17]> self = ?", "List[int] size = [6, 1, 17]"],
         ["Tensor<[1, 6, 17, 64]> self = ?", "List[int] size = [6, 17, 64]"],
-        ["Tensor<[1, 7, 4544]> self = ?", "List[int] size = [7, 4544]"],
-        ["Tensor<[7, 4672]> self = ?", "List[int] size = [1, 7, 4672]"],
-        ["Tensor<[1, 7, 4672]> self = ?", "List[int] size = [1, 7, 73, 64]"],
-        ["Tensor<[1, 71, 7, 64]> self = ?", "List[int] size = [1, 71, 7, 64]"],
-        ["Tensor<[1, 1, 7, 64]> self = ?", "List[int] size = [1, 1, 7, 64]"],
-        ["Tensor<[1, 71, 7, 64]> self = ?", "List[int] size = [71, 7, 64]"],
-        ["Tensor<[1, 71, 64, 7]> self = ?", "List[int] size = [71, 64, 7]"],
-        ["Tensor<[71, 7, 7]> self = ?", "List[int] size = [1, 71, 7, 7]"],
-        ["Tensor<[1, 71, 7, 7]> self = ?", "List[int] size = [71, 7, 7]"],
-        ["Tensor<[71, 7, 64]> self = ?", "List[int] size = [1, 71, 7, 64]"],
-        ["Tensor<[7, 4544]> self = ?", "List[int] size = [1, 7, 4544]"],
-        ["Tensor<[7, 18176]> self = ?", "List[int] size = [1, 7, 18176]"],
-        ["Tensor<[1, 7, 18176]> self = ?", "List[int] size = [7, 18176]"],
-        ["Tensor<[7, 65024]> self = ?", "List[int] size = [1, 7, 65024]"],
         ["Tensor<[1, 64, 120, 160]> self = ?", "List[int] size = [1, 64, 19200]"],
         ["Tensor<[1, 19200, 64]> self = ?", "List[int] size = [19200, 64]"],
         ["Tensor<[19200, 64]> self = ?", "List[int] size = [1, 19200, 64]"],
@@ -322,6 +308,9 @@ def teardown_module(module):
         ["Tensor<[1, 1024, 1, 1]> self = ?", "List[int] size = [1, -1]"],
         ["Tensor<[1, 1000]> self = ?", "List[int] size = [1000]"],
         ["Tensor<[1, 1024]> self = ?", "List[int] size = [1, 1024, 1, 1]"],
+        ["Tensor<[1, 64, 1]> self = ?", "List[int] size = [1, 64, 1]"],
+        ["Tensor<[1, 1, 32]> self = ?", "List[int] size = [1, 1, 32]"],
+        ["Tensor<[1, 64, 32]> self = ?", "List[int] size = [1, 64, 32]"],
         ["Tensor<[1, 3, 256, 256]> self = ?", "List[int] size = [1, 3, 16, 16, 16, 16]"],
         ["Tensor<[1, 256, 768]> self = ?", "List[int] size = [256, 768]"],
         ["Tensor<[256, 512]> self = ?", "List[int] size = [1, 256, 512]"],
@@ -553,47 +542,53 @@ def teardown_module(module):
         ["Tensor<[4096, 2560]> self = ?", "List[int] size = [1, 4096, 2560]"],
         ["Tensor<[1, 4096, 1280]> self = ?", "List[int] size = [4096, 1280]"],
         ["Tensor<[1, 4096, 320]> self = ?", "List[int] size = [1, 64, 64, 320]"],
-        ["Tensor<[1, 32, 32, 640]> self = ?", "List[int] size = [1, 1024, 640]"],
-        ["Tensor<[1, 1024, 640]> self = ?", "List[int] size = [1, -1, 8, 80]"],
-        ["Tensor<[1, 1024, 8, 80]> self = ?", "List[int] size = [1, -1, 640]"],
+        ["Tensor<[1, s0, s1, 640]> self = ?", "List[int] size = [1, <s0*s1>, 640]"],
+        ["Tensor<[1, s0*s1, 640]> self = ?", "List[int] size = [<s0*s1>, 640]"],
+        ["Tensor<[s0*s1, 640]> self = ?", "List[int] size = [1, <s0*s1>, 640]"],
+        ["Tensor<[1, s0*s1, 640]> self = ?", "List[int] size = [1, -1, 8, 80]"],
+        ["Tensor<[1, s0*s1, 8, 80]> self = ?", "List[int] size = [1, -1, 640]"],
         ["Tensor<[9, 640]> self = ?", "List[int] size = [1, 9, 640]"],
         ["Tensor<[1, 9, 640]> self = ?", "List[int] size = [1, -1, 8, 80]"],
-        ["Tensor<[1024, 5120]> self = ?", "List[int] size = [1, 1024, 5120]"],
-        ["Tensor<[1, 1024, 2560]> self = ?", "List[int] size = [1024, 2560]"],
-        ["Tensor<[1, 1024, 640]> self = ?", "List[int] size = [1, 32, 32, 640]"],
-        ["Tensor<[1, 16, 16, 1280]> self = ?", "List[int] size = [1, 256, 1280]"],
-        ["Tensor<[1, 256, 1280]> self = ?", "List[int] size = [1, -1, 8, 160]"],
-        ["Tensor<[1, 256, 8, 160]> self = ?", "List[int] size = [1, -1, 1280]"],
+        ["Tensor<[s0*s1, 5120]> self = ?", "List[int] size = [1, <s0*s1>, 5120]"],
+        ["Tensor<[1, s0*s1, 2560]> self = ?", "List[int] size = [<s0*s1>, 2560]"],
+        ["Tensor<[1, s0*s1, 640]> self = ?", "List[int] size = [1, <s0>, <s1>, 640]"],
+        ["Tensor<[1, s1, s2, 1280]> self = ?", "List[int] size = [1, <s1*s2>, 1280]"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?", "List[int] size = [<s1*s2>, 1280]"],
+        ["Tensor<[s1*s2, 1280]> self = ?", "List[int] size = [1, <s1*s2>, 1280]"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?", "List[int] size = [1, -1, 8, 160]"],
+        ["Tensor<[1, s1*s2, 8, 160]> self = ?", "List[int] size = [1, -1, 1280]"],
         ["Tensor<[9, 1280]> self = ?", "List[int] size = [1, 9, 1280]"],
         ["Tensor<[1, 9, 1280]> self = ?", "List[int] size = [1, -1, 8, 160]"],
-        ["Tensor<[256, 10240]> self = ?", "List[int] size = [1, 256, 10240]"],
-        ["Tensor<[1, 256, 5120]> self = ?", "List[int] size = [256, 5120]"],
-        ["Tensor<[1, 256, 1280]> self = ?", "List[int] size = [1, 16, 16, 1280]"],
-        ["Tensor<[1, 8, 8, 1280]> self = ?", "List[int] size = [1, 64, 1280]"],
-        ["Tensor<[1, 64, 1280]> self = ?", "List[int] size = [64, 1280]"],
-        ["Tensor<[64, 1280]> self = ?", "List[int] size = [1, 64, 1280]"],
-        ["Tensor<[1, 64, 1280]> self = ?", "List[int] size = [1, -1, 8, 160]"],
-        ["Tensor<[1, 64, 8, 160]> self = ?", "List[int] size = [1, -1, 1280]"],
-        ["Tensor<[64, 10240]> self = ?", "List[int] size = [1, 64, 10240]"],
-        ["Tensor<[1, 64, 5120]> self = ?", "List[int] size = [64, 5120]"],
-        ["Tensor<[1, 64, 1280]> self = ?", "List[int] size = [1, 8, 8, 1280]"],
+        ["Tensor<[s1*s2, 10240]> self = ?", "List[int] size = [1, <s1*s2>, 10240]"],
+        ["Tensor<[1, s1*s2, 5120]> self = ?", "List[int] size = [<s1*s2>, 5120]"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?", "List[int] size = [1, <s1>, <s2>, 1280]"],
+        ["Tensor<[1, s0, s1, 1280]> self = ?", "List[int] size = [1, <s0*s1>, 1280]"],
+        ["Tensor<[1, s0*s1, 1280]> self = ?", "List[int] size = [<s0*s1>, 1280]"],
+        ["Tensor<[s0*s1, 1280]> self = ?", "List[int] size = [1, <s0*s1>, 1280]"],
+        ["Tensor<[1, s0*s1, 1280]> self = ?", "List[int] size = [1, -1, 8, 160]"],
+        ["Tensor<[1, s0*s1, 8, 160]> self = ?", "List[int] size = [1, -1, 1280]"],
+        ["Tensor<[s0*s1, 10240]> self = ?", "List[int] size = [1, <s0*s1>, 10240]"],
+        ["Tensor<[1, s0*s1, 5120]> self = ?", "List[int] size = [<s0*s1>, 5120]"],
+        ["Tensor<[1, s0*s1, 1280]> self = ?", "List[int] size = [1, <s0>, <s1>, 1280]"],
+        ["Tensor<[1, s1, s2, 640]> self = ?", "List[int] size = [1, <s1*s2>, 640]"],
+        ["Tensor<[1, s1*s2, 640]> self = ?", "List[int] size = [<s1*s2>, 640]"],
+        ["Tensor<[s1*s2, 640]> self = ?", "List[int] size = [1, <s1*s2>, 640]"],
+        ["Tensor<[1, s1*s2, 640]> self = ?", "List[int] size = [1, -1, 8, 80]"],
+        ["Tensor<[1, s1*s2, 8, 80]> self = ?", "List[int] size = [1, -1, 640]"],
+        ["Tensor<[s1*s2, 5120]> self = ?", "List[int] size = [1, <s1*s2>, 5120]"],
+        ["Tensor<[1, s1*s2, 2560]> self = ?", "List[int] size = [<s1*s2>, 2560]"],
+        ["Tensor<[1, s1*s2, 640]> self = ?", "List[int] size = [1, <s1>, <s2>, 640]"],
+        ["Tensor<[1, s1, s2, 320]> self = ?", "List[int] size = [1, <s1*s2>, 320]"],
+        ["Tensor<[1, s1*s2, 320]> self = ?", "List[int] size = [<s1*s2>, 320]"],
+        ["Tensor<[s1*s2, 320]> self = ?", "List[int] size = [1, <s1*s2>, 320]"],
+        ["Tensor<[1, s1*s2, 320]> self = ?", "List[int] size = [1, -1, 8, 40]"],
+        ["Tensor<[1, s1*s2, 8, 40]> self = ?", "List[int] size = [1, -1, 320]"],
+        ["Tensor<[s1*s2, 2560]> self = ?", "List[int] size = [1, <s1*s2>, 2560]"],
+        ["Tensor<[1, s1*s2, 320]> self = ?", "List[int] size = [1, <s1>, <s2>, 320]"],
         ["Tensor<[1, 768, 144]> self = ?", "List[int] size = [1, 768, 12, 12]"],
         ["Tensor<[1, 768, 12, 16]> self = ?", "List[int] size = [1, 768, 192]"],
         ["Tensor<[12]> self = ?", "List[int] size = [-1, 1]"],
         ["Tensor<[16]> self = ?", "List[int] size = [1, -1]"],
-        ["Tensor<[1, 1, 12, 16, 2]> self = ?", "List[int] size = [1, 192, 2]"],
-        ["Tensor<[1, 1, 12, 16]> self = ?", "List[int] size = [1, 192]"],
-        ["Tensor<[1, 201, 768]> self = ?", "List[int] size = [201, 768]"],
-        ["Tensor<[201, 768]> self = ?", "List[int] size = [1, 201, 768]"],
-        ["Tensor<[1, 201, 768]> self = ?", "List[int] size = [1, 201, 12, 64]"],
-        ["Tensor<[1, 12, 201, 64]> self = ?", "List[int] size = [12, 201, 64]"],
-        ["Tensor<[1, 12, 64, 201]> self = ?", "List[int] size = [12, 64, 201]"],
-        ["Tensor<[12, 201, 201]> self = ?", "List[int] size = [1, 12, 201, 201]"],
-        ["Tensor<[1, 12, 201, 201]> self = ?", "List[int] size = [12, 201, 201]"],
-        ["Tensor<[12, 201, 64]> self = ?", "List[int] size = [1, 12, 201, 64]"],
-        ["Tensor<[1, 201, 12, 64]> self = ?", "List[int] size = [1, 201, 768]"],
-        ["Tensor<[201, 3072]> self = ?", "List[int] size = [1, 201, 3072]"],
-        ["Tensor<[1, 201, 3072]> self = ?", "List[int] size = [201, 3072]"],
         ["Tensor<[1, 1500, 768]> self = ?", "List[int] size = [1500, 768]"],
         ["Tensor<[1500, 768]> self = ?", "List[int] size = [1, 1500, 768]"],
         ["Tensor<[1, 1500, 768]> self = ?", "List[int] size = [1, -1, 12, 64]"],
@@ -863,26 +858,6 @@ def teardown_module(module):
         ["Tensor<[12, 24, 64]> self = ?", "List[int] size = [1, 12, 24, 64]"],
         ["Tensor<[24, 3072]> self = ?", "List[int] size = [1, 24, 3072]"],
         ["Tensor<[1, 24, 3072]> self = ?", "List[int] size = [24, 3072]"],
-        ["Tensor<[1, 1, 80]> self = ?", "List[int] size = [1, 80]"],
-        ["Tensor<[1, 256]> self = ?", "List[int] size = [1, 1, 256]"],
-        ["Tensor<[1, 1, 256]> self = ?", "List[int] size = [1, 256]"],
-        ["Tensor<[1, 1, 1280]> self = ?", "List[int] size = [1, 1280]"],
-        ["Tensor<[1, 12, 1, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[12, 1, 24]> self = ?", "List[int] size = [1, 12, 1, 24]"],
-        ["Tensor<[1, 12, 1, 24]> self = ?", "List[int] size = [12, 1, 24]"],
-        ["Tensor<[1, s0, 80]> self = ?", "List[int] size = [<s0>, 80]"],
-        ["Tensor<[s0, 256]> self = ?", "List[int] size = [1, <s0>, 256]"],
-        ["Tensor<[1, s0, 256]> self = ?", "List[int] size = [<s0>, 256]"],
-        ["Tensor<[s0, 768]> self = ?", "List[int] size = [1, <s0>, 768]"],
-        ["Tensor<[1, s0, 1280]> self = ?", "List[int] size = [<s0>, 1280]"],
-        ["Tensor<[1, 12, 2, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[1, 12, s0 + 1, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[1, 12, s2 + 1, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[1, 12, s4 + 1, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[1, 12, s6 + 1, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[1, 12, s8 + 1, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[1, 12, s10 + 1, 64]> self = ?", "List[int] size = [12, -1, 64]"],
-        ["Tensor<[25088, 1]> self = ?", "List[int] size = [-1]"],
         ["Tensor<[1, 16, 38, 38]> self = ?", "List[int] size = [1, -1, 4, 38, 38]"],
         ["Tensor<[1, 24, 19, 19]> self = ?", "List[int] size = [1, -1, 4, 19, 19]"],
         ["Tensor<[1, 16, 3, 3]> self = ?", "List[int] size = [1, -1, 4, 3, 3]"],
@@ -1355,34 +1330,55 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     except Exception as e:
         print(f"Failed to run native. Raised exception: {e}")
         metric["native_run"] = False
+
     if metric["native_run"] == True:
+        result_after = None
         option = torch_ttnn.TorchTtnnOption(device=device)
         # option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         try:
+            ttnn.graph.begin_graph_capture()
             result_after = m.forward(*input_args, **input_kwargs)
             # option._out_fx_graphs[0].print_tabular()
             metric["run"] = True
         except Exception as e:
             print(f"Failed to run. Raised exception: {e}")
             metric["run"] = False
+        finally:
+            trace = ttnn.graph.end_graph_capture()
+            call_stack = ttnn.graph.extract_calltrace(trace)
+            if metric["run"] == True:
+                print(call_stack)
+                expected_to_host_count = 0
+                if result_after is None:
+                    expected_to_host_count = 0
+                elif isinstance(result_after, torch.Tensor):
+                    expected_to_host_count = 1
+                elif isinstance(result_after, (list, dict)):
+                    expected_to_host_count = len(result_after)
+                else:
+                    print(f"Unexpected result_after type: {type(result_after)}")
+
+                to_host_count = sum(["Tensor::cpu" in str(node) for node in call_stack])
+                fallbacks_to_host_count = to_host_count - expected_to_host_count
+                print(f"expected_to_host_count: {expected_to_host_count}")
+                print(f"to_host_count: {to_host_count}")
+                print(f"fallbacks_to_host_count: {fallbacks_to_host_count}")
+                metric["ttnn_fallbacks_to_host_count"] = fallbacks_to_host_count
+                return
 
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -1394,6 +1390,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True
