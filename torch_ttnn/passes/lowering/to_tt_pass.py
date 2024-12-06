@@ -601,12 +601,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.div.Tensor:
-                if not isinstance(args[1], float) and (get_shape(args[0]) != get_shape(args[1])):
+                if not isinstance(args[1], (float, int)) and (get_shape(args[0]) != get_shape(args[1])):
                     recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                     return g.call_function(ttnn.mul, (args[0], recip), {})
                 return g.call_function(ttnn.div, args, {})
 
             if node.target == torch.ops.aten.expand.default:
+                if not (hasattr(args[0], "meta") and "val" in args[0].meta and hasattr(args[0].meta["val"], "size")):
+                    return None
+                if not (hasattr(node, "meta") and "val" in node.meta and hasattr(node.meta["val"], "size")):
+                    return None
                 input_tensor_shape = args[0].meta["val"].size()
                 output_shape = node.meta["val"].size()
                 if input_tensor_shape.numel() == output_shape.numel():
