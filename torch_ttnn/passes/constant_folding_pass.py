@@ -1,6 +1,7 @@
 import torch
 from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
+from .lowering.to_tt_guard import can_lowering_to_ttnn
 
 
 class ConstantFoldingPass(PassBase):
@@ -13,6 +14,7 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.unsqueeze.default,
             torch.ops.aten.arange.default,
             torch.ops.aten.view.default,
+            torch.ops.aten.add.Tensor,
         }
 
     def call(self, gm: torch.fx.GraphModule):
@@ -28,6 +30,9 @@ class ConstantFoldingPass(PassBase):
         return PassResult(gm, True)
 
     def _can_fold(self, gm: torch.fx.GraphModule, node):
+        if not can_lowering_to_ttnn(node):
+            return False
+
         for arg in node.args:
             if not isinstance(
                 arg,
@@ -64,6 +69,8 @@ class ConstantFoldingPass(PassBase):
             return torch.arange(*args, **node.kwargs)
         elif node.target == torch.ops.aten.view.default:
             return torch.ops.aten.view.default(*args)
+        elif node.target == torch.ops.aten.add.Tensor:
+            return torch.ops.aten.add.Tensor(*args)
 
         # Add handlers for other operations...
 
