@@ -82,7 +82,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
