@@ -57,7 +57,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
             ttnn.graph.begin_graph_capture()
             result_after = m.forward(*input_args, **input_kwargs)
             # option._out_fx_graphs[0].print_tabular()
-            metric["run"] = True            
+            metric["run"] = True
         except Exception as e:
             print(f"Failed to run. Raised exception: {e}")
             metric["run"] = False
