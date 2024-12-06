@@ -1,6 +1,6 @@
 ### aten.floor.default
-|    | ATen Input Variations          | Status   | Isolated   | PCC   |
-|---:|:-------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1, 1, 42]> self = ? | Done     | Done       | True  |
-|  1 | Tensor<[1, 1, 32, 1]> self = ? | Done     | Done       | True  |
+|    | ATen Input Variations          | Status   | Isolated   | PCC   | Host   |
+|---:|:-------------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor<[1, 1, 1, 42]> self = ? | Done     | Unknown    | N/A   | N/A    |
+|  1 | Tensor<[1, 1, 32, 1]> self = ? | Done     | Unknown    | N/A   | N/A    |
 

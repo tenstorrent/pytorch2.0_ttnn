@@ -1,97 +1,97 @@
 ### aten.hardtanh_backward.default
-|    | ATen Input Variations                                                                                                                | Status   | Isolated   | PCC   |
-|---:|:-------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1, 1024, 7, 7]> grad_output = ?,<br>Tensor<[1, 1024, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-|  1 | Tensor<[1, 1152, 7, 7]> grad_output = ?,<br>Tensor<[1, 1152, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-|  2 | Tensor<[1, 1152, 8, 8]> grad_output = ?,<br>Tensor<[1, 1152, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-|  3 | Tensor<[1, 116, 14, 14]> grad_output = ?,<br>Tensor<[1, 116, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-|  4 | Tensor<[1, 1248, 9, 9]> grad_output = ?,<br>Tensor<[1, 1248, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-|  5 | Tensor<[1, 128, 28, 28]> grad_output = ?,<br>Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-|  6 | Tensor<[1, 128, 56, 56]> grad_output = ?,<br>Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-|  7 | Tensor<[1, 1280, 10, 10]> grad_output = ?,<br>Tensor<[1, 1280, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-|  8 | Tensor<[1, 1280, 12, 12]> grad_output = ?,<br>Tensor<[1, 1280, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-|  9 | Tensor<[1, 1280, 7, 7]> grad_output = ?,<br>Tensor<[1, 1280, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 10 | Tensor<[1, 1280, 8, 8]> grad_output = ?,<br>Tensor<[1, 1280, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 11 | Tensor<[1, 1280, 9, 9]> grad_output = ?,<br>Tensor<[1, 1280, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 12 | Tensor<[1, 134, 28, 28]> grad_output = ?,<br>Tensor<[1, 134, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 13 | Tensor<[1, 1392, 10, 10]> grad_output = ?,<br>Tensor<[1, 1392, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 14 | Tensor<[1, 14, 56, 56]> grad_output = ?,<br>Tensor<[1, 14, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 15 | Tensor<[1, 144, 150, 150]> grad_output = ?,<br>Tensor<[1, 144, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
-| 16 | Tensor<[1, 144, 190, 190]> grad_output = ?,<br>Tensor<[1, 144, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Fallback   | True  |
-| 17 | Tensor<[1, 144, 28, 28]> grad_output = ?,<br>Tensor<[1, 144, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 18 | Tensor<[1, 144, 30, 30]> grad_output = ?,<br>Tensor<[1, 144, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 19 | Tensor<[1, 144, 33, 33]> grad_output = ?,<br>Tensor<[1, 144, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 20 | Tensor<[1, 144, 56, 56]> grad_output = ?,<br>Tensor<[1, 144, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 21 | Tensor<[1, 144, 60, 60]> grad_output = ?,<br>Tensor<[1, 144, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 22 | Tensor<[1, 144, 65, 65]> grad_output = ?,<br>Tensor<[1, 144, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 23 | Tensor<[1, 144, 75, 75]> grad_output = ?,<br>Tensor<[1, 144, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 24 | Tensor<[1, 144, 95, 95]> grad_output = ?,<br>Tensor<[1, 144, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 25 | Tensor<[1, 16, 28, 28]> grad_output = ?,<br>Tensor<[1, 16, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 26 | Tensor<[1, 160, 7, 7]> grad_output = ?,<br>Tensor<[1, 160, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Fallback   | True  |
-| 27 | Tensor<[1, 1632, 12, 12]> grad_output = ?,<br>Tensor<[1, 1632, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 28 | Tensor<[1, 168, 28, 28]> grad_output = ?,<br>Tensor<[1, 168, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 29 | Tensor<[1, 192, 38, 38]> grad_output = ?,<br>Tensor<[1, 192, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 30 | Tensor<[1, 192, 48, 48]> grad_output = ?,<br>Tensor<[1, 192, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 31 | Tensor<[1, 192, 75, 75]> grad_output = ?,<br>Tensor<[1, 192, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 32 | Tensor<[1, 192, 95, 95]> grad_output = ?,<br>Tensor<[1, 192, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 33 | Tensor<[1, 196, 14, 14]> grad_output = ?,<br>Tensor<[1, 196, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 34 | Tensor<[1, 20, 28, 28]> grad_output = ?,<br>Tensor<[1, 20, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 35 | Tensor<[1, 24, 56, 56]> grad_output = ?,<br>Tensor<[1, 24, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 36 | Tensor<[1, 240, 14, 14]> grad_output = ?,<br>Tensor<[1, 240, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 37 | Tensor<[1, 240, 15, 15]> grad_output = ?,<br>Tensor<[1, 240, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 38 | Tensor<[1, 240, 28, 28]> grad_output = ?,<br>Tensor<[1, 240, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 39 | Tensor<[1, 240, 30, 30]> grad_output = ?,<br>Tensor<[1, 240, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 40 | Tensor<[1, 256, 14, 14]> grad_output = ?,<br>Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 41 | Tensor<[1, 256, 28, 28]> grad_output = ?,<br>Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 42 | Tensor<[1, 272, 7, 7]> grad_output = ?,<br>Tensor<[1, 272, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Fallback   | True  |
-| 43 | Tensor<[1, 28, 28, 28]> grad_output = ?,<br>Tensor<[1, 28, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 44 | Tensor<[1, 288, 17, 17]> grad_output = ?,<br>Tensor<[1, 288, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 45 | Tensor<[1, 288, 19, 19]> grad_output = ?,<br>Tensor<[1, 288, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 46 | Tensor<[1, 288, 33, 33]> grad_output = ?,<br>Tensor<[1, 288, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 47 | Tensor<[1, 288, 38, 38]> grad_output = ?,<br>Tensor<[1, 288, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 48 | Tensor<[1, 32, 112, 112]> grad_output = ?,<br>Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 49 | Tensor<[1, 32, 120, 120]> grad_output = ?,<br>Tensor<[1, 32, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 50 | Tensor<[1, 32, 130, 130]> grad_output = ?,<br>Tensor<[1, 32, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 51 | Tensor<[1, 32, 150, 150]> grad_output = ?,<br>Tensor<[1, 32, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 52 | Tensor<[1, 32, 190, 190]> grad_output = ?,<br>Tensor<[1, 32, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 53 | Tensor<[1, 320, 28, 28]> grad_output = ?,<br>Tensor<[1, 320, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 54 | Tensor<[1, 334, 14, 14]> grad_output = ?,<br>Tensor<[1, 334, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 55 | Tensor<[1, 336, 24, 24]> grad_output = ?,<br>Tensor<[1, 336, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 56 | Tensor<[1, 336, 48, 48]> grad_output = ?,<br>Tensor<[1, 336, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 57 | Tensor<[1, 34, 28, 28]> grad_output = ?,<br>Tensor<[1, 34, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 58 | Tensor<[1, 40, 14, 14]> grad_output = ?,<br>Tensor<[1, 40, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 59 | Tensor<[1, 40, 56, 56]> grad_output = ?,<br>Tensor<[1, 40, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 60 | Tensor<[1, 46, 28, 28]> grad_output = ?,<br>Tensor<[1, 46, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 61 | Tensor<[1, 462, 7, 7]> grad_output = ?,<br>Tensor<[1, 462, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Fallback   | True  |
-| 62 | Tensor<[1, 480, 14, 14]> grad_output = ?,<br>Tensor<[1, 480, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 63 | Tensor<[1, 480, 15, 15]> grad_output = ?,<br>Tensor<[1, 480, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 64 | Tensor<[1, 512, 14, 14]> grad_output = ?,<br>Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 65 | Tensor<[1, 512, 7, 7]> grad_output = ?,<br>Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Fallback   | True  |
-| 66 | Tensor<[1, 528, 17, 17]> grad_output = ?,<br>Tensor<[1, 528, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 67 | Tensor<[1, 576, 19, 19]> grad_output = ?,<br>Tensor<[1, 576, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 68 | Tensor<[1, 58, 28, 28]> grad_output = ?,<br>Tensor<[1, 58, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 69 | Tensor<[1, 64, 112, 112]> grad_output = ?,<br>Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 70 | Tensor<[1, 64, 56, 56]> grad_output = ?,<br>Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 71 | Tensor<[1, 640, 14, 14]> grad_output = ?,<br>Tensor<[1, 640, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 72 | Tensor<[1, 672, 14, 14]> grad_output = ?,<br>Tensor<[1, 672, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 73 | Tensor<[1, 672, 15, 15]> grad_output = ?,<br>Tensor<[1, 672, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 74 | Tensor<[1, 672, 24, 24]> grad_output = ?,<br>Tensor<[1, 672, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 75 | Tensor<[1, 672, 7, 7]> grad_output = ?,<br>Tensor<[1, 672, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Fallback   | True  |
-| 76 | Tensor<[1, 672, 8, 8]> grad_output = ?,<br>Tensor<[1, 672, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Fallback   | True  |
-| 77 | Tensor<[1, 68, 14, 14]> grad_output = ?,<br>Tensor<[1, 68, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 78 | Tensor<[1, 68, 56, 56]> grad_output = ?,<br>Tensor<[1, 68, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 79 | Tensor<[1, 720, 17, 17]> grad_output = ?,<br>Tensor<[1, 720, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 80 | Tensor<[1, 720, 9, 9]> grad_output = ?,<br>Tensor<[1, 720, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Fallback   | True  |
-| 81 | Tensor<[1, 78, 28, 28]> grad_output = ?,<br>Tensor<[1, 78, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 82 | Tensor<[1, 816, 10, 10]> grad_output = ?,<br>Tensor<[1, 816, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 83 | Tensor<[1, 816, 19, 19]> grad_output = ?,<br>Tensor<[1, 816, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 84 | Tensor<[1, 96, 112, 112]> grad_output = ?,<br>Tensor<[1, 96, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 85 | Tensor<[1, 96, 120, 120]> grad_output = ?,<br>Tensor<[1, 96, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 86 | Tensor<[1, 96, 130, 130]> grad_output = ?,<br>Tensor<[1, 96, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Fallback   | True  |
-| 87 | Tensor<[1, 96, 56, 56]> grad_output = ?,<br>Tensor<[1, 96, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 88 | Tensor<[1, 96, 60, 60]> grad_output = ?,<br>Tensor<[1, 96, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 89 | Tensor<[1, 96, 65, 65]> grad_output = ?,<br>Tensor<[1, 96, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
-| 90 | Tensor<[1, 960, 12, 12]> grad_output = ?,<br>Tensor<[1, 960, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 91 | Tensor<[1, 960, 24, 24]> grad_output = ?,<br>Tensor<[1, 960, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Fallback   | True  |
-| 92 | Tensor<[1, 98, 28, 28]> grad_output = ?,<br>Tensor<[1, 98, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Fallback   | True  |
+|    | ATen Input Variations                                                                                                                | Status   | Isolated   | PCC   | Host   |
+|---:|:-------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor<[1, 1024, 7, 7]> grad_output = ?,<br>Tensor<[1, 1024, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+|  1 | Tensor<[1, 1152, 7, 7]> grad_output = ?,<br>Tensor<[1, 1152, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+|  2 | Tensor<[1, 1152, 8, 8]> grad_output = ?,<br>Tensor<[1, 1152, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+|  3 | Tensor<[1, 116, 14, 14]> grad_output = ?,<br>Tensor<[1, 116, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+|  4 | Tensor<[1, 1248, 9, 9]> grad_output = ?,<br>Tensor<[1, 1248, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+|  5 | Tensor<[1, 128, 28, 28]> grad_output = ?,<br>Tensor<[1, 128, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+|  6 | Tensor<[1, 128, 56, 56]> grad_output = ?,<br>Tensor<[1, 128, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+|  7 | Tensor<[1, 1280, 10, 10]> grad_output = ?,<br>Tensor<[1, 1280, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+|  8 | Tensor<[1, 1280, 12, 12]> grad_output = ?,<br>Tensor<[1, 1280, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Unknown  | Unknown    | N/A   | N/A    |
+|  9 | Tensor<[1, 1280, 7, 7]> grad_output = ?,<br>Tensor<[1, 1280, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 10 | Tensor<[1, 1280, 8, 8]> grad_output = ?,<br>Tensor<[1, 1280, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 11 | Tensor<[1, 1280, 9, 9]> grad_output = ?,<br>Tensor<[1, 1280, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 12 | Tensor<[1, 134, 28, 28]> grad_output = ?,<br>Tensor<[1, 134, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 13 | Tensor<[1, 1392, 10, 10]> grad_output = ?,<br>Tensor<[1, 1392, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 14 | Tensor<[1, 14, 56, 56]> grad_output = ?,<br>Tensor<[1, 14, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 15 | Tensor<[1, 144, 150, 150]> grad_output = ?,<br>Tensor<[1, 144, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | None     | Unknown    | N/A   | N/A    |
+| 16 | Tensor<[1, 144, 190, 190]> grad_output = ?,<br>Tensor<[1, 144, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Unknown  | Unknown    | N/A   | N/A    |
+| 17 | Tensor<[1, 144, 28, 28]> grad_output = ?,<br>Tensor<[1, 144, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 18 | Tensor<[1, 144, 30, 30]> grad_output = ?,<br>Tensor<[1, 144, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 19 | Tensor<[1, 144, 33, 33]> grad_output = ?,<br>Tensor<[1, 144, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 20 | Tensor<[1, 144, 56, 56]> grad_output = ?,<br>Tensor<[1, 144, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 21 | Tensor<[1, 144, 60, 60]> grad_output = ?,<br>Tensor<[1, 144, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 22 | Tensor<[1, 144, 65, 65]> grad_output = ?,<br>Tensor<[1, 144, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 23 | Tensor<[1, 144, 75, 75]> grad_output = ?,<br>Tensor<[1, 144, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 24 | Tensor<[1, 144, 95, 95]> grad_output = ?,<br>Tensor<[1, 144, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 25 | Tensor<[1, 16, 28, 28]> grad_output = ?,<br>Tensor<[1, 16, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 26 | Tensor<[1, 160, 7, 7]> grad_output = ?,<br>Tensor<[1, 160, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Unknown    | N/A   | N/A    |
+| 27 | Tensor<[1, 1632, 12, 12]> grad_output = ?,<br>Tensor<[1, 1632, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Unknown  | Unknown    | N/A   | N/A    |
+| 28 | Tensor<[1, 168, 28, 28]> grad_output = ?,<br>Tensor<[1, 168, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 29 | Tensor<[1, 192, 38, 38]> grad_output = ?,<br>Tensor<[1, 192, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 30 | Tensor<[1, 192, 48, 48]> grad_output = ?,<br>Tensor<[1, 192, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 31 | Tensor<[1, 192, 75, 75]> grad_output = ?,<br>Tensor<[1, 192, 75, 75]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 32 | Tensor<[1, 192, 95, 95]> grad_output = ?,<br>Tensor<[1, 192, 95, 95]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 33 | Tensor<[1, 196, 14, 14]> grad_output = ?,<br>Tensor<[1, 196, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 34 | Tensor<[1, 20, 28, 28]> grad_output = ?,<br>Tensor<[1, 20, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 35 | Tensor<[1, 24, 56, 56]> grad_output = ?,<br>Tensor<[1, 24, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 36 | Tensor<[1, 240, 14, 14]> grad_output = ?,<br>Tensor<[1, 240, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 37 | Tensor<[1, 240, 15, 15]> grad_output = ?,<br>Tensor<[1, 240, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 38 | Tensor<[1, 240, 28, 28]> grad_output = ?,<br>Tensor<[1, 240, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 39 | Tensor<[1, 240, 30, 30]> grad_output = ?,<br>Tensor<[1, 240, 30, 30]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 40 | Tensor<[1, 256, 14, 14]> grad_output = ?,<br>Tensor<[1, 256, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 41 | Tensor<[1, 256, 28, 28]> grad_output = ?,<br>Tensor<[1, 256, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 42 | Tensor<[1, 272, 7, 7]> grad_output = ?,<br>Tensor<[1, 272, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Unknown    | N/A   | N/A    |
+| 43 | Tensor<[1, 28, 28, 28]> grad_output = ?,<br>Tensor<[1, 28, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 44 | Tensor<[1, 288, 17, 17]> grad_output = ?,<br>Tensor<[1, 288, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 45 | Tensor<[1, 288, 19, 19]> grad_output = ?,<br>Tensor<[1, 288, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 46 | Tensor<[1, 288, 33, 33]> grad_output = ?,<br>Tensor<[1, 288, 33, 33]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 47 | Tensor<[1, 288, 38, 38]> grad_output = ?,<br>Tensor<[1, 288, 38, 38]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 48 | Tensor<[1, 32, 112, 112]> grad_output = ?,<br>Tensor<[1, 32, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 49 | Tensor<[1, 32, 120, 120]> grad_output = ?,<br>Tensor<[1, 32, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 50 | Tensor<[1, 32, 130, 130]> grad_output = ?,<br>Tensor<[1, 32, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 51 | Tensor<[1, 32, 150, 150]> grad_output = ?,<br>Tensor<[1, 32, 150, 150]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 52 | Tensor<[1, 32, 190, 190]> grad_output = ?,<br>Tensor<[1, 32, 190, 190]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Unknown  | Unknown    | N/A   | N/A    |
+| 53 | Tensor<[1, 320, 28, 28]> grad_output = ?,<br>Tensor<[1, 320, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 54 | Tensor<[1, 334, 14, 14]> grad_output = ?,<br>Tensor<[1, 334, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 55 | Tensor<[1, 336, 24, 24]> grad_output = ?,<br>Tensor<[1, 336, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 56 | Tensor<[1, 336, 48, 48]> grad_output = ?,<br>Tensor<[1, 336, 48, 48]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 57 | Tensor<[1, 34, 28, 28]> grad_output = ?,<br>Tensor<[1, 34, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 58 | Tensor<[1, 40, 14, 14]> grad_output = ?,<br>Tensor<[1, 40, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 59 | Tensor<[1, 40, 56, 56]> grad_output = ?,<br>Tensor<[1, 40, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 60 | Tensor<[1, 46, 28, 28]> grad_output = ?,<br>Tensor<[1, 46, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 61 | Tensor<[1, 462, 7, 7]> grad_output = ?,<br>Tensor<[1, 462, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Unknown    | N/A   | N/A    |
+| 62 | Tensor<[1, 480, 14, 14]> grad_output = ?,<br>Tensor<[1, 480, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 63 | Tensor<[1, 480, 15, 15]> grad_output = ?,<br>Tensor<[1, 480, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 64 | Tensor<[1, 512, 14, 14]> grad_output = ?,<br>Tensor<[1, 512, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 65 | Tensor<[1, 512, 7, 7]> grad_output = ?,<br>Tensor<[1, 512, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Unknown    | N/A   | N/A    |
+| 66 | Tensor<[1, 528, 17, 17]> grad_output = ?,<br>Tensor<[1, 528, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 67 | Tensor<[1, 576, 19, 19]> grad_output = ?,<br>Tensor<[1, 576, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 68 | Tensor<[1, 58, 28, 28]> grad_output = ?,<br>Tensor<[1, 58, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 69 | Tensor<[1, 64, 112, 112]> grad_output = ?,<br>Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 70 | Tensor<[1, 64, 56, 56]> grad_output = ?,<br>Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 71 | Tensor<[1, 640, 14, 14]> grad_output = ?,<br>Tensor<[1, 640, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 72 | Tensor<[1, 672, 14, 14]> grad_output = ?,<br>Tensor<[1, 672, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 73 | Tensor<[1, 672, 15, 15]> grad_output = ?,<br>Tensor<[1, 672, 15, 15]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 74 | Tensor<[1, 672, 24, 24]> grad_output = ?,<br>Tensor<[1, 672, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 75 | Tensor<[1, 672, 7, 7]> grad_output = ?,<br>Tensor<[1, 672, 7, 7]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Unknown    | N/A   | N/A    |
+| 76 | Tensor<[1, 672, 8, 8]> grad_output = ?,<br>Tensor<[1, 672, 8, 8]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Unknown    | N/A   | N/A    |
+| 77 | Tensor<[1, 68, 14, 14]> grad_output = ?,<br>Tensor<[1, 68, 14, 14]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 78 | Tensor<[1, 68, 56, 56]> grad_output = ?,<br>Tensor<[1, 68, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 79 | Tensor<[1, 720, 17, 17]> grad_output = ?,<br>Tensor<[1, 720, 17, 17]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 80 | Tensor<[1, 720, 9, 9]> grad_output = ?,<br>Tensor<[1, 720, 9, 9]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0         | None     | Unknown    | N/A   | N/A    |
+| 81 | Tensor<[1, 78, 28, 28]> grad_output = ?,<br>Tensor<[1, 78, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 82 | Tensor<[1, 816, 10, 10]> grad_output = ?,<br>Tensor<[1, 816, 10, 10]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 83 | Tensor<[1, 816, 19, 19]> grad_output = ?,<br>Tensor<[1, 816, 19, 19]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | None     | Unknown    | N/A   | N/A    |
+| 84 | Tensor<[1, 96, 112, 112]> grad_output = ?,<br>Tensor<[1, 96, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 85 | Tensor<[1, 96, 120, 120]> grad_output = ?,<br>Tensor<[1, 96, 120, 120]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 86 | Tensor<[1, 96, 130, 130]> grad_output = ?,<br>Tensor<[1, 96, 130, 130]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | None     | Unknown    | N/A   | N/A    |
+| 87 | Tensor<[1, 96, 56, 56]> grad_output = ?,<br>Tensor<[1, 96, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 88 | Tensor<[1, 96, 60, 60]> grad_output = ?,<br>Tensor<[1, 96, 60, 60]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 89 | Tensor<[1, 96, 65, 65]> grad_output = ?,<br>Tensor<[1, 96, 65, 65]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
+| 90 | Tensor<[1, 960, 12, 12]> grad_output = ?,<br>Tensor<[1, 960, 12, 12]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 91 | Tensor<[1, 960, 24, 24]> grad_output = ?,<br>Tensor<[1, 960, 24, 24]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0     | Unknown  | Unknown    | N/A   | N/A    |
+| 92 | Tensor<[1, 98, 28, 28]> grad_output = ?,<br>Tensor<[1, 98, 28, 28]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0       | None     | Unknown    | N/A   | N/A    |
 
