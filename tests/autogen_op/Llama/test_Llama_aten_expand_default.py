@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.scalar_tensor.default(*args, **kwargs)
+        return torch.ops.aten.expand.default(*args, **kwargs)
 
 
 metrics = []
@@ -28,23 +28,20 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/speecht5-tts", "aten.scalar_tensor.default")
+    save_pickle(metrics, "metrics-autogen-op/Llama", "aten.expand.default")
 
 
 @pytest.mark.parametrize(
     "input_strings",
     [
-        [
-            "number s = 0",
-            "Optional[int] dtype = torch.bfloat16",
-            "Optional[int] layout = torch.strided",
-            "Optional[Device] device = cpu",
-        ]
+        ["Tensor<[1, 64, 1]> self = ?", "List[int] size = [1, -1, 1]"],
+        ["Tensor<[1, 64, 1]> self = ?", "List[int] size = [1, 64, 1]"],
+        ["Tensor<[1, 1, 32]> self = ?", "List[int] size = [1, 1, 32]"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.scalar_tensor.default",
+        "opname": "aten.expand.default",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -53,7 +50,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     }
     m = AtenModule()
     input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
-        "aten.scalar_tensor.default", input_strings
+        "aten.expand.default", input_strings
     )
     if status == False:
         pytest.skip("Invalid input strings")
@@ -79,18 +76,14 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -102,6 +95,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

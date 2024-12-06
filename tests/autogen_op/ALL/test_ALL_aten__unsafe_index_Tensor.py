@@ -46,8 +46,8 @@ def teardown_module(module):
         ["Tensor<[1, 256, 32, 32]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
         ["Tensor<[1, 256, 16, 16]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
         ["Tensor<[1, 1280, 8, 8]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[16, 1]>, <[16]>]"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[32, 1]>, <[32]>]"],
-        ["Tensor<[1, 640, 32, 32]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[64, 1]>, <[64]>]"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[2*s0, 1]>, <[2*s1]>]"],
+        ["Tensor<[1, s0, s1, s2]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[2*s1, 1]>, <[2*s2]>]"],
         ["Tensor<[1, 1, 384, 512]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[12, 1]>, <[16]>]"],
         [
             "Tensor<[1, 192, 50, 83]> self = ?",
@@ -113,18 +113,14 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -136,6 +132,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

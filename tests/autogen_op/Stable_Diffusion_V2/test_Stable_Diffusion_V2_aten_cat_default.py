@@ -31,20 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/Stable Diffusion V2", "aten.cat.default")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["List[Tensor] tensors = [<[1, 160]>, <[1, 160]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[1, 1280, 8, 8]>, <[1, 1280, 8, 8]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 1280, 16, 16]>, <[1, 1280, 16, 16]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 1280, 16, 16]>, <[1, 640, 16, 16]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 1280, 32, 32]>, <[1, 640, 32, 32]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 640, 32, 32]>, <[1, 640, 32, 32]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 640, 32, 32]>, <[1, 320, 32, 32]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 640, 64, 64]>, <[1, 320, 64, 64]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 320, 64, 64]>, <[1, 320, 64, 64]>]", "int dim = 1"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["List[Tensor] tensors = [<[1, 160]>, <[1, 160]>]", "int dim = -1"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.cat.default",
@@ -80,18 +67,14 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -103,6 +86,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True
