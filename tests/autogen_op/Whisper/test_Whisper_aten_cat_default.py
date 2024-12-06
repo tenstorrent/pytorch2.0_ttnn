@@ -70,6 +70,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "run": "N/A",
         "accuracy": "N/A",
         "convert_to_ttnn": "N/A",
+        "ttnn_fallbacks_to_host_count": "N/A",
     }
     m = AtenModule()
     input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.cat.default", input_strings)
