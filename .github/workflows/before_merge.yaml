@@ -93,8 +93,52 @@ jobs:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
 
+  push-autogen-op-tests:
+    needs: [model-tests]
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    runs-on: ["in-service"]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download All Metrics Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-metrics-group-*
+          merge-multiple: true
+          path: metrics/
+
+      - name: Push Autogen Op Tests
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git pull
+
+          rm -rf tests/autogen_op/ # Remove old tests
+          python3 tools/generate_input_variation_test_from_models.py
+          python3 tools/generate_input_variation_test_from_models.py --merge=True
+          echo "Remove these files because it's heavy for running"
+          rm -f tests/autogen_op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
+          if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
+            git add --all
+          elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then
+            git add tests/
+          else
+            echo "No files will be committed"
+            exit 0
+          fi
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          else
+            git commit -m '[auto][on-merge-queue] Update input variations tests'
+            git push
+          fi
+
   model-autogen-op-tests:
-    needs: lowering-tests
+    needs: [push-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     strategy:
@@ -111,6 +155,7 @@ jobs:
       - name: Run Model Input Variations Tests
         run: |
           set +e
+          git pull
           rm -rf tests/autogen_op/ALL
           python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
@@ -173,7 +218,7 @@ jobs:
           path: metrics-autogen-op/
 
   collect-metrics:
-    needs: [model-tests, model-autogen-op-tests]
+    needs: [model-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     env:
@@ -231,50 +276,6 @@ jobs:
             exit 0
           else
             git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
-            git push
-          fi
-
-  push-autogen-op-tests:
-    needs: [model-tests, collect-metrics]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service"]
-    env:
-      PYTHONPATH: ${{ github.workspace }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-
-      - name: Download All Metrics Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: model-tests-metrics-group-*
-          merge-multiple: true
-          path: metrics/
-
-      - name: Push Autogen Op Tests
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git pull
-
-          rm -rf tests/autogen_op/ # Remove old tests
-          python3 tools/generate_input_variation_test_from_models.py
-          python3 tools/generate_input_variation_test_from_models.py --merge=True
-          echo "Remove these files because it's heavy for running"
-          rm -f tests/autogen_op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
-          if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
-            git add --all
-          elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then
-            git add tests/
-          else
-            echo "No files will be committed"
-            exit 0
-          fi
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            exit 0
-          else
-            git commit -m '[auto][on-merge-queue] Update input variations tests'
             git push
           fi
 
