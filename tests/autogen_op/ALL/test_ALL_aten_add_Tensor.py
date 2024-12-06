@@ -110,10 +110,6 @@ def teardown_module(module):
         ["Tensor<[17, 17]> self = ?", "Tensor other = 0"],
         ["Tensor<[1, 6, 1, 17]> self = ?", "Tensor<[1, 1, 1, 17]> other = ?"],
         ["Tensor<[1, 6, 1, 17]> self = ?", "Tensor<[1, 6, 1, 17]> other = ?"],
-        ["Tensor<[1, 71, 7, 64]> self = ?", "Tensor<[1, 71, 7, 64]> other = ?"],
-        ["Tensor<[1, 1, 7, 64]> self = ?", "Tensor<[1, 1, 7, 64]> other = ?"],
-        ["Tensor<[1, 71, 7, 7]> self = ?", "Tensor<[7, 7]> other = ?"],
-        ["Tensor<[1, 7, 4544]> self = ?", "Tensor<[1, 7, 4544]> other = ?"],
         ["Tensor<[1, 19200, 64]> self = ?", "Tensor<[1, 19200, 64]> other = ?"],
         ["Tensor<[1, 4800, 128]> self = ?", "Tensor<[1, 4800, 128]> other = ?"],
         ["Tensor<[1, 1200, 320]> self = ?", "Tensor<[1, 1200, 320]> other = ?"],
@@ -243,26 +239,33 @@ def teardown_module(module):
         ["Tensor<[1, 320, 64, 64]> self = ?", "Tensor<[1, 320, 1, 1]> other = ?"],
         ["Tensor<[1, 320, 64, 64]> self = ?", "Tensor<[1, 320, 64, 64]> other = ?"],
         ["Tensor<[1, 4096, 320]> self = ?", "Tensor<[1, 4096, 320]> other = ?"],
-        ["Tensor<[1, 640, 32, 32]> self = ?", "Tensor<[1, 640, 1, 1]> other = ?"],
-        ["Tensor<[1, 640, 32, 32]> self = ?", "Tensor<[1, 640, 32, 32]> other = ?"],
-        ["Tensor<[1, 1024, 640]> self = ?", "Tensor<[1, 1024, 640]> other = ?"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?", "Tensor<[1, 1280, 1, 1]> other = ?"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?", "Tensor<[1, 1280, 16, 16]> other = ?"],
+        ["Tensor<[1, 640, s0, s1]> self = ?", "Tensor<[1, 640, 1, 1]> other = ?"],
+        ["Tensor<[1, 640, s0, s1]> self = ?", "Tensor<[1, 640, s0, s1]> other = ?"],
+        ["Tensor<[1, s0*s1, 640]> self = ?", "Tensor<[1, s0*s1, 640]> other = ?"],
+        ["Tensor<[1, 1280, s1, s2]> self = ?", "Tensor<[1, 1280, 1, 1]> other = ?"],
+        ["Tensor<[1, 1280, s1, s2]> self = ?", "Tensor<[1, 1280, s1, s2]> other = ?"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?", "Tensor<[1, s1*s2, 1280]> other = ?"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "Tensor<[1, 1280, 1, 1]> other = ?"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "Tensor<[1, 1280, s0, s1]> other = ?"],
+        ["Tensor<[1, s0*s1, 1280]> self = ?", "Tensor<[1, s0*s1, 1280]> other = ?"],
         ["Tensor<[1, 1280, 8, 8]> self = ?", "Tensor<[1, 1280, 1, 1]> other = ?"],
         ["Tensor<[1, 1280, 8, 8]> self = ?", "Tensor<[1, 1280, 8, 8]> other = ?"],
-        ["Tensor<[1, 64, 1280]> self = ?", "Tensor<[1, 64, 1280]> other = ?"],
         ["Tensor<[16]> self = ?", "Tensor other = 0.0"],
-        ["Tensor<[32]> self = ?", "Tensor other = 0.0"],
-        ["Tensor<[64]> self = ?", "Tensor other = 0.0"],
+        ["Tensor<[2*s0]> self = ?", "Tensor other = 0.0"],
+        ["Tensor<[2*s1]> self = ?", "Tensor other = 0.0"],
+        ["Tensor<[1, 640, s1, s2]> self = ?", "Tensor<[1, 640, 1, 1]> other = ?"],
+        ["Tensor<[1, 640, s1, s2]> self = ?", "Tensor<[1, 640, s1, s2]> other = ?"],
+        ["Tensor<[1, s1*s2, 640]> self = ?", "Tensor<[1, s1*s2, 640]> other = ?"],
+        ["Tensor<[2*s2]> self = ?", "Tensor other = 0.0"],
+        ["Tensor<[1, 320, s1, s2]> self = ?", "Tensor<[1, 320, 1, 1]> other = ?"],
+        ["Tensor<[1, 320, s1, s2]> self = ?", "Tensor<[1, 320, s1, s2]> other = ?"],
+        ["Tensor<[1, s1*s2, 320]> self = ?", "Tensor<[1, s1*s2, 320]> other = ?"],
         ["Tensor<[1, 128, 64, 64]> self = ?", "Tensor<[1, 128, 64, 64]> other = ?"],
         ["Tensor<[1, 64, 128, 128]> self = ?", "Tensor<[1, 64, 128, 128]> other = ?"],
         ["Tensor<[1, 32, 256, 256]> self = ?", "Tensor<[1, 32, 256, 256]> other = ?"],
         ["Tensor<[1, 128, 112, 112]> self = ?", "Tensor<[1, 128, 112, 112]> other = ?"],
         ["Tensor<[1, 64, 224, 224]> self = ?", "Tensor<[1, 64, 224, 224]> other = ?"],
         ["Tensor<[12]> self = ?", "Tensor other = 0.0"],
-        ["Tensor<[1, 193, 768]> self = ?", "Tensor<[1, 193, 768]> other = ?"],
-        ["Tensor<[1, 12, 201, 201]> self = ?", "Tensor<[1, 1, 1, 201]> other = ?"],
-        ["Tensor<[1, 201, 768]> self = ?", "Tensor<[1, 201, 768]> other = ?"],
         ["Tensor<[1, 1500, 768]> self = ?", "Tensor<[1500, 768]> other = ?"],
         ["Tensor<[1, 1500, 768]> self = ?", "Tensor<[1, 1500, 768]> other = ?"],
         ["Tensor<[1, 1, 768]> self = ?", "Tensor<[1, 768]> other = ?"],
@@ -287,6 +290,8 @@ def teardown_module(module):
         ["Tensor<[1, 128, 128, 128]> self = ?", "Tensor<[1, 128, 128, 128]> other = ?"],
         ["Tensor<[1, 512, 32, 32]> self = ?", "Tensor<[1, 512, 32, 32]> other = ?"],
         ["Tensor<[1, 1024, 16, 16]> self = ?", "Tensor<[1, 1024, 16, 16]> other = ?"],
+        ["Tensor<[32]> self = ?", "Tensor other = 0.0"],
+        ["Tensor<[64]> self = ?", "Tensor other = 0.0"],
         ["Tensor<[1, 9, 128]> self = ?", "Tensor<[1, 9, 128]> other = ?"],
         ["Tensor<[1, 12, 9, 9]> self = ?", "Tensor<[1, 1, 1, 9]> other = ?"],
         ["Tensor<[1, 9, 768]> self = ?", "Tensor<[1, 9, 768]> other = ?"],
@@ -497,13 +502,6 @@ def teardown_module(module):
         ["Tensor<[24, 24]> self = ?", "Tensor other = 160"],
         ["Tensor<[12, 24, 24]> self = ?", "Tensor<[12, 24, 24]> other = ?"],
         ["Tensor<[1, 12, 24, 24]> self = ?", "Tensor<[1, 1, 24, 24]> other = ?"],
-        ["Tensor<[1, 12, 1, 24]> self = ?", "Tensor<[1, 1, 1, 24]> other = ?"],
-        ["Tensor<[1, s0, 768]> self = ?", "Tensor<[1, s0, 768]> other = ?"],
-        ["Tensor<[1, 98, 80]> self = ?", "Tensor<[1, 98, 80]> other = ?"],
-        ["Tensor<[1, 256, 392]> self = ?", "Tensor<[1, 256, 392]> other = ?"],
-        ["Tensor<[1, 128, 1568]> self = ?", "Tensor<[1, 128, 1568]> other = ?"],
-        ["Tensor<[1, 64, 6272]> self = ?", "Tensor<[1, 64, 6272]> other = ?"],
-        ["Tensor<[1, 32, 25088]> self = ?", "Tensor<[1, 32, 25088]> other = ?"],
         ["Tensor<[300]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 3, 300, 300]> self = ?", "Tensor<[1, 3, 300, 300]> other = ?"],
         ["Tensor<[38]> self = ?", "Tensor other = 0.5"],
@@ -664,18 +662,14 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -687,6 +681,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True
