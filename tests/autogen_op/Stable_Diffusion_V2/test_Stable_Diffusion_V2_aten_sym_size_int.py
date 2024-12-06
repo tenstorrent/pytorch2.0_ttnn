@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.permute.default(*args, **kwargs)
+        return torch.ops.aten.sym_size.int(*args, **kwargs)
 
 
 metrics = []
@@ -28,19 +28,37 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/ViLT", "aten.permute.default")
+    save_pickle(metrics, "metrics-autogen-op/Stable Diffusion V2", "aten.sym_size.int")
 
 
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[1, 201, 12, 64]> self = ?", "List[int] dims = [0, 2, 1, 3]"],
-        ["Tensor<[1, 12, 201, 64]> self = ?", "List[int] dims = [0, 2, 1, 3]"],
+        ["Tensor<[1, 640, s0, s1]> self = ?", "int dim = 2"],
+        ["Tensor<[1, 640, s0, s1]> self = ?", "int dim = 3"],
+        ["Tensor<[1, s0*s1, 640]> self = ?", "int dim = 1"],
+        ["Tensor<[1, s0*s1, 5120]> self = ?", "int dim = 1"],
+        ["Tensor<[1, 1280, s1, s2]> self = ?", "int dim = 2"],
+        ["Tensor<[1, 1280, s1, s2]> self = ?", "int dim = 3"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?", "int dim = 1"],
+        ["Tensor<[1, s1*s2, 10240]> self = ?", "int dim = 1"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "int dim = 2"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "int dim = 3"],
+        ["Tensor<[1, s0*s1, 1280]> self = ?", "int dim = 1"],
+        ["Tensor<[1, s0*s1, 10240]> self = ?", "int dim = 1"],
+        ["Tensor<[1, 640, s1, s2]> self = ?", "int dim = 2"],
+        ["Tensor<[1, 640, s1, s2]> self = ?", "int dim = 3"],
+        ["Tensor<[1, s1*s2, 640]> self = ?", "int dim = 1"],
+        ["Tensor<[1, s1*s2, 5120]> self = ?", "int dim = 1"],
+        ["Tensor<[1, 320, s1, s2]> self = ?", "int dim = 2"],
+        ["Tensor<[1, 320, s1, s2]> self = ?", "int dim = 3"],
+        ["Tensor<[1, s1*s2, 320]> self = ?", "int dim = 1"],
+        ["Tensor<[1, s1*s2, 2560]> self = ?", "int dim = 1"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.permute.default",
+        "opname": "aten.sym_size.int",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -49,7 +67,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     }
     m = AtenModule()
     input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
-        "aten.permute.default", input_strings
+        "aten.sym_size.int", input_strings
     )
     if status == False:
         pytest.skip("Invalid input strings")
@@ -75,18 +93,14 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -98,6 +112,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True
