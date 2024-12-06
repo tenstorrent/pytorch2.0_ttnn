@@ -116,8 +116,13 @@ aten_add_Tensor_blocklist += [
 ]
 
 aten_mul_Tensor_blocklist += [
-    ["Tensor<[12]> self = ?", "Tensor other = 32.0"],
-    ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
+    ["Tensor self = ?", "Tensor other = 32.0"],
+    ["Tensor self = ?", "Tensor other = 32.0"],
+]
+
+aten_arange_default_blocklist = [
+    ["number end = 12", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
+    ["number end = 16", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
 ]
 
 ############################################################
@@ -350,6 +355,7 @@ GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
 GUARD[torch.ops.aten.embedding.default] = partial(guard_aten, aten_embedding_default_blocklist)
+GUARD[torch.ops.aten.arange.default] = partial(guard_aten, aten_arange_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):
