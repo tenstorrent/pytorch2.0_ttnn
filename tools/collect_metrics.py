@@ -117,7 +117,12 @@ def write_to_readme(all_metrics, aten_ops_per_model):
     )
 
     # Convert metrics to markdown table
-    metrics_md = pd.DataFrame(all_metrics).to_markdown(index=False)
+    all_metrics_sort = (
+        [m for m in all_metrics if m["Status"] == "✅"]
+        + [m for m in all_metrics if m["Status"] == "🚧"]
+        + [m for m in all_metrics if m["Status"] == "❌"]
+    )
+    metrics_md = pd.DataFrame(all_metrics_sort).to_markdown(index=False)
 
     # Write to README file
     readme_md = readme_comment + readme_in.format(
