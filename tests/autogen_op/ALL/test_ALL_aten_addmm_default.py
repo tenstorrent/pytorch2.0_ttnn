@@ -142,19 +142,21 @@ def teardown_module(module):
         ["Tensor<[2560]> self = ?", "Tensor<[4096, 320]> mat1 = ?", "Tensor<[320, 2560]> mat2 = ?"],
         ["Tensor<[320]> self = ?", "Tensor<[4096, 1280]> mat1 = ?", "Tensor<[1280, 320]> mat2 = ?"],
         ["Tensor<[640]> self = ?", "Tensor<[1, 1280]> mat1 = ?", "Tensor<[1280, 640]> mat2 = ?"],
-        ["Tensor<[640]> self = ?", "Tensor<[1024, 640]> mat1 = ?", "Tensor<[640, 640]> mat2 = ?"],
-        ["Tensor<[5120]> self = ?", "Tensor<[1024, 640]> mat1 = ?", "Tensor<[640, 5120]> mat2 = ?"],
-        ["Tensor<[640]> self = ?", "Tensor<[1024, 2560]> mat1 = ?", "Tensor<[2560, 640]> mat2 = ?"],
-        ["Tensor<[10240]> self = ?", "Tensor<[256, 1280]> mat1 = ?", "Tensor<[1280, 10240]> mat2 = ?"],
-        ["Tensor<[1280]> self = ?", "Tensor<[256, 5120]> mat1 = ?", "Tensor<[5120, 1280]> mat2 = ?"],
-        ["Tensor<[1280]> self = ?", "Tensor<[64, 1280]> mat1 = ?", "Tensor<[1280, 1280]> mat2 = ?"],
-        ["Tensor<[10240]> self = ?", "Tensor<[64, 1280]> mat1 = ?", "Tensor<[1280, 10240]> mat2 = ?"],
-        ["Tensor<[1280]> self = ?", "Tensor<[64, 5120]> mat1 = ?", "Tensor<[5120, 1280]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[201, 768]> mat1 = ?", "Tensor<[768, 768]> mat2 = ?"],
-        ["Tensor<[3072]> self = ?", "Tensor<[201, 768]> mat1 = ?", "Tensor<[768, 3072]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[201, 3072]> mat1 = ?", "Tensor<[3072, 768]> mat2 = ?"],
-        ["Tensor<[1536]> self = ?", "Tensor<[1, 768]> mat1 = ?", "Tensor<[768, 1536]> mat2 = ?"],
-        ["Tensor<[3129]> self = ?", "Tensor<[1, 1536]> mat1 = ?", "Tensor<[1536, 3129]> mat2 = ?"],
+        ["Tensor<[640]> self = ?", "Tensor<[s0*s1, 640]> mat1 = ?", "Tensor<[640, 640]> mat2 = ?"],
+        ["Tensor<[5120]> self = ?", "Tensor<[s0*s1, 640]> mat1 = ?", "Tensor<[640, 5120]> mat2 = ?"],
+        ["Tensor<[640]> self = ?", "Tensor<[s0*s1, 2560]> mat1 = ?", "Tensor<[2560, 640]> mat2 = ?"],
+        ["Tensor<[1280]> self = ?", "Tensor<[s1*s2, 1280]> mat1 = ?", "Tensor<[1280, 1280]> mat2 = ?"],
+        ["Tensor<[10240]> self = ?", "Tensor<[s1*s2, 1280]> mat1 = ?", "Tensor<[1280, 10240]> mat2 = ?"],
+        ["Tensor<[1280]> self = ?", "Tensor<[s1*s2, 5120]> mat1 = ?", "Tensor<[5120, 1280]> mat2 = ?"],
+        ["Tensor<[1280]> self = ?", "Tensor<[s0*s1, 1280]> mat1 = ?", "Tensor<[1280, 1280]> mat2 = ?"],
+        ["Tensor<[10240]> self = ?", "Tensor<[s0*s1, 1280]> mat1 = ?", "Tensor<[1280, 10240]> mat2 = ?"],
+        ["Tensor<[1280]> self = ?", "Tensor<[s0*s1, 5120]> mat1 = ?", "Tensor<[5120, 1280]> mat2 = ?"],
+        ["Tensor<[640]> self = ?", "Tensor<[s1*s2, 640]> mat1 = ?", "Tensor<[640, 640]> mat2 = ?"],
+        ["Tensor<[5120]> self = ?", "Tensor<[s1*s2, 640]> mat1 = ?", "Tensor<[640, 5120]> mat2 = ?"],
+        ["Tensor<[640]> self = ?", "Tensor<[s1*s2, 2560]> mat1 = ?", "Tensor<[2560, 640]> mat2 = ?"],
+        ["Tensor<[320]> self = ?", "Tensor<[s1*s2, 320]> mat1 = ?", "Tensor<[320, 320]> mat2 = ?"],
+        ["Tensor<[2560]> self = ?", "Tensor<[s1*s2, 320]> mat1 = ?", "Tensor<[320, 2560]> mat2 = ?"],
+        ["Tensor<[320]> self = ?", "Tensor<[s1*s2, 1280]> mat1 = ?", "Tensor<[1280, 320]> mat2 = ?"],
         ["Tensor<[768]> self = ?", "Tensor<[1500, 768]> mat1 = ?", "Tensor<[768, 768]> mat2 = ?"],
         ["Tensor<[3072]> self = ?", "Tensor<[1500, 768]> mat1 = ?", "Tensor<[768, 3072]> mat2 = ?"],
         ["Tensor<[768]> self = ?", "Tensor<[1500, 3072]> mat1 = ?", "Tensor<[3072, 768]> mat2 = ?"],
@@ -236,14 +238,6 @@ def teardown_module(module):
         ["Tensor<[768]> self = ?", "Tensor<[24, 768]> mat1 = ?", "Tensor<[768, 768]> mat2 = ?"],
         ["Tensor<[3072]> self = ?", "Tensor<[24, 768]> mat1 = ?", "Tensor<[768, 3072]> mat2 = ?"],
         ["Tensor<[768]> self = ?", "Tensor<[24, 3072]> mat1 = ?", "Tensor<[3072, 768]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[1, 80]> mat1 = ?", "Tensor<[80, 256]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[1, 256]> mat1 = ?", "Tensor<[256, 256]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[1, 256]> mat1 = ?", "Tensor<[256, 768]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[1, 1280]> mat1 = ?", "Tensor<[1280, 768]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[s0, 80]> mat1 = ?", "Tensor<[80, 256]> mat2 = ?"],
-        ["Tensor<[256]> self = ?", "Tensor<[s0, 256]> mat1 = ?", "Tensor<[256, 256]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[s0, 256]> mat1 = ?", "Tensor<[256, 768]> mat2 = ?"],
-        ["Tensor<[768]> self = ?", "Tensor<[s0, 1280]> mat1 = ?", "Tensor<[1280, 768]> mat2 = ?"],
         ["Tensor<[384]> self = ?", "Tensor<[3136, 128]> mat1 = ?", "Tensor<[128, 384]> mat2 = ?"],
         ["Tensor<[128]> self = ?", "Tensor<[3136, 128]> mat1 = ?", "Tensor<[128, 128]> mat2 = ?"],
         ["Tensor<[512]> self = ?", "Tensor<[3136, 128]> mat1 = ?", "Tensor<[128, 512]> mat2 = ?"],
@@ -368,11 +362,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -391,6 +381,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

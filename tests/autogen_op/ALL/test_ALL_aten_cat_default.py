@@ -42,8 +42,6 @@ def teardown_module(module):
         ["List[Tensor] tensors = [<[1, 6, s0, 64]>, <[1, 6, 1, 64]>]", "int dim = 2"],
         ["List[Tensor] tensors = [<[1, 1, 16]>, <[1, 1, 1]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1, 6, 16, 64]>, <[1, 6, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 71, 7, 32]>, <[1, 71, 7, 32]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[1, 1, 7, 32]>, <[1, 1, 7, 32]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1, 64, 30, 40]>, <[1, 64, 30, 40]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 64, 60, 80]>, <[1, 64, 60, 80]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 64, 120, 160]>, <[1, 64, 120, 160]>]", "int dim = 1"],
@@ -116,6 +114,7 @@ def teardown_module(module):
         ["List[Tensor] tensors = [<[1, 160, 7, 7]>, <[1, 640, 7, 7]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 160, 7, 7]>, <[1, 272, 7, 7]>, <[1, 640, 7, 7]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 160, 7, 7]>, <[1, 160, 7, 7]>, <[1, 462, 7, 7]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 32, 64]>, <[1, 32, 64]>]", "int dim = -1"],
         [
             "List[Tensor] tensors = [<[1, 2400, 4]>, <[1, 600, 4]>, <[1, 150, 4]>, <[1, 54, 4]>, <[1, 24, 4]>, <[1, 6, 4]>]",
             "int dim = 1",
@@ -142,14 +141,6 @@ def teardown_module(module):
             "int dim = 1",
         ],
         ["List[Tensor] tensors = [<[1, 160]>, <[1, 160]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[1, 1280, 8, 8]>, <[1, 1280, 8, 8]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 1280, 16, 16]>, <[1, 1280, 16, 16]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 1280, 16, 16]>, <[1, 640, 16, 16]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 1280, 32, 32]>, <[1, 640, 32, 32]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 640, 32, 32]>, <[1, 640, 32, 32]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 640, 32, 32]>, <[1, 320, 32, 32]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 640, 64, 64]>, <[1, 320, 64, 64]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 320, 64, 64]>, <[1, 320, 64, 64]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 256, 32, 32]>, <[1, 256, 32, 32]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 128, 64, 64]>, <[1, 128, 64, 64]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 64, 128, 128]>, <[1, 64, 128, 128]>]", "int dim = 1"],
@@ -159,8 +150,6 @@ def teardown_module(module):
         ["List[Tensor] tensors = [<[1, 128, 112, 112]>, <[1, 128, 112, 112]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 64, 224, 224]>, <[1, 64, 224, 224]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 768, 12, 16]>]"],
-        ["List[Tensor] tensors = [<[1, 8, 768]>, <[1, 193, 768]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[1, 8]>, <[1, 193]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[1, 1]>, <[1, 1]>, <[1, 1]>, <[1, 1]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1, 12, 4, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
         ["List[Tensor] tensors = [<[1, 12, s2, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
@@ -1142,10 +1131,6 @@ def teardown_module(module):
             "int dim = 1",
         ],
         ["List[Tensor] tensors = [<[122400, 4]>, <[30600, 4]>, <[7650, 4]>, <[1989, 4]>, <[567, 4]>]"],
-        ["List[Tensor] tensors = [<[1, 1, 768]>, <[1, 1, 512]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[1, s0, 768]>, <[1, s0, 512]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[1, 12, 1, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 12, s0, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
         [
             "List[Tensor] tensors = [<[1, 5776, 4]>, <[1, 2166, 4]>, <[1, 600, 4]>, <[1, 150, 4]>, <[1, 36, 4]>, <[1, 4, 4]>]",
             "int dim = 1",
@@ -1208,6 +1193,8 @@ def teardown_module(module):
             "List[Tensor] tensors = [<[1, 8, 8, 384]>, <[1, 8, 8, 384]>, <[1, 8, 8, 384]>, <[1, 8, 8, 384]>]",
             "int dim = -1",
         ],
+        ["List[Tensor] tensors = [<[1, 12, 1, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
+        ["List[Tensor] tensors = [<[1, 12, s0, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
         ["List[Tensor] tensors = [<[1, 16, 1, 64]>, <[1, 16, 1, 64]>]", "int dim = 2"],
         ["List[Tensor] tensors = [<[1, 16, s0, 64]>, <[1, 16, 1, 64]>]", "int dim = 2"],
         ["List[Tensor] tensors = [<[1, 8, 1, 64]>, <[1, 8, 1, 64]>]", "int dim = 2"],
@@ -1251,11 +1238,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -1274,6 +1257,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

@@ -48,7 +48,6 @@ def teardown_module(module):
         ["Tensor<[1, 6, 1, 2]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 6, 1, s0 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 6, 1, 17]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[1, 71, 7, 7]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 1, 19200, 300]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 2, 4800, 300]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 5, 1200, 300]> self = ?", "int dim = -1", "bool half_to_float = False"],
@@ -67,7 +66,6 @@ def teardown_module(module):
         ["Tensor<[1, 1, 16384, 256]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 2, 4096, 256]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 5, 1024, 256]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[1, 12, 201, 201]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[16, 19, 19]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 3, 1445, 1445]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 12, 9, 9]> self = ?", "int dim = -1", "bool half_to_float = False"],
@@ -81,15 +79,6 @@ def teardown_module(module):
         ["Tensor<[1, 12, 197, 197]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[1, 16, 197, 197]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[12, 24, 24]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, 24]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, 2]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s0 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s2 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s4 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s6 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s8 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
-        ["Tensor<[12, 1, s10 + 1]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[64, 4, 49, 49]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[16, 8, 49, 49]> self = ?", "int dim = -1", "bool half_to_float = False"],
         ["Tensor<[4, 16, 49, 49]> self = ?", "int dim = -1", "bool half_to_float = False"],
@@ -160,11 +149,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -183,6 +168,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

@@ -39,13 +39,6 @@ def teardown_module(module):
         ["Tensor<[2, 2]> self = ?", "number fill_value = 31", "Optional[bool] pin_memory = False"],
         ["Tensor<[s0 + 1, s0 + 1]> self = ?", "number fill_value = 31", "Optional[bool] pin_memory = False"],
         ["Tensor<[17, 17]> self = ?", "number fill_value = 31", "Optional[bool] pin_memory = False"],
-        [
-            "Tensor<[1, 193]> self = ?",
-            "number fill_value = 1",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
         ["Tensor<[10, 10]> self = ?", "number fill_value = 15", "Optional[bool] pin_memory = False"],
     ],
 )
@@ -86,11 +79,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -109,6 +98,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

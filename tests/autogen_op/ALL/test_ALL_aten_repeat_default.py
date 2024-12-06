@@ -43,8 +43,6 @@ def teardown_module(module):
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [9, 1]"],
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [4, 1]"],
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [1, 1]"],
-        ["Tensor<[1, 1, 256]> self = ?", "List[int] repeats = [1, 1, 1]"],
-        ["Tensor<[1, s0, 256]> self = ?", "List[int] repeats = [1, 1, 1]"],
         ["Tensor<[4, 2]> self = ?", "List[int] repeats = [1444, 1]"],
         ["Tensor<[6, 2]> self = ?", "List[int] repeats = [361, 1]"],
         ["Tensor<[4, 2]> self = ?", "List[int] repeats = [9, 1]"],
@@ -88,11 +86,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -111,6 +105,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

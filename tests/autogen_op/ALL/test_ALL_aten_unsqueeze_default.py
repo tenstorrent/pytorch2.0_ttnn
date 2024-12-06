@@ -133,20 +133,18 @@ def teardown_module(module):
         ["Tensor<[1, 1280]> self = ?", "int dim = 2"],
         ["Tensor<[1, 1280, 1]> self = ?", "int dim = 3"],
         ["Tensor<[16]> self = ?", "int dim = -1"],
-        ["Tensor<[32]> self = ?", "int dim = -1"],
-        ["Tensor<[64]> self = ?", "int dim = -1"],
+        ["Tensor<[2*s0]> self = ?", "int dim = -1"],
+        ["Tensor<[2*s1]> self = ?", "int dim = -1"],
         ["Tensor<[1, 384, 512]> self = ?", "int dim = 1"],
         ["Tensor<[12]> self = ?", "int dim = -1"],
-        ["Tensor<[12, 16, 2]> self = ?", "int dim = 0"],
-        ["Tensor<[1, 12, 16, 2]> self = ?", "int dim = 1"],
-        ["Tensor<[1, 201]> self = ?", "int dim = 1"],
-        ["Tensor<[1, 1, 201]> self = ?", "int dim = 2"],
         ["Tensor<[19]> self = ?", "int dim = 0"],
         ["Tensor<[19, 19]> self = ?", "int dim = 0"],
         ["Tensor<[1, 19, 19]> self = ?", "int dim = 1"],
         ["Tensor<[1, 19]> self = ?", "int dim = 1"],
         ["Tensor<[1, 1, 19]> self = ?", "int dim = 2"],
         ["Tensor<[1, 192]> self = ?", "int dim = 1"],
+        ["Tensor<[32]> self = ?", "int dim = -1"],
+        ["Tensor<[64]> self = ?", "int dim = -1"],
         ["Tensor<[1, 9]> self = ?", "int dim = 1"],
         ["Tensor<[1, 1, 9]> self = ?", "int dim = 2"],
         ["Tensor<[1, 12]> self = ?", "int dim = 1"],
@@ -177,10 +175,6 @@ def teardown_module(module):
         ["Tensor<[1, 1, 24]> self = ?", "int dim = 2"],
         ["Tensor<[24]> self = ?", "int dim = 1"],
         ["Tensor<[24]> self = ?", "int dim = 0"],
-        ["Tensor<[1, 256]> self = ?", "int dim = 0"],
-        ["Tensor<[1, 512]> self = ?", "int dim = 1"],
-        ["Tensor<[s0, 256]> self = ?", "int dim = 0"],
-        ["Tensor<[98, 80]> self = ?", "int dim = 0"],
         ["Tensor<[300]> self = ?", "int dim = 1"],
         ["Tensor<[8732]> self = ?", "int dim = 1"],
         ["Tensor<[25]> self = ?", "int dim = 1"],
@@ -284,11 +278,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -307,6 +297,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

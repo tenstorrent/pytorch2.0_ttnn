@@ -41,19 +41,35 @@ def teardown_module(module):
         ],
         ["Tensor<[1, 8, 4096, 40]> query = ?", "Tensor<[1, 8, 9, 40]> key = ?", "Tensor<[1, 8, 9, 40]> value = ?"],
         [
-            "Tensor<[1, 8, 1024, 80]> query = ?",
-            "Tensor<[1, 8, 1024, 80]> key = ?",
-            "Tensor<[1, 8, 1024, 80]> value = ?",
+            "Tensor<[1, 8, s0*s1, 80]> query = ?",
+            "Tensor<[1, 8, s0*s1, 80]> key = ?",
+            "Tensor<[1, 8, s0*s1, 80]> value = ?",
         ],
-        ["Tensor<[1, 8, 1024, 80]> query = ?", "Tensor<[1, 8, 9, 80]> key = ?", "Tensor<[1, 8, 9, 80]> value = ?"],
+        ["Tensor<[1, 8, s0*s1, 80]> query = ?", "Tensor<[1, 8, 9, 80]> key = ?", "Tensor<[1, 8, 9, 80]> value = ?"],
         [
-            "Tensor<[1, 8, 256, 160]> query = ?",
-            "Tensor<[1, 8, 256, 160]> key = ?",
-            "Tensor<[1, 8, 256, 160]> value = ?",
+            "Tensor<[1, 8, s1*s2, 160]> query = ?",
+            "Tensor<[1, 8, s1*s2, 160]> key = ?",
+            "Tensor<[1, 8, s1*s2, 160]> value = ?",
         ],
-        ["Tensor<[1, 8, 256, 160]> query = ?", "Tensor<[1, 8, 9, 160]> key = ?", "Tensor<[1, 8, 9, 160]> value = ?"],
-        ["Tensor<[1, 8, 64, 160]> query = ?", "Tensor<[1, 8, 64, 160]> key = ?", "Tensor<[1, 8, 64, 160]> value = ?"],
-        ["Tensor<[1, 8, 64, 160]> query = ?", "Tensor<[1, 8, 9, 160]> key = ?", "Tensor<[1, 8, 9, 160]> value = ?"],
+        ["Tensor<[1, 8, s1*s2, 160]> query = ?", "Tensor<[1, 8, 9, 160]> key = ?", "Tensor<[1, 8, 9, 160]> value = ?"],
+        [
+            "Tensor<[1, 8, s0*s1, 160]> query = ?",
+            "Tensor<[1, 8, s0*s1, 160]> key = ?",
+            "Tensor<[1, 8, s0*s1, 160]> value = ?",
+        ],
+        ["Tensor<[1, 8, s0*s1, 160]> query = ?", "Tensor<[1, 8, 9, 160]> key = ?", "Tensor<[1, 8, 9, 160]> value = ?"],
+        [
+            "Tensor<[1, 8, s1*s2, 80]> query = ?",
+            "Tensor<[1, 8, s1*s2, 80]> key = ?",
+            "Tensor<[1, 8, s1*s2, 80]> value = ?",
+        ],
+        ["Tensor<[1, 8, s1*s2, 80]> query = ?", "Tensor<[1, 8, 9, 80]> key = ?", "Tensor<[1, 8, 9, 80]> value = ?"],
+        [
+            "Tensor<[1, 8, s1*s2, 40]> query = ?",
+            "Tensor<[1, 8, s1*s2, 40]> key = ?",
+            "Tensor<[1, 8, s1*s2, 40]> value = ?",
+        ],
+        ["Tensor<[1, 8, s1*s2, 40]> query = ?", "Tensor<[1, 8, 9, 40]> key = ?", "Tensor<[1, 8, 9, 40]> value = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
@@ -93,11 +109,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -116,6 +128,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

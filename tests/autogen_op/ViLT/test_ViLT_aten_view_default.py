@@ -38,19 +38,6 @@ def teardown_module(module):
         ["Tensor<[1, 768, 12, 16]> self = ?", "List[int] size = [1, 768, 192]"],
         ["Tensor<[12]> self = ?", "List[int] size = [-1, 1]"],
         ["Tensor<[16]> self = ?", "List[int] size = [1, -1]"],
-        ["Tensor<[1, 1, 12, 16, 2]> self = ?", "List[int] size = [1, 192, 2]"],
-        ["Tensor<[1, 1, 12, 16]> self = ?", "List[int] size = [1, 192]"],
-        ["Tensor<[1, 201, 768]> self = ?", "List[int] size = [201, 768]"],
-        ["Tensor<[201, 768]> self = ?", "List[int] size = [1, 201, 768]"],
-        ["Tensor<[1, 201, 768]> self = ?", "List[int] size = [1, 201, 12, 64]"],
-        ["Tensor<[1, 12, 201, 64]> self = ?", "List[int] size = [12, 201, 64]"],
-        ["Tensor<[1, 12, 64, 201]> self = ?", "List[int] size = [12, 64, 201]"],
-        ["Tensor<[12, 201, 201]> self = ?", "List[int] size = [1, 12, 201, 201]"],
-        ["Tensor<[1, 12, 201, 201]> self = ?", "List[int] size = [12, 201, 201]"],
-        ["Tensor<[12, 201, 64]> self = ?", "List[int] size = [1, 12, 201, 64]"],
-        ["Tensor<[1, 201, 12, 64]> self = ?", "List[int] size = [1, 201, 768]"],
-        ["Tensor<[201, 3072]> self = ?", "List[int] size = [1, 201, 3072]"],
-        ["Tensor<[1, 201, 3072]> self = ?", "List[int] size = [201, 3072]"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
@@ -90,11 +77,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -113,6 +96,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

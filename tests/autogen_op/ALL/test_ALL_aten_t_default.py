@@ -84,7 +84,6 @@ def teardown_module(module):
         ["Tensor<[1024, 512]> self = ?"],
         ["Tensor<[512, 1024]> self = ?"],
         ["Tensor<[32128, 512]> self = ?"],
-        ["Tensor<[65024, 4544]> self = ?"],
         ["Tensor<[64, 64]> self = ?"],
         ["Tensor<[256, 64]> self = ?"],
         ["Tensor<[64, 256]> self = ?"],
@@ -148,8 +147,6 @@ def teardown_module(module):
         ["Tensor<[640, 2560]> self = ?"],
         ["Tensor<[10240, 1280]> self = ?"],
         ["Tensor<[1280, 5120]> self = ?"],
-        ["Tensor<[1536, 768]> self = ?"],
-        ["Tensor<[3129, 1536]> self = ?"],
         ["Tensor<[51865, 768]> self = ?"],
         ["Tensor<[256008, 1024]> self = ?"],
         ["Tensor<[192, 192]> self = ?"],
@@ -210,9 +207,8 @@ def teardown_module(module):
         ["Tensor<[1000, 440]> self = ?"],
         ["Tensor<[1000, 784]> self = ?"],
         ["Tensor<[1000, 2016]> self = ?"],
-        ["Tensor<[256, 80]> self = ?"],
-        ["Tensor<[768, 256]> self = ?"],
         ["Tensor<[384, 128]> self = ?"],
+        ["Tensor<[768, 256]> self = ?"],
         ["Tensor<[1536, 512]> self = ?"],
         ["Tensor<[1024, 2048]> self = ?"],
         ["Tensor<[288, 96]> self = ?"],
@@ -280,11 +276,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -303,6 +295,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

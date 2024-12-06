@@ -39,20 +39,6 @@ def teardown_module(module):
         ["Tensor<[12, 24, 24]> self = ?"],
         ["Tensor<[1, 24, 12, 64]> self = ?", "Optional[int] memory_format = torch.contiguous_format"],
         ["Tensor<[1, 24, 3072]> self = ?"],
-        ["Tensor<[1, 1, 768]> self = ?"],
-        ["Tensor<[12, 1, 1]> self = ?"],
-        ["Tensor<[12, 1, 24]> self = ?"],
-        ["Tensor<[1, 1, 3072]> self = ?"],
-        ["Tensor<[1, s0, 768]> self = ?"],
-        ["Tensor<[12, 1, 2]> self = ?"],
-        ["Tensor<[12, 1, s0 + 1]> self = ?"],
-        ["Tensor<[12, 1, s2 + 1]> self = ?"],
-        ["Tensor<[12, 1, s4 + 1]> self = ?"],
-        ["Tensor<[12, 1, s6 + 1]> self = ?"],
-        ["Tensor<[12, 1, s8 + 1]> self = ?"],
-        ["Tensor<[12, 1, s10 + 1]> self = ?"],
-        ["Tensor<[1, 256, 98]> self = ?"],
-        ["Tensor<[1, 80, 98]> self = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
@@ -92,11 +78,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -115,6 +97,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

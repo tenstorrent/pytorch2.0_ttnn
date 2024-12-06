@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.cat.default(*args, **kwargs)
+        return torch.ops.aten.expand.default(*args, **kwargs)
 
 
 metrics = []
@@ -28,26 +28,20 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/speecht5-tts", "aten.cat.default")
+    save_pickle(metrics, "metrics-autogen-op/Llama", "aten.expand.default")
 
 
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["List[Tensor] tensors = [<[1, 1, 768]>, <[1, 1, 512]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[1, s0, 768]>, <[1, s0, 512]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[1, 12, 1, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 12, s0, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 12, s2, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 12, s4, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 12, s6, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 12, s8, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[1, 12, s10, 64]>, <[1, 12, 1, 64]>]", "int dim = 2"],
+        ["Tensor<[1, 64, 1]> self = ?", "List[int] size = [1, -1, 1]"],
+        ["Tensor<[1, 64, 1]> self = ?", "List[int] size = [1, 64, 1]"],
+        ["Tensor<[1, 1, 32]> self = ?", "List[int] size = [1, 1, 32]"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.cat.default",
+        "opname": "aten.expand.default",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -55,7 +49,9 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "convert_to_ttnn": "N/A",
     }
     m = AtenModule()
-    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.cat.default", input_strings)
+    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
+        "aten.expand.default", input_strings
+    )
     if status == False:
         pytest.skip("Invalid input strings")
     try:
@@ -80,11 +76,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -103,6 +95,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

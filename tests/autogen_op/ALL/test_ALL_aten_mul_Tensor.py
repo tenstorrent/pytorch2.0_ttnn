@@ -105,8 +105,6 @@ def teardown_module(module):
         ["Tensor<[1, 1, 1, 17]> self = ?", "Tensor<[1, 1, 1, 17]> other = ?"],
         ["Tensor<[1, 1, 1, 17]> self = ?", "Tensor other = -3.3895313892515355e+38"],
         ["Tensor<[17, 17]> self = ?", "Tensor other = 16"],
-        ["Tensor<[1, 71, 7, 64]> self = ?", "Tensor<[1, 1, 7, 64]> other = ?"],
-        ["Tensor<[1, 1, 7, 64]> self = ?", "Tensor<[1, 1, 7, 64]> other = ?"],
         ["Tensor<[30]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[40]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 64, 30, 40]> self = ?", "Tensor<[30, 1]> other = ?"],
@@ -182,16 +180,17 @@ def teardown_module(module):
         ["Tensor<[1, 1]> self = ?", "Tensor<[1, 160]> other = ?"],
         ["Tensor<[1, 160]> self = ?", "Tensor other = 1"],
         ["Tensor<[1, 4096, 1280]> self = ?", "Tensor<[1, 4096, 1280]> other = ?"],
-        ["Tensor<[1, 1024, 2560]> self = ?", "Tensor<[1, 1024, 2560]> other = ?"],
-        ["Tensor<[1, 256, 5120]> self = ?", "Tensor<[1, 256, 5120]> other = ?"],
-        ["Tensor<[1, 64, 5120]> self = ?", "Tensor<[1, 64, 5120]> other = ?"],
+        ["Tensor<[1, s0*s1, 2560]> self = ?", "Tensor<[1, s0*s1, 2560]> other = ?"],
+        ["Tensor<[1, s1*s2, 5120]> self = ?", "Tensor<[1, s1*s2, 5120]> other = ?"],
+        ["Tensor<[1, s0*s1, 5120]> self = ?", "Tensor<[1, s0*s1, 5120]> other = ?"],
         ["Tensor<[16]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[32]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[64]> self = ?", "Tensor other = 0.5"],
+        ["Tensor<[2*s0]> self = ?", "Tensor<0.500000000000000> other = ?"],
+        ["Tensor<[2*s1]> self = ?", "Tensor<0.500000000000000> other = ?"],
+        ["Tensor<[1, s1*s2, 2560]> self = ?", "Tensor<[1, s1*s2, 2560]> other = ?"],
+        ["Tensor<[2*s2]> self = ?", "Tensor<0.500000000000000> other = ?"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?", "Tensor<[1, s1*s2, 1280]> other = ?"],
         ["Tensor<[12]> self = ?", "Tensor other = 32.0"],
         ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
-        ["Tensor<[1]> self = ?", "Tensor<[1]> other = ?"],
-        ["Tensor<[1, 1, 1, 201]> self = ?", "Tensor other = -3.3895313892515355e+38"],
         ["Tensor<[1, 1]> self = ?", "Tensor other = 50258"],
         ["Tensor<[1, 1]> self = ?", "Tensor other = 50259"],
         ["Tensor<[1, 1]> self = ?", "Tensor other = 50359"],
@@ -208,6 +207,8 @@ def teardown_module(module):
         ["Tensor<[1, 1, 32, 1]> self = ?", "Tensor<[1, 1, 32, 1]> other = ?"],
         ["Tensor<[1, 1, 32, 1]> self = ?", "Tensor other = 1.25"],
         ["Tensor<[1, 192, 32, 42]> self = ?", "Tensor<[1, 1, 32, 1]> other = ?"],
+        ["Tensor<[32]> self = ?", "Tensor other = 0.5"],
+        ["Tensor<[64]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 1, 1, 9]> self = ?", "Tensor other = -3.3895313892515355e+38"],
         ["Tensor<[1, 9, 3072]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 9, 3072]> self = ?", "Tensor other = 0.044715"],
@@ -366,11 +367,6 @@ def teardown_module(module):
         ["Tensor<[0]> self = ?", "Tensor<[]> other = ?"],
         ["Tensor<[]> self = ?", "Tensor<[1, 24, 768]> other = ?"],
         ["Tensor<[1, 24, 768]> self = ?", "Tensor other = 0.125"],
-        ["Tensor<[1, 1, 256]> self = ?", "Tensor other = 1"],
-        ["Tensor<[]> self = ?", "Tensor<[1, 1, 768]> other = ?"],
-        ["Tensor<[1, 1, 768]> self = ?", "Tensor other = 0.125"],
-        ["Tensor<[1, s0, 256]> self = ?", "Tensor other = 1"],
-        ["Tensor<[]> self = ?", "Tensor<[1, s0, 768]> other = ?"],
         ["Tensor<[300]> self = ?", "Tensor other = 1.6"],
         ["Tensor<[300]> self = ?", "Tensor other = 2.1333333333333333"],
         ["Tensor<[1, 3, 300, 300]> self = ?", "Tensor<[300, 1]> other = ?"],
@@ -465,11 +461,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -488,6 +480,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

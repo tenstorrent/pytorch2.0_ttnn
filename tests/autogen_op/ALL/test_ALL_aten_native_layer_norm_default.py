@@ -91,13 +91,6 @@ def teardown_module(module):
             "float eps = 1e-12",
         ],
         [
-            "Tensor<[1, 7, 4544]> input = ?",
-            "List[int] normalized_shape = [4544]",
-            "Optional[Tensor]<[4544]> weight = ?",
-            "Optional[Tensor]<[4544]> bias = ?",
-            "float eps = 1e-05",
-        ],
-        [
             "Tensor<[1, 19200, 64]> input = ?",
             "List[int] normalized_shape = [64]",
             "Optional[Tensor]<[64]> weight = ?",
@@ -273,31 +266,38 @@ def teardown_module(module):
             "float eps = 1e-05",
         ],
         [
-            "Tensor<[1, 1024, 640]> input = ?",
+            "Tensor<[1, s0*s1, 640]> input = ?",
             "List[int] normalized_shape = [640]",
             "Optional[Tensor]<[640]> weight = ?",
             "Optional[Tensor]<[640]> bias = ?",
             "float eps = 1e-05",
         ],
         [
-            "Tensor<[1, 64, 1280]> input = ?",
+            "Tensor<[1, s1*s2, 1280]> input = ?",
             "List[int] normalized_shape = [1280]",
             "Optional[Tensor]<[1280]> weight = ?",
             "Optional[Tensor]<[1280]> bias = ?",
             "float eps = 1e-05",
         ],
         [
-            "Tensor<[1, 201, 768]> input = ?",
-            "List[int] normalized_shape = [768]",
-            "Optional[Tensor]<[768]> weight = ?",
-            "Optional[Tensor]<[768]> bias = ?",
-            "float eps = 1e-12",
+            "Tensor<[1, s0*s1, 1280]> input = ?",
+            "List[int] normalized_shape = [1280]",
+            "Optional[Tensor]<[1280]> weight = ?",
+            "Optional[Tensor]<[1280]> bias = ?",
+            "float eps = 1e-05",
         ],
         [
-            "Tensor<[1, 1536]> input = ?",
-            "List[int] normalized_shape = [1536]",
-            "Optional[Tensor]<[1536]> weight = ?",
-            "Optional[Tensor]<[1536]> bias = ?",
+            "Tensor<[1, s1*s2, 640]> input = ?",
+            "List[int] normalized_shape = [640]",
+            "Optional[Tensor]<[640]> weight = ?",
+            "Optional[Tensor]<[640]> bias = ?",
+            "float eps = 1e-05",
+        ],
+        [
+            "Tensor<[1, s1*s2, 320]> input = ?",
+            "List[int] normalized_shape = [320]",
+            "Optional[Tensor]<[320]> weight = ?",
+            "Optional[Tensor]<[320]> bias = ?",
             "float eps = 1e-05",
         ],
         [
@@ -675,11 +675,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -698,6 +694,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

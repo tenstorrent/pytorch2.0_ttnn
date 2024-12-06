@@ -180,6 +180,7 @@ def teardown_module(module):
         ["Tensor<[272]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
         ["Tensor<[462]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
         ["Tensor<[1024]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
+        ["Tensor<[1, 1, 32]> self = ?", "Optional[int] dtype = torch.float32"],
         ["Tensor<[59, 59]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 1, 59, 59]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 1, 59, 59]> self = ?", "Optional[int] dtype = torch.bool"],
@@ -238,16 +239,16 @@ def teardown_module(module):
         ["Tensor<[1, 1280, 8, 8]> self = ?", "Optional[int] dtype = torch.float32"],
         ["Tensor<[16]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 1280, 16, 16]> self = ?", "Optional[int] dtype = torch.bfloat16"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?", "Optional[int] dtype = torch.float32"],
-        ["Tensor<[32]> self = ?", "Optional[int] dtype = torch.int64"],
-        ["Tensor<[1, 1280, 32, 32]> self = ?", "Optional[int] dtype = torch.bfloat16"],
-        ["Tensor<[1, 640, 32, 32]> self = ?", "Optional[int] dtype = torch.float32"],
-        ["Tensor<[64]> self = ?", "Optional[int] dtype = torch.int64"],
-        ["Tensor<[1, 640, 64, 64]> self = ?", "Optional[int] dtype = torch.bfloat16"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "Optional[int] dtype = torch.float32"],
+        ["Tensor<[2*s0]> self = ?", "Optional[int] dtype = torch.int64"],
+        ["Tensor<[2*s1]> self = ?", "Optional[int] dtype = torch.int64"],
+        ["Tensor<[1, 1280, 2*s0, 2*s1]> self = ?", "Optional[int] dtype = torch.bfloat16"],
+        ["Tensor<[1, s0, s1, s2]> self = ?", "Optional[int] dtype = torch.float32"],
+        ["Tensor<[2*s2]> self = ?", "Optional[int] dtype = torch.int64"],
+        ["Tensor<[1, s0, 2*s1, 2*s2]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 1, 384, 512]> self = ?", "Optional[int] dtype = torch.float32"],
         ["Tensor<[12]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 1, 12, 16]> self = ?", "Optional[int] dtype = torch.int64"],
-        ["Tensor<[1, 1, 1, 201]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[19, 19]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 1, 19, 19]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 1, 19, 19]> self = ?", "Optional[int] dtype = torch.bool"],
@@ -255,8 +256,10 @@ def teardown_module(module):
         ["Tensor<[1, 1, 1, 42]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 1, 32, 1]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 192, 32, 42]> self = ?", "Optional[int] dtype = torch.bfloat16"],
+        ["Tensor<[32]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 256, 32, 32]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 128, 32, 32]> self = ?", "Optional[int] dtype = torch.float32"],
+        ["Tensor<[64]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 128, 64, 64]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 1, 1, 9]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 1, 1, 12]> self = ?", "Optional[int] dtype = torch.bfloat16"],
@@ -273,13 +276,6 @@ def teardown_module(module):
         ["Tensor<[192]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
         ["Tensor<[768]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
         ["Tensor<[224]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
-        ["Tensor<[1, 3, 224, 224]> self = ?", "Optional[int] dtype = torch.bfloat16"],
-        [
-            "Tensor<[1, 3, 224, 224]> self = ?",
-            "Optional[int] dtype = torch.float32",
-            "Optional[int] layout = torch.strided",
-            "Optional[Device] device = cpu",
-        ],
         ["Tensor<[8]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
         ["Tensor<[48]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
         ["Tensor<[12]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[int] layout = torch.strided"],
@@ -670,11 +666,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -693,6 +685,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

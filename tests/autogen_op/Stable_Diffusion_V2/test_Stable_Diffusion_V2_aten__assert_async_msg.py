@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.tanh.default(*args, **kwargs)
+        return torch.ops.aten._assert_async.msg(*args, **kwargs)
 
 
 metrics = []
@@ -28,13 +28,13 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/speecht5-tts", "aten.tanh.default")
+    save_pickle(metrics, "metrics-autogen-op/Stable Diffusion V2", "aten._assert_async.msg")
 
 
-@pytest.mark.parametrize("input_strings", [["Tensor<[1, 256, 98]> self = ?"], ["Tensor<[1, 1, 25088]> self = ?"]])
+@pytest.mark.parametrize("input_strings", [["Tensor<[]> self = ?", "str assert_msg = assertion error"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.tanh.default",
+        "opname": "aten._assert_async.msg",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -43,7 +43,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     }
     m = AtenModule()
     input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
-        "aten.tanh.default", input_strings
+        "aten._assert_async.msg", input_strings
     )
     if status == False:
         pytest.skip("Invalid input strings")
@@ -69,11 +69,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -92,6 +88,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

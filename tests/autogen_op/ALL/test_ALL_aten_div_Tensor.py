@@ -87,14 +87,18 @@ def teardown_module(module):
         ["Tensor<[160]> self = ?", "Tensor other = 160"],
         ["Tensor<[1, 320, 64, 64]> self = ?", "Tensor other = 1.0"],
         ["Tensor<[1, 4096, 320]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[1, 640, 32, 32]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[1, 1024, 640]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[1, 1280, 16, 16]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[1, 256, 1280]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, 640, s0, s1]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, s0*s1, 640]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, 1280, s1, s2]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, s1*s2, 1280]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, 1280, s0, s1]> self = ?", "Tensor other = 1"],
+        ["Tensor<[1, s0*s1, 1280]> self = ?", "Tensor other = 1.0"],
         ["Tensor<[1, 1280, 8, 8]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[1, 1280, 8, 8]> self = ?", "Tensor other = 1"],
-        ["Tensor<[1, 64, 1280]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[1, 12, 201, 201]> self = ?", "Tensor other = 8.0"],
+        ["Tensor<[1, 640, s1, s2]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, s1*s2, 640]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, 320, s1, s2]> self = ?", "Tensor other = 1.0"],
+        ["Tensor<[1, s1*s2, 320]> self = ?", "Tensor other = 1.0"],
         ["Tensor<[1, 3, 1445, 1445]> self = ?", "Tensor other = 8.0"],
         ["Tensor<[1, 12, 9, 9]> self = ?", "Tensor other = 8.0"],
         ["Tensor<[1, 12, 12, 12]> self = ?", "Tensor other = 8.0"],
@@ -143,14 +147,6 @@ def teardown_module(module):
         ["Tensor<[1, 197, 1024]> self = ?", "Tensor other = 0.8999999985098839"],
         ["Tensor<[3, 480, 640]> self = ?", "Tensor<[3, 1, 1]> other = ?"],
         ["Tensor<[0, 1]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[1, 1, 256]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[1, 512]> self = ?", "Tensor<[1, 512]> other = ?"],
-        ["Tensor<[1, s0, 256]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[98, 80]> self = ?", "Tensor<[80]> other = ?"],
-        ["Tensor<[1, 256, 392]> self = ?", "Tensor other = 3"],
-        ["Tensor<[1, 128, 1568]> self = ?", "Tensor other = 3"],
-        ["Tensor<[1, 64, 6272]> self = ?", "Tensor other = 3"],
-        ["Tensor<[1, 32, 25088]> self = ?", "Tensor other = 3"],
         ["Tensor<[1, 512, 38, 38]> self = ?", "Tensor<[1, 512, 38, 38]> other = ?"],
         ["Tensor<[38]> self = ?", "Tensor other = 37.5"],
         ["Tensor<[19]> self = ?", "Tensor other = 18.75"],
@@ -208,11 +204,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
@@ -231,6 +223,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True
