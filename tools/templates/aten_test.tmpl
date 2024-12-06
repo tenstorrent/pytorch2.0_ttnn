@@ -52,7 +52,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         option = torch_ttnn.TorchTtnnOption(device=device)
         # option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
-        m = torch.compile(m, backend=torch_ttnn.backend, options=option)        
+        m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         try:
             ttnn.graph.begin_graph_capture()
             result_after = m.forward(*input_args, **input_kwargs)
@@ -80,8 +80,8 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
                 fallbacks_to_host_count = to_host_count - expected_to_host_count
                 print(f"expected_to_host_count: {expected_to_host_count}")
                 print(f"to_host_count: {to_host_count}")
-                print(f"fallbacks_to_host_count: {fallbacks_to_host_count}")                
-                metric["ttnn_fallbacks_to_host_count"] = fallbacks_to_host_count                
+                print(f"fallbacks_to_host_count: {fallbacks_to_host_count}")
+                metric["ttnn_fallbacks_to_host_count"] = fallbacks_to_host_count
                 return
 
     if metric["run"] == True:
@@ -92,6 +92,9 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
                 metric["accuracy"] = True
             else:
                 metric["accuracy"] = False
+        except Exception as e:
+            print(f"Failed to check inference result. Raised exception: {e}")
+
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
