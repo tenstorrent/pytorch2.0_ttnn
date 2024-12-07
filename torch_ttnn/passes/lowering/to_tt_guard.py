@@ -102,29 +102,6 @@ aten_mul_Tensor_blocklist += [
 # >       return self._op(*args, **(kwargs or {}))
 # RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
 
-
-############################################################
-# EXTRA BLOCKLIST OF ViLT
-############################################################
-# see issue #390
-# RuntimeError: _unsafe_index found unexpected index type BFloat16
-# arange => add => mul => to_copy => unsafe_index
-
-aten_add_Tensor_blocklist += [
-    ["Tensor<[12]> self = ?", "Tensor other = 0.0"],
-    ["Tensor<[16]> self = ?", "Tensor other = 0.0"],
-]
-
-aten_mul_Tensor_blocklist += [
-    ["Tensor self = ?", "Tensor other = 32.0"],
-    ["Tensor self = ?", "Tensor other = 32.0"],
-]
-
-aten_arange_default_blocklist = [
-    ["number end = 12", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
-    ["number end = 16", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
-]
-
 ############################################################
 # EXTRA BLOCKLIST OF Whisper
 ############################################################
@@ -341,7 +318,6 @@ GUARD[torch.ops.aten.select.int] = partial(guard_aten, aten_select_int_blocklist
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.unsqueeze.default] = partial(guard_aten, aten_unsqueeze_default_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
-GUARD[torch.ops.aten.arange.default] = partial(guard_aten, aten_arange_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):
