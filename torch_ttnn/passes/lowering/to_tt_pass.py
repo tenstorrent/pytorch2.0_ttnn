@@ -308,34 +308,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target in relational_scalar_ops:
             return self.call_function_prop_meta(relational_scalar_ops[target], args, kwargs)
 
-        if target == torch.ops.aten.add.Tensor:
-
-            def is_zero_dim(meta):
-                if type(meta) != dict or "val" not in meta:
-                    return False  # scalar
-                size = list(meta["val"].size())
-                if len(size) == 0 or 0 in size:
-                    return True
-                return False
-
-            arg0_meta = None
-            arg1_meta = None
-            if hasattr(args[0], "node") and hasattr(args[0].node, "meta"):
-                arg0_meta = args[0].node.meta
-            if hasattr(args[1], "node") and hasattr(args[1].node, "meta"):
-                arg1_meta = args[1].node.meta
-            if is_zero_dim(arg0_meta) or is_zero_dim(arg1_meta):
-                return self.call_function_prop_meta(target, args, kwargs)
-
-            # TODO(tt-metal#15585): Issue with broadcasting on dim -3 when rank > 4
-            if hasattr(args[0], "node") and hasattr(args[1], "node"):
-                arg0_shape = list(args[0].node.meta["val"].size())
-                arg1_shape = list(args[1].node.meta["val"].size())
-                if len(arg0_shape) == len(arg1_shape) and len(arg0_shape) > 4 and arg0_shape[-3] != arg1_shape[-3]:
-                    return self.call_function_prop_meta(target, args, kwargs)
-
-            return self.call_function_prop_meta(ttnn.add, args, kwargs)
-
         if target == torch.ops.aten.atan2.default:
             return self.call_function_prop_meta(ttnn.atan2, args, kwargs)
 
@@ -489,6 +461,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output = g.call_function(ttnn.mul, (output, invstd))
                 output = batch_norm_post_process(output, shape, weight, bias)
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
+
+            if node.target == torch.ops.aten.add.Tensor:
+                shapes = get_shape(args[0]), get_shape(args[1])
+
+                if any(not s or 0 in s for s in shapes):
+                    return None
+
+                if max(map(len, shapes)) > 4 and shapes[0][-3:-2] != shapes[1][-3:-2]:
+                    return None
+
+                return g.call_function(ttnn.add, args)
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
