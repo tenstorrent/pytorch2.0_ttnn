@@ -41,6 +41,7 @@ aten_add_Tensor_blocklist += [
     ["Tensor<[7]> self = ?", "Tensor other = 0.0"],
 ]
 
+aten_mul_Tensor_blocklist = []
 aten_mul_Tensor_blocklist += [
     ["Tensor<[56]> self = ?", "Tensor other = 0.5"],
     ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
