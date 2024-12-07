@@ -22,6 +22,11 @@ class MulModule(torch.nn.Module):
             ((64, 1), (1, 64)),
             marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
         ),
+        ((1, 64, 30, 40), (1, 1, 30, 40)),
+        ((1, 64, 60, 80), (1, 1, 60, 80)),
+        ((1, 64, 120, 160), (1, 1, 120, 160)),
+        ((0, 1), (0, 1)),
+        ((1, 71, 7, 64), (1, 1, 7, 64)),
     ),
 )
 def test_mul(device, input_shapes):
