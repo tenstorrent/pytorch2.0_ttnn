@@ -2,6 +2,7 @@ import torch
 import torch_ttnn
 import pytest
 import ttnn
+from tests.utils import assert_with_pcc
 
 
 class MulModule(torch.nn.Module):
@@ -20,13 +21,44 @@ class MulModule(torch.nn.Module):
         ((64, 32), (64, 1)),
         pytest.param(
             ((64, 1), (1, 64)),
-            marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#12852)"),
+        ),
+        pytest.param(
+            ((16, 1), (1, 1, 32)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#12852, tt-metal#15808)"),
         ),
         ((1, 64, 30, 40), (1, 1, 30, 40)),
         ((1, 64, 60, 80), (1, 1, 60, 80)),
         ((1, 64, 120, 160), (1, 1, 120, 160)),
         ((0, 1), (0, 1)),
-        ((1, 71, 7, 64), (1, 1, 7, 64)),
+        pytest.param(
+            ((1, 71, 7, 64), (1, 1, 7, 64)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#15808)"),
+        ),
+        pytest.param(
+            ((64, 3, 64, 64), (3, 1, 1)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#15808)"),
+        ),
+        pytest.param(
+            ((16, 6, 64, 64), (6, 1, 1)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#15808)"),
+        ),
+        pytest.param(
+            ((4, 12, 64, 64), (12, 1, 1)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#15808)"),
+        ),
+        pytest.param(
+            ((64, 4, 64, 64), (4, 1, 1)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#15808)"),
+        ),
+        pytest.param(
+            ((16, 8, 64, 64), (8, 1, 1)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#15808)"),
+        ),
+        pytest.param(
+            ((4, 16, 64, 64), (16, 1, 1)),
+            marks=pytest.mark.xfail(reason="broadcasting issues (tt-metal#15808)"),
+        ),
     ),
 )
 def test_mul(device, input_shapes):
@@ -41,7 +73,8 @@ def test_mul(device, input_shapes):
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.mul) == 1
+    targets = [node.target for node in option._out_fx_graphs[0].nodes]
+    assert targets.count(ttnn.mul) == 1
+
     # Check inference result
-    assert torch.allclose(result_before, result_after)
+    assert_with_pcc(result_before, result_after)
