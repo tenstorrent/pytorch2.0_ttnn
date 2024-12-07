@@ -322,9 +322,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.minimum.default:
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
-        if target == torch.ops.aten.mul.Tensor:
-            return self.call_function_prop_meta(ttnn.mul, args, kwargs)
-
         if target == torch.ops.aten.pow.Tensor_Scalar:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
@@ -462,16 +459,22 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output = batch_norm_post_process(output, shape, weight, bias)
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
 
-            if node.target == torch.ops.aten.add.Tensor:
+            def lower_binary_eltwise(fn, args):
                 shapes = get_shape(args[0]), get_shape(args[1])
 
-                if any(not s or 0 in s for s in shapes):
+                if any(not s for s in shapes):
                     return None
 
                 if max(map(len, shapes)) > 4 and shapes[0][-3:-2] != shapes[1][-3:-2]:
                     return None
 
-                return g.call_function(ttnn.add, args)
+                return g.call_function(fn, args)
+
+            if node.target == torch.ops.aten.add.Tensor:
+                return lower_binary_eltwise(ttnn.add, args)
+
+            if node.target == torch.ops.aten.mul.Tensor:
+                return lower_binary_eltwise(ttnn.mul, args)
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
