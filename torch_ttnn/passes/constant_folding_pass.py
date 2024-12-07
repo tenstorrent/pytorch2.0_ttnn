@@ -1,6 +1,7 @@
 import torch
 from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
+from .lowering.to_tt_guard import can_lowering_to_ttnn
 
 
 class ConstantFoldingPass(PassBase):
@@ -11,6 +12,12 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.pow.Tensor_Tensor,
             torch.ops.aten.arange.start,
             torch.ops.aten.unsqueeze.default,
+            torch.ops.aten.arange.default,
+            torch.ops.aten.view.default,
+            torch.ops.aten.add.Tensor,
+            torch.ops.aten.mul.Tensor,
+            torch.ops.aten._to_copy.default,
+            torch.ops.aten.expand.default,
         }
 
     def call(self, gm: torch.fx.GraphModule):
@@ -26,8 +33,17 @@ class ConstantFoldingPass(PassBase):
         return PassResult(gm, True)
 
     def _can_fold(self, gm: torch.fx.GraphModule, node):
+        if not can_lowering_to_ttnn(node):
+            return False
+
         for arg in node.args:
-            if isinstance(arg, torch.fx.Node):
+            if not isinstance(
+                arg,
+                (
+                    int,
+                    float,
+                ),
+            ) and isinstance(arg, torch.fx.Node):
                 if arg.op not in ("get_attr", "constant"):
                     return False
         return True
@@ -52,6 +68,18 @@ class ConstantFoldingPass(PassBase):
             return torch.arange(*args, **node.kwargs)
         elif node.target == torch.ops.aten.unsqueeze.default:
             return torch.unsqueeze(*args)
+        elif node.target == torch.ops.aten.arange.default:
+            return torch.arange(*args, **node.kwargs)
+        elif node.target == torch.ops.aten.view.default:
+            return torch.ops.aten.view.default(*args)
+        elif node.target == torch.ops.aten.add.Tensor:
+            return torch.ops.aten.add.Tensor(*args)
+        elif node.target == torch.ops.aten.mul.Tensor:
+            return torch.ops.aten.mul.Tensor(*args)
+        elif node.target == torch.ops.aten._to_copy.default:
+            return torch.ops.aten._to_copy.default(*args, **node.kwargs)
+        elif node.target == torch.ops.aten.expand.default:
+            return torch.ops.aten.expand.default(*args)
 
         # Add handlers for other operations...
 
