@@ -15,6 +15,9 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.arange.default,
             torch.ops.aten.view.default,
             torch.ops.aten.add.Tensor,
+            torch.ops.aten.mul.Tensor,
+            torch.ops.aten._to_copy.default,
+            torch.ops.aten.expand.default,
         }
 
     def call(self, gm: torch.fx.GraphModule):
@@ -71,6 +74,12 @@ class ConstantFoldingPass(PassBase):
             return torch.ops.aten.view.default(*args)
         elif node.target == torch.ops.aten.add.Tensor:
             return torch.ops.aten.add.Tensor(*args)
+        elif node.target == torch.ops.aten.mul.Tensor:
+            return torch.ops.aten.mul.Tensor(*args)
+        elif node.target == torch.ops.aten._to_copy.default:
+            return torch.ops.aten._to_copy.default(*args, **node.kwargs)
+        elif node.target == torch.ops.aten.expand.default:
+            return torch.ops.aten.expand.default(*args)
 
         # Add handlers for other operations...
 
