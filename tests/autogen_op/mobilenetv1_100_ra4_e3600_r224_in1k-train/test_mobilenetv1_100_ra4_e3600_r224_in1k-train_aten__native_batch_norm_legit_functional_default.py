@@ -198,7 +198,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
                 print(f"to_host_count: {to_host_count}")
                 print(f"fallbacks_to_host_count: {fallbacks_to_host_count}")
                 metric["ttnn_fallbacks_to_host_count"] = fallbacks_to_host_count
-                return
 
     if metric["run"] == True:
         try:
