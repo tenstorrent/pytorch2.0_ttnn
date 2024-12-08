@@ -87,6 +87,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "run": "N/A",
         "accuracy": "N/A",
         "convert_to_ttnn": "N/A",
+        "ttnn_fallbacks_to_host_count": "N/A",
     }
     m = AtenModule()
     input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs(
@@ -100,18 +101,42 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     except Exception as e:
         print(f"Failed to run native. Raised exception: {e}")
         metric["native_run"] = False
+
     if metric["native_run"] == True:
+        result_after = None
         option = torch_ttnn.TorchTtnnOption(device=device)
         # option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         try:
+            ttnn.graph.begin_graph_capture()
             result_after = m.forward(*input_args, **input_kwargs)
             # option._out_fx_graphs[0].print_tabular()
             metric["run"] = True
         except Exception as e:
             print(f"Failed to run. Raised exception: {e}")
             metric["run"] = False
+        finally:
+            trace = ttnn.graph.end_graph_capture()
+            call_stack = ttnn.graph.extract_calltrace(trace)
+            if metric["run"] == True:
+                print(call_stack)
+                expected_to_host_count = 0
+                if result_after is None:
+                    expected_to_host_count = 0
+                elif isinstance(result_after, torch.Tensor):
+                    expected_to_host_count = 1
+                elif isinstance(result_after, (list, dict)):
+                    expected_to_host_count = len(result_after)
+                else:
+                    print(f"Unexpected result_after type: {type(result_after)}")
+
+                to_host_count = sum(["Tensor::cpu" in str(node) for node in call_stack])
+                fallbacks_to_host_count = to_host_count - expected_to_host_count
+                print(f"expected_to_host_count: {expected_to_host_count}")
+                print(f"to_host_count: {to_host_count}")
+                print(f"fallbacks_to_host_count: {fallbacks_to_host_count}")
+                metric["ttnn_fallbacks_to_host_count"] = fallbacks_to_host_count
 
     if metric["run"] == True:
         try:
