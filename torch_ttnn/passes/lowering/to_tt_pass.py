@@ -332,9 +332,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # TODO(kevinwuMCW): handle alpha parameter if exists
             return self.call_function_prop_meta(ttnn.sub, (args[1], args[0]), kwargs)
 
-        if target == torch.ops.aten.sub.Tensor:
-            return self.call_function_prop_meta(ttnn.sub, args, kwargs)
-
         if target == torch.ops.aten.xlogy.Tensor:
             return self.call_function_prop_meta(ttnn.xlogy, args, kwargs)
 
@@ -475,6 +472,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.mul.Tensor:
                 return lower_binary_eltwise(ttnn.mul, args)
+
+            if node.target == torch.ops.aten.sub.Tensor:
+                return lower_binary_eltwise(ttnn.sub, args)
 
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]

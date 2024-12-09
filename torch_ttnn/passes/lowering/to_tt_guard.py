@@ -235,7 +235,6 @@ aten_zeros_like_default_blocklist += [
 # add => multiply => subtract => unsqueeze
 aten_add_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 0.5"]]
 aten_mul_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 1.6"]]
-aten_sub_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[300]> self = ?", "int dim = 1"]]
 # RuntimeError: expected scalar type BFloat16 but found Float
 # convolution_default_5 weight dtype is float32, this is
@@ -252,7 +251,6 @@ aten_mul_Tensor_blocklist += [
     ["Tensor<[320]> self = ?", "Tensor other = 1.5"],
     ["Tensor<[320]> self = ?", "Tensor other = 2.0"],
 ]
-aten_sub_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
 # tt_metal/common/math.hpp:16: b > 0
 # Divide by 0 error
@@ -282,7 +280,6 @@ aten_convolution_default_blocklist += [
 # add => multiply => subtract => unsqueeze
 aten_add_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
 aten_mul_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 1.0"]]
-aten_sub_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
 # RuntimeError: expected scalar type BFloat16 but found Float
 # convolution_default_66 weight dtype is float32, this is
@@ -295,7 +292,6 @@ aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
 # IndexError: index 480 is out of bounds for dimension 0 with size 480, see issue #420
 aten_add_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.5"]]
 aten_mul_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.6"]]
-aten_sub_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[800]> self = ?", "int dim = 1"]]
 # RuntimeError: expected scalar type BFloat16 but found Float
 # convolution_default weight dtype is float32, this is

@@ -173,21 +173,6 @@ aten_native_layer_norm_default_blocklist = [
         "float eps = 1e-05",
     ],
 ]
-aten_sub_Tensor_blocklist = [
-    ["Tensor<[64, 1, 64]> self = ?", "Tensor<[64, 64, 1]> other = ?"],
-    ["Tensor<[16, 1, 64]> self = ?", "Tensor<[16, 64, 1]> other = ?"],
-    ["Tensor<[4, 1, 64]> self = ?", "Tensor<[4, 64, 1]> other = ?"],
-    ["Tensor<[0]> self = ?", "Tensor<[0]> other = ?"],
-    ["Tensor<[0, 1]> self = ?", "Tensor<[0, 1]> other = ?"],
-    ["Tensor<[64, 1, 49]> self = ?", "Tensor<[64, 49, 1]> other = ?"],
-    ["Tensor<[16, 1, 49]> self = ?", "Tensor<[16, 49, 1]> other = ?"],
-    ["Tensor<[4, 1, 49]> self = ?", "Tensor<[4, 49, 1]> other = ?"],
-    ["Tensor<[1, 10]> self = ?", "Tensor<[10, 1]> other = ?"],
-    ["Tensor<[1, 2]> self = ?", "Tensor<[2, 1]> other = ?"],
-    ["Tensor<[24, 1]> self = ?", "Tensor<[1, 24]> other = ?"],
-    ["Tensor<[1, 15]> self = ?", "Tensor<[15, 1]> other = ?"],
-    ["Tensor<[1, 17]> self = ?", "Tensor<[17, 1]> other = ?"],
-]
 aten_exp_default_blocklist = [["Tensor<[0, 1]> self = ?"], ["Tensor<[]> self = ?"]]
 aten_split_Tensor_blocklist = [
     ["Tensor<[768, 256]> self = ?", "int split_size = 256"],
@@ -1470,7 +1455,6 @@ GUARD = {
     torch.ops.aten.zeros_like.default: partial(guard_aten, aten_zeros_like_default_blocklist),
     torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
-    torch.ops.aten.sub.Tensor: partial(guard_aten, aten_sub_Tensor_blocklist),
     torch.ops.aten.exp.default: partial(guard_aten, aten_exp_default_blocklist),
     torch.ops.aten.split.Tensor: partial(guard_aten, aten_split_Tensor_blocklist),
     torch.ops.aten.ones.default: partial(guard_aten, aten_ones_default_blocklist),
