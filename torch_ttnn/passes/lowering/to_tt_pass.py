@@ -601,8 +601,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.div.Tensor:
-                if isinstance(args[1], float):
-                    return g.call_function(ttnn.mul, (args[0], 1 / args[1]), {})
+                if isinstance(args[1], (float, int)):
+                    return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
 
                 if get_shape(args[0]) == get_shape(args[1]):
                     return g.call_function(ttnn.div, args, {})
