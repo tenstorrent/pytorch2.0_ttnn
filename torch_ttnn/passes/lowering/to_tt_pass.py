@@ -1,6 +1,7 @@
 import torch
 import ttnn
 import math
+import numpy as np
 from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
@@ -446,13 +447,19 @@ class GraphWrapper:
         self.g = node.graph
         self.node = node
 
-    def call_function(self, target, args=(), kwargs={}):
+    def call_function(self, target, args=(), kwargs={}, new_shape=None, new_dtype=None):
         new_node = self.g.call_function(target, args, kwargs)
         new_node.meta = self.node.meta.copy()
         if hasattr(self.node.target, "_schema"):
             new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
         if target == ttnn.layer_norm:
             new_node.meta["val"] = new_node.meta["val"][0]
+        if new_shape is not None or new_dtype is not None:
+            shape = new_shape if new_shape is not None else new_node.meta["val"].size()
+            dtype = new_dtype if new_dtype is not None else new_node.meta["val"].dtype
+            fake_mode = FakeTensorMode()
+            fake_tensor = fake_mode.from_tensor(torch.zeros(shape, dtype=dtype))
+            new_node.meta["val"] = fake_tensor
         return new_node
 
     def inserting_before(self, node):
@@ -1144,14 +1151,7 @@ def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
             if node.target == torch.ops.aten.index.Tensor:
 
-                def edit_meta_val(node, shape, dtype):
-                    fake_mode = FakeTensorMode()
-                    fake_tensor = fake_mode.from_tensor(torch.zeros(shape, dtype=dtype))
-                    node.meta["val"] = fake_tensor
-
                 def broadcast_indices(indices):
-                    import numpy as np
-
                     indices_shapes = [get_shape(indices[i]) for i in range(len(indices))]
                     broadcasted_shape = torch.Size(np.broadcast_shapes(*indices_shapes))
                     broadcasted_indices = []
@@ -1160,9 +1160,13 @@ def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                             broadcasted_indices.append(indices[i])
                         else:
                             broadcasted_indices.append(
-                                g.call_function(torch.ops.aten.expand.default, (indices[i], broadcasted_shape))
+                                g.call_function(
+                                    torch.ops.aten.expand.default,
+                                    (indices[i], broadcasted_shape),
+                                    new_shape=broadcasted_shape,
+                                    new_dtype=indices[i].meta["val"].dtype,
+                                )
                             )
-                            edit_meta_val(broadcasted_indices[-1], broadcasted_shape, indices[i].meta["val"].dtype)
                     return broadcasted_shape, broadcasted_indices
 
                 # for example, input.shape = (3, 4, 5), indices = [tensor([[0, 1, 1]]), tensor([[2, 1, 2]])]
@@ -1181,28 +1185,55 @@ def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 input_dtype = input_tensor.meta["val"].dtype
                 flatten_shape = torch.Size([index_size])
                 indices_flatten = [
-                    g.call_function(torch.ops.aten.reshape.default, args=(idx, flatten_shape)) for idx in indices
+                    g.call_function(
+                        torch.ops.aten.reshape.default,
+                        args=(idx, flatten_shape),
+                        new_shape=flatten_shape,
+                        new_dtype=idx.meta["val"].dtype,
+                    )
+                    for idx in indices
                 ]
-                for i in range(len(indices_flatten)):
-                    edit_meta_val(indices_flatten[i], flatten_shape, indices[i].meta["val"].dtype)
                 output = []
                 for i in range(index_size):
-                    indexing = [g.call_function(getitem, args=(indices_flatten[n], i)) for n in range(num_index)]
-                    for n in range(num_index):
-                        edit_meta_val(indexing[n], torch.Size([]), indices_flatten[n].meta["val"].dtype)
-                    output.append(g.call_function(getitem, args=(input_tensor, indexing)))
-                    edit_meta_val(output[-1], remained_shape, input_dtype)
+                    indexing = [
+                        g.call_function(
+                            getitem,
+                            args=(indices_flatten[n], i),
+                            new_shape=torch.Size([]),
+                            new_dtype=indices_flatten[n].meta["val"].dtype,
+                        )
+                        for n in range(num_index)
+                    ]
+                    output.append(
+                        g.call_function(
+                            getitem, args=(input_tensor, indexing), new_shape=remained_shape, new_dtype=input_dtype
+                        )
+                    )
                 # aten.cat cannot concat zero dim tensor
                 if len(remained_shape) == 0:
                     remained_shape = torch.Size([1])
-                    output = [g.call_function(torch.ops.aten.reshape.default, args=(o, remained_shape)) for o in output]
-                    for o in output:
-                        edit_meta_val(o, remained_shape, input_dtype)
-                output_cat = g.call_function(torch.ops.aten.cat.default, args=(output,))
+                    output = [
+                        g.call_function(
+                            torch.ops.aten.reshape.default,
+                            args=(o, remained_shape),
+                            new_shape=remained_shape,
+                            new_dtype=input_dtype,
+                        )
+                        for o in output
+                    ]
                 output_cat_shape = torch.Size([len(output)] + list(remained_shape))
-                edit_meta_val(output_cat, output_cat_shape, input_dtype)
-                output_reshape = g.call_function(torch.ops.aten.reshape.default, args=(output_cat, reshape_shape))
-                edit_meta_val(output_reshape, reshape_shape, input_dtype)
+                output_cat = g.call_function(
+                    torch.ops.aten.cat.default,
+                    args=(output,),
+                    new_shape=output_cat_shape,
+                    new_dtype=input_dtype,
+                )
+                output_reshape = g.call_function(
+                    torch.ops.aten.reshape.default,
+                    args=(output_cat, reshape_shape),
+                    new_shape=reshape_shape,
+                    new_dtype=input_dtype,
+                )
                 return output_reshape
 
         with g.inserting_before(node):

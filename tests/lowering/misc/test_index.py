@@ -24,7 +24,7 @@ class IndexModule(torch.nn.Module):
         ((3, 4, 5), [[[0, 1, 1], [1, 1, 0]], [[2, 1, 2]]]),  # broadcast
     ],
 )
-def test_select(device, input_shapes, indices):
+def test_index(device, input_shapes, indices):
     m = IndexModule()
     inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
     indices = [torch.tensor(index) for index in indices]
