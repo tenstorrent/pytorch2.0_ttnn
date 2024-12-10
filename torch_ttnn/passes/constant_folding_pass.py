@@ -18,6 +18,9 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.mul.Tensor,
             torch.ops.aten._to_copy.default,
             torch.ops.aten.expand.default,
+            torch.ops.aten.sub.Tensor,
+            torch.ops.aten.ceil.default,
+            torch.ops.aten.clamp.default,
         }
 
     def call(self, gm: torch.fx.GraphModule):
@@ -62,24 +65,9 @@ class ConstantFoldingPass(PassBase):
 
         if node.target == torch.ops.aten.lift_fresh_copy.default:
             return args[0]
-        elif node.target == torch.ops.aten.pow.Tensor_Tensor:
-            return torch.pow(*args)
-        elif node.target == torch.ops.aten.arange.start:
-            return torch.arange(*args, **node.kwargs)
-        elif node.target == torch.ops.aten.unsqueeze.default:
-            return torch.unsqueeze(*args)
-        elif node.target == torch.ops.aten.arange.default:
-            return torch.arange(*args, **node.kwargs)
-        elif node.target == torch.ops.aten.view.default:
-            return torch.ops.aten.view.default(*args)
-        elif node.target == torch.ops.aten.add.Tensor:
-            return torch.ops.aten.add.Tensor(*args)
-        elif node.target == torch.ops.aten.mul.Tensor:
-            return torch.ops.aten.mul.Tensor(*args)
-        elif node.target == torch.ops.aten._to_copy.default:
-            return torch.ops.aten._to_copy.default(*args, **node.kwargs)
-        elif node.target == torch.ops.aten.expand.default:
-            return torch.ops.aten.expand.default(*args)
+
+        if node.target in self.foldable_ops:
+            return node.target(*args, **node.kwargs)
 
         # Add handlers for other operations...
 
