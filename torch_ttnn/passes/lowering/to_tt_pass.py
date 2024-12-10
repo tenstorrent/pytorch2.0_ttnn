@@ -362,6 +362,20 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
+        if target == torch.ops.aten._scaled_dot_product_flash_attention.default:
+
+            def select(dropout_p=0.0, is_causal=False):
+                # TODO(jdh8): Add suuport for training mode
+                if dropout_p > 0.0:
+                    return self.call_function_prop_meta(target, args, kwargs)
+
+                return self.call_function_prop_meta(
+                    ttnn.transformer.scaled_dot_product_attention,
+                    args[:3],
+                    {"is_causal": is_causal},
+                )
+
+            return select(*args[3:])
 
         return self.call_function_prop_meta(target, args, kwargs)
 
