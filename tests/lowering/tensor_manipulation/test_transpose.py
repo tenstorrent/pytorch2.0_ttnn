@@ -23,6 +23,13 @@ class TransposeModule(torch.nn.Module):
         ((5, 3, 1), 0, 1),
         ((1, 3), 0, 1),
         ((3, 1), 1, 0),
+        ((1, 197, 1, 3, 1024), 0, -2),
+        pytest.param(
+            (1, 197, 1, 3, 1024),
+            1,
+            -2,
+            marks=pytest.mark.xfail(reason="transpose rank > 4 issues (#585)"),
+        ),
     ],
 )
 def test_transpose(device, input_shape, dim0, dim1):
