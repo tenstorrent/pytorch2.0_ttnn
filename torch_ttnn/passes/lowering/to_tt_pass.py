@@ -712,7 +712,45 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 else:
                     dim0 = args[1]
                     dim1 = args[2]
-                return g.call_function(ttnn.transpose, args=(args[0], dim0, dim1))
+
+                dim0 = (dim0 + rank) % rank
+                dim1 = (dim1 + rank) % rank
+
+                # directly transpose only support rank <= 4
+                if rank <= 4:
+                    return g.call_function(ttnn.transpose, args=(args[0], dim0, dim1))
+
+                # Try to reshape,
+                #   eg. the original shape [A, B, C, D, E] shape[dim0] = A, shape[dim1] = D
+                #   reshape to [A, (B*C), D, E]
+                originalShape = list(args[0].meta["val"].size())
+                newShape = []
+                newDim0, newDim1 = 0, 1
+                if len(originalShape[:dim0]) > 0:
+                    newShape.append(np.prod(originalShape[:dim0]))
+                    newDim0 += 1
+                    newDim1 += 1
+
+                newShape.append(originalShape[dim0])
+
+                if len(originalShape[dim0 + 1 : dim1]) > 0:
+                    newShape.append(np.prod(originalShape[dim0 + 1 : dim1]))
+                    newDim1 += 1
+
+                newShape.append(originalShape[dim1])
+
+                if dim1 + 1 < rank:
+                    newShape.append(np.prod(originalShape[dim1 + 1 :]))
+
+                # if the rank of reshaped result still <= 4, then do
+                #    reshape->transpose->reshape
+                if len(newShape) <= 4:
+                    reshaped = g.call_function(ttnn.reshape, args=(args[0], list(newShape)))
+                    transposed = g.call_function(ttnn.transpose, args=(reshaped, newDim0, newDim1))
+                    output_shape = list(node.meta["val"].size())
+                    return g.call_function(ttnn.reshape, args=(transposed, list(output_shape)))
+
+                return None
 
             if node.target == torch.ops.aten.permute.default:
                 new_nodes = list()
