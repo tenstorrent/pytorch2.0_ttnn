@@ -1170,7 +1170,7 @@ def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
             kwargs = node.kwargs
 
             # workaround for issue #64
-            if node.target == torch.ops.aten.maximum.default:
+            if node.target in [torch.ops.aten.maximum.default, torch.ops.aten.minimum.default]:
                 self_tensor = args[0]
                 if len(args) > 1:
                     other_tensor = args[1]
@@ -1179,7 +1179,7 @@ def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
                 if get_shape(self_tensor) is None or get_shape(other_tensor) is None:
                     return None
                 broadcasted_shape, broadcasted_tensors = broadcast_tensors(g, [self_tensor, other_tensor])
-                return g.call_function(torch.ops.aten.maximum.default, tuple(broadcasted_tensors))
+                return g.call_function(node.target, tuple(broadcasted_tensors))
 
         with g.inserting_before(node):
             new_node = rewrite_node(node)
