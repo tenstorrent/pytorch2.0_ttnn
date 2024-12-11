@@ -113,22 +113,6 @@ aten__scaled_dot_product_flash_attention_default_blocklist = [
         "bool is_causal = True",
     ],
 ]
-aten_transpose_int_blocklist = [
-    ["Tensor<[1, 197, 1, 3, 1024]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[12, 197, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[12, 64, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[1, 12, 64, 197]> self = ?", "int dim0 = -1", "int dim1 = -2"],
-    ["Tensor<[1, 197, 1, 3, 768]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[1, 768, 49]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[16, 7, 7]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[16, 64, 7]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[1, 50, 1, 3, 1024]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[1, 50, 1, 3, 768]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[1, 1370, 1, 3, 1280]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[16, 197, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[16, 64, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[1, 16, 64, 197]> self = ?", "int dim0 = -1", "int dim1 = -2"],
-]
 aten_zeros_like_default_blocklist = [
     ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
     ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
@@ -1504,7 +1488,6 @@ GUARD = {
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
-    torch.ops.aten.transpose.int: partial(guard_aten, aten_transpose_int_blocklist),
     torch.ops.aten.zeros_like.default: partial(guard_aten, aten_zeros_like_default_blocklist),
     torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.mul.Tensor: partial(guard_aten, aten_mul_Tensor_blocklist),
