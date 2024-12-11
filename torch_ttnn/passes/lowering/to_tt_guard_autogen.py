@@ -269,13 +269,6 @@ aten_empty_memory_format_blocklist = [
         "Optional[bool] pin_memory = False",
     ]
 ]
-aten_log_default_blocklist = [
-    ["Tensor<[10, 10]> self = ?"],
-    ["Tensor<[1, 1]> self = ?"],
-    ["Tensor<[2, 2]> self = ?"],
-    ["Tensor<[15, 15]> self = ?"],
-    ["Tensor<[17, 17]> self = ?"],
-]
 aten_rsqrt_default_blocklist = [["Tensor<[1, 1, 1]> self = ?"]]
 aten_bernoulli_p_blocklist = [["Tensor<[1, 256]> self = ?", "float p = 0.5"]]
 aten_native_dropout_default_blocklist = [
@@ -1515,7 +1508,6 @@ GUARD = {
     torch.ops.aten.ones.default: partial(guard_aten, aten_ones_default_blocklist),
     torch.ops.aten.where.self: partial(guard_aten, aten_where_self_blocklist),
     torch.ops.aten.empty.memory_format: partial(guard_aten, aten_empty_memory_format_blocklist),
-    torch.ops.aten.log.default: partial(guard_aten, aten_log_default_blocklist),
     torch.ops.aten.rsqrt.default: partial(guard_aten, aten_rsqrt_default_blocklist),
     torch.ops.aten.bernoulli.p: partial(guard_aten, aten_bernoulli_p_blocklist),
     torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
