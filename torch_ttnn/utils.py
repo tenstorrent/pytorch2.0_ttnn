@@ -19,6 +19,13 @@ def get_shape(node_or_shape):
     return None
 
 
+def get_dtype(node):
+    if isinstance(node, torch.fx.node.Node):
+        if (val := node.meta.get("val", None)) is not None:
+            return val.dtype
+    return None
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
