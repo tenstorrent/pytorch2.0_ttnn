@@ -36,3 +36,4 @@ def test_matmul(device, input_shapes):
 
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.99)
+    
