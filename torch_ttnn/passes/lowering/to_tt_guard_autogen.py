@@ -121,25 +121,10 @@ aten_zeros_like_default_blocklist = [
 ]
 aten_div_Tensor_blocklist = [
     ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 12, 9, 9]> self = ?", "Tensor other = 8.0"],
-    ["Tensor<[1, 64, 9, 9]> self = ?", "Tensor other = 8.0"],
     ["Tensor<[1, 23, 40, 1]> self = ?", "Tensor<[128]> other = ?"],
-    ["Tensor<[1, 12, 25, 25]> self = ?", "Tensor other = 8.0"],
-    ["Tensor<[1, 16, 9, 9]> self = ?", "Tensor other = 11.313708498984761"],
-    ["Tensor<[1, 16, 9, 9]> self = ?", "Tensor other = 8.0"],
     ["Tensor<[1, 12, 7, 7]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 1280, 8, 8]> self = ?", "Tensor other = 1"],
-    ["Tensor<[10, 10]> self = ?", "Tensor other = 8"],
-    ["Tensor<[2, 2]> self = ?", "Tensor other = 16"],
     ["Tensor<[1, 16, 5, 5]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[1, 16, 1, 6]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 128, 1568]> self = ?", "Tensor other = 3"],
-    ["Tensor<[1, 64, 6272]> self = ?", "Tensor other = 3"],
-    ["Tensor<[1, 32, 25088]> self = ?", "Tensor other = 3"],
-    ["Tensor<[15, 15]> self = ?", "Tensor other = 8"],
-    ["Tensor<[15, 15]> self = ?", "Tensor other = 2.772588722239781"],
-    ["Tensor<[17, 17]> self = ?", "Tensor other = 16"],
-    ["Tensor<[17, 17]> self = ?", "Tensor other = 2.0794415416798357"],
 ]
 aten_mul_Tensor_blocklist = [
     ["Tensor<[]> self = ?", "Tensor<[3234, 1]> other = ?"],
