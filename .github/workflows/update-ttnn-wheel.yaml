@@ -30,7 +30,7 @@ jobs:
           latest_version=${{ steps.fetch_release.outputs.release }}
           latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')          
           sed -i '/^https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt          
-          echo "https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/metal_libs-$latest_version_short+wormhole.b0-cp38-cp38-linux_x86_64.whl" >> requirements.txt
+          echo "https://github.com/tenstorrent/tt-metal/releases/download/v$latest_version/ttnn-$latest_version_short+wormhole.b0-cp38-cp38-linux_x86_64.whl" >> requirements.txt
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
