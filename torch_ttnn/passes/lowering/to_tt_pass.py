@@ -94,8 +94,11 @@ def insert_nchw_to_nhwc(g, input_tensor):
 
 def insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape):
     batch_size, out_c, out_h, out_w = output_shape
+    print("sharded_to_interleaved")
     output_tensor = g.call_function(ttnn.sharded_to_interleaved, (output_tensor, TtnnL1MemoryConfig()))
+    print("reshape")
     output_tensor = g.call_function(ttnn.reshape, (output_tensor, (batch_size, out_h, out_w, out_c)))
+    print("permute")
     return g.call_function(ttnn.permute, (output_tensor, (0, 3, 1, 2)))
 
 
@@ -1073,6 +1076,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         ttnn.reshape,
                         (bias_node, (1,) * (4 - len(bias_shape)) + bias_shape),
                     )
+                    bias_tensor = g.call_function(target_wrappers.move_to_host, (bias_tensor, TtnnRowMajorLayout()))
                 output_tensor = g.call_function(
                     target_wrappers.conv2d,
                     (
