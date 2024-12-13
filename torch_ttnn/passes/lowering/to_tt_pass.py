@@ -93,12 +93,9 @@ def insert_nchw_to_nhwc(g, input_tensor):
 
 
 def insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape):
-    batch_size, out_c, out_h, out_w = output_shape
-    print("sharded_to_interleaved")
+    batch_size, out_c, out_h, out_w = output_shape    
     output_tensor = g.call_function(ttnn.sharded_to_interleaved, (output_tensor, TtnnL1MemoryConfig()))
-    print("reshape")
     output_tensor = g.call_function(ttnn.reshape, (output_tensor, (batch_size, out_h, out_w, out_c)))
-    print("permute")
     return g.call_function(ttnn.permute, (output_tensor, (0, 3, 1, 2)))
 
 
