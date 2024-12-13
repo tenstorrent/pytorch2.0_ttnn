@@ -2,7 +2,7 @@
 |    | ATen Input Variations             | Status   | Isolated   | PCC   | Host   |
 |---:|:----------------------------------|:---------|:-----------|:------|:-------|
 |  0 | Tensor<[1, 1, 16, 16]> self = ?   | Unknown  | Done       | 1.0   | 0      |
-|  1 | Tensor<[1, 1]> self = ?           | Done     | Done       | 1.0   | 0      |
+|  1 | Tensor<[1, 1]> self = ?           | Unknown  | Done       | 1.0   | 0      |
 |  2 | Tensor<[1, 5, 16, 16]> self = ?   | Unknown  | Done       | 1.0   | 0      |
 |  3 | Tensor<[1, 512]> self = ?         | Unknown  | Done       | 1.0   | 0      |
 |  4 | Tensor<[17, 17]> self = ?         | Unknown  | Done       | 1.0   | 0      |

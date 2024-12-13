@@ -9,7 +9,7 @@
 |  5 | List[Tensor] tensors = [<[1, 5, 16, 16]>, <[1, 5, 16, 16]>],<br>int dim = -1                                                                         | Unknown  | Fallback   |     1 |     -1 |
 |  6 | List[Tensor] tensors = [<[100, 1, 256]>, <[100, 1, 256]>, <[100, 1, 256]>, <[100, 1, 256]>, <[100, 1, 256]>, <[100, 1, 256]>]                        | None     | Fallback   |     1 |     -1 |
 |  7 | List[Tensor] tensors = [<[100]>, <[100]>, <[100]>, <[100]>, <[100]>, <[100]>, <[100]>, <[100]>, <[100]>, <[100]>, <[100]>, <[100]>],<br>int dim = -1 | None     | Fallback   |     1 |     -1 |
-|  8 | List[Tensor] tensors = [<[12, 16]>, <[12, 16]>],<br>int dim = -1                                                                                     | None     | Fallback   |     1 |     -1 |
+|  8 | List[Tensor] tensors = [<[12, 16]>, <[12, 16]>],<br>int dim = -1                                                                                     | Removed  | Fallback   |     1 |     -1 |
 |  9 | List[Tensor] tensors = [<[12]>, <[12]>, <[12]>, <[12]>],<br>int dim = 1                                                                              | Unknown  | Fallback   |     1 |     -1 |
 | 10 | List[Tensor] tensors = [<[13600]>, <[13600]>, <[13600]>, <[13600]>],<br>int dim = 1                                                                  | None     | Fallback   |     1 |     -1 |
 | 11 | List[Tensor] tensors = [<[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>],<br>int dim = -1                             | None     | Fallback   |     1 |     -1 |

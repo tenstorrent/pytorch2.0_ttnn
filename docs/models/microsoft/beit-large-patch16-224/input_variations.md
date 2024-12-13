@@ -26,7 +26,7 @@
 ### aten._softmax.default
 |    | ATen Input Variations                                                              | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999586 |      0 |
+|  0 | Tensor<[1, 16, 197, 197]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999591 |      0 |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                      | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
@@ -81,7 +81,7 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                             | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | 0.701376 |      0 |
+|  0 | Tensor<[1, 196, 1024]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | 0.689546 |      0 |
 ### aten.mm.default
 |    | ATen Input Variations                                          | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------|:---------|:-----------|---------:|-------:|

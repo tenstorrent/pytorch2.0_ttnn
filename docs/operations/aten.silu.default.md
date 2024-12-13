@@ -1,15 +1,15 @@
 ### aten.silu.default
 |    | ATen Input Variations              | Status   | Isolated   | PCC                | Host   |
 |---:|:-----------------------------------|:---------|:-----------|:-------------------|:-------|
-|  0 | Tensor<[1, 1280, 8, 8]> self = ?   | Unknown  | Done       | 0.9999819760402439 | 0      |
+|  0 | Tensor<[1, 1280, 8, 8]> self = ?   | Unknown  | Done       | 0.9999819928426087 | 0      |
 |  1 | Tensor<[1, 1280, s0, s1]> self = ? | Unknown  | Unknown    | N/A                | N/A    |
 |  2 | Tensor<[1, 1280, s1, s2]> self = ? | Unknown  | Unknown    | N/A                | N/A    |
-|  3 | Tensor<[1, 1280]> self = ?         | Unknown  | Done       | 0.9999836155038841 | 0      |
+|  3 | Tensor<[1, 1280]> self = ?         | Unknown  | Done       | 0.9999824985537769 | 0      |
 |  4 | Tensor<[1, 1920, s1, s2]> self = ? | Unknown  | Unknown    | N/A                | N/A    |
-|  5 | Tensor<[1, 2560, 8, 8]> self = ?   | Unknown  | Done       | 0.9999823945723544 | 0      |
+|  5 | Tensor<[1, 2560, 8, 8]> self = ?   | Unknown  | Done       | 0.9999823499307329 | 0      |
 |  6 | Tensor<[1, 2560, s0, s1]> self = ? | Unknown  | Unknown    | N/A                | N/A    |
-|  7 | Tensor<[1, 32, 256, 256]> self = ? | Done     | Done       | 0.9999823898464997 | 0      |
-|  8 | Tensor<[1, 320, 64, 64]> self = ?  | Done     | Done       | 0.9999822992852053 | 0      |
+|  7 | Tensor<[1, 32, 256, 256]> self = ? | Done     | Done       | 0.9999823681006634 | 0      |
+|  8 | Tensor<[1, 320, 64, 64]> self = ?  | Done     | Done       | 0.9999823736770789 | 0      |
 |  9 | Tensor<[1, 320, s0, s1]> self = ?  | Unknown  | Unknown    | N/A                | N/A    |
 | 10 | Tensor<[1, 320, s1, s2]> self = ?  | Unknown  | Unknown    | N/A                | N/A    |
 | 11 | Tensor<[1, 640, s0, s1]> self = ?  | Unknown  | Unknown    | N/A                | N/A    |
