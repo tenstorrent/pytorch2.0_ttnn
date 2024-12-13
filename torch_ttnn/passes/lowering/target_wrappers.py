@@ -67,7 +67,7 @@ def conv2d(
         )
     else:
         assert output_padding is None, "conv2d has no output padding"
-        output_tensor, _, _, _, _ = ttnn.conv2d(
+        output_tensor = ttnn.conv2d(
             input_tensor=input_tensor,
             weight_tensor=weight_tensor,
             bias_tensor=bias_tensor,
