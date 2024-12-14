@@ -11,7 +11,7 @@ def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 def get_shape(node_or_shape):
     if isinstance(node_or_shape, (int, float)):
-        return torch.Size([])
+        return torch.Size()
     if isinstance(node_or_shape, (torch.Size, list, tuple)):
         return node_or_shape
     if isinstance(node_or_shape, torch.fx.node.Node):
