@@ -10,6 +10,8 @@ def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
 
 
 def get_shape(node_or_shape):
+    if isinstance(node_or_shape, (int, float)):
+        return torch.Size([])
     if isinstance(node_or_shape, torch.fx.node.Node):
         if (val := node_or_shape.meta.get("val", None)) is not None:
             return val.size()
