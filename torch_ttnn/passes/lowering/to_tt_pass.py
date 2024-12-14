@@ -457,9 +457,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
 
             def lower_binary_eltwise(fn, args):
+                if any(isinstance(x, (int, float)) for x in args):
+                    return g.call_function(fn, args)
+
                 shapes = get_shape(args[0]), get_shape(args[1])
 
-                if any(s is None for s in shapes):
+                if any(not s for s in shapes):
                     return None
 
                 if max(map(len, shapes)) > 4 and shapes[0][-3:-2] != shapes[1][-3:-2]:
