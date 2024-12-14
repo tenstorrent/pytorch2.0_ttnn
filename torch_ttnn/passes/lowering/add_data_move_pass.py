@@ -151,6 +151,7 @@ TTNN_LAYOUT_CHANGE_OPS = set(
     [
         ttnn.reshape,
         ttnn.slice,
+        ttnn.argmax,
     ]
 )
 
@@ -191,6 +192,7 @@ def is_tt_compute(node) -> bool:
             ttnn.moreh_cumsum,
             ttnn.sum,
             ttnn.typecast,
+            ttnn.argmax,
         ]
     )
 
