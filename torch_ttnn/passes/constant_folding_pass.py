@@ -21,6 +21,7 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.sub.Tensor,
             torch.ops.aten.ceil.default,
             torch.ops.aten.clamp.default,
+            torch.ops.aten.ones.default,
         }
 
     def call(self, gm: torch.fx.GraphModule):
