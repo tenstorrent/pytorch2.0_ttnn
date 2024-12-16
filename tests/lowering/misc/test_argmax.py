@@ -21,7 +21,7 @@ class ArgmaxModule(torch.nn.Module):
         ((1, 32), None),
     ],
 )
-def test_select(device, input_shapes, dim):
+def test_argmax(device, input_shapes, dim):
     m = ArgmaxModule()
     inputs = torch.rand(input_shapes, dtype=torch.bfloat16)
     result_before = m.forward(inputs, dim)
@@ -35,6 +35,8 @@ def test_select(device, input_shapes, dim):
     print(option._out_fx_graphs[0])
 
     # Check the graph has be rewritten and contain ttnn ops
+    nodes = [node.target for node in option._out_fx_graphs[0].nodes]
+    assert nodes.count(torch.ops.aten.argmax.default) == 0
 
     # Check inference result
     assert_with_pcc(result_before, result_after, pcc=0.99)
