@@ -56,11 +56,6 @@ aten_clamp_default_blocklist = [
     ["Tensor<[16, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
     ["Tensor<[32, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
 ]
-aten_maximum_default_blocklist = [
-    ["Tensor<[1, 16, 19, 19]> self = ?", "Tensor other = ?"],
-    ["Tensor<[1, 16, 59, 59]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
-]
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
 aten_full_default_blocklist = [
     [
@@ -1392,7 +1387,6 @@ def guard_aten(blocklist, node):
 
 GUARD = {
     torch.ops.aten.clamp.default: partial(guard_aten, aten_clamp_default_blocklist),
-    torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
     torch.ops.aten.full.default: partial(guard_aten, aten_full_default_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(

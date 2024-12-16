@@ -1,6 +1,7 @@
 import torch
 import ttnn
 import math
+import numpy as np
 from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
@@ -17,6 +18,7 @@ import torch_ttnn.metrics as metrics
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
+from torch._subclasses.fake_tensor import FakeTensorMode
 from . import target_wrappers
 from .to_tt_guard import can_lowering_to_ttnn
 
@@ -410,13 +412,19 @@ class GraphWrapper:
         self.g = node.graph
         self.node = node
 
-    def call_function(self, target, args=(), kwargs={}):
+    def call_function(self, target, args=(), kwargs={}, new_shape=None, new_dtype=None):
         new_node = self.g.call_function(target, args, kwargs)
-        new_node.meta = self.node.meta
+        new_node.meta = self.node.meta.copy()
         if hasattr(self.node.target, "_schema"):
             new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
         if target == ttnn.layer_norm:
             new_node.meta["val"] = new_node.meta["val"][0]
+        if new_shape is not None or new_dtype is not None:
+            shape = new_shape if new_shape is not None else new_node.meta["val"].size()
+            dtype = new_dtype if new_dtype is not None else new_node.meta["val"].dtype
+            fake_mode = FakeTensorMode()
+            fake_tensor = fake_mode.from_tensor(torch.zeros(shape, dtype=dtype))
+            new_node.meta["val"] = fake_tensor
         return new_node
 
     def inserting_before(self, node):
@@ -608,6 +616,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if not (hasattr(node, "meta") and "val" in node.meta and hasattr(node.meta["val"], "size")):
                     return None
                 input_tensor_shape = args[0].meta["val"].size()
+                if input_tensor_shape == torch.Size([]):
+                    input_tensor_shape = torch.Size([1])
                 output_shape = node.meta["val"].size()
                 if input_tensor_shape.numel() == output_shape.numel():
                     if input_tensor_shape != output_shape:
@@ -1178,12 +1188,65 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     return gm
 
 
+def broadcast_tensors(g, tensors):
+    tensors_shapes = [get_shape(tensors[i]) for i in range(len(tensors))]
+    broadcasted_shape = torch.Size(np.broadcast_shapes(*tensors_shapes))
+    broadcasted_tensors = []
+    for i in range(len(tensors)):
+        if tensors_shapes[i] == broadcasted_shape:
+            broadcasted_tensors.append(tensors[i])
+        else:
+            broadcasted_tensors.append(
+                g.call_function(
+                    torch.ops.aten.expand.default,
+                    (tensors[i], broadcasted_shape),
+                    new_shape=broadcasted_shape,
+                    new_dtype=tensors[i].meta["val"].dtype,
+                )
+            )
+    return broadcasted_shape, broadcasted_tensors
+
+
+def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+    nodes = list(gm.graph.nodes)
+    for node in nodes:
+        g = GraphWrapper(node)
+
+        def rewrite_node(node):
+            args = node.args
+            kwargs = node.kwargs
+
+            # workaround for issue #64
+            if node.target in [torch.ops.aten.maximum.default, torch.ops.aten.minimum.default]:
+                self_tensor = args[0]
+                if len(args) > 1:
+                    other_tensor = args[1]
+                else:
+                    other_tensor = kwargs["other"]
+                if get_shape(self_tensor) is None or get_shape(other_tensor) is None:
+                    return None
+                broadcasted_shape, broadcasted_tensors = broadcast_tensors(g, [self_tensor, other_tensor])
+                return g.call_function(node.target, tuple(broadcasted_tensors))
+
+        with g.inserting_before(node):
+            new_node = rewrite_node(node)
+            if new_node is not None:
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
+
+    gm = GraphCleanup(gm)
+    return gm
+
+
 class ToTtPass(PassBase):
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
+        gm = DigestAtenOps(gm)
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
