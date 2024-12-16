@@ -191,6 +191,7 @@ def is_tt_compute(node) -> bool:
             ttnn.moreh_cumsum,
             ttnn.sum,
             ttnn.typecast,
+            ttnn.transformer.scaled_dot_product_attention,
         ]
     )
 
