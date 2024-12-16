@@ -1147,6 +1147,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.concat, (tensors_to_concat, dim))
 
+            if node.target == torch.ops.aten.argmax.default:
+                tensor, *dim = args
+                rank = len(tensor.meta["val"].size())
+                tt_kwargs = {}
+                if dim:
+                    dim = (dim[0] + rank) % rank
+                    tt_kwargs["dim"] = dim
+
+                return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
+
             # PEP 8 suggests this explicit statement
             return None
 
