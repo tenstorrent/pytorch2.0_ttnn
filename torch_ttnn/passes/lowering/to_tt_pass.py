@@ -459,6 +459,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             def lower_binary_eltwise(fn, args):
                 shapes = get_shape(args[0]), get_shape(args[1])
 
+                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
+                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
+                ):
+                    # ttnn.from_torch not yet support scalar tensor, see issue 442
+                    return None
+
                 if any(s is None for s in shapes):
                     return None
 
