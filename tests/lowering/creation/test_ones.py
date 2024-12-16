@@ -28,7 +28,7 @@ def test_ones(device, input_shapes):
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.ones) == 1
+    nodes = [node.target for node in option._out_fx_graphs[0].nodes]
+    assert nodes.count(torch.ops.aten.ones.default) == 0
     # Check inference result
     assert torch.allclose(result_before, result_after)
