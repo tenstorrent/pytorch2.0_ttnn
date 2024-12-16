@@ -27,7 +27,7 @@
 |  23 | Tensor<[1, 1, 32, 256]> self = ?,<br>List[int] size = [1, 1, 32, 256]             | Removed  | Done       | 1.0                 | -1     |
 |  24 | Tensor<[1, 1, 32, 32]> self = ?,<br>List[int] size = [1, 1, 32, 32]               | Removed  | Done       | 1.0                 | -1     |
 |  25 | Tensor<[1, 1, 32]> self = ?,<br>List[int] size = [1, 1, 32]                       | Removed  | Done       | 1.0                 | -1     |
-|  26 | Tensor<[1, 1, 38, 38]> self = ?,<br>List[int] size = [1, 512, 38, 38]             | Done     | Done       | 0.23591320675768115 | 2      |
+|  26 | Tensor<[1, 1, 38, 38]> self = ?,<br>List[int] size = [1, 512, 38, 38]             | Done     | Done       | 0.28183678441608573 | 2      |
 |  27 | Tensor<[1, 1, 45, 45]> self = ?,<br>List[int] size = [1, 1, 45, 45]               | Unknown  | Done       | 1.0                 | -1     |
 |  28 | Tensor<[1, 1, 45]> self = ?,<br>List[int] size = [1, 1, 45]                       | Unknown  | Done       | 1.0                 | -1     |
 |  29 | Tensor<[1, 1, 59, 59]> self = ?,<br>List[int] size = [1, 1, 59, 59]               | Unknown  | Done       | 1.0                 | -1     |

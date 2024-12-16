@@ -1,14 +1,14 @@
 ### aten.cumsum.default
 |    | ATen Input Variations                                                                | Status   | Isolated   | PCC                | Host   |
 |---:|:-------------------------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
-|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1                                             | Done     | Done       | 0.9999973501399247 | 2      |
+|  0 | Tensor<[1, 10]> self = ?,<br>int dim = 1                                             | Done     | Done       | 0.9999905362532421 | 2      |
 |  1 | Tensor<[1, 23, 40]> self = ?,<br>int dim = 1,<br>Optional[int] dtype = torch.float32 | None     | Fallback   | 1.0                | -1     |
 |  2 | Tensor<[1, 23, 40]> self = ?,<br>int dim = 2,<br>Optional[int] dtype = torch.float32 | None     | Fallback   | 1.0                | -1     |
-|  3 | Tensor<[1, 32]> self = ?,<br>int dim = -1                                            | Done     | Done       | 0.9998435174219414 | 2      |
-|  4 | Tensor<[1, 45]> self = ?,<br>int dim = -1                                            | Unknown  | Done       | 0.9999228795072315 | 2      |
-|  5 | Tensor<[1, 59]> self = ?,<br>int dim = 1                                             | Done     | Done       | 0.9992135145877303 | 2      |
-|  6 | Tensor<[1, 5]> self = ?,<br>int dim = -1                                             | Done     | Done       | 0.9999993525595138 | 2      |
-|  7 | Tensor<[1, 60]> self = ?,<br>int dim = 1                                             | Unknown  | Done       | 0.9999781366020873 | 2      |
+|  3 | Tensor<[1, 32]> self = ?,<br>int dim = -1                                            | Done     | Done       | 0.9999704493089577 | 2      |
+|  4 | Tensor<[1, 45]> self = ?,<br>int dim = -1                                            | Unknown  | Done       | 0.9999467030241387 | 2      |
+|  5 | Tensor<[1, 59]> self = ?,<br>int dim = 1                                             | Done     | Done       | 0.9999842119998106 | 2      |
+|  6 | Tensor<[1, 5]> self = ?,<br>int dim = -1                                             | Done     | Done       | 0.9999925167406357 | 2      |
+|  7 | Tensor<[1, 60]> self = ?,<br>int dim = 1                                             | Unknown  | Done       | 0.9998041681452807 | 2      |
 |  8 | Tensor<[1, s0]> self = ?,<br>int dim = -1                                            | Unknown  | Unknown    | N/A                | N/A    |
 |  9 | Tensor<[1, s10 + 1]> self = ?,<br>int dim = 1                                        | Unknown  | Unknown    | N/A                | N/A    |
 

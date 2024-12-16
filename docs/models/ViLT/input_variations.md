@@ -35,8 +35,8 @@
 |    | ATen Input Variations                                          | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 8, 768]> self = ?,<br>Tensor<[1, 8, 768]> other = ? | Done     | Done       | 0.999998 |      0 |
-|  1 | Tensor<[12]> self = ?,<br>Tensor other = 0.0                   | Removed  | Fallback   | 1        |     -1 |
-|  2 | Tensor<[16]> self = ?,<br>Tensor other = 0.0                   | Removed  | Fallback   | 1        |     -1 |
+|  1 | Tensor<[12]> self = ?,<br>Tensor other = 0.0                   | Removed  | Done       | 1        |      0 |
+|  2 | Tensor<[16]> self = ?,<br>Tensor other = 0.0                   | Removed  | Done       | 1        |      0 |
 ### aten.arange.default
 |    | ATen Input Variations                                                                                                           | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -70,8 +70,8 @@
 ### aten.mul.Tensor
 |    | ATen Input Variations                         | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[12]> self = ?,<br>Tensor other = 32.0 | Removed  | Fallback   |     1 |     -1 |
-|  1 | Tensor<[16]> self = ?,<br>Tensor other = 32.0 | Removed  | Fallback   |     1 |     -1 |
+|  0 | Tensor<[12]> self = ?,<br>Tensor other = 32.0 | Removed  | Done       |     1 |      0 |
+|  1 | Tensor<[16]> self = ?,<br>Tensor other = 32.0 | Removed  | Done       |     1 |      0 |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   | PCC   |   Host |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|-------:|

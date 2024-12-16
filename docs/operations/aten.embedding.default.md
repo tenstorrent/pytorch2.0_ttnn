@@ -28,17 +28,17 @@
 | 24 | Tensor<[30522, 768]> weight = ?,<br>Tensor<[1, 25]> indices = ?,<br>int padding_idx = 0    | Done     | Done       | 1.0                  | 2      |
 | 25 | Tensor<[30522, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                             | Done     | Done       | 1.0                  | 2      |
 | 26 | Tensor<[30528, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?,<br>int padding_idx = 0     | Done     | Done       | 1.0                  | 2      |
-| 27 | Tensor<[32, 12]> weight = ?,<br>Tensor<[1, 1]> indices = ?                                 | Unknown  | Done       | 1.0                  | 2      |
-| 28 | Tensor<[32, 12]> weight = ?,<br>Tensor<[10, 10]> indices = ?                               | Done     | Done       | 1.0                  | 2      |
-| 29 | Tensor<[32, 12]> weight = ?,<br>Tensor<[2, 2]> indices = ?                                 | Unknown  | Done       | 1.0                  | 2      |
+| 27 | Tensor<[32, 12]> weight = ?,<br>Tensor<[1, 1]> indices = ?                                 | Unknown  | Unknown    | N/A                  | N/A    |
+| 28 | Tensor<[32, 12]> weight = ?,<br>Tensor<[10, 10]> indices = ?                               | Done     | Unknown    | N/A                  | N/A    |
+| 29 | Tensor<[32, 12]> weight = ?,<br>Tensor<[2, 2]> indices = ?                                 | Unknown  | Unknown    | N/A                  | N/A    |
 | 30 | Tensor<[32, 12]> weight = ?,<br>Tensor<[s0 + 1, s0 + 1]> indices = ?                       | Unknown  | Unknown    | N/A                  | N/A    |
 | 31 | Tensor<[32, 16]> weight = ?,<br>Tensor<[1, 1]> indices = ?                                 | Unknown  | Done       | 1.0                  | 2      |
 | 32 | Tensor<[32, 16]> weight = ?,<br>Tensor<[10, 10]> indices = ?                               | Done     | Done       | 1.0                  | 2      |
 | 33 | Tensor<[32, 16]> weight = ?,<br>Tensor<[2, 2]> indices = ?                                 | Unknown  | Done       | 1.0                  | 2      |
 | 34 | Tensor<[32, 16]> weight = ?,<br>Tensor<[s0 + 1, s0 + 1]> indices = ?                       | Unknown  | Unknown    | N/A                  | N/A    |
 | 35 | Tensor<[32, 6]> weight = ?,<br>Tensor<[1, 1]> indices = ?                                  | Unknown  | Done       | 1.0                  | 2      |
-| 36 | Tensor<[32, 6]> weight = ?,<br>Tensor<[15, 15]> indices = ?                                | Done     | Done       | -0.03258659950815386 | 2      |
-| 37 | Tensor<[32, 6]> weight = ?,<br>Tensor<[17, 17]> indices = ?                                | Unknown  | Done       | 0.013087501059243445 | 2      |
+| 36 | Tensor<[32, 6]> weight = ?,<br>Tensor<[15, 15]> indices = ?                                | Done     | Done       | 0.006993338052997314 | 2      |
+| 37 | Tensor<[32, 6]> weight = ?,<br>Tensor<[17, 17]> indices = ?                                | Unknown  | Done       | 0.008499180067784108 | 2      |
 | 38 | Tensor<[32, 6]> weight = ?,<br>Tensor<[2, 2]> indices = ?                                  | Unknown  | Done       | 1.0                  | 2      |
 | 39 | Tensor<[32, 6]> weight = ?,<br>Tensor<[s0 + 1, s0 + 1]> indices = ?                        | Unknown  | Unknown    | N/A                  | N/A    |
 | 40 | Tensor<[32, 8]> weight = ?,<br>Tensor<[1, 1]> indices = ?                                  | Unknown  | Done       | 1.0                  | 2      |
@@ -52,8 +52,8 @@
 | 48 | Tensor<[32128, 512]> weight = ?,<br>Tensor<[1, 10]> indices = ?                            | Done     | Done       | 1.0                  | 2      |
 | 49 | Tensor<[32128, 512]> weight = ?,<br>Tensor<[1, 15]> indices = ?                            | Done     | Done       | 1.0                  | 2      |
 | 50 | Tensor<[32128, 512]> weight = ?,<br>Tensor<[1, 1]> indices = ?                             | Unknown  | Done       | 1.0                  | 2      |
-| 51 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?                            | Done     | Unknown    | N/A                  | N/A    |
-| 52 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?                             | Unknown  | Done       | 1.0                  | 2      |
+| 51 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?                            | Done     | Done       | 1.0                  | 2      |
+| 52 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?                             | Unknown  | Unknown    | N/A                  | N/A    |
 | 53 | Tensor<[40, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                                | Done     | Done       | 1.0                  | 2      |
 | 54 | Tensor<[49408, 512]> weight = ?,<br>Tensor<[2, 7]> indices = ?                             | Done     | Done       | 1.0                  | 2      |
 | 55 | Tensor<[50, 768]> weight = ?,<br>Tensor<[1, 50]> indices = ?                               | Done     | Done       | 1.0                  | 2      |
@@ -72,9 +72,10 @@
 | 68 | Tensor<[51200, 1024]> weight = ?,<br>Tensor<[1, 1]> indices = ?                            | Unknown  | Done       | 1.0                  | 2      |
 | 69 | Tensor<[51200, 1024]> weight = ?,<br>Tensor<[1, 5]> indices = ?                            | Unknown  | Done       | 1.0                  | 2      |
 | 70 | Tensor<[514, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?,<br>int padding_idx = 1      | Done     | Done       | 1.0                  | 2      |
-| 71 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 50257 | Done     | Done       | 1.0                  | 2      |
-| 72 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 4]> indices = ?,<br>int padding_idx = 50257 | Unknown  | Done       | 1.0                  | 2      |
-| 73 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ?                            | Done     | Done       | 1.0                  | 2      |
-| 74 | Tensor<[77, 512]> weight = ?,<br>Tensor<[1, 7]> indices = ?                                | Done     | Done       | 1.0                  | 2      |
-| 75 | Tensor<[81, 768]> weight = ?,<br>Tensor<[1, 24]> indices = ?,<br>int padding_idx = 1       | Done     | Done       | 1.0                  | 2      |
+| 71 | Tensor<[51865, 768]> weight = ?,<br>Tensor indices = ?,<br>int padding_idx = 50257         | Done     | Unknown    | N/A                  | N/A    |
+| 72 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?,<br>int padding_idx = 50257 | Unknown  | Done       | 1.0                  | 2      |
+| 73 | Tensor<[51865, 768]> weight = ?,<br>Tensor<[1, 4]> indices = ?,<br>int padding_idx = 50257 | Unknown  | Done       | 1.0                  | 2      |
+| 74 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ?                            | Done     | Done       | 1.0                  | 2      |
+| 75 | Tensor<[77, 512]> weight = ?,<br>Tensor<[1, 7]> indices = ?                                | Done     | Done       | 1.0                  | 2      |
+| 76 | Tensor<[81, 768]> weight = ?,<br>Tensor<[1, 24]> indices = ?,<br>int padding_idx = 1       | Done     | Done       | 1.0                  | 2      |
 

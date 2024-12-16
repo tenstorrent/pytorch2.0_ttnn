@@ -77,7 +77,7 @@
 |  73 | Tensor<[1, 6]> self = ?,<br>int dim = 1               | Unknown  | Done       | 1.0   | 0      |
 |  74 | Tensor<[1, 7, 64]> self = ?,<br>int dim = 1           | Done     | Done       | 1.0   | 0      |
 |  75 | Tensor<[1, 7, 7]> self = ?,<br>int dim = 1            | Done     | Done       | 1.0   | 0      |
-|  76 | Tensor<[1, 720, 1280]> self = ?,<br>int dim = 0       | Done     | Done       | 1.0   | 0      |
+|  76 | Tensor<[1, 720, 1280]> self = ?,<br>int dim = 0       | Removed  | Done       | 1.0   | 0      |
 |  77 | Tensor<[1, 768]> self = ?,<br>int dim = 1             | Done     | Done       | 1.0   | 0      |
 |  78 | Tensor<[1, 7]> self = ?,<br>int dim = 1               | Done     | Done       | 1.0   | 0      |
 |  79 | Tensor<[1, 8]> self = ?,<br>int dim = 1               | Done     | Done       | 1.0   | 0      |

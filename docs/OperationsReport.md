@@ -10,12 +10,12 @@
 |   6 | [aten._scaled_dot_product_flash_attention.default](operations/aten._scaled_dot_product_flash_attention.default.md)   |                 35 |           0 |         0 |          0 | ✘           |    0    |
 |   7 | [aten._softmax.default](operations/aten._softmax.default.md)                                                         |                 76 |          51 |         0 |          0 | 🚧          |    0.67 |
 |   8 | [aten._softmax_backward_data.default](operations/aten._softmax_backward_data.default.md)                             |                  8 |           0 |         0 |          0 | ✘           |    0    |
-|   9 | [aten._to_copy.default](operations/aten._to_copy.default.md)                                                         |                328 |         122 |        23 |          0 | 🚧          |    0.44 |
+|   9 | [aten._to_copy.default](operations/aten._to_copy.default.md)                                                         |                328 |         121 |        24 |          0 | 🚧          |    0.44 |
 |  10 | [aten._unsafe_index.Tensor](operations/aten._unsafe_index.Tensor.md)                                                 |                 37 |           0 |        28 |          0 | 🚧          |    0.76 |
 |  11 | [aten._unsafe_index_put.default](operations/aten._unsafe_index_put.default.md)                                       |                 18 |           0 |         0 |          0 | ✘           |    0    |
 |  12 | [aten._unsafe_view.default](operations/aten._unsafe_view.default.md)                                                 |                133 |         129 |         0 |          0 | 🚧          |    0.97 |
 |  13 | [aten.abs.default](operations/aten.abs.default.md)                                                                   |                  2 |           2 |         0 |          0 | ✅          |    1    |
-|  14 | [aten.add.Tensor](operations/aten.add.Tensor.md)                                                                     |                591 |         349 |        24 |          0 | 🚧          |    0.63 |
+|  14 | [aten.add.Tensor](operations/aten.add.Tensor.md)                                                                     |                591 |         434 |        24 |          0 | 🚧          |    0.77 |
 |  15 | [aten.addmm.default](operations/aten.addmm.default.md)                                                               |                289 |         254 |         0 |          0 | 🚧          |    0.88 |
 |  16 | [aten.all.default](operations/aten.all.default.md)                                                                   |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  17 | [aten.arange.default](operations/aten.arange.default.md)                                                             |                 43 |           0 |        27 |          0 | 🚧          |    0.63 |
@@ -28,7 +28,7 @@
 |  24 | [aten.baddbmm.default](operations/aten.baddbmm.default.md)                                                           |                  3 |           3 |         0 |          0 | ✅          |    1    |
 |  25 | [aten.bitwise_not.default](operations/aten.bitwise_not.default.md)                                                   |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  26 | [aten.bmm.default](operations/aten.bmm.default.md)                                                                   |                163 |         113 |         0 |          0 | 🚧          |    0.69 |
-|  27 | [aten.cat.default](operations/aten.cat.default.md)                                                                   |                420 |         360 |        11 |          0 | 🚧          |    0.88 |
+|  27 | [aten.cat.default](operations/aten.cat.default.md)                                                                   |                421 |         360 |        11 |          0 | 🚧          |    0.88 |
 |  28 | [aten.ceil.default](operations/aten.ceil.default.md)                                                                 |                 14 |           0 |        11 |          0 | 🚧          |    0.79 |
 |  29 | [aten.clamp.default](operations/aten.clamp.default.md)                                                               |                 54 |           4 |        25 |          0 | 🚧          |    0.54 |
 |  30 | [aten.clamp_min.default](operations/aten.clamp_min.default.md)                                                       |                  9 |           0 |         0 |          0 | ✘           |    0    |
@@ -44,7 +44,7 @@
 |  40 | [aten.div.Tensor](operations/aten.div.Tensor.md)                                                                     |                146 |          99 |         0 |          0 | 🚧          |    0.68 |
 |  41 | [aten.elu.default](operations/aten.elu.default.md)                                                                   |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  42 | [aten.elu_backward.default](operations/aten.elu_backward.default.md)                                                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  43 | [aten.embedding.default](operations/aten.embedding.default.md)                                                       |                 76 |          49 |         2 |          0 | 🚧          |    0.67 |
+|  43 | [aten.embedding.default](operations/aten.embedding.default.md)                                                       |                 77 |          49 |         2 |          0 | 🚧          |    0.66 |
 |  44 | [aten.embedding_dense_backward.default](operations/aten.embedding_dense_backward.default.md)                         |                  3 |           0 |         0 |          0 | ✘           |    0    |
 |  45 | [aten.empty.memory_format](operations/aten.empty.memory_format.md)                                                   |                  2 |           0 |         0 |          0 | ✘           |    0    |
 |  46 | [aten.eq.Scalar](operations/aten.eq.Scalar.md)                                                                       |                 13 |          11 |         0 |          0 | 🚧          |    0.85 |
@@ -82,7 +82,7 @@
 |  78 | [aten.mean.dim](operations/aten.mean.dim.md)                                                                         |                 87 |          84 |         0 |          0 | 🚧          |    0.97 |
 |  79 | [aten.minimum.default](operations/aten.minimum.default.md)                                                           |                  6 |           2 |         0 |          0 | 🚧          |    0.33 |
 |  80 | [aten.mm.default](operations/aten.mm.default.md)                                                                     |                190 |         139 |         0 |          0 | 🚧          |    0.73 |
-|  81 | [aten.mul.Tensor](operations/aten.mul.Tensor.md)                                                                     |                390 |         171 |        30 |          0 | 🚧          |    0.52 |
+|  81 | [aten.mul.Tensor](operations/aten.mul.Tensor.md)                                                                     |                390 |         252 |        30 |          0 | 🚧          |    0.72 |
 |  82 | [aten.native_batch_norm_backward.default](operations/aten.native_batch_norm_backward.default.md)                     |                219 |           0 |         0 |          0 | ✘           |    0    |
 |  83 | [aten.native_dropout.default](operations/aten.native_dropout.default.md)                                             |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  84 | [aten.native_dropout_backward.default](operations/aten.native_dropout_backward.default.md)                           |                  1 |           0 |         0 |          0 | ✘           |    0    |
@@ -96,7 +96,7 @@
 |  92 | [aten.new_ones.default](operations/aten.new_ones.default.md)                                                         |                  6 |           0 |         0 |          0 | ✘           |    0    |
 |  93 | [aten.new_zeros.default](operations/aten.new_zeros.default.md)                                                       |                 40 |           0 |         0 |          0 | ✘           |    0    |
 |  94 | [aten.nll_loss_forward.default](operations/aten.nll_loss_forward.default.md)                                         |                  1 |           0 |         0 |          0 | ✘           |    0    |
-|  95 | [aten.ones.default](operations/aten.ones.default.md)                                                                 |                  8 |           1 |         0 |          0 | 🚧          |    0.12 |
+|  95 | [aten.ones.default](operations/aten.ones.default.md)                                                                 |                  8 |           0 |         1 |          0 | 🚧          |    0.12 |
 |  96 | [aten.permute.default](operations/aten.permute.default.md)                                                           |                254 |         143 |         0 |          0 | 🚧          |    0.56 |
 |  97 | [aten.pow.Scalar](operations/aten.pow.Scalar.md)                                                                     |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  98 | [aten.pow.Tensor_Scalar](operations/aten.pow.Tensor_Scalar.md)                                                       |                 21 |          13 |         0 |          0 | 🚧          |    0.62 |
@@ -122,7 +122,7 @@
 | 118 | [aten.split_with_sizes.default](operations/aten.split_with_sizes.default.md)                                         |                  3 |           0 |         0 |          0 | ✘           |    0    |
 | 119 | [aten.squeeze.dim](operations/aten.squeeze.dim.md)                                                                   |                 19 |          18 |         1 |          0 | ✅          |    1    |
 | 120 | [aten.stack.default](operations/aten.stack.default.md)                                                               |                 29 |           0 |         1 |          0 | 🚧          |    0.03 |
-| 121 | [aten.sub.Tensor](operations/aten.sub.Tensor.md)                                                                     |                 80 |          16 |        27 |          0 | 🚧          |    0.54 |
+| 121 | [aten.sub.Tensor](operations/aten.sub.Tensor.md)                                                                     |                 80 |          28 |        27 |          0 | 🚧          |    0.69 |
 | 122 | [aten.sum.default](operations/aten.sum.default.md)                                                                   |                  2 |           0 |         0 |          1 | ✘           |    0    |
 | 123 | [aten.sum.dim_IntList](operations/aten.sum.dim_IntList.md)                                                           |                 54 |           0 |         0 |          0 | ✘           |    0    |
 | 124 | [aten.sym_size.int](operations/aten.sym_size.int.md)                                                                 |                 28 |           0 |         0 |          0 | ✘           |    0    |
@@ -132,8 +132,8 @@
 | 128 | [aten.topk.default](operations/aten.topk.default.md)                                                                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
 | 129 | [aten.transpose.int](operations/aten.transpose.int.md)                                                               |                238 |         189 |         0 |          0 | 🚧          |    0.79 |
 | 130 | [aten.unbind.int](operations/aten.unbind.int.md)                                                                     |                  3 |           0 |         0 |          0 | ✘           |    0    |
-| 131 | [aten.unsqueeze.default](operations/aten.unsqueeze.default.md)                                                       |                205 |         119 |        18 |          0 | 🚧          |    0.67 |
-| 132 | [aten.view.default](operations/aten.view.default.md)                                                                 |               1273 |        1044 |         5 |          0 | 🚧          |    0.82 |
+| 131 | [aten.unsqueeze.default](operations/aten.unsqueeze.default.md)                                                       |                205 |         118 |        19 |          0 | 🚧          |    0.67 |
+| 132 | [aten.view.default](operations/aten.view.default.md)                                                                 |               1273 |        1043 |         5 |          0 | 🚧          |    0.82 |
 | 133 | [aten.where.self](operations/aten.where.self.md)                                                                     |                 13 |           2 |         0 |          0 | 🚧          |    0.15 |
 | 134 | [aten.zeros.default](operations/aten.zeros.default.md)                                                               |                 14 |           0 |         0 |          0 | ✘           |    0    |
 | 135 | [aten.zeros_like.default](operations/aten.zeros_like.default.md)                                                     |                  7 |           0 |         0 |          0 | ✘           |    0    |

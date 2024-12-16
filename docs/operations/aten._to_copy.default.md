@@ -47,7 +47,7 @@
 |  43 | Tensor<[1, 1, 512]> self = ?,<br>Optional[int] dtype = torch.float32                                                                                    | Unknown  | Fallback   | 1.0   | -1     |
 |  44 | Tensor<[1, 1, 59, 59]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Done     | Fallback   | 1.0   | -1     |
 |  45 | Tensor<[1, 1, 59, 59]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                    | None     | Fallback   | 1.0   | -1     |
-|  46 | Tensor<[1, 1, 720, 1280]> self = ?,<br>Optional[int] dtype = torch.float32                                                                              | Done     | Fallback   | 1.0   | -1     |
+|  46 | Tensor<[1, 1, 720, 1280]> self = ?,<br>Optional[int] dtype = torch.float32                                                                              | Removed  | Fallback   | 1.0   | -1     |
 |  47 | Tensor<[1, 1, 768]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                   | Unknown  | Fallback   | 1.0   | -1     |
 |  48 | Tensor<[1, 1, 768]> self = ?,<br>Optional[int] dtype = torch.float32                                                                                    | Unknown  | Fallback   | 1.0   | -1     |
 |  49 | Tensor<[1, 10, 1024]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                 | Done     | Fallback   | 1.0   | -1     |
