@@ -13,6 +13,8 @@ import torch_ttnn.metrics as metrics
 import subprocess
 import sys
 
+import torch_ttnn.generate_op_accuracy_tests as generate_op_accuracy_tests
+
 mb_in_bytes = 1048576
 
 
@@ -20,6 +22,7 @@ def pytest_addoption(parser):
     parser.addoption("--input_var_only_native", action="store_true")
     parser.addoption("--input_var_check_ttnn", action="store_true")
     parser.addoption("--input_var_check_accu", action="store_true")
+    parser.addoption("--gen_op_accuracy_tests", action="store_true")
 
 
 @pytest.fixture(scope="session")
@@ -121,13 +124,22 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
+                gen_op_accuracy_tests=request.config.getoption("--gen_op_accuracy_tests"),
             )
+
             start = time.perf_counter() * 1000
 
             outputs_after = model_tester.test_model(as_ttnn=True, option=option)
 
             end = time.perf_counter() * 1000
             comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
+
+            # set to one variable?
+            if request.config.getoption("--gen_op_accuracy_tests"):
+                generate_op_accuracy_tests.generate_op_accuracy_tests(
+                    model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs
+                )
+
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()
             if model_name not in ["speecht5-tts"]:
