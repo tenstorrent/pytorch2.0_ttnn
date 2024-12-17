@@ -12,6 +12,11 @@ def repeat(t, sizes):
     return ttnn.repeat(t, ttnn.Shape(sizes))
 
 
+@torch.fx.wrap
+def is_sharded(tensor):
+    return tensor.is_sharded()
+
+
 # Helper function to pack multiple values into a tuple on the graph
 @torch.fx.wrap
 def pack_to_tuple(*args):
