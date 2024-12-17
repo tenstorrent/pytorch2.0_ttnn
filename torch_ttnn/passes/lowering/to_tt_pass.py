@@ -457,7 +457,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
 
             def lower_binary_eltwise(fn, args):
-                shapes = get_shape(args[0]), get_shape(args[1])
+                shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
 
                 if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
                     isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
@@ -599,7 +599,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if isinstance(args[1], (float, int)):
                     return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
 
-                if get_shape(args[0]) == get_shape(args[1]):
+                if get_shape(gm, args[0]) == get_shape(gm, args[1]):
                     return g.call_function(ttnn.div, args, {})
 
                 recip = g.call_function(ttnn.reciprocal, (args[1],), {})
@@ -787,17 +787,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # TODO(#514)
                 if rank > 4:
                     return None
-                # TODO(#192): Front padding isn't well supported so skip for now
-                if not all(f == 0 for f, _ in full_pad):
-                    return None
-                # Change layout to row-major for non-tile-size-aligned tensor
+                # Change layout to row-major for non-tile-size-aligned tensor or front padding
                 if (
                     rank < 2
                     or input_shape[-1] % ttnn.TILE_SIZE != 0
                     or input_shape[-2] % ttnn.TILE_SIZE != 0
                     or full_pad[-1][1] % ttnn.TILE_SIZE != 0
                     or full_pad[-2][1] % ttnn.TILE_SIZE != 0
-                ):
+                ) or not all(f == 0 for f, _ in full_pad):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 # TODO(#515)
                 if output_shape[-1] % 2 != 0:
