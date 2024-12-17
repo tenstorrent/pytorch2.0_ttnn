@@ -24,13 +24,12 @@ class FullLikeModule(torch.nn.Module):
 def test_full_like(device, input_shape):
     m = FullLikeModule()
     fill_value = 1.23
-    tensor = torch.zeros(input_shape)
-    result_before = m.forward(tensor, fill_value).to(torch.bfloat16)
-    option = torch_ttnn.TorchTtnnOption(device=device)
-    option.gen_graphviz = True
+    tensor = torch.zeros(input_shape, dtype=torch.bfloat16)
+    result_before = m.forward(tensor, fill_value)
+    option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True)
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(tensor, fill_value).to(torch.bfloat16)
+    result_after = m.forward(tensor, fill_value)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
