@@ -111,11 +111,6 @@ aten_native_layer_norm_default_blocklist = [
     ],
 ]
 aten_exp_default_blocklist = [["Tensor<[0, 1]> self = ?"], ["Tensor<[]> self = ?"]]
-aten_split_Tensor_blocklist = [
-    ["Tensor<[768, 256]> self = ?", "int split_size = 256"],
-    ["Tensor<[768]> self = ?", "int split_size = 256"],
-    ["Tensor<[1, 7, 2304]> self = ?", "int split_size = 768", "int dim = 2"],
-]
 aten_where_self_blocklist = [
     ["Tensor<[1, 1, 7, 7]> condition = ?", "Tensor<[1, 12, 7, 7]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[1, 1, 45, 45]> condition = ?", "Tensor<[1, 12, 45, 45]> self = ?", "Tensor<[]> other = ?"],
@@ -1102,7 +1097,6 @@ GUARD = {
     torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
     torch.ops.aten.exp.default: partial(guard_aten, aten_exp_default_blocklist),
-    torch.ops.aten.split.Tensor: partial(guard_aten, aten_split_Tensor_blocklist),
     torch.ops.aten.where.self: partial(guard_aten, aten_where_self_blocklist),
     torch.ops.aten.empty.memory_format: partial(guard_aten, aten_empty_memory_format_blocklist),
     torch.ops.aten.rsqrt.default: partial(guard_aten, aten_rsqrt_default_blocklist),
