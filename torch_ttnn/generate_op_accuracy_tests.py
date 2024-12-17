@@ -1,4 +1,5 @@
 import inspect
+import lzma
 import pickle
 import torch.utils._pytree as pytree
 import ttnn
@@ -233,7 +234,14 @@ def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_i
         test_accuracy_graph_codes.append("\n".join(graph_code))
 
     # arrange full code
-    import_code = ["import ttnn", "import torch", "import numpy as np", "aten = torch.ops.aten"]
+    import_code = [
+        "import pickle",
+        "import ttnn",
+        "import torch",
+        "import numpy as np",
+        "import lzma",
+        "aten = torch.ops.aten",
+    ]
 
     # this needs to be done after the graph_code above because wrapper functions need to be resolved at that stage
     wrapper_code = list(wrapper_funcs)
@@ -260,12 +268,11 @@ def test_accuracy(tensor1, tensor2):
     input_pkl_file = Path(f"{model_name}_inputs.pickle")
     full_input_pkl_path = directory / input_pkl_file
     main_code = f"""
-import pickle
 if __name__ == "__main__":
     try:
-        file = open("{full_input_pkl_path}", "rb")
+        file = lzma.open("{full_input_pkl_path}", "rb")
     except:
-        file = open("{input_pkl_file}", "rb")
+        file = lzma.open("{input_pkl_file}", "rb")
     inputs = pickle.load(file)
     forward(*inputs)
 """
@@ -276,5 +283,5 @@ if __name__ == "__main__":
     with open(directory / Path(f"{model_name}_code.py"), "w") as text_file:
         print(full_text, file=text_file)
 
-    with open(directory / Path(f"{model_name}_inputs.pickle"), "wb") as f:
+    with lzma.open(directory / Path(f"{model_name}_inputs.pickle"), "wb") as f:
         pickle.dump(all_inputs, f)
