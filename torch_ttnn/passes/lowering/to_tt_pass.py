@@ -503,6 +503,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     node_user.replace_all_uses_with(new_node)
                 return None
 
+            if node.target == torch.ops.aten.zeros.default:
+                return g.call_function(ttnn.zeros, args=args, kwargs={"device": TtnnDevice()})
+
             if node.target == torch.ops.aten.ones.default:
                 return g.call_function(ttnn.ones, args=args, kwargs={"device": TtnnDevice()})
             """
@@ -1184,6 +1187,13 @@ def decompose_aten_to_aten_ops(g: GraphWrapper, node):
     if node.target == torch.ops.aten.full_like.default:
         target_shape = args[0].meta["val"].size()
         return g.call_function(torch.ops.aten.full.default, args=(target_shape, *args[1:]), kwargs=kwargs)
+
+    if node.target == torch.ops.aten.new_zeros.default:
+        target_shape = args[1]
+        new_kwargs = dict(kwargs)
+        # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
+        new_kwargs["dtype"] = node.meta["val"].dtype
+        return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
 
     return None
 

@@ -181,6 +181,7 @@ def is_tt_compute(node) -> bool:
             ttnn.ones,
             ttnn.tril,
             ttnn.arange,
+            ttnn.zeros,
             ttnn.zeros_like,
             ttnn.mean,
             ttnn.moreh_cumsum,
