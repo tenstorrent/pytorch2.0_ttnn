@@ -1178,12 +1178,44 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     return gm
 
 
+def decompose_aten_to_aten_ops(g: GraphWrapper, node):
+    args = node.args
+    kwargs = node.kwargs
+    if node.target == torch.ops.aten.full_like.default:
+        target_shape = args[0].meta["val"].size()
+        return g.call_function(torch.ops.aten.full.default, args=(target_shape, *args[1:]), kwargs=kwargs)
+
+    return None
+
+
+# TODO(jerrysky3): Refactor ReplaceMoreTtManually with rewrite_graph
+def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphModule:
+    nodes = list(gm.graph.nodes)
+    for node in nodes:
+        if not can_lowering_to_ttnn(node):
+            continue
+        g = GraphWrapper(node)
+        with g.inserting_before(node):
+            new_node = rewrite_node_fn(g, node)
+            if new_node is not None:
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
+
+    gm = GraphCleanup(gm)
+    return gm
+
+
 class ToTtPass(PassBase):
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
+        # Decompose some aten ops to simpler aten ops
+        gm = rewrite_graph(gm, decompose_aten_to_aten_ops)
+
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 

@@ -94,6 +94,14 @@ aten_full_default_blocklist = [
         "Optional[bool] pin_memory = False",
     ],
 ]
+# TODO(#615): Dynamic shape is not supported yet
+aten_full_like_default_blocklist = [
+    [
+        "Tensor<[s0 + 1, s0 + 1]> self = ?",
+        "number fill_value = 31",
+        "Optional[bool] pin_memory = False",
+    ],
+]
 aten__scaled_dot_product_flash_attention_default_blocklist = [
     ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
     ["Tensor<[1, 12, 197, 64]> query = ?", "Tensor<[1, 12, 197, 64]> key = ?", "Tensor<[1, 12, 197, 64]> value = ?"],
@@ -1395,6 +1403,7 @@ GUARD = {
     torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
     torch.ops.aten.full.default: partial(guard_aten, aten_full_default_blocklist),
+    torch.ops.aten.full_like.default: partial(guard_aten, aten_full_like_default_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
@@ -1422,6 +1431,7 @@ guard_ops = [
     "torch.ops.aten.maximum.default",
     "torch.ops.aten._log_softmax.default",
     "torch.ops.aten.full.default",
+    "torch.ops.aten.full_like.default",
     "torch.ops.aten.rsub.Scalar",
     "torch.ops.aten._scaled_dot_product_flash_attention.default",
     "torch.ops.aten.transpose.int",
