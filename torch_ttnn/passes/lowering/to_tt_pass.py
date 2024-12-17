@@ -784,17 +784,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # TODO(#514)
                 if rank > 4:
                     return None
-                # TODO(#192): Front padding isn't well supported so skip for now
-                if not all(f == 0 for f, _ in full_pad):
-                    return None
-                # Change layout to row-major for non-tile-size-aligned tensor
+                # Change layout to row-major for non-tile-size-aligned tensor or front padding
                 if (
                     rank < 2
                     or input_shape[-1] % ttnn.TILE_SIZE != 0
                     or input_shape[-2] % ttnn.TILE_SIZE != 0
                     or full_pad[-1][1] % ttnn.TILE_SIZE != 0
                     or full_pad[-2][1] % ttnn.TILE_SIZE != 0
-                ):
+                ) or not all(f == 0 for f, _ in full_pad):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 # TODO(#515)
                 if output_shape[-1] % 2 != 0:
