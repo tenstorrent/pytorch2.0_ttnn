@@ -5,7 +5,7 @@
 |  1 | aten._to_copy.default          |                  2 |           1 |         0 |          0 | 🚧          |     0.5 |
 |  2 | aten.add.Tensor                |                  4 |           4 |         0 |          0 | ✅          |     1   |
 |  3 | aten.addmm.default             |                  4 |           4 |         0 |          0 | ✅          |     1   |
-|  4 | aten.arange.default            |                  1 |           0 |         0 |          0 | ✘           |     0   |
+|  4 | aten.arange.default            |                  1 |           0 |         1 |          0 | ✅          |     1   |
 |  5 | aten.arange.start              |                  1 |           0 |         1 |          0 | ✅          |     1   |
 |  6 | aten.argmax.default            |                  1 |           0 |         0 |          0 | ✘           |     0   |
 |  7 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |     1   |
@@ -15,7 +15,7 @@
 | 11 | aten.eq.Scalar                 |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 12 | aten.expand.default            |                  3 |           0 |         3 |          0 | ✅          |     1   |
 | 13 | aten.full.default              |                  2 |           0 |         1 |          0 | 🚧          |     0.5 |
-| 14 | aten.index.Tensor              |                  1 |           0 |         0 |          0 | ✘           |     0   |
+| 14 | aten.index.Tensor              |                  1 |           0 |         1 |          0 | ✅          |     1   |
 | 15 | aten.mm.default                |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 16 | aten.mul.Tensor                |                  5 |           5 |         0 |          0 | ✅          |     1   |
 | 17 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |     1   |
@@ -25,7 +25,7 @@
 | 21 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 22 | aten.slice.Tensor              |                  6 |           2 |         4 |          0 | ✅          |     1   |
 | 23 | aten.split.Tensor              |                  1 |           0 |         0 |          0 | ✘           |     0   |
-| 24 | aten.sub.Tensor                |                  1 |           0 |         0 |          0 | ✘           |     0   |
+| 24 | aten.sub.Tensor                |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 25 | aten.t.default                 |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 26 | aten.tanh.default              |                  1 |           1 |         0 |          0 | ✅          |     1   |
 | 27 | aten.transpose.int             |                  1 |           1 |         0 |          0 | ✅          |     1   |
@@ -36,7 +36,7 @@
 ### aten._softmax.default
 |    | ATen Input Variations                                                          | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 12, 7, 7]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999548 |      0 |
+|  0 | Tensor<[1, 12, 7, 7]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999666 |      0 |
 ### aten._to_copy.default
 |    | ATen Input Variations                                                  | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -55,11 +55,11 @@
 |  0 | Tensor<[2304]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
 |  1 | Tensor<[3072]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
 |  2 | Tensor<[768]> self = ?,<br>Tensor<[7, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | 0.999945 |      0 |
-|  3 | Tensor<[768]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?   | Done     | Done       | 0.999966 |      0 |
+|  3 | Tensor<[768]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?   | Done     | Done       | 0.999965 |      0 |
 ### aten.arange.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | number end = 1,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False | None     | Fallback   |     1 |     -1 |
+|  0 | number end = 1,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False | Removed  | Done       |     1 |     -1 |
 ### aten.arange.start
 |    | ATen Input Variations                                                                                                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -71,7 +71,7 @@
 ### aten.bmm.default
 |    | ATen Input Variations                                         | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[12, 7, 64]> self = ?,<br>Tensor<[12, 64, 7]> mat2 = ? | Done     | Done       | 0.999989 |      0 |
+|  0 | Tensor<[12, 7, 64]> self = ?,<br>Tensor<[12, 64, 7]> mat2 = ? | Done     | Done       | 0.999988 |      0 |
 |  1 | Tensor<[12, 7, 7]> self = ?,<br>Tensor<[12, 7, 64]> mat2 = ?  | Done     | Done       | 0.999995 |      0 |
 ### aten.clone.default
 |    | ATen Input Variations                                                                     | Status   | Isolated   |   PCC |   Host |
@@ -92,7 +92,7 @@
 ### aten.eq.Scalar
 |    | ATen Input Variations                            | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 7]> self = ?,<br>number other = 50256 | Done     | Fallback   |     1 |      0 |
+|  0 | Tensor<[1, 7]> self = ?,<br>number other = 50256 | Done     | Done       |     1 |      0 |
 ### aten.expand.default
 |    | ATen Input Variations                                               | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -107,15 +107,15 @@
 ### aten.index.Tensor
 |    | ATen Input Variations                                                          | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [<[1]>, <[1]>] | None     | Fallback   |     1 |     -1 |
+|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [<[1]>, <[1]>] | Removed  | Fallback   |     1 |     -1 |
 ### aten.mm.default
 |    | ATen Input Variations                                   | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[7, 768]> self = ?,<br>Tensor<[768, 2]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
+|  0 | Tensor<[7, 768]> self = ?,<br>Tensor<[768, 2]> mat2 = ? | Done     | Done       | 0.999827 |      0 |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       | 1        |      0 |
+|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       | 0.999999 |      0 |
 |  1 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor other = 0.044715                | Done     | Done       | 0.999995 |      0 |
 |  2 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor other = 0.5                     | Done     | Done       | 1        |      0 |
 |  3 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor other = 0.7978845608028654      | Done     | Done       | 0.999997 |      0 |
@@ -140,7 +140,7 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999995 |      0 |
+|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999923 |      0 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                       | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -157,7 +157,7 @@
 ### aten.sub.Tensor
 |    | ATen Input Variations                     | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1]> self = ?,<br>Tensor other = 1 | None     | Done       |     1 |      0 |
+|  0 | Tensor<[1]> self = ?,<br>Tensor other = 1 | Done     | Done       |     1 |      0 |
 ### aten.t.default
 |    | ATen Input Variations     | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------|:---------|:-----------|------:|-------:|
@@ -165,7 +165,7 @@
 ### aten.tanh.default
 |    | ATen Input Variations         | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 7, 3072]> self = ? | Done     | Done       | 0.998424 |      0 |
+|  0 | Tensor<[1, 7, 3072]> self = ? | Done     | Done       | 0.998416 |      0 |
 ### aten.transpose.int
 |    | ATen Input Variations                                               | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|------:|-------:|

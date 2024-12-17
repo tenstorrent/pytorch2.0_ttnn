@@ -459,7 +459,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             def lower_binary_eltwise(fn, args):
                 shapes = get_shape(args[0]), get_shape(args[1])
 
-                if any(not s for s in shapes):
+                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
+                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
+                ):
+                    # ttnn.from_torch not yet support scalar tensor, see issue 442
+                    return None
+
+                if any(s is None for s in shapes):
                     return None
 
                 if max(map(len, shapes)) > 4 and shapes[0][-3:-2] != shapes[1][-3:-2]:
@@ -1067,6 +1073,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         ttnn.reshape,
                         (bias_node, (1,) * (4 - len(bias_shape)) + bias_shape),
                     )
+                    bias_tensor = g.call_function(target_wrappers.move_to_host, (bias_tensor, TtnnRowMajorLayout()))
                 output_tensor = g.call_function(
                     target_wrappers.conv2d,
                     (
@@ -1139,6 +1146,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     tensors_to_concat.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnTileLayout()}))
 
                 return g.call_function(ttnn.concat, (tensors_to_concat, dim))
+
+            if node.target == torch.ops.aten.argmax.default:
+                tensor, *dim = args
+                rank = len(tensor.meta["val"].size())
+                tt_kwargs = {}
+                if dim:
+                    dim = (dim[0] + rank) % rank
+                    tt_kwargs["dim"] = dim
+
+                return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
 
             # PEP 8 suggests this explicit statement
             return None

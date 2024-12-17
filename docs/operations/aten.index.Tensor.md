@@ -1,7 +1,7 @@
 ### aten.index.Tensor
 |    | ATen Input Variations                                                            | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [<[1]>, <[1]>]   | None     | Fallback   |     1 |     -1 |
+|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [<[1]>, <[1]>]   | Removed  | Fallback   |     1 |     -1 |
 |  1 | Tensor<[169, 12]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]       | None     | Fallback   |     1 |     -1 |
 |  2 | Tensor<[169, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]       | None     | Fallback   |     1 |     -1 |
 |  3 | Tensor<[169, 24]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]       | None     | Fallback   |     1 |     -1 |
@@ -10,7 +10,7 @@
 |  6 | Tensor<[169, 4]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]        | None     | Fallback   |     1 |     -1 |
 |  7 | Tensor<[169, 6]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]        | None     | Fallback   |     1 |     -1 |
 |  8 | Tensor<[169, 8]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]        | None     | Fallback   |     1 |     -1 |
-|  9 | Tensor<[2, 7, 512]> self = ?,<br>List[Optional[Tensor]] indices = [<[2]>, <[2]>] | None     | Fallback   |     1 |     -1 |
+|  9 | Tensor<[2, 7, 512]> self = ?,<br>List[Optional[Tensor]] indices = [<[2]>, <[2]>] | Removed  | Fallback   |     1 |     -1 |
 | 10 | Tensor<[2048, 32]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 1]>]      | Unknown  | Fallback   |     1 |     -1 |
 | 11 | Tensor<[2048, 32]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 5]>]      | Unknown  | Fallback   |     1 |     -1 |
 | 12 | Tensor<[225, 12]> self = ?,<br>List[Optional[Tensor]] indices = [<[4096]>]       | None     | Fallback   |     1 |     -1 |
