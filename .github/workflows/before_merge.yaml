@@ -157,7 +157,7 @@ jobs:
           set +e
           git pull
           rm -rf tests/autogen_op/ALL
-          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} --gen_op_accuracy_tests -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
           ls -l
           cd metrics-autogen-op
@@ -216,6 +216,28 @@ jobs:
         with:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
+
+  gen-and-test-model-accuracy:
+    needs: [model-tests]
+    runs-on: ["in-service"]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download All Accuracy Tests and Inputs Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-metrics-group-*
+          merge-multiple: true
+          path: accuracy_tests/
+
+      - name: Run Accuracy Tests
+        run: |
+          set +e
+          for script in accuracy_tests/*.py; do python3 "$script"; done
+          exit 0;
 
   collect-metrics:
     needs: [model-autogen-op-tests]
