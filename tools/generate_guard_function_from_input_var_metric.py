@@ -37,7 +37,9 @@ class GuardFuncExporter:
     def get_op_blocklist(self, threshold: list):
         def need_block(input_var: dict, threshold: list):
             for key in threshold:
-                if input_var[key] == False:
+                if isinstance(input_var[key], bool) and input_var[key] == False:
+                    return True
+                elif not (float(input_var[key]) >= 0.99):
                     return True
 
         op_blocklist = {}

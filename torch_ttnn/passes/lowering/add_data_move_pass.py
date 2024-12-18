@@ -7,6 +7,7 @@ from torch_ttnn.utils import (
     TtnnBfloat16,
     TtnnUint32,
     HasValidPageSize,
+    get_dtype,
 )
 from dataclasses import dataclass
 from enum import Enum
@@ -150,6 +151,7 @@ TTNN_LAYOUT_CHANGE_OPS = set(
     [
         ttnn.reshape,
         ttnn.slice,
+        ttnn.argmax,
     ]
 )
 
@@ -179,6 +181,7 @@ def is_tt_compute(node) -> bool:
             ttnn.ones,
             ttnn.tril,
             ttnn.arange,
+            ttnn.zeros,
             ttnn.zeros_like,
             ttnn.mean,
             ttnn.moreh_cumsum,
@@ -190,6 +193,7 @@ def is_tt_compute(node) -> bool:
             ttnn.moreh_cumsum,
             ttnn.sum,
             ttnn.typecast,
+            ttnn.argmax,
         ]
     )
 
@@ -212,44 +216,15 @@ def is_tt(node):
     return is_tt_compute(node) or is_tt_data_move(node)
 
 
-def call_to_torch_with_meta(g, src_node):
-    call_func = g.call_function(ttnn.to_torch, (src_node,))
+def call_to_torch_with_meta(g, src_node, dtype=None):
+    if dtype == "by_node_meta":
+        dtype = get_dtype(src_node)
+    call_func = g.call_function(ttnn.to_torch, (src_node,), {"dtype": dtype})
     if src_node.meta is not None:
         call_func.meta = src_node.meta.copy()
     if "original_input_variations" in call_func.meta:
         call_func.meta["original_input_variations"] = None
     return call_func
-
-
-def try_call_aten__to_copy_with_meta(g, to_torch_node, target_users_ops):
-    # try_add_data_move_in will change dtype to bfloat16
-    # so the to_torch's output dtype will be bfloat16, which is incorrect
-    # luckly, the meta remain the origin correct dtype
-    # so add aten._to_copy(dtype) to correct the dtype
-    # TODO: If to_torch can specify dtype, then can merge to_copy on it
-
-    if hasattr(to_torch_node, "meta") and "val" in to_torch_node.meta and hasattr(to_torch_node.meta["val"], "dtype"):
-        dtype = to_torch_node.meta["val"].dtype
-        if dtype in [torch.float32, torch.float64, torch.bfloat16]:
-            # segformer: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
-            # _unsafe_index_put_default = torch.ops.aten._unsafe_index_put.default(new_zeros_default, [None, None, unsqueeze_11, _to_copy_22], ttnn_to_torch, True)
-            # (Pdb) new_zeros_default.dtype
-            # torch.float32
-            # (Pdb) ttnn_to_torch.dtype
-            # torch.bfloat16 => should have to_copy to be torch.float32
-            if torch.ops.aten._unsafe_index_put.default not in target_users_ops:
-                return None
-        call_func = g.call_function(
-            torch.ops.aten._to_copy.default,
-            (to_torch_node,),
-            {"dtype": dtype},
-        )
-        call_func.meta = to_torch_node.meta.copy()
-        if "original_input_variations" in call_func.meta:
-            call_func.meta["original_input_variations"] = None
-        return call_func
-    else:
-        return None
 
 
 def is_torch_to_ttnn(src_node, dst_node) -> bool:
@@ -422,11 +397,7 @@ class NodeInputAligner:
             # aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
         elif isinstance(spec, self.AlignSpecToTorch):
             target_users_ops = [user.target for user in spec.input_node.users.keys()]
-            aligning_nodes.append(call_to_torch_with_meta(g, spec.input_node))
-            if spec.dtype == "by_node_meta":
-                copy_node = try_call_aten__to_copy_with_meta(g, aligning_nodes[-1], target_users_ops)
-                if copy_node:
-                    aligning_nodes.append(copy_node)
+            aligning_nodes.append(call_to_torch_with_meta(g, spec.input_node, spec.dtype))
         elif isinstance(spec, self.AlignSpecInTtnn):
             self._change_layout(spec, aligning_nodes)
         return aligning_nodes[-1]

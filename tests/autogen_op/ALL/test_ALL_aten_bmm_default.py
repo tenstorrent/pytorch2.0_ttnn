@@ -61,8 +61,6 @@ def teardown_module(module):
         ["Tensor<[6, 1, s0 + 1]> self = ?", "Tensor<[6, s0 + 1, 64]> mat2 = ?"],
         ["Tensor<[6, 1, 64]> self = ?", "Tensor<[6, 64, 17]> mat2 = ?"],
         ["Tensor<[6, 1, 17]> self = ?", "Tensor<[6, 17, 64]> mat2 = ?"],
-        ["Tensor<[71, 7, 64]> self = ?", "Tensor<[71, 64, 7]> mat2 = ?"],
-        ["Tensor<[71, 7, 7]> self = ?", "Tensor<[71, 7, 64]> mat2 = ?"],
         ["Tensor<[1, 19200, 64]> self = ?", "Tensor<[1, 64, 300]> mat2 = ?"],
         ["Tensor<[1, 19200, 300]> self = ?", "Tensor<[1, 300, 64]> mat2 = ?"],
         ["Tensor<[2, 4800, 64]> self = ?", "Tensor<[2, 64, 300]> mat2 = ?"],
@@ -79,6 +77,7 @@ def teardown_module(module):
         ["Tensor<[12, 1, 46]> self = ?", "Tensor<[12, 46, 64]> mat2 = ?"],
         ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, s10 + 1]> mat2 = ?"],
         ["Tensor<[12, 1, s10 + 1]> self = ?", "Tensor<[12, s10 + 1, 64]> mat2 = ?"],
+        ["Tensor<[1, 64, 1]> self = ?", "Tensor<[1, 1, 32]> mat2 = ?"],
         ["Tensor<[16, 59, 64]> self = ?", "Tensor<[16, 64, 59]> mat2 = ?"],
         ["Tensor<[16, 59, 59]> self = ?", "Tensor<[16, 59, 64]> mat2 = ?"],
         ["Tensor<[16, 1, 64]> self = ?", "Tensor<[16, 64, 60]> mat2 = ?"],
@@ -107,8 +106,6 @@ def teardown_module(module):
         ["Tensor<[2, 32, 4096]> self = ?", "Tensor<[2, 4096, 256]> mat2 = ?"],
         ["Tensor<[1, 256, 16384]> self = ?", "Tensor<[1, 16384, 32]> mat2 = ?"],
         ["Tensor<[1, 32, 16384]> self = ?", "Tensor<[1, 16384, 256]> mat2 = ?"],
-        ["Tensor<[12, 201, 64]> self = ?", "Tensor<[12, 64, 201]> mat2 = ?"],
-        ["Tensor<[12, 201, 201]> self = ?", "Tensor<[12, 201, 64]> mat2 = ?"],
         ["Tensor<[16, 19, 64]> self = ?", "Tensor<[16, 64, 19]> mat2 = ?"],
         ["Tensor<[16, 19, 19]> self = ?", "Tensor<[16, 19, 64]> mat2 = ?"],
         ["Tensor<[3, 1445, 64]> self = ?", "Tensor<[3, 64, 1445]> mat2 = ?"],
@@ -138,22 +135,6 @@ def teardown_module(module):
         ["Tensor<[12, 24, 64]> self = ?", "Tensor<[12, 64, 24]> mat2 = ?"],
         ["Tensor<[24, 12, 64]> self = ?", "Tensor<[24, 64, 24]> mat2 = ?"],
         ["Tensor<[12, 24, 24]> self = ?", "Tensor<[12, 24, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, 1]> mat2 = ?"],
-        ["Tensor<[12, 1, 1]> self = ?", "Tensor<[12, 1, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, 24]> mat2 = ?"],
-        ["Tensor<[12, 1, 24]> self = ?", "Tensor<[12, 24, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, 2]> mat2 = ?"],
-        ["Tensor<[12, 1, 2]> self = ?", "Tensor<[12, 2, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, s0 + 1]> mat2 = ?"],
-        ["Tensor<[12, 1, s0 + 1]> self = ?", "Tensor<[12, s0 + 1, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, s2 + 1]> mat2 = ?"],
-        ["Tensor<[12, 1, s2 + 1]> self = ?", "Tensor<[12, s2 + 1, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, s4 + 1]> mat2 = ?"],
-        ["Tensor<[12, 1, s4 + 1]> self = ?", "Tensor<[12, s4 + 1, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, s6 + 1]> mat2 = ?"],
-        ["Tensor<[12, 1, s6 + 1]> self = ?", "Tensor<[12, s6 + 1, 64]> mat2 = ?"],
-        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, s8 + 1]> mat2 = ?"],
-        ["Tensor<[12, 1, s8 + 1]> self = ?", "Tensor<[12, s8 + 1, 64]> mat2 = ?"],
         ["Tensor<[256, 49, 32]> self = ?", "Tensor<[256, 32, 49]> mat2 = ?"],
         ["Tensor<[256, 49, 49]> self = ?", "Tensor<[256, 49, 32]> mat2 = ?"],
         ["Tensor<[128, 49, 32]> self = ?", "Tensor<[128, 32, 49]> mat2 = ?"],
@@ -186,8 +167,14 @@ def teardown_module(module):
         ["Tensor<[48, 64, 64]> self = ?", "Tensor<[48, 64, 32]> mat2 = ?"],
         ["Tensor<[24, 64, 32]> self = ?", "Tensor<[24, 32, 64]> mat2 = ?"],
         ["Tensor<[24, 64, 64]> self = ?", "Tensor<[24, 64, 32]> mat2 = ?"],
+        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, 1]> mat2 = ?"],
+        ["Tensor<[12, 1, 1]> self = ?", "Tensor<[12, 1, 64]> mat2 = ?"],
         ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, 10]> mat2 = ?"],
         ["Tensor<[12, 1, 10]> self = ?", "Tensor<[12, 10, 64]> mat2 = ?"],
+        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, 2]> mat2 = ?"],
+        ["Tensor<[12, 1, 2]> self = ?", "Tensor<[12, 2, 64]> mat2 = ?"],
+        ["Tensor<[12, 1, 64]> self = ?", "Tensor<[12, 64, s0 + 1]> mat2 = ?"],
+        ["Tensor<[12, 1, s0 + 1]> self = ?", "Tensor<[12, s0 + 1, 64]> mat2 = ?"],
         ["Tensor<[16, 10, 64]> self = ?", "Tensor<[16, 64, 10]> mat2 = ?"],
         ["Tensor<[16, 10, 10]> self = ?", "Tensor<[16, 10, 64]> mat2 = ?"],
         ["Tensor<[16, 1, 64]> self = ?", "Tensor<[16, 64, 1]> mat2 = ?"],
@@ -220,6 +207,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "run": "N/A",
         "accuracy": "N/A",
         "convert_to_ttnn": "N/A",
+        "ttnn_fallbacks_to_host_count": "N/A",
     }
     m = AtenModule()
     input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.bmm.default", input_strings)
@@ -231,34 +219,54 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     except Exception as e:
         print(f"Failed to run native. Raised exception: {e}")
         metric["native_run"] = False
+
     if metric["native_run"] == True:
+        result_after = None
         option = torch_ttnn.TorchTtnnOption(device=device)
         # option.gen_graphviz = True
         # The compilation is lazy, so we need to run forward once to trigger the compilation
         m = torch.compile(m, backend=torch_ttnn.backend, options=option)
         try:
+            ttnn.graph.begin_graph_capture()
             result_after = m.forward(*input_args, **input_kwargs)
             # option._out_fx_graphs[0].print_tabular()
             metric["run"] = True
         except Exception as e:
             print(f"Failed to run. Raised exception: {e}")
             metric["run"] = False
+        finally:
+            trace = ttnn.graph.end_graph_capture()
+            call_stack = ttnn.graph.extract_calltrace(trace)
+            if metric["run"] == True:
+                print(call_stack)
+                expected_to_host_count = 0
+                if result_after is None:
+                    expected_to_host_count = 0
+                elif isinstance(result_after, torch.Tensor):
+                    expected_to_host_count = 1
+                elif isinstance(result_after, (list, dict)):
+                    expected_to_host_count = len(result_after)
+                else:
+                    print(f"Unexpected result_after type: {type(result_after)}")
+
+                to_host_count = sum(["Tensor::cpu" in str(node) for node in call_stack])
+                fallbacks_to_host_count = to_host_count - expected_to_host_count
+                print(f"expected_to_host_count: {expected_to_host_count}")
+                print(f"to_host_count: {to_host_count}")
+                print(f"fallbacks_to_host_count: {fallbacks_to_host_count}")
+                metric["ttnn_fallbacks_to_host_count"] = fallbacks_to_host_count
 
     if metric["run"] == True:
         try:
             # Check inference result
-            accuracy = calculate_accuracy(result_before, result_after)
-            if accuracy >= 0.99:
-                metric["accuracy"] = True
-            else:
-                metric["accuracy"] = False
+            metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
         try:
             # Check the graph has be rewritten and contain ttnn ops
             nodes = list(option._out_fx_graphs[0].nodes)
-            if any(["ttnn" in str(node) for node in nodes]):
+            if not any(["aten." in str(node.target) for node in nodes]):
                 metric["convert_to_ttnn"] = True
             else:
                 metric["convert_to_ttnn"] = False
@@ -270,6 +278,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
     if not input_var_only_native:
         assert metric["run"] == True
         if input_var_check_accu:
-            assert metric["accuracy"] == True
+            assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:
             assert metric["convert_to_ttnn"] == True

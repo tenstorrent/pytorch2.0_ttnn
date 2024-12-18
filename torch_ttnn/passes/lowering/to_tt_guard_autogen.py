@@ -62,38 +62,6 @@ aten_maximum_default_blocklist = [
     ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
 ]
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
-aten_full_default_blocklist = [
-    [
-        "List[int] size = [19, 19]",
-        "number fill_value = -3.4028234663852886e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [7, 7]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [45, 45]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [59, 59]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [19, 19]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-]
 aten__scaled_dot_product_flash_attention_default_blocklist = [
     ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
     ["Tensor<[1, 12, 197, 64]> query = ?", "Tensor<[1, 12, 197, 64]> key = ?", "Tensor<[1, 12, 197, 64]> value = ?"],
@@ -113,22 +81,6 @@ aten__scaled_dot_product_flash_attention_default_blocklist = [
         "bool is_causal = True",
     ],
 ]
-aten_transpose_int_blocklist = [
-    ["Tensor<[1, 197, 1, 3, 1024]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[12, 197, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[12, 64, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[1, 12, 64, 197]> self = ?", "int dim0 = -1", "int dim1 = -2"],
-    ["Tensor<[1, 197, 1, 3, 768]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[1, 768, 49]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[16, 7, 7]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[16, 64, 7]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[1, 50, 1, 3, 1024]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[1, 50, 1, 3, 768]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[1, 1370, 1, 3, 1280]> self = ?", "int dim0 = 0", "int dim1 = -2"],
-    ["Tensor<[16, 197, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[16, 64, 197]> self = ?", "int dim0 = 1", "int dim1 = 2"],
-    ["Tensor<[1, 16, 64, 197]> self = ?", "int dim0 = -1", "int dim1 = -2"],
-]
 aten_zeros_like_default_blocklist = [
     ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
     ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
@@ -137,63 +89,10 @@ aten_zeros_like_default_blocklist = [
 ]
 aten_div_Tensor_blocklist = [
     ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 12, 9, 9]> self = ?", "Tensor other = 8.0"],
-    ["Tensor<[1, 64, 9, 9]> self = ?", "Tensor other = 8.0"],
     ["Tensor<[1, 23, 40, 1]> self = ?", "Tensor<[128]> other = ?"],
-    ["Tensor<[1, 12, 25, 25]> self = ?", "Tensor other = 8.0"],
-    ["Tensor<[1, 16, 9, 9]> self = ?", "Tensor other = 11.313708498984761"],
-    ["Tensor<[1, 16, 9, 9]> self = ?", "Tensor other = 8.0"],
     ["Tensor<[1, 12, 7, 7]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 1280, 8, 8]> self = ?", "Tensor other = 1"],
-    ["Tensor<[10, 10]> self = ?", "Tensor other = 8"],
-    ["Tensor<[2, 2]> self = ?", "Tensor other = 16"],
     ["Tensor<[1, 16, 5, 5]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[1, 16, 1, 6]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 128, 1568]> self = ?", "Tensor other = 3"],
-    ["Tensor<[1, 64, 6272]> self = ?", "Tensor other = 3"],
-    ["Tensor<[1, 32, 25088]> self = ?", "Tensor other = 3"],
-    ["Tensor<[15, 15]> self = ?", "Tensor other = 8"],
-    ["Tensor<[15, 15]> self = ?", "Tensor other = 2.772588722239781"],
-    ["Tensor<[17, 17]> self = ?", "Tensor other = 16"],
-    ["Tensor<[17, 17]> self = ?", "Tensor other = 2.0794415416798357"],
-]
-aten_mul_Tensor_blocklist = [
-    ["Tensor<[]> self = ?", "Tensor<[3234, 1]> other = ?"],
-    ["Tensor<[300]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 64, 30, 40]> self = ?", "Tensor<[1, 1, 30, 40]> other = ?"],
-    ["Tensor<[1, 64, 60, 80]> self = ?", "Tensor<[1, 1, 60, 80]> other = ?"],
-    ["Tensor<[1, 64, 120, 160]> self = ?", "Tensor<[1, 1, 120, 160]> other = ?"],
-    ["Tensor<[64, 3, 64, 64]> self = ?", "Tensor<[3, 1, 1]> other = ?"],
-    ["Tensor<[16, 6, 64, 64]> self = ?", "Tensor<[6, 1, 1]> other = ?"],
-    ["Tensor<[4, 12, 64, 64]> self = ?", "Tensor<[12, 1, 1]> other = ?"],
-    ["Tensor<[136]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[100]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[68]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[50]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[34]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[25]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[17]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[13]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[9]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[7]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[0]> self = ?", "Tensor other = 0.5"],
-    ["Tensor<[0, 1]> self = ?", "Tensor<[0, 1]> other = ?"],
-    ["Tensor<[]> self = ?", "Tensor<[0, 1]> other = ?"],
-    ["Tensor<[0]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[16, 1]> self = ?", "Tensor<[1, 1, 32]> other = ?"],
-    ["Tensor<[2, 1]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 71, 7, 64]> self = ?", "Tensor<[1, 1, 7, 64]> other = ?"],
-    ["Tensor<[1, 3, 64, 64, 2]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 3, 32, 32, 2]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 3, 16, 16, 2]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[]> self = ?", "Tensor<[8732, 1]> other = ?"],
-    ["Tensor<[12]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[64, 4, 64, 64]> self = ?", "Tensor<[4, 1, 1]> other = ?"],
-    ["Tensor<[16, 8, 64, 64]> self = ?", "Tensor<[8, 1, 1]> other = ?"],
-    ["Tensor<[4, 16, 64, 64]> self = ?", "Tensor<[16, 1, 1]> other = ?"],
-    ["Tensor<[]> self = ?", "Tensor<[1, 24, 768]> other = ?"],
-    ["Tensor<[]> self = ?", "Tensor<[1, 1, 768]> other = ?"],
 ]
 aten_native_layer_norm_default_blocklist = [
     [
@@ -211,47 +110,11 @@ aten_native_layer_norm_default_blocklist = [
         "float eps = 1e-05",
     ],
 ]
-aten_sub_Tensor_blocklist = [
-    ["Tensor<[64, 1, 64]> self = ?", "Tensor<[64, 64, 1]> other = ?"],
-    ["Tensor<[16, 1, 64]> self = ?", "Tensor<[16, 64, 1]> other = ?"],
-    ["Tensor<[4, 1, 64]> self = ?", "Tensor<[4, 64, 1]> other = ?"],
-    ["Tensor<[0]> self = ?", "Tensor<[0]> other = ?"],
-    ["Tensor<[0, 1]> self = ?", "Tensor<[0, 1]> other = ?"],
-    ["Tensor<[64, 1, 49]> self = ?", "Tensor<[64, 49, 1]> other = ?"],
-    ["Tensor<[16, 1, 49]> self = ?", "Tensor<[16, 49, 1]> other = ?"],
-    ["Tensor<[4, 1, 49]> self = ?", "Tensor<[4, 49, 1]> other = ?"],
-    ["Tensor<[1, 10]> self = ?", "Tensor<[10, 1]> other = ?"],
-    ["Tensor<[1, 2]> self = ?", "Tensor<[2, 1]> other = ?"],
-    ["Tensor<[24, 1]> self = ?", "Tensor<[1, 24]> other = ?"],
-    ["Tensor<[1, 15]> self = ?", "Tensor<[15, 1]> other = ?"],
-    ["Tensor<[1, 17]> self = ?", "Tensor<[17, 1]> other = ?"],
-]
 aten_exp_default_blocklist = [["Tensor<[0, 1]> self = ?"], ["Tensor<[]> self = ?"]]
 aten_split_Tensor_blocklist = [
     ["Tensor<[768, 256]> self = ?", "int split_size = 256"],
     ["Tensor<[768]> self = ?", "int split_size = 256"],
     ["Tensor<[1, 7, 2304]> self = ?", "int split_size = 768", "int dim = 2"],
-]
-aten_ones_default_blocklist = [
-    [
-        "List[int] size = [7, 7]",
-        "Optional[int] dtype = torch.bool",
-        "Optional[int] layout = torch.strided",
-        "Optional[Device] device = cpu",
-    ],
-    [
-        "List[int] size = [1, 1]",
-        "Optional[int] dtype = torch.int64",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    ["List[int] size = [1, 1]", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
-    [
-        "List[int] size = [1, 1, 1]",
-        "Optional[int] dtype = torch.float32",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
 ]
 aten_where_self_blocklist = [
     ["Tensor<[1, 1, 7, 7]> condition = ?", "Tensor<[1, 12, 7, 7]> self = ?", "Tensor<[]> other = ?"],
@@ -268,13 +131,6 @@ aten_empty_memory_format_blocklist = [
         "Optional[Device] device = cpu",
         "Optional[bool] pin_memory = False",
     ]
-]
-aten_log_default_blocklist = [
-    ["Tensor<[10, 10]> self = ?"],
-    ["Tensor<[1, 1]> self = ?"],
-    ["Tensor<[2, 2]> self = ?"],
-    ["Tensor<[15, 15]> self = ?"],
-    ["Tensor<[17, 17]> self = ?"],
 ]
 aten_rsqrt_default_blocklist = [["Tensor<[1, 1, 1]> self = ?"]]
 aten_bernoulli_p_blocklist = [["Tensor<[1, 256]> self = ?", "float p = 0.5"]]
@@ -1477,6 +1333,12 @@ aten_convolution_default_blocklist = [
     ],
 ]
 
+aten_argmax_default_blocklist = [
+    ["Tensor<[2, 7]> self = ?", "Optional[int] dim = -1"],
+    ["Tensor<[1, 7]> self = ?", "Optional[int] dim = -1"],
+    ["Tensor<[1, 51865]> self = ?", "Optional[int] dim = -1"],
+]
+
 
 def get_inputs(node):
     node_inputs = metrics.collect_input_variation_from_node(node)
@@ -1500,28 +1362,23 @@ GUARD = {
     torch.ops.aten.clamp.default: partial(guard_aten, aten_clamp_default_blocklist),
     torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
-    torch.ops.aten.full.default: partial(guard_aten, aten_full_default_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
-    torch.ops.aten.transpose.int: partial(guard_aten, aten_transpose_int_blocklist),
     torch.ops.aten.zeros_like.default: partial(guard_aten, aten_zeros_like_default_blocklist),
     torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
-    torch.ops.aten.mul.Tensor: partial(guard_aten, aten_mul_Tensor_blocklist),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
-    torch.ops.aten.sub.Tensor: partial(guard_aten, aten_sub_Tensor_blocklist),
     torch.ops.aten.exp.default: partial(guard_aten, aten_exp_default_blocklist),
     torch.ops.aten.split.Tensor: partial(guard_aten, aten_split_Tensor_blocklist),
-    torch.ops.aten.ones.default: partial(guard_aten, aten_ones_default_blocklist),
     torch.ops.aten.where.self: partial(guard_aten, aten_where_self_blocklist),
     torch.ops.aten.empty.memory_format: partial(guard_aten, aten_empty_memory_format_blocklist),
-    torch.ops.aten.log.default: partial(guard_aten, aten_log_default_blocklist),
     torch.ops.aten.rsqrt.default: partial(guard_aten, aten_rsqrt_default_blocklist),
     torch.ops.aten.bernoulli.p: partial(guard_aten, aten_bernoulli_p_blocklist),
     torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
     torch.ops.aten.new_empty_strided.default: partial(guard_aten, aten_new_empty_strided_default_blocklist),
     torch.ops.aten.mm.default: partial(guard_aten, aten_mm_default_blocklist),
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
+    torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),
 }
 
 guard_ops = [
@@ -1531,7 +1388,6 @@ guard_ops = [
     "torch.ops.aten.clamp.default",
     "torch.ops.aten.maximum.default",
     "torch.ops.aten._log_softmax.default",
-    "torch.ops.aten.full.default",
     "torch.ops.aten.rsub.Scalar",
     "torch.ops.aten._scaled_dot_product_flash_attention.default",
     "torch.ops.aten.transpose.int",
@@ -1544,7 +1400,6 @@ guard_ops = [
     "torch.ops.aten.exp.default",
     "torch.ops.aten.split.Tensor",
     "torch.ops.aten.t.default",
-    "torch.ops.aten.ones.default",
     "torch.ops.aten.where.self",
     "torch.ops.aten.empty.memory_format",
     "torch.ops.aten.log.default",

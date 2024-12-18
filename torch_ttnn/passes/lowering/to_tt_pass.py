@@ -311,34 +311,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target in relational_scalar_ops:
             return self.call_function_prop_meta(relational_scalar_ops[target], args, kwargs)
 
-        if target == torch.ops.aten.add.Tensor:
-
-            def is_zero_dim(meta):
-                if type(meta) != dict or "val" not in meta:
-                    return False  # scalar
-                size = list(meta["val"].size())
-                if len(size) == 0 or 0 in size:
-                    return True
-                return False
-
-            arg0_meta = None
-            arg1_meta = None
-            if hasattr(args[0], "node") and hasattr(args[0].node, "meta"):
-                arg0_meta = args[0].node.meta
-            if hasattr(args[1], "node") and hasattr(args[1].node, "meta"):
-                arg1_meta = args[1].node.meta
-            if is_zero_dim(arg0_meta) or is_zero_dim(arg1_meta):
-                return self.call_function_prop_meta(target, args, kwargs)
-
-            # TODO(tt-metal#15585): Issue with broadcasting on dim -3 when rank > 4
-            if hasattr(args[0], "node") and hasattr(args[1], "node"):
-                arg0_shape = list(args[0].node.meta["val"].size())
-                arg1_shape = list(args[1].node.meta["val"].size())
-                if len(arg0_shape) == len(arg1_shape) and len(arg0_shape) > 4 and arg0_shape[-3] != arg1_shape[-3]:
-                    return self.call_function_prop_meta(target, args, kwargs)
-
-            return self.call_function_prop_meta(ttnn.add, args, kwargs)
-
         if target == torch.ops.aten.atan2.default:
             return self.call_function_prop_meta(ttnn.atan2, args, kwargs)
 
@@ -353,9 +325,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.minimum.default:
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
-        if target == torch.ops.aten.mul.Tensor:
-            return self.call_function_prop_meta(ttnn.mul, args, kwargs)
-
         if target == torch.ops.aten.pow.Tensor_Scalar:
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
@@ -365,9 +334,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.rsub.Tensor:
             # TODO(kevinwuMCW): handle alpha parameter if exists
             return self.call_function_prop_meta(ttnn.sub, (args[1], args[0]), kwargs)
-
-        if target == torch.ops.aten.sub.Tensor:
-            return self.call_function_prop_meta(ttnn.sub, args, kwargs)
 
         if target == torch.ops.aten.xlogy.Tensor:
             return self.call_function_prop_meta(ttnn.xlogy, args, kwargs)
@@ -499,6 +465,32 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output = batch_norm_post_process(output, shape, weight, bias)
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
 
+            def lower_binary_eltwise(fn, args):
+                shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
+
+                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
+                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
+                ):
+                    # ttnn.from_torch not yet support scalar tensor, see issue 442
+                    return None
+
+                if any(s is None for s in shapes):
+                    return None
+
+                if max(map(len, shapes)) > 4 and shapes[0][-3:-2] != shapes[1][-3:-2]:
+                    return None
+
+                return g.call_function(fn, args)
+
+            if node.target == torch.ops.aten.add.Tensor:
+                return lower_binary_eltwise(ttnn.add, args)
+
+            if node.target == torch.ops.aten.mul.Tensor:
+                return lower_binary_eltwise(ttnn.mul, args)
+
+            if node.target == torch.ops.aten.sub.Tensor:
+                return lower_binary_eltwise(ttnn.sub, args)
+
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
                 try:
@@ -519,6 +511,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 for node_user in node_users:
                     node_user.replace_all_uses_with(new_node)
                 return None
+
+            if node.target == torch.ops.aten.zeros.default:
+                return g.call_function(ttnn.zeros, args=args, kwargs={"device": TtnnDevice()})
 
             if node.target == torch.ops.aten.ones.default:
                 return g.call_function(ttnn.ones, args=args, kwargs={"device": TtnnDevice()})
@@ -610,10 +605,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.log, (softmax_node,), kwargs)
 
             if node.target == torch.ops.aten.div.Tensor:
-                if not isinstance(args[1], (float, int)) and (get_shape(args[0]) != get_shape(args[1])):
-                    recip = g.call_function(ttnn.reciprocal, (args[1],), {})
-                    return g.call_function(ttnn.mul, (args[0], recip), {})
-                return g.call_function(ttnn.div, args, {})
+                if isinstance(args[1], (float, int)):
+                    return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
+
+                if get_shape(gm, args[0]) == get_shape(gm, args[1]):
+                    return g.call_function(ttnn.div, args, {})
+
+                recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                return g.call_function(ttnn.mul, (args[0], recip), {})
 
             if node.target == torch.ops.aten.expand.default:
                 if not (hasattr(args[0], "meta") and "val" in args[0].meta and hasattr(args[0].meta["val"], "size")):
@@ -721,7 +720,47 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 else:
                     dim0 = args[1]
                     dim1 = args[2]
-                return g.call_function(ttnn.transpose, args=(args[0], dim0, dim1))
+
+                dim0 = (dim0 + rank) % rank
+                dim1 = (dim1 + rank) % rank
+
+                # directly transpose only support rank <= 4
+                if rank <= 4:
+                    return g.call_function(ttnn.transpose, args=(args[0], dim0, dim1))
+
+                # Try to reshape. Find the new shape here
+                #   eg. the original shape [A, B, C, D, E] shape[dim0] = A, shape[dim1] = D
+                #   reshape to [A, (B*C), D, E]
+                original_shape = list(args[0].meta["val"].size())
+                dim0, dim1 = (dim0, dim1) if dim0 < dim1 else (dim1, dim0)
+
+                new_dim0, new_dim1 = 0, 1
+                new_shape = []
+                if len(original_shape[:dim0]) > 0:
+                    new_shape.append(np.prod(original_shape[:dim0]))
+                    new_dim0 += 1
+                    new_dim1 += 1
+
+                new_shape.append(original_shape[dim0])
+
+                if len(original_shape[dim0 + 1 : dim1]) > 0:
+                    new_shape.append(np.prod(original_shape[dim0 + 1 : dim1]))
+                    new_dim1 += 1
+
+                new_shape.append(original_shape[dim1])
+
+                if dim1 + 1 < rank:
+                    new_shape.append(np.prod(original_shape[dim1 + 1 :]))
+
+                # if the rank of reshaped result still <= 4, then do
+                #    reshape->transpose->reshape
+                if len(new_shape) <= 4:
+                    reshaped = g.call_function(ttnn.reshape, args=(args[0], list(new_shape)))
+                    transposed = g.call_function(ttnn.transpose, args=(reshaped, new_dim0, new_dim1))
+                    output_shape = list(node.meta["val"].size())
+                    return g.call_function(ttnn.reshape, args=(transposed, list(output_shape)))
+
+                return None
 
             if node.target == torch.ops.aten.permute.default:
                 new_nodes = list()
@@ -757,17 +796,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # TODO(#514)
                 if rank > 4:
                     return None
-                # TODO(#192): Front padding isn't well supported so skip for now
-                if not all(f == 0 for f, _ in full_pad):
-                    return None
-                # Change layout to row-major for non-tile-size-aligned tensor
+                # Change layout to row-major for non-tile-size-aligned tensor or front padding
                 if (
                     rank < 2
                     or input_shape[-1] % ttnn.TILE_SIZE != 0
                     or input_shape[-2] % ttnn.TILE_SIZE != 0
                     or full_pad[-1][1] % ttnn.TILE_SIZE != 0
                     or full_pad[-2][1] % ttnn.TILE_SIZE != 0
-                ):
+                ) or not all(f == 0 for f, _ in full_pad):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
                 # TODO(#515)
                 if output_shape[-1] % 2 != 0:
@@ -1052,6 +1088,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         ttnn.reshape,
                         (bias_node, (1,) * (4 - len(bias_shape)) + bias_shape),
                     )
+                    bias_tensor = g.call_function(target_wrappers.move_to_host, (bias_tensor, TtnnRowMajorLayout()))
                 output_tensor = g.call_function(
                     target_wrappers.conv2d,
                     (
@@ -1125,6 +1162,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.concat, (tensors_to_concat, dim))
 
+            if node.target == torch.ops.aten.argmax.default:
+                tensor, *dim = args
+                rank = len(tensor.meta["val"].size())
+                tt_kwargs = {}
+                if dim:
+                    dim = (dim[0] + rank) % rank
+                    tt_kwargs["dim"] = dim
+
+                return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
+
             # PEP 8 suggests this explicit statement
             return None
 
@@ -1140,104 +1187,117 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     return gm
 
 
-def DigestAtenOps(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
+def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
+    args = node.args
+    kwargs = node.kwargs
+    if node.target == torch.ops.aten.full_like.default:
+        target_shape = args[0].meta["val"].size()
+        return g.call_function(torch.ops.aten.full.default, args=(target_shape, *args[1:]), kwargs=kwargs)
+
+    if node.target == torch.ops.aten.new_zeros.default:
+        target_shape = args[1]
+        new_kwargs = dict(kwargs)
+        # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
+        new_kwargs["dtype"] = node.meta["val"].dtype
+        return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
+
+    if node.target == torch.ops.aten.index.Tensor:
+
+        def broadcast_indices(indices):
+            indices_shapes = [get_shape(gm, indices[i]) for i in range(len(indices))]
+            broadcasted_shape = torch.Size(np.broadcast_shapes(*indices_shapes))
+            broadcasted_indices = []
+            for i in range(len(indices)):
+                if indices_shapes[i] == broadcasted_shape:
+                    broadcasted_indices.append(indices[i])
+                else:
+                    broadcasted_indices.append(
+                        g.call_function(
+                            torch.ops.aten.expand.default,
+                            (indices[i], broadcasted_shape),
+                            new_shape=broadcasted_shape,
+                            new_dtype=indices[i].meta["val"].dtype,
+                        )
+                    )
+            return broadcasted_shape, broadcasted_indices
+
+        # for example, input.shape = (3, 4, 5), indices = [tensor([[0, 1, 1]]), tensor([[2, 1, 2]])]
+        # then output is [[input[0][2], input[1][1], input[1][2]]]
+        input_tensor, indices = args
+        if get_shape(gm, input_tensor) is None:
+            return None
+        if None in [get_shape(gm, indices[i]) for i in range(len(indices))]:
+            return None
+        index_shape, indices = broadcast_indices(indices)
+        input_shape = get_shape(gm, input_tensor)
+        num_index = len(indices)
+        index_size = index_shape.numel()
+        remained_shape = input_shape[num_index:]
+        reshape_shape = index_shape + remained_shape
+        input_dtype = input_tensor.meta["val"].dtype
+        flatten_shape = torch.Size([index_size])
+        indices_flatten = [
+            g.call_function(
+                torch.ops.aten.reshape.default,
+                args=(idx, flatten_shape),
+                new_shape=flatten_shape,
+                new_dtype=idx.meta["val"].dtype,
+            )
+            for idx in indices
+        ]
+        output = []
+        for i in range(index_size):
+            indexing = [
+                g.call_function(
+                    getitem,
+                    args=(indices_flatten[n], i),
+                    new_shape=torch.Size([]),
+                    new_dtype=indices_flatten[n].meta["val"].dtype,
+                )
+                for n in range(num_index)
+            ]
+            output.append(
+                g.call_function(getitem, args=(input_tensor, indexing), new_shape=remained_shape, new_dtype=input_dtype)
+            )
+        # aten.cat cannot concat zero dim tensor
+        if len(remained_shape) == 0:
+            remained_shape = torch.Size([1])
+            output = [
+                g.call_function(
+                    torch.ops.aten.reshape.default,
+                    args=(o, remained_shape),
+                    new_shape=remained_shape,
+                    new_dtype=input_dtype,
+                )
+                for o in output
+            ]
+        output_cat_shape = torch.Size([len(output)] + list(remained_shape))
+        output_cat = g.call_function(
+            torch.ops.aten.cat.default,
+            args=(output,),
+            new_shape=output_cat_shape,
+            new_dtype=input_dtype,
+        )
+        output_reshape = g.call_function(
+            torch.ops.aten.reshape.default,
+            args=(output_cat, reshape_shape),
+            new_shape=reshape_shape,
+            new_dtype=input_dtype,
+        )
+        return output_reshape
+
+    return None
+
+
+# TODO(jerrysky3): Refactor ReplaceMoreTtManually with rewrite_graph
+def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
+        if not can_lowering_to_ttnn(node):
+            continue
         g = GraphWrapper(node)
-
-        def rewrite_node(node):
-            args = node.args
-            kwargs = node.kwargs
-
-            if node.target == torch.ops.aten.index.Tensor:
-
-                def broadcast_indices(indices):
-                    indices_shapes = [get_shape(indices[i]) for i in range(len(indices))]
-                    broadcasted_shape = torch.Size(np.broadcast_shapes(*indices_shapes))
-                    broadcasted_indices = []
-                    for i in range(len(indices)):
-                        if indices_shapes[i] == broadcasted_shape:
-                            broadcasted_indices.append(indices[i])
-                        else:
-                            broadcasted_indices.append(
-                                g.call_function(
-                                    torch.ops.aten.expand.default,
-                                    (indices[i], broadcasted_shape),
-                                    new_shape=broadcasted_shape,
-                                    new_dtype=indices[i].meta["val"].dtype,
-                                )
-                            )
-                    return broadcasted_shape, broadcasted_indices
-
-                # for example, input.shape = (3, 4, 5), indices = [tensor([[0, 1, 1]]), tensor([[2, 1, 2]])]
-                # then output is [[input[0][2], input[1][1], input[1][2]]]
-                input_tensor, indices = args
-                if get_shape(input_tensor) is None:
-                    return None
-                if None in [get_shape(indices[i]) for i in range(len(indices))]:
-                    return None
-                index_shape, indices = broadcast_indices(indices)
-                input_shape = get_shape(input_tensor)
-                num_index = len(indices)
-                index_size = index_shape.numel()
-                remained_shape = input_shape[num_index:]
-                reshape_shape = index_shape + remained_shape
-                input_dtype = input_tensor.meta["val"].dtype
-                flatten_shape = torch.Size([index_size])
-                indices_flatten = [
-                    g.call_function(
-                        torch.ops.aten.reshape.default,
-                        args=(idx, flatten_shape),
-                        new_shape=flatten_shape,
-                        new_dtype=idx.meta["val"].dtype,
-                    )
-                    for idx in indices
-                ]
-                output = []
-                for i in range(index_size):
-                    indexing = [
-                        g.call_function(
-                            getitem,
-                            args=(indices_flatten[n], i),
-                            new_shape=torch.Size([]),
-                            new_dtype=indices_flatten[n].meta["val"].dtype,
-                        )
-                        for n in range(num_index)
-                    ]
-                    output.append(
-                        g.call_function(
-                            getitem, args=(input_tensor, indexing), new_shape=remained_shape, new_dtype=input_dtype
-                        )
-                    )
-                # aten.cat cannot concat zero dim tensor
-                if len(remained_shape) == 0:
-                    remained_shape = torch.Size([1])
-                    output = [
-                        g.call_function(
-                            torch.ops.aten.reshape.default,
-                            args=(o, remained_shape),
-                            new_shape=remained_shape,
-                            new_dtype=input_dtype,
-                        )
-                        for o in output
-                    ]
-                output_cat_shape = torch.Size([len(output)] + list(remained_shape))
-                output_cat = g.call_function(
-                    torch.ops.aten.cat.default,
-                    args=(output,),
-                    new_shape=output_cat_shape,
-                    new_dtype=input_dtype,
-                )
-                output_reshape = g.call_function(
-                    torch.ops.aten.reshape.default,
-                    args=(output_cat, reshape_shape),
-                    new_shape=reshape_shape,
-                    new_dtype=input_dtype,
-                )
-                return output_reshape
-
         with g.inserting_before(node):
-            new_node = rewrite_node(node)
+            new_node = rewrite_node_fn(gm, g, node)
             if new_node is not None:
                 node.replace_all_uses_with(
                     new_node,
@@ -1254,7 +1314,9 @@ class ToTtPass(PassBase):
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
-        gm = DigestAtenOps(gm)
+        # Decompose some aten ops to simpler aten ops
+        gm = rewrite_graph(gm, decompose_aten_to_aten_ops)
+
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 

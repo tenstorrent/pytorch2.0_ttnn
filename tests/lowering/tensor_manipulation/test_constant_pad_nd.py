@@ -23,10 +23,10 @@ class ConstantPadNdModule(torch.nn.Module):
         ((16, 16), [0, 16, 0, 0], True),
         ((4,), [0, 16], True),
         [(1, 14, 14, 384), [0, 0, 0, 0, 0, 0], True],
+        # front padding
+        ((32, 32), [32, 0, 32, 0], True),
         # Not converted: more than 4 dims
         ((1, 1, 1, 32, 32), [0, 32], False),
-        # Not converted: front padding (#192)
-        ((32, 32), [32, 0, 32, 0], False),
     ],
 )
 def test_constant_pad_nd(device, input_shape, pad, converted):

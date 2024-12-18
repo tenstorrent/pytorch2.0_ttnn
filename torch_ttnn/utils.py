@@ -9,13 +9,39 @@ def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     return gm
 
 
-def get_shape(node_or_shape):
+def get_shape(gm: torch.fx.GraphModule, node_or_shape):
+    """
+    Get the shape of a node or shape itself.
+
+    Args:
+        gm (torch.fx.GraphModule): The GraphModule containing the node.
+        node_or_shape: The node or shape to get the shape of. Can be an int, float, torch.Size, list, tuple, or torch.fx.node.Node.
+
+    Returns:
+        torch.Size or None: The shape of the node or shape itself, or None if it cannot be determined.
+    """
+    if isinstance(node_or_shape, (int, float)):
+        return torch.Size()
+    if isinstance(node_or_shape, (torch.Size, list, tuple)):
+        return node_or_shape
     if isinstance(node_or_shape, torch.fx.node.Node):
         if (val := node_or_shape.meta.get("val", None)) is not None:
             return val.size()
-    elif isinstance(node_or_shape, torch.Size) or isinstance(node_or_shape, list):
-        return node_or_shape
 
+        if node_or_shape.op == "get_attr":
+            val = getattr(gm, node_or_shape.target)
+            if isinstance(val, torch.Tensor):
+                return val.size()
+            if isinstance(val, (int, float)):
+                return torch.Size()
+
+    return None
+
+
+def get_dtype(node):
+    if isinstance(node, torch.fx.node.Node):
+        if (val := node.meta.get("val", None)) is not None:
+            return val.dtype
     return None
 
 

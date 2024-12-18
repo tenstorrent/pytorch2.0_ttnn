@@ -41,6 +41,7 @@ aten_add_Tensor_blocklist += [
     ["Tensor<[7]> self = ?", "Tensor other = 0.0"],
 ]
 
+aten_mul_Tensor_blocklist = []
 aten_mul_Tensor_blocklist += [
     ["Tensor<[56]> self = ?", "Tensor other = 0.5"],
     ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
@@ -102,24 +103,6 @@ aten_mul_Tensor_blocklist += [
 # >       return self._op(*args, **(kwargs or {}))
 # RuntimeError: Index put requires the source and destination dtypes match, got Float for the destination and BFloat16 for the source.
 
-
-############################################################
-# EXTRA BLOCKLIST OF ViLT
-############################################################
-# see issue #390
-# RuntimeError: _unsafe_index found unexpected index type BFloat16
-# arange => add => mul => to_copy => unsafe_index
-
-aten_add_Tensor_blocklist += [
-    ["Tensor<[12]> self = ?", "Tensor other = 0.0"],
-    ["Tensor<[16]> self = ?", "Tensor other = 0.0"],
-]
-
-aten_mul_Tensor_blocklist += [
-    ["Tensor<[12]> self = ?", "Tensor other = 32.0"],
-    ["Tensor<[16]> self = ?", "Tensor other = 32.0"],
-]
-
 ############################################################
 # EXTRA BLOCKLIST OF Whisper
 ############################################################
@@ -171,17 +154,6 @@ aten_gt_Scalar_blocklist = [["Tensor<[]> self = ?", "number other = 0"]]
 # TODO: not pass yet
 
 ############################################################
-# EXTRA BLOCKLIST OF FLAN-T5
-############################################################
-# This div converted to reciprocal & mul, and reciprocal show this err msg:
-# TypeError: __call__(): incompatible function arguments. The following argument types are supported: ...
-aten_div_Tensor_blocklist += [["Tensor<[1, 1]> self = ?", "Tensor other = 16"]]
-
-# torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
-# Exception: unhashable type: non-singleton SymInt
-# TODO: not pass yet
-
-############################################################
 # EXTRA BLOCKLIST OF GLPN-KITTI
 ############################################################
 # index out of bound, see issue #420
@@ -228,13 +200,6 @@ aten_maximum_default_blocklist += [["Tensor<[1, 16, 59, 59]> self = ?", "Tensor 
 #                [ 0.00000,  0.00000,  ...,  0.00000,  0.00000]]]], shape=Shape([1, 23, 40[64], 1[32]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), 1; kwargs: dtype=torch.float32
 aten_cumsum_default_blocklist = [["Tensor<[1, 23, 40]> self = ?", "int dim = 1", "Optional[int] dtype = torch.float32"]]
 
-# TypeError: __call__(): incompatible function arguments. The following argument types are supported:
-#     1. (self: ttnn._ttnn.operations.unary.reciprocal_t, input_tensor: ttnn._ttnn.tensor.Tensor, *, memory_config: Optional[ttnn._ttnn.tensor.MemoryConfig] = None, output_tensor: Optional[ttnn._ttnn.tensor.Tensor] = None, queue_id: int = 0) -> ttnn._ttnn.tensor.Tensor
-#     2. (self: ttnn._ttnn.operations.unary.reciprocal_t, input_tensor: ttnn::operations::complex::ComplexTensor, *, memory_config: ttnn._ttnn.tensor.MemoryConfig) -> ttnn::operations::complex::ComplexTensor
-#
-# Invoked with: <ttnn._ttnn.operations.unary.reciprocal_t object at 0x7f08ea7a0e30>, 128
-aten_div_Tensor_blocklist += [["Tensor<[128]> self = ?", "Tensor other = 128"]]
-
 # RuntimeError: TT_FATAL @ binary_device_operation.cpp:68: input_tensor_a.get_layout() == Layout::TILE
 # info:
 # Input to eltwise binary must be tilized
@@ -252,7 +217,6 @@ aten_zeros_like_default_blocklist += [
 # add => multiply => subtract => unsqueeze
 aten_add_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 0.5"]]
 aten_mul_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 1.6"]]
-aten_sub_Tensor_blocklist += [["Tensor<[300]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[300]> self = ?", "int dim = 1"]]
 # RuntimeError: expected scalar type BFloat16 but found Float
 # convolution_default_5 weight dtype is float32, this is
@@ -269,7 +233,6 @@ aten_mul_Tensor_blocklist += [
     ["Tensor<[320]> self = ?", "Tensor other = 1.5"],
     ["Tensor<[320]> self = ?", "Tensor other = 2.0"],
 ]
-aten_sub_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
 # tt_metal/common/math.hpp:16: b > 0
 # Divide by 0 error
@@ -299,7 +262,6 @@ aten_convolution_default_blocklist += [
 # add => multiply => subtract => unsqueeze
 aten_add_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
 aten_mul_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 1.0"]]
-aten_sub_Tensor_blocklist += [["Tensor<[320]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
 # RuntimeError: expected scalar type BFloat16 but found Float
 # convolution_default_66 weight dtype is float32, this is
@@ -312,7 +274,6 @@ aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
 # IndexError: index 480 is out of bounds for dimension 0 with size 480, see issue #420
 aten_add_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.5"]]
 aten_mul_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.6"]]
-aten_sub_Tensor_blocklist += [["Tensor<[800]> self = ?", "Tensor other = 0.5"]]
 aten_unsqueeze_default_blocklist += [["Tensor<[800]> self = ?", "int dim = 1"]]
 # RuntimeError: expected scalar type BFloat16 but found Float
 # convolution_default weight dtype is float32, this is

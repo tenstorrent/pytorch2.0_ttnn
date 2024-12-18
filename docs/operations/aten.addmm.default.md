@@ -1,286 +1,293 @@
 ### aten.addmm.default
-|     | ATen Input Variations                                                                        | Status   | Isolated   | PCC   |
-|----:|:---------------------------------------------------------------------------------------------|:---------|:-----------|:------|
-|   0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1008]> mat1 = ?,<br>Tensor<[1008, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   1 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   2 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   3 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1512]> mat1 = ?,<br>Tensor<[1512, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   4 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1536]> mat1 = ?,<br>Tensor<[1536, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   5 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1664]> mat1 = ?,<br>Tensor<[1664, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   6 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1920]> mat1 = ?,<br>Tensor<[1920, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   7 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2016]> mat1 = ?,<br>Tensor<[2016, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   8 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2048]> mat1 = ?,<br>Tensor<[2048, 1000]> mat2 = ?     | Done     | Done       | True  |
-|   9 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2208]> mat1 = ?,<br>Tensor<[2208, 1000]> mat2 = ?     | Done     | Done       | True  |
-|  10 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2520]> mat1 = ?,<br>Tensor<[2520, 1000]> mat2 = ?     | Done     | Done       | True  |
-|  11 | Tensor<[1000]> self = ?,<br>Tensor<[1, 3024]> mat1 = ?,<br>Tensor<[3024, 1000]> mat2 = ?     | Done     | Done       | True  |
-|  12 | Tensor<[1000]> self = ?,<br>Tensor<[1, 3712]> mat1 = ?,<br>Tensor<[3712, 1000]> mat2 = ?     | Done     | Done       | True  |
-|  13 | Tensor<[1000]> self = ?,<br>Tensor<[1, 400]> mat1 = ?,<br>Tensor<[400, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  14 | Tensor<[1000]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 1000]> mat2 = ?     | Done     | Done       | True  |
-|  15 | Tensor<[1000]> self = ?,<br>Tensor<[1, 440]> mat1 = ?,<br>Tensor<[440, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  16 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  17 | Tensor<[1000]> self = ?,<br>Tensor<[1, 672]> mat1 = ?,<br>Tensor<[672, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  18 | Tensor<[1000]> self = ?,<br>Tensor<[1, 7392]> mat1 = ?,<br>Tensor<[7392, 1000]> mat2 = ?     | Done     | Done       | True  |
-|  19 | Tensor<[1000]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  20 | Tensor<[1000]> self = ?,<br>Tensor<[1, 784]> mat1 = ?,<br>Tensor<[784, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  21 | Tensor<[1000]> self = ?,<br>Tensor<[1, 888]> mat1 = ?,<br>Tensor<[888, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  22 | Tensor<[1000]> self = ?,<br>Tensor<[1, 912]> mat1 = ?,<br>Tensor<[912, 1000]> mat2 = ?       | Done     | Done       | True  |
-|  23 | Tensor<[10240]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 10240]> mat2 = ? | Unknown  | Done       | True  |
-|  24 | Tensor<[10240]> self = ?,<br>Tensor<[64, 1280]> mat1 = ?,<br>Tensor<[1280, 10240]> mat2 = ?  | Unknown  | Done       | True  |
-|  25 | Tensor<[1024]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?     | Unknown  | Done       | True  |
-|  26 | Tensor<[1024]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?     | Unknown  | Done       | True  |
-|  27 | Tensor<[1024]> self = ?,<br>Tensor<[1, 576]> mat1 = ?,<br>Tensor<[576, 1024]> mat2 = ?       | Done     | Done       | True  |
-|  28 | Tensor<[1024]> self = ?,<br>Tensor<[1024, 256]> mat1 = ?,<br>Tensor<[256, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  29 | Tensor<[1024]> self = ?,<br>Tensor<[19, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  30 | Tensor<[1024]> self = ?,<br>Tensor<[19, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  31 | Tensor<[1024]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?   | Done     | Done       | True  |
-|  32 | Tensor<[1024]> self = ?,<br>Tensor<[197, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?   | Done     | Done       | True  |
-|  33 | Tensor<[1024]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?   | Done     | Done       | True  |
-|  34 | Tensor<[1024]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 1024]> mat2 = ?     | Done     | Done       | True  |
-|  35 | Tensor<[1024]> self = ?,<br>Tensor<[256, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?   | Done     | Done       | True  |
-|  36 | Tensor<[1024]> self = ?,<br>Tensor<[49, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  37 | Tensor<[1024]> self = ?,<br>Tensor<[49, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  38 | Tensor<[1024]> self = ?,<br>Tensor<[5, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?     | Unknown  | Done       | True  |
-|  39 | Tensor<[1024]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  40 | Tensor<[1024]> self = ?,<br>Tensor<[50, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  41 | Tensor<[1024]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  42 | Tensor<[1024]> self = ?,<br>Tensor<[59, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  43 | Tensor<[1024]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  44 | Tensor<[1024]> self = ?,<br>Tensor<[64, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?    | Done     | Done       | True  |
-|  45 | Tensor<[1024]> self = ?,<br>Tensor<[784, 256]> mat1 = ?,<br>Tensor<[256, 1024]> mat2 = ?     | Done     | Done       | True  |
-|  46 | Tensor<[1024]> self = ?,<br>Tensor<[9, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?     | Done     | Done       | True  |
-|  47 | Tensor<[1024]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 1024]> mat2 = ?       | Done     | Done       | True  |
-|  48 | Tensor<[1024]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?     | Done     | Done       | True  |
-|  49 | Tensor<[10]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 10]> mat2 = ?           | Done     | Done       | True  |
-|  50 | Tensor<[1152]> self = ?,<br>Tensor<[196, 384]> mat1 = ?,<br>Tensor<[384, 1152]> mat2 = ?     | Done     | Done       | True  |
-|  51 | Tensor<[1152]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 1152]> mat2 = ?     | Done     | Done       | True  |
-|  52 | Tensor<[1280]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?     | Unknown  | Done       | True  |
-|  53 | Tensor<[1280]> self = ?,<br>Tensor<[1, 320]> mat1 = ?,<br>Tensor<[320, 1280]> mat2 = ?       | Unknown  | Done       | True  |
-|  54 | Tensor<[1280]> self = ?,<br>Tensor<[1, 960]> mat1 = ?,<br>Tensor<[960, 1280]> mat2 = ?       | Done     | Done       | True  |
-|  55 | Tensor<[1280]> self = ?,<br>Tensor<[1200, 320]> mat1 = ?,<br>Tensor<[320, 1280]> mat2 = ?    | Done     | Done       | True  |
-|  56 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?  | Done     | Done       | True  |
-|  57 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ?  | Done     | Done       | True  |
-|  58 | Tensor<[1280]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 1280]> mat2 = ?    | Done     | Done       | True  |
-|  59 | Tensor<[1280]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?   | Done     | Done       | True  |
-|  60 | Tensor<[1280]> self = ?,<br>Tensor<[256, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ?   | Unknown  | Done       | True  |
-|  61 | Tensor<[1280]> self = ?,<br>Tensor<[64, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?    | Unknown  | Done       | True  |
-|  62 | Tensor<[1280]> self = ?,<br>Tensor<[64, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ?    | Unknown  | Done       | True  |
-|  63 | Tensor<[128]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 128]> mat2 = ?           | Done     | Done       | True  |
-|  64 | Tensor<[128]> self = ?,<br>Tensor<[1, 784]> mat1 = ?,<br>Tensor<[784, 128]> mat2 = ?         | Done     | Done       | True  |
-|  65 | Tensor<[128]> self = ?,<br>Tensor<[1, 9216]> mat1 = ?,<br>Tensor<[9216, 128]> mat2 = ?       | Done     | Done       | True  |
-|  66 | Tensor<[128]> self = ?,<br>Tensor<[16384, 32]> mat1 = ?,<br>Tensor<[32, 128]> mat2 = ?       | Done     | Done       | True  |
-|  67 | Tensor<[128]> self = ?,<br>Tensor<[300, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?       | Done     | Done       | True  |
-|  68 | Tensor<[128]> self = ?,<br>Tensor<[3136, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?      | Done     | Done       | True  |
-|  69 | Tensor<[128]> self = ?,<br>Tensor<[3136, 512]> mat1 = ?,<br>Tensor<[512, 128]> mat2 = ?      | Done     | Done       | True  |
-|  70 | Tensor<[128]> self = ?,<br>Tensor<[4096, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?      | Done     | Done       | True  |
-|  71 | Tensor<[128]> self = ?,<br>Tensor<[4096, 512]> mat1 = ?,<br>Tensor<[512, 128]> mat2 = ?      | Done     | Done       | True  |
-|  72 | Tensor<[128]> self = ?,<br>Tensor<[4800, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?      | Done     | Done       | True  |
-|  73 | Tensor<[128]> self = ?,<br>Tensor<[4800, 512]> mat1 = ?,<br>Tensor<[512, 128]> mat2 = ?      | Done     | Done       | True  |
-|  74 | Tensor<[128]> self = ?,<br>Tensor<[9, 1024]> mat1 = ?,<br>Tensor<[1024, 128]> mat2 = ?       | Done     | Done       | True  |
-|  75 | Tensor<[128]> self = ?,<br>Tensor<[9, 2048]> mat1 = ?,<br>Tensor<[2048, 128]> mat2 = ?       | Done     | Done       | True  |
-|  76 | Tensor<[128]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 128]> mat2 = ?       | Done     | Done       | True  |
-|  77 | Tensor<[128]> self = ?,<br>Tensor<[9, 768]> mat1 = ?,<br>Tensor<[768, 128]> mat2 = ?         | Done     | Done       | True  |
-|  78 | Tensor<[12]> self = ?,<br>Tensor<[1, 3]> mat1 = ?,<br>Tensor<[3, 12]> mat2 = ?               | Done     | Done       | True  |
-|  79 | Tensor<[12]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 12]> mat2 = ?             | Done     | Done       | True  |
-|  80 | Tensor<[1536]> self = ?,<br>Tensor<[196, 384]> mat1 = ?,<br>Tensor<[384, 1536]> mat2 = ?     | Done     | Done       | True  |
-|  81 | Tensor<[1536]> self = ?,<br>Tensor<[196, 512]> mat1 = ?,<br>Tensor<[512, 1536]> mat2 = ?     | Done     | Done       | True  |
-|  82 | Tensor<[1536]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 1536]> mat2 = ?     | Done     | Done       | True  |
-|  83 | Tensor<[1536]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 1536]> mat2 = ?     | Done     | Done       | True  |
-|  84 | Tensor<[1536]> self = ?,<br>Tensor<[32, 1536]> mat1 = ?,<br>Tensor<[1536, 1536]> mat2 = ?    | Done     | Done       | True  |
-|  85 | Tensor<[1536]> self = ?,<br>Tensor<[32, 6144]> mat1 = ?,<br>Tensor<[6144, 1536]> mat2 = ?    | Done     | Done       | True  |
-|  86 | Tensor<[160]> self = ?,<br>Tensor<[1024, 160]> mat1 = ?,<br>Tensor<[160, 160]> mat2 = ?      | Done     | Done       | True  |
-|  87 | Tensor<[160]> self = ?,<br>Tensor<[1024, 640]> mat1 = ?,<br>Tensor<[640, 160]> mat2 = ?      | Done     | Done       | True  |
-|  88 | Tensor<[160]> self = ?,<br>Tensor<[256, 160]> mat1 = ?,<br>Tensor<[160, 160]> mat2 = ?       | Done     | Done       | True  |
-|  89 | Tensor<[16384]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 16384]> mat2 = ?   | Done     | Done       | True  |
-|  90 | Tensor<[192]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?       | Done     | Done       | True  |
-|  91 | Tensor<[192]> self = ?,<br>Tensor<[1024, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?      | Done     | Done       | True  |
-|  92 | Tensor<[192]> self = ?,<br>Tensor<[1024, 768]> mat1 = ?,<br>Tensor<[768, 192]> mat2 = ?      | Done     | Done       | True  |
-|  93 | Tensor<[192]> self = ?,<br>Tensor<[1445, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?      | Done     | Done       | True  |
-|  94 | Tensor<[192]> self = ?,<br>Tensor<[1445, 768]> mat1 = ?,<br>Tensor<[768, 192]> mat2 = ?      | Done     | Done       | True  |
-|  95 | Tensor<[192]> self = ?,<br>Tensor<[784, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?       | Done     | Done       | True  |
-|  96 | Tensor<[192]> self = ?,<br>Tensor<[784, 768]> mat1 = ?,<br>Tensor<[768, 192]> mat2 = ?       | Done     | Done       | True  |
-|  97 | Tensor<[196]> self = ?,<br>Tensor<[768, 384]> mat1 = ?,<br>Tensor<[384, 196]> mat2 = ?       | Done     | Done       | True  |
-|  98 | Tensor<[1]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1]> mat2 = ?             | Done     | Done       | True  |
-|  99 | Tensor<[2048]> self = ?,<br>Tensor<[100, 256]> mat1 = ?,<br>Tensor<[256, 2048]> mat2 = ?     | Done     | Done       | True  |
-| 100 | Tensor<[2048]> self = ?,<br>Tensor<[14, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?      | Done     | Done       | True  |
-| 101 | Tensor<[2048]> self = ?,<br>Tensor<[196, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?     | Done     | Done       | True  |
-| 102 | Tensor<[2048]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?     | Done     | Done       | True  |
-| 103 | Tensor<[2048]> self = ?,<br>Tensor<[300, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?     | Done     | Done       | True  |
-| 104 | Tensor<[2048]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 2048]> mat2 = ?       | Done     | Done       | True  |
-| 105 | Tensor<[2048]> self = ?,<br>Tensor<[9, 2048]> mat1 = ?,<br>Tensor<[2048, 2048]> mat2 = ?     | Done     | Done       | True  |
-| 106 | Tensor<[2048]> self = ?,<br>Tensor<[9, 8192]> mat1 = ?,<br>Tensor<[8192, 2048]> mat2 = ?     | Done     | Done       | True  |
-| 107 | Tensor<[2048]> self = ?,<br>Tensor<[920, 256]> mat1 = ?,<br>Tensor<[256, 2048]> mat2 = ?     | Done     | Done       | True  |
-| 108 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ?     | Done     | Done       | True  |
-| 109 | Tensor<[2304]> self = ?,<br>Tensor<[197, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?     | Done     | Done       | True  |
-| 110 | Tensor<[2304]> self = ?,<br>Tensor<[49, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?      | Done     | Done       | True  |
-| 111 | Tensor<[2304]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?      | Done     | Done       | True  |
-| 112 | Tensor<[2304]> self = ?,<br>Tensor<[64, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?      | Done     | Done       | True  |
-| 113 | Tensor<[2304]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?       | Done     | Done       | True  |
-| 114 | Tensor<[250002]> self = ?,<br>Tensor<[10, 768]> mat1 = ?,<br>Tensor<[768, 250002]> mat2 = ?  | Done     | Done       | True  |
-| 115 | Tensor<[2560]> self = ?,<br>Tensor<[4096, 320]> mat1 = ?,<br>Tensor<[320, 2560]> mat2 = ?    | Unknown  | Done       | True  |
-| 116 | Tensor<[256]> self = ?,<br>Tensor<[100, 2048]> mat1 = ?,<br>Tensor<[2048, 256]> mat2 = ?     | Done     | Done       | True  |
-| 117 | Tensor<[256]> self = ?,<br>Tensor<[100, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?       | Done     | Done       | True  |
-| 118 | Tensor<[256]> self = ?,<br>Tensor<[1024, 1024]> mat1 = ?,<br>Tensor<[1024, 256]> mat2 = ?    | Done     | Done       | True  |
-| 119 | Tensor<[256]> self = ?,<br>Tensor<[1024, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?      | Done     | Done       | True  |
-| 120 | Tensor<[256]> self = ?,<br>Tensor<[19200, 64]> mat1 = ?,<br>Tensor<[64, 256]> mat2 = ?       | Done     | Done       | True  |
-| 121 | Tensor<[256]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 256]> mat2 = ?      | Done     | Done       | True  |
-| 122 | Tensor<[256]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 256]> mat2 = ?     | Done     | Done       | True  |
-| 123 | Tensor<[256]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 256]> mat2 = ?     | Done     | Done       | True  |
-| 124 | Tensor<[256]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?       | Done     | Done       | True  |
-| 125 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ?       | Done     | Done       | True  |
-| 126 | Tensor<[256]> self = ?,<br>Tensor<[4096, 64]> mat1 = ?,<br>Tensor<[64, 256]> mat2 = ?        | Done     | Done       | True  |
-| 127 | Tensor<[256]> self = ?,<br>Tensor<[600, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?       | Done     | Done       | True  |
-| 128 | Tensor<[256]> self = ?,<br>Tensor<[784, 1024]> mat1 = ?,<br>Tensor<[1024, 256]> mat2 = ?     | Done     | Done       | True  |
-| 129 | Tensor<[256]> self = ?,<br>Tensor<[784, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?       | Done     | Done       | True  |
-| 130 | Tensor<[256]> self = ?,<br>Tensor<[920, 2048]> mat1 = ?,<br>Tensor<[2048, 256]> mat2 = ?     | Done     | Done       | True  |
-| 131 | Tensor<[256]> self = ?,<br>Tensor<[920, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?       | Done     | Done       | True  |
-| 132 | Tensor<[288]> self = ?,<br>Tensor<[3136, 96]> mat1 = ?,<br>Tensor<[96, 288]> mat2 = ?        | Done     | Done       | True  |
-| 133 | Tensor<[288]> self = ?,<br>Tensor<[4096, 96]> mat1 = ?,<br>Tensor<[96, 288]> mat2 = ?        | Done     | Done       | True  |
-| 134 | Tensor<[2]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?             | Done     | Done       | True  |
-| 135 | Tensor<[2]> self = ?,<br>Tensor<[12, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?            | Done     | Done       | True  |
-| 136 | Tensor<[2]> self = ?,<br>Tensor<[14, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?            | Done     | Done       | True  |
-| 137 | Tensor<[2]> self = ?,<br>Tensor<[25, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?            | Done     | Done       | True  |
-| 138 | Tensor<[2]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 2]> mat2 = ?         | Done     | Done       | True  |
-| 139 | Tensor<[30000]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 30000]> mat2 = ?     | Done     | Done       | True  |
-| 140 | Tensor<[3072]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?       | Done     | Done       | True  |
-| 141 | Tensor<[3072]> self = ?,<br>Tensor<[10, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 142 | Tensor<[3072]> self = ?,<br>Tensor<[12, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 143 | Tensor<[3072]> self = ?,<br>Tensor<[14, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 144 | Tensor<[3072]> self = ?,<br>Tensor<[1500, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?    | Done     | Done       | True  |
-| 145 | Tensor<[3072]> self = ?,<br>Tensor<[16, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 146 | Tensor<[3072]> self = ?,<br>Tensor<[196, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?     | Done     | Done       | True  |
-| 147 | Tensor<[3072]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?   | Done     | Done       | True  |
-| 148 | Tensor<[3072]> self = ?,<br>Tensor<[197, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?     | Done     | Done       | True  |
-| 149 | Tensor<[3072]> self = ?,<br>Tensor<[24, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 150 | Tensor<[3072]> self = ?,<br>Tensor<[25, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 151 | Tensor<[3072]> self = ?,<br>Tensor<[4, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?       | Unknown  | Done       | True  |
-| 152 | Tensor<[3072]> self = ?,<br>Tensor<[45, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Unknown  | Done       | True  |
-| 153 | Tensor<[3072]> self = ?,<br>Tensor<[49, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?    | Done     | Done       | True  |
-| 154 | Tensor<[3072]> self = ?,<br>Tensor<[49, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 155 | Tensor<[3072]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?    | Done     | Done       | True  |
-| 156 | Tensor<[3072]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 157 | Tensor<[3072]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?    | Done     | Done       | True  |
-| 158 | Tensor<[3072]> self = ?,<br>Tensor<[64, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | True  |
-| 159 | Tensor<[3072]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?       | Done     | Done       | True  |
-| 160 | Tensor<[3072]> self = ?,<br>Tensor<[9, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?       | Done     | Done       | True  |
-| 161 | Tensor<[320]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 320]> mat2 = ?       | Unknown  | Done       | True  |
-| 162 | Tensor<[320]> self = ?,<br>Tensor<[1200, 1280]> mat1 = ?,<br>Tensor<[1280, 320]> mat2 = ?    | Done     | Done       | True  |
-| 163 | Tensor<[320]> self = ?,<br>Tensor<[1200, 320]> mat1 = ?,<br>Tensor<[320, 320]> mat2 = ?      | Done     | Done       | True  |
-| 164 | Tensor<[320]> self = ?,<br>Tensor<[300, 320]> mat1 = ?,<br>Tensor<[320, 320]> mat2 = ?       | Done     | Done       | True  |
-| 165 | Tensor<[320]> self = ?,<br>Tensor<[4096, 1280]> mat1 = ?,<br>Tensor<[1280, 320]> mat2 = ?    | Unknown  | Done       | True  |
-| 166 | Tensor<[320]> self = ?,<br>Tensor<[4096, 320]> mat1 = ?,<br>Tensor<[320, 320]> mat2 = ?      | Unknown  | Done       | True  |
-| 167 | Tensor<[32]> self = ?,<br>Tensor<[16384, 128]> mat1 = ?,<br>Tensor<[128, 32]> mat2 = ?       | Done     | Done       | True  |
-| 168 | Tensor<[32]> self = ?,<br>Tensor<[16384, 32]> mat1 = ?,<br>Tensor<[32, 32]> mat2 = ?         | Done     | Done       | True  |
-| 169 | Tensor<[32]> self = ?,<br>Tensor<[256, 32]> mat1 = ?,<br>Tensor<[32, 32]> mat2 = ?           | Done     | Done       | True  |
-| 170 | Tensor<[3840]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 3840]> mat2 = ?  | Done     | Done       | True  |
-| 171 | Tensor<[384]> self = ?,<br>Tensor<[196, 1536]> mat1 = ?,<br>Tensor<[1536, 384]> mat2 = ?     | Done     | Done       | True  |
-| 172 | Tensor<[384]> self = ?,<br>Tensor<[196, 384]> mat1 = ?,<br>Tensor<[384, 384]> mat2 = ?       | Done     | Done       | True  |
-| 173 | Tensor<[384]> self = ?,<br>Tensor<[256, 1536]> mat1 = ?,<br>Tensor<[1536, 384]> mat2 = ?     | Done     | Done       | True  |
-| 174 | Tensor<[384]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 384]> mat2 = ?       | Done     | Done       | True  |
-| 175 | Tensor<[384]> self = ?,<br>Tensor<[3136, 128]> mat1 = ?,<br>Tensor<[128, 384]> mat2 = ?      | Done     | Done       | True  |
-| 176 | Tensor<[384]> self = ?,<br>Tensor<[3136, 96]> mat1 = ?,<br>Tensor<[96, 384]> mat2 = ?        | Done     | Done       | True  |
-| 177 | Tensor<[384]> self = ?,<br>Tensor<[4096, 128]> mat1 = ?,<br>Tensor<[128, 384]> mat2 = ?      | Done     | Done       | True  |
-| 178 | Tensor<[384]> self = ?,<br>Tensor<[4096, 96]> mat1 = ?,<br>Tensor<[96, 384]> mat2 = ?        | Done     | Done       | True  |
-| 179 | Tensor<[3]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 3]> mat2 = ?               | Done     | Done       | True  |
-| 180 | Tensor<[4096]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?     | Unknown  | Done       | True  |
-| 181 | Tensor<[4096]> self = ?,<br>Tensor<[1, 25088]> mat1 = ?,<br>Tensor<[25088, 4096]> mat2 = ?   | Done     | Done       | True  |
-| 182 | Tensor<[4096]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 4096]> mat2 = ?     | Done     | Done       | True  |
-| 183 | Tensor<[4096]> self = ?,<br>Tensor<[19, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
-| 184 | Tensor<[4096]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?   | Done     | Done       | True  |
-| 185 | Tensor<[4096]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?   | Done     | Done       | True  |
-| 186 | Tensor<[4096]> self = ?,<br>Tensor<[49, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
-| 187 | Tensor<[4096]> self = ?,<br>Tensor<[5, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?     | Unknown  | Done       | True  |
-| 188 | Tensor<[4096]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
-| 189 | Tensor<[4096]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
-| 190 | Tensor<[4096]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?    | Done     | Done       | True  |
-| 191 | Tensor<[4096]> self = ?,<br>Tensor<[9, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?     | Done     | Done       | True  |
-| 192 | Tensor<[4096]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 4096]> mat2 = ?       | Done     | Done       | True  |
-| 193 | Tensor<[4096]> self = ?,<br>Tensor<[9, 16384]> mat1 = ?,<br>Tensor<[16384, 4096]> mat2 = ?   | Done     | Done       | True  |
-| 194 | Tensor<[4096]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 4096]> mat2 = ?     | Done     | Done       | True  |
-| 195 | Tensor<[4608]> self = ?,<br>Tensor<[32, 1536]> mat1 = ?,<br>Tensor<[1536, 4608]> mat2 = ?    | Done     | Done       | True  |
-| 196 | Tensor<[4]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 4]> mat2 = ?           | Done     | Done       | True  |
-| 197 | Tensor<[4]> self = ?,<br>Tensor<[600, 256]> mat1 = ?,<br>Tensor<[256, 4]> mat2 = ?           | Done     | Done       | True  |
-| 198 | Tensor<[51200]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 51200]> mat2 = ?   | Unknown  | Done       | True  |
-| 199 | Tensor<[51200]> self = ?,<br>Tensor<[5, 1024]> mat1 = ?,<br>Tensor<[1024, 51200]> mat2 = ?   | Unknown  | Done       | True  |
-| 200 | Tensor<[5120]> self = ?,<br>Tensor<[1024, 640]> mat1 = ?,<br>Tensor<[640, 5120]> mat2 = ?    | Unknown  | Done       | True  |
-| 201 | Tensor<[5120]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 5120]> mat2 = ?  | Done     | Done       | True  |
-| 202 | Tensor<[512]> self = ?,<br>Tensor<[14, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?      | Done     | Done       | True  |
-| 203 | Tensor<[512]> self = ?,<br>Tensor<[14, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?        | Done     | Done       | True  |
-| 204 | Tensor<[512]> self = ?,<br>Tensor<[196, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?     | Done     | Done       | True  |
-| 205 | Tensor<[512]> self = ?,<br>Tensor<[196, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?       | Done     | Done       | True  |
-| 206 | Tensor<[512]> self = ?,<br>Tensor<[225, 2]> mat1 = ?,<br>Tensor<[2, 512]> mat2 = ?           | Done     | Done       | True  |
-| 207 | Tensor<[512]> self = ?,<br>Tensor<[256, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?     | Done     | Done       | True  |
-| 208 | Tensor<[512]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 512]> mat2 = ?       | Done     | Done       | True  |
-| 209 | Tensor<[512]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?       | Done     | Done       | True  |
-| 210 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ?       | Done     | Done       | True  |
-| 211 | Tensor<[512]> self = ?,<br>Tensor<[300, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?     | Done     | Done       | True  |
-| 212 | Tensor<[512]> self = ?,<br>Tensor<[300, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?       | Done     | Done       | True  |
-| 213 | Tensor<[512]> self = ?,<br>Tensor<[3136, 128]> mat1 = ?,<br>Tensor<[128, 512]> mat2 = ?      | Done     | Done       | True  |
-| 214 | Tensor<[512]> self = ?,<br>Tensor<[4096, 128]> mat1 = ?,<br>Tensor<[128, 512]> mat2 = ?      | Done     | Done       | True  |
-| 215 | Tensor<[512]> self = ?,<br>Tensor<[4800, 128]> mat1 = ?,<br>Tensor<[128, 512]> mat2 = ?      | Done     | Done       | True  |
-| 216 | Tensor<[576]> self = ?,<br>Tensor<[1024, 192]> mat1 = ?,<br>Tensor<[192, 576]> mat2 = ?      | Done     | Done       | True  |
-| 217 | Tensor<[576]> self = ?,<br>Tensor<[784, 192]> mat1 = ?,<br>Tensor<[192, 576]> mat2 = ?       | Done     | Done       | True  |
-| 218 | Tensor<[6144]> self = ?,<br>Tensor<[32, 1536]> mat1 = ?,<br>Tensor<[1536, 6144]> mat2 = ?    | Done     | Done       | True  |
-| 219 | Tensor<[640]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 640]> mat2 = ?       | Unknown  | Done       | True  |
-| 220 | Tensor<[640]> self = ?,<br>Tensor<[1024, 160]> mat1 = ?,<br>Tensor<[160, 640]> mat2 = ?      | Done     | Done       | True  |
-| 221 | Tensor<[640]> self = ?,<br>Tensor<[1024, 2560]> mat1 = ?,<br>Tensor<[2560, 640]> mat2 = ?    | Unknown  | Done       | True  |
-| 222 | Tensor<[640]> self = ?,<br>Tensor<[1024, 640]> mat1 = ?,<br>Tensor<[640, 640]> mat2 = ?      | Unknown  | Done       | True  |
-| 223 | Tensor<[64]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 64]> mat2 = ?           | Done     | Done       | True  |
-| 224 | Tensor<[64]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 64]> mat2 = ?             | Done     | Done       | True  |
-| 225 | Tensor<[64]> self = ?,<br>Tensor<[19200, 256]> mat1 = ?,<br>Tensor<[256, 64]> mat2 = ?       | Done     | Done       | True  |
-| 226 | Tensor<[64]> self = ?,<br>Tensor<[19200, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?         | Done     | Done       | True  |
-| 227 | Tensor<[64]> self = ?,<br>Tensor<[256, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?           | Done     | Done       | True  |
-| 228 | Tensor<[64]> self = ?,<br>Tensor<[300, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?           | Done     | Done       | True  |
-| 229 | Tensor<[64]> self = ?,<br>Tensor<[4096, 256]> mat1 = ?,<br>Tensor<[256, 64]> mat2 = ?        | Done     | Done       | True  |
-| 230 | Tensor<[64]> self = ?,<br>Tensor<[4096, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?          | Done     | Done       | True  |
-| 231 | Tensor<[768]> self = ?,<br>Tensor<[1, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?       | Done     | Done       | True  |
-| 232 | Tensor<[768]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?         | Done     | Done       | True  |
-| 233 | Tensor<[768]> self = ?,<br>Tensor<[10, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 234 | Tensor<[768]> self = ?,<br>Tensor<[10, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 235 | Tensor<[768]> self = ?,<br>Tensor<[1024, 192]> mat1 = ?,<br>Tensor<[192, 768]> mat2 = ?      | Done     | Done       | True  |
-| 236 | Tensor<[768]> self = ?,<br>Tensor<[1024, 256]> mat1 = ?,<br>Tensor<[256, 768]> mat2 = ?      | Done     | Done       | True  |
-| 237 | Tensor<[768]> self = ?,<br>Tensor<[12, 128]> mat1 = ?,<br>Tensor<[128, 768]> mat2 = ?        | Done     | Done       | True  |
-| 238 | Tensor<[768]> self = ?,<br>Tensor<[12, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 239 | Tensor<[768]> self = ?,<br>Tensor<[12, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 240 | Tensor<[768]> self = ?,<br>Tensor<[14, 128]> mat1 = ?,<br>Tensor<[128, 768]> mat2 = ?        | Done     | Done       | True  |
-| 241 | Tensor<[768]> self = ?,<br>Tensor<[14, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 242 | Tensor<[768]> self = ?,<br>Tensor<[14, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 243 | Tensor<[768]> self = ?,<br>Tensor<[1445, 192]> mat1 = ?,<br>Tensor<[192, 768]> mat2 = ?      | Done     | Done       | True  |
-| 244 | Tensor<[768]> self = ?,<br>Tensor<[1500, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Done     | Done       | True  |
-| 245 | Tensor<[768]> self = ?,<br>Tensor<[1500, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?      | Done     | Done       | True  |
-| 246 | Tensor<[768]> self = ?,<br>Tensor<[16, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 247 | Tensor<[768]> self = ?,<br>Tensor<[16, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 248 | Tensor<[768]> self = ?,<br>Tensor<[196, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?     | Done     | Done       | True  |
-| 249 | Tensor<[768]> self = ?,<br>Tensor<[197, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?     | Done     | Done       | True  |
-| 250 | Tensor<[768]> self = ?,<br>Tensor<[197, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?       | Done     | Done       | True  |
-| 251 | Tensor<[768]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?      | Done     | Done       | True  |
-| 252 | Tensor<[768]> self = ?,<br>Tensor<[24, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 253 | Tensor<[768]> self = ?,<br>Tensor<[24, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 254 | Tensor<[768]> self = ?,<br>Tensor<[25, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 255 | Tensor<[768]> self = ?,<br>Tensor<[25, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 256 | Tensor<[768]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 768]> mat2 = ?     | Done     | Done       | True  |
-| 257 | Tensor<[768]> self = ?,<br>Tensor<[4, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?       | Unknown  | Done       | True  |
-| 258 | Tensor<[768]> self = ?,<br>Tensor<[4, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?         | Unknown  | Done       | True  |
-| 259 | Tensor<[768]> self = ?,<br>Tensor<[45, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Unknown  | Done       | True  |
-| 260 | Tensor<[768]> self = ?,<br>Tensor<[45, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Unknown  | Done       | True  |
-| 261 | Tensor<[768]> self = ?,<br>Tensor<[49, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 262 | Tensor<[768]> self = ?,<br>Tensor<[49, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 263 | Tensor<[768]> self = ?,<br>Tensor<[50, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 264 | Tensor<[768]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 265 | Tensor<[768]> self = ?,<br>Tensor<[64, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | True  |
-| 266 | Tensor<[768]> self = ?,<br>Tensor<[64, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | True  |
-| 267 | Tensor<[768]> self = ?,<br>Tensor<[7, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?       | Done     | Done       | True  |
-| 268 | Tensor<[768]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?         | Done     | Done       | True  |
-| 269 | Tensor<[768]> self = ?,<br>Tensor<[784, 192]> mat1 = ?,<br>Tensor<[192, 768]> mat2 = ?       | Done     | Done       | True  |
-| 270 | Tensor<[768]> self = ?,<br>Tensor<[784, 256]> mat1 = ?,<br>Tensor<[256, 768]> mat2 = ?       | Done     | Done       | True  |
-| 271 | Tensor<[768]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 768]> mat2 = ?         | Done     | Done       | True  |
-| 272 | Tensor<[768]> self = ?,<br>Tensor<[9, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?       | Done     | Done       | True  |
-| 273 | Tensor<[768]> self = ?,<br>Tensor<[9, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?         | Done     | Done       | True  |
-| 274 | Tensor<[784]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 784]> mat2 = ?         | Done     | Done       | True  |
-| 275 | Tensor<[8192]> self = ?,<br>Tensor<[9, 2048]> mat1 = ?,<br>Tensor<[2048, 8192]> mat2 = ?     | Done     | Done       | True  |
-| 276 | Tensor<[92]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 92]> mat2 = ?         | Done     | Done       | True  |
-| 277 | Tensor<[92]> self = ?,<br>Tensor<[600, 256]> mat1 = ?,<br>Tensor<[256, 92]> mat2 = ?         | Done     | Done       | True  |
-| 278 | Tensor<[96]> self = ?,<br>Tensor<[3136, 384]> mat1 = ?,<br>Tensor<[384, 96]> mat2 = ?        | Done     | Done       | True  |
-| 279 | Tensor<[96]> self = ?,<br>Tensor<[3136, 96]> mat1 = ?,<br>Tensor<[96, 96]> mat2 = ?          | Done     | Done       | True  |
-| 280 | Tensor<[96]> self = ?,<br>Tensor<[4096, 384]> mat1 = ?,<br>Tensor<[384, 96]> mat2 = ?        | Done     | Done       | True  |
-| 281 | Tensor<[96]> self = ?,<br>Tensor<[4096, 96]> mat1 = ?,<br>Tensor<[96, 96]> mat2 = ?          | Done     | Done       | True  |
+|     | ATen Input Variations                                                                          | Status   | Isolated   | PCC                | Host   |
+|----:|:-----------------------------------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
+|   0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1008]> mat1 = ?,<br>Tensor<[1008, 1000]> mat2 = ?       | Done     | Done       | 0.9999634131860395 | 0      |
+|   1 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?       | Done     | Done       | 0.9999684729664032 | 0      |
+|   2 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?       | Done     | Done       | 0.9999624723791455 | 0      |
+|   3 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1512]> mat1 = ?,<br>Tensor<[1512, 1000]> mat2 = ?       | Done     | Done       | 0.9999573514434534 | 0      |
+|   4 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1536]> mat1 = ?,<br>Tensor<[1536, 1000]> mat2 = ?       | Done     | Done       | 0.999961843056397  | 0      |
+|   5 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1664]> mat1 = ?,<br>Tensor<[1664, 1000]> mat2 = ?       | Done     | Done       | 0.9999583932309783 | 0      |
+|   6 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1920]> mat1 = ?,<br>Tensor<[1920, 1000]> mat2 = ?       | Done     | Done       | 0.9999548507649487 | 0      |
+|   7 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2016]> mat1 = ?,<br>Tensor<[2016, 1000]> mat2 = ?       | Done     | Done       | 0.999663279843702  | 0      |
+|   8 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2048]> mat1 = ?,<br>Tensor<[2048, 1000]> mat2 = ?       | Done     | Done       | 0.9999540639854068 | 0      |
+|   9 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2208]> mat1 = ?,<br>Tensor<[2208, 1000]> mat2 = ?       | Done     | Done       | 0.9995668657511084 | 0      |
+|  10 | Tensor<[1000]> self = ?,<br>Tensor<[1, 2520]> mat1 = ?,<br>Tensor<[2520, 1000]> mat2 = ?       | Done     | Done       | 0.9994238300713966 | 0      |
+|  11 | Tensor<[1000]> self = ?,<br>Tensor<[1, 3024]> mat1 = ?,<br>Tensor<[3024, 1000]> mat2 = ?       | Done     | Done       | 0.9993663619861414 | 0      |
+|  12 | Tensor<[1000]> self = ?,<br>Tensor<[1, 3712]> mat1 = ?,<br>Tensor<[3712, 1000]> mat2 = ?       | Done     | Done       | 0.9999315967121454 | 0      |
+|  13 | Tensor<[1000]> self = ?,<br>Tensor<[1, 400]> mat1 = ?,<br>Tensor<[400, 1000]> mat2 = ?         | Done     | Done       | 0.9999416464828189 | 0      |
+|  14 | Tensor<[1000]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 1000]> mat2 = ?       | Done     | Done       | 0.9999262798300855 | 0      |
+|  15 | Tensor<[1000]> self = ?,<br>Tensor<[1, 440]> mat1 = ?,<br>Tensor<[440, 1000]> mat2 = ?         | Done     | Done       | 0.9999718612928099 | 0      |
+|  16 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ?         | Done     | Done       | 0.9999729440043025 | 0      |
+|  17 | Tensor<[1000]> self = ?,<br>Tensor<[1, 672]> mat1 = ?,<br>Tensor<[672, 1000]> mat2 = ?         | Done     | Done       | 0.9999042698577517 | 0      |
+|  18 | Tensor<[1000]> self = ?,<br>Tensor<[1, 7392]> mat1 = ?,<br>Tensor<[7392, 1000]> mat2 = ?       | Done     | Done       | 0.997689359772875  | 0      |
+|  19 | Tensor<[1000]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1000]> mat2 = ?         | Done     | Done       | 0.9999687538730136 | 0      |
+|  20 | Tensor<[1000]> self = ?,<br>Tensor<[1, 784]> mat1 = ?,<br>Tensor<[784, 1000]> mat2 = ?         | Done     | Done       | 0.9998837516832946 | 0      |
+|  21 | Tensor<[1000]> self = ?,<br>Tensor<[1, 888]> mat1 = ?,<br>Tensor<[888, 1000]> mat2 = ?         | Done     | Done       | 0.9999670640498249 | 0      |
+|  22 | Tensor<[1000]> self = ?,<br>Tensor<[1, 912]> mat1 = ?,<br>Tensor<[912, 1000]> mat2 = ?         | Done     | Done       | 0.9998480576374092 | 0      |
+|  23 | Tensor<[10240]> self = ?,<br>Tensor<[s0*s1, 1280]> mat1 = ?,<br>Tensor<[1280, 10240]> mat2 = ? | Unknown  | Unknown    | N/A                | N/A    |
+|  24 | Tensor<[10240]> self = ?,<br>Tensor<[s1*s2, 1280]> mat1 = ?,<br>Tensor<[1280, 10240]> mat2 = ? | Unknown  | Unknown    | N/A                | N/A    |
+|  25 | Tensor<[1024]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?       | Unknown  | Done       | 0.9999651686943817 | 0      |
+|  26 | Tensor<[1024]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?       | Unknown  | Done       | 0.9999339589363494 | 0      |
+|  27 | Tensor<[1024]> self = ?,<br>Tensor<[1, 576]> mat1 = ?,<br>Tensor<[576, 1024]> mat2 = ?         | Done     | Done       | 0.9999698774700984 | 0      |
+|  28 | Tensor<[1024]> self = ?,<br>Tensor<[1024, 256]> mat1 = ?,<br>Tensor<[256, 1024]> mat2 = ?      | Done     | Done       | 0.9999779492865728 | 0      |
+|  29 | Tensor<[1024]> self = ?,<br>Tensor<[19, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?      | Done     | Done       | 0.99996436444785   | 0      |
+|  30 | Tensor<[1024]> self = ?,<br>Tensor<[19, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?      | Done     | Done       | 0.9999306393399388 | 0      |
+|  31 | Tensor<[1024]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?     | Done     | Done       | 0.9999642380606667 | 0      |
+|  32 | Tensor<[1024]> self = ?,<br>Tensor<[197, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?     | Done     | Done       | 0.9999321734667715 | 0      |
+|  33 | Tensor<[1024]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?     | Done     | Done       | 0.9999643133052674 | 0      |
+|  34 | Tensor<[1024]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 1024]> mat2 = ?       | Done     | Done       | 0.9999739266638982 | 0      |
+|  35 | Tensor<[1024]> self = ?,<br>Tensor<[256, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?     | Done     | Done       | 0.9999323788426535 | 0      |
+|  36 | Tensor<[1024]> self = ?,<br>Tensor<[49, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?      | Done     | Done       | 0.9999638735385475 | 0      |
+|  37 | Tensor<[1024]> self = ?,<br>Tensor<[49, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?      | Done     | Done       | 0.9999319151435069 | 0      |
+|  38 | Tensor<[1024]> self = ?,<br>Tensor<[5, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?       | Unknown  | Done       | 0.9999294490462711 | 0      |
+|  39 | Tensor<[1024]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?      | Done     | Done       | 0.999964228732937  | 0      |
+|  40 | Tensor<[1024]> self = ?,<br>Tensor<[50, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?      | Done     | Done       | 0.9999329795602508 | 0      |
+|  41 | Tensor<[1024]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?      | Done     | Done       | 0.9999645633948664 | 0      |
+|  42 | Tensor<[1024]> self = ?,<br>Tensor<[59, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?      | Done     | Done       | 0.9999326922873117 | 0      |
+|  43 | Tensor<[1024]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?      | Done     | Done       | 0.9999640126600966 | 0      |
+|  44 | Tensor<[1024]> self = ?,<br>Tensor<[64, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?      | Done     | Done       | 0.9999318831986966 | 0      |
+|  45 | Tensor<[1024]> self = ?,<br>Tensor<[784, 256]> mat1 = ?,<br>Tensor<[256, 1024]> mat2 = ?       | Done     | Done       | 0.9999778990227672 | 0      |
+|  46 | Tensor<[1024]> self = ?,<br>Tensor<[9, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ?       | Done     | Done       | 0.9999647608001668 | 0      |
+|  47 | Tensor<[1024]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 1024]> mat2 = ?         | Done     | Done       | 0.9999786652895566 | 0      |
+|  48 | Tensor<[1024]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ?       | Done     | Done       | 0.9999321481036603 | 0      |
+|  49 | Tensor<[10]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 10]> mat2 = ?             | Done     | Done       | 0.9999847973930414 | 0      |
+|  50 | Tensor<[1152]> self = ?,<br>Tensor<[196, 384]> mat1 = ?,<br>Tensor<[384, 1152]> mat2 = ?       | Done     | Done       | 0.999971876106355  | 0      |
+|  51 | Tensor<[1152]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 1152]> mat2 = ?       | Done     | Done       | 0.9999717294809217 | 0      |
+|  52 | Tensor<[1280]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?       | Unknown  | Done       | 0.9999619689611272 | 0      |
+|  53 | Tensor<[1280]> self = ?,<br>Tensor<[1, 320]> mat1 = ?,<br>Tensor<[320, 1280]> mat2 = ?         | Unknown  | Done       | 0.9999742716679489 | 0      |
+|  54 | Tensor<[1280]> self = ?,<br>Tensor<[1, 960]> mat1 = ?,<br>Tensor<[960, 1280]> mat2 = ?         | Done     | Done       | 0.9999669624193992 | 0      |
+|  55 | Tensor<[1280]> self = ?,<br>Tensor<[1200, 320]> mat1 = ?,<br>Tensor<[320, 1280]> mat2 = ?      | Done     | Done       | 0.9999728304234162 | 0      |
+|  56 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?    | Done     | Done       | 0.9999454354771712 | 0      |
+|  57 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ?    | Done     | Done       | 0.9998014670868636 | 0      |
+|  58 | Tensor<[1280]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 1280]> mat2 = ?      | Done     | Done       | 0.9999670667978336 | 0      |
+|  59 | Tensor<[1280]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?     | Done     | Done       | 0.9999616269385135 | 0      |
+|  60 | Tensor<[1280]> self = ?,<br>Tensor<[s0*s1, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?   | Unknown  | Unknown    | N/A                | N/A    |
+|  61 | Tensor<[1280]> self = ?,<br>Tensor<[s0*s1, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ?   | Unknown  | Unknown    | N/A                | N/A    |
+|  62 | Tensor<[1280]> self = ?,<br>Tensor<[s1*s2, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ?   | Unknown  | Unknown    | N/A                | N/A    |
+|  63 | Tensor<[1280]> self = ?,<br>Tensor<[s1*s2, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ?   | Unknown  | Unknown    | N/A                | N/A    |
+|  64 | Tensor<[128]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 128]> mat2 = ?             | Done     | Done       | 0.9999842610743108 | 0      |
+|  65 | Tensor<[128]> self = ?,<br>Tensor<[1, 784]> mat1 = ?,<br>Tensor<[784, 128]> mat2 = ?           | Done     | Done       | 0.9998822161332089 | 0      |
+|  66 | Tensor<[128]> self = ?,<br>Tensor<[1, 9216]> mat1 = ?,<br>Tensor<[9216, 128]> mat2 = ?         | Done     | Done       | 0.9960174930359811 | 0      |
+|  67 | Tensor<[128]> self = ?,<br>Tensor<[16384, 32]> mat1 = ?,<br>Tensor<[32, 128]> mat2 = ?         | Done     | Done       | 0.9999900514262855 | 0      |
+|  68 | Tensor<[128]> self = ?,<br>Tensor<[300, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?         | Done     | Done       | 0.9999791803575482 | 0      |
+|  69 | Tensor<[128]> self = ?,<br>Tensor<[3136, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?        | Done     | Done       | 0.9999784699823101 | 0      |
+|  70 | Tensor<[128]> self = ?,<br>Tensor<[3136, 512]> mat1 = ?,<br>Tensor<[512, 128]> mat2 = ?        | Done     | Done       | 0.9999700382984795 | 0      |
+|  71 | Tensor<[128]> self = ?,<br>Tensor<[4096, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?        | Done     | Done       | 0.9999785762225469 | 0      |
+|  72 | Tensor<[128]> self = ?,<br>Tensor<[4096, 512]> mat1 = ?,<br>Tensor<[512, 128]> mat2 = ?        | Done     | Done       | 0.9999699730147221 | 0      |
+|  73 | Tensor<[128]> self = ?,<br>Tensor<[4800, 128]> mat1 = ?,<br>Tensor<[128, 128]> mat2 = ?        | Done     | Done       | 0.9999791292083385 | 0      |
+|  74 | Tensor<[128]> self = ?,<br>Tensor<[4800, 512]> mat1 = ?,<br>Tensor<[512, 128]> mat2 = ?        | Done     | Done       | 0.9999285972461764 | 0      |
+|  75 | Tensor<[128]> self = ?,<br>Tensor<[9, 1024]> mat1 = ?,<br>Tensor<[1024, 128]> mat2 = ?         | Done     | Done       | 0.9998214344443348 | 0      |
+|  76 | Tensor<[128]> self = ?,<br>Tensor<[9, 2048]> mat1 = ?,<br>Tensor<[2048, 128]> mat2 = ?         | Done     | Done       | 0.9996485593494547 | 0      |
+|  77 | Tensor<[128]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 128]> mat2 = ?         | Done     | Done       | 0.9989761982994027 | 0      |
+|  78 | Tensor<[128]> self = ?,<br>Tensor<[9, 768]> mat1 = ?,<br>Tensor<[768, 128]> mat2 = ?           | Done     | Done       | 0.9998930882860013 | 0      |
+|  79 | Tensor<[12]> self = ?,<br>Tensor<[1, 3]> mat1 = ?,<br>Tensor<[3, 12]> mat2 = ?                 | Done     | Done       | 0.9999929692861618 | 0      |
+|  80 | Tensor<[12]> self = ?,<br>Tensor<[1, 64]> mat1 = ?,<br>Tensor<[64, 12]> mat2 = ?               | Done     | Done       | 0.9999829576471917 | 0      |
+|  81 | Tensor<[1536]> self = ?,<br>Tensor<[196, 384]> mat1 = ?,<br>Tensor<[384, 1536]> mat2 = ?       | Done     | Done       | 0.9999717245299732 | 0      |
+|  82 | Tensor<[1536]> self = ?,<br>Tensor<[196, 512]> mat1 = ?,<br>Tensor<[512, 1536]> mat2 = ?       | Done     | Done       | 0.9999700093582929 | 0      |
+|  83 | Tensor<[1536]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 1536]> mat2 = ?       | Done     | Done       | 0.999971665373198  | 0      |
+|  84 | Tensor<[1536]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 1536]> mat2 = ?       | Done     | Done       | 0.9999699777327591 | 0      |
+|  85 | Tensor<[1536]> self = ?,<br>Tensor<[32, 1536]> mat1 = ?,<br>Tensor<[1536, 1536]> mat2 = ?      | Done     | Done       | 0.9999587825868921 | 0      |
+|  86 | Tensor<[1536]> self = ?,<br>Tensor<[32, 6144]> mat1 = ?,<br>Tensor<[6144, 1536]> mat2 = ?      | Done     | Done       | 0.999911169895541  | 0      |
+|  87 | Tensor<[160]> self = ?,<br>Tensor<[1024, 160]> mat1 = ?,<br>Tensor<[160, 160]> mat2 = ?        | Done     | Done       | 0.9999757261491861 | 0      |
+|  88 | Tensor<[160]> self = ?,<br>Tensor<[1024, 640]> mat1 = ?,<br>Tensor<[640, 160]> mat2 = ?        | Done     | Done       | 0.9999683537294809 | 0      |
+|  89 | Tensor<[160]> self = ?,<br>Tensor<[256, 160]> mat1 = ?,<br>Tensor<[160, 160]> mat2 = ?         | Done     | Done       | 0.9999761007509919 | 0      |
+|  90 | Tensor<[16384]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 16384]> mat2 = ?     | Done     | Done       | 0.9990049915704048 | 0      |
+|  91 | Tensor<[192]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?         | Done     | Done       | 0.9999727013705781 | 0      |
+|  92 | Tensor<[192]> self = ?,<br>Tensor<[1024, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?        | Done     | Done       | 0.9999756657789886 | 0      |
+|  93 | Tensor<[192]> self = ?,<br>Tensor<[1024, 768]> mat1 = ?,<br>Tensor<[768, 192]> mat2 = ?        | Done     | Done       | 0.9999671854688338 | 0      |
+|  94 | Tensor<[192]> self = ?,<br>Tensor<[1445, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?        | Done     | Done       | 0.9999757943674644 | 0      |
+|  95 | Tensor<[192]> self = ?,<br>Tensor<[1445, 768]> mat1 = ?,<br>Tensor<[768, 192]> mat2 = ?        | Done     | Done       | 0.9999669967119186 | 0      |
+|  96 | Tensor<[192]> self = ?,<br>Tensor<[784, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?         | Done     | Done       | 0.9999760467962385 | 0      |
+|  97 | Tensor<[192]> self = ?,<br>Tensor<[784, 768]> mat1 = ?,<br>Tensor<[768, 192]> mat2 = ?         | Done     | Done       | 0.9999671792737894 | 0      |
+|  98 | Tensor<[196]> self = ?,<br>Tensor<[768, 384]> mat1 = ?,<br>Tensor<[384, 196]> mat2 = ?         | Done     | Done       | 0.999972053049475  | 0      |
+|  99 | Tensor<[1]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1]> mat2 = ?               | Done     | Done       | 1.0                | 0      |
+| 100 | Tensor<[2048]> self = ?,<br>Tensor<[100, 256]> mat1 = ?,<br>Tensor<[256, 2048]> mat2 = ?       | Done     | Done       | 0.9999739289480402 | 0      |
+| 101 | Tensor<[2048]> self = ?,<br>Tensor<[14, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?        | Done     | Done       | 0.9999698110381726 | 0      |
+| 102 | Tensor<[2048]> self = ?,<br>Tensor<[196, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?       | Done     | Done       | 0.9999699313493331 | 0      |
+| 103 | Tensor<[2048]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?       | Done     | Done       | 0.9999700564467595 | 0      |
+| 104 | Tensor<[2048]> self = ?,<br>Tensor<[300, 512]> mat1 = ?,<br>Tensor<[512, 2048]> mat2 = ?       | Done     | Done       | 0.9999700342682196 | 0      |
+| 105 | Tensor<[2048]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 2048]> mat2 = ?         | Done     | Done       | 0.9999788612688861 | 0      |
+| 106 | Tensor<[2048]> self = ?,<br>Tensor<[9, 2048]> mat1 = ?,<br>Tensor<[2048, 2048]> mat2 = ?       | Done     | Done       | 0.9999531553647202 | 0      |
+| 107 | Tensor<[2048]> self = ?,<br>Tensor<[9, 8192]> mat1 = ?,<br>Tensor<[8192, 2048]> mat2 = ?       | Done     | Done       | 0.9998921751563693 | 0      |
+| 108 | Tensor<[2048]> self = ?,<br>Tensor<[920, 256]> mat1 = ?,<br>Tensor<[256, 2048]> mat2 = ?       | Done     | Done       | 0.999974067810423  | 0      |
+| 109 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ?       | Done     | Done       | 0.999884746461385  | 0      |
+| 110 | Tensor<[2304]> self = ?,<br>Tensor<[197, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?       | Done     | Done       | 0.9999670738656155 | 0      |
+| 111 | Tensor<[2304]> self = ?,<br>Tensor<[49, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?        | Done     | Done       | 0.9999667599227813 | 0      |
+| 112 | Tensor<[2304]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?        | Done     | Done       | 0.9999672376742839 | 0      |
+| 113 | Tensor<[2304]> self = ?,<br>Tensor<[64, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?        | Done     | Done       | 0.9999669402510012 | 0      |
+| 114 | Tensor<[2304]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ?         | Done     | Done       | 0.9999668066117114 | 0      |
+| 115 | Tensor<[250002]> self = ?,<br>Tensor<[10, 768]> mat1 = ?,<br>Tensor<[768, 250002]> mat2 = ?    | Done     | Done       | 0.9998872073588433 | 0      |
+| 116 | Tensor<[2560]> self = ?,<br>Tensor<[4096, 320]> mat1 = ?,<br>Tensor<[320, 2560]> mat2 = ?      | Unknown  | Done       | 0.99997628372293   | 0      |
+| 117 | Tensor<[2560]> self = ?,<br>Tensor<[s1*s2, 320]> mat1 = ?,<br>Tensor<[320, 2560]> mat2 = ?     | Unknown  | Unknown    | N/A                | N/A    |
+| 118 | Tensor<[256]> self = ?,<br>Tensor<[100, 2048]> mat1 = ?,<br>Tensor<[2048, 256]> mat2 = ?       | Done     | Done       | 0.9996041359800074 | 0      |
+| 119 | Tensor<[256]> self = ?,<br>Tensor<[100, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?         | Done     | Done       | 0.9999641013472533 | 0      |
+| 120 | Tensor<[256]> self = ?,<br>Tensor<[1024, 1024]> mat1 = ?,<br>Tensor<[1024, 256]> mat2 = ?      | Done     | Done       | 0.9999642707024806 | 0      |
+| 121 | Tensor<[256]> self = ?,<br>Tensor<[1024, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?        | Done     | Done       | 0.9999739744474586 | 0      |
+| 122 | Tensor<[256]> self = ?,<br>Tensor<[19200, 64]> mat1 = ?,<br>Tensor<[64, 256]> mat2 = ?         | Done     | Done       | 0.99998642952461   | 0      |
+| 123 | Tensor<[256]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 256]> mat2 = ?        | Done     | Done       | 0.9999668656576765 | 0      |
+| 124 | Tensor<[256]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 256]> mat2 = ?       | Done     | Done       | 0.999838867973778  | 0      |
+| 125 | Tensor<[256]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 256]> mat2 = ?       | Done     | Done       | 0.9997837997924881 | 0      |
+| 126 | Tensor<[256]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?         | Done     | Done       | 0.9999638476577346 | 0      |
+| 127 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ?         | Done     | Done       | 0.9999278006479274 | 0      |
+| 128 | Tensor<[256]> self = ?,<br>Tensor<[4096, 64]> mat1 = ?,<br>Tensor<[64, 256]> mat2 = ?          | Done     | Done       | 0.9999851976407211 | 0      |
+| 129 | Tensor<[256]> self = ?,<br>Tensor<[600, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?         | Done     | Done       | 0.9999737940970673 | 0      |
+| 130 | Tensor<[256]> self = ?,<br>Tensor<[784, 1024]> mat1 = ?,<br>Tensor<[1024, 256]> mat2 = ?       | Done     | Done       | 0.9999643618082127 | 0      |
+| 131 | Tensor<[256]> self = ?,<br>Tensor<[784, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?         | Done     | Done       | 0.9999742920790652 | 0      |
+| 132 | Tensor<[256]> self = ?,<br>Tensor<[920, 2048]> mat1 = ?,<br>Tensor<[2048, 256]> mat2 = ?       | Done     | Done       | 0.9999536757551869 | 0      |
+| 133 | Tensor<[256]> self = ?,<br>Tensor<[920, 256]> mat1 = ?,<br>Tensor<[256, 256]> mat2 = ?         | Done     | Done       | 0.9999738732093125 | 0      |
+| 134 | Tensor<[288]> self = ?,<br>Tensor<[3136, 96]> mat1 = ?,<br>Tensor<[96, 288]> mat2 = ?          | Done     | Done       | 0.9999828932097052 | 0      |
+| 135 | Tensor<[288]> self = ?,<br>Tensor<[4096, 96]> mat1 = ?,<br>Tensor<[96, 288]> mat2 = ?          | Done     | Done       | 0.9999829436142356 | 0      |
+| 136 | Tensor<[2]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?               | Done     | Done       | 1.0                | 0      |
+| 137 | Tensor<[2]> self = ?,<br>Tensor<[12, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?              | Done     | Done       | 0.9998918365254346 | 0      |
+| 138 | Tensor<[2]> self = ?,<br>Tensor<[14, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?              | Done     | Done       | 0.9999060475010326 | 0      |
+| 139 | Tensor<[2]> self = ?,<br>Tensor<[25, 768]> mat1 = ?,<br>Tensor<[768, 2]> mat2 = ?              | Done     | Done       | 0.999897474583633  | 0      |
+| 140 | Tensor<[2]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 2]> mat2 = ?           | Done     | Done       | 0.9998261042032128 | 0      |
+| 141 | Tensor<[30000]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 30000]> mat2 = ?       | Done     | Done       | 0.9999797818647557 | 0      |
+| 142 | Tensor<[3072]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?         | Done     | Done       | 0.9999662254982854 | 0      |
+| 143 | Tensor<[3072]> self = ?,<br>Tensor<[10, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999674804998817 | 0      |
+| 144 | Tensor<[3072]> self = ?,<br>Tensor<[12, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999672792725148 | 0      |
+| 145 | Tensor<[3072]> self = ?,<br>Tensor<[14, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.999967191154297  | 0      |
+| 146 | Tensor<[3072]> self = ?,<br>Tensor<[1500, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?      | Done     | Done       | 0.9999620350715761 | 0      |
+| 147 | Tensor<[3072]> self = ?,<br>Tensor<[16, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999670996032559 | 0      |
+| 148 | Tensor<[3072]> self = ?,<br>Tensor<[196, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?       | Done     | Done       | 0.9999670259328589 | 0      |
+| 149 | Tensor<[3072]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?     | Done     | Done       | 0.9999643614752817 | 0      |
+| 150 | Tensor<[3072]> self = ?,<br>Tensor<[197, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?       | Done     | Done       | 0.9999670075359932 | 0      |
+| 151 | Tensor<[3072]> self = ?,<br>Tensor<[24, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999670783750712 | 0      |
+| 152 | Tensor<[3072]> self = ?,<br>Tensor<[25, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999669902275242 | 0      |
+| 153 | Tensor<[3072]> self = ?,<br>Tensor<[4, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?         | Unknown  | Done       | 0.9999666237179347 | 0      |
+| 154 | Tensor<[3072]> self = ?,<br>Tensor<[45, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Unknown  | Done       | 0.9999673286220198 | 0      |
+| 155 | Tensor<[3072]> self = ?,<br>Tensor<[49, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?      | Done     | Done       | 0.9999642409748735 | 0      |
+| 156 | Tensor<[3072]> self = ?,<br>Tensor<[49, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999669244484739 | 0      |
+| 157 | Tensor<[3072]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?      | Done     | Done       | 0.9999642190371674 | 0      |
+| 158 | Tensor<[3072]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999671439271022 | 0      |
+| 159 | Tensor<[3072]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ?      | Done     | Done       | 0.9999643280864676 | 0      |
+| 160 | Tensor<[3072]> self = ?,<br>Tensor<[64, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?        | Done     | Done       | 0.9999671861092341 | 0      |
+| 161 | Tensor<[3072]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?         | Done     | Done       | 0.9999670736355228 | 0      |
+| 162 | Tensor<[3072]> self = ?,<br>Tensor<[9, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?         | Done     | Done       | 0.9999666606077885 | 0      |
+| 163 | Tensor<[320]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 320]> mat2 = ?         | Unknown  | Done       | 0.9997351360022009 | 0      |
+| 164 | Tensor<[320]> self = ?,<br>Tensor<[1200, 1280]> mat1 = ?,<br>Tensor<[1280, 320]> mat2 = ?      | Done     | Done       | 0.999961472090073  | 0      |
+| 165 | Tensor<[320]> self = ?,<br>Tensor<[1200, 320]> mat1 = ?,<br>Tensor<[320, 320]> mat2 = ?        | Done     | Done       | 0.999972828112015  | 0      |
+| 166 | Tensor<[320]> self = ?,<br>Tensor<[300, 320]> mat1 = ?,<br>Tensor<[320, 320]> mat2 = ?         | Done     | Done       | 0.9999560816105068 | 0      |
+| 167 | Tensor<[320]> self = ?,<br>Tensor<[4096, 1280]> mat1 = ?,<br>Tensor<[1280, 320]> mat2 = ?      | Unknown  | Done       | 0.9999616200060881 | 0      |
+| 168 | Tensor<[320]> self = ?,<br>Tensor<[4096, 320]> mat1 = ?,<br>Tensor<[320, 320]> mat2 = ?        | Unknown  | Done       | 0.999972716882636  | 0      |
+| 169 | Tensor<[320]> self = ?,<br>Tensor<[s1*s2, 1280]> mat1 = ?,<br>Tensor<[1280, 320]> mat2 = ?     | Unknown  | Unknown    | N/A                | N/A    |
+| 170 | Tensor<[320]> self = ?,<br>Tensor<[s1*s2, 320]> mat1 = ?,<br>Tensor<[320, 320]> mat2 = ?       | Unknown  | Unknown    | N/A                | N/A    |
+| 171 | Tensor<[32]> self = ?,<br>Tensor<[16384, 128]> mat1 = ?,<br>Tensor<[128, 32]> mat2 = ?         | Done     | Done       | 0.999979511275473  | 0      |
+| 172 | Tensor<[32]> self = ?,<br>Tensor<[16384, 32]> mat1 = ?,<br>Tensor<[32, 32]> mat2 = ?           | Done     | Done       | 0.999989808858736  | 0      |
+| 173 | Tensor<[32]> self = ?,<br>Tensor<[256, 32]> mat1 = ?,<br>Tensor<[32, 32]> mat2 = ?             | Done     | Done       | 0.9999896754003627 | 0      |
+| 174 | Tensor<[3840]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 3840]> mat2 = ?    | Done     | Done       | 0.9999455465568546 | 0      |
+| 175 | Tensor<[384]> self = ?,<br>Tensor<[196, 1536]> mat1 = ?,<br>Tensor<[1536, 384]> mat2 = ?       | Done     | Done       | 0.9997291941138303 | 0      |
+| 176 | Tensor<[384]> self = ?,<br>Tensor<[196, 384]> mat1 = ?,<br>Tensor<[384, 384]> mat2 = ?         | Done     | Done       | 0.999946807715405  | 0      |
+| 177 | Tensor<[384]> self = ?,<br>Tensor<[256, 1536]> mat1 = ?,<br>Tensor<[1536, 384]> mat2 = ?       | Done     | Done       | 0.9997269300240269 | 0      |
+| 178 | Tensor<[384]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 384]> mat2 = ?         | Done     | Done       | 0.9999465927549357 | 0      |
+| 179 | Tensor<[384]> self = ?,<br>Tensor<[3136, 128]> mat1 = ?,<br>Tensor<[128, 384]> mat2 = ?        | Done     | Done       | 0.9999786364255993 | 0      |
+| 180 | Tensor<[384]> self = ?,<br>Tensor<[3136, 96]> mat1 = ?,<br>Tensor<[96, 384]> mat2 = ?          | Done     | Done       | 0.9999830301454458 | 0      |
+| 181 | Tensor<[384]> self = ?,<br>Tensor<[4096, 128]> mat1 = ?,<br>Tensor<[128, 384]> mat2 = ?        | Done     | Done       | 0.9999785979275619 | 0      |
+| 182 | Tensor<[384]> self = ?,<br>Tensor<[4096, 96]> mat1 = ?,<br>Tensor<[96, 384]> mat2 = ?          | Done     | Done       | 0.9999828272947021 | 0      |
+| 183 | Tensor<[3]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 3]> mat2 = ?                 | Done     | Done       | 0.9999999263738238 | 0      |
+| 184 | Tensor<[4096]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?       | Unknown  | Done       | 0.9999652082160353 | 0      |
+| 185 | Tensor<[4096]> self = ?,<br>Tensor<[1, 25088]> mat1 = ?,<br>Tensor<[25088, 4096]> mat2 = ?     | Done     | Done       | 0.9997279599565715 | 0      |
+| 186 | Tensor<[4096]> self = ?,<br>Tensor<[1, 4096]> mat1 = ?,<br>Tensor<[4096, 4096]> mat2 = ?       | Done     | Done       | 0.999926510618347  | 0      |
+| 187 | Tensor<[4096]> self = ?,<br>Tensor<[19, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?      | Done     | Done       | 0.9999641547300203 | 0      |
+| 188 | Tensor<[4096]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?     | Done     | Done       | 0.999964123677682  | 0      |
+| 189 | Tensor<[4096]> self = ?,<br>Tensor<[256, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?     | Done     | Done       | 0.9999641969508116 | 0      |
+| 190 | Tensor<[4096]> self = ?,<br>Tensor<[49, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?      | Done     | Done       | 0.999964298245876  | 0      |
+| 191 | Tensor<[4096]> self = ?,<br>Tensor<[5, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?       | Unknown  | Done       | 0.9999641322142139 | 0      |
+| 192 | Tensor<[4096]> self = ?,<br>Tensor<[50, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?      | Done     | Done       | 0.9999642534219578 | 0      |
+| 193 | Tensor<[4096]> self = ?,<br>Tensor<[59, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?      | Done     | Done       | 0.9999641043407509 | 0      |
+| 194 | Tensor<[4096]> self = ?,<br>Tensor<[64, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?      | Done     | Done       | 0.9999645106156669 | 0      |
+| 195 | Tensor<[4096]> self = ?,<br>Tensor<[9, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ?       | Done     | Done       | 0.9999641445719876 | 0      |
+| 196 | Tensor<[4096]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 4096]> mat2 = ?         | Done     | Done       | 0.9999794731466527 | 0      |
+| 197 | Tensor<[4096]> self = ?,<br>Tensor<[9, 16384]> mat1 = ?,<br>Tensor<[16384, 4096]> mat2 = ?     | Done     | Done       | 0.9998029451906808 | 0      |
+| 198 | Tensor<[4096]> self = ?,<br>Tensor<[9, 4096]> mat1 = ?,<br>Tensor<[4096, 4096]> mat2 = ?       | Done     | Done       | 0.9999325572324306 | 0      |
+| 199 | Tensor<[4608]> self = ?,<br>Tensor<[32, 1536]> mat1 = ?,<br>Tensor<[1536, 4608]> mat2 = ?      | Done     | Done       | 0.9997265922399026 | 0      |
+| 200 | Tensor<[4]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 4]> mat2 = ?             | Done     | Done       | 0.9999701014609964 | 0      |
+| 201 | Tensor<[4]> self = ?,<br>Tensor<[600, 256]> mat1 = ?,<br>Tensor<[256, 4]> mat2 = ?             | Done     | Done       | 0.9999726078240873 | 0      |
+| 202 | Tensor<[51200]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 51200]> mat2 = ?     | Unknown  | Done       | 0.9998407492714825 | 0      |
+| 203 | Tensor<[51200]> self = ?,<br>Tensor<[5, 1024]> mat1 = ?,<br>Tensor<[1024, 51200]> mat2 = ?     | Unknown  | Done       | 0.9998391352976737 | 0      |
+| 204 | Tensor<[5120]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 5120]> mat2 = ?    | Done     | Done       | 0.9997851716649959 | 0      |
+| 205 | Tensor<[5120]> self = ?,<br>Tensor<[s0*s1, 640]> mat1 = ?,<br>Tensor<[640, 5120]> mat2 = ?     | Unknown  | Unknown    | N/A                | N/A    |
+| 206 | Tensor<[5120]> self = ?,<br>Tensor<[s1*s2, 640]> mat1 = ?,<br>Tensor<[640, 5120]> mat2 = ?     | Unknown  | Unknown    | N/A                | N/A    |
+| 207 | Tensor<[512]> self = ?,<br>Tensor<[14, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?        | Done     | Done       | 0.9996183915000856 | 0      |
+| 208 | Tensor<[512]> self = ?,<br>Tensor<[14, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?          | Done     | Done       | 0.9999296786776563 | 0      |
+| 209 | Tensor<[512]> self = ?,<br>Tensor<[196, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?       | Done     | Done       | 0.9996037321725523 | 0      |
+| 210 | Tensor<[512]> self = ?,<br>Tensor<[196, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?         | Done     | Done       | 0.9999285624115631 | 0      |
+| 211 | Tensor<[512]> self = ?,<br>Tensor<[225, 2]> mat1 = ?,<br>Tensor<[2, 512]> mat2 = ?             | Done     | Done       | 0.9999952237687674 | 0      |
+| 212 | Tensor<[512]> self = ?,<br>Tensor<[256, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?       | Done     | Done       | 0.9996088024279216 | 0      |
+| 213 | Tensor<[512]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 512]> mat2 = ?         | Done     | Done       | 0.9999636612484215 | 0      |
+| 214 | Tensor<[512]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?         | Done     | Done       | 0.9999278014054863 | 0      |
+| 215 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ?         | Done     | Done       | 0.99988523325673   | 0      |
+| 216 | Tensor<[512]> self = ?,<br>Tensor<[300, 2048]> mat1 = ?,<br>Tensor<[2048, 512]> mat2 = ?       | Done     | Done       | 0.9996065887715426 | 0      |
+| 217 | Tensor<[512]> self = ?,<br>Tensor<[300, 512]> mat1 = ?,<br>Tensor<[512, 512]> mat2 = ?         | Done     | Done       | 0.9999281424167359 | 0      |
+| 218 | Tensor<[512]> self = ?,<br>Tensor<[3136, 128]> mat1 = ?,<br>Tensor<[128, 512]> mat2 = ?        | Done     | Done       | 0.9999786175557834 | 0      |
+| 219 | Tensor<[512]> self = ?,<br>Tensor<[4096, 128]> mat1 = ?,<br>Tensor<[128, 512]> mat2 = ?        | Done     | Done       | 0.9999786755695755 | 0      |
+| 220 | Tensor<[512]> self = ?,<br>Tensor<[4800, 128]> mat1 = ?,<br>Tensor<[128, 512]> mat2 = ?        | Done     | Done       | 0.999979316355897  | 0      |
+| 221 | Tensor<[576]> self = ?,<br>Tensor<[1024, 192]> mat1 = ?,<br>Tensor<[192, 576]> mat2 = ?        | Done     | Done       | 0.9999796894733904 | 0      |
+| 222 | Tensor<[576]> self = ?,<br>Tensor<[784, 192]> mat1 = ?,<br>Tensor<[192, 576]> mat2 = ?         | Done     | Done       | 0.9999797649024438 | 0      |
+| 223 | Tensor<[6144]> self = ?,<br>Tensor<[32, 1536]> mat1 = ?,<br>Tensor<[1536, 6144]> mat2 = ?      | Done     | Done       | 0.9997294546922058 | 0      |
+| 224 | Tensor<[640]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 640]> mat2 = ?         | Unknown  | Done       | 0.9999613220671729 | 0      |
+| 225 | Tensor<[640]> self = ?,<br>Tensor<[1024, 160]> mat1 = ?,<br>Tensor<[160, 640]> mat2 = ?        | Done     | Done       | 0.9999757230814099 | 0      |
+| 226 | Tensor<[640]> self = ?,<br>Tensor<[s0*s1, 2560]> mat1 = ?,<br>Tensor<[2560, 640]> mat2 = ?     | Unknown  | Unknown    | N/A                | N/A    |
+| 227 | Tensor<[640]> self = ?,<br>Tensor<[s0*s1, 640]> mat1 = ?,<br>Tensor<[640, 640]> mat2 = ?       | Unknown  | Unknown    | N/A                | N/A    |
+| 228 | Tensor<[640]> self = ?,<br>Tensor<[s1*s2, 2560]> mat1 = ?,<br>Tensor<[2560, 640]> mat2 = ?     | Unknown  | Unknown    | N/A                | N/A    |
+| 229 | Tensor<[640]> self = ?,<br>Tensor<[s1*s2, 640]> mat1 = ?,<br>Tensor<[640, 640]> mat2 = ?       | Unknown  | Unknown    | N/A                | N/A    |
+| 230 | Tensor<[64]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 64]> mat2 = ?             | Done     | Done       | 0.9999885872333824 | 0      |
+| 231 | Tensor<[64]> self = ?,<br>Tensor<[1, 12]> mat1 = ?,<br>Tensor<[12, 64]> mat2 = ?               | Done     | Done       | 0.9999931026665193 | 0      |
+| 232 | Tensor<[64]> self = ?,<br>Tensor<[19200, 256]> mat1 = ?,<br>Tensor<[256, 64]> mat2 = ?         | Done     | Done       | 0.9999642943802614 | 0      |
+| 233 | Tensor<[64]> self = ?,<br>Tensor<[19200, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?           | Done     | Done       | 0.9999863180928786 | 0      |
+| 234 | Tensor<[64]> self = ?,<br>Tensor<[256, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?             | Done     | Done       | 0.9999870493585863 | 0      |
+| 235 | Tensor<[64]> self = ?,<br>Tensor<[300, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?             | Done     | Done       | 0.9999868019495122 | 0      |
+| 236 | Tensor<[64]> self = ?,<br>Tensor<[4096, 256]> mat1 = ?,<br>Tensor<[256, 64]> mat2 = ?          | Done     | Done       | 0.999973775538233  | 0      |
+| 237 | Tensor<[64]> self = ?,<br>Tensor<[4096, 64]> mat1 = ?,<br>Tensor<[64, 64]> mat2 = ?            | Done     | Done       | 0.9999852956760034 | 0      |
+| 238 | Tensor<[768]> self = ?,<br>Tensor<[1, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?         | Done     | Done       | 0.9999383900074452 | 0      |
+| 239 | Tensor<[768]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?           | Done     | Done       | 0.9999647538332506 | 0      |
+| 240 | Tensor<[768]> self = ?,<br>Tensor<[10, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999419346191923 | 0      |
+| 241 | Tensor<[768]> self = ?,<br>Tensor<[10, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.9999669606161932 | 0      |
+| 242 | Tensor<[768]> self = ?,<br>Tensor<[1024, 192]> mat1 = ?,<br>Tensor<[192, 768]> mat2 = ?        | Done     | Done       | 0.999979671539101  | 0      |
+| 243 | Tensor<[768]> self = ?,<br>Tensor<[1024, 256]> mat1 = ?,<br>Tensor<[256, 768]> mat2 = ?        | Done     | Done       | 0.9999779930694349 | 0      |
+| 244 | Tensor<[768]> self = ?,<br>Tensor<[12, 128]> mat1 = ?,<br>Tensor<[128, 768]> mat2 = ?          | Done     | Done       | 0.9999777929315118 | 0      |
+| 245 | Tensor<[768]> self = ?,<br>Tensor<[12, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999431324739627 | 0      |
+| 246 | Tensor<[768]> self = ?,<br>Tensor<[12, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.9999660618546566 | 0      |
+| 247 | Tensor<[768]> self = ?,<br>Tensor<[14, 128]> mat1 = ?,<br>Tensor<[128, 768]> mat2 = ?          | Done     | Done       | 0.9999783499121698 | 0      |
+| 248 | Tensor<[768]> self = ?,<br>Tensor<[14, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999433846546618 | 0      |
+| 249 | Tensor<[768]> self = ?,<br>Tensor<[14, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.999967366068269  | 0      |
+| 250 | Tensor<[768]> self = ?,<br>Tensor<[1445, 192]> mat1 = ?,<br>Tensor<[192, 768]> mat2 = ?        | Done     | Done       | 0.999979666959056  | 0      |
+| 251 | Tensor<[768]> self = ?,<br>Tensor<[1500, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?      | Done     | Done       | 0.9998828564994361 | 0      |
+| 252 | Tensor<[768]> self = ?,<br>Tensor<[1500, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | 0.9999620075070524 | 0      |
+| 253 | Tensor<[768]> self = ?,<br>Tensor<[16, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999429507993106 | 0      |
+| 254 | Tensor<[768]> self = ?,<br>Tensor<[16, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.9999671653471135 | 0      |
+| 255 | Tensor<[768]> self = ?,<br>Tensor<[196, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?       | Done     | Done       | 0.9999430213495505 | 0      |
+| 256 | Tensor<[768]> self = ?,<br>Tensor<[197, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?       | Done     | Done       | 0.999943224944898  | 0      |
+| 257 | Tensor<[768]> self = ?,<br>Tensor<[197, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?         | Done     | Done       | 0.9999669371011902 | 0      |
+| 258 | Tensor<[768]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?        | Done     | Done       | 0.999967063246419  | 0      |
+| 259 | Tensor<[768]> self = ?,<br>Tensor<[24, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999439389585544 | 0      |
+| 260 | Tensor<[768]> self = ?,<br>Tensor<[24, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.9999665944978225 | 0      |
+| 261 | Tensor<[768]> self = ?,<br>Tensor<[25, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999431659610467 | 0      |
+| 262 | Tensor<[768]> self = ?,<br>Tensor<[25, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.999966410909138  | 0      |
+| 263 | Tensor<[768]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 768]> mat2 = ?       | Done     | Done       | 0.999961707198635  | 0      |
+| 264 | Tensor<[768]> self = ?,<br>Tensor<[4, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?         | Unknown  | Done       | 0.9999390750460647 | 0      |
+| 265 | Tensor<[768]> self = ?,<br>Tensor<[4, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?           | Unknown  | Done       | 0.9999674708430358 | 0      |
+| 266 | Tensor<[768]> self = ?,<br>Tensor<[45, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Unknown  | Done       | 0.9999427139045178 | 0      |
+| 267 | Tensor<[768]> self = ?,<br>Tensor<[45, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Unknown  | Done       | 0.9999672535749186 | 0      |
+| 268 | Tensor<[768]> self = ?,<br>Tensor<[49, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999435182230197 | 0      |
+| 269 | Tensor<[768]> self = ?,<br>Tensor<[49, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.9999668263000714 | 0      |
+| 270 | Tensor<[768]> self = ?,<br>Tensor<[50, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.9999429751238512 | 0      |
+| 271 | Tensor<[768]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.999967309614142  | 0      |
+| 272 | Tensor<[768]> self = ?,<br>Tensor<[64, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?        | Done     | Done       | 0.999943257476605  | 0      |
+| 273 | Tensor<[768]> self = ?,<br>Tensor<[64, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?          | Done     | Done       | 0.9999673241713005 | 0      |
+| 274 | Tensor<[768]> self = ?,<br>Tensor<[7, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?         | Done     | Done       | 0.9999446863804912 | 0      |
+| 275 | Tensor<[768]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?           | Done     | Done       | 0.9999647171938947 | 0      |
+| 276 | Tensor<[768]> self = ?,<br>Tensor<[784, 192]> mat1 = ?,<br>Tensor<[192, 768]> mat2 = ?         | Done     | Done       | 0.9999796468178842 | 0      |
+| 277 | Tensor<[768]> self = ?,<br>Tensor<[784, 256]> mat1 = ?,<br>Tensor<[256, 768]> mat2 = ?         | Done     | Done       | 0.9999779132919202 | 0      |
+| 278 | Tensor<[768]> self = ?,<br>Tensor<[9, 128]> mat1 = ?,<br>Tensor<[128, 768]> mat2 = ?           | Done     | Done       | 0.9999785263801894 | 0      |
+| 279 | Tensor<[768]> self = ?,<br>Tensor<[9, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?         | Done     | Done       | 0.9999458898372556 | 0      |
+| 280 | Tensor<[768]> self = ?,<br>Tensor<[9, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?           | Done     | Done       | 0.9999675060433506 | 0      |
+| 281 | Tensor<[784]> self = ?,<br>Tensor<[1, 128]> mat1 = ?,<br>Tensor<[128, 784]> mat2 = ?           | Done     | Done       | 0.999978337028885  | 0      |
+| 282 | Tensor<[8192]> self = ?,<br>Tensor<[9, 2048]> mat1 = ?,<br>Tensor<[2048, 8192]> mat2 = ?       | Done     | Done       | 0.9996094349987834 | 0      |
+| 283 | Tensor<[92]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 92]> mat2 = ?           | Done     | Done       | 0.9999725690263335 | 0      |
+| 284 | Tensor<[92]> self = ?,<br>Tensor<[600, 256]> mat1 = ?,<br>Tensor<[256, 92]> mat2 = ?           | Done     | Done       | 0.9999740840290651 | 0      |
+| 285 | Tensor<[96]> self = ?,<br>Tensor<[3136, 384]> mat1 = ?,<br>Tensor<[384, 96]> mat2 = ?          | Done     | Done       | 0.9999719903516147 | 0      |
+| 286 | Tensor<[96]> self = ?,<br>Tensor<[3136, 96]> mat1 = ?,<br>Tensor<[96, 96]> mat2 = ?            | Done     | Done       | 0.9999827605857339 | 0      |
+| 287 | Tensor<[96]> self = ?,<br>Tensor<[4096, 384]> mat1 = ?,<br>Tensor<[384, 96]> mat2 = ?          | Done     | Done       | 0.9999718987658949 | 0      |
+| 288 | Tensor<[96]> self = ?,<br>Tensor<[4096, 96]> mat1 = ?,<br>Tensor<[96, 96]> mat2 = ?            | Done     | Done       | 0.9999831231564972 | 0      |
 
