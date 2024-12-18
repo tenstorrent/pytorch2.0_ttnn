@@ -65,7 +65,7 @@ jobs:
       - name: Run Model Tests
         run: |
           set +e
-          python3 -m pytest --github-report tests/models/ --splits 40 --group ${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/models/ --splits 40 --group ${{ matrix.group }} --gen_op_accuracy_tests -s
           exit_code=$?  # Capture the exit code      
           if [ $exit_code -eq 5 ]; then
             if [ ${{ matrix.group }} -eq 0 ]; then
@@ -157,7 +157,7 @@ jobs:
           set +e
           git pull
           rm -rf tests/autogen_op/ALL
-          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} --gen_op_accuracy_tests -s
+          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
           ls -l
           cd metrics-autogen-op
