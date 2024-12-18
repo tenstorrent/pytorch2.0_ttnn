@@ -62,38 +62,6 @@ aten_maximum_default_blocklist = [
     ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
 ]
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
-aten_full_default_blocklist = [
-    [
-        "List[int] size = [19, 19]",
-        "number fill_value = -3.4028234663852886e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [7, 7]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [45, 45]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [59, 59]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-    [
-        "List[int] size = [19, 19]",
-        "number fill_value = -3.3895313892515355e+38",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ],
-]
 aten__scaled_dot_product_flash_attention_default_blocklist = [
     ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
     ["Tensor<[1, 12, 197, 64]> query = ?", "Tensor<[1, 12, 197, 64]> key = ?", "Tensor<[1, 12, 197, 64]> value = ?"],
@@ -1394,7 +1362,6 @@ GUARD = {
     torch.ops.aten.clamp.default: partial(guard_aten, aten_clamp_default_blocklist),
     torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
-    torch.ops.aten.full.default: partial(guard_aten, aten_full_default_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
@@ -1421,7 +1388,6 @@ guard_ops = [
     "torch.ops.aten.clamp.default",
     "torch.ops.aten.maximum.default",
     "torch.ops.aten._log_softmax.default",
-    "torch.ops.aten.full.default",
     "torch.ops.aten.rsub.Scalar",
     "torch.ops.aten._scaled_dot_product_flash_attention.default",
     "torch.ops.aten.transpose.int",
