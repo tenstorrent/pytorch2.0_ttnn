@@ -457,7 +457,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
 
             def lower_binary_eltwise(fn, args):
-                shapes = get_shape(args[0]), get_shape(args[1])
+                shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
 
                 if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
                     isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
@@ -502,6 +502,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 for node_user in node_users:
                     node_user.replace_all_uses_with(new_node)
                 return None
+
+            if node.target == torch.ops.aten.zeros.default:
+                return g.call_function(ttnn.zeros, args=args, kwargs={"device": TtnnDevice()})
 
             if node.target == torch.ops.aten.ones.default:
                 return g.call_function(ttnn.ones, args=args, kwargs={"device": TtnnDevice()})
@@ -596,7 +599,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if isinstance(args[1], (float, int)):
                     return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
 
-                if get_shape(args[0]) == get_shape(args[1]):
+                if get_shape(gm, args[0]) == get_shape(gm, args[1]):
                     return g.call_function(ttnn.div, args, {})
 
                 recip = g.call_function(ttnn.reciprocal, (args[1],), {})
@@ -1178,12 +1181,51 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     return gm
 
 
+def decompose_aten_to_aten_ops(g: GraphWrapper, node):
+    args = node.args
+    kwargs = node.kwargs
+    if node.target == torch.ops.aten.full_like.default:
+        target_shape = args[0].meta["val"].size()
+        return g.call_function(torch.ops.aten.full.default, args=(target_shape, *args[1:]), kwargs=kwargs)
+
+    if node.target == torch.ops.aten.new_zeros.default:
+        target_shape = args[1]
+        new_kwargs = dict(kwargs)
+        # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
+        new_kwargs["dtype"] = node.meta["val"].dtype
+        return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
+
+    return None
+
+
+# TODO(jerrysky3): Refactor ReplaceMoreTtManually with rewrite_graph
+def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphModule:
+    nodes = list(gm.graph.nodes)
+    for node in nodes:
+        if not can_lowering_to_ttnn(node):
+            continue
+        g = GraphWrapper(node)
+        with g.inserting_before(node):
+            new_node = rewrite_node_fn(g, node)
+            if new_node is not None:
+                node.replace_all_uses_with(
+                    new_node,
+                    delete_user_cb=lambda node: node != new_node,
+                )
+
+    gm = GraphCleanup(gm)
+    return gm
+
+
 class ToTtPass(PassBase):
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
     def call(self, gm: torch.fx.GraphModule):
+        # Decompose some aten ops to simpler aten ops
+        gm = rewrite_graph(gm, decompose_aten_to_aten_ops)
+
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
