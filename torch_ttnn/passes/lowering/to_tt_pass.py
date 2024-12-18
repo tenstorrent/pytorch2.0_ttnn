@@ -785,6 +785,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # The order of pad from pytorch is reversed
                 full_pad += [(pad[i], pad[i + 1]) for i in range(0, len(pad), 2)][::-1]
 
+                if rank > 4:
+                    return None
+
                 if (
                     rank < 2
                     or input_shape[-1] % ttnn.TILE_SIZE != 0
