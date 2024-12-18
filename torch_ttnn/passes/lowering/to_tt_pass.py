@@ -784,9 +784,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 full_pad = [(0, 0)] * (rank - len(pad))
                 # The order of pad from pytorch is reversed
                 full_pad += [(pad[i], pad[i + 1]) for i in range(0, len(pad), 2)][::-1]
+
                 # TODO(#514)
                 if rank > 4:
                     return None
+
                 # Change layout to row-major for non-tile-size-aligned tensor or front padding
                 if (
                     rank < 2
@@ -796,9 +798,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     or full_pad[-2][1] % ttnn.TILE_SIZE != 0
                 ) or not all(f == 0 for f, _ in full_pad):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
-                # TODO(#515)
-                if output_shape[-1] % 2 != 0:
-                    return None
+
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
             if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
