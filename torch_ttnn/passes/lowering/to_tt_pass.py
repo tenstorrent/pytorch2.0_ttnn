@@ -1245,6 +1245,10 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
             return None
         input_shape = get_shape(gm, input_tensor)
         num_index = len(indices)
+        if len(index_shape) != 1:
+            need_flatten = True
+        else:
+            need_flatten = False
         index_size = index_shape.numel()
         remained_shape = []
         for i in range(len(indices)):
@@ -1256,33 +1260,35 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
         input_dtype = input_tensor.meta["val"].dtype
         flatten_shape = torch.Size([index_size])
 
-        indices_flatten = []
-        for idx in indices:
-            if idx is None:
-                indices_flatten.append(None)
-            else:
-                indices_flatten.append(
-                    g.call_function(
-                        torch.ops.aten.reshape.default,
-                        args=(idx, flatten_shape),
-                        new_shape=flatten_shape,
-                        new_dtype=idx.meta["val"].dtype,
+        if need_flatten:
+            indices_flatten = []
+            for idx in indices:
+                if idx is None:
+                    indices_flatten.append(None)
+                else:
+                    indices_flatten.append(
+                        g.call_function(
+                            torch.ops.aten.reshape.default,
+                            args=(idx, flatten_shape),
+                            new_shape=flatten_shape,
+                            new_dtype=idx.meta["val"].dtype,
+                        )
                     )
-                )
+            indices = indices_flatten
         output = []
         for i in range(index_size):
             indexing = []
             for n in range(num_index):
-                if indices_flatten[n] is None:
+                if indices[n] is None:
                     # TODO: unhasable!
                     indexing.append(slice(None))
                 else:
                     indexing.append(
                         g.call_function(
                             getitem,
-                            args=(indices_flatten[n], i),
+                            args=(indices[n], i),
                             new_shape=torch.Size([]),
-                            new_dtype=indices_flatten[n].meta["val"].dtype,
+                            new_dtype=indices[n].meta["val"].dtype,
                         )
                     )
             output.append(
@@ -1307,13 +1313,16 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
             new_shape=output_cat_shape,
             new_dtype=input_dtype,
         )
-        output_reshape = g.call_function(
-            torch.ops.aten.reshape.default,
-            args=(output_cat, reshape_shape),
-            new_shape=reshape_shape,
-            new_dtype=input_dtype,
-        )
-        return output_reshape
+        if need_flatten:
+            output_reshape = g.call_function(
+                torch.ops.aten.reshape.default,
+                args=(output_cat, reshape_shape),
+                new_shape=reshape_shape,
+                new_dtype=input_dtype,
+            )
+            return output_reshape
+        else:
+            return output_cat
 
     return None
 
