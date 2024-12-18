@@ -423,7 +423,7 @@ class MetricStringListHandler:
             "aten.index.Tensor": self._adjust_index_tensor,
             "aten.index_put.default": self._adjust_index_tensor,
             "aten._native_batch_norm_legit_no_training.default": self._adjust__native_batch_norm_legit_no_training_default,
-            # "aten._unsafe_index.Tensor": self._adjust_index_tensor,
+            "aten._unsafe_index.Tensor": self._adjust_index_tensor,
         }
 
     def _adjust_bitwise_not_default(self, input_vals):
@@ -503,6 +503,9 @@ class MetricStringListHandler:
                 new_indices = []
                 for i in range(len(indices)):
                     indice = indices[i]
+                    if indice is None:
+                        new_indices.append(None)
+                        continue
                     new_indice = []
                     for j in range(len(indice)):
                         new_indice.append(torch.randint(0, self_shape[i], [1]))

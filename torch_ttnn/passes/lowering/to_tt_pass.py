@@ -692,6 +692,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return None
 
+            # if node.target == torch.ops.aten.reshape.default:
+            #     return g.call_function(ttnn.reshape, args, kwargs)
+
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
                 if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
                     # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
@@ -1201,14 +1204,16 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
         new_kwargs["dtype"] = node.meta["val"].dtype
         return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
 
-    if node.target == torch.ops.aten.index.Tensor:
+    if node.target in [torch.ops.aten.index.Tensor, torch.ops.aten._unsafe_index.Tensor]:
 
         def broadcast_indices(indices):
             indices_shapes = [get_shape(gm, indices[i]) for i in range(len(indices))]
             broadcasted_shape = torch.Size(np.broadcast_shapes(*indices_shapes))
             broadcasted_indices = []
             for i in range(len(indices)):
-                if indices_shapes[i] == broadcasted_shape:
+                if indices_shapes[i] is None:
+                    broadcasted_indices.append(None)
+                elif indices_shapes[i] == broadcasted_shape:
                     broadcasted_indices.append(indices[i])
                 else:
                     broadcasted_indices.append(
@@ -1226,36 +1231,60 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
         input_tensor, indices = args
         if get_shape(gm, input_tensor) is None:
             return None
-        if None in [get_shape(gm, indices[i]) for i in range(len(indices))]:
-            return None
+        for index in indices:
+            if index is None:
+                # slice(None) unhasable!
+                return None
+            if index is not None and get_shape(gm, index) is None:
+                return None
         index_shape, indices = broadcast_indices(indices)
+        if index_shape.numel() > 256:
+            # cannot create too much op, or will cause
+            # runtime args targeting kernel reader_concat_stick_layout_interleaved_start_id on
+            # (x=0,y=0) are too large. Max allowable is 256
+            return None
         input_shape = get_shape(gm, input_tensor)
         num_index = len(indices)
         index_size = index_shape.numel()
-        remained_shape = input_shape[num_index:]
+        remained_shape = []
+        for i in range(len(indices)):
+            if indices[i] is None:
+                remained_shape.append(input_shape[i])
+        remained_shape += input_shape[num_index:]
+        remained_shape = torch.Size(remained_shape)
         reshape_shape = index_shape + remained_shape
         input_dtype = input_tensor.meta["val"].dtype
         flatten_shape = torch.Size([index_size])
-        indices_flatten = [
-            g.call_function(
-                torch.ops.aten.reshape.default,
-                args=(idx, flatten_shape),
-                new_shape=flatten_shape,
-                new_dtype=idx.meta["val"].dtype,
-            )
-            for idx in indices
-        ]
+
+        indices_flatten = []
+        for idx in indices:
+            if idx is None:
+                indices_flatten.append(None)
+            else:
+                indices_flatten.append(
+                    g.call_function(
+                        torch.ops.aten.reshape.default,
+                        args=(idx, flatten_shape),
+                        new_shape=flatten_shape,
+                        new_dtype=idx.meta["val"].dtype,
+                    )
+                )
         output = []
         for i in range(index_size):
-            indexing = [
-                g.call_function(
-                    getitem,
-                    args=(indices_flatten[n], i),
-                    new_shape=torch.Size([]),
-                    new_dtype=indices_flatten[n].meta["val"].dtype,
-                )
-                for n in range(num_index)
-            ]
+            indexing = []
+            for n in range(num_index):
+                if indices_flatten[n] is None:
+                    # TODO: unhasable!
+                    indexing.append(slice(None))
+                else:
+                    indexing.append(
+                        g.call_function(
+                            getitem,
+                            args=(indices_flatten[n], i),
+                            new_shape=torch.Size([]),
+                            new_dtype=indices_flatten[n].meta["val"].dtype,
+                        )
+                    )
             output.append(
                 g.call_function(getitem, args=(input_tensor, indexing), new_shape=remained_shape, new_dtype=input_dtype)
             )
