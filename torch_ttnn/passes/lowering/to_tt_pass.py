@@ -809,8 +809,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
-                # convert input tensopr to ROW MAJOR layout for split
-                to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
                 if len(args[0].meta["val"].size()) == 1:
                     # For example, the input shape original is [768]
                     # But due to issue #390 it become [1, 768] and cause failed
@@ -831,7 +829,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     # ttnn.split only supports chunks of same size.
                     return None
 
-                new_args = (to_layout, num_chunks, split_dim)
+                new_args = (args[0], num_chunks, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
