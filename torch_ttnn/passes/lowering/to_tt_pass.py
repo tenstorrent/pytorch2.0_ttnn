@@ -1163,6 +1163,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
 
+            if node.target == torch.ops.aten.stack.default:
+                tensors, dim = args
+                output_shape = list(node.meta["val"].size())
+
+                dim = (dim + len(output_shape)) % len(output_shape)
+                unsqueezed_input_shape = output_shape
+                unsqueezed_input_shape[dim] = 1
+
+                unsqueezed_tensors = []
+                for tensor in tensors:
+                    unsqueezed_tensors.append(g.call_function(ttnn.reshape, (tensor, unsqueezed_input_shape)))
+
+                return g.call_function(ttnn.concat, (unsqueezed_tensors, dim))
+
             # PEP 8 suggests this explicit statement
             return None
 
