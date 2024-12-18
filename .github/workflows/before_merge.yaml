@@ -229,15 +229,19 @@ jobs:
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-tests-metrics-group-*
+          pattern: model-accuracy-tests-group-*
           merge-multiple: true
           path: accuracy_tests/
 
       - name: Run Accuracy Tests
         run: |
           set +e
-          for script in accuracy_tests/*.py; do python3 "$script"; done
+          cd accuracy_tests
+          for script in *.py; do
+            python3 "$script"
+          done
           exit 0;
+        shell: bash
 
   collect-metrics:
     needs: [model-autogen-op-tests]
