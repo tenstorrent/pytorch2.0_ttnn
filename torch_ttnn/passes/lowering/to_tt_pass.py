@@ -1163,6 +1163,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
 
+            if node.target == torch.ops.aten.roll.default:
+                tensor, shifts, dims = args
+                input_shape = list(tensor.meta["val"].size())
+                return g.call_function(target_wrappers.roll, (tensor, input_shape, shifts, dims))
+
             # PEP 8 suggests this explicit statement
             return None
 
