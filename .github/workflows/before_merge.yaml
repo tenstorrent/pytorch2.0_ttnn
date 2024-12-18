@@ -237,9 +237,7 @@ jobs:
         run: |
           set +e
           cd accuracy_tests
-          for script in *.py; do
-            python3 "$script"
-          done
+          find . -type f -name "*.py" -exec python {} ";"
           exit 0;
         shell: bash
 

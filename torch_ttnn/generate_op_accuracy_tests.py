@@ -235,11 +235,12 @@ def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_i
 
     # arrange full code
     import_code = [
+        "import lzma",
+        "import numpy as np",
         "import pickle",
         "import ttnn",
         "import torch",
-        "import numpy as np",
-        "import lzma",
+        "from pathlib import Path",
         "aten = torch.ops.aten",
     ]
 
@@ -261,18 +262,15 @@ def test_accuracy(tensor1, tensor2):
         inspect.getsource(assert_with_pcc),
     ]
 
-    directory = Path("accuracy_tests")
-    directory.mkdir(parents=True, exist_ok=True)
-
     # main
+    directory = Path("accuracy_tests")
     input_pkl_file = Path(f"{model_name}_inputs.pickle")
     full_input_pkl_path = directory / input_pkl_file
+    full_input_pkl_path.parent.mkdir(parents=True, exist_ok=True)
     main_code = f"""
 if __name__ == "__main__":
-    try:
-        file = lzma.open("{full_input_pkl_path}", "rb")
-    except:
-        file = lzma.open("{input_pkl_file}", "rb")
+    filepath = Path(__file__).with_name("{input_pkl_file.name}")
+    file = lzma.open(filepath, "rb")
     inputs = pickle.load(file)
     forward(*inputs)
 """
