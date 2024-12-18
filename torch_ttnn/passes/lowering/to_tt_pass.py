@@ -793,7 +793,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     or full_pad[-2][1] % ttnn.TILE_SIZE != 0
                 ) or not all(f == 0 for f, _ in full_pad):
                     input = g.call_function(ttnn.to_layout, args=(input, TtnnRowMajorLayout()))
-                    
+
                 return g.call_function(ttnn.pad, args=(input, full_pad, value))
 
             if node.target in [torch.ops.aten.view.default, torch.ops.aten._unsafe_view.default]:
