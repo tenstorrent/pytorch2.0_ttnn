@@ -16,9 +16,15 @@ class StackModule(torch.nn.Module):
     "input_shape, dim",
     [
         ((12, 16), -1),
+        ((12, 16), 1),
+        ((12, 16), 0),
+        ((3, 16, 12), 0),
+        ((3, 16, 12), -1),
+        ((3, 16, 12), 1),
+        ((3, 16, 12), 2),
     ],
 )
-def test_concat(device, input_shape, dim):
+def test_stack(device, input_shape, dim):
     m = StackModule()
     inputs = [torch.rand(input_shape, dtype=torch.bfloat16) for _ in range(2)]
     result_before = m.forward(inputs, dim)
