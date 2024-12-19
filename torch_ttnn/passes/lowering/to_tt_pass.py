@@ -255,7 +255,13 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.minimum.default:
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
-        if target == torch.ops.aten.pow.Tensor_Scalar:
+        if target in [torch.ops.aten.pow.Scalar, torch.ops.aten.pow.Tensor_Scalar, torch.ops.aten.pow.Tensor_Tensor]:
+            if target == torch.ops.aten.pow.Tensor_Tensor:
+                shape0 = get_shape(None, args[0])
+                shape1 = get_shape(None, args[1])
+                if (shape0 != shape1) or shape0 is None or shape1 is None:
+                    # not support broadcasting
+                    return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
         if target == torch.ops.aten.rsub.Scalar:
