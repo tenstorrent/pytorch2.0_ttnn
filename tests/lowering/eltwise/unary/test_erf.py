@@ -13,12 +13,12 @@ class ErfModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    ("input_shape", "init_offset"),
-    [((4, 4), 0)],
+    "input_shape",
+    ((4, 4), (1066,)),
 )
-def test_erf(device, input_shape, init_offset):
+def test_erf(device, input_shape):
     m = ErfModule()
-    input = torch.rand(input_shape, dtype=torch.bfloat16) + init_offset
+    input = torch.rand(input_shape, dtype=torch.bfloat16)
     result_before = m.forward(input)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
