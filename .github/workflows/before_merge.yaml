@@ -66,9 +66,9 @@ jobs:
         run: |
           set +e
           if [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
-            num_iterations = 1
+            num_iterations=1
           else
-            num_iterations = 5
+            num_iterations=5
           fi
           python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --splits 40 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code      
