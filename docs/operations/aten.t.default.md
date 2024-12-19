@@ -42,7 +42,7 @@
 |  38 | Tensor<[1024, 2048]> self = ?   | Done     | Done       | 1.0   | 0      |
 |  39 | Tensor<[1024, 256]> self = ?    | Done     | Done       | 1.0   | 0      |
 |  40 | Tensor<[1024, 4096]> self = ?   | Done     | Done       | 1.0   | 0      |
-|  41 | Tensor<[1024, 512]> self = ?    | Done     | Done       | 1.0   | 0      |
+|  41 | Tensor<[1024, 512]> self = ?    | Unknown  | Done       | 1.0   | 0      |
 |  42 | Tensor<[1024, 576]> self = ?    | Done     | Done       | 1.0   | 0      |
 |  43 | Tensor<[1024, 640]> self = ?    | Done     | Done       | 1.0   | 0      |
 |  44 | Tensor<[10240, 1280]> self = ?  | Unknown  | Done       | 1.0   | 0      |
@@ -74,7 +74,7 @@
 |  70 | Tensor<[1536, 384]> self = ?    | Done     | Done       | 1.0   | 0      |
 |  71 | Tensor<[1536, 512]> self = ?    | Done     | Done       | 1.0   | 0      |
 |  72 | Tensor<[1536, 6144]> self = ?   | Done     | Done       | 1.0   | 0      |
-|  73 | Tensor<[16, 512]> self = ?      | Done     | Done       | 1.0   | 0      |
+|  73 | Tensor<[16, 512]> self = ?      | Done     | Unknown    | N/A   | N/A    |
 |  74 | Tensor<[160, 1024]> self = ?    | Done     | Done       | 1.0   | 0      |
 |  75 | Tensor<[160, 160]> self = ?     | Done     | Done       | 1.0   | 0      |
 |  76 | Tensor<[160, 256]> self = ?     | Done     | Done       | 1.0   | 0      |
@@ -129,7 +129,7 @@
 | 125 | Tensor<[32, 16384]> self = ?    | Done     | Done       | 1.0   | 0      |
 | 126 | Tensor<[32, 256]> self = ?      | Done     | Done       | 1.0   | 0      |
 | 127 | Tensor<[32, 32]> self = ?       | Done     | Done       | 1.0   | 0      |
-| 128 | Tensor<[32, 512]> self = ?      | Done     | Done       | 1.0   | 0      |
+| 128 | Tensor<[32, 512]> self = ?      | Done     | Unknown    | N/A   | N/A    |
 | 129 | Tensor<[320, 1280]> self = ?    | Done     | Done       | 1.0   | 0      |
 | 130 | Tensor<[320, 320]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 131 | Tensor<[320, 768]> self = ?     | Unknown  | Done       | 1.0   | 0      |
@@ -140,13 +140,13 @@
 | 136 | Tensor<[384, 1536]> self = ?    | Done     | Done       | 1.0   | 0      |
 | 137 | Tensor<[384, 196]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 138 | Tensor<[384, 384]> self = ?     | Done     | Done       | 1.0   | 0      |
-| 139 | Tensor<[384, 512]> self = ?     | Done     | Done       | 1.0   | 0      |
+| 139 | Tensor<[384, 512]> self = ?     | Unknown  | Done       | 1.0   | 0      |
 | 140 | Tensor<[384, 768]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 141 | Tensor<[384, 96]> self = ?      | Done     | Done       | 1.0   | 0      |
 | 142 | Tensor<[3840, 1280]> self = ?   | Done     | Done       | 1.0   | 0      |
 | 143 | Tensor<[4, 192]> self = ?       | Done     | Done       | 1.0   | 0      |
 | 144 | Tensor<[4, 256]> self = ?       | Done     | Done       | 1.0   | 0      |
-| 145 | Tensor<[4, 512]> self = ?       | Done     | Unknown    | N/A   | N/A    |
+| 145 | Tensor<[4, 512]> self = ?       | Done     | Done       | 1.0   | 0      |
 | 146 | Tensor<[4096, 1024]> self = ?   | Done     | Done       | 1.0   | 0      |
 | 147 | Tensor<[4096, 128]> self = ?    | Done     | Done       | 1.0   | 0      |
 | 148 | Tensor<[4096, 16384]> self = ?  | Done     | Done       | 1.0   | 0      |
@@ -158,7 +158,7 @@
 | 154 | Tensor<[50, 3072]> self = ?     | Unknown  | Unknown    | N/A   | N/A    |
 | 155 | Tensor<[50, 768]> self = ?      | Unknown  | Unknown    | N/A   | N/A    |
 | 156 | Tensor<[50257, 768]> self = ?   | Unknown  | Done       | 1.0   | 0      |
-| 157 | Tensor<[50272, 512]> self = ?   | Done     | Done       | 1.0   | 0      |
+| 157 | Tensor<[50272, 512]> self = ?   | Unknown  | Done       | 1.0   | 0      |
 | 158 | Tensor<[512, 1000]> self = ?    | Done     | Done       | 1.0   | 0      |
 | 159 | Tensor<[512, 1024]> self = ?    | Done     | Done       | 1.0   | 0      |
 | 160 | Tensor<[512, 128]> self = ?     | Done     | Done       | 1.0   | 0      |
@@ -166,13 +166,13 @@
 | 162 | Tensor<[512, 2048]> self = ?    | Done     | Done       | 1.0   | 0      |
 | 163 | Tensor<[512, 256]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 164 | Tensor<[512, 2]> self = ?       | Done     | Done       | 1.0   | 0      |
-| 165 | Tensor<[512, 384]> self = ?     | Done     | Done       | 1.0   | 0      |
+| 165 | Tensor<[512, 384]> self = ?     | Unknown  | Done       | 1.0   | 0      |
 | 166 | Tensor<[512, 512]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 167 | Tensor<[512, 768]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 168 | Tensor<[5120, 1280]> self = ?   | Done     | Done       | 1.0   | 0      |
 | 169 | Tensor<[5120, 640]> self = ?    | Unknown  | Done       | 1.0   | 0      |
 | 170 | Tensor<[51200, 1024]> self = ?  | Unknown  | Done       | 1.0   | 0      |
-| 171 | Tensor<[51865, 768]> self = ?   | Done     | Done       | 1.0   | 0      |
+| 171 | Tensor<[51865, 768]> self = ?   | Unknown  | Done       | 1.0   | 0      |
 | 172 | Tensor<[576, 192]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 173 | Tensor<[6, 512]> self = ?       | Done     | Done       | 1.0   | 0      |
 | 174 | Tensor<[6144, 1536]> self = ?   | Done     | Done       | 1.0   | 0      |
@@ -199,7 +199,7 @@
 | 195 | Tensor<[768, 512]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 196 | Tensor<[768, 768]> self = ?     | Done     | Done       | 1.0   | 0      |
 | 197 | Tensor<[784, 128]> self = ?     | Done     | Done       | 1.0   | 0      |
-| 198 | Tensor<[8, 512]> self = ?       | Done     | Unknown    | N/A   | N/A    |
+| 198 | Tensor<[8, 512]> self = ?       | Done     | Done       | 1.0   | 0      |
 | 199 | Tensor<[8192, 2048]> self = ?   | Done     | Done       | 1.0   | 0      |
 | 200 | Tensor<[92, 192]> self = ?      | Done     | Done       | 1.0   | 0      |
 | 201 | Tensor<[92, 256]> self = ?      | Done     | Done       | 1.0   | 0      |

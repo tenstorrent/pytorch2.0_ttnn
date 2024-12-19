@@ -15,11 +15,14 @@ def get_shape(gm: torch.fx.GraphModule, node_or_shape):
 
     Args:
         gm (torch.fx.GraphModule): The GraphModule containing the node.
-        node_or_shape: The node or shape to get the shape of. Can be an int, float, torch.Size, list, tuple, or torch.fx.node.Node.
+        node_or_shape: The node or shape to get the shape of. Can be an int, float, torch.Size, list, tuple, torch.fx.node.Node, or torch.fx.proxy.Proxy.
 
     Returns:
         torch.Size or None: The shape of the node or shape itself, or None if it cannot be determined.
     """
+    if isinstance(node_or_shape, torch.fx.proxy.Proxy):
+        node_or_shape = node_or_shape.node
+
     if isinstance(node_or_shape, (int, float)):
         return torch.Size()
     if isinstance(node_or_shape, (torch.Size, list, tuple)):
@@ -29,6 +32,8 @@ def get_shape(gm: torch.fx.GraphModule, node_or_shape):
             return val.size()
 
         if node_or_shape.op == "get_attr":
+            if gm is None:
+                return None
             val = getattr(gm, node_or_shape.target)
             if isinstance(val, torch.Tensor):
                 return val.size()
@@ -36,6 +41,14 @@ def get_shape(gm: torch.fx.GraphModule, node_or_shape):
                 return torch.Size()
 
     return None
+
+
+def get_arg(node, index, name, default=None):
+    if hasattr(node, "args") and len(node.args) > index:
+        return node.args[index]
+    if hasattr(node, "kwargs") and name in node.kwargs:
+        return node.kwargs[name]
+    return default
 
 
 def get_dtype(node):
