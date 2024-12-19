@@ -38,6 +38,14 @@ def get_shape(gm: torch.fx.GraphModule, node_or_shape):
     return None
 
 
+def get_arg(node, index, name, default=None):
+    if hasattr(node, "args") and len(node.args) > index:
+        return node.args[index]
+    if hasattr(node, "kwargs") and name in node.kwargs:
+        return node.kwargs[name]
+    return default
+
+
 def get_dtype(node):
     if isinstance(node, torch.fx.node.Node):
         if (val := node.meta.get("val", None)) is not None:

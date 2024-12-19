@@ -97,7 +97,13 @@ def aten_backend(
     gm = remove_clones_for_input_aliasing(gm)
     # Save the number of aten ops before compilation
     if option.metrics_path:
-        option.original_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
+        # do constant folding for consistency of input varation
+        from torch.fx.passes.infra.pass_manager import PassManager
+        from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
+
+        pm_fold = PassManager(passes=[ConstantFoldingPass()])
+        gm_fold, modified = pm_fold(gm)
+        option.original_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm_fold.graph.nodes))
 
     # Do not continue with compilation if bypass
     if option.bypass_compile:

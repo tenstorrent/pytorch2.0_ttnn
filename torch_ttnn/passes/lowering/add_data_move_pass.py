@@ -12,6 +12,7 @@ from torch_ttnn.utils import (
 from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
+from operator import getitem
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -137,6 +138,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.move_to_host,
     target_wrappers.conv2d,
     target_wrappers.roll,
+    target_wrappers.stack,
 ]
 
 TTNN_NORM_OPS = [
@@ -304,19 +306,31 @@ class NodeInputAligner:
         if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
-        if node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat, target_wrappers.roll]:
+        if node.target in [
+            ttnn.split,
+            ttnn.embedding,
+            ttnn.zeros_like,
+            target_wrappers.repeat,
+            target_wrappers.roll,
+            target_wrappers.stack,
+        ]:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout
             spec.device = TtnnDevice
         return spec
 
     def _reset_to_default_layout(self, input_node, spec):
+        # split(list of tensor with row major layout) => getitem(row major layout)
+        # convert back to tile layout
+        if input_node.target == getitem and input_node.args[0].target == ttnn.split:
+            spec.layout = TtnnTileLayout
         # legalize to the default layout and device
         if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(
             set(
                 [
                     target_wrappers.repeat,
                     target_wrappers.roll,
+                    target_wrappers.stack,
                     ttnn.concat,
                 ]
             )
