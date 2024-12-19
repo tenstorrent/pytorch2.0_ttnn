@@ -809,22 +809,27 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
-                # convert input tensopr to ROW MAJOR layout for split
-                to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
+                if len(args[0].meta["val"].size()) == 1:
+                    # For example, the input shape original is [768]
+                    # But due to issue #390 it become [1, 768] and cause failed
+                    # remove this part once #390 is solved
+                    return None
 
                 # convert relative split dim to absolute
-                if args[2] >= 0:
-                    split_dim = args[0]
+                dim = args[2] if len(args) > 2 else 0
+                if dim >= 0:
+                    split_dim = dim
                 else:
-                    split_dim = len(args[0].meta["val"].size()) + args[2]
+                    split_dim = len(args[0].meta["val"].size()) + dim
 
                 # convert from PyTorch size of chunk to ttnn number of chunks
                 if isinstance(args[1], int):
                     num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
                 else:
-                    raise RuntimeError(f"ttnn.split only supports chunks of same size.")
+                    # ttnn.split only supports chunks of same size.
+                    return None
 
-                new_args = (to_layout, num_chunks, split_dim)
+                new_args = (args[0], num_chunks, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
