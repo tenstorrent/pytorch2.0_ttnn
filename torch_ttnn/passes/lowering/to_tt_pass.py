@@ -1175,6 +1175,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
 
+            if node.target == torch.ops.aten.stack.default:
+                tensors, *dim = args
+                dim = dim[0] if dim else 0
+                output_shape = list(node.meta["val"].size())
+                return g.call_function(target_wrappers.stack, (tensors, dim, output_shape))
+
             if node.target == torch.ops.aten.roll.default:
                 tensor, shifts, dims = args
                 input_shape = list(tensor.meta["val"].size())
