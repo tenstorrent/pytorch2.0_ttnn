@@ -137,6 +137,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.move_to_host,
     target_wrappers.conv2d,
     target_wrappers.roll,
+    target_wrappers.stack,
 ]
 
 TTNN_NORM_OPS = [
@@ -304,7 +305,13 @@ class NodeInputAligner:
         if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
-        if node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat, target_wrappers.roll]:
+        if node.target in [
+            ttnn.embedding,
+            ttnn.zeros_like,
+            target_wrappers.repeat,
+            target_wrappers.roll,
+            target_wrappers.stack,
+        ]:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout
             spec.device = TtnnDevice
@@ -317,6 +324,7 @@ class NodeInputAligner:
                 [
                     target_wrappers.repeat,
                     target_wrappers.roll,
+                    target_wrappers.stack,
                     ttnn.concat,
                 ]
             )
