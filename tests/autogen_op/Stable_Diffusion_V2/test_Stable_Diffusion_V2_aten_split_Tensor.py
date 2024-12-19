@@ -35,11 +35,9 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[1, 4096, 2560]> self = ?", "int split_size = 1280", "int dim = -1"],
-        ["Tensor<[1, s0*s1, 5120]> self = ?", "int split_size = 2560", "int dim = -1"],
-        ["Tensor<[1, s1*s2, 10240]> self = ?", "int split_size = 5120", "int dim = -1"],
-        ["Tensor<[1, s0*s1, 10240]> self = ?", "int split_size = 5120", "int dim = -1"],
-        ["Tensor<[1, s1*s2, 5120]> self = ?", "int split_size = 2560", "int dim = -1"],
-        ["Tensor<[1, s1*s2, 2560]> self = ?", "int split_size = 1280", "int dim = -1"],
+        ["Tensor<[1, 1024, 5120]> self = ?", "int split_size = 2560", "int dim = -1"],
+        ["Tensor<[1, 256, 10240]> self = ?", "int split_size = 5120", "int dim = -1"],
+        ["Tensor<[1, 64, 10240]> self = ?", "int split_size = 5120", "int dim = -1"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

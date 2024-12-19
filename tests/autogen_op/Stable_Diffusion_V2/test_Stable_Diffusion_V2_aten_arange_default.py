@@ -41,19 +41,13 @@ def teardown_module(module):
             "Optional[bool] pin_memory = False",
         ],
         [
-            "number<2*s0> end = ?",
+            "number end = 32",
             "Optional[int] dtype = torch.float32",
             "Optional[Device] device = cpu",
             "Optional[bool] pin_memory = False",
         ],
         [
-            "number<2*s1> end = ?",
-            "Optional[int] dtype = torch.float32",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
-        [
-            "number<2*s2> end = ?",
+            "number end = 64",
             "Optional[int] dtype = torch.float32",
             "Optional[Device] device = cpu",
             "Optional[bool] pin_memory = False",
