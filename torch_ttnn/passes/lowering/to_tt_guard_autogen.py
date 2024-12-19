@@ -748,7 +748,7 @@ GUARD = {
     torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
     torch.ops.aten.new_empty_strided.default: partial(guard_aten, aten_new_empty_strided_default_blocklist),
     torch.ops.aten.mm.default: partial(guard_aten, aten_mm_default_blocklist),
-    # torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
+    torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
     torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),
 }
 
@@ -780,5 +780,5 @@ guard_ops = [
     "torch.ops.aten.native_dropout.default",
     "torch.ops.aten.new_empty_strided.default",
     "torch.ops.aten.mm.default",
-    # "torch.ops.aten.convolution.default",
+    "torch.ops.aten.convolution.default",
 ]
