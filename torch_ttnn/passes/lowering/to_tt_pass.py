@@ -1046,7 +1046,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 input_node = params["input_tensor"]
-                weight_node = params["weight_tensor"]
+                weight_tensor = params["weight_tensor"]
                 transposed = params.get("transposed", False)
                 groups = params.get("groups", 1)
                 stride = params.get("stride", [1, 1])
@@ -1059,17 +1059,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return None
 
                 batch_size, in_c, in_h, in_w = input_shape
-                out_a, out_b, kernel_h, kernel_w = weight_node.meta["val"].size()
+                out_a, out_b, kernel_h, kernel_w = weight_tensor.meta["val"].size()
                 out_c = out_b if transposed else out_a
 
                 input_tensor = insert_nchw_to_nhwc(g, input_node)
                 # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
-                # TODO(#417): weight currently needs to be on host
-                weight_tensor = g.call_function(
-                    target_wrappers.move_to_host,
-                    (weight_node, TtnnRowMajorLayout()),
-                )
                 bias_node = params.get("bias_tensor", None)
                 if bias_node is None:
                     bias_tensor = None
