@@ -853,6 +853,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 ]:
                     return None
 
+                # Update the dtype of the input node's metadata value to match the destination dtype
+                if hasattr(node.args[0], "meta") and "val" in node.args[0].meta:
+                    node.args[0].meta["val"] = node.args[0].meta["val"].to(dst_dtype)
+
                 # Essentially remove this op
                 return node.args[0]
 
