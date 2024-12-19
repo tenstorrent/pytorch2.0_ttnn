@@ -198,12 +198,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(target, args, kwargs)
 
         ############################################################
-        # Tensor creation
-        ############################################################
-        if target == torch.ops.aten.zeros_like.default:
-            return self.call_function_prop_meta(ttnn.zeros_like, args, {})
-
-        ############################################################
         # Matrix multiplication
         ############################################################
         if target == torch.ops.aten.addmm.default:
@@ -473,6 +467,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.zeros.default:
                 return g.call_function(ttnn.zeros, args=args, kwargs={"device": TtnnDevice()})
+
+            if node.target == torch.ops.aten.zeros_like.default:
+                # TODO(#280): Doesn't support 1D output tensor in tile layout (#280)
+                if len(node.meta["val"].shape) < 2:
+                    return None
+                return g.call_function(ttnn.zeros_like, args, kwargs={"device": TtnnDevice()})
 
             if node.target == torch.ops.aten.ones.default:
                 return g.call_function(ttnn.ones, args=args, kwargs={"device": TtnnDevice()})

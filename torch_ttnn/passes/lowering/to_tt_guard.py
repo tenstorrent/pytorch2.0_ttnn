@@ -200,16 +200,6 @@ aten_maximum_default_blocklist += [["Tensor<[1, 16, 59, 59]> self = ?", "Tensor 
 #                [ 0.00000,  0.00000,  ...,  0.00000,  0.00000]]]], shape=Shape([1, 23, 40[64], 1[32]]), dtype=DataType::BFLOAT16, layout=Layout::TILE), 1; kwargs: dtype=torch.float32
 aten_cumsum_default_blocklist = [["Tensor<[1, 23, 40]> self = ?", "int dim = 1", "Optional[int] dtype = torch.float32"]]
 
-# RuntimeError: TT_FATAL @ binary_device_operation.cpp:68: input_tensor_a.get_layout() == Layout::TILE
-# info:
-# Input to eltwise binary must be tilized
-# zero_like([1, 920]) & subtract([1[32], 920[928]]) => mul
-aten_zeros_like_default_blocklist += [
-    ["Tensor<[1, 920]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[bool] pin_memory = False"],
-    ["Tensor<[100, 1, 256]> self = ?", "Optional[bool] pin_memory = False"],
-]
-
-
 ############################################################
 # EXTRA BLOCKLIST OF ssd300_vgg16
 ############################################################
