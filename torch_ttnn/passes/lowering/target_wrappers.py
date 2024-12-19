@@ -84,3 +84,26 @@ def conv2d(
             device=device,
         )
     return output_tensor
+
+
+@torch.fx.wrap
+def roll(tensor, input_shape, shifts, dims):
+    rolled_tensor = tensor
+    for shift, dim in zip(shifts, dims):
+        # slice tensor into two parts and concat them in reverse order
+        end = (input_shape[dim] - shift) % input_shape[dim]
+
+        # part1 = tensor[..., :end]
+        slice_start, slice_end = [0] * len(input_shape), list(input_shape)
+        slice_end[dim] = end
+        sub_tensor1 = ttnn.slice(rolled_tensor, slice_start, slice_end)
+
+        # part2 = tensor[..., end:]
+        slice_start, slice_end = [0] * len(input_shape), list(input_shape)
+        slice_start[dim] = end
+        sub_tensor2 = ttnn.slice(rolled_tensor, slice_start, slice_end)
+
+        # concat([part2, part1], dim)
+        rolled_tensor = ttnn.concat([sub_tensor2, sub_tensor1], dim)
+
+    return rolled_tensor
