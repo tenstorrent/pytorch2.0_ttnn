@@ -11,6 +11,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
     get_shape,
+    get_arg,
 )
 import numpy as np
 import torch_ttnn.metrics as metrics
@@ -1058,7 +1059,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 input_node = params["input_tensor"]
-                weight_node = params["weight_tensor"]
+                weight_tensor = params["weight_tensor"]
                 transposed = params.get("transposed", False)
                 groups = params.get("groups", 1)
                 stride = params.get("stride", [1, 1])
@@ -1071,17 +1072,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return None
 
                 batch_size, in_c, in_h, in_w = input_shape
-                out_a, out_b, kernel_h, kernel_w = weight_node.meta["val"].size()
+                out_a, out_b, kernel_h, kernel_w = weight_tensor.meta["val"].size()
                 out_c = out_b if transposed else out_a
 
                 input_tensor = insert_nchw_to_nhwc(g, input_node)
                 # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
-                # TODO(#417): weight currently needs to be on host
-                weight_tensor = g.call_function(
-                    target_wrappers.move_to_host,
-                    (weight_node, TtnnRowMajorLayout()),
-                )
                 bias_node = params.get("bias_tensor", None)
                 if bias_node is None:
                     bias_tensor = None
@@ -1175,6 +1171,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
 
+            if node.target == torch.ops.aten.stack.default:
+                tensors, *dim = args
+                dim = dim[0] if dim else 0
+                output_shape = list(node.meta["val"].size())
+                return g.call_function(target_wrappers.stack, (tensors, dim, output_shape))
+
             if node.target == torch.ops.aten.roll.default:
                 tensor, shifts, dims = args
                 input_shape = list(tensor.meta["val"].size())
@@ -1208,6 +1210,12 @@ def decompose_aten_to_aten_ops(g: GraphWrapper, node):
         # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
         new_kwargs["dtype"] = node.meta["val"].dtype
         return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
+
+    if node.target == torch.ops.aten._log_softmax.default:
+        dim = get_arg(node, 1, "dim")
+        softmax = g.call_function(torch.ops.aten._softmax.default, args=(args[0], dim))
+        log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
+        return log
 
     return None
 
