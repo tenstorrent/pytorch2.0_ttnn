@@ -47,7 +47,7 @@ def conv2d(
         conv_config = ttnn.Conv2dConfig(
             shard_layout=ttnn.TensorMemoryLayout.HEIGHT_SHARDED,
         )
-        output_tensor, _, _, _, _ = ttnn.conv_transpose2d(
+        output_tensor = ttnn.conv_transpose2d(
             input_tensor=input_tensor,
             weight_tensor=weight_tensor,
             bias_tensor=bias_tensor,
