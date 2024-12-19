@@ -11,6 +11,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
     get_shape,
+    get_dtype,
 )
 import numpy as np
 import torch_ttnn.metrics as metrics
@@ -471,7 +472,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if max(map(len, shapes)) > 4 and shapes[0][-3:-2] != shapes[1][-3:-2]:
                     return None
 
-                return g.call_function(fn, args)
+                def cast_bf16(target, other):
+                    if get_dtype(target) in [torch.int32, torch.int64] and get_dtype(other) in [
+                        torch.bfloat16,
+                        torch.float32,
+                    ]:
+                        return g.call_function(ttnn.typecast, args=(target, TtnnBfloat16()))
+                    else:
+                        return target
+
+                new_args = (cast_bf16(args[0], args[1]), cast_bf16(args[1], args[0]))
+
+                return g.call_function(fn, new_args)
 
             if node.target == torch.ops.aten.add.Tensor:
                 return lower_binary_eltwise(ttnn.add, args)
