@@ -833,17 +833,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
-                # Keep it if casting to bool type(bool may be problematic)
-                if kwargs["dtype"] in [torch.bool]:
-                    return None
                 # Keep it if the graph output uses this op
                 target_users_ops = [user.target for user in node.users.keys()]
                 if "output" in target_users_ops:
                     return None
-                src_dtype = node.args[0].meta["val"].dtype
-                dst_dtype = kwargs["dtype"]
-                # Some aten op need it to cast specific dtype (ex, index_select)
-                # Keep it if casting from int to float or reverse
+
+                src_dtype, dst_dtype = node.args[0].meta["val"].dtype, kwargs["dtype"]
+
+                # casting to bool type is equivalent to checking if the value is not 0
+                if dst_dtype == torch.bool:
+                    return g.call_function(ttnn.ne, args=(args[0], 0))
 
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(dst_dtype)
@@ -851,10 +850,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 except:
                     pass
 
-                if dst_dtype in [torch.int32, torch.int64] and src_dtype not in [torch.int32, torch.int64]:
+                # Keep it if the cast is not supported
+                if src_dtype in [torch.bool, torch.int32, torch.int64] and dst_dtype not in [
+                    torch.int32,
+                    torch.int64,
+                    torch.bfloat16,
+                ]:
                     return None
-                if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
-                    return None
+
+                # Update the dtype of the input node's metadata value to match the destination dtype
+                if hasattr(node.args[0], "meta") and "val" in node.args[0].meta:
+                    node.args[0].meta["val"] = node.args[0].meta["val"].to(dst_dtype)
+
                 # Essentially remove this op
                 return node.args[0]
 
