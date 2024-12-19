@@ -19,7 +19,7 @@ mb_in_bytes = 1048576
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("test_fixture.log"), logging.StreamHandler()],
+    handlers=[logging.StreamHandler()],
 )
 
 
