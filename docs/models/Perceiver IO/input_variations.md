@@ -26,9 +26,9 @@
 ### aten._softmax.default
 |    | ATen Input Variations                                                              | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 8, 2048, 256]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999595 |      0 |
-|  1 | Tensor<[1, 8, 256, 2048]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999534 |      0 |
-|  2 | Tensor<[1, 8, 256, 256]> self = ?,<br>int dim = -1,<br>bool half_to_float = False  | Done     | Done       | 0.999595 |      0 |
+|  0 | Tensor<[1, 8, 2048, 256]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999596 |      0 |
+|  1 | Tensor<[1, 8, 256, 2048]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999533 |      0 |
+|  2 | Tensor<[1, 8, 256, 256]> self = ?,<br>int dim = -1,<br>bool half_to_float = False  | Done     | Done       | 0.999593 |      0 |
 ### aten._to_copy.default
 |    | ATen Input Variations                                                     | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -44,11 +44,11 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                      | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1280]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 1280]> mat2 = ?  | Done     | Done       | 0.999967 |      0 |
+|  0 | Tensor<[1280]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 1280]> mat2 = ?  | Done     | Done       | 0.999962 |      0 |
 |  1 | Tensor<[1280]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ? | Done     | Done       | 0.999962 |      0 |
 |  2 | Tensor<[256]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 256]> mat2 = ?    | Done     | Done       | 0.999967 |      0 |
-|  3 | Tensor<[256]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 256]> mat2 = ?   | Done     | Done       | 0.999784 |      0 |
-|  4 | Tensor<[768]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?    | Done     | Done       | 0.999967 |      0 |
+|  3 | Tensor<[256]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 256]> mat2 = ?   | Done     | Done       | 0.999787 |      0 |
+|  4 | Tensor<[768]> self = ?,<br>Tensor<[2048, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?    | Done     | Done       | 0.999962 |      0 |
 |  5 | Tensor<[768]> self = ?,<br>Tensor<[256, 1280]> mat1 = ?,<br>Tensor<[1280, 768]> mat2 = ?   | Done     | Done       | 0.999962 |      0 |
 ### aten.arange.start
 |    | ATen Input Variations                                                                                          | Status   | Isolated   |   PCC |   Host |
@@ -59,7 +59,7 @@
 |---:|:--------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[8, 2048, 256]> self = ?,<br>Tensor<[8, 256, 96]> mat2 = ?   | Done     | Done       | 0.999975 |      0 |
 |  1 | Tensor<[8, 2048, 32]> self = ?,<br>Tensor<[8, 32, 256]> mat2 = ?    | Done     | Done       | 0.999991 |      0 |
-|  2 | Tensor<[8, 256, 2048]> self = ?,<br>Tensor<[8, 2048, 160]> mat2 = ? | Done     | Done       | 0.999606 |      0 |
+|  2 | Tensor<[8, 256, 2048]> self = ?,<br>Tensor<[8, 2048, 160]> mat2 = ? | Done     | Done       | 0.999607 |      0 |
 |  3 | Tensor<[8, 256, 256]> self = ?,<br>Tensor<[8, 256, 160]> mat2 = ?   | Done     | Done       | 0.999965 |      0 |
 |  4 | Tensor<[8, 256, 32]> self = ?,<br>Tensor<[8, 32, 2048]> mat2 = ?    | Done     | Done       | 0.999991 |      0 |
 |  5 | Tensor<[8, 256, 32]> self = ?,<br>Tensor<[8, 32, 256]> mat2 = ?     | Done     | Done       | 0.999991 |      0 |
@@ -158,36 +158,36 @@
 ### aten.view.default
 |    | ATen Input Variations                                                   | Status   | Isolated   | PCC   | Host   |
 |---:|:------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[1, 2048, 1280]> self = ?,<br>List[int] size = [1, 2048, 8, 160] | Done     | Done       | 1.0   | 0      |
-|  1 | Tensor<[1, 2048, 256]> self = ?,<br>List[int] size = [1, 2048, 8, 32]   | Done     | Done       | 1.0   | 0      |
-|  2 | Tensor<[1, 2048, 768]> self = ?,<br>List[int] size = [-1, 768]          | Done     | Unknown    | N/A   | N/A    |
-|  3 | Tensor<[1, 2048, 768]> self = ?,<br>List[int] size = [2048, 768]        | Done     | Done       | 1.0   | 0      |
-|  4 | Tensor<[1, 2048, 8, 96]> self = ?,<br>List[int] size = [1, 2048, 768]   | Done     | Unknown    | N/A   | N/A    |
-|  5 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [1, 256, 8, 160]   | Done     | Done       | 1.0   | 0      |
-|  6 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [256, 1280]        | Done     | Done       | 1.0   | 0      |
-|  7 | Tensor<[1, 256, 256]> self = ?,<br>List[int] size = [1, 256, 8, 32]     | Done     | Done       | 1.0   | 0      |
-|  8 | Tensor<[1, 256, 768]> self = ?,<br>List[int] size = [1, 256, 8, 96]     | Done     | Done       | 1.0   | 0      |
-|  9 | Tensor<[1, 256, 8, 160]> self = ?,<br>List[int] size = [1, 256, 1280]   | Done     | Done       | 1.0   | 0      |
-| 10 | Tensor<[1, 8, 2048, 160]> self = ?,<br>List[int] size = [8, 2048, 160]  | Done     | Done       | 1.0   | 0      |
-| 11 | Tensor<[1, 8, 2048, 256]> self = ?,<br>List[int] size = [8, 2048, 256]  | Done     | Done       | 1.0   | 0      |
-| 12 | Tensor<[1, 8, 2048, 32]> self = ?,<br>List[int] size = [8, 2048, 32]    | Done     | Done       | 1.0   | 0      |
-| 13 | Tensor<[1, 8, 256, 160]> self = ?,<br>List[int] size = [8, 256, 160]    | Done     | Done       | 1.0   | 0      |
-| 14 | Tensor<[1, 8, 256, 2048]> self = ?,<br>List[int] size = [8, 256, 2048]  | Done     | Done       | 1.0   | 0      |
-| 15 | Tensor<[1, 8, 256, 256]> self = ?,<br>List[int] size = [8, 256, 256]    | Done     | Done       | 1.0   | 0      |
-| 16 | Tensor<[1, 8, 256, 32]> self = ?,<br>List[int] size = [8, 256, 32]      | Done     | Done       | 1.0   | 0      |
-| 17 | Tensor<[1, 8, 256, 96]> self = ?,<br>List[int] size = [8, 256, 96]      | Done     | Unknown    | N/A   | N/A    |
-| 18 | Tensor<[1, 8, 32, 2048]> self = ?,<br>List[int] size = [8, 32, 2048]    | Done     | Done       | 1.0   | 0      |
-| 19 | Tensor<[1, 8, 32, 256]> self = ?,<br>List[int] size = [8, 32, 256]      | Done     | Done       | 1.0   | 0      |
-| 20 | Tensor<[2048, 1280]> self = ?,<br>List[int] size = [1, 2048, 1280]      | Done     | Done       | 1.0   | 0      |
-| 21 | Tensor<[2048, 256]> self = ?,<br>List[int] size = [1, 2048, 256]        | Done     | Done       | 1.0   | 0      |
-| 22 | Tensor<[2048, 262]> self = ?,<br>List[int] size = [1, 2048, 262]        | Done     | Unknown    | N/A   | N/A    |
-| 23 | Tensor<[2048, 768]> self = ?,<br>List[int] size = [1, 2048, 768]        | Done     | Unknown    | N/A   | N/A    |
-| 24 | Tensor<[256, 1280]> self = ?,<br>List[int] size = [1, 256, 1280]        | Done     | Done       | 1.0   | 0      |
-| 25 | Tensor<[256, 256]> self = ?,<br>List[int] size = [1, 256, 256]          | Done     | Done       | 1.0   | 0      |
-| 26 | Tensor<[256, 768]> self = ?,<br>List[int] size = [1, 256, 768]          | Done     | Done       | 1.0   | 0      |
-| 27 | Tensor<[8, 2048, 256]> self = ?,<br>List[int] size = [1, 8, 2048, 256]  | Done     | Done       | 1.0   | 0      |
-| 28 | Tensor<[8, 2048, 96]> self = ?,<br>List[int] size = [1, 8, 2048, 96]    | Done     | Unknown    | N/A   | N/A    |
-| 29 | Tensor<[8, 256, 160]> self = ?,<br>List[int] size = [1, 8, 256, 160]    | Done     | Done       | 1.0   | 0      |
-| 30 | Tensor<[8, 256, 2048]> self = ?,<br>List[int] size = [1, 8, 256, 2048]  | Done     | Done       | 1.0   | 0      |
-| 31 | Tensor<[8, 256, 256]> self = ?,<br>List[int] size = [1, 8, 256, 256]    | Done     | Done       | 1.0   | 0      |
+|  0 | Tensor<[1, 2048, 1280]> self = ?,<br>List[int] size = [1, 2048, 8, 160] | Done     | Unknown    | N/A   | N/A    |
+|  1 | Tensor<[1, 2048, 256]> self = ?,<br>List[int] size = [1, 2048, 8, 32]   | Done     | Unknown    | N/A   | N/A    |
+|  2 | Tensor<[1, 2048, 768]> self = ?,<br>List[int] size = [-1, 768]          | Done     | Done       | 1.0   | 0      |
+|  3 | Tensor<[1, 2048, 768]> self = ?,<br>List[int] size = [2048, 768]        | Done     | Unknown    | N/A   | N/A    |
+|  4 | Tensor<[1, 2048, 8, 96]> self = ?,<br>List[int] size = [1, 2048, 768]   | Done     | Done       | 1.0   | 0      |
+|  5 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [1, 256, 8, 160]   | Done     | Unknown    | N/A   | N/A    |
+|  6 | Tensor<[1, 256, 1280]> self = ?,<br>List[int] size = [256, 1280]        | Done     | Unknown    | N/A   | N/A    |
+|  7 | Tensor<[1, 256, 256]> self = ?,<br>List[int] size = [1, 256, 8, 32]     | Done     | Unknown    | N/A   | N/A    |
+|  8 | Tensor<[1, 256, 768]> self = ?,<br>List[int] size = [1, 256, 8, 96]     | Done     | Unknown    | N/A   | N/A    |
+|  9 | Tensor<[1, 256, 8, 160]> self = ?,<br>List[int] size = [1, 256, 1280]   | Done     | Unknown    | N/A   | N/A    |
+| 10 | Tensor<[1, 8, 2048, 160]> self = ?,<br>List[int] size = [8, 2048, 160]  | Done     | Unknown    | N/A   | N/A    |
+| 11 | Tensor<[1, 8, 2048, 256]> self = ?,<br>List[int] size = [8, 2048, 256]  | Done     | Unknown    | N/A   | N/A    |
+| 12 | Tensor<[1, 8, 2048, 32]> self = ?,<br>List[int] size = [8, 2048, 32]    | Done     | Unknown    | N/A   | N/A    |
+| 13 | Tensor<[1, 8, 256, 160]> self = ?,<br>List[int] size = [8, 256, 160]    | Done     | Unknown    | N/A   | N/A    |
+| 14 | Tensor<[1, 8, 256, 2048]> self = ?,<br>List[int] size = [8, 256, 2048]  | Done     | Unknown    | N/A   | N/A    |
+| 15 | Tensor<[1, 8, 256, 256]> self = ?,<br>List[int] size = [8, 256, 256]    | Done     | Unknown    | N/A   | N/A    |
+| 16 | Tensor<[1, 8, 256, 32]> self = ?,<br>List[int] size = [8, 256, 32]      | Done     | Unknown    | N/A   | N/A    |
+| 17 | Tensor<[1, 8, 256, 96]> self = ?,<br>List[int] size = [8, 256, 96]      | Done     | Done       | 1.0   | 0      |
+| 18 | Tensor<[1, 8, 32, 2048]> self = ?,<br>List[int] size = [8, 32, 2048]    | Done     | Unknown    | N/A   | N/A    |
+| 19 | Tensor<[1, 8, 32, 256]> self = ?,<br>List[int] size = [8, 32, 256]      | Done     | Unknown    | N/A   | N/A    |
+| 20 | Tensor<[2048, 1280]> self = ?,<br>List[int] size = [1, 2048, 1280]      | Done     | Unknown    | N/A   | N/A    |
+| 21 | Tensor<[2048, 256]> self = ?,<br>List[int] size = [1, 2048, 256]        | Done     | Unknown    | N/A   | N/A    |
+| 22 | Tensor<[2048, 262]> self = ?,<br>List[int] size = [1, 2048, 262]        | Done     | Done       | 1.0   | 0      |
+| 23 | Tensor<[2048, 768]> self = ?,<br>List[int] size = [1, 2048, 768]        | Done     | Done       | 1.0   | 0      |
+| 24 | Tensor<[256, 1280]> self = ?,<br>List[int] size = [1, 256, 1280]        | Done     | Unknown    | N/A   | N/A    |
+| 25 | Tensor<[256, 256]> self = ?,<br>List[int] size = [1, 256, 256]          | Done     | Unknown    | N/A   | N/A    |
+| 26 | Tensor<[256, 768]> self = ?,<br>List[int] size = [1, 256, 768]          | Done     | Unknown    | N/A   | N/A    |
+| 27 | Tensor<[8, 2048, 256]> self = ?,<br>List[int] size = [1, 8, 2048, 256]  | Done     | Unknown    | N/A   | N/A    |
+| 28 | Tensor<[8, 2048, 96]> self = ?,<br>List[int] size = [1, 8, 2048, 96]    | Done     | Done       | 1.0   | 0      |
+| 29 | Tensor<[8, 256, 160]> self = ?,<br>List[int] size = [1, 8, 256, 160]    | Done     | Unknown    | N/A   | N/A    |
+| 30 | Tensor<[8, 256, 2048]> self = ?,<br>List[int] size = [1, 8, 256, 2048]  | Done     | Unknown    | N/A   | N/A    |
+| 31 | Tensor<[8, 256, 256]> self = ?,<br>List[int] size = [1, 8, 256, 256]    | Done     | Unknown    | N/A   | N/A    |
 

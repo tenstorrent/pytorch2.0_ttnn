@@ -25,7 +25,7 @@
 |    | ATen Input Variations                                                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | 0.999973 |      0 |
-|  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999928 |      0 |
+|  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999929 |      0 |
 |  2 | Tensor<[512]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
 |  3 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ? | Done     | Done       | 0.999885 |      0 |
 ### aten.clone.default
