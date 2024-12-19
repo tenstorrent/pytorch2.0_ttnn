@@ -11,6 +11,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
     get_shape,
+    get_arg,
 )
 import numpy as np
 import torch_ttnn.metrics as metrics
@@ -1214,6 +1215,12 @@ def decompose_aten_to_aten_ops(g: GraphWrapper, node):
         # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
         new_kwargs["dtype"] = node.meta["val"].dtype
         return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
+
+    if node.target == torch.ops.aten._log_softmax.default:
+        dim = get_arg(node, 1, "dim")
+        softmax = g.call_function(torch.ops.aten._softmax.default, args=(args[0], dim))
+        log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
+        return log
 
     return None
 
