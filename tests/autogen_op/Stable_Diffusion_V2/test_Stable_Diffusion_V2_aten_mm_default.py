@@ -36,13 +36,11 @@ def teardown_module(module):
     [
         ["Tensor<[4096, 320]> self = ?", "Tensor<[320, 320]> mat2 = ?"],
         ["Tensor<[9, 768]> self = ?", "Tensor<[768, 320]> mat2 = ?"],
-        ["Tensor<[s0*s1, 640]> self = ?", "Tensor<[640, 640]> mat2 = ?"],
+        ["Tensor<[1024, 640]> self = ?", "Tensor<[640, 640]> mat2 = ?"],
         ["Tensor<[9, 768]> self = ?", "Tensor<[768, 640]> mat2 = ?"],
-        ["Tensor<[s1*s2, 1280]> self = ?", "Tensor<[1280, 1280]> mat2 = ?"],
+        ["Tensor<[256, 1280]> self = ?", "Tensor<[1280, 1280]> mat2 = ?"],
         ["Tensor<[9, 768]> self = ?", "Tensor<[768, 1280]> mat2 = ?"],
-        ["Tensor<[s0*s1, 1280]> self = ?", "Tensor<[1280, 1280]> mat2 = ?"],
-        ["Tensor<[s1*s2, 640]> self = ?", "Tensor<[640, 640]> mat2 = ?"],
-        ["Tensor<[s1*s2, 320]> self = ?", "Tensor<[320, 320]> mat2 = ?"],
+        ["Tensor<[64, 1280]> self = ?", "Tensor<[1280, 1280]> mat2 = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
