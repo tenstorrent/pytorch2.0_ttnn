@@ -31,7 +31,20 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/Stable Diffusion V2", "aten.cat.default")
 
 
-@pytest.mark.parametrize("input_strings", [["List[Tensor] tensors = [<[1, 160]>, <[1, 160]>]", "int dim = -1"]])
+@pytest.mark.parametrize(
+    "input_strings",
+    [
+        ["List[Tensor] tensors = [<[1, 160]>, <[1, 160]>]", "int dim = -1"],
+        ["List[Tensor] tensors = [<[1, 1280, 8, 8]>, <[1, 1280, 8, 8]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 1280, 16, 16]>, <[1, 1280, 16, 16]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 1280, 16, 16]>, <[1, 640, 16, 16]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 1280, 32, 32]>, <[1, 640, 32, 32]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 640, 32, 32]>, <[1, 640, 32, 32]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 640, 32, 32]>, <[1, 320, 32, 32]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 640, 64, 64]>, <[1, 320, 64, 64]>]", "int dim = 1"],
+        ["List[Tensor] tensors = [<[1, 320, 64, 64]>, <[1, 320, 64, 64]>]", "int dim = 1"],
+    ],
+)
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.cat.default",
