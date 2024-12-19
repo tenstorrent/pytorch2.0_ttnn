@@ -11,6 +11,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
     get_shape,
+    get_arg,
 )
 import numpy as np
 import torch_ttnn.metrics as metrics
@@ -809,36 +810,40 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
-                # convert input tensopr to ROW MAJOR layout for split
-                to_layout = g.call_function(ttnn.to_layout, (args[0],), {"layout": TtnnRowMajorLayout()})
+                if len(args[0].meta["val"].size()) == 1:
+                    # For example, the input shape original is [768]
+                    # But due to issue #390 it become [1, 768] and cause failed
+                    # remove this part once #390 is solved
+                    return None
 
                 # convert relative split dim to absolute
-                if args[2] >= 0:
-                    split_dim = args[0]
+                dim = args[2] if len(args) > 2 else 0
+                if dim >= 0:
+                    split_dim = dim
                 else:
-                    split_dim = len(args[0].meta["val"].size()) + args[2]
+                    split_dim = len(args[0].meta["val"].size()) + dim
 
                 # convert from PyTorch size of chunk to ttnn number of chunks
                 if isinstance(args[1], int):
                     num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
                 else:
-                    raise RuntimeError(f"ttnn.split only supports chunks of same size.")
+                    # ttnn.split only supports chunks of same size.
+                    return None
 
-                new_args = (to_layout, num_chunks, split_dim)
+                new_args = (args[0], num_chunks, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
-                # Keep it if casting to bool type(bool may be problematic)
-                if kwargs["dtype"] in [torch.bool]:
-                    return None
                 # Keep it if the graph output uses this op
                 target_users_ops = [user.target for user in node.users.keys()]
                 if "output" in target_users_ops:
                     return None
-                src_dtype = node.args[0].meta["val"].dtype
-                dst_dtype = kwargs["dtype"]
-                # Some aten op need it to cast specific dtype (ex, index_select)
-                # Keep it if casting from int to float or reverse
+
+                src_dtype, dst_dtype = node.args[0].meta["val"].dtype, kwargs["dtype"]
+
+                # casting to bool type is equivalent to checking if the value is not 0
+                if dst_dtype == torch.bool:
+                    return g.call_function(ttnn.ne, args=(args[0], 0))
 
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(dst_dtype)
@@ -846,10 +851,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 except:
                     pass
 
-                if dst_dtype in [torch.int32, torch.int64] and src_dtype not in [torch.int32, torch.int64]:
+                # Keep it if the cast is not supported
+                if src_dtype in [torch.bool, torch.int32, torch.int64] and dst_dtype not in [
+                    torch.int32,
+                    torch.int64,
+                    torch.bfloat16,
+                ]:
                     return None
-                if src_dtype in [torch.int32, torch.int64] and dst_dtype not in [torch.int32, torch.int64]:
-                    return None
+
+                # Update the dtype of the input node's metadata value to match the destination dtype
+                if hasattr(node.args[0], "meta") and "val" in node.args[0].meta:
+                    node.args[0].meta["val"] = node.args[0].meta["val"].to(dst_dtype)
+
                 # Essentially remove this op
                 return node.args[0]
 
@@ -1158,6 +1171,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
 
+            if node.target == torch.ops.aten.stack.default:
+                tensors, *dim = args
+                dim = dim[0] if dim else 0
+                output_shape = list(node.meta["val"].size())
+                return g.call_function(target_wrappers.stack, (tensors, dim, output_shape))
+
             if node.target == torch.ops.aten.roll.default:
                 tensor, shifts, dims = args
                 input_shape = list(tensor.meta["val"].size())
@@ -1191,6 +1210,12 @@ def decompose_aten_to_aten_ops(g: GraphWrapper, node):
         # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
         new_kwargs["dtype"] = node.meta["val"].dtype
         return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
+
+    if node.target == torch.ops.aten._log_softmax.default:
+        dim = get_arg(node, 1, "dim")
+        softmax = g.call_function(torch.ops.aten._softmax.default, args=(args[0], dim))
+        log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
+        return log
 
     return None
 
