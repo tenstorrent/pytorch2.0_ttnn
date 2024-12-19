@@ -12,6 +12,7 @@ from torch_ttnn.utils import (
 from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
+from operator import getitem
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -306,6 +307,7 @@ class NodeInputAligner:
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
         if node.target in [
+            ttnn.split,
             ttnn.embedding,
             ttnn.zeros_like,
             target_wrappers.repeat,
@@ -318,6 +320,10 @@ class NodeInputAligner:
         return spec
 
     def _reset_to_default_layout(self, input_node, spec):
+        # split(list of tensor with row major layout) => getitem(row major layout)
+        # convert back to tile layout
+        if input_node.target == getitem and input_node.args[0].target == ttnn.split:
+            spec.layout = TtnnTileLayout
         # legalize to the default layout and device
         if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(
             set(
