@@ -44,10 +44,7 @@ def conv2d(
     output_padding=None,
 ):
     if transposed:
-        conv_config = ttnn.Conv2dConfig(
-            shard_layout=ttnn.TensorMemoryLayout.HEIGHT_SHARDED,
-        )
-        output_tensor, _, _, _, _ = ttnn.conv_transpose2d(
+        output_tensor = ttnn.conv_transpose2d(
             input_tensor=input_tensor,
             weight_tensor=weight_tensor,
             bias_tensor=bias_tensor,
@@ -63,7 +60,6 @@ def conv2d(
             dilation=dilation,
             groups=groups,
             device=device,
-            conv_config=conv_config,
         )
     else:
         assert output_padding is None, "conv2d has no output padding"
@@ -107,3 +103,22 @@ def roll(tensor, input_shape, shifts, dims):
         rolled_tensor = ttnn.concat([sub_tensor2, sub_tensor1], dim)
 
     return rolled_tensor
+
+
+@torch.fx.wrap
+def stack(tensors, dim, output_shape):
+    # Handle negative dims by wrapping around
+    dim = (dim + len(output_shape)) % len(output_shape)
+
+    # Create shape for unsqueezed tensors - same as output but with size 1
+    # in the stack dimension
+    unsqueezed_shape = output_shape.copy()
+    unsqueezed_shape[dim] = 1
+
+    # Reshape each input tensor to add the new dimension
+    unsqueezed_tensors = []
+    for tensor in tensors:
+        unsqueezed_tensors.append(ttnn.reshape(tensor, unsqueezed_shape))
+
+    # Concatenate all reshaped tensors along the stack dimension
+    return ttnn.concat(unsqueezed_tensors, dim)

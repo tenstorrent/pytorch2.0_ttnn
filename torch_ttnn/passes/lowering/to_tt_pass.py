@@ -12,6 +12,7 @@ from torch_ttnn.utils import (
     TtnnTileLayout,
     get_shape,
     get_dtype,
+    get_arg,
 )
 import numpy as np
 import torch_ttnn.metrics as metrics
@@ -39,7 +40,11 @@ int_output_ops = [
 
 
 ops_incompatible_with_grayskull = {
+    torch.ops.aten.ceil.default,
     torch.ops.aten.floor.default,
+    torch.ops.aten.round.default,
+    torch.ops.aten.round.decimals,
+    torch.ops.aten.trunc.default,
 }
 
 
@@ -98,6 +103,53 @@ def insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape):
     output_tensor = g.call_function(ttnn.sharded_to_interleaved, (output_tensor, TtnnL1MemoryConfig()))
     output_tensor = g.call_function(ttnn.reshape, (output_tensor, (batch_size, out_h, out_w, out_c)))
     return g.call_function(ttnn.permute, (output_tensor, (0, 3, 1, 2)))
+
+
+TTNN_POINTWISE_UNARY_OPS = {
+    torch.ops.aten.abs.default: ttnn.abs,
+    torch.ops.aten.acos.default: ttnn.acos,
+    torch.ops.aten.acosh.default: ttnn.acosh,
+    torch.ops.aten.asin.default: ttnn.asin,
+    torch.ops.aten.asinh.default: ttnn.asinh,
+    torch.ops.aten.atan.default: ttnn.atan,
+    torch.ops.aten.atanh.default: ttnn.atanh,
+    torch.ops.aten.ceil.default: ttnn.ceil,
+    torch.ops.aten.clamp.default: ttnn.clip,
+    torch.ops.aten.cos.default: ttnn.cos,
+    torch.ops.aten.cosh.default: ttnn.cosh,
+    torch.ops.aten.elu.default: ttnn.elu,
+    torch.ops.aten.erf.default: ttnn.erf,
+    torch.ops.aten.exp.default: ttnn.exp,
+    torch.ops.aten.expm1.default: ttnn.expm1,
+    torch.ops.aten.floor.default: ttnn.floor,
+    torch.ops.aten.gelu.default: ttnn.gelu,
+    torch.ops.aten.hardsigmoid.default: ttnn.hardsigmoid,
+    torch.ops.aten.hardswish.default: ttnn.hardswish,
+    torch.ops.aten.isinf.default: ttnn.isinf,
+    torch.ops.aten.isnan.default: ttnn.isnan,
+    torch.ops.aten.log.default: ttnn.log,
+    torch.ops.aten.log10.default: ttnn.log10,
+    torch.ops.aten.log1p.default: ttnn.log1p,
+    torch.ops.aten.log2.default: ttnn.log2,
+    torch.ops.aten.logical_not.default: ttnn.logical_not,
+    torch.ops.aten.neg.default: ttnn.neg,
+    torch.ops.aten.reciprocal.default: ttnn.reciprocal,
+    torch.ops.aten.remainder.Scalar: ttnn.remainder,
+    torch.ops.aten.relu.default: ttnn.relu,
+    torch.ops.aten.round.decimals: ttnn.round,
+    torch.ops.aten.rsqrt.default: ttnn.rsqrt,
+    torch.ops.aten.sigmoid.default: ttnn.sigmoid,
+    torch.ops.aten.sign.default: ttnn.sign,
+    torch.ops.aten.sin.default: ttnn.sin,
+    torch.ops.aten.sinh.default: ttnn.sinh,
+    torch.ops.aten.silu.default: ttnn.silu,
+    torch.ops.aten._softmax.default: ttnn.softmax,
+    torch.ops.aten.sqrt.default: ttnn.sqrt,
+    torch.ops.aten.tan.default: ttnn.tan,
+    torch.ops.aten.tanh.default: ttnn.tanh,
+    torch.ops.aten.tril.default: ttnn.tril,
+    torch.ops.aten.trunc.default: ttnn.trunc,
+}
 
 
 class ReplaceMoreTt(torch.fx.Transformer):
@@ -171,118 +223,11 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         # Pointwise unary
         ############################################################
-        if target == torch.ops.aten.abs.default:
-            return self.call_function_prop_meta(ttnn.abs, args, kwargs)
-
-        if target == torch.ops.aten.acos.default:
-            return self.call_function_prop_meta(ttnn.acos, args, kwargs)
-
-        if target == torch.ops.aten.acosh.default:
-            return self.call_function_prop_meta(ttnn.acosh, args, kwargs)
-
-        if target == torch.ops.aten.asin.default:
-            return self.call_function_prop_meta(ttnn.asin, args, kwargs)
-
-        if target == torch.ops.aten.asinh.default:
-            return self.call_function_prop_meta(ttnn.asinh, args, kwargs)
-
-        if target == torch.ops.aten.atan.default:
-            return self.call_function_prop_meta(ttnn.atan, args, kwargs)
-
-        if target == torch.ops.aten.atanh.default:
-            return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
-
-        if target == torch.ops.aten.clamp.default:
-            # aten.clamp args are positional but ttnn.clip uses kw args
-            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")), default_none=True)
-            new_args = (args[0],)
-            return self.call_function_prop_meta(ttnn.clip, new_args, new_kwargs)
-
-        if target == torch.ops.aten.cos.default:
-            return self.call_function_prop_meta(ttnn.cos, args, kwargs)
-
-        if target == torch.ops.aten.cosh.default:
-            return self.call_function_prop_meta(ttnn.cosh, args, kwargs)
-
-        if target == torch.ops.aten.elu.default:
-            return self.call_function_prop_meta(ttnn.elu, args, kwargs)
-
-        if target == torch.ops.aten.erf.default:
-            return self.call_function_prop_meta(ttnn.erf, args, kwargs)
-
-        if target == torch.ops.aten.exp.default:
-            return self.call_function_prop_meta(ttnn.exp, args, kwargs)
-
-        if target == torch.ops.aten.expm1.default:
-            return self.call_function_prop_meta(ttnn.expm1, args, kwargs)
-
-        if target == torch.ops.aten.floor.default:
-            return self.call_function_prop_meta(ttnn.floor, args, kwargs)
-
-        if target == torch.ops.aten.gelu.default:
-            return self.call_function_prop_meta(ttnn.gelu, args, kwargs)
-
-        if target == torch.ops.aten.hardsigmoid.default:
-            return self.call_function_prop_meta(ttnn.hardsigmoid, args, kwargs)
-
-        if target == torch.ops.aten.hardswish.default:
-            return self.call_function_prop_meta(ttnn.hardswish, args, kwargs)
-
         if target == torch.ops.aten.hardtanh.default:
+            # aten.hardtanh args are positional but ttnn.clip uses kw args
             new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")), default_none=True)
             new_args = (args[0],)
             return self.call_function_prop_meta(ttnn.hardtanh, new_args, new_kwargs)
-
-        if target == torch.ops.aten.isinf.default:
-            return self.call_function_prop_meta(ttnn.isinf, args, kwargs)
-
-        if target == torch.ops.aten.isnan.default:
-            return self.call_function_prop_meta(ttnn.isnan, args, kwargs)
-
-        if target == torch.ops.aten.log.default:
-            return self.call_function_prop_meta(ttnn.log, args, kwargs)
-
-        if target == torch.ops.aten.log10.default:
-            return self.call_function_prop_meta(ttnn.log10, args, kwargs)
-
-        if target == torch.ops.aten.log1p.default:
-            return self.call_function_prop_meta(ttnn.log1p, args, kwargs)
-
-        if target == torch.ops.aten.log2.default:
-            return self.call_function_prop_meta(ttnn.log2, args, kwargs)
-
-        if target == torch.ops.aten.logical_not.default:
-            return self.call_function_prop_meta(ttnn.logical_not, args, kwargs)
-
-        if target == torch.ops.aten.neg.default:
-            return self.call_function_prop_meta(ttnn.neg, args, kwargs)
-
-        if target == torch.ops.aten.reciprocal.default:
-            return self.call_function_prop_meta(ttnn.reciprocal, args, kwargs)
-
-        if target == torch.ops.aten.relu.default:
-            return self.call_function_prop_meta(ttnn.relu, args, kwargs)
-
-        if target == torch.ops.aten.remainder.Scalar:
-            return self.call_function_prop_meta(ttnn.remainder, args, kwargs)
-
-        if target == torch.ops.aten.rsqrt.default:
-            return self.call_function_prop_meta(ttnn.rsqrt, args, kwargs)
-
-        if target == torch.ops.aten.sigmoid.default:
-            return self.call_function_prop_meta(ttnn.sigmoid, args, kwargs)
-
-        if target == torch.ops.aten.sign.default:
-            return self.call_function_prop_meta(ttnn.sign, args, kwargs)
-
-        if target == torch.ops.aten.sin.default:
-            return self.call_function_prop_meta(ttnn.sin, args, kwargs)
-
-        if target == torch.ops.aten.sinh.default:
-            return self.call_function_prop_meta(ttnn.sinh, args, kwargs)
-
-        if target == torch.ops.aten.silu.default:
-            return self.call_function_prop_meta(ttnn.silu, args, kwargs)
 
         if target == torch.ops.aten._softmax.default:
             kwargs = {
@@ -290,18 +235,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 **kwargs,
             }
             return self.call_function_prop_meta(ttnn.softmax, args[:2], kwargs)
-
-        if target == torch.ops.aten.sqrt.default:
-            return self.call_function_prop_meta(ttnn.sqrt, args, kwargs)
-
-        if target == torch.ops.aten.tan.default:
-            return self.call_function_prop_meta(ttnn.tan, args, kwargs)
-
-        if target == torch.ops.aten.tanh.default:
-            return self.call_function_prop_meta(ttnn.tanh, args, kwargs)
-
-        if target == torch.ops.aten.tril.default:
-            return self.call_function_prop_meta(ttnn.tril, args, kwargs)
 
         ############################################################
         # Pointwise binary
@@ -323,7 +256,13 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.minimum.default:
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
-        if target == torch.ops.aten.pow.Tensor_Scalar:
+        if target in [torch.ops.aten.pow.Scalar, torch.ops.aten.pow.Tensor_Scalar, torch.ops.aten.pow.Tensor_Tensor]:
+            if target == torch.ops.aten.pow.Tensor_Tensor:
+                shape0 = get_shape(None, args[0])
+                shape1 = get_shape(None, args[1])
+                if (shape0 != shape1) or shape0 is None or shape1 is None:
+                    # not support broadcasting
+                    return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
         if target == torch.ops.aten.rsub.Scalar:
@@ -494,6 +433,23 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.sub.Tensor:
                 return lower_binary_eltwise(ttnn.sub, args)
 
+            if node.target in TTNN_POINTWISE_UNARY_OPS:
+                code = TTNN_POINTWISE_UNARY_OPS[node.target]
+
+            # NOTE(jdh8): Workaround for tenstorrent/tt-metal#12671
+            # Passing a tensor shaped `(N,)` to the kernel results in `(1, N)`.
+            # Reshape the tensor back to get the correct shape.
+            def reshape_1d(code, args=args, kwargs=kwargs):
+                shape = node.meta["val"].size()
+                result = g.call_function(code, args, kwargs)
+                return result if len(shape) > 1 else g.call_function(ttnn.reshape, (result, shape))
+
+            if node.target in TTNN_POINTWISE_UNARY_OPS:
+                return reshape_1d(TTNN_POINTWISE_UNARY_OPS[node.target])
+
+            if node.target == torch.ops.aten.round.default:
+                return reshape_1d(ttnn.round, (args[0],), {"decimals": 0})
+
             if node.target == torch.ops.aten.clone.default:
                 arg_metadata = node.meta["val"]
                 try:
@@ -520,6 +476,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.ones.default:
                 return g.call_function(ttnn.ones, args=args, kwargs={"device": TtnnDevice()})
+
             """
             # NOTE(kevinwuTT): aten.arange.default starts with 0 which is unsupported by ttnn.arange at the moment
             if node.target == torch.ops.aten.arange.default:
@@ -527,7 +484,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 new_args = (0, args[0], 1)
                 return g.call_function(ttnn.arange, args=new_args)
             """
-
             if node.target == torch.ops.aten.arange.start:
                 # NOTE(kevinwuTT): ttnn.arange does not support starting values smaller than 2 currently
                 if args[0] >= 2:
@@ -1070,7 +1026,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 input_node = params["input_tensor"]
-                weight_node = params["weight_tensor"]
+                weight_tensor = params["weight_tensor"]
                 transposed = params.get("transposed", False)
                 groups = params.get("groups", 1)
                 stride = params.get("stride", [1, 1])
@@ -1083,17 +1039,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return None
 
                 batch_size, in_c, in_h, in_w = input_shape
-                out_a, out_b, kernel_h, kernel_w = weight_node.meta["val"].size()
+                out_a, out_b, kernel_h, kernel_w = weight_tensor.meta["val"].size()
                 out_c = out_b if transposed else out_a
 
                 input_tensor = insert_nchw_to_nhwc(g, input_node)
                 # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
-                # TODO(#417): weight currently needs to be on host
-                weight_tensor = g.call_function(
-                    target_wrappers.move_to_host,
-                    (weight_node, TtnnRowMajorLayout()),
-                )
                 bias_node = params.get("bias_tensor", None)
                 if bias_node is None:
                     bias_tensor = None
@@ -1187,6 +1138,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return g.call_function(ttnn.argmax, args=(tensor,), kwargs=tt_kwargs)
 
+            if node.target == torch.ops.aten.stack.default:
+                tensors, *dim = args
+                dim = dim[0] if dim else 0
+                output_shape = list(node.meta["val"].size())
+                return g.call_function(target_wrappers.stack, (tensors, dim, output_shape))
+
             if node.target == torch.ops.aten.roll.default:
                 tensor, shifts, dims = args
                 input_shape = list(tensor.meta["val"].size())
@@ -1220,6 +1177,12 @@ def decompose_aten_to_aten_ops(g: GraphWrapper, node):
         # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
         new_kwargs["dtype"] = node.meta["val"].dtype
         return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
+
+    if node.target == torch.ops.aten._log_softmax.default:
+        dim = get_arg(node, 1, "dim")
+        softmax = g.call_function(torch.ops.aten._softmax.default, args=(args[0], dim))
+        log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
+        return log
 
     return None
 
