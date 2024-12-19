@@ -667,7 +667,7 @@ aten_convolution_default_blocklist = [
         "List[int] output_padding = [0, 0]",
         "int groups = 1",
     ],
-    # TODO(TODO): bias_ntiles == weight_matrix_width_ntiles
+    # TODO(tt-metal#16172): bias_ntiles == weight_matrix_width_ntiles
     [
         "Tensor<[1, 1024, 45, 80]> input = ?",
         "Tensor<[2048, 1024, 1, 1]> weight = ?",
@@ -679,7 +679,7 @@ aten_convolution_default_blocklist = [
         "List[int] output_padding = [0, 0]",
         "int groups = 1",
     ],
-    # TODO(TODO): weight_matrix_width_ntiles % weight_block_w_ntiles == 0
+    # TODO(tt-metal#16172): weight_matrix_width_ntiles % weight_block_w_ntiles == 0
     [
         "Tensor<[1, 2904, 24, 24]> input = ?",
         "Tensor<[7392, 2904, 1, 1]> weight = ?",
