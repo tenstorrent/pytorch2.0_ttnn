@@ -311,7 +311,6 @@ class NodeInputAligner:
         if node.target in [
             ttnn.split,
             ttnn.embedding,
-            ttnn.zeros_like,
             target_wrappers.repeat,
             target_wrappers.roll,
             target_wrappers.stack,
