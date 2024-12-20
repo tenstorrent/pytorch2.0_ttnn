@@ -43,6 +43,9 @@ def conv2d(
     transposed,
     output_padding=None,
 ):
+    if len(weight_tensor.shape) < 4:
+        weight_tensor = ttnn.reshape(weight_tensor, list(weight_tensor.shape) + [1])
+
     if transposed:
         output_tensor = ttnn.conv_transpose2d(
             input_tensor=input_tensor,
