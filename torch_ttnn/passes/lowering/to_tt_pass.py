@@ -323,6 +323,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             # TODO: no ttnn op can convert _adaptive_avg_pool2d
             return self.call_function_prop_meta(target, args, kwargs)
 
+        if target == torch.ops.aten.detach.default:
+            return args[0]
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
