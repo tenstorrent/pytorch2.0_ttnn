@@ -231,6 +231,11 @@ def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.999):
 
 
 def calculate_accuracy(original_outputs, compiled_outputs):
+    if (
+        isinstance(original_outputs, list) and len(original_outputs) == 1 and isinstance(original_outputs[0], dict)
+    ) and (isinstance(compiled_outputs, list) and len(compiled_outputs) == 1 and isinstance(compiled_outputs[0], dict)):
+        original_outputs = original_outputs[0]
+        compiled_outputs = compiled_outputs[0]
     if isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
         # Handle case where outputs can be converted to dictionaries
         original_outputs = dict(original_outputs)
