@@ -32,7 +32,7 @@
 |  28 | [aten.clamp_min.default](operations/aten.clamp_min.default.md)                                                       |                  9 |           0 |         0 |          0 | ✘           |    0    |
 |  29 | [aten.clone.default](operations/aten.clone.default.md)                                                               |                433 |         305 |         0 |          0 | 🚧          |    0.7  |
 |  30 | [aten.constant_pad_nd.default](operations/aten.constant_pad_nd.default.md)                                           |                 66 |          36 |         0 |          0 | 🚧          |    0.55 |
-|  31 | [aten.convolution.default](operations/aten.convolution.default.md)                                                   |               1552 |        1299 |         0 |          0 | 🚧          |    0.84 |
+|  31 | [aten.convolution.default](operations/aten.convolution.default.md)                                                   |               1552 |        1319 |         0 |          0 | 🚧          |    0.85 |
 |  32 | [aten.convolution_backward.default](operations/aten.convolution_backward.default.md)                                 |                570 |           0 |         0 |          0 | ✘           |    0    |
 |  33 | [aten.copy.default](operations/aten.copy.default.md)                                                                 |                 12 |           0 |         0 |          0 | ✘           |    0    |
 |  34 | [aten.cos.default](operations/aten.cos.default.md)                                                                   |                  3 |           2 |         0 |          0 | 🚧          |    0.67 |
@@ -132,5 +132,5 @@
 | 128 | [aten.view.default](operations/aten.view.default.md)                                                                 |               1268 |         893 |         0 |          0 | 🚧          |    0.7  |
 | 129 | [aten.where.self](operations/aten.where.self.md)                                                                     |                 13 |           0 |         0 |          0 | ✘           |    0    |
 | 130 | [aten.zeros.default](operations/aten.zeros.default.md)                                                               |                 47 |          34 |         0 |          0 | 🚧          |    0.72 |
-| 131 | [aten.zeros_like.default](operations/aten.zeros_like.default.md)                                                     |                  7 |           0 |         0 |          0 | ✘           |    0    |
+| 131 | [aten.zeros_like.default](operations/aten.zeros_like.default.md)                                                     |                  7 |           2 |         0 |          0 | 🚧          |    0.29 |
 
