@@ -236,19 +236,19 @@ aten_mul_Tensor_blocklist += [
 aten_unsqueeze_default_blocklist += [["Tensor<[320]> self = ?", "int dim = 1"]]
 # tt_metal/common/math.hpp:16: b > 0
 # Divide by 0 error
-aten_convolution_default_blocklist += [
-    [
-        "Tensor<[1, 128, 5, 5]> input = ?",
-        "Tensor<[128, 1, 3, 3]> weight = ?",
-        "Optional[Tensor] bias = ?",
-        "List[int] stride = [2, 2]",
-        "List[int] padding = [1, 1]",
-        "List[int] dilation = [1, 1]",
-        "bool transposed = False",
-        "List[int] output_padding = [0, 0]",
-        "int groups = 128",
-    ]
-]
+# aten_convolution_default_blocklist += [
+#     [
+#         "Tensor<[1, 128, 5, 5]> input = ?",
+#         "Tensor<[128, 1, 3, 3]> weight = ?",
+#         "Optional[Tensor] bias = ?",
+#         "List[int] stride = [2, 2]",
+#         "List[int] padding = [1, 1]",
+#         "List[int] dilation = [1, 1]",
+#         "bool transposed = False",
+#         "List[int] output_padding = [0, 0]",
+#         "int groups = 128",
+#     ]
+# ]
 
 # RuntimeError: expected scalar type BFloat16 but found Float
 # convolution_default_66 weight dtype is float32, this is
