@@ -81,12 +81,6 @@ aten__scaled_dot_product_flash_attention_default_blocklist = [
         "bool is_causal = True",
     ],
 ]
-aten_zeros_like_default_blocklist = [
-    ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
-    ["Tensor<[7, 7]> self = ?", "Optional[int] dtype = torch.bfloat16"],
-    ["Tensor<[1, 1]> self = ?", "Optional[bool] pin_memory = False"],
-    ["Tensor<[17, 17]> self = ?", "Optional[bool] pin_memory = False"],
-]
 aten_div_Tensor_blocklist = [
     ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
     ["Tensor<[1, 23, 40, 1]> self = ?", "Tensor<[128]> other = ?"],
@@ -422,7 +416,6 @@ GUARD = {
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
-    torch.ops.aten.zeros_like.default: partial(guard_aten, aten_zeros_like_default_blocklist),
     torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
     torch.ops.aten.exp.default: partial(guard_aten, aten_exp_default_blocklist),
@@ -448,7 +441,6 @@ guard_ops = [
     "torch.ops.aten._scaled_dot_product_flash_attention.default",
     "torch.ops.aten.transpose.int",
     "torch.ops.aten.embedding.default",
-    "torch.ops.aten.zeros_like.default",
     "torch.ops.aten.div.Tensor",
     "torch.ops.aten.mul.Tensor",
     "torch.ops.aten.native_layer_norm.default",
