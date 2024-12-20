@@ -3,9 +3,9 @@
 |---:|:---------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 1, 1024]> self = ?,<br>number exponent = 2    | Unknown  | Done       | 0.999994 |      0 |
 |  1 | Tensor<[1, 1, 1024]> self = ?,<br>number exponent = 3.0  | Unknown  | Done       | 0.999996 |      0 |
-|  2 | Tensor<[1, 1, 3072]> self = ?,<br>number exponent = 3.0  | Unknown  | Done       | 0.999997 |      0 |
+|  2 | Tensor<[1, 1, 3072]> self = ?,<br>number exponent = 3.0  | Unknown  | Done       | 0.999996 |      0 |
 |  3 | Tensor<[1, 1, 4096]> self = ?,<br>number exponent = 3.0  | Unknown  | Done       | 0.999996 |      0 |
-|  4 | Tensor<[1, 1, 512]> self = ?,<br>number exponent = 2     | Unknown  | Done       | 0.999994 |      0 |
+|  4 | Tensor<[1, 1, 512]> self = ?,<br>number exponent = 2     | Unknown  | Done       | 0.999993 |      0 |
 |  5 | Tensor<[1, 1, 768]> self = ?,<br>number exponent = 2     | Unknown  | Done       | 0.999994 |      0 |
 |  6 | Tensor<[1, 10, 1024]> self = ?,<br>number exponent = 2   | Unknown  | Done       | 0.999994 |      0 |
 |  7 | Tensor<[1, 10, 512]> self = ?,<br>number exponent = 2    | Unknown  | Done       | 0.999994 |      0 |
