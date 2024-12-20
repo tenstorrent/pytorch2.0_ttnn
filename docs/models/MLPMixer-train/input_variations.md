@@ -33,10 +33,10 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | 0.999969 |      0 |
-|  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999929 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | 0.99997  |      0 |
+|  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999928 |      0 |
 |  2 | Tensor<[512]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
-|  3 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ? | Done     | Done       | 0.999886 |      0 |
+|  3 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ? | Done     | Done       | 0.999885 |      0 |
 ### aten.clone.default
 |    | ATen Input Variations                                                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -74,16 +74,16 @@
 |  0 | Tensor<[1, 1024, 512]> grad_output = ?,<br>Tensor<[1, 1024, 512]> self = ? | None     | Fallback   |     1 |     -1 |
 |  1 | Tensor<[1, 256, 256]> grad_output = ?,<br>Tensor<[1, 256, 256]> self = ?   | None     | Fallback   |     1 |     -1 |
 ### aten.mean.dim
-|    | ATen Input Variations                                            | Status   | Isolated   |      PCC |   Host |
-|---:|:-----------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 512, 256]> self = ?,<br>Optional[List[int]] dim = [2] | Done     | Done       | 0.999999 |      0 |
+|    | ATen Input Variations                                            | Status   | Isolated   |   PCC |   Host |
+|---:|:-----------------------------------------------------------------|:---------|:-----------|------:|-------:|
+|  0 | Tensor<[1, 512, 256]> self = ?,<br>Optional[List[int]] dim = [2] | Done     | Done       |     1 |      0 |
 ### aten.mm.default
 |    | ATen Input Variations                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.999858 |      0 |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.999853 |      0 |
 |  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 512]> mat2 = ?    | Done     | Done       | 0.999996 |      0 |
 |  2 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999965 |      0 |
-|  3 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999929 |      0 |
+|  3 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.99993  |      0 |
 |  4 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 768]> mat2 = ? | Done     | Done       | 0.999971 |      0 |
 |  5 | Tensor<[512, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ? | Done     | Done       | 0.999965 |      0 |
 |  6 | Tensor<[512, 256]> self = ?,<br>Tensor<[256, 768]> mat2 = ? | Done     | Done       | 0.999975 |      0 |

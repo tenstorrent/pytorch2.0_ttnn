@@ -64,8 +64,8 @@
 ### aten.permute.default
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC   | Host   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[1, 12, 50, 64]> self = ?,<br>List[int] dims = [2, 0, 1, 3] | Done     | Unknown    | N/A   | N/A    |
-|  1 | Tensor<[1, 768, 49]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Done       | 1.0   | 0      |
+|  0 | Tensor<[1, 12, 50, 64]> self = ?,<br>List[int] dims = [2, 0, 1, 3] | Done     | Done       | 1.0   | 0      |
+|  1 | Tensor<[1, 768, 49]> self = ?,<br>List[int] dims = [0, 2, 1]       | Done     | Unknown    | N/A   | N/A    |
 ### aten.select.int
 |    | ATen Input Variations                                              | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|------:|-------:|
