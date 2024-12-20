@@ -95,7 +95,7 @@
 |  91 | [aten.nll_loss_forward.default](operations/aten.nll_loss_forward.default.md)                                         |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  92 | [aten.ones.default](operations/aten.ones.default.md)                                                                 |                  2 |           0 |         0 |          0 | ✘           |    0    |
 |  93 | [aten.permute.default](operations/aten.permute.default.md)                                                           |                254 |         138 |         0 |          0 | 🚧          |    0.54 |
-|  94 | [aten.pow.Scalar](operations/aten.pow.Scalar.md)                                                                     |                  1 |           0 |         0 |          0 | ✘           |    0    |
+|  94 | [aten.pow.Scalar](operations/aten.pow.Scalar.md)                                                                     |                  1 |           1 |         0 |          0 | ✅          |    1    |
 |  95 | [aten.pow.Tensor_Scalar](operations/aten.pow.Tensor_Scalar.md)                                                       |                 21 |           8 |         0 |          0 | 🚧          |    0.38 |
 |  96 | [aten.rand.default](operations/aten.rand.default.md)                                                                 |                  1 |           0 |         0 |          0 | ✘           |    0    |
 |  97 | [aten.relu.default](operations/aten.relu.default.md)                                                                 |                426 |         387 |         0 |          0 | 🚧          |    0.91 |

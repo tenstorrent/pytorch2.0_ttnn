@@ -63,5 +63,5 @@
 ### aten.sigmoid.default
 |    | ATen Input Variations             | Status   | Isolated   |      PCC |   Host |
 |---:|:----------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 256, 256]> self = ? | Done     | Done       | 0.999754 |      0 |
+|  0 | Tensor<[1, 1, 256, 256]> self = ? | Done     | Done       | 0.999755 |      0 |
 

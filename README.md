@@ -172,7 +172,7 @@ The table below summarizes the results of running various ML models through our 
 **Torch Ops Remain (Unique Ops)**: The total number of operations used after conversion to TTNN. The number in parenthesis represents the total unique ops.  
 **To/From Device Ops**: The number of `to/from_device` operations (data transfer to/from the device).  
 **Original Run Time (ms)**: Execution time (in seconds) of the model before conversion.  
-**Compiled Run Time (ms)**: Execution time (in seconds) of the model after conversion.  
+**Compiled Run Time for 5th Iteration (ms)**: Execution time (in seconds) of the model after conversion for the 5th iteration.  
 **Accuracy (%)**: Model accuracy on a predefined test dataset after conversion.  
 
 ***

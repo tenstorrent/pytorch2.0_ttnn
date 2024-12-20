@@ -238,9 +238,9 @@
 |  2 | Tensor<[1, 384, 17, 17]> grad_output = ?,<br>Tensor<[1, 384, 35, 35]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool ceil_mode = False,<br>Tensor<[1, 384, 17, 17]> indices = ? | None     | Unknown    | N/A   | N/A    |
 |  3 | Tensor<[1, 64, 73, 73]> grad_output = ?,<br>Tensor<[1, 64, 147, 147]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool ceil_mode = False,<br>Tensor<[1, 64, 73, 73]> indices = ?  | None     | Unknown    | N/A   | N/A    |
 ### aten.mean.dim
-|    | ATen Input Variations                                                                           | Status   | Isolated   |   PCC |   Host |
-|---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 1536, 8, 8]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       |     0 |      0 |
+|    | ATen Input Variations                                                                           | Status   | Isolated   |      PCC |   Host |
+|---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
+|  0 | Tensor<[1, 1536, 8, 8]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | 0.999996 |      0 |
 ### aten.mm.default
 |    | ATen Input Variations                                        | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------|:---------|:-----------|---------:|-------:|

@@ -148,7 +148,7 @@
 ### aten.mm.default
 |    | ATen Input Variations                                        | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 2048]> mat2 = ? | Done     | Done       | 0.999968 |      0 |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 2048]> mat2 = ? | Done     | Done       | 0.999969 |      0 |
 |  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 2048]> mat2 = ?    | Done     | Done       | 0.999996 |      0 |
 ### aten.native_batch_norm_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                                                 | Status   | Isolated   |   PCC |   Host |

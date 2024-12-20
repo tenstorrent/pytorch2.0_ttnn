@@ -43,7 +43,7 @@
 ### aten.add.Tensor
 |    | ATen Input Variations                                                | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 768]> self = ?,<br>Tensor<[1, 1, 768]> other = ?       | Unknown  | Done       | 0.999998 |      0 |
+|  0 | Tensor<[1, 1, 768]> self = ?,<br>Tensor<[1, 1, 768]> other = ?       | Unknown  | Done       | 0.999997 |      0 |
 |  1 | Tensor<[1, 1, 768]> self = ?,<br>Tensor<[1, 768]> other = ?          | Unknown  | Done       | 0.999998 |      0 |
 |  2 | Tensor<[1, 1500, 768]> self = ?,<br>Tensor<[1, 1500, 768]> other = ? | Unknown  | Done       | 0.999998 |      0 |
 |  3 | Tensor<[1, 1500, 768]> self = ?,<br>Tensor<[1500, 768]> other = ?    | Unknown  | Done       | 0.999998 |      0 |

@@ -86,7 +86,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1000]> mat2 = ?   | Done     | Done       | 0.999969 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1000]> mat2 = ?   | Done     | Done       | 0.999968 |      0 |
 |  1 | Tensor<[1152]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 1152]> mat2 = ? | Done     | Done       | 0.999972 |      0 |
 |  2 | Tensor<[1536]> self = ?,<br>Tensor<[256, 384]> mat1 = ?,<br>Tensor<[384, 1536]> mat2 = ? | Done     | Done       | 0.999972 |      0 |
 |  3 | Tensor<[192]> self = ?,<br>Tensor<[1024, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?  | Done     | Done       | 0.999976 |      0 |
@@ -360,8 +360,8 @@
 |---:|:---------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 12, 64, 64]> self = ? | Done     | Done       | 0.999759 |      0 |
 |  1 | Tensor<[1, 24, 64, 64]> self = ? | Done     | Done       | 0.999755 |      0 |
-|  2 | Tensor<[1, 3, 64, 64]> self = ?  | Done     | Done       | 0.999759 |      0 |
-|  3 | Tensor<[1, 6, 64, 64]> self = ?  | Done     | Done       | 0.999757 |      0 |
+|  2 | Tensor<[1, 3, 64, 64]> self = ?  | Done     | Done       | 0.999754 |      0 |
+|  3 | Tensor<[1, 6, 64, 64]> self = ?  | Done     | Done       | 0.999753 |      0 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                                      | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|

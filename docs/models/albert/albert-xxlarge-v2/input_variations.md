@@ -56,8 +56,8 @@
 ### aten.bmm.default
 |    | ATen Input Variations                                         | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[64, 9, 64]> self = ?,<br>Tensor<[64, 64, 9]> mat2 = ? | Done     | Done       | 0.999988 |      0 |
-|  1 | Tensor<[64, 9, 9]> self = ?,<br>Tensor<[64, 9, 64]> mat2 = ?  | Done     | Done       | 0.999994 |      0 |
+|  0 | Tensor<[64, 9, 64]> self = ?,<br>Tensor<[64, 64, 9]> mat2 = ? | Done     | Done       | 0.999987 |      0 |
+|  1 | Tensor<[64, 9, 9]> self = ?,<br>Tensor<[64, 9, 64]> mat2 = ?  | Done     | Done       | 0.999995 |      0 |
 ### aten.clone.default
 |    | ATen Input Variations                                                                     | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|

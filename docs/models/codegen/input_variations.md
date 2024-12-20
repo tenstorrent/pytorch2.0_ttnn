@@ -282,10 +282,10 @@
 |  0 | List[Tensor] tensors = [<[1, 1, 16, 16]>, <[1, 1, 16, 16]>],<br>int dim = -1 | Unknown  | Done       |     1 |      0 |
 |  1 | List[Tensor] tensors = [<[1, 5, 16, 16]>, <[1, 5, 16, 16]>],<br>int dim = -1 | Unknown  | Done       |     1 |      0 |
 ### aten.sub.Tensor
-|    | ATen Input Variations                         | Status   | Isolated   | PCC   | Host   |
-|---:|:----------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[1, 5]> self = ?,<br>Tensor other = 1  | Unknown  | Done       | 1.0   | 0      |
-|  1 | Tensor<[1, s0]> self = ?,<br>Tensor other = 1 | Unknown  | Unknown    | N/A   | N/A    |
+|    | ATen Input Variations                         | Status   | Isolated   | PCC                | Host   |
+|---:|:----------------------------------------------|:---------|:-----------|:-------------------|:-------|
+|  0 | Tensor<[1, 5]> self = ?,<br>Tensor other = 1  | Unknown  | Done       | 0.9999972483924512 | 0      |
+|  1 | Tensor<[1, s0]> self = ?,<br>Tensor other = 1 | Unknown  | Unknown    | N/A                | N/A    |
 ### aten.sum.default
 |    | ATen Input Variations   | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------|:---------|:-----------|------:|-------:|

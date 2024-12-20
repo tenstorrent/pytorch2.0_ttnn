@@ -105,7 +105,7 @@
 | 17 | Tensor<[10, 10]> self = ?,<br>Tensor other = 8                               | Unknown  | Done       | 0.9998855337641596 | 0      |
 | 18 | Tensor<[10, 10]> self = ?,<br>Tensor<[10, 10]> other = ?                     | Unknown  | Done       | 0.9999979298883173 | 0      |
 | 19 | Tensor<[2, 2]> self = ?,<br>Tensor other = 0                                 | Unknown  | Done       | 1.0                | 0      |
-| 20 | Tensor<[2, 2]> self = ?,<br>Tensor other = 16                                | Unknown  | Done       | 1.0                | 0      |
+| 20 | Tensor<[2, 2]> self = ?,<br>Tensor other = 16                                | Unknown  | Done       | 0.9986732864461935 | 0      |
 | 21 | Tensor<[s0 + 1, s0 + 1]> self = ?,<br>Tensor other = 0                       | Unknown  | Unknown    | N/A                | N/A    |
 | 22 | Tensor<[s0 + 1, s0 + 1]> self = ?,<br>Tensor other = 16                      | Unknown  | Unknown    | N/A                | N/A    |
 ### aten.arange.default
@@ -159,12 +159,12 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                                | Status   | Isolated   | PCC   | Host   |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[32, 12]> weight = ?,<br>Tensor<[1, 1]> indices = ?           | Unknown  | Done       | 1.0   | 0      |
-|  1 | Tensor<[32, 12]> weight = ?,<br>Tensor<[10, 10]> indices = ?         | Unknown  | Done       | 1.0   | 0      |
-|  2 | Tensor<[32, 12]> weight = ?,<br>Tensor<[2, 2]> indices = ?           | Unknown  | Done       | 1.0   | 0      |
+|  0 | Tensor<[32, 12]> weight = ?,<br>Tensor<[1, 1]> indices = ?           | Unknown  | Unknown    | N/A   | N/A    |
+|  1 | Tensor<[32, 12]> weight = ?,<br>Tensor<[10, 10]> indices = ?         | Unknown  | Unknown    | N/A   | N/A    |
+|  2 | Tensor<[32, 12]> weight = ?,<br>Tensor<[2, 2]> indices = ?           | Unknown  | Unknown    | N/A   | N/A    |
 |  3 | Tensor<[32, 12]> weight = ?,<br>Tensor<[s0 + 1, s0 + 1]> indices = ? | Unknown  | Unknown    | N/A   | N/A    |
-|  4 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?      | Unknown  | Unknown    | N/A   | N/A    |
-|  5 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?       | Unknown  | Done       | 1.0   | 0      |
+|  4 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 10]> indices = ?      | Unknown  | Done       | 1.0   | 0      |
+|  5 | Tensor<[32128, 768]> weight = ?,<br>Tensor<[1, 1]> indices = ?       | Unknown  | Unknown    | N/A   | N/A    |
 ### aten.expand.default
 |    | ATen Input Variations                                                           | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|

@@ -106,7 +106,7 @@
 |  1 | Tensor<[1, 120, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
 |  2 | Tensor<[1, 144, 14, 14]> self = ?  | Done     | Done       | 0.999994 |      0 |
 |  3 | Tensor<[1, 16, 112, 112]> self = ? | Done     | Done       | 0.999993 |      0 |
-|  4 | Tensor<[1, 240, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
+|  4 | Tensor<[1, 240, 14, 14]> self = ?  | Done     | Done       | 0.999994 |      0 |
 |  5 | Tensor<[1, 288, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
 |  6 | Tensor<[1, 288, 7, 7]> self = ?    | Done     | Done       | 0.999993 |      0 |
 |  7 | Tensor<[1, 576, 7, 7]> self = ?    | Done     | Done       | 0.999994 |      0 |

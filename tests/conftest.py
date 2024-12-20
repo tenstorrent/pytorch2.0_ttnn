@@ -27,6 +27,12 @@ def pytest_addoption(parser):
     parser.addoption("--input_var_only_native", action="store_true")
     parser.addoption("--input_var_check_ttnn", action="store_true")
     parser.addoption("--input_var_check_accu", action="store_true")
+    parser.addoption(
+        "--report_nth_iteration",
+        action="store",
+        default=1,
+        help="Run up to the specified iteration count and report metrics based on this iteration.",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -162,12 +168,20 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 metrics_path=model_name,
                 verbose=True,
             )
-            start = time.perf_counter() * 1000
+            for idx in range(int(request.config.getoption("--report_nth_iteration"))):
+                start = time.perf_counter() * 1000
+                # Don't need to reset options if inputs don't change because of cache
+                outputs_after = model_tester.test_model(as_ttnn=True, option=option)
+                end = time.perf_counter() * 1000
+                run_time = end - start
+                if idx == 0:
+                    first_iter_runtime = run_time
 
-            outputs_after = model_tester.test_model(as_ttnn=True, option=option)
-
-            end = time.perf_counter() * 1000
-            comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
+            comp_runtime_metrics = {
+                "success": True,
+                "run_time": round(run_time, 2),
+                "run_time_first_iter": round(first_iter_runtime, 2),
+            }
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
             if len(option._out_fx_graphs) > 0:

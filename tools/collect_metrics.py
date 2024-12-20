@@ -36,8 +36,8 @@ csv_header_mappings = {
         "Execution time (in seconds) of the model before conversion.",
     ),
     "compiled_run_time": (
-        "Compiled Run Time (ms)",
-        "Execution time (in seconds) of the model after conversion.",
+        "Compiled Run Time for 5th Iteration (ms)",
+        "Execution time (in seconds) of the model after conversion for the 5th iteration.",
     ),
     "accuracy": (
         "Accuracy (%)",

@@ -62,9 +62,9 @@
 |  8 | Tensor<[1, 64, 112, 112]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0 | Done     | Done       |     1 |      0 |
 |  9 | Tensor<[1, 64, 56, 56]> self = ?,<br>number min_val = 0.0,<br>number max_val = 6.0   | Done     | Done       |     1 |      0 |
 ### aten.mean.dim
-|    | ATen Input Variations                                                                           | Status   | Isolated   |      PCC |   Host |
-|---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       | 0.999996 |      0 |
+|    | ATen Input Variations                                                                           | Status   | Isolated   |   PCC |   Host |
+|---:|:------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
+|  0 | Tensor<[1, 1024, 7, 7]> self = ?,<br>Optional[List[int]] dim = [-1, -2],<br>bool keepdim = True | Done     | Done       |     0 |      0 |
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------|:---------|:-----------|------:|-------:|

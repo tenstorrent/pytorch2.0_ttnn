@@ -259,7 +259,7 @@
 |  2 | Tensor<[1, 200, 20, 20]> self = ?  | Unknown  | Done       | 0.999994 |      0 |
 |  3 | Tensor<[1, 240, 20, 20]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
 |  4 | Tensor<[1, 240, 40, 40]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
-|  5 | Tensor<[1, 480, 10, 10]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
+|  5 | Tensor<[1, 480, 10, 10]> self = ?  | Unknown  | Done       | 0.999994 |      0 |
 |  6 | Tensor<[1, 480, 20, 20]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
 |  7 | Tensor<[1, 672, 10, 10]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
 |  8 | Tensor<[1, 672, 20, 20]> self = ?  | Unknown  | Done       | 0.999993 |      0 |

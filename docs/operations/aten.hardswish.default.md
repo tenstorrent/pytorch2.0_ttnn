@@ -2,7 +2,7 @@
 |    | ATen Input Variations              | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 1024]> self = ?         | Done     | Done       | 0.999994 |      0 |
-|  1 | Tensor<[1, 120, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
+|  1 | Tensor<[1, 120, 14, 14]> self = ?  | Done     | Done       | 0.999994 |      0 |
 |  2 | Tensor<[1, 1280]> self = ?         | Done     | Done       | 0.999993 |      0 |
 |  3 | Tensor<[1, 144, 14, 14]> self = ?  | Done     | Done       | 0.999994 |      0 |
 |  4 | Tensor<[1, 16, 112, 112]> self = ? | Done     | Done       | 0.999993 |      0 |
@@ -16,7 +16,7 @@
 | 12 | Tensor<[1, 240, 28, 28]> self = ?  | Done     | Done       | 0.999993 |      0 |
 | 13 | Tensor<[1, 240, 40, 40]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
 | 14 | Tensor<[1, 288, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
-| 15 | Tensor<[1, 288, 7, 7]> self = ?    | Done     | Done       | 0.999993 |      0 |
+| 15 | Tensor<[1, 288, 7, 7]> self = ?    | Done     | Done       | 0.999994 |      0 |
 | 16 | Tensor<[1, 480, 10, 10]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
 | 17 | Tensor<[1, 480, 14, 14]> self = ?  | Done     | Done       | 0.999994 |      0 |
 | 18 | Tensor<[1, 480, 20, 20]> self = ?  | Unknown  | Done       | 0.999993 |      0 |
