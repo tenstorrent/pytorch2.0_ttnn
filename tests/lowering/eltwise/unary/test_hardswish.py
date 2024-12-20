@@ -47,7 +47,7 @@ class HardSwishModule(torch.nn.Module):
         (2, 3, 4, 5),
         (7, 7, 7),
         (420, 69),
-        pytest.param((1337,), marks=pytest.mark.xfail(reason="1D cases solved in #198, waiting for review")),
+        (1337,),
     ),
 )
 def test_hardswish(device, input_shape):

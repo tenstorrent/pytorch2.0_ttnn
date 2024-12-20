@@ -38,7 +38,7 @@
 ### aten._softmax.default
 |    | ATen Input Variations                                                         | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[16, 19, 19]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999617 |      0 |
+|  0 | Tensor<[16, 19, 19]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999618 |      0 |
 ### aten._to_copy.default
 |    | ATen Input Variations                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -107,9 +107,9 @@
 |---:|:------------------------------------------------------|:---------|:-----------|:------|:-------|
 |  0 | Tensor<[1, 16, 19, 19]> self = ?,<br>Tensor other = ? | None     | Unknown    | N/A   | N/A    |
 ### aten.mm.default
-|    | ATen Input Variations                                           | Status   | Isolated   |     PCC |   Host |
-|---:|:----------------------------------------------------------------|:---------|:-----------|--------:|-------:|
-|  0 | Tensor<[19, 1024]> self = ?,<br>Tensor<[1024, 256008]> mat2 = ? | Done     | Done       | 0.99984 |      0 |
+|    | ATen Input Variations                                           | Status   | Isolated   |      PCC |   Host |
+|---:|:----------------------------------------------------------------|:---------|:-----------|---------:|-------:|
+|  0 | Tensor<[19, 1024]> self = ?,<br>Tensor<[1024, 256008]> mat2 = ? | Done     | Done       | 0.999839 |      0 |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                   | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------|:---------|:-----------|------:|-------:|

@@ -33,8 +33,8 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | 0.99997  |      0 |
-|  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999928 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | 0.999969 |      0 |
+|  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999927 |      0 |
 |  2 | Tensor<[512]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
 |  3 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ? | Done     | Done       | 0.999885 |      0 |
 ### aten.clone.default
@@ -80,9 +80,9 @@
 ### aten.mm.default
 |    | ATen Input Variations                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.999853 |      0 |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.999874 |      0 |
 |  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 512]> mat2 = ?    | Done     | Done       | 0.999996 |      0 |
-|  2 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999965 |      0 |
+|  2 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999966 |      0 |
 |  3 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.99993  |      0 |
 |  4 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 768]> mat2 = ? | Done     | Done       | 0.999971 |      0 |
 |  5 | Tensor<[512, 256]> self = ?,<br>Tensor<[256, 256]> mat2 = ? | Done     | Done       | 0.999965 |      0 |

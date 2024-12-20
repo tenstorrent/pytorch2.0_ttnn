@@ -31,9 +31,8 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.asin,
     ttnn.asinh,
     ttnn.atan,
-    ttnn.atan2,  # binary
     ttnn.atanh,
-    #  ttnn.clone,  in target_wrappers
+    ttnn.ceil,
     ttnn.cos,
     ttnn.cosh,
     ttnn.elu,
@@ -58,6 +57,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.reciprocal,
     ttnn.relu,
     ttnn.remainder,
+    ttnn.round,
     ttnn.rsqrt,
     ttnn.sigmoid,
     ttnn.softmax,
@@ -68,11 +68,13 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.sqrt,
     ttnn.tan,
     ttnn.tanh,
+    ttnn.trunc,
 ]
 
 
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
+    ttnn.atan2,
     ttnn.div,
     ttnn.eqz,
     ttnn.gez,
@@ -309,7 +311,6 @@ class NodeInputAligner:
         if node.target in [
             ttnn.split,
             ttnn.embedding,
-            ttnn.zeros_like,
             target_wrappers.repeat,
             target_wrappers.roll,
             target_wrappers.stack,
