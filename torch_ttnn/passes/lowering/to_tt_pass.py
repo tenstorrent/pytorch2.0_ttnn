@@ -94,15 +94,19 @@ def is_getitem_0_only_user(node):
     )
 
 
-def insert_nchw_to_nhwc(g, input_tensor):
-    return g.call_function(ttnn.permute, (input_tensor, (0, 2, 3, 1)))
+def insert_nchw_to_nhwc(g, input_tensor, input_shape):
+    return g.call_function(ttnn.permute, (input_tensor, (0, 2, 1) if len(input_shape) < 4 else (0, 2, 3, 1)))
 
 
 def insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape):
-    batch_size, out_c, out_h, out_w = output_shape
+    is_1d = len(output_shape) < 4
+    if is_1d:
+        target_shape = (output_shape[0], output_shape[2], output_shape[1])
+    else:
+        target_shape = (output_shape[0], output_shape[2], output_shape[3], output_shape[1])
     output_tensor = g.call_function(ttnn.sharded_to_interleaved, (output_tensor, TtnnL1MemoryConfig()))
-    output_tensor = g.call_function(ttnn.reshape, (output_tensor, (batch_size, out_h, out_w, out_c)))
-    return g.call_function(ttnn.permute, (output_tensor, (0, 3, 1, 2)))
+    output_tensor = g.call_function(ttnn.reshape, (output_tensor, target_shape))
+    return g.call_function(ttnn.permute, (output_tensor, (0, 2, 1) if is_1d else (0, 3, 1, 2)))
 
 
 TTNN_POINTWISE_UNARY_OPS = {
@@ -965,8 +969,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 input_tensor = params["input_tensor"]
+                input_shape = input_tensor.meta["val"].size()
+                batch_size, in_c, in_h, in_w = input_shape
                 kernel_size = params["kernel_size"]
-                batch_size, in_c, in_h, in_w = input_tensor.meta["val"].size()
                 stride = params.get("stride", kernel_size)
                 padding = params.get("padding", (0, 0))
                 dilation = params.get("dilation", (1, 1))
@@ -987,7 +992,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 ):
                     return None
 
-                input_tensor = insert_nchw_to_nhwc(g, input_tensor)
+                input_tensor = insert_nchw_to_nhwc(g, input_tensor, input_shape)
                 # TODO(#423): reshape can be removed if (N, H, W, C) is supported
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
                 # TODO(#418): max_pool2d fails with input tensors in tile layout for some shapes
@@ -1029,6 +1034,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 input_node = params["input_tensor"]
+                input_shape = input_node.meta["val"].size()
+                is_conv1d = len(input_shape) < 4
+
                 weight_tensor = params["weight_tensor"]
                 transposed = params.get("transposed", False)
                 groups = params.get("groups", 1)
@@ -1037,15 +1045,20 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 dilation = params.get("dilation", [1, 1])
                 output_padding = params.get("output_padding", [0, 0])
 
-                input_shape = input_node.meta["val"].size()
-                if len(input_shape) < 4:
-                    return None
-
-                batch_size, in_c, in_h, in_w = input_shape
-                out_a, out_b, kernel_h, kernel_w = weight_tensor.meta["val"].size()
+                if is_conv1d:
+                    batch_size, in_c, in_h = input_shape
+                    out_a, out_b, kernel_h = weight_tensor.meta["val"].size()
+                    in_w = 1
+                    kernel_w = 1
+                    stride = [stride[0], stride[0]]
+                    padding = [padding[0], padding[0]]
+                    dilation = [dilation[0], dilation[0]]
+                else:
+                    batch_size, in_c, in_h, in_w = input_shape
+                    out_a, out_b, kernel_h, kernel_w = weight_tensor.meta["val"].size()
                 out_c = out_b if transposed else out_a
 
-                input_tensor = insert_nchw_to_nhwc(g, input_node)
+                input_tensor = insert_nchw_to_nhwc(g, input_node, input_shape)
                 # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
                 bias_node = params.get("bias_tensor", None)
@@ -1080,7 +1093,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 output_shape = node.meta["val"].size()
-                return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
+                return output_tensor
+                # return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
 
             if node.target == torch.ops.aten.slice_scatter.default:
                 tensor, src_tensor, dim, start, end, *step = args
