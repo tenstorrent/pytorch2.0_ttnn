@@ -29,6 +29,13 @@ aten__scaled_dot_product_flash_attention_default_blocklist = [
         "bool is_causal = True",
     ],
 ]
+aten_div_Tensor_blocklist = [
+    ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
+    ["Tensor<[1, 23, 40, 1]> self = ?", "Tensor<[128]> other = ?"],
+    ["Tensor<[1, 12, 7, 7]> self = ?", "Tensor<[]> other = ?"],
+    ["Tensor<[1, 16, 5, 5]> self = ?", "Tensor<[]> other = ?"],
+    ["Tensor<[1, 16, 1, 6]> self = ?", "Tensor<[]> other = ?"],
+]
 aten_native_layer_norm_default_blocklist = [
     [
         "Tensor<[1, 9, 4096]> input = ?",
@@ -343,6 +350,7 @@ GUARD = {
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
+    torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
     torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),
