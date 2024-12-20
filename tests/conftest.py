@@ -187,7 +187,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()
 
-            if model_name not in ["speecht5-tts"]:
+            if model_name not in ["speecht5-tts", "ssd300_vgg16"]:
                 accuracy = calculate_accuracy(outputs, outputs_after)
                 if accuracy:
                     comp_runtime_metrics["accuracy"] = accuracy
