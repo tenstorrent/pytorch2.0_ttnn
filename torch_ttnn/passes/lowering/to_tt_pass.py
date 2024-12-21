@@ -155,9 +155,18 @@ TTNN_POINTWISE_UNARY_OPS = {
 class ReplaceMoreTt(torch.fx.Transformer):
     def __init__(self, module, device, use_less_ttnn_op_types):
         super().__init__(module)
-        self._input_node_meta = {node.name: node.meta for node in self.module.graph.nodes if node.op == "placeholder"}
+        get_meta_for_op = lambda op: {node.name: node.meta for node in self.module.graph.nodes if node.op == op}
+        self._input_node_meta = get_meta_for_op("placeholder")
+        self._get_attr_meta = get_meta_for_op("get_attr")
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
+
+    def get_attr(self, target, args, kwargs):
+        # Restore original metadata for get_attr nodes
+        proxy = super().get_attr(target, args, kwargs)
+        if proxy.node.name in self._get_attr_meta:
+            proxy.node.meta = self._get_attr_meta[proxy.node.name]
+        return proxy
 
     def placeholder(self, target, args, kwargs):
         # Restore original metadata for placeholder nodes
@@ -549,10 +558,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.add, args=(beta_node, new_node))
 
             if node.target == torch.ops.aten.embedding.default:
-                tiled = args[1].meta.get("val")
-                tiled = False if tiled is None else tiled.size()[-1] % ttnn.TILE_SIZE == 0
+                tensor_meta = args[1].meta.get("val")
+                tiled = False if tensor_meta is None else tensor_meta.size()[-1] % ttnn.TILE_SIZE == 0
                 layout = TtnnTileLayout() if tiled else TtnnRowMajorLayout()
                 tensor = g.call_function(ttnn.embedding, (args[1], args[0]), {"layout": layout})
+                # TODO: Remove this squeeze when issue is fixed: https://github.com/tenstorrent/pytorch2.0_ttnn/issues/660
+                if len(tensor_meta.size()) == 1:
+                    tensor = g.call_function(ttnn.squeeze, (tensor, 0))
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten._log_softmax.default:
