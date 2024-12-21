@@ -26,7 +26,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_glpn_kitti(record_property, mode):
     model_name = "GLPN-KITTI"
     record_property("model_name", model_name)

@@ -12,6 +12,7 @@ from torch_ttnn.utils import (
 from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
+from operator import getitem
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -30,9 +31,8 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.asin,
     ttnn.asinh,
     ttnn.atan,
-    ttnn.atan2,  # binary
     ttnn.atanh,
-    #  ttnn.clone,  in target_wrappers
+    ttnn.ceil,
     ttnn.cos,
     ttnn.cosh,
     ttnn.elu,
@@ -57,6 +57,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.reciprocal,
     ttnn.relu,
     ttnn.remainder,
+    ttnn.round,
     ttnn.rsqrt,
     ttnn.sigmoid,
     ttnn.softmax,
@@ -67,11 +68,13 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.sqrt,
     ttnn.tan,
     ttnn.tanh,
+    ttnn.trunc,
 ]
 
 
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
+    ttnn.atan2,
     ttnn.div,
     ttnn.eqz,
     ttnn.gez,
@@ -136,6 +139,8 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.pack_to_tuple,
     target_wrappers.move_to_host,
     target_wrappers.conv2d,
+    target_wrappers.roll,
+    target_wrappers.stack,
 ]
 
 TTNN_NORM_OPS = [
@@ -151,6 +156,7 @@ TTNN_LAYOUT_CHANGE_OPS = set(
     [
         ttnn.reshape,
         ttnn.slice,
+        ttnn.argmax,
     ]
 )
 
@@ -180,6 +186,7 @@ def is_tt_compute(node) -> bool:
             ttnn.ones,
             ttnn.tril,
             ttnn.arange,
+            ttnn.zeros,
             ttnn.zeros_like,
             ttnn.mean,
             ttnn.moreh_cumsum,
@@ -191,6 +198,7 @@ def is_tt_compute(node) -> bool:
             ttnn.moreh_cumsum,
             ttnn.sum,
             ttnn.typecast,
+            ttnn.argmax,
         ]
     )
 
@@ -300,18 +308,42 @@ class NodeInputAligner:
         if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
-        if node.target in [ttnn.embedding, ttnn.zeros_like, target_wrappers.repeat]:
+        if node.target in [
+            ttnn.split,
+            ttnn.embedding,
+            target_wrappers.repeat,
+            target_wrappers.roll,
+            target_wrappers.stack,
+        ]:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout
             spec.device = TtnnDevice
+        if node.target == target_wrappers.conv2d and input_site == 1:
+            # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
+            spec.layout = TtnnRowMajorLayout
+            spec.device = "host"
+        if (
+            node.target == ttnn.reshape
+            and hasattr(spec.input_node, "meta")
+            and "val" in spec.input_node.meta
+            and hasattr(spec.input_node.meta["val"], "dtype")
+            and spec.input_node.meta["val"].dtype in [torch.int32, torch.int64]
+        ):
+            spec.dtype = TtnnUint32
         return spec
 
     def _reset_to_default_layout(self, input_node, spec):
+        # split(list of tensor with row major layout) => getitem(row major layout)
+        # convert back to tile layout
+        if input_node.target == getitem and input_node.args[0].target == ttnn.split:
+            spec.layout = TtnnTileLayout
         # legalize to the default layout and device
         if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(
             set(
                 [
                     target_wrappers.repeat,
+                    target_wrappers.roll,
+                    target_wrappers.stack,
                     ttnn.concat,
                 ]
             )
@@ -375,25 +407,15 @@ class NodeInputAligner:
         aligning_nodes = []
         g = self.graph
         if isinstance(spec, self.AlignSpecFromTorch):
-            kwargs = {"layout": TtnnTileLayout(), "device": TtnnDevice()}
+            kwargs = {}
+            if spec.device is not None and spec.device != "host":
+                kwargs["device"] = spec.device()
+            if spec.layout is not None:
+                kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
             aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
-            if spec.layout != TtnnTileLayout:
-                self._change_layout(spec, aligning_nodes)
-            # cannot implement by this, or perceiver_io will get this error
-            # allocator.cpp:145: Out of Memory: Not enough space to allocate 6442450944 B DRAM buffer across 12 banks, where each bank needs to store 536870912 B
-            # see issue #552
-            # kwargs = {}
-            # if spec.device is not None and spec.device != "host":
-            #     kwargs["device"] = spec.device()
-            # if spec.layout is not None:
-            #     kwargs["layout"] = spec.layout()
-            # if spec.dtype is not None:
-            #     kwargs["dtype"] = spec.dtype()
-            # aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
         elif isinstance(spec, self.AlignSpecToTorch):
-            target_users_ops = [user.target for user in spec.input_node.users.keys()]
             aligning_nodes.append(call_to_torch_with_meta(g, spec.input_node, spec.dtype))
         elif isinstance(spec, self.AlignSpecInTtnn):
             self._change_layout(spec, aligning_nodes)

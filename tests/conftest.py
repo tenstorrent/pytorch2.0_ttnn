@@ -12,16 +12,29 @@ from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
 import subprocess
 import sys
+import logging
 
 import torch_ttnn.generate_op_accuracy_tests as generate_op_accuracy_tests
 
 mb_in_bytes = 1048576
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("test_fixture.log"), logging.StreamHandler()],
+)
 
 
 def pytest_addoption(parser):
     parser.addoption("--input_var_only_native", action="store_true")
     parser.addoption("--input_var_check_ttnn", action="store_true")
     parser.addoption("--input_var_check_accu", action="store_true")
+    parser.addoption(
+        "--report_nth_iteration",
+        action="store",
+        default=1,
+        help="Run up to the specified iteration count and report metrics based on this iteration.",
+    )
     parser.addoption("--gen_op_accuracy_tests", action="store_true")
 
 
@@ -43,9 +56,36 @@ def input_var_check_ttnn(request):
 @pytest.fixture(scope="session")
 def device():
     # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined
-    device = ttnn.open_device(device_id=0, l1_small_size=16384)
+    device_id = 0
+    l1_small_size = 16384
+    dispatch_core_config = get_dispatch_core_config()
+
+    device = ttnn.open_device(device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=16384)
+
+    ttnn.SetDefaultDevice(device)
+
     yield device
+
+    ttnn.synchronize_device(device)
     ttnn.close_device(device)
+
+
+def get_dispatch_core_type():
+    # Instead of conditionally returning WORKER or ETH, here we always return ETH
+    # Without setting this property, we get less cores availble on N300 than on N150, which might lead to inconsistent and sub-sufficient results
+    return ttnn.device.DispatchCoreType.ETH
+
+
+def get_dispatch_core_axis():
+    # Should be ttnn.DispatchCoreAxis.COL for Blackhole
+    return ttnn.DispatchCoreAxis.ROW
+
+
+def get_dispatch_core_config():
+    dispatch_core_type = get_dispatch_core_type()
+    dispatch_core_axis = get_dispatch_core_axis()
+    dispatch_core_config = ttnn.DispatchCoreConfig(dispatch_core_type, dispatch_core_axis)
+    return dispatch_core_config
 
 
 @pytest.fixture(autouse=True)
@@ -77,7 +117,8 @@ def skip_by_platform(request, device):
 
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
-    # Initialize early to ensure it's defined
+    logging.info("Starting the compile_and_run fixture.")
+
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
     comp_runtime_metrics = {
         "success": False,
@@ -85,39 +126,44 @@ def compile_and_run(device, reset_torch_dynamo, request):
         "peak_sram_usage": 0,
     }
     try:
+        logging.debug("Initializing test run timing.")
         start = time.perf_counter() * 1000
         yield
         end = time.perf_counter() * 1000
         runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
+        logging.info(f"Test run completed successfully in {runtime_metrics['run_time']} ms.")
     except Exception as e:
         runtime_metrics = {"success": False}
-        print(f"{model_name} original failed to run. Raised exception: {e}")
+        logging.error(f"Test run failed. Exception: {e}", exc_info=True)
         raise
     finally:
+        logging.debug("Processing runtime metrics.")
         record = dict(request.node.user_properties)
         model_path = Path(request.node.location[0])
         runtime_metrics["model_path"] = str(model_path.parent)
+
         if "model_name" in record:
+            model_name = record["model_name"]
             if "mode" in record and record["mode"] != "eval":
-                model_name = f"{record['model_name']}-{record['mode']}"
-            else:
-                model_name = record["model_name"]
+                model_name = f"{model_name}-{record['mode']}"
             p = Path(f"metrics/{model_name}")
             os.makedirs(p, exist_ok=True)
 
-            original_metrics_path = p / f"original-run_time_metrics.pickle"
+            original_metrics_path = p / "original-run_time_metrics.pickle"
             with open(original_metrics_path, "wb") as f:
                 pickle.dump(runtime_metrics, f)
+            logging.info(f"Runtime metrics saved to {original_metrics_path}.")
 
     if "torch_ttnn" in record:
         model_tester, outputs = record["torch_ttnn"]
         from tests.utils import ModelTester
 
         if not isinstance(model_tester, ModelTester):
+            logging.error("model_tester must be an instance of ModelTester.")
             raise TypeError("model_tester must be instance of ModelTester")
 
         try:
-            # Compile model with ttnn backend
+            logging.debug("Compiling model with ttnn backend.")
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
@@ -127,12 +173,21 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 gen_op_accuracy_tests=request.config.getoption("--gen_op_accuracy_tests"),
             )
 
-            start = time.perf_counter() * 1000
+            for idx in range(int(request.config.getoption("--report_nth_iteration"))):
+                start = time.perf_counter() * 1000
+                # Don't need to reset options if inputs don't change because of cache
+                outputs_after = model_tester.test_model(as_ttnn=True, option=option)
+                end = time.perf_counter() * 1000
+                run_time = end - start
+                if idx == 0:
+                    first_iter_runtime = run_time
 
-            outputs_after = model_tester.test_model(as_ttnn=True, option=option)
-
-            end = time.perf_counter() * 1000
-            comp_runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
+            comp_runtime_metrics = {
+                "success": True,
+                "run_time": round(run_time, 2),
+                "run_time_first_iter": round(first_iter_runtime, 2),
+            }
+            logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
             # set to one variable?
             if request.config.getoption("--gen_op_accuracy_tests"):
@@ -142,82 +197,56 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()
-            if model_name not in ["speecht5-tts"]:
+
+            if model_name not in ["speecht5-tts", "ssd300_vgg16"]:
                 accuracy = calculate_accuracy(outputs, outputs_after)
                 if accuracy:
                     comp_runtime_metrics["accuracy"] = accuracy
-            # dump compiled aten schemas
+                    logging.info(f"Accuracy calculated: {accuracy}.")
+
             metrics.save_pickle(
                 [x.dict() for x in option.compiled_schema_list],
                 option.metrics_path,
                 "compiled-schema_list",
             )
-
-            # # Memory analysis
-            # TODO: re-enable memory analysis
-
-            # mm = option.memory_manager
-            # # Convert bytes to MB
-            # peak_usage = mm.peak_sram_usage / mb_in_bytes
-            # comp_runtime_metrics["peak_sram_usage"] = peak_usage
-
-            # if mem_utils.check_sram_overflow(mm) is True:
-            #     comp_runtime_metrics["fits_in_memory"] = "No"
-            # else:
-            #     comp_runtime_metrics["fits_in_memory"] = "Yes"
-
-            # # These are for plotting charts for later inspection
-            # from tools.plot_chart import (
-            #     plot_mem_footprint_bar_chart,
-            #     plot_mem_footprint_line_chart,
-            # )
-
-            # bar_chart_file = f"metrics/{model_name}/bar_chart.png"
-            # line_chart_file = f"metrics/{model_name}/line_chart.png"
-            # plot_mem_footprint_bar_chart(mm.data_points, bar_chart_file)
-            # plot_mem_footprint_line_chart(mm.data_points, line_chart_file)
-
-            # log_file = f"metrics/{model_name}/memory_footprint.txt"
-            # with open(log_file, "w") as f:
-            #     f.write(mm.logs)
-
         except Exception as e:
+            logging.error("Compilation failed.", exc_info=True)
             comp_runtime_metrics = {
                 "success": False,
                 "fits_in_memory": "N/A",
                 "peak_sram_usage": 0,
             }
             try:
-                # Rerun with bypass option to collect aten op metrics
+                logging.debug("Attempting rerun with bypass option to collect aten op metrics.")
                 torch._dynamo.reset()
                 option.bypass_compile = True
                 option.reset_containers()
                 model_tester.test_model(as_ttnn=True, option=option)
             except Exception as e2:
-                err_msg = f"{model_name} - Torch run with bypass compilation failed. "
-                err_msg += "Please check whether `model` or `model.generate` is passed to `record_property`."
-                raise TypeError(err_msg) from e2
+                logging.critical(
+                    "Rerun with bypass compilation failed. Please check model or model.generate.",
+                    exc_info=True,
+                )
+                raise TypeError(
+                    f"{model_name} - Torch run with bypass compilation failed. "
+                    "Please check whether `model` or `model.generate` is passed to `record_property`."
+                ) from e2
             else:
                 if request.node.get_closest_marker("compilation_xfail"):
                     pytest.xfail()
                 else:
                     raise TypeError(f"{model_name} compiled failed to run.") from e
         finally:
-            # dump original aten schemas
+            logging.debug("Saving metrics.")
             metrics.save_pickle(
                 [x.dict() for x in option.original_schema_list],
                 option.metrics_path,
                 "original-schema_list",
             )
-            compiled_metrics_path = p / f"compiled-run_time_metrics.pickle"
+            compiled_metrics_path = p / "compiled-run_time_metrics.pickle"
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
-            # dump compiled aten schemas
-            metrics.save_pickle(
-                [x.dict() for x in option.compiled_schema_list],
-                option.metrics_path,
-                "compiled-schema_list",
-            )
+            logging.info(f"Compiled runtime metrics saved to {compiled_metrics_path}.")
 
 
 def run_model(model, inputs):

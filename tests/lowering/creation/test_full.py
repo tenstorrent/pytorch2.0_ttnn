@@ -1,7 +1,6 @@
 import torch
 import torch_ttnn
 import pytest
-import ttnn
 
 
 class FullModule(torch.nn.Module):
@@ -14,7 +13,11 @@ class FullModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(64, 128)]],
+    [
+        [(64, 128)],
+        [(19, 19)],
+        [(59, 59)],
+    ],
 )
 def test_full(device, input_shapes):
     m = FullModule()
@@ -29,6 +32,7 @@ def test_full(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.full) == 1
+    # Check the graph has be rewritten and aten ops are replaced
+    assert not any(node.target == torch.ops.aten.full.default for node in nodes)
     # Check inference result
     assert torch.allclose(result_before, result_after)

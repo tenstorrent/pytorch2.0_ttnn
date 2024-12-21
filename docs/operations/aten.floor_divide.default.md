@@ -1,5 +1,5 @@
 ### aten.floor_divide.default
-|    | ATen Input Variations                       | Status   | Isolated   |   PCC |   Host |
-|---:|:--------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[128]> self = ?,<br>Tensor other = 2 | None     | Fallback   |     1 |     -1 |
+|    | ATen Input Variations                | Status   | Isolated   | PCC   | Host   |
+|---:|:-------------------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor self = ?,<br>Tensor other = 2 | None     | Unknown    | N/A   | N/A    |
 
