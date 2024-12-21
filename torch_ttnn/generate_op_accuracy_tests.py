@@ -91,7 +91,6 @@ def node_to_python_code(node):
         wrapper_funcs.add(lines)
 
     # find a better way to use registered custom builtins to replace TTNN constants
-    # statement = f"{node} = {opname}({str(node.args)[1:-1]}, {format_dict(node.kwargs)})"
     statement = f"{node} = {opname}({node_args}, {format_dict(node.kwargs)})"
     replace_map = {
         "ttnn_Specified_Device": "device",
@@ -275,10 +274,10 @@ def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_i
 
     # test_accuracy helper code
     test_accuracy_code = """
-def test_accuracy(tensor1, tensor2):
-    if isinstance(tensor2, ttnn.Tensor):
-        tensor2 = ttnn.to_torch(tensor2)
-    assert_with_pcc(tensor1, tensor2, pcc = 0.90)
+def test_accuracy(expected, actual):
+    if isinstance(actual, ttnn.Tensor):
+        actual = ttnn.to_torch(actual)
+    assert_with_pcc(expected, actual, pcc = 0.90)
 """
 
     # pcc functions
