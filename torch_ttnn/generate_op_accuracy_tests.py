@@ -3,6 +3,7 @@ import lzma
 import pickle
 import torch.utils._pytree as pytree
 import ttnn
+import torch
 import types
 
 from collections import defaultdict
@@ -28,12 +29,23 @@ def generate_flat_args(gm, example_inputs):
     return full_args
 
 
+def get_opname(node):
+    if hasattr(node.target, "__name__"):
+        return node.target.__name__
+    elif str(node.target).startswith("aten."):
+        return str(node.target)
+    elif isinstance(node.op, str):
+        return node.target
+    else:
+        raise
+
+
 # rename node names because some wrapper or built-in functions have the same name
 def rename_nodes(graph, prefix):
     for node in graph.nodes:
         if node.op != "placeholder" and node.op != "output":
             # simplify or put this in a new function
-            opname = str(node.target) if str(node.target).startswith("aten.") else node.target.__name__
+            opname = get_opname(node)
             if not opname.startswith("aten.") and not opname.startswith("ttnn."):
                 node._rename(f"{prefix}_{node.name}")
     return graph
@@ -48,6 +60,15 @@ def format_dict(obj):
 def node_to_python_code(node):
     # assume no placeholder and output?
     assert node.op not in ["placeholder", "output"]
+
+    # handle get_attr nodes
+    if node.op == "get_attr":
+        # Embed get_attr constant into code
+        tensor_data = getattr(node.graph.owning_module, node.target).data
+        torch.set_printoptions(profile="full")
+        statement = f"{node} = torch.{tensor_data}"
+        torch.set_printoptions(profile="default")
+        return statement
 
     node_args = ", ".join([str(arg) for arg in node.args])
 

@@ -11,6 +11,7 @@ from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
 import torch_ttnn.generate_op_accuracy_tests as generate_op_accuracy_tests
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
+import copy
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -108,7 +109,7 @@ def aten_backend(
 
     # Save aten graph if requested
     if options.gen_op_accuracy_tests:
-        option._aten_fx_graphs.append(gm.graph)
+        option._aten_fx_graphs.append(copy.deepcopy(gm.graph))
 
     # Save the number of aten ops before compilation
     if option.metrics_path:
