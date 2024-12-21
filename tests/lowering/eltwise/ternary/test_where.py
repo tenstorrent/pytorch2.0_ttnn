@@ -23,6 +23,41 @@ class WhereModule(torch.nn.Module):
             ((8, 1), (1, 1), (1, 8)),
             marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
         ),
+        pytest.param(
+            ((1, 1, 7, 7), (1, 12, 7, 7), ()),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+        ),
+        pytest.param(
+            ((1, 1, 45, 45), (1, 12, 45, 45), ()),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+        ),
+        pytest.param(
+            ((1, 1, 1, 46), (1, 12, 1, 46), ()),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+        ),
+        pytest.param(
+            ((1, 1, 5, 5), (1, 16, 5, 5), ()),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+        ),
+        pytest.param(
+            ((1, 1, 1, 6), (1, 16, 1, 6), ()),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+        ),
+        pytest.param(
+            ((1, 1, 256), (1, 1, 256), ()),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+        ),
+        ((1, 1, 7, 7), (1, 12, 7, 7), (1,)),
+        ((1, 1, 45, 45), (1, 12, 45, 45), (1,)),
+        ((1, 1, 1, 46), (1, 12, 1, 46), (1,)),
+        ((1, 1, 5, 5), (1, 16, 5, 5), (1,)),
+        ((1, 1, 1, 6), (1, 16, 1, 6), (1,)),
+        ((1, 1, 256), (1, 1, 256), (1,)),
+        ((1, 1),) * 3,
+        ((10, 10),) * 3,
+        ((15, 15),) * 3,
+        ((17, 17),) * 3,
+        ((2, 2),) * 3,
     ),
 )
 def test_where(device, input_shapes):
