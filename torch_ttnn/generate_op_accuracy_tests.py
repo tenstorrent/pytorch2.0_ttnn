@@ -52,7 +52,12 @@ def rename_nodes(graph, prefix):
 
 
 def format_dict(obj):
-    to_kwargs = [f"{k} = {v}" for k, v in obj.items()]
+    to_kwargs = []
+    # handle some cases str(torch.device) has no quotes
+    for k, v in obj.items():
+        if k == "device" and isinstance(v, torch.device):
+            v = f'"{v}"'
+        to_kwargs.append(f"{k} = {v}")
     return ", ".join(to_kwargs)
 
 
