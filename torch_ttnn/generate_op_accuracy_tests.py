@@ -145,10 +145,7 @@ def compute_key(node):
 def map_meta_to_aten_node(aten_graph):
     aten_name_to_node_map = defaultdict(list)
     for node in aten_graph.nodes:
-        if "val" in node.meta:
-            print("aten graph meta:", node, node.meta["val"])
         if node.op != "placeholder" and node.op != "output":
-            print("aten meta:", node, node.meta)
             aten_name_to_node_map[compute_key(node)] = node
     return aten_name_to_node_map
 
@@ -166,7 +163,6 @@ def map_aten_node_to_ttnn_node(ttnn_graph, output_nodes, aten_name_to_node_map):
                 continue
             if "seq_nr" in node.meta:
                 aten_node_name = compute_key(node)
-                print("aten_node_name:", node, aten_node_name)
                 aten_node = aten_name_to_node_map[aten_node_name]
                 aten_to_ttnn_map[aten_node].append(node)
                 # also append gettiem if exists
@@ -181,18 +177,13 @@ def process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
         if node.op == "output":
             continue
         if node.op == "placeholder":
-            # arg_nodes.append(node)
             continue
-        #     # val = node.meta["val"]
-        #     # print(f"{node.name} = torch.rand({tuple(val.size())}, dtype={val.dtype})")
         ttnn_all_nodes.append(node)
         # if ((from_node := node.meta.get("from_node", None)) is not None):
         if "seq_nr" in node.meta:
-            print("ttnn meta:", node, node.meta["seq_nr"], node.meta["original_aten"]._name, str(node.meta["val"]))
             aten_node_name = compute_key(node)
             aten_node = aten_name_to_node_map[aten_node_name]
             # this is the last ttnn node for this aten op, compare the output of this
-            print("aten_to_ttnn_map:", aten_to_ttnn_map[aten_node])
             if node == aten_to_ttnn_map[aten_node][-1]:
                 # this will be converted to test_accuracy(node1, node2) later
                 # do not emit if users are getitem
@@ -205,8 +196,6 @@ def process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
 
 def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs, *, verbose=False):
     assert len(aten_fx_graphs) == len(ttnn_fx_graphs)
-
-    print("len graphs:", len(aten_fx_graphs), len(ttnn_fx_graphs))
 
     test_accuracy_graph_codes = []
     output_nodes = []
@@ -226,8 +215,6 @@ def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_i
                 arg_nodes.append(node)
                 continue
             aten_all_nodes.append(node)
-
-        print("aten graph args:", arg_nodes)
 
         # preprocess: map aten to ttnn ops. this is to know what is the last ttnn op in group to compare output
         aten_to_ttnn_map = map_aten_node_to_ttnn_node(ttnn_graph, output_nodes, aten_name_to_node_map)
