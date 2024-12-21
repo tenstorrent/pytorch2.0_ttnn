@@ -25,27 +25,27 @@ class WhereModule(torch.nn.Module):
         ),
         pytest.param(
             ((1, 1, 7, 7), (1, 12, 7, 7), ()),
-            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors (tt-metal#16254)"),
         ),
         pytest.param(
             ((1, 1, 45, 45), (1, 12, 45, 45), ()),
-            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors (tt-metal#16254)"),
         ),
         pytest.param(
             ((1, 1, 1, 46), (1, 12, 1, 46), ()),
-            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors (tt-metal#16254)"),
         ),
         pytest.param(
             ((1, 1, 5, 5), (1, 16, 5, 5), ()),
-            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors (tt-metal#16254)"),
         ),
         pytest.param(
             ((1, 1, 1, 6), (1, 16, 1, 6), ()),
-            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors (tt-metal#16254)"),
         ),
         pytest.param(
             ((1, 1, 256), (1, 1, 256), ()),
-            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors"),
+            marks=pytest.mark.xfail(reason="ttnn.where cannot handle 0-D tensors (tt-metal#16254)"),
         ),
         ((1, 1, 7, 7), (1, 12, 7, 7), (1,)),
         ((1, 1, 45, 45), (1, 12, 45, 45), (1,)),
