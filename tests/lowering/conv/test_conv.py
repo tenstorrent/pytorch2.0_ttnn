@@ -49,7 +49,7 @@ class ConvolutionModule(torch.nn.Module):
             (1, 1),
             1,
             False,
-            marks=pytest.mark.xfail(reason="Low PCC (#TODO)"),
+            marks=pytest.mark.xfail(reason="Low PCC (tt-metal#16262)"),
         ),
         ((1, 16, 28, 28), (16, 4, 3, 3), (1, 1), (1, 1), (1, 1), 4, False),
         ((1, 32, 7, 7), (32, 32, 2, 2), (2, 2), (0, 0), (1, 1), 1, False),

@@ -43,6 +43,7 @@ def conv2d(
     output_padding=None,
 ):
     if len(in_spatial_shape) == 1:
+        # TODO(tt-metal#16258): conv1d API doesn't support transposed yet
         assert not transposed, "conv1d doesn't support transposed yet"
         return ttnn.Conv1d(
             input_tensor=input_tensor,

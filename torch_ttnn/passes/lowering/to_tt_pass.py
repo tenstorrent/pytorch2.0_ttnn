@@ -1048,7 +1048,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 dilation = params.get("dilation", [1] * in_spatial_size)
                 output_padding = params.get("output_padding", [0] * in_spatial_size)
 
-                # TODO(TODO): conv1d API doesn't support transposed yet
+                # TODO(tt-metal#16258): conv1d API doesn't support transposed yet
                 if in_spatial_size == 1 and transposed:
                     return None
 
