@@ -5,14 +5,32 @@ import pytest
 from tests.utils import assert_with_pcc
 
 
-class Conv2dModule(torch.nn.Module):
+class ConvolutionModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, *args, transposed, **kwargs):
-        if transposed:
-            return torch.nn.functional.conv_transpose2d(*args, **kwargs)
-        return torch.nn.functional.conv2d(*args, **kwargs)
+    def forward(
+        self,
+        input_tensor,
+        weight_tensor,
+        bias_tensor,
+        stride,
+        padding,
+        dilation,
+        transposed,
+        groups,
+    ):
+        return torch.ops.aten.convolution.default(
+            input=input_tensor,
+            weight=weight_tensor,
+            bias=bias_tensor,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            transposed=transposed,
+            groups=groups,
+            output_padding=[0] * len(padding),
+        )
 
 
 @pytest.mark.parametrize(
@@ -31,23 +49,15 @@ class Conv2dModule(torch.nn.Module):
             (1, 1),
             1,
             False,
-            marks=pytest.mark.xfail(reason="weight tensor fails to load for large shapes (tt-metal#15032)"),
+            marks=pytest.mark.xfail(reason="Low PCC (#TODO)"),
         ),
         ((1, 16, 28, 28), (16, 4, 3, 3), (1, 1), (1, 1), (1, 1), 4, False),
-        pytest.param(
-            (1, 32, 7, 7),
-            (32, 32, 2, 2),
-            (2, 2),
-            (0, 0),
-            (1, 1),
-            1,
-            False,
-            marks=pytest.mark.xfail(reason="unknown reason to fail with this shape (#425)"),
-        ),
+        ((1, 32, 7, 7), (32, 32, 2, 2), (2, 2), (0, 0), (1, 1), 1, False),
+        ((1, 256, 512), (1024, 256, 1), (1,), (0,), (1,), 1, False),
     ],
 )
 @pytest.mark.parametrize("has_bias", [False, True])
-def test_conv2d(
+def test_conv(
     device,
     input_shape,
     weight_shape,
@@ -58,7 +68,7 @@ def test_conv2d(
     transposed,
     has_bias,
 ):
-    m = Conv2dModule()
+    m = ConvolutionModule()
     input_tensor = torch.rand(input_shape, dtype=torch.bfloat16)
     weight_tensor = torch.rand(weight_shape, dtype=torch.bfloat16)
     bias_tensor = torch.rand((weight_shape[1 if transposed else 0],), dtype=torch.bfloat16) if has_bias else None
@@ -69,8 +79,8 @@ def test_conv2d(
         stride,
         padding,
         dilation,
+        transposed,
         groups,
-        transposed=transposed,
     )
     option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=True)
     # The compilation is lazy, so we need to run forward once to trigger the compilation
@@ -82,8 +92,8 @@ def test_conv2d(
         stride,
         padding,
         dilation,
+        transposed,
         groups,
-        transposed=transposed,
     )
     option._out_fx_graphs[0].print_tabular()
 

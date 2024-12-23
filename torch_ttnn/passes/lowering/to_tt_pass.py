@@ -1034,41 +1034,37 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 input_node = params["input_tensor"]
-                input_shape = input_node.meta["val"].size()
-                is_conv1d = len(input_shape) < 4
-
+                input_shape = list(input_node.meta["val"].size())
+                in_spatial_shape = input_shape[2:]
+                in_spatial_size = len(in_spatial_shape)
                 weight_tensor = params["weight_tensor"]
+                weight_shape = list(weight_tensor.meta["val"].size())
+                kernel_spatial_shape = weight_shape[2:]
+
                 transposed = params.get("transposed", False)
                 groups = params.get("groups", 1)
-                stride = params.get("stride", [1, 1])
-                padding = params.get("padding", [0, 0])
-                dilation = params.get("dilation", [1, 1])
-                output_padding = params.get("output_padding", [0, 0])
+                stride = params.get("stride", [1] * in_spatial_size)
+                padding = params.get("padding", [0] * in_spatial_size)
+                dilation = params.get("dilation", [1] * in_spatial_size)
+                output_padding = params.get("output_padding", [0] * in_spatial_size)
 
-                if is_conv1d:
-                    batch_size, in_c, in_h = input_shape
-                    out_a, out_b, kernel_h = weight_tensor.meta["val"].size()
-                    in_w = 1
-                    kernel_w = 1
-                    stride = [stride[0], stride[0]]
-                    padding = [padding[0], padding[0]]
-                    dilation = [dilation[0], dilation[0]]
-                else:
-                    batch_size, in_c, in_h, in_w = input_shape
-                    out_a, out_b, kernel_h, kernel_w = weight_tensor.meta["val"].size()
-                out_c = out_b if transposed else out_a
+                # TODO(TODO): conv1d API doesn't support transposed yet
+                if in_spatial_size == 1 and transposed:
+                    return None
+
+                batch_size, in_c = input_shape[:2]
+                in_nhw = math.prod([batch_size] + in_spatial_shape)
+                out_c = weight_shape[1] if transposed else weight_shape[0]
 
                 input_tensor = insert_nchw_to_nhwc(g, input_node, input_shape)
                 # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
-                input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
-                bias_node = params.get("bias_tensor", None)
-                if bias_node is None:
-                    bias_tensor = None
-                else:
-                    bias_shape = bias_node.meta["val"].size()
+                input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, in_nhw, in_c)))
+                bias_tensor = params.get("bias_tensor", None)
+                if bias_tensor is not None:
+                    bias_shape = bias_tensor.meta["val"].size()
                     bias_tensor = g.call_function(
                         ttnn.reshape,
-                        (bias_node, (1,) * (4 - len(bias_shape)) + bias_shape),
+                        (bias_tensor, (1,) * (4 - len(bias_shape)) + bias_shape),
                     )
                     bias_tensor = g.call_function(target_wrappers.move_to_host, (bias_tensor, TtnnRowMajorLayout()))
                 output_tensor = g.call_function(
@@ -1080,9 +1076,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         batch_size,
                         in_c,
                         out_c,
-                        in_h,
-                        in_w,
-                        (kernel_h, kernel_w),
+                        in_spatial_shape,
+                        kernel_spatial_shape,
                         stride,
                         padding,
                         dilation,
@@ -1093,8 +1088,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 output_shape = node.meta["val"].size()
-                return output_tensor
-                # return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
+                return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
 
             if node.target == torch.ops.aten.slice_scatter.default:
                 tensor, src_tensor, dim, start, end, *step = args
