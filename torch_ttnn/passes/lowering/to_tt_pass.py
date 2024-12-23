@@ -1068,7 +1068,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     )
                     bias_tensor = g.call_function(target_wrappers.move_to_host, (bias_tensor, TtnnRowMajorLayout()))
                 output_tensor = g.call_function(
-                    target_wrappers.conv2d,
+                    target_wrappers.conv,
                     (
                         input_tensor,
                         weight_tensor,

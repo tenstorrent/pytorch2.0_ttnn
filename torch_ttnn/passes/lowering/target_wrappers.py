@@ -25,7 +25,7 @@ def move_to_host(device_tensor, layout):
 
 
 @torch.fx.wrap
-def conv2d(
+def conv(
     input_tensor,
     weight_tensor,
     bias_tensor,
