@@ -2,7 +2,6 @@ import torch
 import torch_ttnn
 import pytest
 import ttnn
-from tests.utils import assert_with_pcc
 
 
 class EmbeddingModule(torch.nn.Module):
@@ -24,7 +23,7 @@ class EmbeddingTileLayoutModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[((1, 2, 4, 5), (4, 3, 2, 9)), (10, 4)], [((0, 1, 2, 3)), (4, 2)]],
+    [[((1, 2, 4, 5), (4, 3, 2, 9)), (10, 4)]],
 )
 def test_embedding(device, input_shapes):
     m = EmbeddingModule()
@@ -42,7 +41,7 @@ def test_embedding(device, input_shapes):
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.embedding) == 1
     # Check inference result
-    assert_with_pcc(result_before, result_after)
+    assert torch.allclose(result_before, result_after)
 
 
 @pytest.mark.parametrize(

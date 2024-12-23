@@ -558,13 +558,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.add, args=(beta_node, new_node))
 
             if node.target == torch.ops.aten.embedding.default:
-                tensor_meta = args[1].meta.get("val")
-                tiled = False if tensor_meta is None else tensor_meta.size()[-1] % ttnn.TILE_SIZE == 0
+                tiled = args[1].meta.get("val")
+                tiled = False if tiled is None else tiled.size()[-1] % ttnn.TILE_SIZE == 0
                 layout = TtnnTileLayout() if tiled else TtnnRowMajorLayout()
                 tensor = g.call_function(ttnn.embedding, (args[1], args[0]), {"layout": layout})
-                # TODO: Remove this squeeze when issue is fixed: https://github.com/tenstorrent/pytorch2.0_ttnn/issues/660
-                if len(tensor_meta.size()) == 1:
-                    tensor = g.call_function(ttnn.squeeze, (tensor, 0))
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten._log_softmax.default:
