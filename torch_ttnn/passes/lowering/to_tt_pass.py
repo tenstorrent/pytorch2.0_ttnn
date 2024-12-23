@@ -361,6 +361,7 @@ class GraphWrapper:
 
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
+    again = False
     nodes = list(gm.graph.nodes)
     for node in nodes:
         if not can_lowering_to_ttnn(node):
@@ -368,6 +369,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
         g = GraphWrapper(node)
 
         def rewrite_node(node):
+            nonlocal again
             args = node.args
             kwargs = node.kwargs
 
@@ -555,17 +557,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensor = g.call_function(ttnn.embedding, (args[1], args[0]), {"layout": layout})
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
-            if node.target == torch.ops.aten._log_softmax.default:
-                softmax_node = g.call_function(
-                    ttnn.softmax,
-                    args[:2],
-                    {
-                        "numeric_stable": True,
-                        **kwargs,
-                    },
-                )
-                return g.call_function(ttnn.log, (softmax_node,), kwargs)
-
             if node.target == torch.ops.aten.div.Tensor:
                 if isinstance(args[1], (float, int)):
                     return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
@@ -655,6 +646,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
+                if get_shape(gm, args[0]) in [torch.Size([1]), torch.Size([])]:
+                    # see #442
+                    return None
                 if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
                     # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
                     # squeezing is the same as reshaping to shape of output tensor of squeeze
@@ -886,21 +880,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.select.int:
                 tensor, dim, start = args
 
-                input_size = tensor.meta["val"].size()
-                output_size = node.meta["val"].size()
+                input_shape = get_shape(gm, args[0])
+                output_shape = get_shape(gm, node)
 
-                if input_size.numel() != output_size.numel():
-                    slice_start, slice_end = [0] * len(input_size), list(input_size)
-                    slice_start[dim] = (start + input_size[dim]) % input_size[dim]
-                    slice_end[dim] = slice_start[dim] + 1
+                slice_start, slice_end = [0] * len(input_shape), list(input_shape)
+                slice_start[dim] = (start + input_shape[dim]) % input_shape[dim]
+                slice_end[dim] = slice_start[dim] + 1
 
-                    slice_tensor = g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
-                else:
-                    slice_tensor = tensor
-                    if len(output_size) == 0:
-                        return g.call_function(torch.ops.aten.squeeze.dim, args=(tensor, 0))
+                slice_tensor = g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
 
-                return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_size)))
+                return g.call_function(ttnn.reshape, args=(slice_tensor, list(output_shape)))
 
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
@@ -943,13 +932,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(ttnn.concat, (tensor_list, dim))
 
             if node.target == torch.ops.aten.sum.default:
-                input_size = args[0].meta["val"].size()
-                output_size = node.meta["val"].size()
-
-                sum_tensor = args[0]
-                if input_size.numel() != output_size.numel():
-                    sum_tensor = g.call_function(ttnn.sum, (args[0],))
-
+                sum_tensor = g.call_function(ttnn.sum, (args[0],))
+                again = True
                 return g.call_function(torch.ops.aten.squeeze.default, args=(sum_tensor,))
 
             if node.target == torch.ops.aten.max_pool2d_with_indices.default:
@@ -1164,10 +1148,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 )
 
     gm = GraphCleanup(gm)
-    return gm
+    return gm, again
 
 
-def decompose_aten_to_aten_ops(g: GraphWrapper, node):
+def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
     args = node.args
     kwargs = node.kwargs
     if node.target == torch.ops.aten.full_like.default:
@@ -1187,6 +1171,20 @@ def decompose_aten_to_aten_ops(g: GraphWrapper, node):
         log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
         return log
 
+    if node.target == torch.ops.aten.select.int:
+        input_shape = get_shape(gm, args[0])
+        output_shape = get_shape(gm, node)
+        if input_shape.numel() == output_shape.numel() and len(output_shape) == 0:
+            return g.call_function(torch.ops.aten.squeeze.dim, args=(args[0], 0))
+        return None
+
+    if node.target == torch.ops.aten.sum.default:
+        input_shape = get_shape(gm, args[0])
+        output_shape = get_shape(gm, node)
+        if input_shape.numel() == output_shape.numel():
+            return g.call_function(torch.ops.aten.squeeze.default, args=(args[0],))
+        return None
+
     return None
 
 
@@ -1198,7 +1196,7 @@ def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphMo
             continue
         g = GraphWrapper(node)
         with g.inserting_before(node):
-            new_node = rewrite_node_fn(g, node)
+            new_node = rewrite_node_fn(gm, g, node)
             if new_node is not None:
                 node.replace_all_uses_with(
                     new_node,
@@ -1222,6 +1220,9 @@ class ToTtPass(PassBase):
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
         # Replace patterns manually
-        gm = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
+        while True:
+            gm, again = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
+            if not again:
+                break
 
         return PassResult(gm, True)
