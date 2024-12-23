@@ -94,19 +94,19 @@ def is_getitem_0_only_user(node):
     )
 
 
-def insert_nchw_to_nhwc(g, input_tensor, input_shape):
-    return g.call_function(ttnn.permute, (input_tensor, (0, 2, 1) if len(input_shape) < 4 else (0, 2, 3, 1)))
+# Convert (n, c, x, ...) to (n, x, ..., c)
+def insert_ncx_to_nxc(g, input_tensor, input_shape):
+    target_permute = [0] + list(range(2, len(input_shape))) + [1]
+    return g.call_function(ttnn.permute, (input_tensor, target_permute))
 
 
-def insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape):
-    is_1d = len(output_shape) < 4
-    if is_1d:
-        target_shape = (output_shape[0], output_shape[2], output_shape[1])
-    else:
-        target_shape = (output_shape[0], output_shape[2], output_shape[3], output_shape[1])
+# Convert sharded (1, 1, nx..., c) to interleaved (n, c, x, ...)
+def insert_sharded_nxc_to_ncx(g, output_tensor, output_shape):
     output_tensor = g.call_function(ttnn.sharded_to_interleaved, (output_tensor, TtnnL1MemoryConfig()))
+    target_shape = (output_shape[0], *output_shape[2:], output_shape[1])
     output_tensor = g.call_function(ttnn.reshape, (output_tensor, target_shape))
-    return g.call_function(ttnn.permute, (output_tensor, (0, 2, 1) if is_1d else (0, 3, 1, 2)))
+    target_permute = [0, len(output_shape) - 1] + list(range(1, len(output_shape) - 1))
+    return g.call_function(ttnn.permute, (output_tensor, target_permute))
 
 
 TTNN_POINTWISE_UNARY_OPS = {
@@ -992,7 +992,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 ):
                     return None
 
-                input_tensor = insert_nchw_to_nhwc(g, input_tensor, input_shape)
+                input_tensor = insert_ncx_to_nxc(g, input_tensor, input_shape)
                 # TODO(#423): reshape can be removed if (N, H, W, C) is supported
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
                 # TODO(#418): max_pool2d fails with input tensors in tile layout for some shapes
@@ -1011,7 +1011,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         dilation,
                     ),
                 )
-                output_tensor = insert_sharded_nhwc_to_nchw(g, output_tensor, node.meta["val"][0].size())
+                output_tensor = insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
                 return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
 
@@ -1056,7 +1056,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 in_nhw = math.prod([batch_size] + in_spatial_shape)
                 out_c = weight_shape[1] if transposed else weight_shape[0]
 
-                input_tensor = insert_nchw_to_nhwc(g, input_node, input_shape)
+                input_tensor = insert_ncx_to_nxc(g, input_node, input_shape)
                 # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, in_nhw, in_c)))
                 bias_tensor = params.get("bias_tensor", None)
@@ -1088,7 +1088,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     ),
                 )
                 output_shape = node.meta["val"].size()
-                return insert_sharded_nhwc_to_nchw(g, output_tensor, output_shape)
+                return insert_sharded_nxc_to_ncx(g, output_tensor, output_shape)
 
             if node.target == torch.ops.aten.slice_scatter.default:
                 tensor, src_tensor, dim, start, end, *step = args
