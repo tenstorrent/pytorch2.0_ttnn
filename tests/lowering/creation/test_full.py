@@ -17,6 +17,7 @@ class FullModule(torch.nn.Module):
         [(64, 128)],
         [(19, 19)],
         [(59, 59)],
+        [[]],
     ],
 )
 def test_full(device, input_shapes):

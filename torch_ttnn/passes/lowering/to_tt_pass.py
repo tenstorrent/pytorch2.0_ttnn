@@ -513,21 +513,26 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.full.default:
-                # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
-                if args[0]:
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                    }
-                    return g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
-                # Replace op with scalar for eltwise ops
-                # TODO: Generalize this to support all eltwise ops
-                node_users = list(node.users.keys())
-                for node_user in node_users:
-                    if node_user.target == torch.ops.aten.div.Tensor:
-                        node_user.update_arg(1, args[1])
-                return None
+                value = args[1]
+                if len(args[0]) == 0:
+                    # Replace op with scalar for eltwise ops
+                    # TODO: Generalize this to support all eltwise ops
+                    node_users = list(node.users.keys())
+                    for node_user in node_users:
+                        if node_user.target == torch.ops.aten.div.Tensor:
+                            node_user.update_arg(1, value)
+
+                new_kwargs = {
+                    "fill_value": value,
+                    "device": TtnnDevice(),
+                    "layout": TtnnTileLayout(),
+                }
+                target_shape = [1, 1] if len(args[0]) == 0 else args[0]
+                output_tensor = g.call_function(ttnn.full, args=(target_shape,), kwargs=new_kwargs)
+                # TODO(tt-metal#13535): ttnn currently doesn't support 0-d tensor. As a workaround, we create 2-d tensor and squeeze it with aten
+                if len(args[0]) == 0:
+                    return g.call_function(torch.ops.aten.squeeze.default, args=(output_tensor,))
+                return output_tensor
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
