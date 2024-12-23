@@ -77,7 +77,10 @@ class ConstantFoldingPass(PassBase):
     def _replace_with_constant(self, gm: torch.fx.GraphModule, node, value):
         with gm.graph.inserting_before(node):
             new_node = gm.graph.create_node("get_attr", target=f"_folded_{node.name}", args=(), kwargs=None)
-            new_node.meta = node.meta
+            # Copying all of the meta causes some ops to be missing
+            new_node.meta["seq_nr"] = node.meta["seq_nr"]
+            new_node.meta["original_aten"] = node.meta["original_aten"]
+            new_node.meta["tensor_meta"] = node.meta["tensor_meta"]
 
         gm.register_parameter(f"_folded_{node.name}", torch.nn.Parameter(value, requires_grad=False))
 

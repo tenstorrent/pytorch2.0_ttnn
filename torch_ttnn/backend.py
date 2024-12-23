@@ -106,7 +106,10 @@ def aten_backend(
 
     # Save aten graph if requested
     if options.gen_op_accuracy_tests:
-        option._aten_fx_graphs.append(copy.deepcopy(gm.graph))
+        # Will this hamper memory usage?
+        graph_copy = copy.deepcopy(gm.graph)
+        graph_copy.owning_module = gm
+        option._aten_fx_graphs.append(graph_copy)
 
     # Save the number of aten ops before compilation
     if option.metrics_path:
@@ -237,7 +240,7 @@ def ttnn_backend(
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
     # Save all parameters and inputs if requested
-    if options.gen_op_accuracy_tests:
+    if options.gen_op_accuracy_tests and options._all_inputs is None:
         options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
 
     tracer_option = options.tracer_option

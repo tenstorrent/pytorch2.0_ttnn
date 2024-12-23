@@ -43,7 +43,7 @@ def get_opname(node):
 # rename node names because some wrapper or built-in functions have the same name
 def rename_nodes(graph, prefix):
     for node in graph.nodes:
-        if node.op != "placeholder" and node.op != "output":
+        if node.op != "placeholder" and node.op != "output" and node.op != "get_attr":
             # simplify or put this in a new function
             opname = get_opname(node)
             if not opname.startswith("aten.") and not opname.startswith("ttnn."):
@@ -139,7 +139,14 @@ def rename_input_args_from_graph_break(output_nodes, node):
 
 
 def compute_key(node):
-    return str(node.meta["seq_nr"]) + node.meta["original_aten"]._name + str(node.meta["val"])
+    if "tensor_meta" in node.meta:
+        tensor_meta = node.meta["tensor_meta"]
+    else:
+        tensor_meta = node.meta["val"]
+        # Workaround for layer_norm and other ops that has a list for "val"
+        if isinstance(tensor_meta, tuple):
+            tensor_meta = node.meta["val"][0]
+    return str(node.meta["seq_nr"]) + node.meta["original_aten"]._name + str(tensor_meta)
 
 
 def map_meta_to_aten_node(aten_graph):
