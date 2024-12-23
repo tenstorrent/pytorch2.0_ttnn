@@ -57,9 +57,6 @@ class TorchTtnnOption:
         self.original_schema_list = list()
 
 
-from pdb import set_trace as bp
-
-
 def register_ttnn_objects(option: TorchTtnnOption):
     """
     torch.fx builds a source object as a string, calls builtin compile(), and finally
