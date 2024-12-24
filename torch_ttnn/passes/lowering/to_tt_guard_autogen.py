@@ -386,24 +386,3 @@ GUARD = {
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
     torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),
 }
-
-guard_ops = [
-    "torch.ops.aten.view.default",
-    "torch.ops.aten._unsafe_view.default",
-    "torch.ops.aten.add.Tensor",
-    "torch.ops.aten.clamp.default",
-    "torch.ops.aten._log_softmax.default",
-    "torch.ops.aten.rsub.Scalar",
-    "torch.ops.aten._scaled_dot_product_flash_attention.default",
-    "torch.ops.aten.transpose.int",
-    "torch.ops.aten.embedding.default",
-    "torch.ops.aten.mul.Tensor",
-    "torch.ops.aten.native_layer_norm.default",
-    "torch.ops.aten.sub.Tensor",
-    "torch.ops.aten.split.Tensor",
-    "torch.ops.aten.t.default",
-    "torch.ops.aten.log.default",
-    "torch.ops.aten.eq.Scalar",
-    "torch.ops.aten.mm.default",
-    "torch.ops.aten.convolution.default",
-]
