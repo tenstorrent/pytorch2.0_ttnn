@@ -361,7 +361,6 @@ class GraphWrapper:
 
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
-    again = False
     nodes = list(gm.graph.nodes)
     for node in nodes:
         if not can_lowering_to_ttnn(node):
@@ -369,7 +368,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
         g = GraphWrapper(node)
 
         def rewrite_node(node):
-            nonlocal again
             args = node.args
             kwargs = node.kwargs
 
@@ -933,7 +931,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.sum.default:
                 sum_tensor = g.call_function(ttnn.sum, (args[0],))
-                again = True
                 return g.call_function(torch.ops.aten.squeeze.default, args=(sum_tensor,))
 
             if node.target == torch.ops.aten.max_pool2d_with_indices.default:
@@ -1139,16 +1136,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             # PEP 8 suggests this explicit statement
             return None
 
+        modified = False
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
+                modified = True
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
                 )
 
     gm = GraphCleanup(gm)
-    return gm, again
+    return gm, modified
 
 
 def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
@@ -1221,8 +1220,8 @@ class ToTtPass(PassBase):
 
         # Replace patterns manually
         while True:
-            gm, again = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
-            if not again:
+            gm, modified = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
+            if not modified:
                 break
 
         return PassResult(gm, True)
