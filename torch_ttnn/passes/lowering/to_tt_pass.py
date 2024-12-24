@@ -1181,7 +1181,7 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
     if node.target == torch.ops.aten.sum.default:
         input_shape = get_shape(gm, args[0])
         output_shape = get_shape(gm, node)
-        if input_shape.numel() == output_shape.numel():
+        if input_shape.numel() == 1:
             return g.call_function(torch.ops.aten.squeeze.default, args=(args[0],))
         return None
 
