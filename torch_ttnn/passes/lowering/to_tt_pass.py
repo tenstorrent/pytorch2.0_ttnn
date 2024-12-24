@@ -288,6 +288,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
 
         if target == torch.ops.aten.where.self:
+            if get_shape(None, args[0]) != get_shape(None, args[1]):
+                # Not support broadcast
+                return None
             return self.call_function_prop_meta(ttnn.where, args, kwargs)
 
         ############################################################
