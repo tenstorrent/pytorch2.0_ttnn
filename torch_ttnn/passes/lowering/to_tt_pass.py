@@ -1219,7 +1219,10 @@ class ToTtPass(PassBase):
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
 
         # Replace patterns manually
-        while True:
+        max_try = 10
+        cnt = 0
+        while cnt < max_try:
+            cnt += 1
             gm, modified = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
             if not modified:
                 break
