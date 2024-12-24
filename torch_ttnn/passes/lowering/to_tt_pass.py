@@ -444,7 +444,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             # Passing a tensor shaped `(N,)` to the kernel results in `(1, N)`.
             # Reshape the tensor back to get the correct shape.
             def reshape_1d(code, args=args, kwargs=kwargs):
-                shape = node.meta["val"].size()
+                shape = get_shape(gm, node)
+                if shape == torch.Size():
+                    # ttnn.from_torch not yet support scalar tensor, see issue 442
+                    return None
                 result = g.call_function(code, args, kwargs)
                 return result if len(shape) > 1 else g.call_function(ttnn.reshape, (result, shape))
 
