@@ -56,11 +56,6 @@ aten_clamp_default_blocklist = [
     ["Tensor<[16, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
     ["Tensor<[32, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
 ]
-aten_maximum_default_blocklist = [
-    ["Tensor<[1, 16, 19, 19]> self = ?", "Tensor other = ?"],
-    ["Tensor<[1, 16, 59, 59]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
-]
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
 aten__scaled_dot_product_flash_attention_default_blocklist = [
     ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
@@ -81,13 +76,6 @@ aten__scaled_dot_product_flash_attention_default_blocklist = [
         "bool is_causal = True",
     ],
 ]
-aten_div_Tensor_blocklist = [
-    ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 23, 40, 1]> self = ?", "Tensor<[128]> other = ?"],
-    ["Tensor<[1, 12, 7, 7]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 16, 5, 5]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 16, 1, 6]> self = ?", "Tensor<[]> other = ?"],
-]
 aten_native_layer_norm_default_blocklist = [
     [
         "Tensor<[1, 9, 4096]> input = ?",
@@ -104,39 +92,6 @@ aten_native_layer_norm_default_blocklist = [
         "float eps = 1e-05",
     ],
 ]
-aten_exp_default_blocklist = [["Tensor<[0, 1]> self = ?"], ["Tensor<[]> self = ?"]]
-aten_where_self_blocklist = [
-    ["Tensor<[1, 1, 7, 7]> condition = ?", "Tensor<[1, 12, 7, 7]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 1, 45, 45]> condition = ?", "Tensor<[1, 12, 45, 45]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 1, 1, 46]> condition = ?", "Tensor<[1, 12, 1, 46]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 1, 5, 5]> condition = ?", "Tensor<[1, 16, 5, 5]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 1, 1, 6]> condition = ?", "Tensor<[1, 16, 1, 6]> self = ?", "Tensor<[]> other = ?"],
-    ["Tensor<[1, 1, 256]> condition = ?", "Tensor<[1, 1, 256]> self = ?", "Tensor<[]> other = ?"],
-]
-aten_empty_memory_format_blocklist = [
-    [
-        "List[int] size = []",
-        "Optional[int] dtype = torch.int64",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ]
-]
-aten_rsqrt_default_blocklist = [["Tensor<[1, 1, 1]> self = ?"]]
-aten_bernoulli_p_blocklist = [["Tensor<[1, 256]> self = ?", "float p = 0.5"]]
-aten_native_dropout_default_blocklist = [
-    ["Tensor<[1, 1280]> input = ?", "float p = 0.2", "Optional[bool] train = True"]
-]
-aten_new_empty_strided_default_blocklist = [
-    ["Tensor<[1, 160, 7, 7]> self = ?", "List[int] size = [1, 160, 7, 7]", "List[int] stride = [7840, 49, 7, 1]"],
-    [
-        "Tensor<[1, 112, 14, 14]> self = ?",
-        "List[int] size = [1, 112, 14, 14]",
-        "List[int] stride = [21952, 196, 14, 1]",
-    ],
-    ["Tensor<[1, 80, 14, 14]> self = ?", "List[int] size = [1, 80, 14, 14]", "List[int] stride = [15680, 196, 14, 1]"],
-    ["Tensor<[1, 40, 28, 28]> self = ?", "List[int] size = [1, 40, 28, 28]", "List[int] stride = [31360, 784, 28, 1]"],
-]
-aten_mm_default_blocklist = [["Tensor<[1, 21843]> self = ?", "Tensor<[21843, 768]> mat2 = ?"]]
 aten_convolution_default_blocklist = [
     # TODO(#385): Guard and fallback (likely) OOM cases
     [
@@ -422,51 +377,11 @@ def guard_aten(blocklist, node):
 
 GUARD = {
     torch.ops.aten.clamp.default: partial(guard_aten, aten_clamp_default_blocklist),
-    torch.ops.aten.maximum.default: partial(guard_aten, aten_maximum_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
-    torch.ops.aten.div.Tensor: partial(guard_aten, aten_div_Tensor_blocklist),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
-    torch.ops.aten.exp.default: partial(guard_aten, aten_exp_default_blocklist),
-    torch.ops.aten.where.self: partial(guard_aten, aten_where_self_blocklist),
-    torch.ops.aten.empty.memory_format: partial(guard_aten, aten_empty_memory_format_blocklist),
-    torch.ops.aten.rsqrt.default: partial(guard_aten, aten_rsqrt_default_blocklist),
-    torch.ops.aten.bernoulli.p: partial(guard_aten, aten_bernoulli_p_blocklist),
-    torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
-    torch.ops.aten.new_empty_strided.default: partial(guard_aten, aten_new_empty_strided_default_blocklist),
-    torch.ops.aten.mm.default: partial(guard_aten, aten_mm_default_blocklist),
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
     torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),
 }
-
-guard_ops = [
-    "torch.ops.aten.view.default",
-    "torch.ops.aten._unsafe_view.default",
-    "torch.ops.aten.add.Tensor",
-    "torch.ops.aten.clamp.default",
-    "torch.ops.aten.maximum.default",
-    "torch.ops.aten._log_softmax.default",
-    "torch.ops.aten.rsub.Scalar",
-    "torch.ops.aten._scaled_dot_product_flash_attention.default",
-    "torch.ops.aten.transpose.int",
-    "torch.ops.aten.embedding.default",
-    "torch.ops.aten.div.Tensor",
-    "torch.ops.aten.mul.Tensor",
-    "torch.ops.aten.native_layer_norm.default",
-    "torch.ops.aten.sub.Tensor",
-    "torch.ops.aten.exp.default",
-    "torch.ops.aten.split.Tensor",
-    "torch.ops.aten.t.default",
-    "torch.ops.aten.where.self",
-    "torch.ops.aten.empty.memory_format",
-    "torch.ops.aten.log.default",
-    "torch.ops.aten.rsqrt.default",
-    "torch.ops.aten.bernoulli.p",
-    "torch.ops.aten.eq.Scalar",
-    "torch.ops.aten.native_dropout.default",
-    "torch.ops.aten.new_empty_strided.default",
-    "torch.ops.aten.mm.default",
-    "torch.ops.aten.convolution.default",
-]
