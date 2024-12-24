@@ -93,30 +93,6 @@ aten_native_layer_norm_default_blocklist = [
         "float eps = 1e-05",
     ],
 ]
-aten_empty_memory_format_blocklist = [
-    [
-        "List[int] size = []",
-        "Optional[int] dtype = torch.int64",
-        "Optional[Device] device = cpu",
-        "Optional[bool] pin_memory = False",
-    ]
-]
-aten_rsqrt_default_blocklist = [["Tensor<[1, 1, 1]> self = ?"]]
-aten_bernoulli_p_blocklist = [["Tensor<[1, 256]> self = ?", "float p = 0.5"]]
-aten_native_dropout_default_blocklist = [
-    ["Tensor<[1, 1280]> input = ?", "float p = 0.2", "Optional[bool] train = True"]
-]
-aten_new_empty_strided_default_blocklist = [
-    ["Tensor<[1, 160, 7, 7]> self = ?", "List[int] size = [1, 160, 7, 7]", "List[int] stride = [7840, 49, 7, 1]"],
-    [
-        "Tensor<[1, 112, 14, 14]> self = ?",
-        "List[int] size = [1, 112, 14, 14]",
-        "List[int] stride = [21952, 196, 14, 1]",
-    ],
-    ["Tensor<[1, 80, 14, 14]> self = ?", "List[int] size = [1, 80, 14, 14]", "List[int] stride = [15680, 196, 14, 1]"],
-    ["Tensor<[1, 40, 28, 28]> self = ?", "List[int] size = [1, 40, 28, 28]", "List[int] stride = [31360, 784, 28, 1]"],
-]
-aten_mm_default_blocklist = [["Tensor<[1, 21843]> self = ?", "Tensor<[21843, 768]> mat2 = ?"]]
 aten_convolution_default_blocklist = [
     # TODO(#385): Guard and fallback (likely) OOM cases
     [
@@ -407,12 +383,6 @@ GUARD = {
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
     ),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
-    torch.ops.aten.empty.memory_format: partial(guard_aten, aten_empty_memory_format_blocklist),
-    torch.ops.aten.rsqrt.default: partial(guard_aten, aten_rsqrt_default_blocklist),
-    torch.ops.aten.bernoulli.p: partial(guard_aten, aten_bernoulli_p_blocklist),
-    torch.ops.aten.native_dropout.default: partial(guard_aten, aten_native_dropout_default_blocklist),
-    torch.ops.aten.new_empty_strided.default: partial(guard_aten, aten_new_empty_strided_default_blocklist),
-    torch.ops.aten.mm.default: partial(guard_aten, aten_mm_default_blocklist),
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
     torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),
 }
@@ -432,13 +402,8 @@ guard_ops = [
     "torch.ops.aten.sub.Tensor",
     "torch.ops.aten.split.Tensor",
     "torch.ops.aten.t.default",
-    "torch.ops.aten.empty.memory_format",
     "torch.ops.aten.log.default",
-    "torch.ops.aten.rsqrt.default",
-    "torch.ops.aten.bernoulli.p",
     "torch.ops.aten.eq.Scalar",
-    "torch.ops.aten.native_dropout.default",
-    "torch.ops.aten.new_empty_strided.default",
     "torch.ops.aten.mm.default",
     "torch.ops.aten.convolution.default",
 ]
