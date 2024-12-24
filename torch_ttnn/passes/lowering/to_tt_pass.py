@@ -224,9 +224,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.hardtanh, new_args, new_kwargs)
 
         if target == torch.ops.aten._softmax.default:
-            if get_shape(None, args[0]).numel() > 150000:
-                # Statically allocated circular buffers on core range [(x=0,y=0) - (x=7,y=7)] grow to 49277728 B which is beyond max L1 size of 1499136 B
-                return self.call_function_prop_meta(target, args, kwargs)
             kwargs = {
                 "numeric_stable": True,
                 **kwargs,
