@@ -77,6 +77,7 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.atan2,
     ttnn.div,
     ttnn.eqz,
+    ttnn.floor_div,
     ttnn.gez,
     ttnn.ge,
     ttnn.gtz,

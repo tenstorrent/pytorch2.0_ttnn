@@ -576,6 +576,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 recip = g.call_function(ttnn.reciprocal, (args[1],), {})
                 return g.call_function(ttnn.mul, (args[0], recip), {})
 
+            if node.target == torch.ops.aten.floor_divide.default:
+                return g.call_function(ttnn.floor_div, args, {})
+
             if node.target == torch.ops.aten.expand.default:
                 if not (hasattr(args[0], "meta") and "val" in args[0].meta and hasattr(args[0].meta["val"], "size")):
                     return None
