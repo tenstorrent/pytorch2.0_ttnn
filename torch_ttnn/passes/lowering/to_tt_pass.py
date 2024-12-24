@@ -335,6 +335,22 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.detach.default:
             return args[0]
 
+        if target == torch.ops.aten.as_strided.default:
+            unpack = lambda tensor, size, stride, offset=0: (tensor, size, stride, offset)
+            tensor, size, stride, offset = unpack(*args)
+            ndims = len(size)
+
+            if offset != 0 or len(stride) != ndims:
+                return self.call_function_prop_meta(target, args, kwargs)
+
+            dummy = torch.empty(0, *size, dtype=torch.bool)
+
+            for i in range(ndims):
+                if stride[i] != dummy.stride(i + 1) and size[i] != 1:
+                    return self.call_function_prop_meta(target, args, kwargs)
+
+            return self.call_function_prop_meta(ttnn.reshape, (tensor, size))
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
