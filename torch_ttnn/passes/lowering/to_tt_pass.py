@@ -144,7 +144,6 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.sin.default: ttnn.sin,
     torch.ops.aten.sinh.default: ttnn.sinh,
     torch.ops.aten.silu.default: ttnn.silu,
-    torch.ops.aten._softmax.default: ttnn.softmax,
     torch.ops.aten.sqrt.default: ttnn.sqrt,
     torch.ops.aten.tan.default: ttnn.tan,
     torch.ops.aten.tanh.default: ttnn.tanh,
@@ -225,6 +224,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.hardtanh, new_args, new_kwargs)
 
         if target == torch.ops.aten._softmax.default:
+            if get_shape(None, args[0]).numel() > 150000:
+                # Statically allocated circular buffers on core range [(x=0,y=0) - (x=7,y=7)] grow to 49277728 B which is beyond max L1 size of 1499136 B
+                return self.call_function_prop_meta(target, args, kwargs)
             kwargs = {
                 "numeric_stable": True,
                 **kwargs,
@@ -1200,8 +1202,8 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
         return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
 
     if node.target == torch.ops.aten._log_softmax.default:
-        dim = get_arg(node, 1, "dim")
-        softmax = g.call_function(torch.ops.aten._softmax.default, args=(args[0], dim))
+        dim, half_to_float = get_arg(node, 1, "dim"), get_arg(node, 2, "half_to_float")
+        softmax = g.call_function(torch.ops.aten._softmax.default, args=(args[0], dim, half_to_float))
         log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
         return log
 
