@@ -842,8 +842,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # masked_fill = (tensor * (ones - mask)) + (mask * full)
 
                 tensor, mask, fill_value = args
-                tensor_shape = tensor.meta["val"].size()
-                mask_shape = mask.meta["val"].size()
+                tensor_shape = get_shape(gm, tensor)
+                mask_shape = get_shape(gm, mask)
 
                 # check if divisible, otherwise skip
                 np_tensor_shp = np.array(tensor_shape)
@@ -905,7 +905,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.cumsum.default:
                 tensor, dim = args
-                input_shape = tensor.meta["val"].size()
+                input_shape = get_shape(gm, tensor)
                 rank = len(input_shape)
                 if rank > 4:
                     return None
