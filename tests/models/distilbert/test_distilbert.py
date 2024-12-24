@@ -21,7 +21,6 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.parametrize("model_name", ["distilbert-base-uncased"])
-@pytest.mark.compilation_xfail
 def test_distilbert(record_property, model_name, mode):
     record_property("model_name", model_name)
     record_property("mode", mode)

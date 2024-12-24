@@ -61,6 +61,7 @@ def register_ttnn_objects(option: TorchTtnnOption):
     torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
 
     torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
+    torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
 
     torch.fx.graph._register_custom_builtin(
@@ -97,7 +98,13 @@ def aten_backend(
     gm = remove_clones_for_input_aliasing(gm)
     # Save the number of aten ops before compilation
     if option.metrics_path:
-        option.original_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
+        # do constant folding for consistency of input varation
+        from torch.fx.passes.infra.pass_manager import PassManager
+        from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
+
+        pm_fold = PassManager(passes=[ConstantFoldingPass()])
+        gm_fold, modified = pm_fold(gm)
+        option.original_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm_fold.graph.nodes))
 
     # Do not continue with compilation if bypass
     if option.bypass_compile:
@@ -110,6 +117,7 @@ def aten_backend(
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
+    from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
     from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
@@ -118,6 +126,7 @@ def aten_backend(
     from torch_ttnn.passes.memory_pass import MemoryPass
 
     passes = [
+        ConstantFoldingPass(),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         AddDataMovePass(),
         EliminateCoreopsPass(),

@@ -231,6 +231,11 @@ def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.999):
 
 
 def calculate_accuracy(original_outputs, compiled_outputs):
+    if (
+        isinstance(original_outputs, list) and len(original_outputs) == 1 and isinstance(original_outputs[0], dict)
+    ) and (isinstance(compiled_outputs, list) and len(compiled_outputs) == 1 and isinstance(compiled_outputs[0], dict)):
+        original_outputs = original_outputs[0]
+        compiled_outputs = compiled_outputs[0]
     if isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
         # Handle case where outputs can be converted to dictionaries
         original_outputs = dict(original_outputs)
@@ -422,7 +427,8 @@ class MetricStringListHandler:
             "aten.index_select.default": self._adjust_index_select_default,
             "aten.index.Tensor": self._adjust_index_tensor,
             "aten.index_put.default": self._adjust_index_tensor,
-            "aten._unsafe_index.Tensor": self._adjust_index_tensor,
+            "aten._native_batch_norm_legit_no_training.default": self._adjust__native_batch_norm_legit_no_training_default,
+            # "aten._unsafe_index.Tensor": self._adjust_index_tensor,
         }
 
     def _adjust_bitwise_not_default(self, input_vals):
@@ -480,6 +486,14 @@ class MetricStringListHandler:
         for input_val in input_vals:
             if input_val["name"] == "index":
                 input_val["val"] = torch.randint(0, self_shape[dim], input_val["val"].shape)
+                break
+        return input_vals
+
+    def _adjust__native_batch_norm_legit_no_training_default(self, input_vals):
+        for input_val in input_vals:
+            # Make sure the running_var >= 0
+            if input_val["name"] == "running_var":
+                input_val["val"] = input_val["val"] ** 2
                 break
         return input_vals
 

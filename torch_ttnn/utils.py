@@ -9,6 +9,55 @@ def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
     return gm
 
 
+def get_shape(gm: torch.fx.GraphModule, node_or_shape):
+    """
+    Get the shape of a node or shape itself.
+
+    Args:
+        gm (torch.fx.GraphModule): The GraphModule containing the node.
+        node_or_shape: The node or shape to get the shape of. Can be an int, float, torch.Size, list, tuple, torch.fx.node.Node, or torch.fx.proxy.Proxy.
+
+    Returns:
+        torch.Size or None: The shape of the node or shape itself, or None if it cannot be determined.
+    """
+    if isinstance(node_or_shape, torch.fx.proxy.Proxy):
+        node_or_shape = node_or_shape.node
+
+    if isinstance(node_or_shape, (int, float)):
+        return torch.Size()
+    if isinstance(node_or_shape, (torch.Size, list, tuple)):
+        return node_or_shape
+    if isinstance(node_or_shape, torch.fx.node.Node):
+        if (val := node_or_shape.meta.get("val", None)) is not None:
+            return val.size()
+
+        if node_or_shape.op == "get_attr":
+            if gm is None:
+                return None
+            val = getattr(gm, node_or_shape.target)
+            if isinstance(val, torch.Tensor):
+                return val.size()
+            if isinstance(val, (int, float)):
+                return torch.Size()
+
+    return None
+
+
+def get_arg(node, index, name, default=None):
+    if hasattr(node, "args") and len(node.args) > index:
+        return node.args[index]
+    if hasattr(node, "kwargs") and name in node.kwargs:
+        return node.kwargs[name]
+    return default
+
+
+def get_dtype(node):
+    if isinstance(node, torch.fx.node.Node):
+        if (val := node.meta.get("val", None)) is not None:
+            return val.dtype
+    return None
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
@@ -37,6 +86,11 @@ class TtnnTileLayout:
 class TtnnUint32:
     def __repr__(self):
         return f"ttnn_uint32"
+
+
+class TtnnInt32:
+    def __repr__(self):
+        return f"ttnn_int32"
 
 
 class TtnnBfloat16:

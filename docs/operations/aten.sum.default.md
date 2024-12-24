@@ -1,6 +1,6 @@
 ### aten.sum.default
-|    | ATen Input Variations   | Status   | Isolated   | PCC   |
-|---:|:------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[1]> self = ?    | None     | Fallback   | True  |
-|  1 | Tensor<[2, 1]> self = ? | None     | Fallback   | True  |
+|    | ATen Input Variations   | Status   | Isolated   |   PCC |   Host |
+|---:|:------------------------|:---------|:-----------|------:|-------:|
+|  0 | Tensor<[1]> self = ?    | Unknown  | Fallback   |     1 |     -1 |
+|  1 | Tensor<[2, 1]> self = ? | Unknown  | Fallback   |     1 |      0 |
 

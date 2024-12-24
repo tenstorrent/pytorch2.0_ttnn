@@ -42,30 +42,34 @@ def test_lt_tensor(device, input_shapes):
 
 
 @pytest.mark.parametrize(
-    "input_shapes",
-    [[(64, 128)]],
+    "input_shape",
+    (
+        (64, 128),
+        (1, 1, 256),
+        (2, 377, 355),
+        (1, 1),
+        (10, 10),
+        (15, 15),
+        (17, 17),
+        (2, 2),
+    ),
 )
-def test_lt_scalar(device, input_shapes):
+def test_lt_scalar(device, input_shape):
     m = LtModule()
-    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
-    scalar = inputs[0][0][0].item()
-    result_before = m.forward(inputs[0], scalar)
+    input = torch.randint(0, 10, input_shape, dtype=torch.bfloat16)
+    scalar = 5
+    result_before = m.forward(input, scalar)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(inputs[0], scalar)
+    result_after = m.forward(input, scalar)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
-    nodes = list(option._out_fx_graphs[0].nodes)
-    target = [node.target for node in nodes]
-    assert target.count(ttnn.full) == 1
-    assert target.count(ttnn.lt) == 1
-    assert target.index(ttnn.full) < target.index(ttnn.lt)
-    # Intermediate node meta check if preserved
-    for node in nodes:
-        if node.target == ttnn.full:
-            assert node.meta["val"].size() == input_shapes[0]
+    nodes = [node.target for node in option._out_fx_graphs[0].nodes]
+    assert torch.ops.aten.lt.Scalar not in nodes
+    assert nodes.count(ttnn.lt) == 1
+
     # Check inference result
     assert torch.allclose(result_before, result_after.to(torch.bool))

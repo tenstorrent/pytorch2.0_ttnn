@@ -36,8 +36,8 @@ csv_header_mappings = {
         "Execution time (in seconds) of the model before conversion.",
     ),
     "compiled_run_time": (
-        "Compiled Run Time (ms)",
-        "Execution time (in seconds) of the model after conversion.",
+        "Compiled Run Time for 5th Iteration (ms)",
+        "Execution time (in seconds) of the model after conversion for the 5th iteration.",
     ),
     "accuracy": (
         "Accuracy (%)",
@@ -117,7 +117,12 @@ def write_to_readme(all_metrics, aten_ops_per_model):
     )
 
     # Convert metrics to markdown table
-    metrics_md = pd.DataFrame(all_metrics).to_markdown(index=False)
+    all_metrics_sort = (
+        [m for m in all_metrics if m["Status"] == "✅"]
+        + [m for m in all_metrics if m["Status"] == "🚧"]
+        + [m for m in all_metrics if m["Status"] == "❌"]
+    )
+    metrics_md = pd.DataFrame(all_metrics_sort).to_markdown(index=False)
 
     # Write to README file
     readme_md = readme_comment + readme_in.format(
@@ -311,7 +316,13 @@ class InputVarPerOp(defaultdict):
             """
             Filter out the single status from single_metrics.
             """
-            na = {"native_run": "N/A", "run": "N/A", "accuracy": "N/A", "convert_to_ttnn": "N/A"}
+            na = {
+                "native_run": "N/A",
+                "run": "N/A",
+                "accuracy": "N/A",
+                "convert_to_ttnn": "N/A",
+                "ttnn_fallbacks_to_host_count": "N/A",
+            }
             if not self.single_metrics:
                 return na
             return next(
@@ -323,6 +334,7 @@ class InputVarPerOp(defaultdict):
 
         input_vars_dict["Isolated"] = []
         input_vars_dict["PCC"] = []
+        input_vars_dict["Host"] = []
         for input_variation in input_variations:
             single_status = _filter_single_status(opname, input_variation)
             status = "None"
@@ -339,6 +351,7 @@ class InputVarPerOp(defaultdict):
                 status = "Fallback"
             input_vars_dict["Isolated"].append(status)
             input_vars_dict["PCC"].append(single_status["accuracy"])
+            input_vars_dict["Host"].append(single_status["ttnn_fallbacks_to_host_count"])
 
     def generate_md_for_input_variations(self) -> str:
         """
