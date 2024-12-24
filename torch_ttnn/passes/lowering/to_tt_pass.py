@@ -6,6 +6,7 @@ from torch_ttnn.utils import (
     GraphCleanup,
     HasValidPageSize,
     TtnnBfloat16,
+    TtnnInt32,
     TtnnDevice,
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
@@ -1151,6 +1152,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensor, shifts, dims = args
                 input_shape = list(tensor.meta["val"].size())
                 return g.call_function(target_wrappers.roll, (tensor, input_shape, shifts, dims))
+
+            if node.target == torch.ops.aten.bitwise_not.default:
+                input_type = get_dtype(args[0])
+                if input_type == torch.bool:
+                    return g.call_function(ttnn.eq, args=(args[0], 0))
+
+                # ttnn.bitwise_not only supports int32
+                cast_to_int32 = g.call_function(ttnn.typecast, args=(args[0], TtnnInt32()))
+                return g.call_function(ttnn.bitwise_not, args=(cast_to_int32,))
 
             # PEP 8 suggests this explicit statement
             return None
