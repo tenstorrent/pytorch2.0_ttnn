@@ -22,6 +22,12 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.ceil.default,
             torch.ops.aten.clamp.default,
             torch.ops.aten.ones.default,
+            torch.ops.aten.cumsum.default,
+            torch.ops.aten._unsafe_index.Tensor,
+            torch.ops.aten.ne.Scalar,
+            torch.ops.aten.select.int,
+            torch.ops.aten.bitwise_not.default,
+            torch.ops.aten.floor_divide.default,
         }
 
     def call(self, gm: torch.fx.GraphModule):
@@ -40,35 +46,72 @@ class ConstantFoldingPass(PassBase):
         if not can_lowering_to_ttnn(node):
             return False
 
+        def can_arg_fold(arg):
+            if (
+                isinstance(
+                    arg,
+                    (
+                        int,
+                        float,
+                    ),
+                )
+                or arg is None
+            ):
+                return True
+
+            if isinstance(arg, torch.fx.Node) and arg.op in ("get_attr", "constant"):
+                return True
+            return False
+
         for arg in node.args:
-            if not isinstance(
+            if isinstance(
                 arg,
                 (
-                    int,
-                    float,
+                    list,
+                    tuple,
+                    torch.fx.immutable_collections.immutable_list,
                 ),
-            ) and isinstance(arg, torch.fx.Node):
-                if arg.op not in ("get_attr", "constant"):
-                    return False
+            ):
+                for arg_element in arg:
+                    if not can_arg_fold(arg_element):
+                        return False
+            elif not can_arg_fold(arg):
+                return False
+
         return True
 
     def _evaluate_node(self, gm: torch.fx.GraphModule, node):
-        args = []
-        for arg in node.args:
+        def eval_arg(arg):
             if isinstance(arg, torch.fx.Node):
                 if arg.op == "get_attr":
-                    value = getattr(gm, arg.target)
-                    args.append(value)
+                    return getattr(gm, arg.target)
                 elif arg.op == "constant":
-                    args.append(arg.args[0])
+                    return arg.args[0]
+            return arg
+
+        args = []
+        for arg in node.args:
+            if isinstance(
+                arg,
+                (
+                    list,
+                    tuple,
+                    torch.fx.immutable_collections.immutable_list,
+                ),
+            ):
+                list_arg = []
+                for arg_element in arg:
+                    list_arg.append(eval_arg(arg_element))
+                args.append(list_arg)
             else:
-                args.append(arg)
+                args.append(eval_arg(arg))
 
         if node.target == torch.ops.aten.lift_fresh_copy.default:
             return args[0]
 
         if node.target in self.foldable_ops:
-            return node.target(*args, **node.kwargs)
+            result = node.target(*args, **node.kwargs)
+            return result
 
         # Add handlers for other operations...
 
