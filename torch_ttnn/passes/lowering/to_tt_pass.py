@@ -246,9 +246,15 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.leaky_relu, args, kwargs)
 
         if target == torch.ops.aten.maximum.default:
+            if get_shape(None, args[0]) != get_shape(None, args[1]):
+                # see tt-metal#12852
+                return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.maximum, args, kwargs)
 
         if target == torch.ops.aten.minimum.default:
+            if get_shape(None, args[0]) != get_shape(None, args[1]):
+                # see tt-metal#12852
+                return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.minimum, args, kwargs)
 
         if target in [torch.ops.aten.pow.Scalar, torch.ops.aten.pow.Tensor_Scalar, torch.ops.aten.pow.Tensor_Tensor]:
