@@ -1194,6 +1194,9 @@ def decompose_aten_to_aten_ops(g: GraphWrapper, node):
         log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
         return log
 
+    if node.target == torch.ops.aten.clamp_min.default:
+        return g.call_function(torch.ops.aten.clamp.default, args=(args[0], args[1], None))
+
     return None
 
 
