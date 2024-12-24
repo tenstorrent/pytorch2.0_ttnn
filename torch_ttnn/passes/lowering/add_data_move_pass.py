@@ -69,6 +69,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.tan,
     ttnn.tanh,
     ttnn.trunc,
+    ttnn.bitwise_not,
 ]
 
 
