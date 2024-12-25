@@ -21,7 +21,12 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.parametrize("model_name", ["albert/albert-base-v2"])
+@pytest.mark.parametrize(
+    "model_name",
+    [
+        pytest.param("albert/albert-base-v2", marks=pytest.mark.converted_end_to_end),
+    ],
+)
 def test_albert_token_classification(record_property, model_name, mode):
     record_property("model_name", f"{model_name}-classification")
     record_property("mode", mode)
