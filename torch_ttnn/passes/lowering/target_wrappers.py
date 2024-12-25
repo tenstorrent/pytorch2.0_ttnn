@@ -122,3 +122,22 @@ def stack(tensors, dim, output_shape):
 
     # Concatenate all reshaped tensors along the stack dimension
     return ttnn.concat(unsqueezed_tensors, dim)
+
+
+@torch.fx.wrap
+def all(tensor, num_elements):
+    """
+    Check if all elements in the tensor are non-zero.
+
+    Args:
+        tensor (Tensor): The input tensor to check.
+        num_elements (int): The number of elements in the tensor.
+
+    Returns:
+        bool: True if all elements in the tensor are non-zero, False otherwise.
+    """
+    # Check if all elements in the tensor are non-zero
+    # by comparing the sum of non-zero elements to the total number of elements
+    neq_zero = ttnn.ne(tensor, 0)
+    total_none_zero = ttnn.sum(neq_zero)
+    return ttnn.eq(total_none_zero, num_elements)
