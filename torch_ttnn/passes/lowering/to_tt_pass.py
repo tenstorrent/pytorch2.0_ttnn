@@ -355,6 +355,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
             return self.call_function_prop_meta(ttnn.reshape, (tensor, size))
 
+        if target == torch.ops.aten.clone.default:
+            return args[0]
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
