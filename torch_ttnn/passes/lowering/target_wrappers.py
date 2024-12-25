@@ -25,16 +25,15 @@ def move_to_host(device_tensor, layout):
 
 
 @torch.fx.wrap
-def conv2d(
+def conv(
     input_tensor,
     weight_tensor,
     bias_tensor,
     batch_size,
     in_channels,
     out_channels,
-    input_height,
-    input_width,
-    kernel_size,
+    in_spatial_shape,
+    kernel_spatial_shape,
     stride,
     padding,
     dilation,
@@ -43,43 +42,63 @@ def conv2d(
     transposed,
     output_padding=None,
 ):
-    if transposed:
-        output_tensor = ttnn.conv_transpose2d(
+    if len(in_spatial_shape) == 1:
+        # TODO(tt-metal#16258): conv1d API doesn't support transposed yet
+        assert not transposed, "conv1d doesn't support transposed yet"
+        return ttnn.Conv1d(
             input_tensor=input_tensor,
             weight_tensor=weight_tensor,
             bias_tensor=bias_tensor,
             batch_size=batch_size,
             in_channels=in_channels,
             out_channels=out_channels,
-            input_height=input_height,
-            input_width=input_width,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=padding,
-            output_padding=output_padding,
-            dilation=dilation,
+            input_length=in_spatial_shape[0],
+            kernel_size=kernel_spatial_shape[0],
+            stride=stride[0],
+            padding=padding[0],
+            dilation=dilation[0],
             groups=groups,
             device=device,
         )
-    else:
-        assert output_padding is None, "conv2d has no output padding"
-        output_tensor = ttnn.conv2d(
-            input_tensor=input_tensor,
-            weight_tensor=weight_tensor,
-            bias_tensor=bias_tensor,
-            batch_size=batch_size,
-            in_channels=in_channels,
-            out_channels=out_channels,
-            input_height=input_height,
-            input_width=input_width,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=padding,
-            dilation=dilation,
-            groups=groups,
-            device=device,
-        )
-    return output_tensor
+    if len(in_spatial_shape) == 2:
+        in_h, in_w = in_spatial_shape
+        if transposed:
+            return ttnn.conv_transpose2d(
+                input_tensor=input_tensor,
+                weight_tensor=weight_tensor,
+                bias_tensor=bias_tensor,
+                batch_size=batch_size,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                input_height=in_h,
+                input_width=in_w,
+                kernel_size=kernel_spatial_shape,
+                stride=stride,
+                padding=padding,
+                output_padding=output_padding,
+                dilation=dilation,
+                groups=groups,
+                device=device,
+            )
+        else:
+            assert output_padding is None, "conv2d has no output padding"
+            return ttnn.conv2d(
+                input_tensor=input_tensor,
+                weight_tensor=weight_tensor,
+                bias_tensor=bias_tensor,
+                batch_size=batch_size,
+                in_channels=in_channels,
+                out_channels=out_channels,
+                input_height=in_h,
+                input_width=in_w,
+                kernel_size=kernel_spatial_shape,
+                stride=stride,
+                padding=padding,
+                dilation=dilation,
+                groups=groups,
+                device=device,
+            )
+    assert False, "unsupported conv shape"
 
 
 @torch.fx.wrap
