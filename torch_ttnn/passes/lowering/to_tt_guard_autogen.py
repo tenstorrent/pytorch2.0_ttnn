@@ -6,56 +6,6 @@ import torch_ttnn.metrics as metrics
 from functools import partial
 
 
-aten_clamp_default_blocklist = [
-    ["Tensor<[128]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[128]> self = ?", "Optional[number] min = ?", "Optional[number] max = 127"],
-    ["Tensor<[128]> self = ?", "Optional[number] min = ?", "Optional[number] max = 63"],
-    ["Tensor<[128]> self = ?", "Optional[number] min = ?", "Optional[number] max = 31"],
-    ["Tensor<[128]> self = ?", "Optional[number] min = ?", "Optional[number] max = 15"],
-    ["Tensor<[320]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[320]> self = ?", "Optional[number] min = ?", "Optional[number] max = 479"],
-    ["Tensor<[320]> self = ?", "Optional[number] min = ?", "Optional[number] max = 639"],
-    ["Tensor<[3234, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.135166556742356"],
-    ["Tensor<[30]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[40]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[30]> self = ?", "Optional[number] min = ?", "Optional[number] max = 14"],
-    ["Tensor<[40]> self = ?", "Optional[number] min = ?", "Optional[number] max = 19"],
-    ["Tensor<[60]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[80]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[60]> self = ?", "Optional[number] min = ?", "Optional[number] max = 29"],
-    ["Tensor<[80]> self = ?", "Optional[number] min = ?", "Optional[number] max = 39"],
-    ["Tensor<[120]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[160]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[120]> self = ?", "Optional[number] min = ?", "Optional[number] max = 59"],
-    ["Tensor<[160]> self = ?", "Optional[number] min = ?", "Optional[number] max = 79"],
-    ["Tensor<[240]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[240]> self = ?", "Optional[number] min = ?", "Optional[number] max = 119"],
-    ["Tensor<[320]> self = ?", "Optional[number] min = ?", "Optional[number] max = 159"],
-    ["Tensor<[480]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[640]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[480]> self = ?", "Optional[number] min = ?", "Optional[number] max = 239"],
-    ["Tensor<[640]> self = ?", "Optional[number] min = ?", "Optional[number] max = 319"],
-    ["Tensor<[3, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-    ["Tensor<[6, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-    ["Tensor<[12, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-    ["Tensor<[24, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-    ["Tensor<[800]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[1066]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[800]> self = ?", "Optional[number] min = ?", "Optional[number] max = 479"],
-    ["Tensor<[1066]> self = ?", "Optional[number] min = ?", "Optional[number] max = 639"],
-    ["Tensor<[0, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.135166556742356"],
-    ["Tensor<[0, 2]> self = ?", "Optional[number] min = 0", "Optional[number] max = 1066"],
-    ["Tensor<[0, 2]> self = ?", "Optional[number] min = 0", "Optional[number] max = 800"],
-    ["Tensor<[320]> self = ?", "Optional[number] min = ?", "Optional[number] max = 319"],
-    ["Tensor<[300]> self = ?", "Optional[number] min = 0.0"],
-    ["Tensor<[300]> self = ?", "Optional[number] min = ?", "Optional[number] max = 479"],
-    ["Tensor<[300]> self = ?", "Optional[number] min = ?", "Optional[number] max = 639"],
-    ["Tensor<[8732, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.135166556742356"],
-    ["Tensor<[4, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-    ["Tensor<[8, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-    ["Tensor<[16, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-    ["Tensor<[32, 1, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.605170185988092"],
-]
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
 aten__scaled_dot_product_flash_attention_default_blocklist = [
     ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
@@ -376,7 +326,6 @@ def guard_aten(blocklist, node):
 
 
 GUARD = {
-    torch.ops.aten.clamp.default: partial(guard_aten, aten_clamp_default_blocklist),
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
     torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
         guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist

@@ -1231,6 +1231,9 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
         log = g.call_function(torch.ops.aten.log.default, args=(softmax,))
         return log
 
+    if node.target == torch.ops.aten.clamp_min.default:
+        return g.call_function(torch.ops.aten.clamp.default, args=(args[0], args[1], None))
+
     if node.target == torch.ops.aten.select.int:
         input_shape = get_shape(gm, args[0])
         output_shape = get_shape(gm, node)
