@@ -151,11 +151,13 @@ def rename_input_args_from_graph_break(output_nodes, node):
 def compute_key(node):
     if "tensor_meta" in node.meta:
         tensor_meta = node.meta["tensor_meta"]
-    else:
+    elif "val" in node.meta:
         tensor_meta = node.meta["val"]
         # Workaround for layer_norm and other ops that has a list for "val"
         if isinstance(tensor_meta, tuple):
             tensor_meta = node.meta["val"][0]
+    else:
+        tensor_meta = ""
     return str(node.meta["seq_nr"]) + node.meta["original_aten"]._name + str(tensor_meta)
 
 
