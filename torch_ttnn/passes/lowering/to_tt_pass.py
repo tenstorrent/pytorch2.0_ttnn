@@ -994,13 +994,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 padding = params.get("padding", (0, 0))
                 dilation = params.get("dilation", (1, 1))
                 ceil_mode = params.get("ceil_mode", False)
-                # Assume the element size is bfloat16
-                volume = (batch_size * in_c * in_h * in_w) * 2
                 if (
                     # TODO(tt-metal#14976): ceil mode isn't supported yet
                     ceil_mode
-                    # TODO(#385): OOM
-                    or volume > 16 * 1024 * 1024
                     # TODO(tt-metal#13901): Wide input channels can only be multiple of 8 tiles
                     or (in_c > (ttnn.TILE_SIZE * 8) and in_c % (ttnn.TILE_SIZE * 8) != 0)
                     # TODO(#419): Currently fails with in_c < 16
