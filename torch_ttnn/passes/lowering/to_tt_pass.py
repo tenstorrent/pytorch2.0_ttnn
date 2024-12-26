@@ -81,13 +81,6 @@ def map_args_to_kwargs(args, kw_map, default_none=False):
     return kwargs
 
 
-# Workaround for issue https://github.com/tenstorrent/tt-metal/issues/11191
-def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
-    if rank == 3 and output_size[0] == 1:
-        new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
-    return new_nodes
-
-
 def is_getitem_0_only_user(node):
     return all(
         user.op == "call_function" and user.target.__name__ == "getitem" and user.args[1] == 0
@@ -758,20 +751,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.permute.default:
-                new_nodes = list()
-                new_nodes.append(g.call_function(ttnn.permute, args=(args[0], args[1])))
-                new_nodes[-1].meta["val"] = node.meta["val"]
-
-                # strange workaround when dim 0 is 1 for rank 3
-                # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
-                # and this can then go to ReplaceMoreTt class.
                 output_size = node.meta["val"].size()
-                rank = len(output_size)
                 # TODO(tt-metal#15165): ttnn.permute > 4D shape is not supported yet
-                if rank > 4:
+                if len(output_size) > 4:
                     return None
-                new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
-                return new_nodes[-1]
+
+                return g.call_function(ttnn.permute, args=(args[0], args[1]))
 
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad = args[0], args[1]
