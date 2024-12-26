@@ -16,11 +16,7 @@ class PermuteModule(torch.nn.Module):
     "input_shape, permute_order",
     [
         ((4, 4), (1, 0)),
-        pytest.param(
-            (1, 3, 16, 16, 16, 16),
-            (0, 2, 4, 3, 5, 1),
-            marks=pytest.mark.xfail(reason="not support > 4D shape (tt-metal#15165)"),
-        ),
+        ((1, 3, 16, 16, 16, 16), (0, 2, 4, 3, 5, 1)),
     ],
 )
 def test_permute(device, input_shape, permute_order):

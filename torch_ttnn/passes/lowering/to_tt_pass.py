@@ -348,6 +348,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
             return self.call_function_prop_meta(ttnn.reshape, (tensor, size))
 
+        if target == torch.ops.aten.permute.default:
+            return self.call_function_prop_meta(ttnn.permute, args, kwargs)
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
@@ -749,14 +752,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     return g.call_function(ttnn.reshape, args=(transposed, list(output_shape)))
 
                 return None
-
-            if node.target == torch.ops.aten.permute.default:
-                output_size = node.meta["val"].size()
-                # TODO(tt-metal#15165): ttnn.permute > 4D shape is not supported yet
-                if len(output_size) > 4:
-                    return None
-
-                return g.call_function(ttnn.permute, args=(args[0], args[1]))
 
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad = args[0], args[1]
