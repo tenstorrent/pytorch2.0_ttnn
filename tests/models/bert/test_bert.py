@@ -34,6 +34,7 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
+@pytest.mark.converted_end_to_end
 def test_bert(record_property, mode):
     model_name = "BERT"
     record_property("model_name", model_name)

@@ -78,7 +78,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", "eval"],
+    ["train", pytest.param("eval", marks=pytest.mark.converted_end_to_end)],
 )
 def test_autoencoder_linear(record_property, mode):
     model_name = "Autoencoder (linear)"
