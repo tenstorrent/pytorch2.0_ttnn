@@ -190,7 +190,6 @@ def is_tt_compute(node) -> bool:
             ttnn.arange,
             ttnn.zeros,
             ttnn.zeros_like,
-            ttnn.sum,
             ttnn.mean,
             ttnn.moreh_cumsum,
             ttnn.sum,
@@ -201,8 +200,6 @@ def is_tt_compute(node) -> bool:
             ttnn.full,
             ttnn.as_tensor,
             ttnn.expand,
-            ttnn.moreh_cumsum,
-            ttnn.sum,
             ttnn.typecast,
             ttnn.argmax,
         ]
