@@ -1251,6 +1251,7 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
             index_shape = get_shape(gm, indices[0])
             # magic number, 38000 can pass, 39000 can pass, but 38809 will hang
             # and if device is just ttnn.open_device(device=0), then it can pass
+            # see issue #685
             if index_shape == torch.Size([38809]):
                 return None
             return g.call_function(torch.ops.aten.embedding.default, args=(args[0], indices[0]))
@@ -1294,11 +1295,13 @@ class ToTtPass(PassBase):
         # Decompose some aten ops to simpler aten ops
         max_try = 10
         cnt = 0
-        while cnt < max_try:
+        while True:
             cnt += 1
             gm, modified = rewrite_graph(gm, decompose_aten_to_aten_ops)
             if not modified:
                 break
+            if cnt == max_try:
+                raise RuntimeError("Failed to decompose aten ops to simpler aten ops")
 
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
@@ -1306,10 +1309,12 @@ class ToTtPass(PassBase):
         # Replace patterns manually
         max_try = 10
         cnt = 0
-        while cnt < max_try:
+        while True:
             cnt += 1
             gm, modified = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
             if not modified:
                 break
+            if cnt == max_try:
+                raise RuntimeError("Failed to decompose aten ops to simpler aten ops")
 
         return PassResult(gm, True)
