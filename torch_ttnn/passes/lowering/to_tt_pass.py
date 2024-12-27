@@ -355,6 +355,16 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
             return self.call_function_prop_meta(ttnn.reshape, (tensor, size))
 
+        if target == torch.ops.aten.nll_loss_forward.default:
+            input, target, weight, reduction, ignore_index = args
+            args = input, target, ("none", "mean", "sum")[reduction]
+            kwargs = {
+                "divisor_tensor": torch.tensor([0], dtype=get_dtype(input)),
+                "weight_tensor": weight,
+                "ignore_index": ignore_index,
+            }
+            return self.call_function_prop_meta(ttnn.moreh_nll_loss, args, kwargs)
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
