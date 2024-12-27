@@ -24,6 +24,8 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.ones.default,
             torch.ops.aten.cumsum.default,
             torch.ops.aten._unsafe_index.Tensor,
+            torch.ops.aten.index.Tensor,
+            torch.ops.aten.index_select.default,
             torch.ops.aten.ne.Scalar,
             torch.ops.aten.select.int,
             torch.ops.aten.bitwise_not.default,

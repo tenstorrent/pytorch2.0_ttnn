@@ -1260,12 +1260,31 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
             return g.call_function(torch.ops.aten.squeeze.default, args=(args[0],))
         return None
 
+    if node.target in [torch.ops.aten.index.Tensor, torch.ops.aten._unsafe_index.Tensor]:
+        input_shape = get_shape(gm, args[0])
+        indices = get_arg(node, 1, "indices")
+        if len(input_shape) == 2 and len(indices) == 1 and indices[0] is not None:
+            index_shape = get_shape(gm, indices[0])
+            # magic number, 38000 can pass, 39000 can pass, but 38809 will hang
+            # and if device is just ttnn.open_device(device=0), then it can pass
+            # see issue #685
+            if index_shape == torch.Size([38809]):
+                return None
+            return g.call_function(torch.ops.aten.embedding.default, args=(args[0], indices[0]))
+        return None
+
+    if node.target == torch.ops.aten.index_select.default:
+        dim = get_arg(node, 1, "dim")
+        indices = get_arg(node, 2, "indices")
+        new_indices = [None] * dim + [indices]
+        return g.call_function(torch.ops.aten.index.Tensor, args=(args[0], new_indices))
     return None
 
 
 # TODO(jerrysky3): Refactor ReplaceMoreTtManually with rewrite_graph
 def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
+    modified = False
     for node in nodes:
         if not can_lowering_to_ttnn(node):
             continue
@@ -1273,13 +1292,14 @@ def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphMo
         with g.inserting_before(node):
             new_node = rewrite_node_fn(gm, g, node)
             if new_node is not None:
+                modified = True
                 node.replace_all_uses_with(
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
                 )
 
     gm = GraphCleanup(gm)
-    return gm
+    return gm, modified
 
 
 class ToTtPass(PassBase):
@@ -1289,7 +1309,15 @@ class ToTtPass(PassBase):
 
     def call(self, gm: torch.fx.GraphModule):
         # Decompose some aten ops to simpler aten ops
-        gm = rewrite_graph(gm, decompose_aten_to_aten_ops)
+        max_try = 10
+        cnt = 0
+        while True:
+            cnt += 1
+            gm, modified = rewrite_graph(gm, decompose_aten_to_aten_ops)
+            if not modified:
+                break
+            if cnt == max_try:
+                raise RuntimeError("Failed to decompose aten ops to simpler aten ops")
 
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
@@ -1297,10 +1325,12 @@ class ToTtPass(PassBase):
         # Replace patterns manually
         max_try = 10
         cnt = 0
-        while cnt < max_try:
+        while True:
             cnt += 1
             gm, modified = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
             if not modified:
                 break
+            if cnt == max_try:
+                raise RuntimeError("Failed to decompose aten ops to simpler aten ops")
 
         return PassResult(gm, True)
