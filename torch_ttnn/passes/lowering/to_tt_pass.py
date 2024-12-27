@@ -359,6 +359,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
             input, target, weight, reduction, ignore_index = args
             args = input, target, ("none", "mean", "sum")[reduction]
             kwargs = {
+                "divisor_tensor": torch.tensor([0], dtype=get_dtype(input)),
                 "weight_tensor": weight,
                 "ignore_index": ignore_index,
             }
