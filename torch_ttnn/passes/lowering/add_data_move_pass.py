@@ -192,6 +192,7 @@ def is_tt_compute(node) -> bool:
             ttnn.zeros_like,
             ttnn.mean,
             ttnn.moreh_cumsum,
+            ttnn.moreh_nll_loss,
             ttnn.clip,
             ttnn.squeeze,
             ttnn.full,
@@ -200,7 +201,6 @@ def is_tt_compute(node) -> bool:
             ttnn.sum,
             ttnn.typecast,
             ttnn.argmax,
-            ttnn.operations.moreh.nll_loss,
         ]
     )
 
