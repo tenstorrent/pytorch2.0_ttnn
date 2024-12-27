@@ -69,6 +69,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.tan,
     ttnn.tanh,
     ttnn.trunc,
+    ttnn.bitwise_not,
 ]
 
 
@@ -77,6 +78,7 @@ TTNN_POINTWISE_BINARY_OPS = [
     ttnn.atan2,
     ttnn.div,
     ttnn.eqz,
+    ttnn.floor_div,
     ttnn.gez,
     ttnn.ge,
     ttnn.gtz,
@@ -138,7 +140,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.repeat,
     target_wrappers.pack_to_tuple,
     target_wrappers.move_to_host,
-    target_wrappers.conv2d,
+    target_wrappers.conv,
     target_wrappers.roll,
     target_wrappers.stack,
 ]
@@ -318,7 +320,7 @@ class NodeInputAligner:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout
             spec.device = TtnnDevice
-        if node.target == target_wrappers.conv2d and input_site == 1:
+        if node.target == target_wrappers.conv and input_site == 1:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"

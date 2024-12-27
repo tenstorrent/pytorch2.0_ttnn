@@ -186,6 +186,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 "success": True,
                 "run_time": round(run_time, 2),
                 "run_time_first_iter": round(first_iter_runtime, 2),
+                "has_aten": None,
             }
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
@@ -209,6 +210,12 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 option.metrics_path,
                 "compiled-schema_list",
             )
+            comp_runtime_metrics["has_aten"] = False
+            for g in option._out_fx_graphs:
+                nodes = list(g.nodes)
+                if any(["aten." in str(node.target) for node in nodes]):
+                    comp_runtime_metrics["has_aten"] = True
+                    break
         except Exception as e:
             logging.error("Compilation failed.", exc_info=True)
             comp_runtime_metrics = {
@@ -247,6 +254,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
             logging.info(f"Compiled runtime metrics saved to {compiled_metrics_path}.")
+
+        if request.node.get_closest_marker("converted_end_to_end") and comp_runtime_metrics.get("has_aten"):
+            raise TypeError(f"{model_name} - Marked as converted end-to-end but still contains aten ops.")
 
 
 def run_model(model, inputs):

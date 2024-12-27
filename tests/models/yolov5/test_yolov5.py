@@ -96,6 +96,7 @@ def teardown_module(module):
     "mode",
     ["eval"],
 )
+@pytest.mark.converted_end_to_end
 @pytest.mark.usefixtures("manage_dependencies")
 def test_yolov5(record_property, mode):
     model_name = "YOLOv5"

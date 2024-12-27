@@ -124,8 +124,6 @@ jobs:
           rm -rf tests/autogen_op/ # Remove old tests
           python3 tools/generate_input_variation_test_from_models.py
           python3 tools/generate_input_variation_test_from_models.py --merge=True
-          echo "Remove these files because it's heavy for running"
-          rm -f tests/autogen_op/Stable_Diffusion_V2/test_Stable_Diffusion_V2_aten_convolution_default.py
           if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
             git add --all
           elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then

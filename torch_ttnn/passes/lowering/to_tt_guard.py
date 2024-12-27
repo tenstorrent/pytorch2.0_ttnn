@@ -47,7 +47,7 @@ aten_gt_Scalar_blocklist = [["Tensor<[]> self = ?", "number other = 0"]]
 # ttnn.from_torch not support scalar
 # RuntimeError: TT_FATAL @ tensor/types.cpp:209: normalized_index >= 0 and normalized_index < rank
 # not lowering ttnn.maximum to avoid ttnn.from_torch of scalar
-aten_maximum_default_blocklist += [["Tensor<[1, 16, 59, 59]> self = ?", "Tensor other = ?"]]
+# aten_maximum_default_blocklist += [["Tensor<[1, 16, 59, 59]> self = ?", "Tensor other = ?"]]
 
 # torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
 # RuntimeError: aten::clone() Expected a value of type 'Tensor' for argument 'self' but instead found type 'SymInt'.
