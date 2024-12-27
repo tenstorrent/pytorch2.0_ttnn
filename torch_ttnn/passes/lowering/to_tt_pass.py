@@ -1202,11 +1202,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.linalg_vector_norm.default:
                 x, ord, dim, keepdim = args
 
-                try:
-                    ndims = len(x.meta["val"].size())
+                if (shape := get_shape(gm, x)) is not None:
+                    ndims = len(shape)
                     dim = [d if d >= 0 else d + ndims for d in dim]
-                except:
-                    pass
 
                 kwargs = {
                     "dim": dim,
