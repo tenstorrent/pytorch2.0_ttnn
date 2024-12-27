@@ -1,10 +1,10 @@
 import torch
 import ttnn
 import math
+from torch._guards import detect_fake_mode
 from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
-    HasValidPageSize,
     TtnnBfloat16,
     TtnnInt32,
     TtnnDevice,
@@ -81,13 +81,6 @@ def map_args_to_kwargs(args, kw_map, default_none=False):
     return kwargs
 
 
-# Workaround for issue https://github.com/tenstorrent/tt-metal/issues/11191
-def workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size):
-    if rank == 3 and output_size[0] == 1:
-        new_nodes.append(g.call_function(ttnn.reshape, args=(new_nodes[-1], output_size)))
-    return new_nodes
-
-
 def is_getitem_0_only_user(node):
     return all(
         user.op == "call_function" and user.target.__name__ == "getitem" and user.args[1] == 0
@@ -96,7 +89,8 @@ def is_getitem_0_only_user(node):
 
 
 # Convert (n, c, x, ...) to (n, x, ..., c)
-def insert_ncx_to_nxc(g, input_tensor, input_shape):
+def insert_ncx_to_nxc(g, input_tensor):
+    input_shape = input_tensor.meta["val"].size()
     target_permute = [0] + list(range(2, len(input_shape))) + [1]
     return g.call_function(ttnn.permute, (input_tensor, target_permute))
 
@@ -355,6 +349,9 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
             return self.call_function_prop_meta(ttnn.reshape, (tensor, size))
 
+        if target == torch.ops.aten.permute.default:
+            return self.call_function_prop_meta(ttnn.permute, args, kwargs)
+
         return self.call_function_prop_meta(target, args, kwargs)
 
 
@@ -372,21 +369,57 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
 
 # override some functions from torch.fx.graph.Graph
 class GraphWrapper:
-    def __init__(self, node):
+    def __init__(self, gm, node):
+        self.gm = gm
         self.g = node.graph
         self.node = node
 
     def call_function(self, target, args=(), kwargs={}):
         new_node = self.g.call_function(target, args, kwargs)
-        new_node.meta = self.node.meta
+        new_node.meta = dict(self.node.meta)
         if hasattr(self.node.target, "_schema"):
             new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
-        if target == ttnn.layer_norm:
-            new_node.meta["val"] = new_node.meta["val"][0]
+        new_node.meta["val"] = self._get_output_val(new_node)
         return new_node
 
     def inserting_before(self, node):
         return self.g.inserting_before(node)
+
+    def _get_output_val(self, node):
+        args = node.args
+        # Compute on fake tensor to derive the output fake tensor
+        if node.target == ttnn.add:
+            return torch.add(self._get_val(args[0]), self._get_val(args[1]))
+        if node.target == ttnn.mul:
+            return torch.mul(self._get_val(args[0]), self._get_val(args[1]))
+        if node.target == ttnn.sub:
+            return torch.sub(self._get_val(args[0]), self._get_val(args[1]))
+        if node.target in [ttnn.rsqrt, ttnn.sharded_to_interleaved]:
+            return self._get_val(args[0])
+        # When accessing to self.node.meta, we assume the GraphWrapper is created on a pytorch op mapped to that ttnn op,
+        # so we can use the output shape from it
+        if node.target == ttnn.layer_norm:
+            return self._get_val(self.node)[0]
+        if node.target in [ttnn.max_pool2d, target_wrappers.conv]:
+            output_tensor = self._get_val(self.node)[0]
+            output_shape = list(output_tensor.size())
+            return output_tensor.new_empty((1, 1, output_shape[0] * math.prod(output_shape[2:]), output_shape[1]))
+        if node.target == ttnn.reshape:
+            return torch.reshape(self._get_val(args[0]), args[1])
+        if node.target == ttnn.permute:
+            return torch.permute(self._get_val(args[0]), args[1])
+        return self._get_val(node)
+
+    def _get_val(self, obj):
+        if not isinstance(obj, torch.fx.node.Node):
+            return obj
+        if obj.op == "get_attr":
+            val = getattr(self.gm, obj.target)
+            fake_mode = detect_fake_mode()
+            if isinstance(val, torch.Tensor) and fake_mode is not None:
+                val = fake_mode.fake_tensor_converter.from_real_tensor(fake_mode, val)
+            return val
+        return obj.meta["val"]
 
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
@@ -394,7 +427,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
     for node in nodes:
         if not can_lowering_to_ttnn(node):
             continue
-        g = GraphWrapper(node)
+        g = GraphWrapper(gm, node)
 
         def rewrite_node(node):
             args = node.args
@@ -757,22 +790,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 return None
 
-            if node.target == torch.ops.aten.permute.default:
-                new_nodes = list()
-                new_nodes.append(g.call_function(ttnn.permute, args=(args[0], args[1])))
-                new_nodes[-1].meta["val"] = node.meta["val"]
-
-                # strange workaround when dim 0 is 1 for rank 3
-                # TODO(bdrazic): remove workaround when permute issue is fixed https://github.com/tenstorrent/tt-metal/issues/11191
-                # and this can then go to ReplaceMoreTt class.
-                output_size = node.meta["val"].size()
-                rank = len(output_size)
-                # TODO(tt-metal#15165): ttnn.permute > 4D shape is not supported yet
-                if rank > 4:
-                    return None
-                new_nodes = workaround_permute_3d_first_out_dim_is_one(g, new_nodes, rank, output_size)
-                return new_nodes[-1]
-
             if node.target == torch.ops.aten.constant_pad_nd.default:
                 input, pad = args[0], args[1]
                 if len(args) > 2:
@@ -1006,7 +1023,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 ):
                     return None
 
-                input_tensor = insert_ncx_to_nxc(g, input_tensor, input_shape)
+                input_tensor = insert_ncx_to_nxc(g, input_tensor)
                 # TODO(#423): reshape can be removed if (N, H, W, C) is supported
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
                 # TODO(#418): max_pool2d fails with input tensors in tile layout for some shapes
@@ -1070,7 +1087,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 in_nhw = math.prod([batch_size] + in_spatial_shape)
                 out_c = weight_shape[1] if transposed else weight_shape[0]
 
-                input_tensor = insert_ncx_to_nxc(g, input_node, input_shape)
+                input_tensor = insert_ncx_to_nxc(g, input_node)
                 # TODO(tt-metal#15148): ttnn.conv2d internal reshape fails with padding
                 input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, in_nhw, in_c)))
                 bias_tensor = params.get("bias_tensor", None)
@@ -1101,8 +1118,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         output_padding if transposed else None,
                     ),
                 )
-                output_shape = node.meta["val"].size()
-                return insert_sharded_nxc_to_ncx(g, output_tensor, output_shape)
+                return insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"].size())
 
             if node.target == torch.ops.aten.slice_scatter.default:
                 tensor, src_tensor, dim, start, end, *step = args
@@ -1253,7 +1269,7 @@ def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphMo
     for node in nodes:
         if not can_lowering_to_ttnn(node):
             continue
-        g = GraphWrapper(node)
+        g = GraphWrapper(gm, node)
         with g.inserting_before(node):
             new_node = rewrite_node_fn(gm, g, node)
             if new_node is not None:
