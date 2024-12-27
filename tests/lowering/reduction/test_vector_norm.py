@@ -18,8 +18,8 @@ class VectorNormModule(torch.nn.Module):
     "input_shape, ord, dim",
     (
         ((1, 24, 64, 32), 2, -1),
-        ((1, 32, 64, 32), 2, 2),
-        ((1, 512, 38, 38), 2, 1),
+        pytest.param((1, 32, 64, 32), 2, 2, marks=pytest.mark.xfail(reason="Known PCC failure, tt-metal#16335")),
+        pytest.param((1, 512, 38, 38), 2, 1, marks=pytest.mark.xfail(reason="Known PCC failure, tt-metal#16335")),
         ((1, 512), 2, -1),
         ((16, 6, 64, 32), 2, -1),
         ((16, 8, 64, 32), 2, -1),
