@@ -1199,6 +1199,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 cast_to_int32 = g.call_function(ttnn.typecast, args=(args[0], TtnnInt32()))
                 return g.call_function(ttnn.bitwise_not, args=(cast_to_int32,))
 
+            if node.target == torch.ops.aten.linalg_vector_norm.default:
+                x, ord, dim, keepdim = args
+
+                if (shape := get_shape(gm, x)) is not None:
+                    ndims = len(shape)
+                    dim = [d if d >= 0 else d + ndims for d in dim]
+
+                kwargs = {
+                    "dim": dim,
+                    "keepdim": keepdim,
+                }
+                return g.call_function(ttnn.moreh_norm, (x, ord), kwargs)
+
             # PEP 8 suggests this explicit statement
             return None
 
