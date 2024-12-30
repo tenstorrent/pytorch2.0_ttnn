@@ -706,7 +706,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.repeat.default:
                 tensor, sizes = args
-                shape = tensor.meta["val"].size()
+                shape = get_shape(gm, tensor)
+                if shape is None:
+                    return None
 
                 if np.prod(sizes) == 1:
                     return tensor
