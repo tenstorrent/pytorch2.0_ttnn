@@ -31,7 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/XGLM", "aten.squeeze.dim")
 
 
-@pytest.mark.parametrize("input_strings", [["Tensor<[1, 19]> self = ?", "int dim = 0"]])
+@pytest.mark.parametrize("input_strings", [["Tensor self = ?", "int dim = 0"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.squeeze.dim",

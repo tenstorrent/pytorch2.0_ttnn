@@ -31,16 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/MobileNetSSD", "aten.select.int")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[1, 3, 320, 320]> self = ?", "int dim = 0", "int index = 0"],
-        ["Tensor<[3234, 4]> self = ?", "int dim = 1", "int index = 2"],
-        ["Tensor<[3234, 4]> self = ?", "int dim = 1", "int index = 0"],
-        ["Tensor<[3234, 4]> self = ?", "int dim = 1", "int index = 3"],
-        ["Tensor<[3234, 4]> self = ?", "int dim = 1", "int index = 1"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor<[1, 3, 320, 320]> self = ?", "int dim = 0", "int index = 0"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.select.int",

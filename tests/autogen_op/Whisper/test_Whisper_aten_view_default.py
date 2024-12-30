@@ -41,7 +41,6 @@ def teardown_module(module):
         ["Tensor<[1, 1500, 12, 64]> self = ?", "List[int] size = [1, 1500, 768]"],
         ["Tensor<[1500, 3072]> self = ?", "List[int] size = [1, 1500, 3072]"],
         ["Tensor<[1, 1500, 3072]> self = ?", "List[int] size = [1500, 3072]"],
-        ["Tensor<[1, 1]> self = ?", "List[int] size = [-1, 1]"],
         ["Tensor<[1, 1, 768]> self = ?", "List[int] size = [1, 768]"],
         ["Tensor<[1, 768]> self = ?", "List[int] size = [1, 1, 768]"],
         ["Tensor<[1, 1, 768]> self = ?", "List[int] size = [1, -1, 12, 64]"],
@@ -59,6 +58,7 @@ def teardown_module(module):
         ["Tensor<[4, 3072]> self = ?", "List[int] size = [1, 4, 3072]"],
         ["Tensor<[1, 4, 3072]> self = ?", "List[int] size = [4, 3072]"],
         ["Tensor<[4, 51865]> self = ?", "List[int] size = [1, 4, 51865]"],
+        ["Tensor<[1, 1]> self = ?", "List[int] size = [-1, 1]"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

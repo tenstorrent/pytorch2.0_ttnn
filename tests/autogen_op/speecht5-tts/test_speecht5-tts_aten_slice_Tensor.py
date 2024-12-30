@@ -53,13 +53,8 @@ def teardown_module(module):
             "Optional[int] start = 0",
             "Optional[int] end = 9223372036854775807",
         ],
-        ["Tensor<[24]> self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
-        [
-            "Tensor<[1, 24]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 0",
-            "Optional[int] end = 9223372036854775807",
-        ],
+        ["Tensor self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
+        ["Tensor self = ?", "int dim = 1", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

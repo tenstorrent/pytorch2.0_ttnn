@@ -35,7 +35,7 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[100, 1, 256]> self = ?", "Optional[bool] pin_memory = False"],
-        ["Tensor<[1, 920]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[bool] pin_memory = False"],
+        ["Tensor self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[bool] pin_memory = False"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

@@ -34,12 +34,130 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[1, 18, 28, 28]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[56, 1]>, <[56]>]"],
-        ["Tensor<[1, 18, 14, 14]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[56, 1]>, <[56]>]"],
-        ["Tensor<[1, 36, 14, 14]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[28, 1]>, <[28]>]"],
-        ["Tensor<[1, 18, 7, 7]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[56, 1]>, <[56]>]"],
-        ["Tensor<[1, 36, 7, 7]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[28, 1]>, <[28]>]"],
-        ["Tensor<[1, 72, 7, 7]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[14, 1]>, <[14]>]"],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze, _folded__to_copy_70]",
+        ],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_1, _folded__to_copy_128]",
+        ],
+        [
+            "Tensor<[1, 18, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_2, _folded__to_copy_134]",
+        ],
+        [
+            "Tensor<[1, 36, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_3, _folded__to_copy_142]",
+        ],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_4, _folded__to_copy_202]",
+        ],
+        [
+            "Tensor<[1, 18, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_5, _folded__to_copy_208]",
+        ],
+        [
+            "Tensor<[1, 36, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_6, _folded__to_copy_216]",
+        ],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_7, _folded__to_copy_276]",
+        ],
+        [
+            "Tensor<[1, 18, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_8, _folded__to_copy_282]",
+        ],
+        [
+            "Tensor<[1, 36, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_9, _folded__to_copy_290]",
+        ],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_10, _folded__to_copy_350]",
+        ],
+        [
+            "Tensor<[1, 18, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_11, _folded__to_copy_356]",
+        ],
+        [
+            "Tensor<[1, 36, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_12, _folded__to_copy_364]",
+        ],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_13, _folded__to_copy_442]",
+        ],
+        [
+            "Tensor<[1, 18, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_14, _folded__to_copy_448]",
+        ],
+        [
+            "Tensor<[1, 18, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_15, _folded__to_copy_454]",
+        ],
+        [
+            "Tensor<[1, 36, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_16, _folded__to_copy_462]",
+        ],
+        [
+            "Tensor<[1, 36, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_17, _folded__to_copy_468]",
+        ],
+        [
+            "Tensor<[1, 72, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_18, _folded__to_copy_480]",
+        ],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_19, _folded__to_copy_562]",
+        ],
+        [
+            "Tensor<[1, 18, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_20, _folded__to_copy_568]",
+        ],
+        [
+            "Tensor<[1, 18, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_21, _folded__to_copy_574]",
+        ],
+        [
+            "Tensor<[1, 36, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_22, _folded__to_copy_582]",
+        ],
+        [
+            "Tensor<[1, 36, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_23, _folded__to_copy_588]",
+        ],
+        [
+            "Tensor<[1, 72, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_24, _folded__to_copy_600]",
+        ],
+        [
+            "Tensor<[1, 18, 28, 28]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_25, _folded__to_copy_682]",
+        ],
+        [
+            "Tensor<[1, 18, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_26, _folded__to_copy_688]",
+        ],
+        [
+            "Tensor<[1, 18, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_27, _folded__to_copy_694]",
+        ],
+        [
+            "Tensor<[1, 36, 14, 14]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_28, _folded__to_copy_702]",
+        ],
+        [
+            "Tensor<[1, 36, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_29, _folded__to_copy_708]",
+        ],
+        [
+            "Tensor<[1, 72, 7, 7]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_30, _folded__to_copy_720]",
+        ],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
