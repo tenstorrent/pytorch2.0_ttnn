@@ -1199,6 +1199,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 cast_to_int32 = g.call_function(ttnn.typecast, args=(args[0], TtnnInt32()))
                 return g.call_function(ttnn.bitwise_not, args=(cast_to_int32,))
 
+            if node.target == torch.ops.aten.all.default:
+                input_shape = get_shape(gm, args[0])
+                ttnn_all = g.call_function(target_wrappers.all, args=(args[0], input_shape.numel()))
+                return g.call_function(torch.ops.aten.squeeze.default, args=(ttnn_all,))
+
             # PEP 8 suggests this explicit statement
             return None
 
