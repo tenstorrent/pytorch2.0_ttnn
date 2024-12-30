@@ -23,7 +23,7 @@ class AllModule(torch.nn.Module):
         (1,),
     ],
 )
-def test_mean_dim(device, input_shape):
+def test_all(device, input_shape):
     m = AllModule()
     input = torch.randint(-10, 10, input_shape, dtype=torch.bfloat16)
     result_before = m.forward(input)
