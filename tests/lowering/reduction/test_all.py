@@ -14,6 +14,7 @@ class AllModule(torch.nn.Module):
         return torch.all(input)
 
 
+@pytest.mark.xfail(reason="Knwon low PCC issue (tt-metal#15824)")
 @pytest.mark.parametrize(
     "input_shape",
     [
@@ -23,6 +24,7 @@ class AllModule(torch.nn.Module):
         (1,),
     ],
 )
+@pytest.mark.skip(reason="Temporarily disabled due to (tt-metal#15824)")
 def test_all(device, input_shape):
     m = AllModule()
     input = torch.randint(-10, 10, input_shape, dtype=torch.bfloat16)
