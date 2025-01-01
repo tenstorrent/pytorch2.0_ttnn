@@ -35,12 +35,11 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[100, 1, 256]> self = ?", "Optional[bool] pin_memory = False"],
-        ["Tensor<[1, 920]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[bool] pin_memory = False"],
+        ["Tensor self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[bool] pin_memory = False"],
         ["Tensor<[1, 1]> self = ?", "Optional[bool] pin_memory = False"],
         ["Tensor<[2, 2]> self = ?", "Optional[bool] pin_memory = False"],
         ["Tensor<[s0 + 1, s0 + 1]> self = ?", "Optional[bool] pin_memory = False"],
         ["Tensor<[17, 17]> self = ?", "Optional[bool] pin_memory = False"],
-        ["Tensor<[13685]> self = ?", "Optional[int] dtype = torch.bool", "Optional[bool] pin_memory = False"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

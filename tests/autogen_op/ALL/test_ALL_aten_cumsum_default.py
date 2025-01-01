@@ -35,8 +35,6 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[1, 32]> self = ?", "int dim = -1"],
-        ["Tensor<[1, 23, 40]> self = ?", "int dim = 1", "Optional[int] dtype = torch.float32"],
-        ["Tensor<[1, 23, 40]> self = ?", "int dim = 2", "Optional[int] dtype = torch.float32"],
         ["Tensor<[1, 45]> self = ?", "int dim = -1"],
         ["Tensor<[1, s0]> self = ?", "int dim = -1"],
         ["Tensor<[1, 59]> self = ?", "int dim = 1"],

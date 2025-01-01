@@ -36,7 +36,7 @@ def teardown_module(module):
     [
         [
             "Tensor<[1, 192, 50, 83]> self = ?",
-            "List[Optional[Tensor]] indices = [<[1, 1, 1, 1]>, <[1, 192, 1, 1]>, <[1, 1, 32, 1]>, <[1, 1, 1, 42]>]",
+            "List[Optional[Tensor]] indices = [_folded_view_2, _folded_view_3, <[1, 1, 32, 1]>, <[1, 1, 1, 42]>]",
         ]
     ],
 )

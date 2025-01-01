@@ -31,21 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/GLPN-KITTI", "aten.rsub.Scalar")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[30, 1]> self = ?", "number other = 1.0"],
-        ["Tensor<[40]> self = ?", "number other = 1.0"],
-        ["Tensor<[60, 1]> self = ?", "number other = 1.0"],
-        ["Tensor<[80]> self = ?", "number other = 1.0"],
-        ["Tensor<[120, 1]> self = ?", "number other = 1.0"],
-        ["Tensor<[160]> self = ?", "number other = 1.0"],
-        ["Tensor<[240, 1]> self = ?", "number other = 1.0"],
-        ["Tensor<[320]> self = ?", "number other = 1.0"],
-        ["Tensor<[480, 1]> self = ?", "number other = 1.0"],
-        ["Tensor<[640]> self = ?", "number other = 1.0"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor self = ?", "number other = 1.0"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.rsub.Scalar",

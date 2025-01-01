@@ -35,7 +35,7 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[50257, 768]> weight = ?", "Tensor<[1, 7]> indices = ?"],
-        ["Tensor<[1024, 768]> weight = ?", "Tensor<[1, 7]> indices = ?"],
+        ["Tensor<[1024, 768]> weight = ?", "Tensor indices = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

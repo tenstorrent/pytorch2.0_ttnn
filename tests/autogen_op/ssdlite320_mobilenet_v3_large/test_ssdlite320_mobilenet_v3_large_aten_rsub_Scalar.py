@@ -31,10 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/ssdlite320_mobilenet_v3_large", "aten.rsub.Scalar")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [["Tensor<[320, 1]> self = ?", "number other = 1.0"], ["Tensor<[320]> self = ?", "number other = 1.0"]],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor self = ?", "number other = 1.0"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.rsub.Scalar",

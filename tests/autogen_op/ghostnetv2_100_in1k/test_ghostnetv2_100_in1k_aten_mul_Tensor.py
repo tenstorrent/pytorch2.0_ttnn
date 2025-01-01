@@ -34,14 +34,11 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[56]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 72, 56, 56]> self = ?", "Tensor<[1, 72, 56, 56]> other = ?"],
         ["Tensor<[1, 72, 28, 28]> self = ?", "Tensor<[1, 72, 1, 1]> other = ?"],
-        ["Tensor<[28]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 120, 28, 28]> self = ?", "Tensor<[1, 120, 28, 28]> other = ?"],
         ["Tensor<[1, 120, 28, 28]> self = ?", "Tensor<[1, 120, 1, 1]> other = ?"],
         ["Tensor<[1, 240, 28, 28]> self = ?", "Tensor<[1, 240, 28, 28]> other = ?"],
-        ["Tensor<[14]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 200, 14, 14]> self = ?", "Tensor<[1, 200, 14, 14]> other = ?"],
         ["Tensor<[1, 184, 14, 14]> self = ?", "Tensor<[1, 184, 14, 14]> other = ?"],
         ["Tensor<[1, 480, 14, 14]> self = ?", "Tensor<[1, 480, 14, 14]> other = ?"],
@@ -49,7 +46,6 @@ def teardown_module(module):
         ["Tensor<[1, 672, 14, 14]> self = ?", "Tensor<[1, 672, 14, 14]> other = ?"],
         ["Tensor<[1, 672, 14, 14]> self = ?", "Tensor<[1, 672, 1, 1]> other = ?"],
         ["Tensor<[1, 672, 7, 7]> self = ?", "Tensor<[1, 672, 1, 1]> other = ?"],
-        ["Tensor<[7]> self = ?", "Tensor other = 0.42857142857142855"],
         ["Tensor<[1, 960, 7, 7]> self = ?", "Tensor<[1, 960, 7, 7]> other = ?"],
         ["Tensor<[1, 960, 7, 7]> self = ?", "Tensor<[1, 960, 1, 1]> other = ?"],
     ],

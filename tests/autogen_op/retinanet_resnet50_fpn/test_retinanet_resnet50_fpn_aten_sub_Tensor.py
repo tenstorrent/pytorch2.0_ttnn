@@ -35,18 +35,12 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[3, 480, 640]> self = ?", "Tensor<[3, 1, 1]> other = ?"],
-        ["Tensor<[800]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[1066]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[800, 1]> self = ?", "Tensor<[800, 1]> other = ?"],
-        ["Tensor<[1066]> self = ?", "Tensor<[1066]> other = ?"],
         ["Tensor<[1, 64, 1, 1]> self = ?", "Tensor<[1, 64, 1, 1]> other = ?"],
         ["Tensor<[1, 256, 1, 1]> self = ?", "Tensor<[1, 256, 1, 1]> other = ?"],
         ["Tensor<[1, 128, 1, 1]> self = ?", "Tensor<[1, 128, 1, 1]> other = ?"],
         ["Tensor<[1, 512, 1, 1]> self = ?", "Tensor<[1, 512, 1, 1]> other = ?"],
         ["Tensor<[1, 1024, 1, 1]> self = ?", "Tensor<[1, 1024, 1, 1]> other = ?"],
         ["Tensor<[1, 2048, 1, 1]> self = ?", "Tensor<[1, 2048, 1, 1]> other = ?"],
-        ["Tensor<[0]> self = ?", "Tensor<[0]> other = ?"],
-        ["Tensor<[0, 1]> self = ?", "Tensor<[0, 1]> other = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
