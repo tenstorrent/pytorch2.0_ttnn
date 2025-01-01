@@ -79,8 +79,9 @@ aten_cumsum_default_blocklist = [["Tensor<[1, 23, 40]> self = ?", "int dim = 1",
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn
 ############################################################
 # Statically allocated circular buffers on core range [(x=0,y=0) - (x=0,y=0)] grow to 3580704 B which is beyond max L1 size of 1499136 B
-# TODO: not pass yet
-
+aten_aten_stack_default = [
+    ["List[Tensor] tensors = [<[13600]>, <[13600]>, <[13600]>, <[13600]>]", "int dim = 1"],
+]
 
 ############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn_v2
@@ -92,6 +93,7 @@ aten_cumsum_default_blocklist = [["Tensor<[1, 23, 40]> self = ?", "int dim = 1",
 
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
+GUARD[torch.ops.aten.stack.default] = partial(guard_aten, aten_aten_stack_default)
 
 
 def can_lowering_to_ttnn(node):

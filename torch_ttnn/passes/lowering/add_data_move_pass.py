@@ -143,6 +143,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.conv,
     target_wrappers.roll,
     target_wrappers.stack,
+    target_wrappers.all,
 ]
 
 TTNN_NORM_OPS = [
@@ -332,6 +333,11 @@ class NodeInputAligner:
             and spec.input_node.meta["val"].dtype in [torch.int32, torch.int64]
         ):
             spec.dtype = TtnnUint32
+        if node.target == ttnn.permute and len(node.meta["val"].size()) > 4:
+            # TODO(tt-metal#16188): to_layout on device fails for > 4D
+            # Otherwise ttnn.permute can do to_layout internally and this special spec can be removed
+            spec.layout = TtnnRowMajorLayout
+            spec.device = TtnnDevice
         return spec
 
     def _reset_to_default_layout(self, input_node, spec):
@@ -350,6 +356,11 @@ class NodeInputAligner:
                 ]
             )
         ):
+            spec.layout = TtnnTileLayout
+            spec.device = TtnnDevice
+        if input_node.target == ttnn.permute and len(input_node.meta["val"].size()) > 4:
+            # TODO(tt-metal#16188): to_layout on device fails for > 4D
+            # Otherwise ttnn.permute can do to_layout internally and this special spec can be removed
             spec.layout = TtnnTileLayout
             spec.device = TtnnDevice
         return spec

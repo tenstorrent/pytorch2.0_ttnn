@@ -286,6 +286,28 @@ aten_convolution_default_blocklist = [
         "List[int] output_padding = [0, 0]",
         "int groups = 960",
     ],
+    [
+        "Tensor<[1, 768, 3000]> input = ?",
+        "Tensor<[768, 768, 3]> weight = ?",
+        "Optional[Tensor]<[768]> bias = ?",
+        "List[int] stride = [2]",
+        "List[int] padding = [1]",
+        "List[int] dilation = [1]",
+        "bool transposed = False",
+        "List[int] output_padding = [0]",
+        "int groups = 1",
+    ],
+    [
+        "Tensor<[1, 320, 64, 64]> input = ?",
+        "Tensor<[320, 320, 3, 3]> weight = ?",
+        "Optional[Tensor]<[320]> bias = ?",
+        "List[int] stride = [1, 1]",
+        "List[int] padding = [1, 1]",
+        "List[int] dilation = [1, 1]",
+        "bool transposed = False",
+        "List[int] output_padding = [0, 0]",
+        "int groups = 1",
+    ],
     # TODO(tt-metal#16173): weight_matrix_width_ntiles % weight_block_w_ntiles == 0
     [
         "Tensor<[1, 1232, 14, 14]> input = ?",
