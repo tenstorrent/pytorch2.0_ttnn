@@ -81,8 +81,8 @@ def _compute_key(node):
         tensor_meta = node.meta["tensor_meta"]
     elif "val" in node.meta:
         tensor_meta = node.meta["val"]
-        # Workaround for layer_norm and other ops that has a list for "val"
-        if isinstance(tensor_meta, tuple):
+        # Workaround for ttnn.layer_norm
+        if node.target == ttnn.layer_norm:
             tensor_meta = node.meta["val"][0]
     else:
         tensor_meta = ""
@@ -101,17 +101,21 @@ def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
             continue
 
         ttnn_all_nodes.append(node)
+
+        # check the node pair to compare against each other
         if "seq_nr" in node.meta:
             aten_node_name = _compute_key(node)
-            aten_node = aten_name_to_node_map[aten_node_name]
-            # this is the last ttnn node for this aten op, compare the output of this
-            if node == aten_to_ttnn_map[aten_node][-1]:
-                # this will be converted to test_accuracy(node1, node2) later
-                # do not emit if users are getitem
-                if not users_have_getitem(node):
-                    if (getitem := users_have_getitem(aten_node)) is not None:
-                        aten_node = getitem
-                    ttnn_all_nodes.append((aten_node, node))
+            # If a key is not in the map, then ignore. This is usually an intermediate
+            # node from a decomposition, and we do not not compare this.
+            if aten_node := aten_name_to_node_map[aten_node_name]:
+                # this is the last ttnn node for this aten op, compare the output of this
+                if node == aten_to_ttnn_map[aten_node][-1]:
+                    # this will be converted to test_accuracy(node1, node2) later
+                    # do not emit if users are getitem
+                    if not users_have_getitem(node):
+                        if (getitem := users_have_getitem(aten_node)) is not None:
+                            aten_node = getitem
+                        ttnn_all_nodes.append((aten_node, node))
     return ttnn_all_nodes
 
 
@@ -249,9 +253,10 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
                 continue
             if "seq_nr" in node.meta:
                 aten_node_name = _compute_key(node)
-                aten_node = aten_name_to_node_map[aten_node_name]
-                aten_to_ttnn_map[aten_node].append(node)
-                # also append gettiem if exists
+                # If a key is not in the map, then ignore. This is usually an intermediate
+                # node from a decomposition, and we do not not compare this.
+                if aten_node := aten_name_to_node_map[aten_node_name]:
+                    aten_to_ttnn_map[aten_node].append(node)
 
     """
     Gather all ttnn ops into one list. Use `aten_to_ttnn_map` to determine where to insert
