@@ -89,6 +89,32 @@ def _compute_key(node):
     return str(node.meta["seq_nr"]) + node.meta["original_aten"]._name + str(tensor_meta)
 
 
+def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
+    """
+    Map all aten ops to ttnn ops. This is in a 1 aten op to many ttnn ops
+    mapping. This is done by comparing the metadata in the aten op to the
+    that of the ttnn op. Some intermediate nodes that have different meta-
+    data will be skipped. This is fine because we only care about the very
+    last node of the set of ttnn ops.
+    """
+    aten_to_ttnn_map = defaultdict(list)
+    for node in ttnn_graph.nodes:
+        if node.op == "placeholder":
+            _rename_input_args_from_graph_break(output_nodes, node)
+            continue
+
+        if node.op != "placeholder" and node.op != "output":
+            # ignore to_torch
+            if node.target == ttnn.to_torch:
+                continue
+            if "seq_nr" in node.meta:
+                aten_node_name = _compute_key(node)
+                # If a key is not in the map, then ignore. This is usually an intermediate
+                # node from a decomposition, and we do not not compare this.
+                if aten_node := aten_name_to_node_map[aten_node_name]:
+                    aten_to_ttnn_map[aten_node].append(node)
+
+
 def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
     """
     Organize ttnn ops into a sequential list while inserting tuples in between.
@@ -219,7 +245,6 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     Gather together all the aten nodes and argument (placeholder) nodes into one list.
     Rename some input arguments to match names due to graph breakage. 
     """
-    # gather all aten nodes and arg nodes
     aten_all_nodes = []
     arg_nodes = []
     for node in aten_graph.nodes:
@@ -238,25 +263,9 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
             aten_name_to_node_map[_compute_key(node)] = node
 
     """
-    Now map all aten ops to ttnn ops. Use aten_name_to_node_map to associate the
-    corresponding original aten to lowered ttnn ops.
+    Now map all aten ops to ttnn ops.
     """
-    aten_to_ttnn_map = defaultdict(list)
-    for node in ttnn_graph.nodes:
-        if node.op == "placeholder":
-            _rename_input_args_from_graph_break(output_nodes, node)
-            continue
-
-        if node.op != "placeholder" and node.op != "output":
-            # ignore to_torch
-            if node.target == ttnn.to_torch:
-                continue
-            if "seq_nr" in node.meta:
-                aten_node_name = _compute_key(node)
-                # If a key is not in the map, then ignore. This is usually an intermediate
-                # node from a decomposition, and we do not not compare this.
-                if aten_node := aten_name_to_node_map[aten_node_name]:
-                    aten_to_ttnn_map[aten_node].append(node)
+    aten_to_ttnn_map = _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes)
 
     """
     Gather all ttnn ops into one list. Use `aten_to_ttnn_map` to determine where to insert
@@ -264,7 +273,9 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     """
     ttnn_all_nodes = _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map)
 
-    # finally convert interleaved nodes to python code for this graph
+    """
+    Finally convert interleaved nodes to python code for this graph
+    """
     arg_node_names = [node.name for node in arg_nodes]
 
     forward_signature = f"def forward({', '.join(arg_node_names)}):"
