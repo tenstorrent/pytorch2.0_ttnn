@@ -153,9 +153,18 @@ TTNN_POINTWISE_UNARY_OPS = {
 class ReplaceMoreTt(torch.fx.Transformer):
     def __init__(self, module, device, use_less_ttnn_op_types):
         super().__init__(module)
-        self._input_node_meta = {node.name: node.meta for node in self.module.graph.nodes if node.op == "placeholder"}
+        get_meta_for_op = lambda op: {node.name: node.meta for node in self.module.graph.nodes if node.op == op}
+        self._input_node_meta = get_meta_for_op("placeholder")
+        self._get_attr_meta = get_meta_for_op("get_attr")
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
+
+    def get_attr(self, target, args, kwargs):
+        # Restore original metadata for get_attr nodes
+        proxy = super().get_attr(target, args, kwargs)
+        if proxy.node.name in self._get_attr_meta:
+            proxy.node.meta = self._get_attr_meta[proxy.node.name]
+        return proxy
 
     def placeholder(self, target, args, kwargs):
         # Restore original metadata for placeholder nodes
