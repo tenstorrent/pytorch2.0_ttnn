@@ -114,6 +114,8 @@ def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
                 if aten_node := aten_name_to_node_map[aten_node_name]:
                     aten_to_ttnn_map[aten_node].append(node)
 
+    return aten_to_ttnn_map
+
 
 def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
     """
