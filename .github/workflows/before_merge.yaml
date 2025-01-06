@@ -234,12 +234,12 @@ jobs:
         with:
           pattern: model-accuracy-tests-group-*
           merge-multiple: true
-          path: accuracy_tests/
+          path: tests/autogen_accuracy_tests/
 
       - name: Run Accuracy Tests
         run: |
+          cd tests/autogen_accuracy_tests
           set +e
-          cd accuracy_tests
           find . -type f -name "*.py" -exec python {} ";"
           exit 0;
         shell: bash

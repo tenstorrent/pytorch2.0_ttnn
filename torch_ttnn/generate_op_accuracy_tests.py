@@ -1,4 +1,5 @@
 import inspect
+import logging
 import lzma
 import pickle
 import torch.utils._pytree as pytree
@@ -379,7 +380,7 @@ def test_accuracy(expected, actual):
 """
 
     # main function definition
-    directory = Path("accuracy_tests")
+    directory = Path("tests/autogen_accuracy_tests")
     input_pkl_file = Path(f"{model_name}_inputs.pickle")
     full_input_pkl_path = directory / input_pkl_file
     full_input_pkl_path.parent.mkdir(parents=True, exist_ok=True)
@@ -404,14 +405,18 @@ if __name__ == "__main__":
     )
     full_text = "\n".join(full_code)
 
-    with open(directory / Path(f"{model_name}_code.py"), "w") as text_file:
+    code_full_path = directory / Path(f"{model_name}_code.py")
+    with open(code_full_path, "w") as text_file:
         print(full_text, file=text_file)
+        logging.info(f"Accuracy test code saved to {code_full_path}.")
 
-    with lzma.open(directory / Path(f"{model_name}_inputs.pickle"), "wb") as f:
+    data_full_path = directory / Path(f"{model_name}_inputs.pickle")
+    with lzma.open(data_full_path, "wb") as f:
         pickle.dump(all_inputs, f)
+        logging.info(f"Accuracy data object saved to {data_full_path}.")
 
 
-def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs, *, verbose=False):
+def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs):
     """
     Main entry to generate standalone python script with accuracy checks
 
