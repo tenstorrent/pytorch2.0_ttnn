@@ -174,3 +174,29 @@ You can see that the `input_tensor` parameter expects a `tt_lib.tensor.Tensor` t
 
 ### Fix
 This usually happens because a `ttnn.from_torch` was not inserted for this particular argument. The logic to insert this is mostly under the [AddDataMovePass](https://github.com/tenstorrent/pytorch2.0_ttnn/blob/main/torch_ttnn/passes/lowering/add_data_move_pass.py).
+
+
+# Mismatch between values
+If the model has a very low accuracy score and you want to be able to narrow down the Aten-TTNN op pair that produced low accuracy, you can run pytest with `--gen_op_accuracy_tests` to export a self-contained python script containing the graph and input data. This script will compare each original aten op and the corresponding TTNN op and report the first pair that has an accuracy score below a threshold.
+
+For example:
+```
+pytest tests/models/mobilenet_ssd/test_mobilenet_ssd.py --gen_op_accuracy_tests
+python3 accuracy_tests/MobileNetSSD_code.py
+```
+
+Output:
+```
+Traceback (most recent call last):
+  File "MobileNetSSD_code.py", line 5650, in <module>
+    forward(*inputs)
+  File "MobileNetSSD_code.py", line 1347, in forward
+    test_accuracy(mean, ttnn_mean)
+  File "MobileNetSSD_code.py", line 225, in test_accuracy
+    assert_with_pcc(expected, actual, pcc = 0.90)
+  File "MobileNetSSD_code.py", line 218, in assert_with_pcc
+    assert pcc_passed, construct_pcc_assert_message(pcc_message, expected_pytorch_result, actual_pytorch_result)
+AssertionError: 0.7265316050734197
+```
+
+We can see that on line 1347 that the `ttnn.mean` op is reporting an accuracy of only 0.72. We can use this information to debug further.
