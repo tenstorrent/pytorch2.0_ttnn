@@ -17,3 +17,4 @@ diffusers
 pytorchcv
 librosa
 soundfile
+safetensors

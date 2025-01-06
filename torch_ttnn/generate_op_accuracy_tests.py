@@ -1,7 +1,6 @@
 import inspect
 import logging
-import lzma
-import pickle
+import re
 import torch.utils._pytree as pytree
 import ttnn
 import torch
@@ -9,6 +8,7 @@ import types
 
 from collections import defaultdict
 from pathlib import Path
+from safetensors.torch import save_file
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
 from torch_ttnn.utils import get_opname, users_have_getitem
 
@@ -303,7 +303,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     return graph_code
 
 
-def generate_flat_args(gm, example_inputs):
+def get_all_input_data(gm, example_inputs):
     """
     Combines weights, biases, and dynamic inputs into a list. This should be
     called during lowering when the GraphModule (gm) has been lowered to aten.
@@ -345,12 +345,11 @@ def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
 
     # List of modules
     import_code = [
-        "import lzma",
         "import numpy as np",
-        "import pickle",
         "import torch",
         "import ttnn",
         "from pathlib import Path",
+        "from safetensors.torch import load_file",
     ]
 
     # List of aliases
@@ -381,15 +380,14 @@ def test_accuracy(expected, actual):
 
     # main function definition
     directory = Path("tests/autogen_accuracy_tests")
-    input_pkl_file = Path(f"{model_name}_inputs.pickle")
-    full_input_pkl_path = directory / input_pkl_file
-    full_input_pkl_path.parent.mkdir(parents=True, exist_ok=True)
+    input_data_path = Path(f"{model_name}_inputs.safetensors")
+    full_input_data_path = directory / input_data_path
+    full_input_data_path.parent.mkdir(parents=True, exist_ok=True)
     main_code = f"""
 if __name__ == "__main__":
-    filepath = Path(__file__).with_name("{input_pkl_file.name}")
-    file = lzma.open(filepath, "rb")
-    inputs = pickle.load(file)
-    forward(*inputs)
+    filepath = Path(__file__).with_name("{input_data_path.name}")
+    inputs = load_file(filepath)
+    forward(**inputs)
 """
 
     # Assemble all of pieces of code into one script
@@ -410,10 +408,15 @@ if __name__ == "__main__":
         print(full_text, file=text_file)
         logging.info(f"Accuracy test code saved to {code_full_path}.")
 
-    data_full_path = directory / Path(f"{model_name}_inputs.pickle")
-    with lzma.open(data_full_path, "wb") as f:
-        pickle.dump(all_inputs, f)
-        logging.info(f"Accuracy data object saved to {data_full_path}.")
+    # Map the positional argument names with the input data for safetensors
+    forward_arg_names = next(x for x in test_accuracy_graph_codes if x.startswith("def forward"))
+    arg_names = re.findall("\(([^)]+)", forward_arg_names)[0].split(", ")
+    assert len(arg_names) == len(all_inputs)
+    all_inputs_dict = dict(zip(arg_names, all_inputs))
+
+    data_full_path = directory / Path(f"{model_name}_inputs.safetensors")
+    save_file(all_inputs_dict, data_full_path)
+    logging.info(f"Accuracy data object saved to {data_full_path}.")
 
 
 def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs):
