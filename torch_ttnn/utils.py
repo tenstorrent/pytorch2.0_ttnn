@@ -76,6 +76,10 @@ def users_have_getitem(node):
     return None
 
 
+def is_operation(node):
+    return node.op not in ["placeholder", "output"]
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size

@@ -10,7 +10,7 @@ from collections import defaultdict
 from pathlib import Path
 from safetensors.torch import save_file
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
-from torch_ttnn.utils import get_opname, users_have_getitem
+from torch_ttnn.utils import get_opname, users_have_getitem, is_operation
 
 wrapper_funcs = set()
 rename_wrappers = set()
@@ -104,7 +104,7 @@ def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
             _rename_input_args_from_graph_break(output_nodes, node)
             continue
 
-        if node.op != "placeholder" and node.op != "output":
+        if node.op != "output":
             # ignore to_torch
             if node.target == ttnn.to_torch:
                 continue
@@ -126,7 +126,7 @@ def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
     """
     ttnn_all_nodes = []
     for node in ttnn_graph.nodes:
-        if node.op in ["output", "placeholder"]:
+        if not is_operation(node):
             continue
 
         ttnn_all_nodes.append(node)
@@ -166,7 +166,7 @@ def _node_to_python_code(node):
     Convert a node to a function call statement.
     """
     # assume no placeholder and output
-    assert node.op not in ["placeholder", "output"]
+    assert is_operation(node)
 
     # handle get_attr nodes
     if node.op == "get_attr":
@@ -240,7 +240,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     getitem and wrappers do not.
     """
     for node in ttnn_graph.nodes:
-        if node.op != "placeholder" and node.op != "output" and node.op != "get_attr":
+        if is_operation(node) and node.op != "get_attr":
             opname = get_opname(node)
             if not opname.startswith("aten.") and not opname.startswith("ttnn."):
                 node._rename(f"ttnn_prefix_{node.name}")
@@ -263,7 +263,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     """
     aten_name_to_node_map = defaultdict(list)
     for node in aten_graph.nodes:
-        if node.op != "placeholder" and node.op != "output":
+        if is_operation(node):
             aten_name_to_node_map[_compute_key(node)] = node
 
     """
