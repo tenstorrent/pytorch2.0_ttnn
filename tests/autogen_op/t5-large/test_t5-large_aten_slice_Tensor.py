@@ -86,6 +86,36 @@ def teardown_module(module):
             "Optional[int] end = 9223372036854775807",
         ],
         [
+            "Tensor<[1, 2]> self = ?",
+            "int dim = 0",
+            "Optional[int] start = 0",
+            "Optional[int] end = 9223372036854775807",
+        ],
+        [
+            "Tensor<[1, 1, s0]> self = ?",
+            "int dim = 0",
+            "Optional[int] start = 0",
+            "Optional[int] end = 9223372036854775807",
+        ],
+        [
+            "Tensor<[1, 1, 1, s0]> self = ?",
+            "int dim = 2",
+            "Optional[int] start = 0",
+            "Optional[int] end = 9223372036854775807",
+        ],
+        [
+            "Tensor<[1, 1, 1, s0]> self = ?",
+            "int dim = 3",
+            "Optional[int] start = 0",
+            "Optional[int] end = 9223372036854775807",
+        ],
+        [
+            "Tensor<[1, s0]> self = ?",
+            "int dim = 0",
+            "Optional[int] start = 0",
+            "Optional[int] end = 9223372036854775807",
+        ],
+        [
             "Tensor<[1, 16, 2, 2]> self = ?",
             "int dim = 0",
             "Optional[int] start = 0",

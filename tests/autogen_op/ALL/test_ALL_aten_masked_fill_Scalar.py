@@ -48,6 +48,8 @@ def teardown_module(module):
         ["Tensor<[2, 512]> self = ?", "Tensor<[2, 1]> mask = ?", "number value = 0"],
         ["Tensor<[1, 512]> self = ?", "Tensor<[1, 1]> mask = ?", "number value = 0"],
         ["Tensor<[1, 920]> self = ?", "Tensor mask = ?", "number value = -inf"],
+        ["Tensor<[1, 1, 7, 7]> self = ?", "Tensor<[1, 1, 7, 7]> mask = ?", "number value = -3.3895313892515355e+38"],
+        ["Tensor<[45, 45]> self = ?", "Tensor<[45, 45]> mask = ?", "number value = 0"],
         [
             "Tensor<[1, 1, 45, 45]> self = ?",
             "Tensor<[1, 1, 45, 45]> mask = ?",

@@ -12,7 +12,7 @@ class AtenModule(torch.nn.Module):
         super().__init__()
 
     def forward(self, *args, **kwargs):
-        return torch.ops.aten.add.Tensor(*args, **kwargs)
+        return torch.ops.aten.mul.Tensor(*args, **kwargs)
 
 
 metrics = []
@@ -28,40 +28,13 @@ def save_pickle(obj, base_path, filename):
 
 def teardown_module(module):
     print(metrics)
-    save_pickle(metrics, "metrics-autogen-op/t5-base", "aten.add.Tensor")
+    save_pickle(metrics, "metrics-autogen-op/Falcon", "aten.mul.Tensor")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[1, 10, 1]> self = ?", "Tensor other = 1e-06"],
-        ["Tensor<[10, 10]> self = ?", "Tensor other = 0"],
-        ["Tensor<[10, 10]> self = ?", "Tensor other = 8"],
-        ["Tensor<[10, 10]> self = ?", "Tensor<[10, 10]> other = ?"],
-        ["Tensor<[1, 12, 10, 10]> self = ?", "Tensor<[1, 1, 1, 10]> other = ?"],
-        ["Tensor<[1, 12, 10, 10]> self = ?", "Tensor<[1, 12, 10, 10]> other = ?"],
-        ["Tensor<[1, 10, 768]> self = ?", "Tensor<[1, 10, 768]> other = ?"],
-        ["Tensor<[1, 1]> self = ?", "Tensor other = 16"],
-        ["Tensor<[1, 1]> self = ?", "Tensor other = 0"],
-        ["Tensor<[2, 2]> self = ?", "Tensor other = 16"],
-        ["Tensor<[2, 2]> self = ?", "Tensor other = 0"],
-        ["Tensor<[1, 1, 1]> self = ?", "Tensor other = 1e-06"],
-        ["Tensor<[1, 12, 1, 1]> self = ?", "Tensor<[1, 1, 1, 1]> other = ?"],
-        ["Tensor<[1, 12, 1, 1]> self = ?", "Tensor<[1, 12, 1, 1]> other = ?"],
-        ["Tensor<[1, 1, 768]> self = ?", "Tensor<[1, 1, 768]> other = ?"],
-        ["Tensor<[1, 12, 1, 10]> self = ?", "Tensor<[1, 1, 1, 10]> other = ?"],
-        ["Tensor<[1, 12, 1, 10]> self = ?", "Tensor<[1, 12, 1, 10]> other = ?"],
-        ["Tensor<[1, 12, 1, 2]> self = ?", "Tensor<[1, 1, 1, 2]> other = ?"],
-        ["Tensor<[1, 12, 1, 2]> self = ?", "Tensor<[1, 12, 1, 2]> other = ?"],
-        ["Tensor<[s0 + 1, s0 + 1]> self = ?", "Tensor other = 16"],
-        ["Tensor<[s0 + 1, s0 + 1]> self = ?", "Tensor other = 0"],
-        ["Tensor<[1, 12, 1, s0 + 1]> self = ?", "Tensor<[1, 1, 1, s0 + 1]> other = ?"],
-        ["Tensor<[1, 12, 1, s0 + 1]> self = ?", "Tensor<[1, 12, 1, s0 + 1]> other = ?"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor<[1, 7]> self = ?", "Tensor<[7]> other = ?"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
-        "opname": "aten.add.Tensor",
+        "opname": "aten.mul.Tensor",
         "input_strings": input_strings,
         "native_run": "N/A",
         "run": "N/A",
@@ -70,7 +43,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
         "ttnn_fallbacks_to_host_count": "N/A",
     }
     m = AtenModule()
-    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.add.Tensor", input_strings)
+    input_args, input_kwargs, status = render_metric_string_list_to_input_args_kwargs("aten.mul.Tensor", input_strings)
     if status == False:
         pytest.skip("Invalid input strings")
     try:

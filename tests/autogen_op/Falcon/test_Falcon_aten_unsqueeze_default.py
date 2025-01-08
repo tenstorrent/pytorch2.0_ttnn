@@ -31,7 +31,16 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/Falcon", "aten.unsqueeze.default")
 
 
-@pytest.mark.parametrize("input_strings", [["Tensor<[1, 7, 64]> self = ?", "int dim = 1"]])
+@pytest.mark.parametrize(
+    "input_strings",
+    [
+        ["Tensor<[7, 7]> self = ?", "int dim = 0"],
+        ["Tensor<[1, 7, 7]> self = ?", "int dim = 1"],
+        ["Tensor<[1, 7]> self = ?", "int dim = 1"],
+        ["Tensor<[1, 1, 7]> self = ?", "int dim = 2"],
+        ["Tensor<[1, 7, 64]> self = ?", "int dim = 1"],
+    ],
+)
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.unsqueeze.default",

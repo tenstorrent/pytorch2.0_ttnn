@@ -31,7 +31,10 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/ALL", "aten.lt.Tensor")
 
 
-@pytest.mark.parametrize("input_strings", [["Tensor<[1, 50257]> self = ?", "Tensor<[1, 1]> other = ?"]])
+@pytest.mark.parametrize(
+    "input_strings",
+    [["Tensor self = ?", "Tensor other = ?"], ["Tensor<[1, 50257]> self = ?", "Tensor<[1, 1]> other = ?"]],
+)
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.lt.Tensor",
