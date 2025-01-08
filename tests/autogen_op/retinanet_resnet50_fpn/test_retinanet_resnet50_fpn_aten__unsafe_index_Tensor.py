@@ -34,9 +34,30 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[1, 3, 480, 640]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[800, 1]>, <[1066]>]"],
-        ["Tensor<[1, 256, 25, 34]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[50, 1]>, <[68]>]"],
-        ["Tensor<[1, 256, 50, 68]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[100, 1]>, <[136]>]"],
+        [
+            "Tensor<[1, 3, 480, 640]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_6, _folded__to_copy_2]",
+        ],
+        [
+            "Tensor<[1, 3, 480, 640]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_7, _folded__to_copy_2]",
+        ],
+        [
+            "Tensor<[1, 3, 480, 640]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_6, _folded__to_copy_3]",
+        ],
+        [
+            "Tensor<[1, 3, 480, 640]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_7, _folded__to_copy_3]",
+        ],
+        [
+            "Tensor<[1, 256, 25, 34]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_8, _folded__to_copy_5]",
+        ],
+        [
+            "Tensor<[1, 256, 50, 68]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_9, _folded__to_copy_7]",
+        ],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

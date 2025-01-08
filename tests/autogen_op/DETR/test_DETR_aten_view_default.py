@@ -42,7 +42,6 @@ def teardown_module(module):
         ["Tensor<[2048]> self = ?", "List[int] size = [1, -1, 1, 1]"],
         ["Tensor<[1, 23, 40, 64, 2]> self = ?", "List[int] size = [1, 23, 40, 128]"],
         ["Tensor<[1, 256, 23, 40]> self = ?", "List[int] size = [1, 256, 920]"],
-        ["Tensor<[1, 23, 40]> self = ?", "List[int] size = [1, 920]"],
         ["Tensor<[920, 1, 256]> self = ?", "List[int] size = [920, 256]"],
         ["Tensor<[920, 256]> self = ?", "List[int] size = [920, 1, 256]"],
         ["Tensor<[920, 1, 256]> self = ?", "List[int] size = [920, 8, 32]"],

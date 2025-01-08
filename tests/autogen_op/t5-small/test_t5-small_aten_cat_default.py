@@ -34,7 +34,7 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["List[Tensor] tensors = [<[1, 1, 1]>, <[1, 1, 1]>]", "int dim = -1"],
+        ["List[Tensor] tensors = [_folded_ones_1, <[1, 1, 1]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1, 8, 1, 64]>, <[1, 8, 1, 64]>]", "int dim = 2"],
         ["List[Tensor] tensors = [<[1, 1, s0]>, <[1, 1, 1]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1, 8, s0, 64]>, <[1, 8, 1, 64]>]", "int dim = 2"],

@@ -62,10 +62,7 @@ def teardown_module(module):
             "List[Tensor] tensors = [<[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>]",
             "int dim = -1",
         ],
-        ["List[Tensor] tensors = [<[3234, 1]>, <[3234, 1]>, <[3234, 1]>, <[3234, 1]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[3234, 2]>, <[3234, 2]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[300]>, <[300]>, <[300]>, <[300]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[12, 16]>, <[12, 16]>]", "int dim = -1"],
+        ["List[Tensor] tensors = [<[12, 16]>, _folded_expand_1]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1, 5, 16, 16]>, <[1, 5, 16, 16]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1, 1, 16, 16]>, <[1, 1, 16, 16]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[13600]>, <[13600]>, <[13600]>, <[13600]>]", "int dim = 1"],
@@ -73,9 +70,6 @@ def teardown_module(module):
         ["List[Tensor] tensors = [<[850]>, <[850]>, <[850]>, <[850]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[221]>, <[221]>, <[221]>, <[221]>]", "int dim = 1"],
         ["List[Tensor] tensors = [<[63]>, <[63]>, <[63]>, <[63]>]", "int dim = 1"],
-        ["List[Tensor] tensors = [<[0, 1]>, <[0, 1]>, <[0, 1]>, <[0, 1]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[0, 2]>, <[0, 2]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[0]>, <[0]>, <[0]>, <[0]>]", "int dim = 1"],
         [
             "List[Tensor] tensors = [<[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>, <[1444]>]",
             "int dim = -1",
@@ -86,9 +80,6 @@ def teardown_module(module):
         ],
         ["List[Tensor] tensors = [<[9]>, <[9]>, <[9]>, <[9]>, <[9]>, <[9]>, <[9]>, <[9]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[8732, 1]>, <[8732, 1]>, <[8732, 1]>, <[8732, 1]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[8732, 2]>, <[8732, 2]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[12]>, <[12]>, <[12]>, <[12]>]", "int dim = 1"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

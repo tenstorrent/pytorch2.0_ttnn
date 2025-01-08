@@ -37,7 +37,6 @@ def teardown_module(module):
         ["Tensor<[1, 768, 144]> self = ?", "List[int] size = [1, 768, 12, 12]"],
         ["Tensor<[1, 768, 12, 16]> self = ?", "List[int] size = [1, 768, 192]"],
         ["Tensor<[12]> self = ?", "List[int] size = [-1, 1]"],
-        ["Tensor<[16]> self = ?", "List[int] size = [1, -1]"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
