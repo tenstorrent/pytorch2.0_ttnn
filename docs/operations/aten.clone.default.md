@@ -45,7 +45,7 @@
 |  41 | Tensor<[1, 12, 1500, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format      | Unknown  | Done       | 1.0   | 0      |
 |  42 | Tensor<[1, 12, 16, 16]> self = ?                                                                  | Done     | Done       | 1.0   | 0      |
 |  43 | Tensor<[1, 12, 197, 197]> self = ?                                                                | Done     | Done       | 1.0   | 0      |
-|  44 | Tensor<[1, 12, 24, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Done     | Done       | 1.0   | 0      |
+|  44 | Tensor<[1, 12, 24, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Done     | Unknown    | N/A   | N/A    |
 |  45 | Tensor<[1, 12, 25, 25]> self = ?                                                                  | Done     | Done       | 1.0   | 0      |
 |  46 | Tensor<[1, 12, 4, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format         | Unknown  | Done       | 1.0   | 0      |
 |  47 | Tensor<[1, 12, 45, 45]> self = ?                                                                  | Unknown  | Done       | 1.0   | 0      |
@@ -142,12 +142,12 @@
 | 138 | Tensor<[1, 20, 20, 6, 91]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format     | Done     | Done       | 1.0   | 0      |
 | 139 | Tensor<[1, 2048, 8, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format       | Done     | Done       | 1.0   | 0      |
 | 140 | Tensor<[1, 2048]> self = ?                                                                        | Done     | Done       | 1.0   | 0      |
-| 141 | Tensor<[1, 24, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Done     | Done       | 1.0   | 0      |
+| 141 | Tensor<[1, 24, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Done     | Unknown    | N/A   | N/A    |
 | 142 | Tensor<[1, 24, 3072]> self = ?                                                                    | Done     | Done       | 1.0   | 0      |
 | 143 | Tensor<[1, 24, 49, 49]> self = ?                                                                  | Done     | Done       | 1.0   | 0      |
 | 144 | Tensor<[1, 24, 56, 56]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Done     | Done       | 1.0   | 0      |
 | 145 | Tensor<[1, 24, 64, 64]> self = ?                                                                  | Done     | Done       | 1.0   | 0      |
-| 146 | Tensor<[1, 24, 768]> self = ?                                                                     | Done     | Done       | 1.0   | 0      |
+| 146 | Tensor<[1, 24, 768]> self = ?                                                                     | Done     | Unknown    | N/A   | N/A    |
 | 147 | Tensor<[1, 25, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Done     | Done       | 1.0   | 0      |
 | 148 | Tensor<[1, 25, 34, 9, 4]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format      | Done     | Done       | 1.0   | 0      |
 | 149 | Tensor<[1, 25, 34, 9, 91]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format     | Done     | Done       | 1.0   | 0      |
@@ -322,7 +322,7 @@
 | 318 | Tensor<[100, 136]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format             | None     | Done       | 1.0   | 0      |
 | 319 | Tensor<[100, 8, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Done     | Done       | 1.0   | 0      |
 | 320 | Tensor<[12, 197, 197]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format         | Done     | Done       | 1.0   | 0      |
-| 321 | Tensor<[12, 24, 24]> self = ?                                                                     | Done     | Done       | 1.0   | 0      |
+| 321 | Tensor<[12, 24, 24]> self = ?                                                                     | Done     | Unknown    | N/A   | N/A    |
 | 322 | Tensor<[12, 49, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Done     | Done       | 1.0   | 0      |
 | 323 | Tensor<[12, 50, 50]> self = ?                                                                     | Done     | Done       | 1.0   | 0      |
 | 324 | Tensor<[12, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Done     | Done       | 1.0   | 0      |
