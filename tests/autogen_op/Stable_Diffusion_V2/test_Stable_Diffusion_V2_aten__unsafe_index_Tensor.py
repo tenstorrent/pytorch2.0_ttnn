@@ -34,7 +34,10 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[1, 1280, 8, 8]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[16, 1]>, <[16]>]"],
+        [
+            "Tensor<[1, 1280, 8, 8]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze, _folded__to_copy_2]",
+        ],
         ["Tensor<[1, 1280, s0, s1]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[2*s0, 1]>, <[2*s1]>]"],
         ["Tensor<[1, s0, s1, s2]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[2*s1, 1]>, <[2*s2]>]"],
     ],

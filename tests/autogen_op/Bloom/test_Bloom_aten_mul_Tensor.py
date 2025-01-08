@@ -35,7 +35,7 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[1, 32]> self = ?", "Tensor<[1, 32]> other = ?"],
-        ["Tensor<[16, 1]> self = ?", "Tensor<[1, 1, 32]> other = ?"],
+        ["Tensor self = ?", "Tensor<[1, 1, 32]> other = ?"],
         ["Tensor<[1, 32, 6144]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[1, 32, 6144]> self = ?", "Tensor other = 0.79788456"],
         ["Tensor<[1, 32, 6144]> self = ?", "Tensor other = 0.044715"],

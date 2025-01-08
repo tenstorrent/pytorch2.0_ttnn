@@ -35,12 +35,6 @@ def teardown_module(module):
     "input_strings",
     [
         [
-            "number end = 16",
-            "Optional[int] dtype = torch.float32",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
-        [
             "number<2*s0> end = ?",
             "Optional[int] dtype = torch.float32",
             "Optional[Device] device = cpu",

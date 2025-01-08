@@ -35,16 +35,13 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[1, 18, 28, 28]> self = ?", "Optional[int] dtype = torch.float32"],
-        ["Tensor<[56]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 18, 56, 56]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 18, 14, 14]> self = ?", "Optional[int] dtype = torch.float32"],
         ["Tensor<[1, 36, 14, 14]> self = ?", "Optional[int] dtype = torch.float32"],
-        ["Tensor<[28]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 36, 28, 28]> self = ?", "Optional[int] dtype = torch.bfloat16"],
         ["Tensor<[1, 18, 7, 7]> self = ?", "Optional[int] dtype = torch.float32"],
         ["Tensor<[1, 36, 7, 7]> self = ?", "Optional[int] dtype = torch.float32"],
         ["Tensor<[1, 72, 7, 7]> self = ?", "Optional[int] dtype = torch.float32"],
-        ["Tensor<[14]> self = ?", "Optional[int] dtype = torch.int64"],
         ["Tensor<[1, 72, 14, 14]> self = ?", "Optional[int] dtype = torch.bfloat16"],
     ],
 )

@@ -34,8 +34,9 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[51865, 768]> weight = ?", "Tensor<[1, 1]> indices = ?", "int padding_idx = 50257"],
+        ["Tensor<[51865, 768]> weight = ?", "Tensor indices = ?", "int padding_idx = 50257"],
         ["Tensor<[51865, 768]> weight = ?", "Tensor<[1, 4]> indices = ?", "int padding_idx = 50257"],
+        ["Tensor<[51865, 768]> weight = ?", "Tensor<[1, 1]> indices = ?", "int padding_idx = 50257"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

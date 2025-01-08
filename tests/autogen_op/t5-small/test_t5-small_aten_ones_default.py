@@ -34,20 +34,6 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        [
-            "List[int] size = [1, 1]",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
-        ["List[int] size = [1, 1]", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
-        ["List[int] size = [1, 2]", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
-        [
-            "List[int] size = [1, 1, 1]",
-            "Optional[int] dtype = torch.float32",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
         ["List[int] size = [1, <s0 + 1>]", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
         [
             "List[int] size = [1, 1, <s0>]",

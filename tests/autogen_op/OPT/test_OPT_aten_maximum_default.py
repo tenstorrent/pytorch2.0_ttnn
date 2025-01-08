@@ -34,9 +34,9 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[1, 16, 59, 59]> self = ?", "Tensor<[]> other = ?"],
-        ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor<[]> other = ?"],
-        ["Tensor<[1, 16, 1, s10 + 1]> self = ?", "Tensor<[]> other = ?"],
+        ["Tensor<[1, 16, 59, 59]> self = ?", "Tensor other = ?"],
+        ["Tensor<[1, 16, 1, 60]> self = ?", "Tensor other = ?"],
+        ["Tensor<[1, 16, 1, s10 + 1]> self = ?", "Tensor other = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
