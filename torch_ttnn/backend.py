@@ -44,10 +44,6 @@ class TorchTtnnOption:
         self.original_schema_list = list()
         self.compiled_schema_list = list()
 
-    def reset_containers(self):
-        self._out_fx_graphs = list()
-        self.original_schema_list = list()
-
 
 def register_ttnn_objects(option: TorchTtnnOption):
     """

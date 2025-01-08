@@ -216,7 +216,6 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 logging.debug("Attempting rerun with bypass option to collect aten op metrics.")
                 torch._dynamo.reset()
                 option.bypass_compile = True
-                option.reset_containers()
                 model_tester.test_model(as_ttnn=True, option=option)
             except Exception as e2:
                 logging.critical(
