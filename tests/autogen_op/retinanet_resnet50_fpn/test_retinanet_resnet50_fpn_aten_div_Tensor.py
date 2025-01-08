@@ -31,14 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/retinanet_resnet50_fpn", "aten.div.Tensor")
 
 
-@pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[3, 480, 640]> self = ?", "Tensor<[3, 1, 1]> other = ?"],
-        ["Tensor<[0, 1]> self = ?", "Tensor other = 1.0"],
-        ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
-    ],
-)
+@pytest.mark.parametrize("input_strings", [["Tensor<[3, 480, 640]> self = ?", "Tensor<[3, 1, 1]> other = ?"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.div.Tensor",

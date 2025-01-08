@@ -32,15 +32,7 @@ def teardown_module(module):
 
 
 @pytest.mark.parametrize(
-    "input_strings",
-    [
-        ["Tensor<[320]> self = ?", "Optional[number] min = 0.0"],
-        ["Tensor<[320]> self = ?", "Optional[number] min = ?", "Optional[number] max = 479"],
-        ["Tensor<[320]> self = ?", "Optional[number] min = ?", "Optional[number] max = 639"],
-        ["Tensor<[6, 2]> self = ?", "Optional[number] min = 0", "Optional[number] max = 1"],
-        ["Tensor<[3234, 1]> self = ?", "Optional[number] min = ?", "Optional[number] max = 4.135166556742356"],
-        ["Tensor<[3234, 2]> self = ?", "Optional[number] min = 0", "Optional[number] max = 320"],
-    ],
+    "input_strings", [["Tensor<[6, 2]> self = ?", "Optional[number] min = 0", "Optional[number] max = 1"]]
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
