@@ -96,7 +96,7 @@ aten_arange_start_step = [
         "Optional[bool] pin_memory = False",
     ]
 ]
-aten_argmax_default = [["Tensor<[1, 7]> self = ?", "Optional[int] dim = 1", "bool keepdim = True"]]
+aten_argmax_default_blocklist += [["Tensor<[1, 7]> self = ?", "Optional[int] dim = 1", "bool keepdim = True"]]
 
 ############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn_v2
@@ -110,7 +110,6 @@ GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
 GUARD[torch.ops.aten.stack.default] = partial(guard_aten, aten_aten_stack_default)
 GUARD[torch.ops.aten.arange.start_step] = partial(guard_aten, aten_arange_start_step)
-GUARD[torch.ops.aten.argmax.default] = partial(guard_aten, aten_argmax_default)
 
 
 def can_lowering_to_ttnn(node):
