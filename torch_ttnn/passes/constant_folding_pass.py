@@ -11,6 +11,7 @@ class ConstantFoldingPass(PassBase):
             torch.ops.aten.lift_fresh_copy.default,
             torch.ops.aten.pow.Tensor_Tensor,
             torch.ops.aten.arange.start,
+            torch.ops.aten.arange.start_step,
             torch.ops.aten.unsqueeze.default,
             torch.ops.aten.arange.default,
             torch.ops.aten.view.default,
