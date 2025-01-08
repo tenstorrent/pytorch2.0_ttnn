@@ -84,6 +84,21 @@ aten_aten_stack_default = [
 ]
 
 ############################################################
+# EXTRA BLOCKLIST OF falcon-7b-instruct
+############################################################
+# Statically allocated circular buffers on core range [(x=0,y=0) - (x=0,y=0)] grow to 3580704 B which is beyond max L1 size of 1499136 B
+aten_arange_start_step = [
+    [
+        "number start = 7",
+        "number end = 0",
+        "number step = -1",
+        "Optional[Device] device = cpu",
+        "Optional[bool] pin_memory = False",
+    ]
+]
+aten_argmax_default = [["Tensor<[1, 7]> self = ?", "Optional[int] dim = 1", "bool keepdim = True"]]
+
+############################################################
 # EXTRA BLOCKLIST OF retinanet_resnet50_fpn_v2
 ############################################################
 # Statically allocated circular buffers on core range [(x=0,y=0) - (x=0,y=0)] grow to 3580704 B which is beyond max L1 size of 1499136 B
@@ -94,6 +109,8 @@ aten_aten_stack_default = [
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
 GUARD[torch.ops.aten.stack.default] = partial(guard_aten, aten_aten_stack_default)
+GUARD[torch.ops.aten.arange.start_step] = partial(guard_aten, aten_arange_start_step)
+GUARD[torch.ops.aten.argmax.default] = partial(guard_aten, aten_argmax_default)
 
 
 def can_lowering_to_ttnn(node):
