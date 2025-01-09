@@ -3,7 +3,7 @@
 |---:|:----------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten.convolution.default                      |                  4 |           4 |         0 |          0 | ✅          |       1 |
 |  1 | aten.convolution_backward.default             |                  4 |           0 |         0 |          0 | ✘           |       0 |
-|  2 | aten.detach.default                           |                  3 |           0 |         0 |          0 | ✘           |       0 |
+|  2 | aten.detach.default                           |                  3 |           0 |         3 |          0 | ✅          |       1 |
 |  3 | aten.max_pool2d_with_indices.default          |                  2 |           0 |         0 |          0 | ✘           |       0 |
 |  4 | aten.max_pool2d_with_indices_backward.default |                  2 |           0 |         0 |          0 | ✘           |       0 |
 |  5 | aten.relu.default                             |                  3 |           3 |         0 |          0 | ✅          |       1 |
@@ -12,10 +12,10 @@
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[16, 1, 3, 3]> weight = ?,<br>Optional[Tensor]<[16]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | Done     | Done       | 0.999985 |      6 |
-|  1 | Tensor<[1, 16, 14, 14]> input = ?,<br>Tensor<[16, 1, 2, 2]> weight = ?,<br>Optional[Tensor]<[1]> bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = True,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.999992 |      6 |
-|  2 | Tensor<[1, 16, 14, 14]> input = ?,<br>Tensor<[4, 16, 3, 3]> weight = ?,<br>Optional[Tensor]<[4]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | Done     | Done       | 0.99998  |      6 |
-|  3 | Tensor<[1, 4, 7, 7]> input = ?,<br>Tensor<[4, 16, 2, 2]> weight = ?,<br>Optional[Tensor]<[16]> bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = True,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | Done     | Done       | 0.999994 |      6 |
+|  0 | Tensor<[1, 1, 28, 28]> input = ?,<br>Tensor<[16, 1, 3, 3]> weight = ?,<br>Optional[Tensor]<[16]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | Done     | Done       | 0.999982 |      6 |
+|  1 | Tensor<[1, 16, 14, 14]> input = ?,<br>Tensor<[16, 1, 2, 2]> weight = ?,<br>Optional[Tensor]<[1]> bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = True,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.999993 |      6 |
+|  2 | Tensor<[1, 16, 14, 14]> input = ?,<br>Tensor<[4, 16, 3, 3]> weight = ?,<br>Optional[Tensor]<[4]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | Done     | Done       | 0.999983 |      6 |
+|  3 | Tensor<[1, 4, 7, 7]> input = ?,<br>Tensor<[4, 16, 2, 2]> weight = ?,<br>Optional[Tensor]<[16]> bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = True,<br>List[int] output_padding = [0, 0],<br>int groups = 1    | Done     | Done       | 0.999995 |      6 |
 ### aten.convolution_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                                         | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -26,9 +26,9 @@
 ### aten.detach.default
 |    | ATen Input Variations            | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 16, 14, 14]> self = ? | None     | Fallback   |     1 |     -1 |
-|  1 | Tensor<[1, 16, 28, 28]> self = ? | None     | Fallback   |     1 |     -1 |
-|  2 | Tensor<[1, 4, 14, 14]> self = ?  | None     | Fallback   |     1 |     -1 |
+|  0 | Tensor<[1, 16, 14, 14]> self = ? | Removed  | Done       |     1 |     -1 |
+|  1 | Tensor<[1, 16, 28, 28]> self = ? | Removed  | Done       |     1 |     -1 |
+|  2 | Tensor<[1, 4, 14, 14]> self = ?  | Removed  | Done       |     1 |     -1 |
 ### aten.max_pool2d_with_indices.default
 |    | ATen Input Variations                                                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|

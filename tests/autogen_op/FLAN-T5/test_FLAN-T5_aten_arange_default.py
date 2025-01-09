@@ -35,36 +35,11 @@ def teardown_module(module):
     "input_strings",
     [
         [
-            "number end = 15",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
-        ["number end = 1", "Optional[Device] device = cpu", "Optional[bool] pin_memory = False"],
-        [
-            "number end = 1",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
-        [
-            "number end = 2",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
-        [
             "number<s0 + 1> end = ?",
             "Optional[int] dtype = torch.int64",
             "Optional[Device] device = cpu",
             "Optional[bool] pin_memory = False",
-        ],
-        [
-            "number end = 17",
-            "Optional[int] dtype = torch.int64",
-            "Optional[Device] device = cpu",
-            "Optional[bool] pin_memory = False",
-        ],
+        ]
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

@@ -32,7 +32,7 @@ def teardown_module(module):
 
 
 @pytest.mark.parametrize(
-    "input_strings", [["Tensor<[2, 7, 512]> self = ?", "List[Optional[Tensor]] indices = [<[2]>, <[2]>]"]]
+    "input_strings", [["Tensor<[2, 7, 512]> self = ?", "List[Optional[Tensor]] indices = [_folded_arange, <[2]>]"]]
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {

@@ -31,9 +31,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/DETR", "aten.masked_fill.Scalar")
 
 
-@pytest.mark.parametrize(
-    "input_strings", [["Tensor<[1, 920]> self = ?", "Tensor<[1, 920]> mask = ?", "number value = -inf"]]
-)
+@pytest.mark.parametrize("input_strings", [["Tensor<[1, 920]> self = ?", "Tensor mask = ?", "number value = -inf"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten.masked_fill.Scalar",

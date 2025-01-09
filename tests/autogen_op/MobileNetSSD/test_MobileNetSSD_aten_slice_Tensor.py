@@ -34,7 +34,7 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[3]> self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
+        ["Tensor self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
         [
             "Tensor<[3234, 4]> self = ?",
             "int dim = 0",
@@ -47,54 +47,6 @@ def teardown_module(module):
             "int dim = 1",
             "Optional[int] start = 2",
             "Optional[int] end = 9223372036854775807",
-        ],
-        [
-            "Tensor<[3234, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 0",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        [
-            "Tensor<[3234, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 1",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        [
-            "Tensor<[3234, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 2",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        [
-            "Tensor<[3234, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 3",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        [
-            "Tensor<[3234]> self = ?",
-            "int dim = 0",
-            "Optional[int] start = 0",
-            "Optional[int] end = 9223372036854775807",
-        ],
-        [
-            "Tensor<[3234, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 0",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 2",
-        ],
-        [
-            "Tensor<[3234, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 1",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 2",
         ],
     ],
 )

@@ -34,9 +34,8 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[320]> self = ?", "Tensor other = 1.5"],
-        ["Tensor<[320]> self = ?", "Tensor other = 2.0"],
         ["Tensor<[1, 3, 320, 320]> self = ?", "Tensor<[320, 1]> other = ?"],
+        ["Tensor<[1, 3, 320, 320]> self = ?", "Tensor other = ?"],
         ["Tensor<[1, 3, 320, 320]> self = ?", "Tensor<[320]> other = ?"],
         ["Tensor<[1, 72, 1, 1]> self = ?", "Tensor<[1, 72, 40, 40]> other = ?"],
         ["Tensor<[1, 120, 1, 1]> self = ?", "Tensor<[1, 120, 40, 40]> other = ?"],
@@ -45,11 +44,7 @@ def teardown_module(module):
         ["Tensor<[1, 672, 1, 1]> self = ?", "Tensor<[1, 672, 10, 10]> other = ?"],
         ["Tensor<[1, 480, 1, 1]> self = ?", "Tensor<[1, 480, 10, 10]> other = ?"],
         ["Tensor<[3234, 2]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[3234, 2]> self = ?", "Tensor<[2]> other = ?"],
-        ["Tensor<[3234]> self = ?", "Tensor other = 0.5"],
-        ["Tensor<[3234, 1]> self = ?", "Tensor<[3234, 1]> other = ?"],
-        ["Tensor<[]> self = ?", "Tensor<[3234, 1]> other = ?"],
-        ["Tensor<[300]> self = ?", "Tensor<[]> other = ?"],
+        ["Tensor<[3234, 2]> self = ?", "Tensor other = ?"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

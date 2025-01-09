@@ -52,9 +52,6 @@ def teardown_module(module):
         ],
         ["List[Tensor] tensors = [<[9]>, <[9]>, <[9]>, <[9]>, <[9]>, <[9]>, <[9]>, <[9]>]", "int dim = -1"],
         ["List[Tensor] tensors = [<[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>, <[1]>]", "int dim = -1"],
-        ["List[Tensor] tensors = [<[8732, 1]>, <[8732, 1]>, <[8732, 1]>, <[8732, 1]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[8732, 2]>, <[8732, 2]>]", "int dim = 2"],
-        ["List[Tensor] tensors = [<[12]>, <[12]>, <[12]>, <[12]>]", "int dim = 1"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

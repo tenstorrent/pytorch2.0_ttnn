@@ -35,15 +35,12 @@ def teardown_module(module):
     "input_strings",
     [
         ["Tensor<[3, 320, 320]> self = ?", "Tensor<[3, 1, 1]> other = ?"],
-        ["Tensor<[20]> self = ?", "Tensor other = 20"],
-        ["Tensor<[10]> self = ?", "Tensor other = 10"],
-        ["Tensor<[5]> self = ?", "Tensor other = 5"],
-        ["Tensor<[3]> self = ?", "Tensor other = 3"],
-        ["Tensor<[2]> self = ?", "Tensor other = 2"],
-        ["Tensor<[1]> self = ?", "Tensor other = 1"],
-        ["Tensor<[3234, 1]> self = ?", "Tensor other = 10.0"],
-        ["Tensor<[3234, 1]> self = ?", "Tensor other = 5.0"],
-        ["Tensor<[]> self = ?", "Tensor<[]> other = ?"],
+        ["Tensor self = ?", "Tensor other = 20"],
+        ["Tensor self = ?", "Tensor other = 10"],
+        ["Tensor self = ?", "Tensor other = 5"],
+        ["Tensor self = ?", "Tensor other = 3"],
+        ["Tensor self = ?", "Tensor other = 2"],
+        ["Tensor self = ?", "Tensor other = 1"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):

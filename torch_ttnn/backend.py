@@ -52,10 +52,6 @@ class TorchTtnnOption:
         self._aten_fx_graphs = list()
         self._all_inputs = None
 
-    def reset_containers(self):
-        self._out_fx_graphs = list()
-        self.original_schema_list = list()
-
 
 def register_ttnn_objects(option: TorchTtnnOption):
     """

@@ -34,11 +34,11 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[19]> self = ?", "int dim = 0"],
         ["Tensor<[19, 19]> self = ?", "int dim = 0"],
         ["Tensor<[1, 19, 19]> self = ?", "int dim = 1"],
         ["Tensor<[1, 19]> self = ?", "int dim = 1"],
         ["Tensor<[1, 1, 19]> self = ?", "int dim = 2"],
+        ["Tensor<[19]> self = ?", "int dim = 0"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
