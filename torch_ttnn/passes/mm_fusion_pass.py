@@ -13,9 +13,9 @@ class MMFusionPass(PassBase):
         }
 
         self.activation_ops_map = {
-            torch.ops.aten.relu.default : 'relu',
-            torch.ops.aten.gelu.default : 'gelu',
-            torch.ops.aten.silu.default : 'silu',
+            torch.ops.aten.relu.default: "relu",
+            torch.ops.aten.gelu.default: "gelu",
+            torch.ops.aten.silu.default: "silu",
             # (Issue #15745) Inside ttnn/cpp/ttnn/operations/matmul/matmul.cpp, function bound_matmul only supports the three activations above
             # torch.ops.aten.sigmoid.default : 'sigmoid',
             # torch.ops.aten.sqrt.default : 'sqrt',
@@ -32,12 +32,12 @@ class MMFusionPass(PassBase):
             # torch.ops.aten.pow.Tensor_Scalar : 'square',
             # torch.ops.aten.softplus.default : 'softplus',
         }
-        
+
     def call(self, gm: torch.fx.GraphModule):
         g = gm.graph
         for node in gm.graph.nodes:
             # Find nodes that are mat mul and don't already have an activation fuinction fused to them
-            if node.op == "call_function" and node.target in self.mm_ops and 'activation' not in node.kwargs:
+            if node.op == "call_function" and node.target in self.mm_ops and "activation" not in node.kwargs:
                 users = [user for user in node.users.keys()]
                 # If only user of mat mul is an activation, we can fuse activation into mat mul
                 if len(users) == 1 and users[0].op == "call_function" and users[0].target in self.activation_ops_map:
@@ -52,7 +52,7 @@ class MMFusionPass(PassBase):
                         new_node = g.call_function(ttnn.matmul, node.args, new_kwargs)
                     # delete torch mat mul and activation nodes that were replaced by ttnn mat mul with fused activation
                     users[0].replace_all_uses_with(new_node)
-                    g.erase_node(users[0])                        
+                    g.erase_node(users[0])
                     g.erase_node(node)
 
         return PassResult(gm, True)

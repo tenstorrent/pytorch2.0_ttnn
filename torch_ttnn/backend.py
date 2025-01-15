@@ -127,7 +127,7 @@ def aten_backend(
     from torch_ttnn.passes.memory_pass import MemoryPass
 
     passes = [
-        ConstantFoldingPass(), 
+        ConstantFoldingPass(),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         PatternReplacementPass(),
         AddDataMovePass(),
@@ -154,7 +154,7 @@ def aten_backend(
 
     gm.graph.lint()
     gm.recompile()
-    
+
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
         option.memory_manager = mem_pass.mm

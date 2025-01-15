@@ -161,19 +161,22 @@ def all(tensor, num_elements):
     total_none_zero = ttnn.sum(neq_zero)
     return ttnn.eq(total_none_zero, num_elements)
 
+
 @torch.fx.wrap
 def matmul(x, y, activation=None):
     return ttnn.matmul(x, y, activation=activation)
+
 
 @torch.fx.wrap
 def relu(x):
     return ttnn.relu(x)
 
+
 @torch.fx.wrap
 def gelu(x):
     return ttnn.gelu(x)
 
+
 @torch.fx.wrap
 def silu(x):
     return ttnn.silu(x)
-    
