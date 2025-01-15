@@ -4,6 +4,7 @@ import pytest
 import ttnn
 
 from tests.utils import assert_with_pcc
+from torch_ttnn.passes.lowering import target_wrappers
 
 
 class SiluModule(torch.nn.Module):
@@ -31,6 +32,6 @@ def test_silu(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.silu) == 1
+    assert [node.target for node in nodes].count(target_wrappers.silu) == 1
     # Check inference result
     assert_with_pcc(result_before, result_after)
