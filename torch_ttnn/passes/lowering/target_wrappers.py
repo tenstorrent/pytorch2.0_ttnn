@@ -160,7 +160,6 @@ def all(tensor, num_elements):
     neq_zero = ttnn.ne(tensor, 0)
     total_none_zero = ttnn.sum(neq_zero)
     return ttnn.eq(total_none_zero, num_elements)
-    return output_tensor
 
 @torch.fx.wrap
 def matmul(x, y, activation=None):
