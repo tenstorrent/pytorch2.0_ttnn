@@ -118,7 +118,7 @@ def aten_backend(
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
     from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
-    from torch_ttnn.passes.mm_fusion_pass import MMFusionPass
+    from torch_ttnn.passes.pattern_replacement_pass import PatternReplacementPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
     from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
@@ -127,9 +127,9 @@ def aten_backend(
     from torch_ttnn.passes.memory_pass import MemoryPass
 
     passes = [
-        ConstantFoldingPass(),
-        MMFusionPass(),
+        ConstantFoldingPass(), 
         ToTtPass(option.device, option.use_less_ttnn_op_types),
+        PatternReplacementPass(),
         AddDataMovePass(),
         EliminateCoreopsPass(),
         CSEPass(),
@@ -148,14 +148,13 @@ def aten_backend(
             passes_with_graphviz.append(
                 GraphvizPass(f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}")
             )
-        passes = passes_with_graphviz
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
     gm.graph.lint()
     gm.recompile()
-
+    
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
         option.memory_manager = mem_pass.mm

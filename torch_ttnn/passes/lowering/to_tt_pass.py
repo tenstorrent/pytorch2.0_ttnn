@@ -200,26 +200,134 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         if target == torch.ops.aten.addmm.default:
             # TODO(kevinwuMCW): include beta, alpha, and optional args
-            mm = self.call_function_prop_meta(ttnn.matmul, (args[1], args[2]), kwargs)
+            mm = self.call_function_prop_meta(target_wrappers.matmul, (args[1], args[2]), kwargs)
             return self.call_function_prop_meta(ttnn.add, (args[0], mm), kwargs)
 
         if target == torch.ops.aten.bmm.default:
-            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+            return self.call_function_prop_meta(target_wrappers.matmul, args, kwargs)
 
         if target == torch.ops.aten.linear.default:
             return self.call_function_prop_meta(ttnn.linear, args, kwargs)
 
         if target == torch.ops.aten.mm.default:
-            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+            return self.call_function_prop_meta(target_wrappers.matmul, args, kwargs)
 
         ############################################################
         # Pointwise unary
         ############################################################
+        if target == torch.ops.aten.abs.default:
+            return self.call_function_prop_meta(ttnn.abs, args, kwargs)
+
+        if target == torch.ops.aten.acos.default:
+            return self.call_function_prop_meta(ttnn.acos, args, kwargs)
+
+        if target == torch.ops.aten.acosh.default:
+            return self.call_function_prop_meta(ttnn.acosh, args, kwargs)
+
+        if target == torch.ops.aten.asin.default:
+            return self.call_function_prop_meta(ttnn.asin, args, kwargs)
+
+        if target == torch.ops.aten.asinh.default:
+            return self.call_function_prop_meta(ttnn.asinh, args, kwargs)
+
+        if target == torch.ops.aten.atan.default:
+            return self.call_function_prop_meta(ttnn.atan, args, kwargs)
+
+        if target == torch.ops.aten.atanh.default:
+            return self.call_function_prop_meta(ttnn.atanh, args, kwargs)
+
+        if target == torch.ops.aten.clamp.default:
+            # aten.clamp args are positional but ttnn.clip uses kw args
+            new_kwargs = map_args_to_kwargs(args, ((1, "min"), (2, "max")), default_none=True)
+            new_args = (args[0],)
+            return self.call_function_prop_meta(ttnn.clip, new_args, new_kwargs)
+
+        if target == torch.ops.aten.cos.default:
+            return self.call_function_prop_meta(ttnn.cos, args, kwargs)
+
+        if target == torch.ops.aten.cosh.default:
+            return self.call_function_prop_meta(ttnn.cosh, args, kwargs)
+
+        if target == torch.ops.aten.elu.default:
+            return self.call_function_prop_meta(ttnn.elu, args, kwargs)
+
+        if target == torch.ops.aten.erf.default:
+            return self.call_function_prop_meta(ttnn.erf, args, kwargs)
+
+        if target == torch.ops.aten.exp.default:
+            return self.call_function_prop_meta(ttnn.exp, args, kwargs)
+
+        if target == torch.ops.aten.expm1.default:
+            return self.call_function_prop_meta(ttnn.expm1, args, kwargs)
+
+        if target == torch.ops.aten.floor.default:
+            return self.call_function_prop_meta(ttnn.floor, args, kwargs)
+
+        if target == torch.ops.aten.gelu.default:
+            return self.call_function_prop_meta(target_wrappers.gelu, args, kwargs)
+
+        if target == torch.ops.aten.hardsigmoid.default:
+            return self.call_function_prop_meta(ttnn.hardsigmoid, args, kwargs)
+
+        if target == torch.ops.aten.hardswish.default:
+            return self.call_function_prop_meta(ttnn.hardswish, args, kwargs)
+
         if target == torch.ops.aten.hardtanh.default:
             # aten.hardtanh args are positional but ttnn.clip uses kw args
             new_kwargs = map_args_to_kwargs(args, ((1, "min_val"), (2, "max_val")), default_none=True)
             new_args = (args[0],)
             return self.call_function_prop_meta(ttnn.hardtanh, new_args, new_kwargs)
+
+        if target == torch.ops.aten.isinf.default:
+            return self.call_function_prop_meta(ttnn.isinf, args, kwargs)
+
+        if target == torch.ops.aten.isnan.default:
+            return self.call_function_prop_meta(ttnn.isnan, args, kwargs)
+
+        if target == torch.ops.aten.log.default:
+            return self.call_function_prop_meta(ttnn.log, args, kwargs)
+
+        if target == torch.ops.aten.log10.default:
+            return self.call_function_prop_meta(ttnn.log10, args, kwargs)
+
+        if target == torch.ops.aten.log1p.default:
+            return self.call_function_prop_meta(ttnn.log1p, args, kwargs)
+
+        if target == torch.ops.aten.log2.default:
+            return self.call_function_prop_meta(ttnn.log2, args, kwargs)
+
+        if target == torch.ops.aten.logical_not.default:
+            return self.call_function_prop_meta(ttnn.logical_not, args, kwargs)
+
+        if target == torch.ops.aten.neg.default:
+            return self.call_function_prop_meta(ttnn.neg, args, kwargs)
+
+        if target == torch.ops.aten.reciprocal.default:
+            return self.call_function_prop_meta(ttnn.reciprocal, args, kwargs)
+
+        if target == torch.ops.aten.relu.default:
+            return self.call_function_prop_meta(target_wrappers.relu, args, kwargs)
+
+        if target == torch.ops.aten.remainder.Scalar:
+            return self.call_function_prop_meta(ttnn.remainder, args, kwargs)
+
+        if target == torch.ops.aten.rsqrt.default:
+            return self.call_function_prop_meta(ttnn.rsqrt, args, kwargs)
+
+        if target == torch.ops.aten.sigmoid.default:
+            return self.call_function_prop_meta(ttnn.sigmoid, args, kwargs)
+
+        if target == torch.ops.aten.sign.default:
+            return self.call_function_prop_meta(ttnn.sign, args, kwargs)
+
+        if target == torch.ops.aten.sin.default:
+            return self.call_function_prop_meta(ttnn.sin, args, kwargs)
+
+        if target == torch.ops.aten.sinh.default:
+            return self.call_function_prop_meta(ttnn.sinh, args, kwargs)
+
+        if target == torch.ops.aten.silu.default:
+            return self.call_function_prop_meta(target_wrappers.silu, args, kwargs)
 
         if target == torch.ops.aten._softmax.default:
             kwargs = {
@@ -597,7 +705,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
                 # if beta is 0, input is ignored, and nan and inf in it will not be propogated
-                new_node = g.call_function(ttnn.matmul, args=(args[1], args[2]))
+                new_node = g.call_function(target_wrappers.matmul, args=(args[1], args[2]))
                 alpha = kwargs.get("alpha", 1)
                 beta = kwargs.get("beta", 1)
 

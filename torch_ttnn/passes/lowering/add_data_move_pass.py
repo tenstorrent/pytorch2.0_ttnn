@@ -144,6 +144,11 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.roll,
     target_wrappers.stack,
     target_wrappers.all,
+    target_wrappers.conv2d,
+    target_wrappers.matmul,
+    target_wrappers.relu,
+    target_wrappers.gelu,
+    target_wrappers.silu,
 ]
 
 TTNN_NORM_OPS = [
