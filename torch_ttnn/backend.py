@@ -28,6 +28,7 @@ class TorchTtnnOption:
         tracer_option=None,
         bypass_compile=False,
         use_less_ttnn_op_types=True,
+        support_profiling=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -37,6 +38,7 @@ class TorchTtnnOption:
         self.run_eviction_opt = run_eviction_opt
         self.verbose = verbose
         self.tracer_option = tracer_option
+        self.support_profiling = support_profiling
 
         self.metrics_path = metrics_path
         self.bypass_compile = bypass_compile
@@ -194,6 +196,14 @@ def aten_backend(
             # Get the memory manager object for memory analysis
             option.memory_manager = mem_pass.mm
             nth_eviction += 1
+
+    # Insert DumpDeviceProfiler every 500 ops
+    if option.support_profiling:
+        len_graph = len(gm.graph.nodes)
+        for i, node in enumerate(gm.graph.nodes):
+            if (i % 500 == 0) or (i == len_graph - 1):
+                with gm.graph.inserting_before(node):
+                    gm.graph.call_function(ttnn.DumpDeviceProfiler, args=(option.device,), kwargs={})
 
     if option.metrics_path:
         option.compiled_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))

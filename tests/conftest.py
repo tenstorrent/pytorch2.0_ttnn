@@ -33,6 +33,7 @@ def pytest_addoption(parser):
         default=1,
         help="Run up to the specified iteration count and report metrics based on this iteration.",
     )
+    parser.addoption("--support_profiling", action="store_true")
 
 
 @pytest.fixture(scope="session")
@@ -167,6 +168,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
+                support_profiling=request.config.getoption("--support_profiling"),
             )
             for idx in range(int(request.config.getoption("--report_nth_iteration"))):
                 start = time.perf_counter() * 1000
