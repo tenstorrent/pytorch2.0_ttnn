@@ -13,6 +13,8 @@ import torch_ttnn.metrics as metrics
 import subprocess
 import sys
 import logging
+from tracy import Profiler
+from tracy import signpost
 
 mb_in_bytes = 1048576
 
@@ -162,18 +164,28 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
         try:
             logging.debug("Compiling model with ttnn backend.")
+            support_profiling = request.config.getoption("--support_profiling")
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
-                support_profiling=request.config.getoption("--support_profiling"),
+                support_profiling=support_profiling,
             )
+            if support_profiling:
+                ttnn.enable_program_cache(device)
+                profiler = Profiler()
             for idx in range(int(request.config.getoption("--report_nth_iteration"))):
                 start = time.perf_counter() * 1000
+                if support_profiling:
+                    profiler.enable()
+                    signpost(header=f"Run number {idx}")
                 # Don't need to reset options if inputs don't change because of cache
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
+                if support_profiling:
+                    profiler.disable()
+                    signpost(header="Run result post proc")
                 end = time.perf_counter() * 1000
                 run_time = end - start
                 if idx == 0:

@@ -1,7 +1,5 @@
 import ttnn
 import torch
-from tracy import Profiler
-from tracy import signpost
 
 
 @torch.fx.wrap
@@ -162,23 +160,3 @@ def all(tensor, num_elements):
     neq_zero = ttnn.ne(tensor, 0)
     total_none_zero = ttnn.sum(neq_zero)
     return ttnn.eq(total_none_zero, num_elements)
-
-
-@torch.fx.wrap
-def tracy_get_profiler():
-    return Profiler()
-
-
-@torch.fx.wrap
-def tracy_profiler_enable(profiler):
-    return profiler.enable()
-
-
-@torch.fx.wrap
-def tracy_profiler_disable(profiler):
-    return profiler.disable()
-
-
-@torch.fx.wrap
-def tracy_signpost(header):
-    return signpost(header=header)

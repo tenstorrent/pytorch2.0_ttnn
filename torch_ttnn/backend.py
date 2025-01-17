@@ -201,32 +201,12 @@ def aten_backend(
     # Insert DumpDeviceProfiler every 500 ops
     if option.support_profiling:
         len_graph = len(gm.graph.nodes)
-        seen_first_node = False
         for i, node in enumerate(gm.graph.nodes):
             if node.op != "placeholder":
-                # Insert these in at the beginning of graph
-                if not seen_first_node:
-                    with gm.graph.inserting_before(node):
-                        tracy_profiler = gm.graph.call_function(target_wrappers.tracy_get_profiler, args=(), kwargs={})
-                    with gm.graph.inserting_before(node):
-                        gm.graph.call_function(target_wrappers.tracy_profiler_enable, args=(tracy_profiler,), kwargs={})
-                    with gm.graph.inserting_before(node):
-                        gm.graph.call_function(target_wrappers.tracy_signpost, args=("Start of graph",), kwargs={})
-                    seen_first_node = True
-                # Insert these every 500 nodes
-                if i % 500 == 0:
+                # Insert these every 500 nodes and at end of graph
+                if (i % 500 == 0) or (i == len_graph - 1):
                     with gm.graph.inserting_before(node):
                         gm.graph.call_function(ttnn.DumpDeviceProfiler, args=(option.device,), kwargs={})
-                # Insert these at the end of graph
-                if i == len_graph - 1:
-                    with gm.graph.inserting_before(node):
-                        gm.graph.call_function(ttnn.DumpDeviceProfiler, args=(option.device,), kwargs={})
-                    with gm.graph.inserting_before(node):
-                        gm.graph.call_function(target_wrappers.tracy_signpost, args=("End of graph",), kwargs={})
-                    with gm.graph.inserting_before(node):
-                        gm.graph.call_function(
-                            target_wrappers.tracy_profiler_disable, args=(tracy_profiler,), kwargs={}
-                        )
 
     if option.metrics_path:
         option.compiled_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
