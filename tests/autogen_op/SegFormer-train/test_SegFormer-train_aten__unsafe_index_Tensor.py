@@ -34,10 +34,70 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[1, 256, 128, 128]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
-        ["Tensor<[1, 256, 64, 64]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
-        ["Tensor<[1, 256, 32, 32]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
-        ["Tensor<[1, 256, 16, 16]> self = ?", "List[Optional[Tensor]] indices = [None, None, <[128, 1]>, <[128]>]"],
+        [
+            "Tensor<[1, 256, 128, 128]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_1, _folded__to_copy_3]",
+        ],
+        [
+            "Tensor<[1, 256, 128, 128]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_2, _folded__to_copy_3]",
+        ],
+        [
+            "Tensor<[1, 256, 128, 128]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_1, _folded__to_copy_4]",
+        ],
+        [
+            "Tensor<[1, 256, 128, 128]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_2, _folded__to_copy_4]",
+        ],
+        [
+            "Tensor<[1, 256, 64, 64]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_4, _folded__to_copy_9]",
+        ],
+        [
+            "Tensor<[1, 256, 64, 64]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_5, _folded__to_copy_9]",
+        ],
+        [
+            "Tensor<[1, 256, 64, 64]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_4, _folded__to_copy_10]",
+        ],
+        [
+            "Tensor<[1, 256, 64, 64]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_5, _folded__to_copy_10]",
+        ],
+        [
+            "Tensor<[1, 256, 32, 32]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_7, _folded__to_copy_15]",
+        ],
+        [
+            "Tensor<[1, 256, 32, 32]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_8, _folded__to_copy_15]",
+        ],
+        [
+            "Tensor<[1, 256, 32, 32]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_7, _folded__to_copy_16]",
+        ],
+        [
+            "Tensor<[1, 256, 32, 32]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_8, _folded__to_copy_16]",
+        ],
+        [
+            "Tensor<[1, 256, 16, 16]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_10, _folded__to_copy_21]",
+        ],
+        [
+            "Tensor<[1, 256, 16, 16]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_11, _folded__to_copy_21]",
+        ],
+        [
+            "Tensor<[1, 256, 16, 16]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_10, _folded__to_copy_22]",
+        ],
+        [
+            "Tensor<[1, 256, 16, 16]> self = ?",
+            "List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_11, _folded__to_copy_22]",
+        ],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
