@@ -282,23 +282,31 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     """
     arg_node_names = [node.name for node in arg_nodes]
 
-    forward_signature = f"def forward({', '.join(arg_node_names)}):"
+    forward_signature = f"def forward({', '.join(arg_node_names)}, device):"
     # comment out signature if not the first graph
     graph_code = [forward_signature] if len(output_nodes) == 0 else ["   # " + forward_signature]
-    graph_code.append("  device = ttnn.open_device(device_id=0, l1_small_size=16384)")
+    # if len(output_nodes) == 0:
+    #     graph_code.append("  device = ttnn.open_device(device_id=0, l1_small_size=16384)")
+    #     graph_code.append("  ttnn.enable_program_cache(device)")
+
     for node in aten_all_nodes:
         if node.op == "output":
             output_nodes.append(node.args[0])
-            graph_code.append(f"  # return {node.args[0]}")
+            # graph_code.append(f"  # return {node.args[0]}")
             continue
         else:
-            graph_code.append(f"  {_node_to_python_code(node)}")
-    for node in ttnn_all_nodes:
+            pass
+            # graph_code.append(f"  {_node_to_python_code(node)}")
+
+    for i, node in enumerate(ttnn_all_nodes):
+        if i % 500 == 0:
+            graph_code.append(f"  ttnn.DumpDeviceProfiler(device)")
+
         if isinstance(node, tuple):
-            graph_code.append(f"  test_accuracy({node[0]}, {node[1]})")
+            # graph_code.append(f"  test_accuracy({node[0]}, {node[1]})")
+            pass
         else:
             graph_code.append(f"  {_node_to_python_code(node)}")
-    graph_code.append("  ttnn.close_device(device)")
 
     return graph_code
 
@@ -352,6 +360,10 @@ def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
         "import ttnn",
         "from pathlib import Path",
     ]
+    import_code += [
+        "from tracy import Profiler",
+        "from tracy import signpost",
+    ]
 
     # List of aliases
     alias_code = [
@@ -389,7 +401,16 @@ if __name__ == "__main__":
     filepath = Path(__file__).with_name("{input_pkl_file.name}")
     file = lzma.open(filepath, "rb")
     inputs = pickle.load(file)
-    forward(*inputs)
+    profiler = Profiler()
+    device = ttnn.open_device(device_id=0, l1_small_size=16384)
+    ttnn.enable_program_cache(device)
+    for i in range(5):
+        profiler.enable()
+        signpost(header=f"Run number {{i}}")
+        forward(*inputs, device)
+        signpost(header="Run result post proc")
+        profiler.disable()
+    ttnn.close_device(device)
 """
 
     # Assemble all of pieces of code into one script
@@ -439,6 +460,7 @@ def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_i
     output_nodes = []
     for aten_graph, ttnn_graph in zip(aten_fx_graphs, ttnn_fx_graphs):
         graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
-        test_accuracy_graph_codes.append("\n".join(graph_code))
+        test_accuracy_graph_codes.extend(graph_code)
 
+    test_accuracy_graph_codes.append("  ttnn.DumpDeviceProfiler(device)")
     _generate_code(model_name, test_accuracy_graph_codes, all_inputs)
