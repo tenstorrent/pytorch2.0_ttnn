@@ -86,7 +86,8 @@ aten_aten_stack_default = [
 ############################################################
 # EXTRA BLOCKLIST OF falcon-7b-instruct
 ############################################################
-# Statically allocated circular buffers on core range [(x=0,y=0) - (x=0,y=0)] grow to 3580704 B which is beyond max L1 size of 1499136 B
+# RuntimeError: TT_THROW @ /tmp/build-via-sdist-d26xvola/ttnn-0.54.0rc18+wormhole.b0/ttnn/cpp/ttnn/device_operation.hpp:487: tt::exception
+# Unsupported storage type
 aten_argmax_default_blocklist += [["Tensor<[1, 7]> self = ?", "Optional[int] dim = 1", "bool keepdim = True"]]
 
 ############################################################
