@@ -148,6 +148,7 @@ def aten_backend(
             passes_with_graphviz.append(
                 GraphvizPass(f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}")
             )
+        passes = passes_with_graphviz
 
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
