@@ -33,58 +33,7 @@ def teardown_module(module):
 
 @pytest.mark.parametrize(
     "input_strings",
-    [
-        ["Tensor<[3]> self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
-        [
-            "Tensor<[0, 4]> self = ?",
-            "int dim = 0",
-            "Optional[int] start = 0",
-            "Optional[int] end = 9223372036854775807",
-        ],
-        [
-            "Tensor<[0, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 0",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        [
-            "Tensor<[0, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 1",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        [
-            "Tensor<[0, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 2",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        [
-            "Tensor<[0, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 3",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 4",
-        ],
-        ["Tensor<[0]> self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"],
-        [
-            "Tensor<[0, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 0",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 2",
-        ],
-        [
-            "Tensor<[0, 4]> self = ?",
-            "int dim = 1",
-            "Optional[int] start = 1",
-            "Optional[int] end = 9223372036854775807",
-            "int step = 2",
-        ],
-    ],
+    [["Tensor self = ?", "int dim = 0", "Optional[int] start = 0", "Optional[int] end = 9223372036854775807"]],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {

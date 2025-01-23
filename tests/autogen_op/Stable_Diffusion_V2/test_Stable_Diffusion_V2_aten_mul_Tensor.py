@@ -34,14 +34,12 @@ def teardown_module(module):
 @pytest.mark.parametrize(
     "input_strings",
     [
-        ["Tensor<[160]> self = ?", "Tensor other = -9.210340371976184"],
         ["Tensor<[1, 1]> self = ?", "Tensor<[1, 160]> other = ?"],
         ["Tensor<[1, 160]> self = ?", "Tensor other = 1"],
         ["Tensor<[1, 4096, 1280]> self = ?", "Tensor<[1, 4096, 1280]> other = ?"],
         ["Tensor<[1, s0*s1, 2560]> self = ?", "Tensor<[1, s0*s1, 2560]> other = ?"],
         ["Tensor<[1, s1*s2, 5120]> self = ?", "Tensor<[1, s1*s2, 5120]> other = ?"],
         ["Tensor<[1, s0*s1, 5120]> self = ?", "Tensor<[1, s0*s1, 5120]> other = ?"],
-        ["Tensor<[16]> self = ?", "Tensor other = 0.5"],
         ["Tensor<[2*s0]> self = ?", "Tensor<0.500000000000000> other = ?"],
         ["Tensor<[2*s1]> self = ?", "Tensor<0.500000000000000> other = ?"],
         ["Tensor<[1, s1*s2, 2560]> self = ?", "Tensor<[1, s1*s2, 2560]> other = ?"],
