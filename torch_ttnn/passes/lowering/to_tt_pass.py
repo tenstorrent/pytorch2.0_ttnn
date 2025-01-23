@@ -410,7 +410,8 @@ class GraphWrapper:
         if node.target == ttnn.layer_norm:
             return self._get_val(self.node)[0]
         if node.target in [ttnn.max_pool2d, target_wrappers.conv]:
-            output_tensor = self._get_val(self.node)[0]
+            output_val = self._get_val(self.node)
+            output_tensor = output_val[0] if isinstance(output_val, tuple) else output_val
             output_shape = list(output_tensor.size())
             return output_tensor.new_empty((1, 1, output_shape[0] * math.prod(output_shape[2:]), output_shape[1]))
         if node.target == ttnn.reshape:
