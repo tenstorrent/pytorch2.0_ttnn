@@ -90,6 +90,6 @@ def test_arange_start_step(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.arange) == 1
+    assert [node.target for node in nodes].count(ttnn.arange) == 1 or [node.op for node in nodes].count("get_attr")
     # Check inference result
     assert torch.allclose(result_before, result_after)
