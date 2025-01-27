@@ -126,8 +126,10 @@ def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
     """
     ttnn_all_nodes = []
     for node in ttnn_graph.nodes:
-        if not is_operation(node):
+        if node.op == "placeholder":
             continue
+        # if not is_operation(node):
+        #     continue
 
         ttnn_all_nodes.append(node)
 
@@ -166,7 +168,11 @@ def _node_to_python_code(node):
     Convert a node to a function call statement.
     """
     # assume no placeholder and output
-    assert is_operation(node)
+    assert node.op != "placeholder"
+    # assert is_operation(node)
+
+    if node.op == "output":
+        return f"return {node.args[0]}"
 
     # handle get_attr nodes
     if node.op == "get_attr":
@@ -253,7 +259,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     arg_nodes = []
     for node in aten_graph.nodes:
         if node.op == "placeholder":
-            _rename_input_args_from_graph_break(output_nodes, node)
+            # _rename_input_args_from_graph_break(output_nodes, node)
             arg_nodes.append(node)
             continue
         aten_all_nodes.append(node)
@@ -282,17 +288,15 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     """
     arg_node_names = [node.name for node in arg_nodes]
 
-    forward_signature = f"def forward({', '.join(arg_node_names)}, device):"
+    forward_signature = f"def forward_{len(output_nodes)}({', '.join(arg_node_names)}, device):"
     # comment out signature if not the first graph
-    graph_code = [forward_signature] if len(output_nodes) == 0 else ["   # " + forward_signature]
-    # if len(output_nodes) == 0:
-    #     graph_code.append("  device = ttnn.open_device(device_id=0, l1_small_size=16384)")
-    #     graph_code.append("  ttnn.enable_program_cache(device)")
-
+    graph_code = [forward_signature]
+    # graph_code = [forward_signature] if len(output_nodes) == 0 else ["   # " + forward_signature]
+    # graph_code.append("  device = ttnn.open_device(device_id=0, l1_small_size=16384)")
     for node in aten_all_nodes:
         if node.op == "output":
             output_nodes.append(node.args[0])
-            # graph_code.append(f"  # return {node.args[0]}")
+            graph_code.append(f"  # return {node.args[0]}")
             continue
         else:
             pass
@@ -337,7 +341,8 @@ def generate_flat_args(gm, example_inputs):
     return full_args
 
 
-def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
+# rename to forward_definitions and forward_calls maybe?
+def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs):
     """
     Generate standlone a python script along with an input file containing
     data for weights, biases, and inputs for a model run.
@@ -350,6 +355,8 @@ def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
     Returns:
         None.
     """
+
+    test_accuracy_graph_codes = [elem for sublist in forward_codes for elem in sublist]
 
     # List of modules
     import_code = [
@@ -392,6 +399,9 @@ def test_accuracy(expected, actual):
 """
 
     # main function definition
+    forward_calls_joined = ["        " + line for line in call_forwards_in_main]
+    forward_calls_joined = "\n".join(forward_calls_joined)
+
     directory = Path("tests/autogen_accuracy_tests")
     input_pkl_file = Path(f"{model_name}_inputs.pickle")
     full_input_pkl_path = directory / input_pkl_file
@@ -407,7 +417,7 @@ if __name__ == "__main__":
     for i in range(5):
         profiler.enable()
         signpost(header=f"Run number {{i}}")
-        forward(*inputs, device)
+{forward_calls_joined}
         signpost(header="Run result post proc")
         profiler.disable()
     ttnn.close_device(device)
@@ -452,15 +462,72 @@ def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_i
         None.
     """
 
+    call_forwards_in_main = []
+
+    # Map input arg names of first forward graph to all_inputs.
+    def get_names_of_args(graph):
+        arg_nodes = []
+        for node in graph.nodes:
+            if node.op == "placeholder":
+                arg_nodes.append(node)
+        arg_node_names = [node.name for node in arg_nodes]
+        return arg_node_names
+
+    def get_names_of_outputs(graph):
+        out_nodes = []
+        for node in graph.nodes:
+            if node.op == "output":
+                out_nodes.extend(node.args[0])
+        out_node_names = [node.name for node in out_nodes]
+        return out_node_names
+
+    for graph_idx, aten_graph in enumerate(aten_fx_graphs):
+        arg_node_names = get_names_of_args(aten_graph)
+        logging.info(f"graph {graph_idx} inputs: {arg_node_names}")
+
+        if graph_idx == 0:
+            assert len(arg_node_names) == len(all_inputs)
+            # Map indices
+            for i, arg in enumerate(arg_node_names):
+                call_forwards_in_main.append(f"{arg} = inputs[{i}]")
+        else:
+            prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
+            logging.info(f"graph {graph_idx - 1} outputs: {prev_out_node_names}")
+
+            for arg in arg_node_names:
+                if arg == "clone":
+                    for out_arg in reversed(prev_out_node_names):
+                        if out_arg.startswith("primals"):
+                            call_forwards_in_main.append(f"{arg} = {out_arg}")
+                            break
+                if arg.startswith("tangents"):
+                    first_primal_idx = 0
+                    for i, out_arg in enumerate(prev_out_node_names):
+                        if out_arg.startswith("primals"):
+                            first_primal_idx = i
+                            break
+                    tangent_node = prev_out_node_names[first_primal_idx - 1]
+                    call_forwards_in_main.append(f"{arg} = {tangent_node}")
+
+        # append device to the end of arg list
+        arg_node_names.append("device")
+        # Then lastly call the forward function
+        out_node_names = get_names_of_outputs(aten_graph)
+        call_forwards_in_main.append(f"{', '.join(out_node_names)} = forward_{graph_idx}({', '.join(arg_node_names)})")
+
+    logging.info(f"\n".join(call_forwards_in_main))
+
     assert len(aten_fx_graphs) == len(ttnn_fx_graphs)
 
-    # Contains a list of each line of code
-    test_accuracy_graph_codes = []
+    # Contains a list of each forward graph
+    forward_code = []
     # Tracks the output nodes for models with graph breakages
     output_nodes = []
     for aten_graph, ttnn_graph in zip(aten_fx_graphs, ttnn_fx_graphs):
         graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
-        test_accuracy_graph_codes.extend(graph_code)
+        graph_code.insert(-1, "  ttnn.DumpDeviceProfiler(device)")
+        forward_code.append(graph_code)
+        logging.info(f"forward_code len: {len(forward_code)}")
+        # Insert last one before return
 
-    test_accuracy_graph_codes.append("  ttnn.DumpDeviceProfiler(device)")
-    _generate_code(model_name, test_accuracy_graph_codes, all_inputs)
+    _generate_code(model_name, forward_code, call_forwards_in_main, all_inputs)
