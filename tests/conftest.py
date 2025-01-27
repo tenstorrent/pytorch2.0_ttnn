@@ -14,7 +14,7 @@ import subprocess
 import sys
 import logging
 
-import torch_ttnn.generate_op_accuracy_tests as generate_op_accuracy_tests
+import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
 
 mb_in_bytes = 1048576
 
