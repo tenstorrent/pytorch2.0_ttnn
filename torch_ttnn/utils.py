@@ -58,6 +58,28 @@ def get_dtype(node):
     return None
 
 
+def get_opname(node):
+    if str(node.target).startswith("aten."):
+        return str(node.target)
+    elif hasattr(node.target, "__name__"):
+        return node.target.__name__
+    elif isinstance(node.op, str):
+        return node.target
+    else:
+        raise
+
+
+def users_have_getitem(node):
+    for user in list(node.users.keys()):
+        if user.op != "output" and user.op != "placeholder" and user.target.__name__ == "getitem":
+            return user
+    return None
+
+
+def is_operation(node):
+    return node.op not in ["placeholder", "output"]
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size

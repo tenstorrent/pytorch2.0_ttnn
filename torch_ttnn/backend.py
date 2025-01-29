@@ -8,8 +8,10 @@ import pickle
 from pathlib import Path
 import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
+import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
+import copy
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -28,6 +30,7 @@ class TorchTtnnOption:
         tracer_option=None,
         bypass_compile=False,
         use_less_ttnn_op_types=True,
+        gen_op_accuracy_tests=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -43,6 +46,11 @@ class TorchTtnnOption:
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
         self.original_schema_list = list()
         self.compiled_schema_list = list()
+
+        # Used for generate standalone python script
+        self.gen_op_accuracy_tests = gen_op_accuracy_tests
+        self._aten_fx_graphs = list()
+        self._all_inputs = None
 
     def reset_containers(self):
         self._out_fx_graphs = list()
@@ -96,6 +104,14 @@ def aten_backend(
     from .handle_input_aliasing import remove_clones_for_input_aliasing
 
     gm = remove_clones_for_input_aliasing(gm)
+
+    # Save aten graph if requested
+    if options.gen_op_accuracy_tests:
+        # Will this hamper memory usage?
+        graph_copy = copy.deepcopy(gm.graph)
+        graph_copy.owning_module = gm
+        option._aten_fx_graphs.append(graph_copy)
+
     # Save the number of aten ops before compilation
     if option.metrics_path:
         # do constant folding for consistency of input varation
@@ -224,6 +240,10 @@ def ttnn_backend(
     example_inputs: List[torch.Tensor],
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
+    # Save all parameters and inputs if requested
+    if options.gen_op_accuracy_tests and options._all_inputs is None:
+        options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
+
     tracer_option = options.tracer_option
     if tracer_option is not None:
         from ..tracer import Tracer

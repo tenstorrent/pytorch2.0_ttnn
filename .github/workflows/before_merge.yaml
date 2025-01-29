@@ -70,7 +70,7 @@ jobs:
           else
             num_iterations=5
           fi
-          python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --splits 40 --group ${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --gen_op_accuracy_tests --splits 40 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code      
           if [ $exit_code -eq 5 ]; then
             if [ ${{ matrix.group }} -eq 0 ]; then
@@ -97,6 +97,13 @@ jobs:
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
+
+      - name: Upload All Accuracy Tests and Inputs Artifacts
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-accuracy-tests-group-${{ matrix.group }}
+          path: tests/autogen_accuracy_tests/
 
   push-autogen-op-tests:
     needs: [model-tests]
@@ -219,6 +226,30 @@ jobs:
         with:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
+
+  gen-and-test-model-accuracy:
+    needs: [model-tests]
+    runs-on: ["in-service"]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download All Accuracy Tests and Inputs Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-accuracy-tests-group-*
+          merge-multiple: true
+          path: tests/autogen_accuracy_tests/
+
+      - name: Run Accuracy Tests
+        run: |
+          cd tests/autogen_accuracy_tests
+          set +e
+          find . -type f -name "*.py" -exec python {} ";"
+          exit 0;
+        shell: bash
 
   collect-metrics:
     needs: [model-autogen-op-tests]
