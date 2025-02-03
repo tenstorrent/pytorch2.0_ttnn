@@ -10,12 +10,11 @@ build-backend = "setuptools.build_meta"
 name = "torch-ttnn"
 authors = [{ name = "Tenstorrent", email = "info@tenstorrent.com" }]
 
-version = "0.1.0"
 description = "PyTorch dynamo backend for Tenstorrent TT-NN framework"
 readme = "README.md"
 keywords = ["torch", "ttnn"]
 requires-python = ">=3.8"
 
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 [tool.setuptools.dynamic]
-dependencies = {file = ["requirements-pkg.txt"]}
+dependencies = {file = ["requirements.txt"]}
