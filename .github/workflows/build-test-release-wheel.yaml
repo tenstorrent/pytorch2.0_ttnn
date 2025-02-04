@@ -1,0 +1,88 @@
+name: "Build, Test and Release Wheel"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      wheel_type:
+        description: 'Set wheel type: pre-release or release'
+        required: true
+        default: 'pre-release'
+  merge_group:
+
+jobs:
+  build-wheel:
+    runs-on: ["in-service"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+      - name: Build Python package distribution
+        run: |
+          python3 -m pip install build
+          rm -rf dist/
+          python3 -m build
+      - name: Upload distribution as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: torch_ttnn-distributions
+          path: dist/
+
+  test-wheel-smoke:
+    needs: [build-wheel]
+    runs-on: ["in-service"]
+    steps:
+      - uses: ./.github/actions/common_wheel_install
+      - uses: ./.github/actions/common_smoke_tests
+
+  test-wheel-lowering:
+    needs: [build-wheel]
+    runs-on: ["in-service"]
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_wheel_install
+      - uses: ./.github/actions/common_lowering_tests
+
+  test-wheel-model:
+    needs: [build-wheel, test-wheel-lowering]
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
+    runs-on: ["in-service"]
+    env:
+      pytest_verbosity: 0
+      pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: ./.github/actions/common_wheel_install
+      - uses: ./.github/actions/common_model_tests
+
+  # TODO: https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
+  # publish-to-pypi:
+  #   name: >-
+  #     Publish pytorch-ttnn to PyPI
+  #   needs: [build-wheel, test-wheel-lowering, test-wheel-model]
+  #   if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/<package-name>  # Replace <package-name> with your PyPI project name
+  #   permissions:
+  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+  #   steps:
+  #   - name: Download all the dists
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: torch_ttnn-distributions
+  #       path: dist/
+  #   - name: Publish distribution 📦 to PyPI
+  #     uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,0 +1,41 @@
+name: 'Run smoke tests'
+description: 'Run smoke tests'
+runs:
+  using: "composite"
+  steps:
+    - name: Run smoke Tests
+      shell: bash
+      run: |
+        cat > test.py <<EOF
+        import torch
+        import torch_ttnn
+        import ttnn
+        
+        class AddModule(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+        
+            def forward(self, x, y):
+                return x + y
+        
+        def main(device, input_shapes):
+            m = AddModule()
+            inputs = [torch.randint(1, 5, shape).type(torch.bfloat16) for shape in input_shapes]
+            result_before = m.forward(*inputs)
+            option = torch_ttnn.TorchTtnnOption(device=device)
+            option.gen_graphviz = True
+            m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+            result_after = m.forward(*inputs)
+            option._out_fx_graphs[0].print_tabular()
+        
+            nodes = list(option._out_fx_graphs[0].nodes)
+            assert [node.target for node in nodes].count(ttnn.add) == 1
+        
+            assert torch.allclose(result_before, result_after)
+        
+        if __name__ == "__main__":
+            device = ttnn.open_device(device_id=0)
+            main(device, ((32, 32), (32, 32)))
+        EOF
+        cat test.py
+        python3 test.py
