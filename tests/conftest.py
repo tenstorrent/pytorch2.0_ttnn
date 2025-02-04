@@ -36,7 +36,7 @@ def pytest_addoption(parser):
         help="Run up to the specified iteration count and report metrics based on this iteration.",
     )
     parser.addoption("--gen_op_accuracy_tests", action="store_true")
-
+    parser.addoption("--batch_size", action="store", default=None, help="Batch size for testing")
 
 @pytest.fixture(scope="session")
 def input_var_only_native(request):
@@ -69,6 +69,9 @@ def device():
     ttnn.synchronize_device(device)
     ttnn.close_device(device)
 
+@pytest.fixture(scope="session")
+def get_batch_size(request):
+    return request.config.getoption("--batch_size")
 
 def get_dispatch_core_type():
     # Instead of conditionally returning WORKER or ETH, here we always return ETH

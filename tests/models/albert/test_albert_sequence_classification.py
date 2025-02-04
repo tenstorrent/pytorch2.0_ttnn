@@ -3,7 +3,7 @@
 from transformers import AlbertTokenizer, AlbertForSequenceClassification
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
 class ThisTester(ModelTester):
@@ -23,15 +23,21 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.parametrize("model_name", ["textattack/albert-base-v2-imdb"])
-def test_albert_sequence_classification(record_property, model_name, mode):
+def test_albert_sequence_classification(record_property, model_name, mode, get_batch_size):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    batch_size = get_batch_size
+    if batch_size is not None:
+        batch_size = int(batch_size)
+    validate_batch_size(batch_size)
 
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model(batch_size=batch_size)
+    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
+    
     if mode == "eval":
-        logits = results.logits
+        logits = process_batched_logits(results.logits, batch_size)
         predicted_class_id = logits.argmax().item()
         predicted_label = tester.model.config.id2label[predicted_class_id]
 

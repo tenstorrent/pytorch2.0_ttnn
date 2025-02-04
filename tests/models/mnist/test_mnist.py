@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 import torch.nn as nn
 import torch.nn.functional as F
-from tests.utils import ModelTester
+from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
 # adapted from https://github.com/pytorch/examples/blob/main/mnist/main.py
@@ -54,12 +54,17 @@ class ThisTester(ModelTester):
     "mode",
     ["train", pytest.param("eval", marks=pytest.mark.converted_end_to_end)],
 )
-def test_mnist_train(record_property, mode):
+def test_mnist_train(record_property, mode, get_batch_size):
     model_name = "Mnist"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    batch_size = get_batch_size
+    if batch_size is not None:
+        batch_size = int(batch_size)
+    validate_batch_size(batch_size)
 
+    tester = ThisTester(model_name, mode)
+    results = tester.test_model(batch_size=batch_size)
+    batch_object_inputs(tester, batch_size)
     record_property("torch_ttnn", (tester, results))
