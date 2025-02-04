@@ -22,7 +22,7 @@
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                                                                        | Status   | Isolated   | PCC                | Host   |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
-|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                     | Unknown  | Fallback   | 1.0                | 0      |
+|  0 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1, 64]> key = ?,<br>Tensor<[1, 12, 1, 64]> value = ?                                                     | Unknown  | Fallback   | 0.8571428656578064 | 0      |
 |  1 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                               | Unknown  | Fallback   | 1.0                | 0      |
 |  2 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, 5, 64]> key = ?,<br>Tensor<[1, 12, 5, 64]> value = ?                                                     | Unknown  | Fallback   | 1.0                | 0      |
 |  3 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s10 + 1, 64]> key = ?,<br>Tensor<[1, 12, s11 + 1, 64]> value = ?                                         | Unknown  | Unknown    | N/A                | N/A    |
@@ -38,8 +38,8 @@
 | 13 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s6 + 1, 64]> key = ?,<br>Tensor<[1, 12, s7 + 1, 64]> value = ?                                           | Unknown  | Unknown    | N/A                | N/A    |
 | 14 | Tensor<[1, 12, 1, 64]> query = ?,<br>Tensor<[1, 12, s8 + 1, 64]> key = ?,<br>Tensor<[1, 12, s9 + 1, 64]> value = ?                                           | Unknown  | Unknown    | N/A                | N/A    |
 | 15 | Tensor<[1, 12, 1500, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                            | Unknown  | Fallback   | 1.0                | 0      |
-| 16 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                               | Unknown  | Fallback   | 0.8571428656578064 | 0      |
-| 17 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 4, 64]> key = ?,<br>Tensor<[1, 12, 4, 64]> value = ?,<br>float dropout_p = 0.0,<br>bool is_causal = True | Unknown  | Fallback   | 1.0                | 0      |
+| 16 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 1500, 64]> key = ?,<br>Tensor<[1, 12, 1500, 64]> value = ?                                               | Unknown  | Fallback   | 1.0                | 0      |
+| 17 | Tensor<[1, 12, 4, 64]> query = ?,<br>Tensor<[1, 12, 4, 64]> key = ?,<br>Tensor<[1, 12, 4, 64]> value = ?,<br>float dropout_p = 0.0,<br>bool is_causal = True | Unknown  | Fallback   | 0.8571428656578064 | 0      |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
@@ -52,14 +52,14 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                     | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[3072]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?    | Unknown  | Done       | 0.999968 |      0 |
+|  0 | Tensor<[3072]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?    | Unknown  | Done       | 0.999965 |      0 |
 |  1 | Tensor<[3072]> self = ?,<br>Tensor<[1500, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Unknown  | Done       | 0.999962 |      0 |
-|  2 | Tensor<[3072]> self = ?,<br>Tensor<[4, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?    | Unknown  | Done       | 0.999968 |      0 |
-|  3 | Tensor<[768]> self = ?,<br>Tensor<[1, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Unknown  | Done       | 0.999942 |      0 |
-|  4 | Tensor<[768]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?      | Unknown  | Done       | 0.999969 |      0 |
+|  2 | Tensor<[3072]> self = ?,<br>Tensor<[4, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ?    | Unknown  | Done       | 0.999967 |      0 |
+|  3 | Tensor<[768]> self = ?,<br>Tensor<[1, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Unknown  | Done       | 0.999938 |      0 |
+|  4 | Tensor<[768]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?      | Unknown  | Done       | 0.999966 |      0 |
 |  5 | Tensor<[768]> self = ?,<br>Tensor<[1500, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Unknown  | Done       | 0.999883 |      0 |
 |  6 | Tensor<[768]> self = ?,<br>Tensor<[1500, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?   | Unknown  | Done       | 0.999962 |      0 |
-|  7 | Tensor<[768]> self = ?,<br>Tensor<[4, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Unknown  | Done       | 0.999941 |      0 |
+|  7 | Tensor<[768]> self = ?,<br>Tensor<[4, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ?    | Unknown  | Done       | 0.999945 |      0 |
 |  8 | Tensor<[768]> self = ?,<br>Tensor<[4, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?      | Unknown  | Done       | 0.999967 |      0 |
 ### aten.argmax.default
 |    | ATen Input Variations                                  | Status   | Isolated   |   PCC |   Host |
@@ -119,7 +119,7 @@
 ### aten.gelu.default
 |    | ATen Input Variations            | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 3072]> self = ?    | Unknown  | Done       | 0.999991 |      0 |
+|  0 | Tensor<[1, 1, 3072]> self = ?    | Unknown  | Done       | 0.99999  |      0 |
 |  1 | Tensor<[1, 1500, 3072]> self = ? | Unknown  | Done       | 0.999991 |      0 |
 |  2 | Tensor<[1, 4, 3072]> self = ?    | Unknown  | Done       | 0.999992 |      0 |
 |  3 | Tensor<[1, 768, 1500]> self = ?  | Unknown  | Done       | 0.999991 |      0 |
@@ -127,11 +127,11 @@
 ### aten.mm.default
 |    | ATen Input Variations                                        | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?  | Unknown  | Done       | 0.999886 |      0 |
+|  0 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?  | Unknown  | Done       | 0.999969 |      0 |
 |  1 | Tensor<[1, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?    | Unknown  | Done       | 0.999966 |      0 |
 |  2 | Tensor<[1500, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ? | Unknown  | Done       | 0.999963 |      0 |
-|  3 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?  | Unknown  | Done       | 0.999887 |      0 |
-|  4 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?    | Unknown  | Done       | 0.999968 |      0 |
+|  3 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 51865]> mat2 = ?  | Unknown  | Done       | 0.999969 |      0 |
+|  4 | Tensor<[4, 768]> self = ?,<br>Tensor<[768, 768]> mat2 = ?    | Unknown  | Done       | 0.999967 |      0 |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                     | Status   | Isolated   | PCC   |   Host |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|-------:|

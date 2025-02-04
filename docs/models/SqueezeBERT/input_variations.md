@@ -40,7 +40,7 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999993 |      0 |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999997 |      0 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                 | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
