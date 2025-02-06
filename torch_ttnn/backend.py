@@ -8,7 +8,6 @@ import pickle
 from pathlib import Path
 import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
-import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
 import copy
@@ -242,6 +241,8 @@ def ttnn_backend(
 ) -> torch.fx.GraphModule:
     # Save all parameters and inputs if requested
     if options.gen_op_accuracy_tests and options._all_inputs is None:
+        import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
+
         options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
 
     tracer_option = options.tracer_option
