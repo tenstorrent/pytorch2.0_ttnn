@@ -1,4 +1,4 @@
-name: Empty Placeholder Workflow
+name: Maximum Batch Size Experiment
 
 on:
   workflow_dispatch:
