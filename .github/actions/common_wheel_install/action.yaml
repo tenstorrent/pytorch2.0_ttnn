@@ -1,0 +1,38 @@
+name: 'Setup Python Environment from wheel'
+description: 'Sets up Python and installs dependencies from wheel'
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Telemetry
+      uses: catchpoint/workflow-telemetry-action@v2
+
+    - name: Setup Python 3.8
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.8'
+        #cache: 'pip'
+        #cache-dependency-path: |
+        #  requirements-dev.txt
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: torch_ttnn-distributions
+        path: dist/
+    - name: Install Dependencies from wheel
+      shell: bash
+      run: |
+        ls -al dist/
+        df -h
+        python3 -m pip install --upgrade pip
+        python3 -m pip install dist/torch_ttnn-*.whl
+        # wheel only include requirements.txt, not requirements-dev.txt
+        if [ -f requirements-dev.txt ]; then
+            grep -v "\-r requirements.txt" requirements-dev.txt > requirements-dev-no-req.txt
+            python3 -m pip install -r requirements-dev-no-req.txt
+        fi
+        python3 -m pip install pytest-github-report
+        # ensure package used from wheel installation
+        rm -rf torch_ttnn
+        df -h
+
+    - uses: ./.github/actions/common_cleanup

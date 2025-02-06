@@ -1,0 +1,9 @@
+name: 'Run lowering tests'
+description: 'Run lowering tests'
+runs:
+  using: "composite"
+  steps:
+    - name: Run Lowering Tests
+      shell: bash
+      run: |
+        python3 -m pytest --github-report tests/lowering/ --splits 2 --group ${{ matrix.group }} -s
