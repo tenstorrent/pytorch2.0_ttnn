@@ -5,3 +5,4 @@ networkx==3.1
 graphviz
 matplotlib==3.7.1
 ttnn@https://github.com/tenstorrent/tt-metal/releases/download/v0.56.0-rc9/ttnn-0.56.0rc9+any-cp38-cp38-linux_x86_64.whl
+ttnn@https://github.com/tenstorrent/tt-metal/releases/download/v0.56.0-rc9/ttnn-0.56.0rc9+any-cp38-cp38-linux_x86_64.whl
