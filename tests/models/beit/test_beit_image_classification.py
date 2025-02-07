@@ -3,7 +3,7 @@ from PIL import Image
 import requests
 import pytest
 import torch
-from tests.utils import ModelTester
+from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
 class ThisTester(ModelTester):
@@ -33,12 +33,18 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize("mode", ["train", "eval"])
 @pytest.mark.parametrize("model_name", ["microsoft/beit-base-patch16-224", "microsoft/beit-large-patch16-224"])
-def test_beit_image_classification(record_property, model_name, mode):
+def test_beit_image_classification(record_property, model_name, mode, get_batch_size):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
+    batch_size = get_batch_size
+    if batch_size is not None:
+        batch_size = int(batch_size)
+    validate_batch_size(batch_size)
+
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = tester.test_model(batch_size=batch_size)
+    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
 
     if mode == "eval":
         logits = results.logits

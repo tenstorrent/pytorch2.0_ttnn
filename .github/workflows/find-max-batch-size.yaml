@@ -1,0 +1,83 @@
+name: "Tests"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      commit_report:
+        description: 'Commit generated report files: None, Docs, All'
+        required: false
+        default: 'None'
+  merge_group:
+
+permissions:
+  actions: read
+  contents: write
+  pages: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  model-tests:
+    runs-on: ["in-service"]
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+    env:      
+      pytest_verbosity: 0
+      pytest_report_title: "⭐️ Model Tests"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: ./.github/actions/common_repo_setup
+      
+      - name: Run Model Tests for Multiple Batch Sizes
+        shell: bash
+        run: |
+          set +e
+          batch_sizes=(4 8 16 32 64 128 256)          
+
+          num_iterations=5
+
+          TESTS_FILE="batch-tests-to-run.txt"
+          if [ ! -f "$TESTS_FILE" ]; then
+            echo "Test list file '$TESTS_FILE' not found!"
+            exit 1
+          fi
+          
+          echo "Running tests with ${num_iterations} iterations per batch size..."
+          failed_batch=""
+          for bs in "${batch_sizes[@]}"; do
+            echo "----------------------------------------------------"
+            echo "Testing with batch size: $bs"
+            echo "----------------------------------------------------"
+            while IFS= read -r test_target; do
+              if [ -z "$test_target" ] || [[ "$test_target" =~ ^# ]]; then
+                continue
+              fi
+              echo "----------------------------------------------------"
+              echo "Running test: $test_target"
+              echo "----------------------------------------------------"
+              #python3 -m pytest $test_target --report_nth_iteration=$num_iterations -s
+              python3 -m pytest $(cat tests-to-run.txt) --github-report --report_nth_iteration=$num_iterations --batch_size $bs --splits 40 --group ${{ matrix.group }} -s
+
+              exit_code=$?
+              if [ $exit_code -ne 0 ]; then
+                echo "Test failure detected at batch size: $bs (exit code $exit_code)"
+                failed_batch=$bs
+                # Write the failing batch size to a file
+                echo "$bs $test_target" >> failed_batch_size.txt
+                
+                # Delete file from .txt file so no more tests are run on it
+                escaped_test_target=$(printf '%s\n' "$test_target" | sed 's/[][\/.^$*]/\\&/g')
+                sed -i "/^$escaped_test_target$/d" "$TESTS_FILE"
+
+              fi
+            done < "$TESTS_FILE"
+          done
+          if [ -z "$failed_batch" ]; then
+            echo "Success: All batch sizes passed."
+          fi
+          cat failed_batch_size.txt
+          exit 0
