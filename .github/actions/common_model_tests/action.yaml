@@ -1,0 +1,34 @@
+name: 'Run Model tests'
+description: 'Run Model tests'
+runs:
+  using: "composite"
+  steps:
+    - name: Run Model Tests
+      shell: bash
+      run: |
+        set +e
+        if [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
+          num_iterations=1
+        else
+          num_iterations=5
+        fi
+        python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --gen_op_accuracy_tests --splits 40 --group ${{ matrix.group }} -s
+        exit_code=$?  # Capture the exit code
+        if [ $exit_code -eq 5 ]; then
+          if [ ${{ matrix.group }} -eq 0 ]; then
+            echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
+            exit 1;  # Fail the workflow
+          else
+            echo "Success: pytest returned exit code 5 (No tests to run). This is acceptable for groups greater than 0.";
+            exit 0;  # Success
+          fi
+        elif [ $exit_code -ne 0 ]; then
+          echo "Failure: Tests failed with exit code $exit_code.";
+          exit 1;  # Fail the workflow for other errors
+        fi
+        echo "Success: Tests passed!";
+        ls -l
+        cd metrics
+        ls -l
+        cd ..
+        exit 0;
