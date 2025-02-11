@@ -4,6 +4,7 @@ import pytest
 import ttnn
 
 from tests.utils import assert_with_pcc
+from torch_ttnn.passes.lowering import target_wrappers
 
 
 class MatmulModule(torch.nn.Module):
@@ -32,7 +33,7 @@ def test_matmul(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(ttnn.matmul) == 1
+    assert target.count(target_wrappers.matmul) == 1
 
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.99)

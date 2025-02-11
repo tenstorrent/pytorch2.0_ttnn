@@ -4,6 +4,7 @@ import pytest
 import ttnn
 
 from tests.utils import assert_with_pcc
+from torch_ttnn.passes.lowering import target_wrappers
 
 
 class AddMmModule(torch.nn.Module):
@@ -32,13 +33,13 @@ def test_addmm(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(ttnn.matmul) == 1
+    assert target.count(target_wrappers.matmul) == 1
     assert target.count(ttnn.add) == 1
-    assert target.index(ttnn.matmul) < target.index(ttnn.add)
-    assert nodes[target.index(ttnn.add)].args[1].target == ttnn.matmul
+    assert target.index(target_wrappers.matmul) < target.index(ttnn.add)
+    assert nodes[target.index(ttnn.add)].args[1].target == target_wrappers.matmul
     # Intermediate node meta check if preserved
     for node in nodes:
-        if node.target == ttnn.matmul:
+        if node.target == target_wrappers.matmul:
             assert node.meta["val"].size() == input_shapes[0]
     # Check inference result
     assert_with_pcc(result_before, result_after, pcc=0.999)

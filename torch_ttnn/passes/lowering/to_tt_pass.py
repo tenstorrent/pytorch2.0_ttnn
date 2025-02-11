@@ -121,7 +121,7 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.exp.default: ttnn.exp,
     torch.ops.aten.expm1.default: ttnn.expm1,
     torch.ops.aten.floor.default: ttnn.floor,
-    torch.ops.aten.gelu.default: ttnn.gelu,
+    torch.ops.aten.gelu.default: target_wrappers.gelu,
     torch.ops.aten.hardsigmoid.default: ttnn.hardsigmoid,
     torch.ops.aten.hardswish.default: ttnn.hardswish,
     torch.ops.aten.isinf.default: ttnn.isinf,
@@ -134,14 +134,14 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.neg.default: ttnn.neg,
     torch.ops.aten.reciprocal.default: ttnn.reciprocal,
     torch.ops.aten.remainder.Scalar: ttnn.remainder,
-    torch.ops.aten.relu.default: ttnn.relu,
+    torch.ops.aten.relu.default: target_wrappers.relu,
     torch.ops.aten.round.decimals: ttnn.round,
     torch.ops.aten.rsqrt.default: ttnn.rsqrt,
     torch.ops.aten.sigmoid.default: ttnn.sigmoid,
     torch.ops.aten.sign.default: ttnn.sign,
     torch.ops.aten.sin.default: ttnn.sin,
     torch.ops.aten.sinh.default: ttnn.sinh,
-    torch.ops.aten.silu.default: ttnn.silu,
+    torch.ops.aten.silu.default: target_wrappers.silu,
     torch.ops.aten.sqrt.default: ttnn.sqrt,
     torch.ops.aten.tan.default: ttnn.tan,
     torch.ops.aten.tanh.default: ttnn.tanh,
@@ -209,17 +209,17 @@ class ReplaceMoreTt(torch.fx.Transformer):
         ############################################################
         if target == torch.ops.aten.addmm.default:
             # TODO(kevinwuMCW): include beta, alpha, and optional args
-            mm = self.call_function_prop_meta(ttnn.matmul, (args[1], args[2]), kwargs)
+            mm = self.call_function_prop_meta(target_wrappers.matmul, (args[1], args[2]), kwargs)
             return self.call_function_prop_meta(ttnn.add, (args[0], mm), kwargs)
 
         if target == torch.ops.aten.bmm.default:
-            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+            return self.call_function_prop_meta(target_wrappers.matmul, args, kwargs)
 
         if target == torch.ops.aten.linear.default:
             return self.call_function_prop_meta(ttnn.linear, args, kwargs)
 
         if target == torch.ops.aten.mm.default:
-            return self.call_function_prop_meta(ttnn.matmul, args, kwargs)
+            return self.call_function_prop_meta(target_wrappers.matmul, args, kwargs)
 
         ############################################################
         # Pointwise unary
@@ -607,7 +607,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
                 # if beta is 0, input is ignored, and nan and inf in it will not be propogated
-                new_node = g.call_function(ttnn.matmul, args=(args[1], args[2]))
+                new_node = g.call_function(target_wrappers.matmul, args=(args[1], args[2]))
                 alpha = kwargs.get("alpha", 1)
                 beta = kwargs.get("beta", 1)
 
