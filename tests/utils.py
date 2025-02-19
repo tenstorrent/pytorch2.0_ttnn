@@ -1,8 +1,10 @@
+import collections.abc
 import torch
 import numpy as np
 import collections
 import re
 from typing import List, Dict, Tuple
+import transformers
 
 
 class ModelTester:
@@ -60,12 +62,28 @@ class ModelTester:
         return model
 
     def run_model(self, model, inputs):
-        if isinstance(inputs, collections.Mapping):
+        if isinstance(inputs, collections.abc.Mapping):
             return model(**inputs)
-        elif isinstance(inputs, collections.Sequence):
+        elif isinstance(inputs, collections.abc.Sequence):
             return model(*inputs)
         else:
             return model(inputs)
+    
+    def run_model_batched(self, model, inputs, batch_size):
+        # This creates a batch of duplicates (all items in the batch are the same, just repeated 
+        # Naively to create a batch)
+        def repeat_tensor(x):
+            x = x.squeeze(0)
+            x = x.repeat(batch_size, *([1] * (x.dim())))  # Repeat along batch dim
+            return x
+        if isinstance(inputs, collections.abc.Mapping):
+            batched_inputs = {k: repeat_tensor(v) for k, v in inputs.items()}
+            return model(**batched_inputs)
+        elif isinstance(inputs, collections.abc.Sequence) and not isinstance(inputs, (str, bytes)):
+            batched_inputs = [repeat_tensor(x) for x in inputs]
+            return model(*batched_inputs)
+        else:
+            return model(repeat_tensor(inputs))
 
     def append_fake_loss_function(self, outputs):
         # Using `torch.mean` as the loss function for testing purposes.
@@ -105,7 +123,7 @@ class ModelTester:
     def get_results_eval(self, model, inputs, outputs):
         return outputs
 
-    def test_model_train(self, as_ttnn=False, option=None):
+    def test_model_train(self, as_ttnn=False, option=None, batch_size=None):
         # Fixing the random seed for reproducibility to ease debugging.
         #
         # Training processes involve more randomness compared to evaluation,
@@ -117,7 +135,10 @@ class ModelTester:
         inputs = self.set_inputs_train(self.inputs)
         if as_ttnn == True:
             model = self.compile_model(model, option)
-        outputs = self.run_model(model, inputs)
+        if batch_size is not None:
+            outputs = self.run_model_batched(model, inputs, batch_size)
+        else:
+            outputs = self.run_model(model, inputs)
         loss = self.append_fake_loss_function(outputs)
         loss.backward()
         # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
@@ -125,23 +146,27 @@ class ModelTester:
         return results
 
     @torch.no_grad()
-    def test_model_eval(self, as_ttnn=False, option=None):
+    def test_model_eval(self, as_ttnn=False, option=None, batch_size=None):
         torch.manual_seed(0)
         model = self.set_model_eval(self.model)
         inputs = self.set_inputs_eval(self.inputs)
         if as_ttnn == True:
             model = self.compile_model(model, option)
-        outputs = self.run_model(model, inputs)
+        if batch_size is not None:
+            outputs = self.run_model_batched(model, inputs, batch_size)
+        else:
+            outputs = self.run_model(model, inputs)
         results = self.get_results_eval(model, inputs, outputs)
         return results
 
-    def test_model(self, as_ttnn=False, option=None):
+    def test_model(self, as_ttnn=False, option=None, batch_size=None):
         if self.mode == "train":
-            return self.test_model_train(as_ttnn, option)
+            return self.test_model_train(as_ttnn, option, batch_size)
         elif self.mode == "eval":
-            return self.test_model_eval(as_ttnn, option)
+            return self.test_model_eval(as_ttnn, option, batch_size)
         else:
             raise ValueError(f"Current mode is not supported: {self.mode}")
+    
 
 
 # Testing utils copied from tt-metal/tests/ttnn/utils_for_testing.py
@@ -552,3 +577,35 @@ class MetricStringListHandler:
 def render_metric_string_list_to_input_args_kwargs(op_name, input_strings) -> Tuple[List, Dict, bool]:
     handler = MetricStringListHandler(op_name, input_strings)
     return handler.render_input_args_kwargs()
+
+def validate_batch_size(batch_size):
+    if not isinstance(batch_size, (int, type(None))):
+        raise TypeError(f'batch_size must be and int or None, got type {type(batch_size).__name__}')
+
+def process_batched_logits(logits, batch_size):
+    if batch_size is None:
+        return logits
+    else:
+        if logits.dim() == 3:
+            return logits[0,:,:].squeeze(0)
+        elif logits.dim() == 2:
+            return logits[0,:].squeeze(0)
+        else:
+            raise ValueError(f'Unrecognized logit dimension: {logits.shape.numel()} (not 2D or 3D including batch)')
+
+def batch_object_inputs(tester_obj, batch_size):
+    if batch_size is None:
+        return
+    inputs = tester_obj.inputs
+    if isinstance(inputs, dict) or isinstance(inputs, transformers.tokenization_utils_base.BatchEncoding):
+        keys = inputs.keys()
+        for key in keys:
+            if isinstance(inputs[key], torch.Tensor):
+                inputs[key] = inputs[key].repeat(batch_size,1)
+    elif isinstance(inputs, torch.Tensor):
+        if inputs.shape[0] == 0:
+            inputs = inputs.squeeze(0)
+        tester_obj.inputs = inputs.repeat(batch_size, *([1] * (inputs.dim())))
+        tester_obj.inputs = tester_obj.inputs.squeeze(1)
+    else:
+        raise ValueError(f'Unregonized inputs type: {type(inputs)}')

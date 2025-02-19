@@ -1,13 +1,6 @@
 on:
   workflow_dispatch:
 
-permissions:
-  actions: read
-  contents: write
-  pages: write
-  id-token: write
-  pull-requests: write
-
 jobs:
   model-tests:
     runs-on: ["in-service"]
@@ -17,7 +10,6 @@ jobs:
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"
-      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
         with:
