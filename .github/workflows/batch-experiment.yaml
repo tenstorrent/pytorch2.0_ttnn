@@ -1,6 +1,13 @@
 on:
   workflow_dispatch:
 
+permissions:
+  actions: read
+  contents: write
+  pages: write
+  id-token: write
+  pull-requests: write
+
 jobs:
   model-tests:
     runs-on: ["in-service"]
@@ -19,6 +26,7 @@ jobs:
       - name: Run Model Tests in Parallel
         shell: bash
         run: |
+          PYTHONPATH=${TT_METAL_HOME}:$(pwd)
           set +e
           batch_sizes=(2 4 8 16 32 64 128 256 512)
           num_iterations=5
