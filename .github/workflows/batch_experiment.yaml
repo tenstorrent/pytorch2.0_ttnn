@@ -1,3 +1,6 @@
+on:
+  workflow_dispatch:
+
 jobs:
   model-tests:
     runs-on: ["in-service"]
