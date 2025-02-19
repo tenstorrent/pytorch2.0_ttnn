@@ -1,0 +1,151 @@
+jobs:
+  model-tests:
+    runs-on: ["in-service"]
+    strategy:
+      matrix:
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+    env:      
+      pytest_verbosity: 0
+      pytest_report_title: "⭐️ Model Tests"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: ./.github/actions/common_repo_setup
+      
+      - name: Run Model Tests in Parallel
+        shell: bash
+        run: |
+          set +e
+          batch_sizes=(2 4 8 16 32 64 128 256 512)
+          num_iterations=5
+          file_prefix="tests/"
+
+          # Assign tests dynamically based on matrix group
+          TOTAL_GROUPS=40
+          CURRENT_GROUP=${{ matrix.group }}
+
+          mapfile -t test_ids_verbose < <(pytest --collect-only -q -m converted_end_to_end --ignore=tests/models/autoencoder_conv tests/models/ | awk -F '::' '{print $1}' | sort -u)
+          test_ids=()  
+
+          # Preprocess file paths
+          for file in "${test_ids_verbose[@]}"; do
+            if [[ "$file" == models/* ]]; then  
+              test_ids+=("$file")  
+            fi
+          done
+
+          TOTAL_TESTS=${#test_ids[@]}
+          TESTS_PER_GROUP=$(( (TOTAL_TESTS + TOTAL_GROUPS - 1) / TOTAL_GROUPS ))
+
+          START_INDEX=$(( (CURRENT_GROUP - 1) * TESTS_PER_GROUP ))
+          END_INDEX=$(( CURRENT_GROUP * TESTS_PER_GROUP ))
+
+          if (( END_INDEX > TOTAL_TESTS )); then
+            END_INDEX=$TOTAL_TESTS
+          fi
+
+          # Slice the test array for the current group
+          group_test_ids=("${test_ids[@]:START_INDEX:TESTS_PER_GROUP}")
+
+          echo "Running tests in group $CURRENT_GROUP..."
+          echo "Tests assigned to this group: ${group_test_ids[@]}"
+
+          failed_batch_and_test_array=()
+          max_batch_sizes_array=()
+          counter=0
+
+          # Define function for finding max batch size when uninitialized
+          find_max_batch_size_uninitialized() {
+            test_path=$1
+            batch_range_lower=$2
+            batch_range_upper=$3
+            batch_range=($batch_range_lower $batch_range_upper)
+            
+            not_found=1
+            min_failed_batch=0
+            max_successful_batch=0
+            
+            while (( not_found )); do
+              batch_size_to_test=$(( (batch_range[0] + batch_range[1]) / 2 ))
+              echo "Testing with batch size $batch_size_to_test"
+              
+              python3 -m pytest "$test_path" -s --batch_size $batch_size_to_test --report_nth_iteration $num_iterations
+              exit_code=$?
+
+              if (( exit_code != 0 )); then 
+                batch_range[1]=$batch_size_to_test
+                min_failed_batch=$batch_size_to_test
+              else 
+                batch_range[0]=$batch_size_to_test
+                max_successful_batch=$batch_size_to_test
+              fi 
+
+              if (( min_failed_batch - max_successful_batch == 1)); then
+                not_found=0
+              fi
+            done
+            
+            echo "Max batch size for $test_path: $max_successful_batch"
+            max_batch_sizes_array+=("$max_successful_batch")
+            failed_batch_and_test_array+=("$max_successful_batch $test_path")
+          }
+
+          # Define function for finding max batch size when initialized
+          find_max_batch_size_initialized() {
+            test_path=$1
+            batch_range_lower=$2
+            batch_range_upper=$3
+            batch_range=($batch_range_lower $batch_range_upper)
+            
+            prior_batches_array=($(printf "%s\n" "${max_batch_sizes_array[@]}" | sort -n))
+            not_found=1
+            min_failed_batch=0
+            max_successful_batch=0
+            first_iter=1
+            
+            while (( not_found )); do
+              if (( first_iter )); then
+                median_index=$(( ${#prior_batches_array[@]} / 2 ))
+                batch_size_to_test=${prior_batches_array[$median_index]}
+                first_iter=0
+              else
+                batch_size_to_test=$(( (batch_range[0] + batch_range[1]) / 2 ))
+              fi
+              
+              echo "Testing with batch size $batch_size_to_test"
+              python3 -m pytest "$test_path" -s --batch_size $batch_size_to_test --report_nth_iteration $num_iterations
+              exit_code=$?
+
+              if (( exit_code != 0 )); then 
+                batch_range[1]=$batch_size_to_test
+                min_failed_batch=$batch_size_to_test
+              else 
+                batch_range[0]=$batch_size_to_test
+                max_successful_batch=$batch_size_to_test
+              fi 
+
+              if (( min_failed_batch - max_successful_batch == 1)); then
+                not_found=0
+              fi
+            done
+            
+            echo "Max batch size $max_successful_batch found for $test_path"
+            max_batch_sizes_array+=("$max_successful_batch")
+            failed_batch_and_test_array+=("$max_successful_batch $test_path")
+          }
+
+          # Main loop to distribute test runs across groups
+          for t in "${group_test_ids[@]}"; do
+            if [ -z "$t" ]; then 
+              continue
+            fi
+            echo "Running test: $t"
+            file_path="${file_prefix}${t%%::*}"
+            l_bound=1
+            u_bound=64
+            find_max_batch_size_uninitialized "$file_path" "$l_bound" "$u_bound"
+          done
+
+          echo "Final Failed Batches: ${failed_batch_and_test_array[@]}"
+          exit 0
