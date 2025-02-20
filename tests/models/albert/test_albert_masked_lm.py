@@ -41,7 +41,7 @@ class ThisTester(ModelTester):
     ],
 )
 
-
+#@pytest.mark.converted_end_to_end
 def test_albert_masked_lm(record_property, model_name, mode, get_batch_size):
     record_property("model_name", model_name)
     record_property("mode", mode)

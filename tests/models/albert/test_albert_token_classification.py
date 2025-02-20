@@ -27,6 +27,7 @@ class ThisTester(ModelTester):
         pytest.param("albert/albert-base-v2", marks=pytest.mark.converted_end_to_end),
     ],
 )
+
 def test_albert_token_classification(record_property, model_name, mode, get_batch_size):
     record_property("model_name", f"{model_name}-classification")
     record_property("mode", mode)

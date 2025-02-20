@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 dependencies = ["mediapipe"]
 
@@ -40,11 +40,14 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.converted_end_to_end
-def test_hand_landmark(record_property, mode):
+def test_hand_landmark(record_property, mode, get_batch_size):
     model_name = "Hand Landmark"
     record_property("model_name", model_name)
     record_property("mode", mode)
-
+    batch_size = get_batch_size
+    if batch_size is not None:
+        batch_size = int(batch_size)
+    validate_batch_size(batch_size)
     """
      Forcely do `git lfs pull` to make sure the LFS files needed by this test are available.
     """
@@ -82,6 +85,7 @@ def test_hand_landmark(record_property, mode):
     )
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = tester.test_model(batch_size=batch_size)
+    batch_object_inputs(tester, batch_size)
 
     record_property("torch_ttnn", (tester, results))
