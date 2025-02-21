@@ -60,7 +60,7 @@ jobs:
                 fi
               done
 
-              if! $skip; then
+              if ! $skip; then
                 test_ids+=("$file")  
               fi
             fi
