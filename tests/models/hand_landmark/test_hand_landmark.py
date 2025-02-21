@@ -86,6 +86,5 @@ def test_hand_landmark(record_property, mode, get_batch_size):
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size)
 
     record_property("torch_ttnn", (tester, results))

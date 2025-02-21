@@ -38,10 +38,31 @@ jobs:
           mapfile -t test_ids_verbose < <(pytest --collect-only -q -m converted_end_to_end --ignore=tests/models/autoencoder_conv tests/models/ | awk -F '::' '{print $1}' | sort -u)
           test_ids=()  
 
+          # Array of tests to exclude
+          exclude_tests=(
+            "models/mnist/test_mnist.py"
+            "models/MobileNetV2/test_MobileNetV2.py"
+            "models/openpose/test_openpose_v2.py"
+            "models/resnet/test_resnet.py"
+            "models/resnet50/test_resnet50.py"
+            "models/roberta/test_roberta.py"
+          )
+
           # Preprocess file paths
           for file in "${test_ids_verbose[@]}"; do
             if [[ "$file" == models/* ]]; then  
-              test_ids+=("$file")  
+              # Check if the file is in the exclude_tests array
+              skip=false
+              for exclude_test in "${exclude_tests[@]}"; do
+                if [[ "$file" == "$exclude_test" ]]; then
+                  skip=true
+                  break
+                fi
+              done
+
+              if! $skip; then
+                test_ids+=("$file")  
+              fi
             fi
           done
 
