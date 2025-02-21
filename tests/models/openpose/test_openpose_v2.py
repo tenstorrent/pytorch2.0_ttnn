@@ -9,7 +9,6 @@ import pytest
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 def get_image_tensor():
     # Image processing
     url = "https://raw.githubusercontent.com/axinc-ai/ailia-models/master/pose_estimation_3d/blazepose-fullbody/girl-5204299_640.jpg"
@@ -55,6 +54,8 @@ def test_openpose_v2(record_property, mode, get_batch_size):
     batch_size = get_batch_size
     if batch_size is not None:
         batch_size = int(batch_size)
+    else:
+        batch_size = 8
     validate_batch_size(batch_size)
 
     tester = ThisTester(model_name, mode)
