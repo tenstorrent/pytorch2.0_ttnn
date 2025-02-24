@@ -6,7 +6,7 @@ from PIL import Image
 from pytorchcv.model_provider import get_model as ptcv_get_model
 from torchvision import transforms
 import pytest
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
+from tests.utils import ModelTester
 
 
 def get_image_tensor():

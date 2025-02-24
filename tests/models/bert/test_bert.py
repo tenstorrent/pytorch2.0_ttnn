@@ -3,7 +3,7 @@ import pytest
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
+from tests.utils import ModelTester
 
 
 class ThisTester(ModelTester):

@@ -3,7 +3,7 @@ from PIL import Image
 import requests
 import pytest
 import torch
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
+from tests.utils import ModelTester
 
 
 class ThisTester(ModelTester):

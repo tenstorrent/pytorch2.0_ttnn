@@ -3,7 +3,7 @@
 from transformers import AutoTokenizer, AlbertForMaskedLM
 import torch
 import pytest
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits
+from tests.utils import ModelTester, process_batched_logits
 
 
 class ThisTester(ModelTester):

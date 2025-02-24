@@ -6,7 +6,7 @@ import subprocess
 import sys
 import os
 import pytest
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
+from tests.utils import ModelTester
 
 
 dependencies = ["ultralytics==8.2.92", "ultralytics-thop==2.0.6"]

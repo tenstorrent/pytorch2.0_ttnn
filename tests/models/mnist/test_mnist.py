@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 import torch.nn as nn
 import torch.nn.functional as F
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
+from tests.utils import ModelTester
 
 
 # adapted from https://github.com/pytorch/examples/blob/main/mnist/main.py

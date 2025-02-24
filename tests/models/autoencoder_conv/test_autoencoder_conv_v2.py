@@ -4,7 +4,7 @@ import torch
 import torchvision.transforms as transforms
 from datasets import load_dataset
 import pytest
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
+from tests.utils import ModelTester
 
 
 class ConvAE(torch.nn.Module):

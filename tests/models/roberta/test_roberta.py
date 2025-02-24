@@ -3,7 +3,7 @@
 from transformers import AutoTokenizer, XLMRobertaForMaskedLM
 import torch
 import pytest
-from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
+from tests.utils import ModelTester
 
 
 class ThisTester(ModelTester):
