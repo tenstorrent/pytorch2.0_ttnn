@@ -3,7 +3,7 @@ import ttnn
 import torch
 import torch_ttnn
 import collections
-from tests.utils import calculate_accuracy, validate_batch_size
+from tests.utils import calculate_accuracy
 import time
 from pathlib import Path
 import os
