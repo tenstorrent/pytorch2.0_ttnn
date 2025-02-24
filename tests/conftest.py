@@ -3,7 +3,7 @@ import ttnn
 import torch
 import torch_ttnn
 import collections
-from tests.utils import calculate_accuracy
+from tests.utils import calculate_accuracy, validate_batch_size
 import time
 from pathlib import Path
 import os
@@ -72,7 +72,7 @@ def device():
 
 
 @pytest.fixture(scope="session")
-def get_batch_size(request):
+def batch_size(request):
     return request.config.getoption("--batch_size")
 
 
@@ -122,7 +122,7 @@ def skip_by_platform(request, device):
 
 
 @pytest.fixture(autouse=True)
-def compile_and_run(device, reset_torch_dynamo, request):
+def compile_and_run(device, reset_torch_dynamo, request, batch_size):
     logging.info("Starting the compile_and_run fixture.")
 
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
@@ -182,6 +182,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             for idx in range(int(request.config.getoption("--report_nth_iteration"))):
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
+
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
                 end = time.perf_counter() * 1000
                 run_time = end - start
@@ -202,8 +203,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs
                 )
 
-            # if len(option._out_fx_graphs) > 0:
-            #    option._out_fx_graphs[0].print_tabular()
+            if len(option._out_fx_graphs) > 0:
+                option._out_fx_graphs[0].print_tabular()
 
             if model_name not in ["speecht5-tts", "ssd300_vgg16", "retinanet_resnet50_fpn_v2"]:
                 accuracy = calculate_accuracy(outputs, outputs_after)

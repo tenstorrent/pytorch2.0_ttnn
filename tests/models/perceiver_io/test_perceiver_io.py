@@ -29,19 +29,13 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.converted_end_to_end
-def test_perceiver_io(record_property, mode, get_batch_size):
+def test_perceiver_io(record_property, mode, batch_size):
     model_name = "Perceiver IO"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    batch_size = get_batch_size
-    if batch_size is not None:
-        batch_size = int(batch_size)
-    validate_batch_size(batch_size)
-
-    tester = ThisTester(model_name, mode)
-    results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size)
+    tester = ThisTester(model_name, mode, batch_size)
+    results = tester.test_model()
     if mode == "eval":
         logits = results.logits
         masked_tokens_predictions = logits[0, 51:61].argmax(dim=-1)

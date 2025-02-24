@@ -24,18 +24,12 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.parametrize("model_name", ["twmkn9/albert-base-v2-squad2"])
-def test_albert_question_answering(record_property, model_name, mode, get_batch_size):
+def test_albert_question_answering(record_property, model_name, mode, batch_size):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    batch_size = get_batch_size
-    if batch_size is not None:
-        batch_size = int(batch_size)
-    validate_batch_size(batch_size)
-
-    tester = ThisTester(model_name, mode)
-    results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size)  # This is necessary to avoid shape mismatch errors in tester processing
+    tester = ThisTester(model_name, mode, batch_size)
+    results = tester.test_model()
 
     if mode == "eval":
         answer_start_index = process_batched_logits(results.start_logits, batch_size).argmax()
