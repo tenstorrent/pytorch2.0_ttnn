@@ -6,7 +6,6 @@ import pytest
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = AutoTokenizer.from_pretrained("squeezebert/squeezebert-mnli", torch_dtype=torch.bfloat16)

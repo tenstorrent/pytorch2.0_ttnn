@@ -7,7 +7,6 @@ import pytest
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 class ConvAE(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -84,7 +83,7 @@ def test_autoencoder_conv_v2(record_property, mode, get_batch_size):
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
+    batch_object_inputs(tester, batch_size)  # This is necessary to avoid shape mismatch errors in tester processing
 
     if mode == "eval":
         print("Output: ", results)

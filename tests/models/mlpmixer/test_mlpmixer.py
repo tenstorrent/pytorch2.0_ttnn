@@ -4,7 +4,6 @@ import pytest
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 class ThisTester(ModelTester):
     def _load_model(self):
         """
@@ -36,5 +35,5 @@ def test_mlpmixer(record_property, mode, get_batch_size):
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
+    batch_object_inputs(tester, batch_size)  # This is necessary to avoid shape mismatch errors in tester processing
     record_property("torch_ttnn", (tester, results))

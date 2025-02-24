@@ -47,7 +47,7 @@ def test_bert(record_property, mode, get_batch_size):
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
+    batch_object_inputs(tester, batch_size)  # This is necessary to avoid shape mismatch errors in tester processing
 
     if mode == "eval":
         # Helper function to decode output to human-readable text

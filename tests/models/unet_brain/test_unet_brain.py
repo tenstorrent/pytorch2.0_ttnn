@@ -7,7 +7,6 @@ import pytest
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 class ThisTester(ModelTester):
     def _load_model(self):
         """
@@ -68,7 +67,7 @@ def test_unet_brain(record_property, mode, get_batch_size):
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    print('\n\n\n', results.shape, '\n\n\n')
+    print("\n\n\n", results.shape, "\n\n\n")
     ##batch_object_inputs(tester, batch_size)
     if mode == "eval":
         print(torch.round(results[0]))

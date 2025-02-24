@@ -35,11 +35,11 @@ def test_albert_question_answering(record_property, model_name, mode, get_batch_
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
+    batch_object_inputs(tester, batch_size)  # This is necessary to avoid shape mismatch errors in tester processing
 
     if mode == "eval":
-        answer_start_index = process_batched_logits(results.start_logits,batch_size).argmax()
-        answer_end_index = process_batched_logits(results.end_logits,batch_size).argmax()
+        answer_start_index = process_batched_logits(results.start_logits, batch_size).argmax()
+        answer_end_index = process_batched_logits(results.end_logits, batch_size).argmax()
         predict_answer_tokens = tester.inputs.input_ids[0, answer_start_index : answer_end_index + 1]
         answer = tester.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
 

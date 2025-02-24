@@ -34,8 +34,8 @@ def test_albert_sequence_classification(record_property, model_name, mode, get_b
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
-    
+    batch_object_inputs(tester, batch_size)  # This is necessary to avoid shape mismatch errors in tester processing
+
     if mode == "eval":
         logits = process_batched_logits(results.logits, batch_size)
         predicted_class_id = logits.argmax().item()

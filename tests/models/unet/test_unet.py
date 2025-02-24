@@ -9,7 +9,6 @@ import pytest
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 class ThisTester(ModelTester):
     def _load_model(self):
         model = torch.hub.load(
@@ -54,6 +53,8 @@ def test_unet(record_property, mode, get_batch_size):
     batch_size = get_batch_size
     if batch_size is not None:
         batch_size = int(batch_size)
+    else:
+        batch_size = 1  # Max batch size found
     validate_batch_size(batch_size)
 
     tester = ThisTester(model_name, mode)

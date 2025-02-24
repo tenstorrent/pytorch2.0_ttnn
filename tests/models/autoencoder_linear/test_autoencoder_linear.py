@@ -7,7 +7,6 @@ import pytest
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 class LinearAE(torch.nn.Module):
     def __init__(self):
         super().__init__()

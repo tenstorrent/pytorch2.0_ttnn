@@ -38,6 +38,7 @@ def pytest_addoption(parser):
     parser.addoption("--gen_op_accuracy_tests", action="store_true")
     parser.addoption("--batch_size", action="store", default=None, help="Batch size for testing")
 
+
 @pytest.fixture(scope="session")
 def input_var_only_native(request):
     return request.config.getoption("--input_var_only_native")
@@ -69,9 +70,11 @@ def device():
     ttnn.synchronize_device(device)
     ttnn.close_device(device)
 
+
 @pytest.fixture(scope="session")
 def get_batch_size(request):
     return request.config.getoption("--batch_size")
+
 
 def get_dispatch_core_type():
     # Instead of conditionally returning WORKER or ETH, here we always return ETH
@@ -199,7 +202,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs
                 )
 
-            #if len(option._out_fx_graphs) > 0:
+            # if len(option._out_fx_graphs) > 0:
             #    option._out_fx_graphs[0].print_tabular()
 
             if model_name not in ["speecht5-tts", "ssd300_vgg16", "retinanet_resnet50_fpn_v2"]:

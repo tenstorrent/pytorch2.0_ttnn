@@ -44,7 +44,7 @@ def test_beit_image_classification(record_property, model_name, mode, get_batch_
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model(batch_size=batch_size)
-    batch_object_inputs(tester, batch_size) # This is necessary to avoid shape mismatch errors in tester processing
+    batch_object_inputs(tester, batch_size)  # This is necessary to avoid shape mismatch errors in tester processing
 
     if mode == "eval":
         logits = results.logits

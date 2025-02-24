@@ -12,7 +12,6 @@ from tests.models.unet_carvana.carvana_unet_segmentation.model import UNET
 from tests.utils import ModelTester, validate_batch_size, process_batched_logits, batch_object_inputs
 
 
-
 class ThisTester(ModelTester):
     def _load_model(self):
         model = UNET(in_channels=3, out_channels=1)

@@ -68,14 +68,15 @@ class ModelTester:
             return model(*inputs)
         else:
             return model(inputs)
-    
+
     def run_model_batched(self, model, inputs, batch_size):
-        # This creates a batch of duplicates (all items in the batch are the same, just repeated 
+        # This creates a batch of duplicates (all items in the batch are the same, just repeated
         # Naively to create a batch)
         def repeat_tensor(x):
             x = x.squeeze(0)
             x = x.repeat(batch_size, *([1] * (x.dim())))  # Repeat along batch dim
             return x
+
         if isinstance(inputs, collections.abc.Mapping):
             batched_inputs = {k: repeat_tensor(v) for k, v in inputs.items()}
             return model(**batched_inputs)
@@ -166,7 +167,6 @@ class ModelTester:
             return self.test_model_eval(as_ttnn, option, batch_size)
         else:
             raise ValueError(f"Current mode is not supported: {self.mode}")
-    
 
 
 # Testing utils copied from tt-metal/tests/ttnn/utils_for_testing.py
@@ -578,20 +578,23 @@ def render_metric_string_list_to_input_args_kwargs(op_name, input_strings) -> Tu
     handler = MetricStringListHandler(op_name, input_strings)
     return handler.render_input_args_kwargs()
 
+
 def validate_batch_size(batch_size):
     if not isinstance(batch_size, (int, type(None))):
-        raise TypeError(f'batch_size must be and int or None, got type {type(batch_size).__name__}')
+        raise TypeError(f"batch_size must be and int or None, got type {type(batch_size).__name__}")
+
 
 def process_batched_logits(logits, batch_size):
     if batch_size is None:
         return logits
     else:
         if logits.dim() == 3:
-            return logits[0,:,:].squeeze(0)
+            return logits[0, :, :].squeeze(0)
         elif logits.dim() == 2:
-            return logits[0,:].squeeze(0)
+            return logits[0, :].squeeze(0)
         else:
-            raise ValueError(f'Unrecognized logit dimension: {logits.shape.numel()} (not 2D or 3D including batch)')
+            raise ValueError(f"Unrecognized logit dimension: {logits.shape.numel()} (not 2D or 3D including batch)")
+
 
 def batch_object_inputs(tester_obj, batch_size):
     if batch_size is None:
@@ -601,11 +604,11 @@ def batch_object_inputs(tester_obj, batch_size):
         keys = inputs.keys()
         for key in keys:
             if isinstance(inputs[key], torch.Tensor):
-                inputs[key] = inputs[key].repeat(batch_size,1)
+                inputs[key] = inputs[key].repeat(batch_size, 1)
     elif isinstance(inputs, torch.Tensor):
         if inputs.shape[0] == 0:
             inputs = inputs.squeeze(0)
         tester_obj.inputs = inputs.repeat(batch_size, *([1] * (inputs.dim())))
         tester_obj.inputs = tester_obj.inputs.squeeze(1)
     else:
-        raise ValueError(f'Unregonized inputs type: {type(inputs)}')
+        raise ValueError(f"Unregonized inputs type: {type(inputs)}")

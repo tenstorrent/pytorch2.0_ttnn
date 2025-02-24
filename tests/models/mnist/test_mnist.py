@@ -63,7 +63,7 @@ def test_mnist_train(record_property, mode, get_batch_size):
     if batch_size is not None:
         batch_size = int(batch_size)
     else:
-        batch_size = 462
+        batch_size = 462  # Max batch size found
     validate_batch_size(batch_size)
 
     tester = ThisTester(model_name, mode)
