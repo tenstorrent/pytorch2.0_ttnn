@@ -53,7 +53,6 @@ def test_albert_masked_lm(record_property, model_name, mode, batch_size):
         # retrieve index of [MASK]
 
         results.logits = process_batched_logits(results.logits, batch_size)
-        # print(results.logits.shape)
         logits = results.logits
         mask_token_index = (tester.inputs.input_ids == tester.tokenizer.mask_token_id)[0].nonzero(as_tuple=True)[0]
         predicted_token_id = logits[0, mask_token_index].argmax(axis=-1)

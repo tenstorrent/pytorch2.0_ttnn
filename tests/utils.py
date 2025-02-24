@@ -157,7 +157,7 @@ class ModelTester:
         if as_ttnn == True:
             model = self.compile_model(model, option)
         if self.batch_size is not None:
-            outputs = self.run_model_batched(model, inputs, self.batch_size)
+            outputs = self.run_model_batched(model, inputs)
         else:
             outputs = self.run_model(model, inputs)
         results = self.get_results_eval(model, inputs, outputs)
