@@ -176,7 +176,7 @@ class ModelTester:
         if self.batch_size is None:
             return
         # inputs = tester_obj.inputs
-        if isinstance(self.inputs, dict) or isinstance(self.nputs, transformers.tokenization_utils_base.BatchEncoding):
+        if isinstance(self.inputs, dict) or isinstance(self.inputs, transformers.tokenization_utils_base.BatchEncoding):
             keys = self.inputs.keys()
             for key in keys:
                 if isinstance(self.inputs[key], torch.Tensor):
