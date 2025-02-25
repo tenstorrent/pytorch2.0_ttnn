@@ -28,6 +28,7 @@ jobs:
         id: update-requirements
         run: |
           latest_version=${{ steps.fetch_release.outputs.release }}
+          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
           # Remove any existing ttnn lines (adjust the regex if needed)
           sed -i '/^ttnn @ https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt
       
