@@ -17,6 +17,7 @@ class ModelTester:
         self.inputs = self._load_inputs()
         self.batch_size = batch_size
         self.validate_batch_size()
+        self.batch_inputs()
 
     def _load_model(self):
         raise NotImplementedError("This method should be implemented in the derived class")
@@ -71,23 +72,6 @@ class ModelTester:
         else:
             return model(inputs)
 
-    def run_model_batched(self, model, inputs):
-        # This creates a batch of duplicates (all items in the batch are the same, just repeated
-        # Naively to create a batch)
-        def repeat_tensor(x):
-            x = x.squeeze(0)
-            x = x.repeat(self.batch_size, *([1] * (x.dim())))  # Repeat along batch dim
-            return x
-
-        if isinstance(inputs, collections.abc.Mapping):
-            batched_inputs = {k: repeat_tensor(v) for k, v in inputs.items()}
-            return model(**batched_inputs)
-        elif isinstance(inputs, collections.abc.Sequence) and not isinstance(inputs, (str, bytes)):
-            batched_inputs = [repeat_tensor(x) for x in inputs]
-            return model(*batched_inputs)
-        else:
-            return model(repeat_tensor(inputs))
-
     def append_fake_loss_function(self, outputs):
         # Using `torch.mean` as the loss function for testing purposes.
         #
@@ -138,15 +122,11 @@ class ModelTester:
         inputs = self.set_inputs_train(self.inputs)
         if as_ttnn == True:
             model = self.compile_model(model, option)
-        if self.batch_size is not None:
-            outputs = self.run_model_batched(model, inputs)
-        else:
-            outputs = self.run_model(model, inputs)
+        outputs = self.run_model(model, inputs)
         loss = self.append_fake_loss_function(outputs)
         loss.backward()
         # Again, use the gradient of the input (`test_input.grad`) as the golden result for the training process.
         results = self.get_results_train(model, inputs, outputs)
-        self.batch_inputs()
         return results
 
     @torch.no_grad()
@@ -156,12 +136,8 @@ class ModelTester:
         inputs = self.set_inputs_eval(self.inputs)
         if as_ttnn == True:
             model = self.compile_model(model, option)
-        if self.batch_size is not None:
-            outputs = self.run_model_batched(model, inputs)
-        else:
-            outputs = self.run_model(model, inputs)
+        outputs = self.run_model(model, inputs)
         results = self.get_results_eval(model, inputs, outputs)
-        self.batch_inputs()
         return results
 
     def test_model(self, as_ttnn=False, option=None):
@@ -182,10 +158,13 @@ class ModelTester:
                 if isinstance(self.inputs[key], torch.Tensor):
                     self.inputs[key] = self.inputs[key].repeat(self.batch_size, 1)
         elif isinstance(self.inputs, torch.Tensor):
+            # if self.inputs.ndim < 4:
+            print(self.inputs.shape)
             if self.inputs.shape[0] == 0:
                 self.inputs = self.inputs.squeeze(0)
             self.inputs = self.inputs.repeat(self.batch_size, *([1] * (self.inputs.dim())))
             self.inputs = self.inputs.squeeze(1)
+            print(self.inputs.shape)
         else:
             raise TypeError(f"Unregonized inputs type: {type(self.inputs)}")
 
@@ -620,21 +599,3 @@ def process_batched_logits(logits, batch_size):
             return logits[0, :].squeeze(0)
         else:
             raise ValueError(f"Unrecognized logit dimension: {logits.shape.numel()} (not 2D or 3D including batch)")
-
-
-def batch_object_inputs(tester_obj, batch_size):
-    if batch_size is None:
-        return
-    inputs = tester_obj.inputs
-    if isinstance(inputs, dict) or isinstance(inputs, transformers.tokenization_utils_base.BatchEncoding):
-        keys = inputs.keys()
-        for key in keys:
-            if isinstance(inputs[key], torch.Tensor):
-                inputs[key] = inputs[key].repeat(batch_size, 1)
-    elif isinstance(inputs, torch.Tensor):
-        if inputs.shape[0] == 0:
-            inputs = inputs.squeeze(0)
-        tester_obj.inputs = inputs.repeat(batch_size, *([1] * (inputs.dim())))
-        tester_obj.inputs = tester_obj.inputs.squeeze(1)
-    else:
-        raise TypeError(f"Unregonized inputs type: {type(inputs)}")

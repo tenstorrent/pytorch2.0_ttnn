@@ -122,7 +122,7 @@ def skip_by_platform(request, device):
 
 
 @pytest.fixture(autouse=True)
-def compile_and_run(device, reset_torch_dynamo, request, batch_size):
+def compile_and_run(device, reset_torch_dynamo, request):
     logging.info("Starting the compile_and_run fixture.")
 
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
@@ -182,8 +182,8 @@ def compile_and_run(device, reset_torch_dynamo, request, batch_size):
             for idx in range(int(request.config.getoption("--report_nth_iteration"))):
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
-
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
+                # return
                 end = time.perf_counter() * 1000
                 run_time = end - start
                 if idx == 0:
