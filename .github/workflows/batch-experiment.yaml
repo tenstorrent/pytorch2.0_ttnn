@@ -13,7 +13,7 @@ jobs:
     runs-on: ["in-service"]
     strategy:
       matrix:
-        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"
@@ -32,7 +32,7 @@ jobs:
           file_prefix="tests/"
 
           # Assign tests dynamically based on matrix group
-          TOTAL_GROUPS=27
+          TOTAL_GROUPS=24
           CURRENT_GROUP=${{ matrix.group }}
 
           mapfile -t test_ids_verbose < <(pytest --collect-only -q -m converted_end_to_end --ignore=tests/models/autoencoder_conv tests/models/ | awk -F '::' '{print $1}' | sort -u)
