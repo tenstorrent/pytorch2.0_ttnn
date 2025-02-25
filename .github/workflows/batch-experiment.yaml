@@ -69,7 +69,7 @@ jobs:
           done
 
           TOTAL_TESTS=${#test_ids[@]}
-          TESTS_PER_GROUP=$(( (TOTAL_TESTS + TOTAL_GROUPS - 1) / TOTAL_GROUPS ))
+          TESTS_PER_GROUP=$(( TOTAL_TESTS / TOTAL_GROUPS ))
 
           START_INDEX=$(( (CURRENT_GROUP - 1) * TESTS_PER_GROUP ))
           END_INDEX=$(( CURRENT_GROUP * TESTS_PER_GROUP ))
@@ -80,7 +80,7 @@ jobs:
 
           # Slice the test array for the current group
           group_test_ids=("${test_ids[@]:START_INDEX:TESTS_PER_GROUP}")
-
+          echo "All tests ($TOTAL_TESTS): ${test_ids[@]}"
           echo "Running tests in group $CURRENT_GROUP..."
           echo "Tests assigned to this group: ${group_test_ids[@]}"
 
@@ -100,7 +100,7 @@ jobs:
             local max_successful_batch=0
             
             while (( not_found )); do
-              if (( batch_size_to_test == batch_range_upper - 1 )); then
+              if (( batch_size_to_test == batch_range_upper - 2 )); then
                 batch_range_upper=$(( batch_range_upper * 2 ))  
                 batch_range[1]=$batch_range_upper # Update the upper bound in the array
                 echo "Expanding upper bound to: $batch_range_upper" # Optional logging
