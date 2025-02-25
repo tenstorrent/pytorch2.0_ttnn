@@ -36,6 +36,7 @@ def pytest_addoption(parser):
         help="Run up to the specified iteration count and report metrics based on this iteration.",
     )
     parser.addoption("--gen_op_accuracy_tests", action="store_true")
+    parser.addoption("--batch_size", action="store", default=None, help="Batch size for testing")
 
 
 @pytest.fixture(scope="session")
@@ -68,6 +69,11 @@ def device():
 
     ttnn.synchronize_device(device)
     ttnn.close_device(device)
+
+
+@pytest.fixture(scope="session")
+def batch_size(request):
+    return request.config.getoption("--batch_size")
 
 
 def get_dispatch_core_type():
@@ -177,6 +183,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
+                # return
                 end = time.perf_counter() * 1000
                 run_time = end - start
                 if idx == 0:

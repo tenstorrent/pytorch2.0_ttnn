@@ -33,11 +33,11 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize("mode", ["train", "eval"])
 @pytest.mark.parametrize("model_name", ["microsoft/beit-base-patch16-224", "microsoft/beit-large-patch16-224"])
-def test_beit_image_classification(record_property, model_name, mode):
+def test_beit_image_classification(record_property, model_name, mode, batch_size):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     if mode == "eval":

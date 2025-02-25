@@ -29,12 +29,12 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.converted_end_to_end
-def test_perceiver_io(record_property, mode):
+def test_perceiver_io(record_property, mode, batch_size):
     model_name = "Perceiver IO"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
     if mode == "eval":
         logits = results.logits

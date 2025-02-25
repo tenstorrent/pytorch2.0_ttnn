@@ -3,7 +3,7 @@
 from transformers import AutoTokenizer, AlbertForQuestionAnswering
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, process_batched_logits
 
 
 class ThisTester(ModelTester):
@@ -24,17 +24,16 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.parametrize("model_name", ["twmkn9/albert-base-v2-squad2"])
-def test_albert_question_answering(record_property, model_name, mode):
+def test_albert_question_answering(record_property, model_name, mode, batch_size):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     if mode == "eval":
-        answer_start_index = results.start_logits.argmax()
-        answer_end_index = results.end_logits.argmax()
-
+        answer_start_index = process_batched_logits(results.start_logits, batch_size).argmax()
+        answer_end_index = process_batched_logits(results.end_logits, batch_size).argmax()
         predict_answer_tokens = tester.inputs.input_ids[0, answer_start_index : answer_end_index + 1]
         answer = tester.tokenizer.decode(predict_answer_tokens, skip_special_tokens=True)
 

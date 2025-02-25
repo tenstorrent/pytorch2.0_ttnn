@@ -31,12 +31,12 @@ class ThisTester(ModelTester):
         pytest.param("eval", marks=pytest.mark.converted_end_to_end),
     ],
 )
-def test_unet_carvana(record_property, mode):
+def test_unet_carvana(record_property, mode, batch_size):
     model_name = "Unet-carvana"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     record_property("torch_ttnn", (tester, results))

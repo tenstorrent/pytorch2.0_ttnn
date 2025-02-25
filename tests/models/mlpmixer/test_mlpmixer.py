@@ -23,11 +23,11 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-def test_mlpmixer(record_property, mode):
+def test_mlpmixer(record_property, mode, batch_size):
     model_name = "MLPMixer"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
     record_property("torch_ttnn", (tester, results))

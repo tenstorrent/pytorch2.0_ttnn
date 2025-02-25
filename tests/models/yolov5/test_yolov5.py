@@ -8,6 +8,7 @@ import os
 import pytest
 from tests.utils import ModelTester
 
+
 dependencies = ["ultralytics==8.2.92", "ultralytics-thop==2.0.6"]
 
 
@@ -98,12 +99,12 @@ def teardown_module(module):
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.usefixtures("manage_dependencies")
-def test_yolov5(record_property, mode):
+def test_yolov5(record_property, mode, batch_size):
     model_name = "YOLOv5"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     record_property("torch_ttnn", (tester, results))

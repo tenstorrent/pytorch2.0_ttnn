@@ -3,7 +3,7 @@
 from transformers import AutoTokenizer, AlbertForTokenClassification
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, process_batched_logits
 
 
 class ThisTester(ModelTester):
@@ -27,15 +27,21 @@ class ThisTester(ModelTester):
         pytest.param("albert/albert-base-v2", marks=pytest.mark.converted_end_to_end),
     ],
 )
-def test_albert_token_classification(record_property, model_name, mode):
+def test_albert_token_classification(record_property, model_name, mode, batch_size):
     record_property("model_name", f"{model_name}-classification")
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     if mode == "eval":
-        logits = results.logits
+        if batch_size is not None:
+            results.logits = results.logits.squeeze(0)  # Temporary fix, not the neatest solution
+
+        logits = process_batched_logits(results.logits, batch_size).unsqueeze(0)
+        if batch_size is None:
+            logits = logits.squeeze(0)  # Adjust dimensions to account for batch reshaping ^
+
         predicted_token_class_ids = logits.argmax(-1)
 
         # Note that tokens are classified rather then input words which means that

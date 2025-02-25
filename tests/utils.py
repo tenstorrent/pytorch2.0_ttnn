@@ -1,18 +1,23 @@
+import collections.abc
 import torch
 import numpy as np
 import collections
 import re
 from typing import List, Dict, Tuple
+import transformers
 
 
 class ModelTester:
-    def __init__(self, model_name, mode):
+    def __init__(self, model_name, mode, batch_size=None):
         if mode not in ["train", "eval"]:
             raise ValueError(f"Current mode is not supported: {mode}")
         self.model_name = model_name
         self.mode = mode
         self.model = self._load_model()
         self.inputs = self._load_inputs()
+        self.batch_size = batch_size
+        self.validate_batch_size()
+        self.batch_inputs()
 
     def _load_model(self):
         raise NotImplementedError("This method should be implemented in the derived class")
@@ -60,9 +65,9 @@ class ModelTester:
         return model
 
     def run_model(self, model, inputs):
-        if isinstance(inputs, collections.Mapping):
+        if isinstance(inputs, collections.abc.Mapping):
             return model(**inputs)
-        elif isinstance(inputs, collections.Sequence):
+        elif isinstance(inputs, collections.abc.Sequence):
             return model(*inputs)
         else:
             return model(inputs)
@@ -142,6 +147,36 @@ class ModelTester:
             return self.test_model_eval(as_ttnn, option)
         else:
             raise ValueError(f"Current mode is not supported: {self.mode}")
+
+    def batch_inputs(self):
+        if self.batch_size is None:
+            return
+        # inputs = tester_obj.inputs
+        if isinstance(self.inputs, dict) or isinstance(self.inputs, transformers.tokenization_utils_base.BatchEncoding):
+            keys = self.inputs.keys()
+            for key in keys:
+                if isinstance(self.inputs[key], torch.Tensor):
+                    self.inputs[key] = self.inputs[key].repeat(self.batch_size, 1)
+        elif isinstance(self.inputs, torch.Tensor):
+            # if self.inputs.ndim < 4:
+            print(self.inputs.shape)
+            if self.inputs.shape[0] == 0:
+                self.inputs = self.inputs.squeeze(0)
+            self.inputs = self.inputs.repeat(self.batch_size, *([1] * (self.inputs.dim())))
+            self.inputs = self.inputs.squeeze(1)
+            print(self.inputs.shape)
+        else:
+            raise TypeError(f"Unregonized inputs type: {type(self.inputs)}")
+
+    def validate_batch_size(self):
+        if self.batch_size is None:
+            return
+        try:
+            self.batch_size = int(self.batch_size)
+        except Exception as e:
+            raise TypeError(
+                f"Failed to interpret batch size type {type(self.batch_size).__name__} (Must be an integer or None)"
+            )
 
 
 # Testing utils copied from tt-metal/tests/ttnn/utils_for_testing.py
@@ -552,3 +587,15 @@ class MetricStringListHandler:
 def render_metric_string_list_to_input_args_kwargs(op_name, input_strings) -> Tuple[List, Dict, bool]:
     handler = MetricStringListHandler(op_name, input_strings)
     return handler.render_input_args_kwargs()
+
+
+def process_batched_logits(logits, batch_size):
+    if batch_size is None:
+        return logits
+    else:
+        if logits.dim() == 3:
+            return logits[0, :, :].squeeze(0)
+        elif logits.dim() == 2:
+            return logits[0, :].squeeze(0)
+        else:
+            raise ValueError(f"Unrecognized logit dimension: {logits.shape.numel()} (not 2D or 3D including batch)")
