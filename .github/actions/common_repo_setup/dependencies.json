@@ -14,5 +14,13 @@
     "libhwloc-dev",
     "graphviz",
     "patchelf"
+  ],
+  "ubuntu-24.04": [
+    "software-properties-common",
+    "build-essential",
+    "python3.10-venv",
+    "libhwloc-dev",
+    "graphviz",
+    "patchelf"
   ]
 }

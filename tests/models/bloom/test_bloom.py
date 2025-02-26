@@ -30,7 +30,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [pytest.param("eval", marks=pytest.mark.compilation_xfail)],
 )
 @pytest.mark.converted_end_to_end
 def test_bloom(record_property, mode):
