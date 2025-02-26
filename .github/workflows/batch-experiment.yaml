@@ -123,7 +123,7 @@ jobs:
                 max_successful_batch=$batch_size_to_test
               fi 
 
-              if (( min_failed_batch - max_successful_batch == 1)); then
+              if (( min_failed_batch - max_successful_batch == 2)); then
                 not_found=0
               fi
             done
