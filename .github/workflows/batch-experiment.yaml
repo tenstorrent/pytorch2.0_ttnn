@@ -47,7 +47,7 @@ jobs:
           #  "models/resnet50/test_resnet50.py"
           #  "models/roberta/test_roberta.py"
             "models/unet/test_unet.py"
-          #  "models/hand_landmark/test_hand_landmark.py"
+            "models/hand_landmark/test_hand_landmark.py"
           )
 
           # Preprocess file paths
@@ -69,7 +69,7 @@ jobs:
           done
 
           TOTAL_TESTS=${#test_ids[@]}
-          TESTS_PER_GROUP=$(( TOTAL_TESTS / TOTAL_GROUPS ))
+          TESTS_PER_GROUP=1
 
           START_INDEX=$(( (CURRENT_GROUP - 1) * TESTS_PER_GROUP ))
           END_INDEX=$(( CURRENT_GROUP * TESTS_PER_GROUP ))
