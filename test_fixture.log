@@ -1,0 +1,294 @@
+2025-02-21 10:07:34,324 - INFO - Starting the compile_and_run fixture.
+2025-02-21 10:07:34,325 - DEBUG - Initializing test run timing.
+2025-02-21 10:07:34,328 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-21 10:07:34,430 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-21 10:07:34,431 - DEBUG - Attempting to acquire lock 140339566271264 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e5c73d8a50df1f56fb5b0b8002d7cf4010afdccb.lock
+2025-02-21 10:07:34,431 - DEBUG - Lock 140339566271264 acquired on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e5c73d8a50df1f56fb5b0b8002d7cf4010afdccb.lock
+2025-02-21 10:07:34,495 - DEBUG - https://huggingface.co:443 "GET /phiyodr/bert-large-finetuned-squad2/resolve/main/tokenizer_config.json HTTP/11" 200 48
+2025-02-21 10:07:34,501 - DEBUG - Attempting to release lock 140339566271264 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e5c73d8a50df1f56fb5b0b8002d7cf4010afdccb.lock
+2025-02-21 10:07:34,501 - DEBUG - Lock 140339566271264 released on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e5c73d8a50df1f56fb5b0b8002d7cf4010afdccb.lock
+2025-02-21 10:07:34,559 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/config.json HTTP/11" 200 0
+2025-02-21 10:07:34,560 - DEBUG - Attempting to acquire lock 140339566271264 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/60792f492dcc17a77ea46c989c1f88361700ac34.lock
+2025-02-21 10:07:34,561 - DEBUG - Lock 140339566271264 acquired on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/60792f492dcc17a77ea46c989c1f88361700ac34.lock
+2025-02-21 10:07:34,661 - DEBUG - https://huggingface.co:443 "GET /phiyodr/bert-large-finetuned-squad2/resolve/main/config.json HTTP/11" 200 478
+2025-02-21 10:07:34,665 - DEBUG - Attempting to release lock 140339566271264 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/60792f492dcc17a77ea46c989c1f88361700ac34.lock
+2025-02-21 10:07:34,665 - DEBUG - Lock 140339566271264 released on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/60792f492dcc17a77ea46c989c1f88361700ac34.lock
+2025-02-21 10:07:34,747 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/vocab.txt HTTP/11" 200 0
+2025-02-21 10:07:34,748 - DEBUG - Attempting to acquire lock 140338929587824 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/fb140275c155a9c7c5a3b3e0e77a9e839594a938.lock
+2025-02-21 10:07:34,748 - DEBUG - Lock 140338929587824 acquired on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/fb140275c155a9c7c5a3b3e0e77a9e839594a938.lock
+2025-02-21 10:07:34,812 - DEBUG - https://huggingface.co:443 "GET /phiyodr/bert-large-finetuned-squad2/resolve/main/vocab.txt HTTP/11" 200 231508
+2025-02-21 10:07:34,880 - DEBUG - Attempting to release lock 140338929587824 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/fb140275c155a9c7c5a3b3e0e77a9e839594a938.lock
+2025-02-21 10:07:34,880 - DEBUG - Lock 140338929587824 released on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/fb140275c155a9c7c5a3b3e0e77a9e839594a938.lock
+2025-02-21 10:07:34,942 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/tokenizer.json HTTP/11" 404 0
+2025-02-21 10:07:35,004 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/added_tokens.json HTTP/11" 404 0
+2025-02-21 10:07:35,065 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/special_tokens_map.json HTTP/11" 200 0
+2025-02-21 10:07:35,066 - DEBUG - Attempting to acquire lock 140338929669216 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e7b0375001f109a6b8873d756ad4f7bbb15fbaa5.lock
+2025-02-21 10:07:35,066 - DEBUG - Lock 140338929669216 acquired on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e7b0375001f109a6b8873d756ad4f7bbb15fbaa5.lock
+2025-02-21 10:07:35,122 - DEBUG - https://huggingface.co:443 "GET /phiyodr/bert-large-finetuned-squad2/resolve/main/special_tokens_map.json HTTP/11" 200 112
+2025-02-21 10:07:35,124 - DEBUG - Attempting to release lock 140338929669216 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e7b0375001f109a6b8873d756ad4f7bbb15fbaa5.lock
+2025-02-21 10:07:35,124 - DEBUG - Lock 140338929669216 released on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/e7b0375001f109a6b8873d756ad4f7bbb15fbaa5.lock
+2025-02-21 10:07:35,222 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/config.json HTTP/11" 200 0
+2025-02-21 10:07:35,801 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/model.safetensors HTTP/11" 404 0
+2025-02-21 10:07:35,862 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/model.safetensors.index.json HTTP/11" 404 0
+2025-02-21 10:07:35,919 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/pytorch_model.bin HTTP/11" 302 0
+2025-02-21 10:07:35,920 - DEBUG - Attempting to acquire lock 140338929668976 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/b944e4dc0639dc5f87910542c6a4caf9a484a895dd0a2c8e84f13b4da321da6b.lock
+2025-02-21 10:07:35,921 - DEBUG - Lock 140338929668976 acquired on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/b944e4dc0639dc5f87910542c6a4caf9a484a895dd0a2c8e84f13b4da321da6b.lock
+2025-02-21 10:07:35,923 - DEBUG - Starting new HTTPS connection (1): cdn-lfs.hf.co:443
+2025-02-21 10:07:36,032 - DEBUG - https://cdn-lfs.hf.co:443 "GET /phiyodr/bert-large-finetuned-squad2/b944e4dc0639dc5f87910542c6a4caf9a484a895dd0a2c8e84f13b4da321da6b?response-content-disposition=inline%3B+filename*%3DUTF-8%27%27pytorch_model.bin%3B+filename%3D%22pytorch_model.bin%22%3B&response-content-type=application%2Foctet-stream&Expires=1740136055&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc0MDEzNjA1NX19LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2RuLWxmcy5oZi5jby9waGl5b2RyL2JlcnQtbGFyZ2UtZmluZXR1bmVkLXNxdWFkMi9iOTQ0ZTRkYzA2MzlkYzVmODc5MTA1NDJjNmE0Y2FmOWE0ODRhODk1ZGQwYTJjOGU4NGYxM2I0ZGEzMjFkYTZiP3Jlc3BvbnNlLWNvbnRlbnQtZGlzcG9zaXRpb249KiZyZXNwb25zZS1jb250ZW50LXR5cGU9KiJ9XX0_&Signature=IgSkyffK2RFXoJ2deQEM0zmT-OtUSpw94xT4ganB2ehiMKUHR7YHhfpraoJMbP1hdU1AQ4w4xc18YKaenA47z2pw6jmeexcMYtkENQ1GUhVEehY4Hx2y~-gfjjaeK1~UBJTce~VrKPl~P8ljVXEzg8hUpUrEf5nD0R~I2AoxfX2jRIe-jSEecyJrPg-kv5OgckXb0DvXfe-ZtcDqOLwaj8ky35XnmZc4mk4PgRA9xt0o6sCm439z6eAZVTb2ppmDYXXlWR0nVNlY6azmNZHFaMbC0~RDHPiegCYlInIWcMABZOjvg1S1UUPYcKjrC76-zOW7gXx4vAX6k~-c3661bw__&Key-Pair-Id=K3RPWS32NSSJCE HTTP/11" 200 1336480731
+2025-02-21 10:07:43,946 - DEBUG - Attempting to release lock 140338929668976 on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/b944e4dc0639dc5f87910542c6a4caf9a484a895dd0a2c8e84f13b4da321da6b.lock
+2025-02-21 10:07:43,946 - DEBUG - Lock 140338929668976 released on /home/ubuntu/.cache/huggingface/hub/.locks/models--phiyodr--bert-large-finetuned-squad2/b944e4dc0639dc5f87910542c6a4caf9a484a895dd0a2c8e84f13b4da321da6b.lock
+2025-02-21 10:08:46,660 - INFO - Test run completed successfully in 72334.95 ms.
+2025-02-21 10:08:46,660 - DEBUG - Processing runtime metrics.
+2025-02-21 10:08:46,660 - INFO - Runtime metrics saved to metrics/BERT/original-run_time_metrics.pickle.
+2025-02-21 10:08:46,661 - DEBUG - Compiling model with ttnn backend.
+2025-02-21 10:09:18,092 - INFO - Compilation and run successful in 31431.32 ms.
+2025-02-21 10:09:18,266 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/BERT_code.py.
+2025-02-21 10:17:10,923 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/BERT_inputs.pickle.
+2025-02-21 10:17:12,898 - INFO - Accuracy calculated: 0.9968568961266142.
+2025-02-21 10:17:12,930 - DEBUG - Saving metrics.
+2025-02-21 10:17:12,942 - INFO - Compiled runtime metrics saved to metrics/BERT/compiled-run_time_metrics.pickle.
+2025-02-21 10:49:40,059 - INFO - Starting the compile_and_run fixture.
+2025-02-21 10:49:40,060 - DEBUG - Initializing test run timing.
+2025-02-21 10:49:40,481 - DEBUG - Starting new HTTP connection (1): images.cocodataset.org:80
+2025-02-21 10:49:40,605 - DEBUG - http://images.cocodataset.org:80 "GET /val2017/000000039769.jpg HTTP/11" 200 173131
+2025-02-21 10:49:40,817 - INFO - Test run completed successfully in 757.51 ms.
+2025-02-21 10:49:40,818 - DEBUG - Processing runtime metrics.
+2025-02-21 10:49:40,819 - INFO - Runtime metrics saved to metrics/MobileNetSSD/original-run_time_metrics.pickle.
+2025-02-21 10:49:40,819 - DEBUG - Compiling model with ttnn backend.
+2025-02-21 10:52:00,220 - INFO - Compilation and run successful in 139400.9 ms.
+2025-02-21 10:52:00,616 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/MobileNetSSD_code.py.
+2025-02-21 10:52:06,862 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/MobileNetSSD_inputs.pickle.
+2025-02-21 10:52:08,987 - INFO - Accuracy calculated: 0.18491634030988857.
+2025-02-21 10:52:09,041 - DEBUG - Saving metrics.
+2025-02-21 10:52:09,048 - INFO - Compiled runtime metrics saved to metrics/MobileNetSSD/compiled-run_time_metrics.pickle.
+2025-02-24 09:04:18,867 - INFO - Starting the compile_and_run fixture.
+2025-02-24 09:04:18,867 - DEBUG - Initializing test run timing.
+2025-02-24 09:04:18,870 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-24 09:04:19,137 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-base-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-24 09:04:19,252 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-base-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-24 09:04:19,533 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-base-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-24 09:04:20,246 - INFO - Test run completed successfully in 1379.33 ms.
+2025-02-24 09:04:20,247 - DEBUG - Processing runtime metrics.
+2025-02-24 09:04:20,247 - INFO - Runtime metrics saved to metrics/albert/albert-base-v2/original-run_time_metrics.pickle.
+2025-02-24 09:04:20,247 - DEBUG - Compiling model with ttnn backend.
+2025-02-24 09:04:44,499 - INFO - Compilation and run successful in 24251.33 ms.
+2025-02-24 09:04:44,584 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/albert/albert-base-v2_code.py.
+2025-02-24 09:04:59,935 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/albert/albert-base-v2_inputs.pickle.
+2025-02-24 09:05:00,685 - INFO - Accuracy calculated: 0.69041593259833.
+2025-02-24 09:05:00,703 - DEBUG - Saving metrics.
+2025-02-24 09:05:00,710 - INFO - Compiled runtime metrics saved to metrics/albert/albert-base-v2/compiled-run_time_metrics.pickle.
+2025-02-24 10:46:52,730 - INFO - Starting the compile_and_run fixture.
+2025-02-24 10:46:52,730 - DEBUG - Initializing test run timing.
+2025-02-24 10:46:52,734 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-24 10:46:52,960 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-24 10:46:53,116 - DEBUG - https://huggingface.co:443 "HEAD /phiyodr/bert-large-finetuned-squad2/resolve/main/config.json HTTP/11" 200 0
+2025-02-24 10:47:56,963 - INFO - Test run completed successfully in 64232.46 ms.
+2025-02-24 10:47:56,963 - DEBUG - Processing runtime metrics.
+2025-02-24 10:47:56,964 - INFO - Runtime metrics saved to metrics/BERT/original-run_time_metrics.pickle.
+2025-02-24 10:47:56,964 - DEBUG - Compiling model with ttnn backend.
+2025-02-24 10:52:24,538 - INFO - Compilation and run successful in 267574.7 ms.
+2025-02-24 10:52:24,691 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/BERT_code.py.
+2025-02-25 11:07:35,257 - INFO - Starting the compile_and_run fixture.
+2025-02-25 11:07:35,257 - DEBUG - Initializing test run timing.
+2025-02-25 11:07:35,261 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-25 11:07:35,332 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-base-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-25 11:07:35,384 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-base-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-25 11:07:35,605 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-base-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-25 11:07:36,318 - INFO - Test run completed successfully in 1060.14 ms.
+2025-02-25 11:07:36,318 - DEBUG - Processing runtime metrics.
+2025-02-25 11:07:36,318 - INFO - Runtime metrics saved to metrics/albert/albert-base-v2/original-run_time_metrics.pickle.
+2025-02-25 11:07:36,318 - DEBUG - Compiling model with ttnn backend.
+2025-02-25 11:07:59,859 - INFO - Compilation and run successful in 23540.56 ms.
+2025-02-25 11:07:59,942 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/albert/albert-base-v2_code.py.
+2025-02-25 11:08:18,189 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/albert/albert-base-v2_inputs.pickle.
+2025-02-25 11:08:18,911 - INFO - Accuracy calculated: 0.69041593259833.
+2025-02-25 11:08:18,930 - DEBUG - Saving metrics.
+2025-02-25 11:08:18,937 - INFO - Compiled runtime metrics saved to metrics/albert/albert-base-v2/compiled-run_time_metrics.pickle.
+2025-02-26 10:52:44,042 - INFO - Starting the compile_and_run fixture.
+2025-02-26 10:52:44,042 - DEBUG - Initializing test run timing.
+2025-02-26 10:52:44,046 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-26 10:52:44,145 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:52:44,197 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:52:44,454 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 10:52:46,658 - INFO - Test run completed successfully in 2615.81 ms.
+2025-02-26 10:52:46,658 - DEBUG - Processing runtime metrics.
+2025-02-26 10:52:46,659 - INFO - Runtime metrics saved to metrics/albert/albert-large-v2/original-run_time_metrics.pickle.
+2025-02-26 10:52:46,659 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 10:53:15,330 - INFO - Compilation and run successful in 28670.65 ms.
+2025-02-26 10:53:15,424 - ERROR - Compilation failed.
+Traceback (most recent call last):
+  File "/home/ubuntu/pytorch2.0_ttnn/tests/conftest.py", line 195, in compile_and_run
+    generate_op_accuracy_tests.generate_op_accuracy_tests(
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 457, in generate_op_accuracy_tests
+    graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 314, in _build_code_from_aten_ttnn_graphs
+    aten_node = additional_test_nodes[node_name]
+KeyError: 'default'
+2025-02-26 10:53:15,426 - DEBUG - Attempting rerun with bypass option to collect aten op metrics.
+2025-02-26 10:53:27,978 - DEBUG - Saving metrics.
+2025-02-26 10:53:27,994 - INFO - Compiled runtime metrics saved to metrics/albert/albert-large-v2/compiled-run_time_metrics.pickle.
+2025-02-26 10:53:28,028 - INFO - Starting the compile_and_run fixture.
+2025-02-26 10:53:28,028 - DEBUG - Initializing test run timing.
+2025-02-26 10:53:28,101 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:53:28,151 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:53:28,398 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 10:54:12,377 - INFO - Starting the compile_and_run fixture.
+2025-02-26 10:54:12,377 - DEBUG - Initializing test run timing.
+2025-02-26 10:54:12,381 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-26 10:54:12,490 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:54:12,542 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:54:12,952 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 10:54:15,259 - INFO - Test run completed successfully in 2881.54 ms.
+2025-02-26 10:54:15,259 - DEBUG - Processing runtime metrics.
+2025-02-26 10:54:15,260 - INFO - Runtime metrics saved to metrics/albert/albert-large-v2/original-run_time_metrics.pickle.
+2025-02-26 10:54:15,260 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 10:54:45,136 - INFO - Compilation and run successful in 29875.87 ms.
+2025-02-26 10:54:45,227 - ERROR - Compilation failed.
+Traceback (most recent call last):
+  File "/home/ubuntu/pytorch2.0_ttnn/tests/conftest.py", line 195, in compile_and_run
+    generate_op_accuracy_tests.generate_op_accuracy_tests(
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 457, in generate_op_accuracy_tests
+    graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 314, in _build_code_from_aten_ttnn_graphs
+    aten_node = additional_test_nodes[node_name]
+KeyError: 'default'
+2025-02-26 10:54:45,228 - DEBUG - Attempting rerun with bypass option to collect aten op metrics.
+2025-02-26 10:54:58,417 - DEBUG - Saving metrics.
+2025-02-26 10:54:58,431 - INFO - Compiled runtime metrics saved to metrics/albert/albert-large-v2/compiled-run_time_metrics.pickle.
+2025-02-26 10:54:58,465 - INFO - Starting the compile_and_run fixture.
+2025-02-26 10:54:58,465 - DEBUG - Initializing test run timing.
+2025-02-26 10:54:58,520 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:54:58,566 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:54:58,793 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 10:55:07,379 - INFO - Test run completed successfully in 8913.84 ms.
+2025-02-26 10:55:07,379 - DEBUG - Processing runtime metrics.
+2025-02-26 10:55:07,380 - INFO - Runtime metrics saved to metrics/albert/albert-xlarge-v2/original-run_time_metrics.pickle.
+2025-02-26 10:55:07,380 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 10:55:27,901 - INFO - Compilation and run successful in 20521.02 ms.
+2025-02-26 10:55:27,989 - ERROR - Compilation failed.
+Traceback (most recent call last):
+  File "/home/ubuntu/pytorch2.0_ttnn/tests/conftest.py", line 195, in compile_and_run
+    generate_op_accuracy_tests.generate_op_accuracy_tests(
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 457, in generate_op_accuracy_tests
+    graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 314, in _build_code_from_aten_ttnn_graphs
+    aten_node = additional_test_nodes[node_name]
+KeyError: 'default'
+2025-02-26 10:55:27,989 - DEBUG - Attempting rerun with bypass option to collect aten op metrics.
+2025-02-26 10:56:25,999 - INFO - Starting the compile_and_run fixture.
+2025-02-26 10:56:26,000 - DEBUG - Initializing test run timing.
+2025-02-26 10:56:26,004 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-26 10:56:26,082 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:56:26,167 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:56:26,404 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 10:56:28,811 - INFO - Test run completed successfully in 2811.09 ms.
+2025-02-26 10:56:28,811 - DEBUG - Processing runtime metrics.
+2025-02-26 10:56:28,812 - INFO - Runtime metrics saved to metrics/albert/albert-large-v2/original-run_time_metrics.pickle.
+2025-02-26 10:56:28,812 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 10:56:58,909 - INFO - Compilation and run successful in 30097.13 ms.
+2025-02-26 10:56:59,006 - ERROR - Compilation failed.
+Traceback (most recent call last):
+  File "/home/ubuntu/pytorch2.0_ttnn/tests/conftest.py", line 195, in compile_and_run
+    generate_op_accuracy_tests.generate_op_accuracy_tests(
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 457, in generate_op_accuracy_tests
+    graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 314, in _build_code_from_aten_ttnn_graphs
+    aten_node = additional_test_nodes[node_name]
+KeyError: 'default'
+2025-02-26 10:56:59,007 - DEBUG - Attempting rerun with bypass option to collect aten op metrics.
+2025-02-26 10:57:11,741 - DEBUG - Saving metrics.
+2025-02-26 10:57:11,757 - INFO - Compiled runtime metrics saved to metrics/albert/albert-large-v2/compiled-run_time_metrics.pickle.
+2025-02-26 10:57:11,789 - INFO - Starting the compile_and_run fixture.
+2025-02-26 10:57:11,790 - DEBUG - Initializing test run timing.
+2025-02-26 10:57:11,871 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:57:11,943 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:57:12,162 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 10:57:20,548 - INFO - Test run completed successfully in 8757.92 ms.
+2025-02-26 10:57:20,548 - DEBUG - Processing runtime metrics.
+2025-02-26 10:57:20,548 - INFO - Runtime metrics saved to metrics/albert/albert-xlarge-v2/original-run_time_metrics.pickle.
+2025-02-26 10:57:20,548 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 10:57:41,121 - INFO - Compilation and run successful in 20572.43 ms.
+2025-02-26 10:57:41,220 - ERROR - Compilation failed.
+Traceback (most recent call last):
+  File "/home/ubuntu/pytorch2.0_ttnn/tests/conftest.py", line 195, in compile_and_run
+    generate_op_accuracy_tests.generate_op_accuracy_tests(
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 457, in generate_op_accuracy_tests
+    graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
+  File "/home/ubuntu/pytorch2.0_ttnn/tools/generate_op_accuracy_tests.py", line 314, in _build_code_from_aten_ttnn_graphs
+    aten_node = additional_test_nodes[node_name]
+KeyError: 'default'
+2025-02-26 10:57:41,221 - DEBUG - Attempting rerun with bypass option to collect aten op metrics.
+2025-02-26 10:57:59,936 - DEBUG - Saving metrics.
+2025-02-26 10:57:59,951 - INFO - Compiled runtime metrics saved to metrics/albert/albert-xlarge-v2/compiled-run_time_metrics.pickle.
+2025-02-26 10:59:01,534 - INFO - Starting the compile_and_run fixture.
+2025-02-26 10:59:01,535 - DEBUG - Initializing test run timing.
+2025-02-26 10:59:01,538 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-26 10:59:01,612 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:59:01,666 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 10:59:01,879 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 10:59:04,198 - INFO - Test run completed successfully in 2663.0 ms.
+2025-02-26 10:59:04,198 - DEBUG - Processing runtime metrics.
+2025-02-26 10:59:04,198 - INFO - Runtime metrics saved to metrics/albert/albert-large-v2/original-run_time_metrics.pickle.
+2025-02-26 10:59:04,199 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 10:59:35,846 - INFO - Compilation and run successful in 31647.6 ms.
+2025-02-26 10:59:36,000 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/albert/albert-large-v2_code.py.
+2025-02-26 11:00:04,882 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/albert/albert-large-v2_inputs.pickle.
+2025-02-26 11:00:06,231 - INFO - Accuracy calculated: 0.2363122287623936.
+2025-02-26 11:00:06,269 - DEBUG - Saving metrics.
+2025-02-26 11:00:06,285 - INFO - Compiled runtime metrics saved to metrics/albert/albert-large-v2/compiled-run_time_metrics.pickle.
+2025-02-26 11:00:06,289 - INFO - Starting the compile_and_run fixture.
+2025-02-26 11:00:06,290 - DEBUG - Initializing test run timing.
+2025-02-26 11:00:06,371 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:00:06,417 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:00:06,640 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 11:00:15,098 - INFO - Test run completed successfully in 8808.29 ms.
+2025-02-26 11:00:15,098 - DEBUG - Processing runtime metrics.
+2025-02-26 11:00:15,099 - INFO - Runtime metrics saved to metrics/albert/albert-xlarge-v2/original-run_time_metrics.pickle.
+2025-02-26 11:00:15,099 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 11:00:37,202 - INFO - Compilation and run successful in 22102.95 ms.
+2025-02-26 11:00:37,357 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/albert/albert-xlarge-v2_code.py.
+2025-02-26 11:02:16,416 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/albert/albert-xlarge-v2_inputs.pickle.
+2025-02-26 11:02:17,799 - INFO - Accuracy calculated: 0.5342303226987013.
+2025-02-26 11:02:17,835 - DEBUG - Saving metrics.
+2025-02-26 11:02:17,848 - INFO - Compiled runtime metrics saved to metrics/albert/albert-xlarge-v2/compiled-run_time_metrics.pickle.
+2025-02-26 11:38:28,265 - INFO - Starting the compile_and_run fixture.
+2025-02-26 11:38:28,265 - DEBUG - Initializing test run timing.
+2025-02-26 11:38:28,269 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-26 11:38:28,369 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:38:28,421 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:38:28,644 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-large-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 11:38:30,903 - INFO - Test run completed successfully in 2637.12 ms.
+2025-02-26 11:38:30,903 - DEBUG - Processing runtime metrics.
+2025-02-26 11:38:30,903 - INFO - Runtime metrics saved to metrics/albert/albert-large-v2/original-run_time_metrics.pickle.
+2025-02-26 11:38:30,904 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 11:39:02,707 - INFO - Compilation and run successful in 31803.52 ms.
+2025-02-26 11:39:02,877 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/albert/albert-large-v2_code.py.
+2025-02-26 11:39:24,746 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/albert/albert-large-v2_inputs.pickle.
+2025-02-26 11:39:26,107 - INFO - Accuracy calculated: 0.2363122287623936.
+2025-02-26 11:39:26,143 - DEBUG - Saving metrics.
+2025-02-26 11:39:26,160 - INFO - Compiled runtime metrics saved to metrics/albert/albert-large-v2/compiled-run_time_metrics.pickle.
+2025-02-26 11:39:26,165 - INFO - Starting the compile_and_run fixture.
+2025-02-26 11:39:26,165 - DEBUG - Initializing test run timing.
+2025-02-26 11:39:26,235 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:39:26,289 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:39:26,526 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 11:39:35,895 - INFO - Test run completed successfully in 9729.72 ms.
+2025-02-26 11:39:35,895 - DEBUG - Processing runtime metrics.
+2025-02-26 11:39:35,896 - INFO - Runtime metrics saved to metrics/albert/albert-xlarge-v2/original-run_time_metrics.pickle.
+2025-02-26 11:39:35,896 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 11:54:36,899 - INFO - Starting the compile_and_run fixture.
+2025-02-26 11:54:36,899 - DEBUG - Initializing test run timing.
+2025-02-26 11:54:36,903 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-02-26 11:54:36,989 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:54:37,038 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/config.json HTTP/11" 200 0
+2025-02-26 11:54:37,298 - DEBUG - https://huggingface.co:443 "HEAD /albert/albert-xlarge-v2/resolve/main/tokenizer_config.json HTTP/11" 200 0
+2025-02-26 11:54:45,539 - INFO - Test run completed successfully in 8639.03 ms.
+2025-02-26 11:54:45,539 - DEBUG - Processing runtime metrics.
+2025-02-26 11:54:45,539 - INFO - Runtime metrics saved to metrics/albert/albert-xlarge-v2/original-run_time_metrics.pickle.
+2025-02-26 11:54:45,539 - DEBUG - Compiling model with ttnn backend.
+2025-02-26 11:55:17,551 - INFO - Compilation and run successful in 32011.75 ms.
+2025-02-26 11:55:17,705 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/albert/albert-xlarge-v2_code.py.
+2025-02-26 11:56:52,234 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/albert/albert-xlarge-v2_inputs.pickle.
+2025-02-26 11:56:53,599 - INFO - Accuracy calculated: 0.5342303226987013.
+2025-02-26 11:56:53,634 - DEBUG - Saving metrics.
+2025-02-26 11:56:53,648 - INFO - Compiled runtime metrics saved to metrics/albert/albert-xlarge-v2/compiled-run_time_metrics.pickle.

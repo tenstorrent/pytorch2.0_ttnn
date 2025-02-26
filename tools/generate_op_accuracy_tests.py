@@ -289,18 +289,34 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     # comment out signature if not the first graph
     graph_code = [forward_signature] if len(output_nodes) == 0 else ["   # " + forward_signature]
     graph_code.append("  device = ttnn.open_device(device_id=0, l1_small_size=16384)")
-    for node in aten_all_nodes:
+    
+    op_list = ["tanh", "softmax"] 
+    additional_test_nodes = {} 
+    
+    for node in aten_all_nodes: 
         if node.op == "output":
             output_nodes.append(node.args[0])
             graph_code.append(f"  # return {node.args[0]}")
             continue
         else:
+            ind = [ind for ind, element in enumerate(op_list) if element in f"{node}"] 
+            if len(ind) > 0: 
+                node_name = f"{node}" if f"{node}"[0] != "_" else f"{node}"[1:] 
+                additional_test_nodes[node_name] = node 
+                
             graph_code.append(f"  {_node_to_python_code(node)}")
+
     for node in ttnn_all_nodes:
         if isinstance(node, tuple):
             graph_code.append(f"  test_accuracy({node[0]}, {node[1]})")
         else:
-            graph_code.append(f"  {_node_to_python_code(node)}")
+            graph_code.append(f"  {_node_to_python_code(node)}") 
+            ind = [ind for ind, element in enumerate(op_list) if element in f"{node}"] 
+            if len(ind) > 0: 
+                node_name = "_".join(f"{node}".split("_")[1:]) 
+                aten_node = additional_test_nodes[node_name] 
+                graph_code.append(f"  test_accuracy({aten_node}, {node})") 
+    
     graph_code.append("  ttnn.close_device(device)")
 
     return graph_code
