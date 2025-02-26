@@ -175,7 +175,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 gen_graphviz=False,
                 run_mem_analysis=False,
                 metrics_path=model_name,
-                verbose=True,
+                verbose=False,
                 gen_op_accuracy_tests=request.config.getoption("--gen_op_accuracy_tests"),
             )
 

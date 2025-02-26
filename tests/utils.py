@@ -151,20 +151,16 @@ class ModelTester:
     def batch_inputs(self):
         if self.batch_size is None:
             return
-        # inputs = tester_obj.inputs
         if isinstance(self.inputs, dict) or isinstance(self.inputs, transformers.tokenization_utils_base.BatchEncoding):
             keys = self.inputs.keys()
             for key in keys:
                 if isinstance(self.inputs[key], torch.Tensor):
                     self.inputs[key] = self.inputs[key].repeat(self.batch_size, 1)
         elif isinstance(self.inputs, torch.Tensor):
-            # if self.inputs.ndim < 4:
-            print(self.inputs.shape)
             if self.inputs.shape[0] == 0:
                 self.inputs = self.inputs.squeeze(0)
             self.inputs = self.inputs.repeat(self.batch_size, *([1] * (self.inputs.dim())))
             self.inputs = self.inputs.squeeze(1)
-            print(self.inputs.shape)
         else:
             raise TypeError(f"Unregonized inputs type: {type(self.inputs)}")
 
