@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          num_iterations=5
+          num_iterations=1
           file_prefix="tests/"
 
           # Assign tests dynamically based on matrix group
@@ -46,8 +46,8 @@ jobs:
           #  "models/resnet/test_resnet.py"
           #  "models/resnet50/test_resnet50.py"
           #  "models/roberta/test_roberta.py"
-            "models/unet/test_unet.py"
-            "models/hand_landmark/test_hand_landmark.py"
+          #  "models/unet/test_unet.py"
+          #  "models/hand_landmark/test_hand_landmark.py"
           )
 
           # Preprocess file paths
