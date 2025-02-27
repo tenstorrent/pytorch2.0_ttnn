@@ -1,7 +1,7 @@
 import torch
 import numpy as np
-import collections
 import re
+from collections.abc import Mapping, Sequence
 from typing import List, Dict, Tuple
 
 
@@ -60,9 +60,9 @@ class ModelTester:
         return model
 
     def run_model(self, model, inputs):
-        if isinstance(inputs, collections.Mapping):
+        if isinstance(inputs, Mapping):
             return model(**inputs)
-        elif isinstance(inputs, collections.Sequence):
+        elif isinstance(inputs, Sequence):
             return model(*inputs)
         else:
             return model(inputs)
