@@ -53,6 +53,13 @@ jobs:
             "models/timm/test_timm_image_classification.py"
             "models/torchvision/test_torchvision_image_classification.py"
             "models/unet/test_unet.py"
+            "models/albert/test_albert_question_answering.py"
+            "models/albert/test_alert_sequence_classification.py"
+            "models/albert/test_albert_token_classification.py"
+            "models/albert/test_albert_masked_lm.py"
+            "models/unet_carvana/test_unet_carvana.py"
+            "models/autoencoder_linear/test_autoencoder_linear.py"
+            "models/perceiver_io/test_perceiver_io.py"
           )
 
           # Preprocess file paths
