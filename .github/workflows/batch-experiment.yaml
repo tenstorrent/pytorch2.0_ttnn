@@ -40,14 +40,19 @@ jobs:
 
           # Array of tests to exclude
           exclude_tests=(
-          #  "models/mnist/test_mnist.py"
-          #  "models/MobileNetV2/test_MobileNetV2.py"
-          #  "models/openpose/test_openpose_v2.py"
-          #  "models/resnet/test_resnet.py"
-          #  "models/resnet50/test_resnet50.py"
-          #  "models/roberta/test_roberta.py"
-          #  "models/unet/test_unet.py"
-          #  "models/hand_landmark/test_hand_landmark.py"
+            "models/mnist/test_mnist.py"
+            "models/MobileNetV2/test_MobileNetV2.py"
+            "models/openpose/test_openpose_v2.py"
+            "models/resnet/test_resnet.py"
+            "models/resnet50/test_resnet50.py"
+            "models/roberta/test_roberta.py"
+            "models/unet/test_unet.py"
+            "models/hand_landmark/test_hand_landmark.py"
+            "models/squeeze_bert/test_squeeze_bert.py"
+            "models/llama/test_llama.py"
+            "models/timm/test_timm_image_classification.py"
+            "models/torchvision/test_torchvision_image_classification.py"
+            "models/unet/test_unet.py"
           )
 
           # Preprocess file paths
@@ -127,7 +132,7 @@ jobs:
                 not_found=0
               fi
             done
-            
+            echo "min failed batch: $min_failed_batch"
             echo "Max batch size for $test_path: $max_successful_batch"
             max_batch_sizes_array+=("$max_successful_batch")
             failed_batch_and_test_array+=("$max_successful_batch $test_path")
