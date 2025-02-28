@@ -1,23 +1,14 @@
 #pragma once
 
-#include <ATen/OpaqueTensorImpl.h>
 #include "ttnn/tensor/tensor.hpp"
+#include "extension_utils.hpp"
 #include <iostream>
 #include <string.h>
-
-template <typename Arg, typename... Args>
-void doPrint(std::ostream& out, const std::string_view& filename, int lineno, const std::string_view& fn, Arg&& arg, Args&&... args)
-{
-  out << std::format("{}({})({}): ", filename, lineno, fn);
-  out << std::forward<Arg>(arg);
-  ((out << std::forward<Args>(args)), ...);
-  out << std::endl;
-}
-#define LOGGING(...) doPrint(std::cout, __FILE_NAME__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 namespace at {
 
 struct TtnnTensorImpl : public TensorImpl {
+  // TODO: Only difference is the storage type, combine these two
   TtnnTensorImpl(
       at::DispatchKeySet key_set,
       const caffe2::TypeMeta data_type,
@@ -55,8 +46,7 @@ struct TtnnTensorImpl : public TensorImpl {
   }
 
   ttnn::Tensor get_ttnn_tensor() {
-    // LOGGING(ttnn_tensor_string_);
-    LOGGING(ttnn_tensor_.write_to_string());
+    LOGGING("");
     return ttnn_tensor_;
   }
 
@@ -129,42 +119,9 @@ void shallow_copy_from(const c10::intrusive_ptr<TensorImpl>& impl) override {
       /*allow_tensor_metadata_change=*/allow_tensor_metadata_change());
   refresh_numel();
 }
-
-  // protected:
-  //   static void copy_tensor_metadata(
-  //     const TtnnTensorImpl* src_impl,
-  //     TtnnTensorImpl* dest_impl,
-  //     const c10::VariableVersion& version_counter,
-  //     bool allow_tensor_metadata_change) {
-  //     TensorImpl::copy_tensor_metadata(
-  //         src_impl,
-  //         dest_impl,
-  //         version_counter,
-  //         allow_tensor_metadata_change);
-
-  //     // TtnnTensorImpl-specific fields.
-  //     dest_impl->ttnn_tensor_ = src_impl->ttnn_tensor_;
-  //     dest_impl->ttnn_tensor_string_ = src_impl->ttnn_tensor_string_;
-  //   }
-
-  //   static void copy_tensor_metadata(
-  //     const TtnnTensorImpl* src_impl,
-  //     TtnnTensorImpl* dest_impl,
-  //     c10::VariableVersion&& version_counter,
-  //     bool allow_tensor_metadata_change) {
-  //       TensorImpl::copy_tensor_metadata(
-  //           src_impl,
-  //           dest_impl,
-  //           std::move(version_counter),
-  //           allow_tensor_metadata_change);
-
-  //     // TtnnTensorImpl-specific fields.
-  //     dest_impl->ttnn_tensor_ = src_impl->ttnn_tensor_;
-  //     dest_impl->ttnn_tensor_string_ = src_impl->ttnn_tensor_string_;
-  //   }
-
   private:
     ttnn::Tensor ttnn_tensor_;
+    // TODO: Debug only, should probably remove as it might be costly
     std::string ttnn_tensor_string_;
 };
 
