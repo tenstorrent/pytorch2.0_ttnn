@@ -60,6 +60,10 @@ jobs:
             "models/unet_brain/test_unet_brain.py"
             "models/autoencoder_linear/test_autoencoder_linear.py"
             #"models/perceiver_io/test_perceiver_io.py"
+            "models/dpr/test_dpr.py"
+            "models/bloom/test_bloom.py"
+            "models/distilbert/test_distilbert.py"
+
           )
 
           # Preprocess file paths
@@ -197,7 +201,7 @@ jobs:
             echo "Running test: $t"
             file_path="${file_prefix}${t%%::*}"
             l_bound=1
-            u_bound=760
+            u_bound=500
             find_max_batch_size_uninitialized "$file_path" "$l_bound" "$u_bound"
           done
 
