@@ -26,8 +26,10 @@
 #include "tt-metalium/small_vector.hpp"
 #include "ttnn/common/queue_id.hpp"
 #include <tt-metalium/bfloat16.hpp>
+#include "ttnn/operations/core/core.hpp"
 
-#include "TtnnOpaqueTensorImpl.h"
+#include "TtnnTensorImpl.hpp"
+#include "extension_utils.hpp"
 #include "tt-metalium/event.hpp"
 #include "ttnn/async_runtime.hpp"
 
@@ -35,17 +37,10 @@
 
 #include <format>
 
-
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-// use glog instead maybe?
-// #define LOGGING(s) std::cout << __FILE_NAME__ << "(" << __LINE__ << ")" << "(" << __FUNCTION__ << ")" << ": " << s << std::endl
-
-
-
 namespace {
 
 void abs_kernel(at::TensorIteratorBase& iter) {
-  // empty because we don't need it, but it has to be defined
+  // empty because we don't need it, but it has to be defined if we're intercepting torch.abs
 }
 
 } // namespace
@@ -54,7 +49,8 @@ namespace at::native {
 REGISTER_PRIVATEUSE1_DISPATCH(abs_stub, &abs_kernel);
 }
 
-// A dummy allocator for our custom device, that secretly uses the CPU
+// A dummy allocator for the custom device, that secretly uses the CPU
+// TODO: Do we have to implement this for the use of TTNN?
 struct DummyCustomAllocator final : at::Allocator {
   DummyCustomAllocator() = default;
   // at::DataPtr allocate(size_t nbytes) override {
@@ -63,11 +59,6 @@ struct DummyCustomAllocator final : at::Allocator {
     void* data = c10::alloc_cpu(nbytes);
     return {data, data, &ReportAndDelete, c10::Device(c10::DeviceType::PrivateUse1, 0)};
   }
-
-  // void copy_data(void* dest, const void* src, std::size_t count) const override {
-  //   std::cout << __FILENAME__ << " Custom copy copy_data() called!" << std::endl;
-  //   std::memcpy(dest, src, count);
-  // }
 
   static void ReportAndDelete(void* ptr) {
     LOGGING("");
@@ -78,7 +69,6 @@ struct DummyCustomAllocator final : at::Allocator {
   }
 
   at::DeleterFnPtr raw_deleter() const override {
-  // at::DeleterFnPtr raw_deleter() {
     return &ReportAndDelete;
   }
 };
@@ -105,19 +95,19 @@ REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &global_custom_alloc);
 // check out the code at c10/cuda/CUDAGuard.h
 
 // Represents the current "active" device.
-// The dummy device guard registered below is meant to show how a backend
+// The device guard registered below is meant to show how a backend
 // can integrate custom device guard with pytorch.
 // For something like cuda this represents the current active cuda device,
 // which is directly set using the cuda API calls cudaGetDevice/cudaSetDevice.
 static uint16_t CURR_DEVICE = -1;
 
 // Create and register a dummy device guard.
-struct DummyDeviceGuardImpl final : public c10::impl::DeviceGuardImplInterface {
+struct TtnnDeviceGuard final : public c10::impl::DeviceGuardImplInterface {
   static constexpr c10::DeviceType static_type = c10::DeviceType::PrivateUse1;
-  DummyDeviceGuardImpl() {
+  TtnnDeviceGuard() {
     LOGGING("");
   }
-  explicit DummyDeviceGuardImpl(c10::DeviceType t) {
+  explicit TtnnDeviceGuard(c10::DeviceType t) {
     LOGGING("");
     TORCH_INTERNAL_ASSERT(t == c10::DeviceType::PrivateUse1);
   }
@@ -198,14 +188,14 @@ struct DummyDeviceGuardImpl final : public c10::impl::DeviceGuardImplInterface {
   }
 };
 
-struct DummyGuard {
-  explicit DummyGuard() = delete;
-  explicit DummyGuard(at::DeviceIndex device_index) : guard_(device_index) {}
-  explicit DummyGuard(at::Device device) : guard_(device) {}
-  DummyGuard(const DummyGuard&) = delete;
-  DummyGuard& operator=(const DummyGuard&) = delete;
-  DummyGuard(DummyGuard&& other) = delete;
-  DummyGuard& operator=(DummyGuard&& other) = delete;
+struct TtnnGuard {
+  explicit TtnnGuard() = delete;
+  explicit TtnnGuard(at::DeviceIndex device_index) : guard_(device_index) {}
+  explicit TtnnGuard(at::Device device) : guard_(device) {}
+  TtnnGuard(const TtnnGuard&) = delete;
+  TtnnGuard& operator=(const TtnnGuard&) = delete;
+  TtnnGuard(TtnnGuard&& other) = delete;
+  TtnnGuard& operator=(TtnnGuard&& other) = delete;
 
   void set_device(at::Device device) {
     guard_.set_device(device);
@@ -237,45 +227,43 @@ struct DummyGuard {
 
   static IDevice * ttnn_device;
  private:
-  c10::impl::InlineDeviceGuard<DummyDeviceGuardImpl> guard_;
+  c10::impl::InlineDeviceGuard<TtnnDeviceGuard> guard_;
 };
 
-IDevice* DummyGuard::ttnn_device = nullptr;
+IDevice* TtnnGuard::ttnn_device = nullptr;
 
-C10_REGISTER_GUARD_IMPL(PrivateUse1, DummyDeviceGuardImpl);
+C10_REGISTER_GUARD_IMPL(PrivateUse1, TtnnDeviceGuard);
+
+
 
 
 // =====================================
 // ============= KERNELS ===============
 // =====================================
 
-// basic dummy empty function, so we can directly construct tensors on the custom device
-// This dummy test device will just use the CPU allocator, and ignores pinned memory.
-//
-// Note: this kernel is very simple because our "custom device" just uses the normal TensorImpl object
-// to store data under the hood.
-// In PyTorch core today, both cpu and cuda are implemented with an ordinary TensorImpl class.
-// Sometimes, backends prefer to subclass TensorImpl in order to store extra information.
-// If this is the case, then this kernel is where you'll be responsible for creating and returning
-// a fresh at::Tensor object, that properly stores a TensorImpl of your subclass.
 at::Tensor custom_empty_memory_format(at::IntArrayRef size, c10::optional<at::ScalarType> dtype_opt, c10::optional<at::Layout> layout_opt, c10::optional<at::Device> device_opt, c10::optional<bool> pin_memory_opt, c10::optional<at::MemoryFormat> memory_format_opt) {
   LOGGING("");
   constexpr c10::DispatchKeySet private_use_ks(c10::DispatchKey::PrivateUse1);
-  // Check for value to be safe
+  // TODO: Check for value to be safe
   auto dtype = c10::scalarTypeToTypeMeta(dtype_opt.value());
-  // Shape
+  LOGGING("dtype: ", dtype);
   at::Device device = device_opt.value();
-  LOGGING(device);
-  DummyGuard device_guard(device);
+  LOGGING("device: ", device);
+  TtnnGuard device_guard(device);
   IDevice* ttnn_device = device_guard.get_ttnn_device();
-  LOGGING(size);
+  LOGGING("size: ", size);
   ttnn::SmallVector<uint32_t> small_vector(size.begin(), size.end());
+
+  // TODO: This preallocated data doesn't get used, but the metadata does. Needs fixing.
   auto tensor = ttnn::empty(ttnn::Shape(small_vector),
     ttnn::DataType::BFLOAT16,
     ttnn::TILE_LAYOUT,
     ttnn_device,
     MemoryConfig{TensorMemoryLayout::INTERLEAVED, BufferType::DRAM, std::nullopt});
+
   LOGGING("");
+
+  // TODO: We can probably allocate 0 bytes here since we're not using CPU storage
   auto size_bytes = at::detail::computeStorageNbytesContiguous(size, dtype.itemsize());
   auto storage_impl = c10::make_intrusive<c10::StorageImpl>(
     c10::StorageImpl::use_byte_size_t(),
@@ -283,8 +271,10 @@ at::Tensor custom_empty_memory_format(at::IntArrayRef size, c10::optional<at::Sc
     &global_custom_alloc,
     /*resizeable=*/true);
 
+  // Store ttnn tensor to torch tensor impl
   auto tensor_ret = at::detail::make_tensor<at::TtnnTensorImpl>(private_use_ks, dtype, device, tensor, storage_impl);
   LOGGING("");
+
   return tensor_ret;
 }
 
@@ -293,15 +283,15 @@ at::Tensor & custom_fill__scalar(at::Tensor & self, const at::Scalar & value) {
   return self;
 }
 
-// basic dummy copy_() function, so we can copy from the custom device to/from CPU
+// basic copy_() function, so we can copy from the custom device to/from CPU
 at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
   LOGGING(self.device().type(), " ==> ", dst.device().type());
-  // Only supports cpu ==> ttnn or ttnn ==> cpu
-  // Check direction of copy
+  // TODO: Only supports cpu ==> ttnn or ttnn ==> cpu
+  // TODO: Check direction of copy
   if (self.is_cpu() && dst.device().type() == c10::DeviceType::PrivateUse1) {
     LOGGING("Copying from cpu to ttnn...");
 
-    DummyGuard device_guard(at::device_of(dst).value());
+    TtnnGuard device_guard(at::device_of(dst).value());
 
     // Some dummy asserts for the basic use case: inputs are the same size / dtype, all contiguous.
     LOGGING("CPU Tensor Size: ", self.sizes(), " dtype: ", self.dtype());
@@ -324,67 +314,131 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
     // LOGGING(dst_tensor.write_to_string());
     LOGGING("dst_tensor is contiguous: ", dst_tensor.is_contiguous());
 
+    // Get Device attributes
     auto volume = dst_tensor.volume();
     auto element_size = dst_tensor.element_size();
     auto logical_volume = dst_tensor.get_logical_volume();
+    auto dtype = dst_tensor.get_dtype();
     LOGGING("volume: ", volume);
     LOGGING("element_size: ", element_size);
     LOGGING("logical_volume: ", logical_volume);
-#if 0
-
-    uint8_t* padded_self_ptr = new uint8_t[volume * element_size];
-    memcpy(padded_self_ptr, self.storage().data_ptr().get(), logical_volume * element_size);
-
-    tt::tt_metal::memcpy(dst_tensor, padded_self_ptr);
-
-    delete[] padded_self_ptr;
-#endif
+    LOGGING("dtype: ", static_cast<int>(dtype));
 
     auto on_creation_callback = [] {};
     auto on_destruction_callback = [] {};
-    // calculate size better
-    ttnn::Tensor src_cpu = ttnn::Tensor(
-      tt::tt_metal::BorrowedStorage{
-        borrowed_buffer::Buffer(static_cast<bfloat16*>(self.storage().data_ptr().get()), logical_volume),
-        on_creation_callback,
-        on_destruction_callback},
-      logical_shape,
-      ttnn::DataType::BFLOAT16,
-      ttnn::Layout::ROW_MAJOR);
-    LOGGING("src_cpu: ", src_cpu.write_to_string());
-      
-    // Cannot automatically pad to 2D from 1D. https://github.com/tenstorrent/tt-metal/issues/18081
-    // Workaround is to reshape then pad?
-    Tensor src_padded;
-    auto logical_rank = logical_shape.rank();
-    if (logical_rank == 1) {
-      ttnn::Shape new_shape({1, logical_shape[0]});
-      Tensor src_reshaped = src_cpu.reshape(new_shape);
-      LOGGING("");
-      src_padded = src_reshaped.pad_to_tile(0);
-    }
-    else {
-      src_padded = src_cpu.pad_to_tile(0);
-    }
-    LOGGING("");
-    Tensor src_tiled = src_padded.to_layout(ttnn::Layout::TILE);
-    LOGGING("");
-    Tensor src_dev = src_tiled.to_device(ttnn_device);
-    LOGGING("");
-    // reshape back to original?
-    if (logical_rank == 1) {
-      ttnn::Shape new_shape({1, logical_shape[0]});
-      src_dev = src_dev.reshape(logical_shape);
-      LOGGING("");
-    }
 
-    tensor_impl->set_ttnn_tensor(src_dev);
+    // TODO: Combine and remove duplicate code for different dtype support
+    if (dtype == ttnn::DataType::BFLOAT16) {
+      LOGGING("");
 
-    LOGGING(src_dev.write_to_string());
+      // First create ttnn Tensor on CPU
+      ttnn::Tensor src_cpu = ttnn::Tensor(
+        tt::tt_metal::BorrowedStorage{
+          borrowed_buffer::Buffer(static_cast<bfloat16*>(self.storage().data_ptr().get()), logical_volume),
+          on_creation_callback,
+          on_destruction_callback},
+        logical_shape,
+        dtype,
+        ttnn::Layout::ROW_MAJOR);
+
+      // Debug only: Convert torch tensor to vector
+      auto self_float = self.to(at::kFloat);
+      std::vector<float> v(self_float.data_ptr<float>(), self_float.data_ptr<float>() + self_float.numel());
+      LOGGING("src_ten: ", v);
+
+      // Debug only: Convert ttnn tensor on cpu to vector
+      auto src_cpu_vector = src_cpu.to_vector<float>();
+      LOGGING("src_cpu: ", src_cpu_vector);
+      vector_compare(v, src_cpu_vector);
+
+      // TODO: Find out why there are problems when passing device directly to `to_layout` function
+      ttnn::Tensor src_layout = ttnn::to_layout(src_cpu, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, (IDevice*)nullptr);
+      ttnn::Tensor src_dev = src_layout.to_device(ttnn_device);
+
+      // Debug only: Convert ttnn tensor on device to vector
+      auto logical_rank = logical_shape.rank();
+      if (logical_rank == 1) {
+        ttnn::Shape new_shape({1, logical_shape[0]});
+        Tensor src_reshaped = src_dev.reshape(new_shape);
+        LOGGING("src_dev: ", src_reshaped.to_vector<float>());
+      } else {
+        LOGGING("src_dev: ", src_dev.to_vector<float>());
+      }
+
+      // Finally save ttnn tensor on device to custom TorchImpl
+      tensor_impl->set_ttnn_tensor(src_dev);
+    }
+    if (dtype == ttnn::DataType::UINT32) {
+
+      // TODO: Distinguish between int32 and uint32
+      std::vector<uint32_t> self_cast;
+      for (int i = 0; i < logical_volume; ++i) {
+        auto long_storage_ptr = static_cast<uint32_t*>(self.storage().data_ptr().get());
+        self_cast.push_back(long_storage_ptr[i]);
+      }
+
+      // First create ttnn Tensor on CPU
+      ttnn::Tensor src_cpu = ttnn::Tensor(
+        tt::tt_metal::BorrowedStorage{
+          borrowed_buffer::Buffer(self_cast.data(), logical_volume),
+          on_creation_callback,
+          on_destruction_callback},
+        logical_shape,
+        dtype,
+        ttnn::Layout::ROW_MAJOR);
+
+      // Debug only: Convert torch tensor to vector
+      // torch 2.2.1 does not have at::kUint32, but later versions do
+      auto self_int = self.to(at::kInt);
+      std::vector<int> v(self_int.data_ptr<int>(), self_int.data_ptr<int>() + self_int.numel());
+      LOGGING("src_ten: ", v);
+
+      // Debug only: Convert ttnn tensor on cpu to vector
+      auto src_cpu_vector = src_cpu.to_vector<uint32_t>();
+      std::vector<int> src_cpu_vector_int;
+      std::transform(src_cpu_vector.begin(), src_cpu_vector.end(), std::back_inserter(src_cpu_vector_int), [](const uint32_t value)
+      { 
+          return static_cast<int>(value); 
+      });
+      LOGGING("src_cpu: ", src_cpu_vector_int);
+      vector_compare(v, src_cpu_vector_int);
+
+      // TODO: Find out why there are problems when passing device directly to `to_layout` function
+      ttnn::Tensor src_layout = ttnn::to_layout(src_cpu, ttnn::ROW_MAJOR_LAYOUT, std::nullopt, std::nullopt, (IDevice*)nullptr);
+      ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
+
+      // Debug only: Convert ttnn tensor on device to vector
+      auto logical_rank = logical_shape.rank();
+      if (logical_rank == 1) {
+        ttnn::Shape new_shape({1, logical_shape[0]});
+        Tensor src_reshaped = src_dev.reshape(new_shape);
+        if (dtype == ttnn::DataType::UINT32) {
+          auto src_reshaped_vector = src_reshaped.to_vector<uint32_t>();
+          std::vector<int> src_vector_int;
+          std::transform(src_reshaped_vector.begin(), src_reshaped_vector.end(), std::back_inserter(src_vector_int), [](const uint32_t value)
+          { 
+              return static_cast<int>(value); 
+          });
+          LOGGING("src_dev: ", src_vector_int);
+        }
+      } else {
+        auto src_vector = src_dev.to_vector<uint32_t>();
+        std::vector<int> src_vector_int;
+        std::transform(src_vector.begin(), src_vector.end(), std::back_inserter(src_vector_int), [](const uint32_t value)
+        { 
+            return static_cast<int>(value); 
+        });
+        LOGGING("src_dev: ", src_vector_int);
+      }
+
+      // Finally save ttnn tensor on device to custom TorchImpl
+      tensor_impl->set_ttnn_tensor(src_dev);
+    }
   }
+  // TODO: This part, ttnn => cpu needs to be redone
   else if (self.device().type() == c10::DeviceType::PrivateUse1 && dst.is_cpu()) {
     LOGGING("");
-    DummyGuard device_guard(at::device_of(self).value());
+    TtnnGuard device_guard(at::device_of(self).value());
 
     // same as custom_resize_?
     at::TensorImpl* dst_tensor_impl = dst.unsafeGetTensorImpl();
@@ -433,6 +487,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
   return dst;
 }
 
+// TODO: Can possibly combine with custom_empty_memory_format
 at::Tensor custom_empty_strided(c10::IntArrayRef size,
                                 c10::IntArrayRef stride,
                                 c10::optional<at::ScalarType> dtype_opt,
@@ -442,28 +497,30 @@ at::Tensor custom_empty_strided(c10::IntArrayRef size,
 
   LOGGING("Creating empty strided tensor...");
   constexpr c10::DispatchKeySet private_use_ks(c10::DispatchKey::PrivateUse1);
-  // Check for value to be safe
+  // TODO: Check if value exists before accessing
   auto dtype = c10::scalarTypeToTypeMeta(dtype_opt.value());
 
   LOGGING("Size: ", size);
   LOGGING("Stride: ", stride);
+  LOGGING("dtype: ", dtype_opt.value());
 
   at::Device device = device_opt.value();
   LOGGING("Using at::Device: ", device);
-  DummyGuard device_guard(device);
+  TtnnGuard device_guard(device);
   IDevice* ttnn_device = device_guard.get_ttnn_device();
   ttnn::SmallVector<uint32_t> small_vector(size.begin(), size.end());
 
+  auto ttnn_dtype = dtype_torch_to_ttnn(dtype_opt.value());
+  LOGGING("ttnn_dtype: ", static_cast<int>(ttnn_dtype));
+
+  // TODO: This preallocated data doesn't get used, but the metadata does. Needs fixing.
   auto ttnn_tensor = ttnn::empty(ttnn::Shape(small_vector),
-    ttnn::DataType::BFLOAT16,
+    ttnn_dtype,
     ttnn::TILE_LAYOUT,
     ttnn_device,
     MemoryConfig{TensorMemoryLayout::INTERLEAVED, BufferType::DRAM, std::nullopt});
-  // LOGGING(ttnn_tensor.write_to_string());
-  
-  // auto shape = ttnn::Shape(small_vector);
-  // auto ttnn_tensor = ttnn::Tensor(ttnn::OwnedStorage{tt::tt_metal::owned_buffer::create<bfloat16>(shape.volume())}, shape, ttnn::DataType::BFLOAT16, ttnn::TILE_LAYOUT);
 
+  // TODO: Can probably allocate only 0 bytes here
   auto size_bytes = at::detail::computeStorageNbytesContiguous(size, dtype.itemsize());
   auto storage_impl = c10::make_intrusive<c10::StorageImpl>(
     c10::StorageImpl::use_byte_size_t(),
@@ -475,6 +532,7 @@ at::Tensor custom_empty_strided(c10::IntArrayRef size,
   return ttnn_tensor_ret;
 }
 
+// TODO: Example of intercepting torch.abs
 at::Tensor& custom_abs_out(const at::Tensor& self, at::Tensor& out) {
   LOGGING("");
   LOGGING(self.device().type());
@@ -483,14 +541,10 @@ at::Tensor& custom_abs_out(const at::Tensor& self, at::Tensor& out) {
   LOGGING("");
   auto ttnn_tensor = tensor_impl->get_ttnn_tensor();
   LOGGING("");
-  // LOGGING(ttnn_tensor.write_to_string());
 
   LOGGING("");
   auto result = ttnn::abs(ttnn_tensor);
 
-  // LOGGING(result.write_to_string());
-
-  // this might belong somewhere else?
   LOGGING("");
   at::TtnnTensorImpl* out_tensor_impl = static_cast<at::TtnnTensorImpl*>(out.unsafeGetTensorImpl());
   LOGGING(out.device().type());
@@ -503,7 +557,6 @@ at::Tensor& custom_abs_out(const at::Tensor& self, at::Tensor& out) {
   out_tensor_impl->set_ttnn_tensor(result);
   LOGGING("");
   
-  // return at::native::abs_out(self, out);
   return out;
 }
 
@@ -536,18 +589,18 @@ c10::Device get_custom_device(int idx) {
 
 c10::Device get_custom_device_from_ttnn(IDevice* ttnn_device) {
   LOGGING("");
-  // Fix the index?
+  // TODO: Fix the index
   auto device = c10::Device(c10::DeviceType::PrivateUse1, 0);
-  if (DummyGuard::ttnn_device == nullptr) {
-    DummyGuard::ttnn_device = ttnn_device;
+  if (TtnnGuard::ttnn_device == nullptr) {
+    TtnnGuard::ttnn_device = ttnn_device;
   }
   return device;
 }
 
-// How to automatically close device without explicit calling?
+// TODO: Automatically close device without explicit calling
 void close_custom_device(c10::Device device) {
   LOGGING("");
-  DummyGuard device_guard(device);
+  TtnnGuard device_guard(device);
   IDevice* ttnn_device = device_guard.get_ttnn_device();
   TORCH_INTERNAL_ASSERT(ttnn_device != nullptr);
   ttnn::close_device(*ttnn_device);
@@ -556,8 +609,8 @@ void close_custom_device(c10::Device device) {
 
 // Get underlying ttnn tensor
 ttnn::Tensor get_ttnn_tensor(at::Tensor& tensor) {
-  // Check if this cast fails
   LOGGING("");
+  // TODO: Check if this cast fails
   at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(tensor.unsafeGetTensorImpl());
   auto ttnn_tensor = tensor_impl->get_ttnn_tensor();
   return ttnn_tensor;

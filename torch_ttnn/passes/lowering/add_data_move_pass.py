@@ -428,8 +428,11 @@ class NodeInputAligner:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
-            # g.get_attr(spec.)
-            if "val" in spec.input_node.meta and hasattr(spec.input_node.meta["val"], "device") and str(spec.input_node.meta["val"].device) == "ttnn:0":
+            if (
+                "val" in spec.input_node.meta
+                and hasattr(spec.input_node.meta["val"], "device")
+                and str(spec.input_node.meta["val"].device) == "ttnn:0"
+            ):
                 aligning_nodes.append(g.call_function(ttnn_module.get_ttnn_tensor, (spec.input_node,), {}))
             else:
                 aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
