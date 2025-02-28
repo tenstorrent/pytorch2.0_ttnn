@@ -4,6 +4,7 @@ import pytest
 import ttnn
 
 from tests.utils import assert_with_pcc
+from torch_ttnn.passes.lowering import target_wrappers
 
 
 class AddModule(torch.nn.Module):
@@ -84,7 +85,7 @@ def test_matmul(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.matmul) == 1
+    assert [node.target for node in nodes].count(target_wrappers.matmul) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
 
@@ -109,7 +110,7 @@ def test_batchmatmul(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.matmul) == 1
+    assert [node.target for node in nodes].count(target_wrappers.matmul) == 1
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.999)
 
@@ -136,9 +137,9 @@ def test_add_and_matmul(device, input_shapes):
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
     assert target.count(ttnn.add) == 1
-    assert target.count(ttnn.matmul) == 1
-    assert target.index(ttnn.add) < target.index(ttnn.matmul)
-    assert nodes[target.index(ttnn.matmul)].args[0].target == ttnn.add
-    assert nodes[target.index(ttnn.matmul)].args[1].target == ttnn.add
+    assert target.count(target_wrappers.matmul) == 1
+    assert target.index(ttnn.add) < target.index(target_wrappers.matmul)
+    assert nodes[target.index(target_wrappers.matmul)].args[0].target == ttnn.add
+    assert nodes[target.index(target_wrappers.matmul)].args[1].target == ttnn.add
     # Check inference result
     assert torch.allclose(result_before, result_after, 0.999)

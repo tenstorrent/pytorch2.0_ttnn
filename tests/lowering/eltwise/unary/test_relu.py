@@ -2,6 +2,7 @@ import torch
 import torch_ttnn
 import pytest
 import ttnn
+from torch_ttnn.passes.lowering import target_wrappers
 
 
 class ReluModule(torch.nn.Module):
@@ -29,6 +30,6 @@ def test_relu(device, input_shapes):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.relu) == 1
+    assert [node.target for node in nodes].count(target_wrappers.relu) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
