@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
 from operator import getitem
+from torch_ttnn.cpp_extension.custom_device_mode import ttnn_module
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -494,7 +495,11 @@ class NodeInputAligner:
         args, kwargs = self._extract_args_kwargs_from_spec(spec)
 
         if isinstance(spec, self.AlignSpecFromTorch):
-            return self.graph.call_function(ttnn.from_torch, args, kwargs)
+            # TODO: Add mesh support for native integration
+            if "val" in spec.input_node.meta and hasattr(spec.input_node.meta["val"], "device") and str(spec.input_node.meta["val"].device) == "ttnn:0":
+                return self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {})
+            else:
+                return self.graph.call_function(ttnn.from_torch, args, kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
             return self.graph.call_function(ttnn.to_torch, args, kwargs)
