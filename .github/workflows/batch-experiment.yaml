@@ -46,20 +46,20 @@ jobs:
             "models/resnet/test_resnet.py"
             "models/resnet50/test_resnet50.py"
             "models/roberta/test_roberta.py"
-            "models/unet/test_unet.py"
-            "models/hand_landmark/test_hand_landmark.py"
+            #"models/hand_landmark/test_hand_landmark.py"
             "models/squeeze_bert/test_squeeze_bert.py"
-            "models/llama/test_llama.py"
-            "models/timm/test_timm_image_classification.py"
+            #"models/llama/test_llama.py"
+            #"models/timm/test_timm_image_classification.py"
             "models/torchvision/test_torchvision_image_classification.py"
-            "models/unet/test_unet.py"
+            #"models/unet/test_unet.py"
             "models/albert/test_albert_question_answering.py"
             "models/albert/test_alert_sequence_classification.py"
             "models/albert/test_albert_token_classification.py"
-            "models/albert/test_albert_masked_lm.py"
+            #"models/albert/test_albert_masked_lm.py"
             "models/unet_carvana/test_unet_carvana.py"
+            "models/unet_brain/test_unet_brain.py"
             "models/autoencoder_linear/test_autoencoder_linear.py"
-            "models/perceiver_io/test_perceiver_io.py"
+            #"models/perceiver_io/test_perceiver_io.py"
           )
 
           # Preprocess file paths
@@ -197,7 +197,7 @@ jobs:
             echo "Running test: $t"
             file_path="${file_prefix}${t%%::*}"
             l_bound=1
-            u_bound=256
+            u_bound=760
             find_max_batch_size_uninitialized "$file_path" "$l_bound" "$u_bound"
           done
 
