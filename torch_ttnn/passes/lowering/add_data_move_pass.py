@@ -468,7 +468,11 @@ class NodeInputAligner:
             # return self.graph.call_function(ttnn.from_torch, args, kwargs)
         
             # TODO: Add mesh support for native integration
-            if "val" in spec.input_node.meta and hasattr(spec.input_node.meta["val"], "device") and str(spec.input_node.meta["val"].device) == "ttnn:0":
+            if (
+                "val" in spec.input_node.meta
+                and hasattr(spec.input_node.meta["val"], "device")
+                and str(spec.input_node.meta["val"].device) == "ttnn:0"
+            ):
                 return self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {})
             else:
                 return self.graph.call_function(ttnn.from_torch, args, kwargs)
