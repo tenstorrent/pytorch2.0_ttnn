@@ -6,7 +6,7 @@ from pathlib import Path
 import glob
 import logging
 
-assert os.environ.get('TT_METAL_HOME') is not None
+assert os.environ.get("TT_METAL_HOME") is not None
 tt_metal_home = Path(os.environ["TT_METAL_HOME"])
 
 cpmcache_pattern = Path(".cpmcache/**/include")
@@ -34,7 +34,7 @@ ttnn_include_paths = [
     tt_metal_home / Path("tt_metal/api"),
     tt_metal_home / Path("tt_metal/tt_stl"),
     tt_metal_home / Path("tt_metal/include/tt_metal/internal"),
-    ] + cpmcache_dirs
+] + cpmcache_dirs
 ttnn_include_paths = [str(p) for p in ttnn_include_paths]
 
 # Load the C++ extension containing your custom kernels.
@@ -64,12 +64,13 @@ ttnn_module = torch.utils.cpp_extension.load(
         str(working_directory / "open_registration_extension.cpp"),
     ],
     extra_include_paths=[str(working_directory)] + ttnn_include_paths,
-    extra_cflags=["-g", "-DFMT_HEADER_ONLY", '-std=c++20', '-stdlib=libc++'],
+    extra_cflags=["-g", "-DFMT_HEADER_ONLY", "-std=c++20", "-stdlib=libc++"],
     extra_ldflags=tt_metal_lib_paths + tt_metal_libs,
     verbose=True,
 )
 
-logging.info('Loaded custom extension.')
+logging.info("Loaded custom extension.")
+
 
 # The user will globally enable the below mode when calling this API
 def enable_ttnn_device():
@@ -77,6 +78,7 @@ def enable_ttnn_device():
     m.__enter__()
     # If you want the mode to never be disabled, then this function shouldn't return anything.
     return m
+
 
 # This is a simple TorchFunctionMode class that:
 # (a) Intercepts all torch.* calls
@@ -87,14 +89,14 @@ class TtnnDeviceMode(TorchFunctionMode):
     def __torch_function__(self, func, types, args=(), kwargs=None):
         if kwargs is None:
             kwargs = {}
-        if 'device' in kwargs and 'ttnn' in kwargs['device']:
-            device_and_idx = kwargs['device'].split(':')
+        if "device" in kwargs and "ttnn" in kwargs["device"]:
+            device_and_idx = kwargs["device"].split(":")
             if len(device_and_idx) == 1:
                 # Case 1: No index specified
-                kwargs['device'] = ttnn_module.custom_device()
+                kwargs["device"] = ttnn_module.custom_device()
             else:
                 # Case 2: The user specified a device index.
                 device_idx = int(device_and_idx[1])
-                kwargs['device'] = ttnn_module.custom_device(device_idx)
+                kwargs["device"] = ttnn_module.custom_device(device_idx)
         with torch._C.DisableTorchFunction():
             return func(*args, **kwargs)
