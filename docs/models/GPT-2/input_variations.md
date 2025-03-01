@@ -32,9 +32,9 @@
 | 28 | aten.where.self                |                  1 |           0 |         0 |          0 | ✘           |     0   |
 ***
 ### aten._softmax.default
-|    | ATen Input Variations                                                          | Status   | Isolated   |      PCC |   Host |
-|---:|:-------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 12, 7, 7]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999594 |      0 |
+|    | ATen Input Variations                                                          | Status   | Isolated   |     PCC |   Host |
+|---:|:-------------------------------------------------------------------------------|:---------|:-----------|--------:|-------:|
+|  0 | Tensor<[1, 12, 7, 7]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.99966 |      0 |
 ### aten._to_copy.default
 |    | ATen Input Variations                                                  | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -51,9 +51,9 @@
 |    | ATen Input Variations                                                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[2304]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
-|  1 | Tensor<[3072]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
-|  2 | Tensor<[768]> self = ?,<br>Tensor<[7, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | 0.999942 |      0 |
-|  3 | Tensor<[768]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?   | Done     | Done       | 0.999965 |      0 |
+|  1 | Tensor<[3072]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Done       | 0.999968 |      0 |
+|  2 | Tensor<[768]> self = ?,<br>Tensor<[7, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | 0.999944 |      0 |
+|  3 | Tensor<[768]> self = ?,<br>Tensor<[7, 768]> mat1 = ?,<br>Tensor<[768, 768]> mat2 = ?   | Done     | Done       | 0.999967 |      0 |
 ### aten.argmax.default
 |    | ATen Input Variations                              | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -100,12 +100,12 @@
 ### aten.mm.default
 |    | ATen Input Variations                                   | Status   | Isolated   |     PCC |   Host |
 |---:|:--------------------------------------------------------|:---------|:-----------|--------:|-------:|
-|  0 | Tensor<[7, 768]> self = ?,<br>Tensor<[768, 2]> mat2 = ? | Done     | Done       | 0.99994 |      0 |
+|  0 | Tensor<[7, 768]> self = ?,<br>Tensor<[768, 2]> mat2 = ? | Done     | Done       | 0.99999 |      0 |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       | 0.999995 |      0 |
-|  1 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor other = 0.044715                | Done     | Done       | 0.999995 |      0 |
+|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       | 0.999997 |      0 |
+|  1 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor other = 0.044715                | Done     | Done       | 0.999996 |      0 |
 |  2 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor other = 0.5                     | Done     | Done       | 1        |      0 |
 |  3 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor other = 0.7978845608028654      | Done     | Done       | 0.999997 |      0 |
 |  4 | Tensor<[1, 7, 3072]> self = ?,<br>Tensor<[1, 7, 3072]> other = ?         | Done     | Done       | 0.999996 |      0 |
@@ -127,9 +127,9 @@
 |---:|:------------------------------------------|:---------|:-----------|------:|-------:|
 |  0 | Tensor<[1]> self = ?,<br>number other = 7 | Done     | Done       |     1 |      0 |
 ### aten.rsub.Scalar
-|    | ATen Input Variations                                | Status   | Isolated   |     PCC |   Host |
-|---:|:-----------------------------------------------------|:---------|:-----------|--------:|-------:|
-|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.99999 |      0 |
+|    | ATen Input Variations                                | Status   | Isolated   |   PCC |   Host |
+|---:|:-----------------------------------------------------|:---------|:-----------|------:|-------:|
+|  0 | Tensor<[1, 1, 1, 7]> self = ?,<br>number other = 1.0 | Done     | Done       |     1 |      0 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                       | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -154,7 +154,7 @@
 ### aten.tanh.default
 |    | ATen Input Variations         | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 7, 3072]> self = ? | Done     | Done       | 0.998435 |      0 |
+|  0 | Tensor<[1, 7, 3072]> self = ? | Done     | Done       | 0.998413 |      0 |
 ### aten.transpose.int
 |    | ATen Input Variations                                               | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|------:|-------:|

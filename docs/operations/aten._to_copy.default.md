@@ -35,8 +35,8 @@
 |  31 | Tensor<[1, 1, 24, 24]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Done     | Fallback   | 1.0   | -1     |
 |  32 | Tensor<[1, 1, 24, 24]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                    | Done     | Fallback   | 1.0   | -1     |
 |  33 | Tensor<[1, 1, 32, 1]> self = ?,<br>Optional[int] dtype = torch.int64                                                                                    | Removed  | Fallback   | 1.0   | -1     |
-|  34 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Done     | Fallback   | 1.0   | -1     |
-|  35 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                    | Done     | Fallback   | 1.0   | -1     |
+|  34 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Unknown  | Fallback   | 1.0   | -1     |
+|  35 | Tensor<[1, 1, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bool                                                                                    | Unknown  | Fallback   | 1.0   | -1     |
 |  36 | Tensor<[1, 1, 32]> self = ?,<br>Optional[int] dtype = torch.float32                                                                                     | Done     | Fallback   | 1.0   | -1     |
 |  37 | Tensor<[1, 1, 384, 512]> self = ?,<br>Optional[int] dtype = torch.float32                                                                               | Done     | Fallback   | 1.0   | -1     |
 |  38 | Tensor<[1, 1, 45, 45]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Unknown  | Fallback   | 1.0   | -1     |
@@ -98,8 +98,8 @@
 |  94 | Tensor<[1, 16, 1, s10 + 1]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                           | Unknown  | Unknown    | N/A   | N/A    |
 |  95 | Tensor<[1, 16, 10, 10]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu    | Unknown  | Fallback   | 1.0   | -1     |
 |  96 | Tensor<[1, 16, 10, 10]> self = ?,<br>Optional[int] dtype = torch.float32                                                                                | Unknown  | Fallback   | 1.0   | -1     |
-|  97 | Tensor<[1, 16, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                               | Done     | Fallback   | 1.0   | -1     |
-|  98 | Tensor<[1, 16, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu     | Done     | Fallback   | 1.0   | -1     |
+|  97 | Tensor<[1, 16, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                               | Unknown  | Fallback   | 1.0   | -1     |
+|  98 | Tensor<[1, 16, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu     | Unknown  | Fallback   | 1.0   | -1     |
 |  99 | Tensor<[1, 16, 5, 5]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                 | Unknown  | Fallback   | 1.0   | -1     |
 | 100 | Tensor<[1, 16, 5, 64]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Unknown  | Fallback   | 1.0   | -1     |
 | 101 | Tensor<[1, 16, 6, 64]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Unknown  | Fallback   | 1.0   | -1     |
@@ -134,7 +134,7 @@
 | 130 | Tensor<[1, 256, 128, 128]> self = ?,<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu  | Done     | Fallback   | 1.0   | -1     |
 | 131 | Tensor<[1, 256, 16, 16]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu   | Done     | Fallback   | 1.0   | -1     |
 | 132 | Tensor<[1, 256, 16, 16]> self = ?,<br>Optional[int] dtype = torch.float32                                                                               | Done     | Fallback   | 1.0   | -1     |
-| 133 | Tensor<[1, 256, 23, 40]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                              | Done     | Fallback   | 1.0   | -1     |
+| 133 | Tensor<[1, 256, 23, 40]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                              | Unknown  | Fallback   | 1.0   | -1     |
 | 134 | Tensor<[1, 256, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                              | Done     | Fallback   | 1.0   | -1     |
 | 135 | Tensor<[1, 256, 32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu   | Done     | Fallback   | 1.0   | -1     |
 | 136 | Tensor<[1, 256, 32, 32]> self = ?,<br>Optional[int] dtype = torch.float32                                                                               | Done     | Fallback   | 1.0   | -1     |
@@ -223,7 +223,7 @@
 | 219 | Tensor<[15, 15]> self = ?,<br>Optional[int] dtype = torch.float32                                                                                       | Unknown  | Fallback   | 1.0   | -1     |
 | 220 | Tensor<[15, 15]> self = ?,<br>Optional[int] dtype = torch.int64                                                                                         | Unknown  | Fallback   | 1.0   | -1     |
 | 221 | Tensor<[1536]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                               | None     | Fallback   | 1.0   | -1     |
-| 222 | Tensor<[16, 1, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                   | Done     | Fallback   | 1.0   | -1     |
+| 222 | Tensor<[16, 1, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                   | Unknown  | Fallback   | 1.0   | -1     |
 | 223 | Tensor<[160]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
 | 224 | Tensor<[1632]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                               | None     | Fallback   | 1.0   | -1     |
 | 225 | Tensor<[168]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
@@ -255,7 +255,7 @@
 | 251 | Tensor<[272]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
 | 252 | Tensor<[288]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
 | 253 | Tensor<[28]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                 | None     | Fallback   | 1.0   | -1     |
-| 254 | Tensor<[32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                      | Done     | Fallback   | 1.0   | -1     |
+| 254 | Tensor<[32, 32]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                      | Unknown  | Fallback   | 1.0   | -1     |
 | 255 | Tensor<[320]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
 | 256 | Tensor<[32]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                 | None     | Fallback   | 1.0   | -1     |
 | 257 | Tensor<[334]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
