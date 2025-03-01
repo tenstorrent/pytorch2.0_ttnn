@@ -8,7 +8,6 @@ import requests
 from os import path, makedirs
 from collections.abc import Mapping, Sequence
 from typing import List, Dict, Tuple
-from torch_ttnn.cpp_extension.custom_device_mode import ttnn_module, enable_ttnn_device
 
 
 class ModelTester:
@@ -136,9 +135,6 @@ class ModelTester:
         model = self.set_model_eval(self.model)
         inputs = self.set_inputs_eval(self.inputs)
         if as_ttnn == True:
-            torch.utils.rename_privateuse1_backend("ttnn")
-            ttnn_device = ttnn_module.custom_device_from_ttnn(option.device)
-            inputs = inputs.to(ttnn_device)
             model = self.compile_model(model, option)
         outputs = self.run_model(model, inputs)
         results = self.get_results_eval(model, inputs, outputs)
