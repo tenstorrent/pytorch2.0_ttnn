@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 # Reference: https://huggingface.co/dandelin/vilt-b32-finetuned-vqa
 
 from transformers import ViltProcessor, ViltForQuestionAnswering

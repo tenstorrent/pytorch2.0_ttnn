@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 import torch
 from diffusers import StableDiffusionPipeline, UNet2DConditionModel, LMSDiscreteScheduler
 from transformers import CLIPTextModel, CLIPTokenizer

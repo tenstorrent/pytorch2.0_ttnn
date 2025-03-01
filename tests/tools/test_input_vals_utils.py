@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 import pytest
 import torch
 from tests.utils import render_metric_string_list_to_input_args_kwargs as render

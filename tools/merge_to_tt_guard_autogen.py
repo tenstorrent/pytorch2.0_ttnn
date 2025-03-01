@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 # Rename your two to_tt_guard_autogen.py as to_tt_guard_autogen1.py and to_tt_guard_autogen2.py and run this script
 import to_tt_guard_autogen1 as g1
 import to_tt_guard_autogen2 as g2
