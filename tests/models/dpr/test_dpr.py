@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 # Reference: https://huggingface.co/facebook/dpr-reader-single-nq-base
 
 from transformers import DPRReader, DPRReaderTokenizer

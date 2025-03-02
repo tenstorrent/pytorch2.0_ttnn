@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 # Reference: https://huggingface.co/docs/transformers/en/model_doc/flan-t5
 
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer

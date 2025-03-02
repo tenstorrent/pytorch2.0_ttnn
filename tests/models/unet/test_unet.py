@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 # Reference: https://pytorch.org/hub/mateuszbuda_brain-segmentation-pytorch_unet/
 
 import numpy as np
