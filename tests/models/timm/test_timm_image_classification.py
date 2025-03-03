@@ -38,13 +38,13 @@ class ThisTester(ModelTester):
 
 
 model_and_mode_list = [
-    pytest.param(["tf_efficientnet_lite0.in1k", "train"], marks=pytest.mark.compilation_xfail),
-    pytest.param(["tf_efficientnet_lite1.in1k", "train"], marks=pytest.mark.compilation_xfail),
-    pytest.param(["tf_efficientnet_lite2.in1k", "train"], marks=pytest.mark.compilation_xfail),
-    pytest.param(["tf_efficientnet_lite3.in1k", "train"], marks=pytest.mark.compilation_xfail),
-    pytest.param(["tf_efficientnet_lite4.in1k", "train"], marks=pytest.mark.compilation_xfail),
-    pytest.param(["ghostnet_100.in1k", "train"], marks=pytest.mark.compilation_xfail),
-    pytest.param(["ghostnetv2_100.in1k", "train"], marks=pytest.mark.compilation_xfail),
+    ["tf_efficientnet_lite0.in1k", "train"],
+    ["tf_efficientnet_lite1.in1k", "train"],
+    ["tf_efficientnet_lite2.in1k", "train"],
+    ["tf_efficientnet_lite3.in1k", "train"],
+    ["tf_efficientnet_lite4.in1k", "train"],
+    ["ghostnet_100.in1k", "train"],
+    ["ghostnetv2_100.in1k", "train"],
     ["inception_v4.tf_in1k", "train"],
     ["mixer_b16_224.goog_in21k", "train"],
     ["mobilenetv1_100.ra4_e3600_r224_in1k", "train"],
