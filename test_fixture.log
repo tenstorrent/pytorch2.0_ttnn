@@ -1,0 +1,19 @@
+2025-03-03 13:54:13,600 - INFO - Starting the compile_and_run fixture.
+2025-03-03 13:54:13,601 - DEBUG - Initializing test run timing.
+2025-03-03 13:54:15,261 - INFO - Loading pretrained weights from Hugging Face hub (timm/mixer_b16_224.goog_in21k)
+2025-03-03 13:54:15,264 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-03-03 13:54:15,360 - DEBUG - https://huggingface.co:443 "HEAD /timm/mixer_b16_224.goog_in21k/resolve/main/model.safetensors HTTP/11" 302 0
+2025-03-03 13:54:15,361 - INFO - [timm/mixer_b16_224.goog_in21k] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors.
+2025-03-03 13:54:15,841 - DEBUG - STREAM b'IHDR' 16 13
+2025-03-03 13:54:15,842 - DEBUG - STREAM b'eXIf' 41 764
+2025-03-03 13:54:15,842 - DEBUG - STREAM b'IDAT' 817 65536
+2025-03-03 13:54:26,095 - INFO - Test run completed successfully in 12493.71 ms.
+2025-03-03 13:54:26,095 - DEBUG - Processing runtime metrics.
+2025-03-03 13:54:26,095 - INFO - Runtime metrics saved to metrics/mixer_b16_224.goog_in21k/original-run_time_metrics.pickle.
+2025-03-03 13:54:26,095 - DEBUG - Compiling model with ttnn backend.
+2025-03-03 13:54:40,069 - INFO - Compilation and run successful in 13973.12 ms.
+2025-03-03 13:54:40,127 - INFO - Accuracy test code saved to tests/autogen_accuracy_tests/mixer_b16_224.goog_in21k_code.py.
+2025-03-03 13:56:25,869 - INFO - Accuracy data object saved to tests/autogen_accuracy_tests/mixer_b16_224.goog_in21k_inputs.pickle.
+2025-03-03 13:56:26,281 - INFO - Accuracy calculated: 0.5380305403840252.
+2025-03-03 13:56:26,289 - DEBUG - Saving metrics.
+2025-03-03 13:56:26,292 - INFO - Compiled runtime metrics saved to metrics/mixer_b16_224.goog_in21k/compiled-run_time_metrics.pickle.
