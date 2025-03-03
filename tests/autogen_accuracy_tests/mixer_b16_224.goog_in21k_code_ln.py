@@ -546,53 +546,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_8), 1e-06, )[0]
   ttnn_layer_norm_1 = ttnn.from_torch(ttnn_layer_norm_1_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_1_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_1_), ttnn_layer_norm_1))
-    # Pocetak koda za proveru
-  print(f"mixer_ln1_input: {ttnn_add_38}")
-  print(f"mixer_ln1_weight: {ttnn_from_torch_7}")
-  print(f"mixer_ln1_bias: {ttnn_from_torch_8}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_38)
-  x_2 = ttnn.to_torch(ttnn_from_torch_7)
-  x_3 = ttnn.to_torch(ttnn_from_torch_8)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln1_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln1_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln1_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln1_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln1_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln1_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_1[0], ttnn_layer_norm_1)
   ttnn_from_device_9 = ttnn.from_device(ttnn_layer_norm_1, )
   ttnn_to_layout_9 = ttnn.to_layout(ttnn_from_device_9, ttnn.ROW_MAJOR_LAYOUT, )
@@ -691,52 +644,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_20), 1e-06, )[0]
   ttnn_layer_norm_3 = ttnn.from_torch(ttnn_layer_norm_3_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_3_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_3_), ttnn_layer_norm_3))
-    # Pocetak koda za proveru
-  print(f"mixer_ln3_input: {ttnn_add_41}")
-  print(f"mixer_ln3_weight: {ttnn_from_torch_19}")
-  print(f"mixer_ln3_bias: {ttnn_from_torch_20}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_41)
-  x_2 = ttnn.to_torch(ttnn_from_torch_19)
-  x_3 = ttnn.to_torch(ttnn_from_torch_20)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln3_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln3_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln3_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln3_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln3_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln3_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_3[0], ttnn_layer_norm_3)
   ttnn_from_device_25 = ttnn.from_device(ttnn_layer_norm_3, )
   ttnn_to_layout_25 = ttnn.to_layout(ttnn_from_device_25, ttnn.ROW_MAJOR_LAYOUT, )
@@ -785,52 +692,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_26), 1e-06, )[0]
   ttnn_layer_norm_4 = ttnn.from_torch(ttnn_layer_norm_4_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_4_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_4_), ttnn_layer_norm_4))
-    # Pocetak koda za proveru
-  print(f"mixer_ln4_input: {ttnn_add_42}")
-  print(f"mixer_ln4_weight: {ttnn_from_torch_25}")
-  print(f"mixer_ln4_bias: {ttnn_from_torch_26}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_42)
-  x_2 = ttnn.to_torch(ttnn_from_torch_25)
-  x_3 = ttnn.to_torch(ttnn_from_torch_26)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln4_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln4_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln4_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln4_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln4_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln4_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_4[0], ttnn_layer_norm_4)
   ttnn_transpose_13 = ttnn.transpose(ttnn_layer_norm_4, 1, 2, )
   ttnn_from_torch_27 = ttnn.from_torch(arg28_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -881,52 +742,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_32), 1e-06, )[0]
   ttnn_layer_norm_5 = ttnn.from_torch(ttnn_layer_norm_5_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_5_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_5_), ttnn_layer_norm_5))
-    # Pocetak koda za proveru
-  print(f"mixer_ln5_input: {ttnn_add_44}")
-  print(f"mixer_ln5_weight: {ttnn_from_torch_31}")
-  print(f"mixer_ln5_bias: {ttnn_from_torch_32}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_44)
-  x_2 = ttnn.to_torch(ttnn_from_torch_31)
-  x_3 = ttnn.to_torch(ttnn_from_torch_32)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln5_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln5_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln5_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln5_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln5_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln5_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_5[0], ttnn_layer_norm_5)
   ttnn_from_device_41 = ttnn.from_device(ttnn_layer_norm_5, )
   ttnn_to_layout_41 = ttnn.to_layout(ttnn_from_device_41, ttnn.ROW_MAJOR_LAYOUT, )
@@ -975,52 +790,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_38), 1e-06, )[0]
   ttnn_layer_norm_6 = ttnn.from_torch(ttnn_layer_norm_6_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_6_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_6_), ttnn_layer_norm_6))
-    # Pocetak koda za proveru
-  print(f"mixer_ln6_input: {ttnn_add_45}")
-  print(f"mixer_ln6_weight: {ttnn_from_torch_37}")
-  print(f"mixer_ln6_bias: {ttnn_from_torch_38}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_45)
-  x_2 = ttnn.to_torch(ttnn_from_torch_37)
-  x_3 = ttnn.to_torch(ttnn_from_torch_38)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln6_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln6_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln6_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln6_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln6_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln6_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_6[0], ttnn_layer_norm_6)
   ttnn_transpose_19 = ttnn.transpose(ttnn_layer_norm_6, 1, 2, )
   ttnn_from_torch_39 = ttnn.from_torch(arg40_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -1071,52 +840,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_44), 1e-06, )[0]
   ttnn_layer_norm_7 = ttnn.from_torch(ttnn_layer_norm_7_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_7_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_7_), ttnn_layer_norm_7))
-    # Pocetak koda za proveru
-  print(f"mixer_ln7_input: {ttnn_add_47}")
-  print(f"mixer_ln7_weight: {ttnn_from_torch_43}")
-  print(f"mixer_ln7_bias: {ttnn_from_torch_44}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_47)
-  x_2 = ttnn.to_torch(ttnn_from_torch_43)
-  x_3 = ttnn.to_torch(ttnn_from_torch_44)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln7_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln7_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln7_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln7_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln7_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln7_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_7[0], ttnn_layer_norm_7)
   ttnn_from_device_57 = ttnn.from_device(ttnn_layer_norm_7, )
   ttnn_to_layout_57 = ttnn.to_layout(ttnn_from_device_57, ttnn.ROW_MAJOR_LAYOUT, )
@@ -1165,52 +888,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_50), 1e-06, )[0]
   ttnn_layer_norm_8 = ttnn.from_torch(ttnn_layer_norm_8_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_8_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_8_), ttnn_layer_norm_8))
-    # Pocetak koda za proveru
-  print(f"mixer_ln8_input: {ttnn_add_48}")
-  print(f"mixer_ln8_weight: {ttnn_from_torch_49}")
-  print(f"mixer_ln8_bias: {ttnn_from_torch_50}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_48)
-  x_2 = ttnn.to_torch(ttnn_from_torch_49)
-  x_3 = ttnn.to_torch(ttnn_from_torch_50)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln8_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln8_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln8_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln8_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln8_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln8_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_8[0], ttnn_layer_norm_8)
   ttnn_transpose_25 = ttnn.transpose(ttnn_layer_norm_8, 1, 2, )
   ttnn_from_torch_51 = ttnn.from_torch(arg52_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -1261,52 +938,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_56), 1e-06, )[0]
   ttnn_layer_norm_9 = ttnn.from_torch(ttnn_layer_norm_9_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_9_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_9_), ttnn_layer_norm_9))
-    # Pocetak koda za proveru
-  print(f"mixer_ln9_input: {ttnn_add_50}")
-  print(f"mixer_ln9_weight: {ttnn_from_torch_55}")
-  print(f"mixer_ln9_bias: {ttnn_from_torch_56}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_50)
-  x_2 = ttnn.to_torch(ttnn_from_torch_55)
-  x_3 = ttnn.to_torch(ttnn_from_torch_56)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln9_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln9_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln9_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln9_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln9_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln9_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_9[0], ttnn_layer_norm_9)
   ttnn_from_device_73 = ttnn.from_device(ttnn_layer_norm_9, )
   ttnn_to_layout_73 = ttnn.to_layout(ttnn_from_device_73, ttnn.ROW_MAJOR_LAYOUT, )
@@ -1355,52 +986,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_62), 1e-06, )[0]
   ttnn_layer_norm_10 = ttnn.from_torch(ttnn_layer_norm_10_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_10_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_10_), ttnn_layer_norm_10))
-    # Pocetak koda za proveru
-  print(f"mixer_ln10_input: {ttnn_add_51}")
-  print(f"mixer_ln10_weight: {ttnn_from_torch_61}")
-  print(f"mixer_ln10_bias: {ttnn_from_torch_62}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_51)
-  x_2 = ttnn.to_torch(ttnn_from_torch_61)
-  x_3 = ttnn.to_torch(ttnn_from_torch_62)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln10_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln10_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln10_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln10_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln10_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln10_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_10[0], ttnn_layer_norm_10)
   ttnn_transpose_31 = ttnn.transpose(ttnn_layer_norm_10, 1, 2, )
   ttnn_from_torch_63 = ttnn.from_torch(arg64_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -1451,52 +1036,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_68), 1e-06, )[0]
   ttnn_layer_norm_11 = ttnn.from_torch(ttnn_layer_norm_11_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_11_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_11_), ttnn_layer_norm_11))
-    # Pocetak koda za proveru
-  print(f"mixer_ln11_input: {ttnn_add_53}")
-  print(f"mixer_ln11_weight: {ttnn_from_torch_67}")
-  print(f"mixer_ln11_bias: {ttnn_from_torch_68}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_53)
-  x_2 = ttnn.to_torch(ttnn_from_torch_67)
-  x_3 = ttnn.to_torch(ttnn_from_torch_68)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln11_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln11_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln11_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln11_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln11_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln11_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_11[0], ttnn_layer_norm_11)
   ttnn_from_device_89 = ttnn.from_device(ttnn_layer_norm_11, )
   ttnn_to_layout_89 = ttnn.to_layout(ttnn_from_device_89, ttnn.ROW_MAJOR_LAYOUT, )
@@ -1545,52 +1084,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_74), 1e-06, )[0]
   ttnn_layer_norm_12 = ttnn.from_torch(ttnn_layer_norm_12_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_12_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_12_), ttnn_layer_norm_12))
-    # Pocetak koda za proveru
-  print(f"mixer_ln12_input: {ttnn_add_54}")
-  print(f"mixer_ln12_weight: {ttnn_from_torch_73}")
-  print(f"mixer_ln12_bias: {ttnn_from_torch_74}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_54)
-  x_2 = ttnn.to_torch(ttnn_from_torch_73)
-  x_3 = ttnn.to_torch(ttnn_from_torch_74)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln12_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln12_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln12_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln12_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln12_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln12_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_12[0], ttnn_layer_norm_12)
   ttnn_transpose_37 = ttnn.transpose(ttnn_layer_norm_12, 1, 2, )
   ttnn_from_torch_75 = ttnn.from_torch(arg76_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -1641,52 +1134,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_80), 1e-06, )[0]
   ttnn_layer_norm_13 = ttnn.from_torch(ttnn_layer_norm_13_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_13_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_13_), ttnn_layer_norm_13))
-    # Pocetak koda za proveru
-  print(f"mixer_ln13_input: {ttnn_add_56}")
-  print(f"mixer_ln13_weight: {ttnn_from_torch_79}")
-  print(f"mixer_ln13_bias: {ttnn_from_torch_80}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_56)
-  x_2 = ttnn.to_torch(ttnn_from_torch_79)
-  x_3 = ttnn.to_torch(ttnn_from_torch_80)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln13_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln13_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln13_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln13_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln13_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln13_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_13[0], ttnn_layer_norm_13)
   ttnn_from_device_105 = ttnn.from_device(ttnn_layer_norm_13, )
   ttnn_to_layout_105 = ttnn.to_layout(ttnn_from_device_105, ttnn.ROW_MAJOR_LAYOUT, )
@@ -1735,12 +1182,12 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_86), 1e-06, )[0]
   ttnn_layer_norm_14 = ttnn.from_torch(ttnn_layer_norm_14_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_14_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_14_), ttnn_layer_norm_14))
-    # Pocetak koda za proveru
+  etak koda za proveru
   print(f"mixer_ln14_input: {ttnn_add_57}")
   print(f"mixer_ln14_weight: {ttnn_from_torch_85}")
   print(f"mixer_ln14_bias: {ttnn_from_torch_86}")
   def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
+    import panda  # Pocs as pd
     tensor = tensor.contiguous()
     if tensor.dtype == torch.bfloat16:
         tensor = tensor.to(torch.float32)
@@ -1830,51 +1277,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_92), 1e-06, )[0]
   ttnn_layer_norm_15 = ttnn.from_torch(ttnn_layer_norm_15_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_15_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_15_), ttnn_layer_norm_15))
-    # Pocetak koda za proveru
-  print(f"mixer_ln15_input: {ttnn_add_59}")
-  print(f"mixer_ln15_weight: {ttnn_from_torch_91}")
-  print(f"mixer_ln15_bias: {ttnn_from_torch_92}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-  x_1 = ttnn.to_torch(ttnn_add_59)
-  x_2 = ttnn.to_torch(ttnn_from_torch_91)
-  x_3 = ttnn.to_torch(ttnn_from_torch_92)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln15_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln15_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln15_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln15_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln15_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln15_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
   test_accuracy(native_layer_norm_15[0], ttnn_layer_norm_15)
   ttnn_from_device_121 = ttnn.from_device(ttnn_layer_norm_15, )
   ttnn_to_layout_121 = ttnn.to_layout(ttnn_from_device_121, ttnn.ROW_MAJOR_LAYOUT, )
@@ -1923,53 +1325,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_98), 1e-06, )[0]
   ttnn_layer_norm_16 = ttnn.from_torch(ttnn_layer_norm_16_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_16_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_16_), ttnn_layer_norm_16))
-    # Pocetak koda za proveru
-  print(f"mixer_ln16_input: {ttnn_add_60}")
-  print(f"mixer_ln16_weight: {ttnn_from_torch_97}")
-  print(f"mixer_ln16_bias: {ttnn_from_torch_98}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_60)
-  x_2 = ttnn.to_torch(ttnn_from_torch_97)
-  x_3 = ttnn.to_torch(ttnn_from_torch_98)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln16_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln16_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln16_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln16_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln16_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln16_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_16[0], ttnn_layer_norm_16)
   ttnn_transpose_49 = ttnn.transpose(ttnn_layer_norm_16, 1, 2, )
   ttnn_from_torch_99 = ttnn.from_torch(arg100_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -2020,53 +1375,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_104), 1e-06, )[0]
   ttnn_layer_norm_17 = ttnn.from_torch(ttnn_layer_norm_17_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_17_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_17_), ttnn_layer_norm_17))
-    # Pocetak koda za proveru
-  print(f"mixer_ln17_input: {ttnn_add_62}")
-  print(f"mixer_ln17_weight: {ttnn_from_torch_103}")
-  print(f"mixer_ln17_bias: {ttnn_from_torch_104}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_62)
-  x_2 = ttnn.to_torch(ttnn_from_torch_103)
-  x_3 = ttnn.to_torch(ttnn_from_torch_104)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln17_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln17_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln17_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln17_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln17_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln17_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_17[0], ttnn_layer_norm_17)
   ttnn_from_device_137 = ttnn.from_device(ttnn_layer_norm_17, )
   ttnn_to_layout_137 = ttnn.to_layout(ttnn_from_device_137, ttnn.ROW_MAJOR_LAYOUT, )
@@ -2115,53 +1423,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_110), 1e-06, )[0]
   ttnn_layer_norm_18 = ttnn.from_torch(ttnn_layer_norm_18_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_18_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_18_), ttnn_layer_norm_18))
-    # Pocetak koda za proveru
-  print(f"mixer_ln18_input: {ttnn_add_63}")
-  print(f"mixer_ln18_weight: {ttnn_from_torch_109}")
-  print(f"mixer_ln18_bias: {ttnn_from_torch_110}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_63)
-  x_2 = ttnn.to_torch(ttnn_from_torch_109)
-  x_3 = ttnn.to_torch(ttnn_from_torch_110)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln18_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln18_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln18_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln18_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln18_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln18_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_18[0], ttnn_layer_norm_18)
   ttnn_transpose_55 = ttnn.transpose(ttnn_layer_norm_18, 1, 2, )
   ttnn_from_torch_111 = ttnn.from_torch(arg112_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -2212,53 +1473,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_116), 1e-06, )[0]
   ttnn_layer_norm_19 = ttnn.from_torch(ttnn_layer_norm_19_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_19_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_19_), ttnn_layer_norm_19))
-    # Pocetak koda za proveru
-  print(f"mixer_ln19_input: {ttnn_add_65}")
-  print(f"mixer_ln19_weight: {ttnn_from_torch_115}")
-  print(f"mixer_ln19_bias: {ttnn_from_torch_116}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_65)
-  x_2 = ttnn.to_torch(ttnn_from_torch_115)
-  x_3 = ttnn.to_torch(ttnn_from_torch_116)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln19_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln19_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln19_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln19_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln19_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln19_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_19[0], ttnn_layer_norm_19)
   ttnn_from_device_153 = ttnn.from_device(ttnn_layer_norm_19, )
   ttnn_to_layout_153 = ttnn.to_layout(ttnn_from_device_153, ttnn.ROW_MAJOR_LAYOUT, )
@@ -2307,53 +1521,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_122), 1e-06, )[0]
   ttnn_layer_norm_20 = ttnn.from_torch(ttnn_layer_norm_20_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_20_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_20_), ttnn_layer_norm_20))
-    # Pocetak koda za proveru
-  print(f"mixer_ln20_input: {ttnn_add_66}")
-  print(f"mixer_ln20_weight: {ttnn_from_torch_121}")
-  print(f"mixer_ln20_bias: {ttnn_from_torch_122}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_66)
-  x_2 = ttnn.to_torch(ttnn_from_torch_121)
-  x_3 = ttnn.to_torch(ttnn_from_torch_122)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln20_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln20_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln20_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln20_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln20_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln20_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_20[0], ttnn_layer_norm_20)
   ttnn_transpose_61 = ttnn.transpose(ttnn_layer_norm_20, 1, 2, )
   ttnn_from_torch_123 = ttnn.from_torch(arg124_1, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16)
@@ -2404,53 +1571,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_128), 1e-06, )[0]
   ttnn_layer_norm_21 = ttnn.from_torch(ttnn_layer_norm_21_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_21_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_21_), ttnn_layer_norm_21))
-    # Pocetak koda za proveru
-  print(f"mixer_ln21_input: {ttnn_add_68}")
-  print(f"mixer_ln21_weight: {ttnn_from_torch_127}")
-  print(f"mixer_ln21_bias: {ttnn_from_torch_128}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_68)
-  x_2 = ttnn.to_torch(ttnn_from_torch_127)
-  x_3 = ttnn.to_torch(ttnn_from_torch_128)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln21_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln21_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln21_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln21_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln21_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln21_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_21[0], ttnn_layer_norm_21)
   ttnn_from_device_169 = ttnn.from_device(ttnn_layer_norm_21, )
   ttnn_to_layout_169 = ttnn.to_layout(ttnn_from_device_169, ttnn.ROW_MAJOR_LAYOUT, )
@@ -2499,53 +1619,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_134), 1e-06, )[0]
   ttnn_layer_norm_22 = ttnn.from_torch(ttnn_layer_norm_22_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_22_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_22_), ttnn_layer_norm_22))
-    # Pocetak koda za proveru
-  print(f"mixer_ln22_input: {ttnn_add_69}")
-  print(f"mixer_ln22_weight: {ttnn_from_torch_133}")
-  print(f"mixer_ln22_bias: {ttnn_from_torch_134}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_69)
-  x_2 = ttnn.to_torch(ttnn_from_torch_133)
-  x_3 = ttnn.to_torch(ttnn_from_torch_134)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln22_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln22_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln22_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln22_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln22_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln22_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_22[0], ttnn_layer_norm_22)
   ttnn_transpose_67 = ttnn.transpose(ttnn_layer_norm_22, 1, 2, )
   test_accuracy(transpose_23, ttnn_transpose_67)
@@ -2610,53 +1683,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_140), 1e-06, )[0]
   ttnn_layer_norm_23 = ttnn.from_torch(ttnn_layer_norm_23_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_23_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_23_), ttnn_layer_norm_23))
-    # Pocetak koda za proveru
-  print(f"mixer_ln23_input: {ttnn_add_71}")
-  print(f"mixer_ln23_weight: {ttnn_from_torch_139}")
-  print(f"mixer_ln23_bias: {ttnn_from_torch_140}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_71)
-  x_2 = ttnn.to_torch(ttnn_from_torch_139)
-  x_3 = ttnn.to_torch(ttnn_from_torch_140)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln23_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln23_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln23_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln23_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln23_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln23_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_23[0], ttnn_layer_norm_23)
   ttnn_from_device_185 = ttnn.from_device(ttnn_layer_norm_23, )
   ttnn_to_layout_185 = ttnn.to_layout(ttnn_from_device_185, ttnn.ROW_MAJOR_LAYOUT, )
@@ -2717,53 +1743,6 @@ def forward(arg0_1, arg1_1, arg2_1, arg3_1, arg4_1, arg5_1, arg6_1, arg7_1, arg8
                                                                   ttnn.to_torch(ttnn_from_torch_146), 1e-06, )[0]
   ttnn_layer_norm_24 = ttnn.from_torch(ttnn_layer_norm_24_intermediate, device = device, layout = ttnn.TILE_LAYOUT, dtype = ttnn.bfloat16, )
   print("ttnn_layer_norm_24_: ", test_accuracy(ttnn.to_torch(ttnn_layer_norm_24_), ttnn_layer_norm_24))
-    # Pocetak koda za proveru
-  print(f"mixer_ln24_input: {ttnn_add_72}")
-  print(f"mixer_ln24_weight: {ttnn_from_torch_145}")
-  print(f"mixer_ln24_bias: {ttnn_from_torch_146}")
-  def save_tensor_to_csv(tensor, filename):
-    import pandas as pd
-    tensor = tensor.contiguous()
-    if tensor.dtype == torch.bfloat16:
-        tensor = tensor.to(torch.float32)
-    if tensor.ndim == 0:  # Scalar
-        df = pd.DataFrame([tensor.item()])
-    elif tensor.ndim == 1:  # 1D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 2:  # 2D
-        df = pd.DataFrame(tensor.numpy())
-    elif tensor.ndim == 3:  # 3D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    elif tensor.ndim == 4:  # 4D
-        df = pd.DataFrame(tensor.view(-1, tensor.size(-1)).numpy())
-    else:
-        raise ValueError("Unsupported tensor dimension")
-    df.to_csv(filename, index=False)
-  def load_tensor_from_csv(filename, shape):
-    import pandas as pd
-    df = pd.read_csv(filename)
-    data = df.values
-    tensor = torch.tensor(data)
-    # Reshape the tensor to the original shape
-    tensor = tensor.view(shape)
-    return tensor
-
-  x_1 = ttnn.to_torch(ttnn_add_72)
-  x_2 = ttnn.to_torch(ttnn_from_torch_145)
-  x_3 = ttnn.to_torch(ttnn_from_torch_146)
-  x1_shape = x_1.shape
-  x2_shape = x_2.shape
-  x3_shape = x_3.shape
-  save_tensor_to_csv(x_1, "mixer_ln24_input.csv")
-  save_tensor_to_csv(x_2, "mixer_ln24_weight.csv")
-  save_tensor_to_csv(x_3, "mixer_ln24_bias.csv")
-  load_1 = load_tensor_from_csv("mixer_ln24_input.csv", x1_shape)
-  load_2 = load_tensor_from_csv("mixer_ln24_weight.csv", x2_shape)
-  load_3 = load_tensor_from_csv("mixer_ln24_bias.csv", x3_shape)
-  test_accuracy(x_1, load_1)
-  test_accuracy(x_2, load_2)
-  test_accuracy(x_3, load_3)
-  # Kraj koda za proveru
   test_accuracy(native_layer_norm_24[0], ttnn_layer_norm_24)
   ttnn_mean = ttnn.mean(ttnn_layer_norm_24, 1, )
   ttnn_from_device_193 = ttnn.from_device(ttnn_mean, )
