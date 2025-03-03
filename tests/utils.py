@@ -162,7 +162,7 @@ class ModelTester:
             self.inputs = self.inputs.repeat(self.batch_size, *([1] * (self.inputs.dim())))
             self.inputs = self.inputs.squeeze(1)
         else:
-            raise TypeError(f"Unregonized inputs type: {type(self.inputs)}")
+            raise TypeError(f"Inputs type not supported for batching: {type(self.inputs)}")
 
     def validate_batch_size(self):
         if self.batch_size is None:
