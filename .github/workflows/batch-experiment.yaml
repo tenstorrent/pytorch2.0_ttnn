@@ -115,11 +115,14 @@ jobs:
 
               while (( not_found )); do
                   echo "Testing with batch size: $batch_size_to_test"
-                  output=$(python3 -m pytest "$test_path" -s --batch_size "$batch_size_to_test" --report_nth_iteration 1)
+                  output=$(python3 -m pytest "$test_path" -s --batch_size "$batch_size_to_test" --report_nth_iteration 1 2>&1 | tee /dev/tty)
                   exit_code=$?
 
                   if (( exit_code == 0 )); then
-                      time=$(echo "$output" | grep -o "Compilation and run successful in [0-9]*\.[0-9]* ms" | grep -o '[0-9]*\.[0-9]*')
+                      matched_line=$(echo "$output" | grep -o "Compilation and run successful in [0-9]*\.[0-9]* ms\.")
+                      echo "Matched line: [$matched_line]"
+                      time=$(echo "$matched_line" | grep -o '[0-9]*\.[0-9]*')
+                      echo "Parsed time: [$time]"
                       if [[ -z "$time" ]]; then
                           echo "No time parsed from output at batch size $batch_size_to_test"
                           not_found=0
