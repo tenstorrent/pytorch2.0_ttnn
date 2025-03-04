@@ -115,7 +115,7 @@ jobs:
 
               while (( not_found )); do
                   echo "Testing with batch size: $batch_size_to_test"
-                  output=$(python3 -m pytest "$test_path" -s --batch_size "$batch_size_to_test" --report_nth_iteration 1 2>&1 | tee /dev/stdout)
+                  output=$(python3 -m pytest "$test_path" -s --batch_size "$batch_size_to_test" --report_nth_iteration 5 2>&1 | tee /dev/stdout)
                   exit_code=$?
 
                   if (( exit_code == 0 )); then
@@ -261,7 +261,7 @@ jobs:
             file_path="${file_prefix}${temp_test%%::*}"
             l_bound=208
             u_bound=224
-            bs=4
+            bs=1
             find_best_throughput "$file_path" "$bs"
           done
 
