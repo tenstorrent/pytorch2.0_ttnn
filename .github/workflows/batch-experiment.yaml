@@ -115,7 +115,7 @@ jobs:
 
               while (( not_found )); do
                   echo "Testing with batch size: $batch_size_to_test"
-                  output=$(python3 -m pytest "$test_path" -s --batch_size "$batch_size_to_test" --report_nth_iteration 1 2>&1 | tee /dev/tty)
+                  output=$(python3 -m pytest "$test_path" -s --batch_size "$batch_size_to_test" --report_nth_iteration 1 2>&1 | tee /dev/stdout)
                   exit_code=$?
 
                   if (( exit_code == 0 )); then
