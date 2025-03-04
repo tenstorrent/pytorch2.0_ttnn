@@ -105,8 +105,6 @@ jobs:
           failed_batch_and_test_array=()
           max_batch_sizes_array=()
           counter=0
-          throughput_array=()
-          #!/bin/bash
 
           throughput_array=()
 
@@ -261,7 +259,7 @@ jobs:
             l_bound=208
             u_bound=224
             bs=4
-            find_max_throughput "$file_path" "$bs"
+            find_best_throughput "$file_path" "$bs"
           done
 
           #echo "Final Max Batches: ${failed_batch_anst_array[@]}"
