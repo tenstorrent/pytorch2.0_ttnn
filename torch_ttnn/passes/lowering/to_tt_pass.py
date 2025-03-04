@@ -9,8 +9,10 @@ from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
+    TtnnFloat32,
     TtnnInt32,
     TtnnDevice,
+    TtnnComputeKernelConfig,
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
@@ -535,10 +537,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
+                
                 new_node = g.call_function(
                     ttnn.layer_norm,
                     args=(args[0],),
-                    kwargs={"epsilon": args[4], "weight": args[2], "bias": args[3]},
+                    kwargs={"epsilon": args[4], "weight": args[2], "bias": args[3], "compute_kernel_config": TtnnComputeKernelConfig()},
                 )
                 node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
                 node_users = list(new_node.users.keys())

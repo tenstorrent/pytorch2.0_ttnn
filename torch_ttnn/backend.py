@@ -35,6 +35,12 @@ class TorchTtnnOption:
         gen_op_accuracy_tests=False,
     ):
         self.device = device
+        self.compute_kernel_config = ttnn.WormholeComputeKernelConfig(
+                        math_fidelity=ttnn.MathFidelity.HiFi4,
+                        math_approx_mode=False,
+                        fp32_dest_acc_en=True,
+                        packer_l1_acc=False,
+        )
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
         self.memory_manager = None
@@ -66,6 +72,8 @@ def register_ttnn_objects(option: TorchTtnnOption):
     that will be replaced by the ttnn objects (values) during evaluation.
     """
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
+    
+    torch.fx.graph._register_custom_builtin("ttnn_Compute_Kernel_Config", "", option.compute_kernel_config)
 
     torch.fx.graph._register_custom_builtin("ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT)
     torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
@@ -73,6 +81,7 @@ def register_ttnn_objects(option: TorchTtnnOption):
     torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
     torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
+    torch.fx.graph._register_custom_builtin("ttnn_float32", "", ttnn.float32)
 
     torch.fx.graph._register_custom_builtin(
         "ttnn_DRAM_MEMORY_CONFIG",

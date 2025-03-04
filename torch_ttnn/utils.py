@@ -96,6 +96,11 @@ def HasValidPageSize(shape, strict=False):
 class TtnnDevice:
     def __repr__(self):
         return f"ttnn_Specified_Device"
+    
+    
+class TtnnComputeKernelConfig:
+    def __repr__(self):
+        return f"ttnn_Compute_Kernel_Config"
 
 
 class TtnnRowMajorLayout:
@@ -121,6 +126,11 @@ class TtnnInt32:
 class TtnnBfloat16:
     def __repr__(self):
         return f"ttnn_bfloat16"
+    
+    
+class TtnnFloat32:
+    def __repr__(self):
+        return f"ttnn_float32"
 
 
 class TtnnDramMemoryConfig:
