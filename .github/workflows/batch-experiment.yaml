@@ -14,7 +14,8 @@ jobs:
     timeout-minutes: 6000
     strategy:
       matrix:
-        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+        #group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+        group: [1]
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"
@@ -33,7 +34,7 @@ jobs:
           file_prefix="tests/"
 
           # Assign tests dynamically based on matrix group
-          TOTAL_GROUPS=24
+          TOTAL_GROUPS=1
           CURRENT_GROUP=${{ matrix.group }}
 
           mapfile -t test_ids_verbose < <(pytest --collect-only -q -m converted_end_to_end --ignore=tests/models/autoencoder_conv tests/models/ | awk -F '::' '{print $1}' | sort -u)
@@ -104,6 +105,56 @@ jobs:
           failed_batch_and_test_array=()
           max_batch_sizes_array=()
           counter=0
+          throughput_array=()
+          #!/bin/bash
+
+          throughput_array=()
+
+          find_best_throughput() {
+              local test_path="$1"
+              local batch_size_to_test="$2"
+              local not_found=1
+
+              while (( not_found )); do
+                  echo "Testing with batch size: $batch_size_to_test"
+                  output=$(python3 -m pytest "$test_path" -s --batch_size "$batch_size_to_test" --report_nth_iteration 1)
+                  exit_code=$?
+
+                  if (( exit_code == 0 )); then
+                      time=$(echo "$output" | grep -o '[0-9]*\.[0-9]*')
+                      if [[ -z "$time" ]]; then
+                          echo "No time parsed from output at batch size $batch_size_to_test"
+                          not_found=0
+                          break
+                      fi
+
+                      echo "Parsed time (debug): $time"
+                      throughput=$(echo "scale=3; $batch_size_to_test / $time" | bc)
+                      throughput_array+=("$throughput")
+                      echo "Throughputs: ${throughput_array[@]}"
+
+                      # Check if we have at least 2 elements to compare
+                      if (( ${#throughput_array[@]} >= 2 )); then
+                          prev_throughput="${throughput_array[-2]}"
+                          curr_throughput="${throughput_array[-1]}"
+                          # Stop if throughput decreases (performance degradation)
+                          if (( $(echo "$prev_throughput > $curr_throughput" | bc -l) )); then
+                              echo "Performance degradation at batch size $batch_size_to_test, terminating test"
+                              not_found=0
+                          fi
+                      fi
+
+                      # Double the batch size for the next iteration
+                      ((batch_size_to_test *= 2))
+                  else
+                      echo "Pytest failed at batch size $batch_size_to_test with exit code $exit_code"
+                      not_found=0
+                  fi
+              done
+
+              echo "Final throughputs: ${throughput_array[@]}"
+          }
+
 
           # Define function for finding max batch size when uninitialized
           find_max_batch_size_uninitialized() {
@@ -205,11 +256,13 @@ jobs:
               continue
             fi
             echo "Running test: $t"
-            file_path="${file_prefix}${t%%::*}"
+            temp_test="models/bert/test_bert.py"
+            file_path="${file_prefix}${temp_test%%::*}"
             l_bound=208
             u_bound=224
-            find_max_batch_size_uninitialized "$file_path" "$l_bound" "$u_bound"
+            bs=4
+            find_max_throughput "$file_path" "$bs"
           done
 
-          echo "Final Max Batches: ${failed_batch_anst_array[@]}"
+          #echo "Final Max Batches: ${failed_batch_anst_array[@]}"
           exit 0
