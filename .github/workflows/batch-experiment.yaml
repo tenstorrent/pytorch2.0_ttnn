@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         #group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
-        group: [1, 2, 3]
+        group: [1, 2, 3, 4]
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"
@@ -34,7 +34,7 @@ jobs:
           file_prefix="tests/"
 
           # Assign tests dynamically based on matrix group
-          TOTAL_GROUPS=3
+          TOTAL_GROUPS=4
           CURRENT_GROUP=${{ matrix.group }}
 
           mapfile -t test_ids_verbose < <(pytest --collect-only -q -m converted_end_to_end --ignore=tests/models/autoencoder_conv tests/models/ | awk -F '::' '{print $1}' | sort -u)
@@ -43,7 +43,7 @@ jobs:
           # Array of tests to exclude
           exclude_tests=(
             #"models/mnist/test_mnist.py"
-            #"models/MobileNetV2/test_MobileNetV2.py"
+            "models/MobileNetV2/test_MobileNetV2.py"
             #"models/openpose/test_openpose_v2.py"
             #"models/resnet/test_resnet.py"
            #"models/resnet50/test_resnet50.py"
@@ -54,7 +54,7 @@ jobs:
             #"models/timm/test_timm_image_classification.py"
             #"models/torchvision/test_torchvision_image_classification.py"
             #"models/unet/test_unet.py"
-            #"models/albert/test_albert_question_answering.py"
+            "models/albert/test_albert_question_answering.py"
             #"models/albert/test_alert_sequence_classification.py"
             #"models/albert/test_albert_token_classification.py"
             #"models/albert/test_albert_masked_lm.py"
