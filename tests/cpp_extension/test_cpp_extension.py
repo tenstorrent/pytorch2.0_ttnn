@@ -163,6 +163,7 @@ class MnistModel(torch.nn.Module):
         x = F.log_softmax(x, dim=1)
         return x
 
+
 @pytest.mark.skip(reason="Does not support conv for now")
 def test_mnist_with_cpp_extension(device):
     model_name = "Mnist"
