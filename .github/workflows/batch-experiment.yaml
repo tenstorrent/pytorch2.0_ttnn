@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         #group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
-        group: [1]
+        group: [1, 2, 3]
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"
@@ -34,7 +34,7 @@ jobs:
           file_prefix="tests/"
 
           # Assign tests dynamically based on matrix group
-          TOTAL_GROUPS=1
+          TOTAL_GROUPS=3
           CURRENT_GROUP=${{ matrix.group }}
 
           mapfile -t test_ids_verbose < <(pytest --collect-only -q -m converted_end_to_end --ignore=tests/models/autoencoder_conv tests/models/ | awk -F '::' '{print $1}' | sort -u)
@@ -42,29 +42,30 @@ jobs:
 
           # Array of tests to exclude
           exclude_tests=(
-            "models/mnist/test_mnist.py"
-            "models/MobileNetV2/test_MobileNetV2.py"
-            "models/openpose/test_openpose_v2.py"
-            "models/resnet/test_resnet.py"
-            "models/resnet50/test_resnet50.py"
-            "models/roberta/test_roberta.py"
-            "models/hand_landmark/test_hand_landmark.py"
+            #"models/mnist/test_mnist.py"
+            #"models/MobileNetV2/test_MobileNetV2.py"
+            #"models/openpose/test_openpose_v2.py"
+            #"models/resnet/test_resnet.py"
+           #"models/resnet50/test_resnet50.py"
+            #"models/roberta/test_roberta.py"
+            #"models/hand_landmark/test_hand_landmark.py"
             #"models/squeeze_bert/test_squeeze_bert.py"
-            "models/llama/test_llama.py"
-            "models/timm/test_timm_image_classification.py"
-            "models/torchvision/test_torchvision_image_classification.py"
-            "models/unet/test_unet.py"
+            #"models/llama/test_llama.py"
+            #"models/timm/test_timm_image_classification.py"
+            #"models/torchvision/test_torchvision_image_classification.py"
+            #"models/unet/test_unet.py"
             #"models/albert/test_albert_question_answering.py"
             #"models/albert/test_alert_sequence_classification.py"
             #"models/albert/test_albert_token_classification.py"
-            "models/albert/test_albert_masked_lm.py"
-            "models/unet_carvana/test_unet_carvana.py"
-            "models/unet_brain/test_unet_brain.py"
+            #"models/albert/test_albert_masked_lm.py"
+            #"models/unet_carvana/test_unet_carvana.py"
+            #"models/unet_brain/test_unet_brain.py"
             #"models/autoencoder_linear/test_autoencoder_linear.py"
-            "models/perceiver_io/test_perceiver_io.py"
+            #"models/perceiver_io/test_perceiver_io.py"
             #"models/dpr/test_dpr.py"
-            "models/bloom/test_bloom.py"
+            #models/bloom/test_bloom.py"
             #"models/distilbert/test_distilbert.py"
+            "models/bert/test_bert.py"
 
           )
 
@@ -107,7 +108,7 @@ jobs:
           counter=0
 
           throughput_array=()
-
+          latency_array=()
           find_best_throughput() {
               local test_path="$1"
               local batch_size_to_test="$2"
@@ -130,18 +131,23 @@ jobs:
                       fi
 
                       echo "Parsed time (debug): $time"
-                      throughput=$(echo "scale=3; $batch_size_to_test / $time" | bc)
+                      throughput=$(echo "scale=10; $batch_size_to_test / ($time / 1000)" | bc)
                       throughput_array+=("$throughput")
+                      latency=$(echo "scale=10; $time / 1000" | bc)
+                      latency_array+=("$latency")
                       echo "Throughputs: ${throughput_array[@]}"
+                      echo "Latencies: ${latency_array[@]}"
 
                       # Check if we have at least 2 elements to compare
                       if (( ${#throughput_array[@]} >= 2 )); then
                           prev_throughput="${throughput_array[-2]}"
                           curr_throughput="${throughput_array[-1]}"
+                          echo "(Debug) Prev, Curr: $prev_throughput $curr_throughput"
                           # Stop if throughput decreases (performance degradation)
                           if (( $(echo "$prev_throughput > $curr_throughput" | bc -l) )); then
                               echo "Performance degradation at batch size $batch_size_to_test, terminating test"
                               not_found=0
+                              break
                           fi
                       fi
 
@@ -150,6 +156,7 @@ jobs:
                   else
                       echo "Pytest failed at batch size $batch_size_to_test with exit code $exit_code"
                       not_found=0
+                      break
                   fi
               done
 
@@ -257,8 +264,7 @@ jobs:
               continue
             fi
             echo "Running test: $t"
-            temp_test="models/bert/test_bert.py"
-            file_path="${file_prefix}${temp_test%%::*}"
+            file_path="${file_prefix}${t%%::*}"
             l_bound=208
             u_bound=224
             bs=1
