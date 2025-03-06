@@ -44,7 +44,7 @@ class ThisTester(ModelTester):
         pytest.param("albert/albert-base-v2", marks=pytest.mark.converted_end_to_end),
         pytest.param("albert/albert-large-v2", marks=pytest.mark.converted_end_to_end),
         pytest.param("albert/albert-xlarge-v2", marks=pytest.mark.converted_end_to_end),
-        # "albert/albert-xxlarge-v2",
+        "albert/albert-xxlarge-v2",
     ],
 )
 def test_albert_masked_lm(record_property, model_name, mode):
