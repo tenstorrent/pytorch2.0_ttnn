@@ -99,10 +99,10 @@ jobs:
           fi
           test_ids=("models/resnet50/test_resnet50.py")
           # Slice the test array for the current group
-          group_test_ids=("${test_ids[@]:START_INDEX:TESTS_PER_GROUP}")
-          #echo "All tests ($TOTAL_TESTS): ${test_ids[@]}"
-          echo "Running tests in group $CURRENT_GROUP..."
-          echo "Tests assigned to this group: ${group_test_ids[@]}"
+          # group_test_ids=("${test_ids[@]:START_INDEX:TESTS_PER_GROUP}")
+          # echo "All tests ($TOTAL_TESTS): ${test_ids[@]}"
+          # echo "Running tests in group $CURRENT_GROUP..."
+          # echo "Tests assigned to this group: ${group_test_ids[@]}"
 
           failed_batch_and_test_array=()
           max_batch_sizes_array=()
@@ -260,18 +260,18 @@ jobs:
           }
 
           # Main loop to distribute test runs across groups
-          for t in "${group_test_ids[@]}"; do
-            if [ -z "$t" ]; then 
-              continue
-            fi
-            #t="tests/models/yolov5/test_yolov5.py"
-            echo "Running test: $t"
-            file_path="${file_prefix}${t%%::*}"
-            l_bound=208
-            u_bound=224
-            bs=1
-            find_best_throughput "$file_path" "$bs"
-          done
+          #for t in "${group_test_ids[@]}"; do
+          #  if [ -z "$t" ]; then 
+          #    continue
+          #  fi
+          t="models/resnet50/test_resnet50.py"
+          echo "Running test: $t"
+          file_path="${file_prefix}${t%%::*}"
+          l_bound=208
+          u_bound=224
+          bs=1
+          find_best_throughput "$file_path" "$bs"
+          #done
 
           #echo "Final Max Batches: ${failed_batch_anst_array[@]}"
           exit 0
