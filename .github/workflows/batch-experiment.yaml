@@ -42,10 +42,10 @@ jobs:
 
           # Array of tests to exclude
           exclude_tests=(
-            #"models/mnist/test_mnist.py"
+            "models/mnist/test_mnist.py"
             "models/MobileNetV2/test_MobileNetV2.py"
             "models/openpose/test_openpose_v2.py"
-            #"models/resnet/test_resnet.py"
+            "models/resnet/test_resnet.py"
             #"models/resnet50/test_resnet50.py"
             "models/roberta/test_roberta.py"
             "models/hand_landmark/test_hand_landmark.py"
@@ -63,7 +63,7 @@ jobs:
             "models/autoencoder_linear/test_autoencoder_linear.py"
             "models/perceiver_io/test_perceiver_io.py"
             "models/dpr/test_dpr.py"
-            #models/bloom/test_bloom.py"
+            models/bloom/test_bloom.py"
             "models/distilbert/test_distilbert.py"
             "models/bert/test_bert.py"
 
