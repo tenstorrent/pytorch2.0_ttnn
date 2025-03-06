@@ -52,7 +52,9 @@ def _rename_input_args_from_graph_break(output_nodes, node):
     if node.name == "clone":
         for out_arg in reversed(output_nodes[-1]):
             if out_arg.name.startswith("primals"):
-                node.replace_all_uses_with(out_arg, delete_user_cb=lambda node: node != out_arg)
+                node.replace_all_uses_with(
+                    out_arg, delete_user_cb=lambda node: node != out_arg
+                )
                 break
 
     """
@@ -73,7 +75,9 @@ def _rename_input_args_from_graph_break(output_nodes, node):
                 first_primal_idx = i
                 break
         tangent_node = output_nodes[-1][first_primal_idx - 1]
-        node.replace_all_uses_with(tangent_node, delete_user_cb=lambda node: node != tangent_node)
+        node.replace_all_uses_with(
+            tangent_node, delete_user_cb=lambda node: node != tangent_node
+        )
 
 
 def _compute_key(node):
@@ -90,7 +94,9 @@ def _compute_key(node):
             tensor_meta = node.meta["val"][0]
     else:
         tensor_meta = ""
-    return str(node.meta["seq_nr"]) + node.meta["original_aten"]._name + str(tensor_meta)
+    return (
+        str(node.meta["seq_nr"]) + node.meta["original_aten"]._name + str(tensor_meta)
+    )
 
 
 def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
@@ -274,13 +280,17 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
     """
     Now map all aten ops to ttnn ops.
     """
-    aten_to_ttnn_map = _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes)
+    aten_to_ttnn_map = _map_aten_to_ttnn_ops(
+        ttnn_graph, aten_name_to_node_map, output_nodes
+    )
 
     """
     Gather all ttnn ops into one list. Use `aten_to_ttnn_map` to determine where to insert
     the test_accuracy functions. 
     """
-    ttnn_all_nodes = _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map)
+    ttnn_all_nodes = _process_ttnn_ops(
+        ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map
+    )
 
     """
     Finally convert interleaved nodes to python code for this graph
@@ -289,16 +299,20 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
 
     forward_signature = f"def forward({', '.join(arg_node_names)}):"
     # comment out signature if not the first graph
-    graph_code = [forward_signature] if len(output_nodes) == 0 else ["   # " + forward_signature]
+    graph_code = (
+        [forward_signature] if len(output_nodes) == 0 else ["   # " + forward_signature]
+    )
     graph_code.append("  device = ttnn.open_device(device_id=0, l1_small_size=16384)")
-    graph_code.append(f"""  
+    graph_code.append(
+        f"""  
   compute_kernel_config = ttnn.WormholeComputeKernelConfig(
         math_fidelity=ttnn.MathFidelity.HiFi4,
         math_approx_mode=False,
         fp32_dest_acc_en=True,
         packer_l1_acc=False,
         )
-""")
+"""
+    )
     for node in aten_all_nodes:
         if node.op == "output":
             output_nodes.append(node.args[0])
@@ -451,7 +465,9 @@ def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_i
     # Tracks the output nodes for models with graph breakages
     output_nodes = []
     for aten_graph, ttnn_graph in zip(aten_fx_graphs, ttnn_fx_graphs):
-        graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes)
+        graph_code = _build_code_from_aten_ttnn_graphs(
+            aten_graph, ttnn_graph, output_nodes
+        )
         test_accuracy_graph_codes.append("\n".join(graph_code))
 
     _generate_code(model_name, test_accuracy_graph_codes, all_inputs)

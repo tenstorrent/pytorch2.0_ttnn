@@ -36,10 +36,10 @@ class TorchTtnnOption:
     ):
         self.device = device
         self.compute_kernel_config = ttnn.WormholeComputeKernelConfig(
-                        math_fidelity=ttnn.MathFidelity.HiFi4,
-                        math_approx_mode=False,
-                        fp32_dest_acc_en=True,
-                        packer_l1_acc=False,
+            math_fidelity=ttnn.MathFidelity.HiFi4,
+            math_approx_mode=False,
+            fp32_dest_acc_en=True,
+            packer_l1_acc=False,
         )
         self.gen_graphviz = gen_graphviz
         self._out_fx_graphs = list()
@@ -72,16 +72,19 @@ def register_ttnn_objects(option: TorchTtnnOption):
     that will be replaced by the ttnn objects (values) during evaluation.
     """
     torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
-    
-    torch.fx.graph._register_custom_builtin("ttnn_Compute_Kernel_Config", "", option.compute_kernel_config)
 
-    torch.fx.graph._register_custom_builtin("ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT)
+    torch.fx.graph._register_custom_builtin(
+        "ttnn_Compute_Kernel_Config", "", option.compute_kernel_config
+    )
+
+    torch.fx.graph._register_custom_builtin(
+        "ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT
+    )
     torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
 
     torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
     torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
-    torch.fx.graph._register_custom_builtin("ttnn_float32", "", ttnn.float32)
 
     torch.fx.graph._register_custom_builtin(
         "ttnn_DRAM_MEMORY_CONFIG",
@@ -131,7 +134,9 @@ def aten_backend(
 
         pm_fold = PassManager(passes=[ConstantFoldingPass()])
         gm_fold, modified = pm_fold(gm)
-        option.original_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm_fold.graph.nodes))
+        option.original_schema_list.extend(
+            metrics.collect_input_variations_from_list_nodes(gm_fold.graph.nodes)
+        )
 
     # Do not continue with compilation if bypass
     if option.bypass_compile:
@@ -167,11 +172,15 @@ def aten_backend(
 
     # Add graphviz pass interleavly if needed
     if option.gen_graphviz:
-        passes_with_graphviz = [GraphvizPass(f"metrics/{option.metrics_path}/00.origin")]
+        passes_with_graphviz = [
+            GraphvizPass(f"metrics/{option.metrics_path}/00.origin")
+        ]
         for idx in range(len(passes)):
             passes_with_graphviz.append(passes[idx])
             passes_with_graphviz.append(
-                GraphvizPass(f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}")
+                GraphvizPass(
+                    f"metrics/{option.metrics_path}/{idx + 1:02d}.{passes[idx].__class__.__name__}"
+                )
             )
         passes = passes_with_graphviz
 
@@ -187,7 +196,9 @@ def aten_backend(
 
     # Run eviction opt pass if enabled
     if option.run_eviction_opt == True:
-        assert option.run_mem_analysis == True, "Eviction pass depends on memory analysis pass!"
+        assert (
+            option.run_mem_analysis == True
+        ), "Eviction pass depends on memory analysis pass!"
         from torch_ttnn.passes.eviction_pass import EvictionPass
 
         nth_eviction = 1
@@ -198,7 +209,9 @@ def aten_backend(
             if nth_eviction > max_evictions_limit:
                 assert False, "Max evictions done, still model doesn't fit in memory!"
 
-            guilty_op, tensors_to_evict = mem_utils.which_tensors_to_evict(option.memory_manager)
+            guilty_op, tensors_to_evict = mem_utils.which_tensors_to_evict(
+                option.memory_manager
+            )
             # This indicates splitting is required
             if tensors_to_evict == -1:
                 break
@@ -223,7 +236,9 @@ def aten_backend(
             nth_eviction += 1
 
     if option.metrics_path:
-        option.compiled_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
+        option.compiled_schema_list.extend(
+            metrics.collect_input_variations_from_list_nodes(gm.graph.nodes)
+        )
 
     option._out_fx_graphs.append(gm.graph)
 
@@ -255,7 +270,9 @@ def ttnn_backend(
     if options.gen_op_accuracy_tests and options._all_inputs is None:
         import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
 
-        options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
+        options._all_inputs = generate_op_accuracy_tests.generate_flat_args(
+            gm, example_inputs
+        )
 
     tracer_option = options.tracer_option
     if tracer_option is not None:
@@ -263,8 +280,12 @@ def ttnn_backend(
 
         out_prefix = f"fw_{tracer_option['model_name']}"
         out_folder = tracer_option["out_folder"]
-        trace_orig = tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
-        trace_modi = tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
+        trace_orig = (
+            tracer_option["trace_orig"] if "trace_orig" in tracer_option else True
+        )
+        trace_modi = (
+            tracer_option["trace_modi"] if "trace_modi" in tracer_option else False
+        )
         fw_compiler = Tracer(
             partial(aten_backend, options=options),
             out_prefix,
@@ -275,4 +296,6 @@ def ttnn_backend(
         return aot_autograd(fw_compiler=fw_compiler)(gm, example_inputs)
     else:
         gm = insert_clones_for_input_aliasing(gm)
-        return aot_autograd(fw_compiler=partial(aten_backend, options=options))(gm, example_inputs)
+        return aot_autograd(fw_compiler=partial(aten_backend, options=options))(
+            gm, example_inputs
+        )
