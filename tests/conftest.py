@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+import datetime
+
 import pytest
 import ttnn
 import torch
@@ -120,6 +122,8 @@ def skip_by_platform(request, device):
 
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
+    start_ts = datetime.datetime.now(datetime.timezone.utc)
+    end_ts = None
     logging.info("Starting the compile_and_run fixture.")
 
     runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
@@ -133,6 +137,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
         start = time.perf_counter() * 1000
         yield
         end = time.perf_counter() * 1000
+        end_ts = datetime.datetime.now(datetime.timezone.utc)
         runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
         logging.info(f"Test run completed successfully in {runtime_metrics['run_time']} ms.")
     except Exception as e:
@@ -153,6 +158,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
             os.makedirs(p, exist_ok=True)
 
             original_metrics_path = p / "original-run_time_metrics.pickle"
+            runtime_metrics["start_ts"] = start_ts
+            runtime_metrics["end_ts"] = end_ts
+
             with open(original_metrics_path, "wb") as f:
                 pickle.dump(runtime_metrics, f)
             logging.info(f"Runtime metrics saved to {original_metrics_path}.")
@@ -232,6 +240,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 option.bypass_compile = True
                 option.reset_containers()
                 model_tester.test_model(as_ttnn=True, option=option)
+                end_ts = datetime.datetime.now(datetime.timezone.utc)
             except Exception as e2:
                 logging.critical(
                     "Rerun with bypass compilation failed. Please check model or model.generate.",
@@ -254,6 +263,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 "original-schema_list",
             )
             compiled_metrics_path = p / "compiled-run_time_metrics.pickle"
+            comp_runtime_metrics["start_ts"] = start_ts
+            comp_runtime_metrics["end_ts"] = end_ts
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
             logging.info(f"Compiled runtime metrics saved to {compiled_metrics_path}.")
