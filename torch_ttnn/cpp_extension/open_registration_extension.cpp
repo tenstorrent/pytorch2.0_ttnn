@@ -361,7 +361,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
             // TODO: Distinguish between int32 and uint32
             std::vector<uint32_t> self_cast;
             for (int i = 0; i < logical_volume; ++i) {
-                auto long_storage_ptr = static_cast<uint32_t*>(self.storage().data_ptr().get());
+                auto long_storage_ptr = static_cast<long*>(self.storage().data_ptr().get());
                 self_cast.push_back(long_storage_ptr[i]);
             }
 
