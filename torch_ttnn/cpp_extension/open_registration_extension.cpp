@@ -575,13 +575,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
 // We could do that by letting the user pass in a device index in our exposed device function.
 // Note that if you do that, you'll also need to register a device guard to core.
 // See `c10/core/impl/DeviceGuardImplInterface.h:C10_REGISTER_GUARD_IMPL`.
-c10::Device get_custom_device(int idx) {
-    LOGGING("");
-    auto device = c10::Device(c10::DeviceType::PrivateUse1, idx);
-    return device;
-}
 
-c10::Device get_custom_device_from_ttnn(IDevice* ttnn_device) {
+c10::Device as_torch_device(IDevice* ttnn_device) {
     LOGGING("");
     // TODO: Fix the index
     auto device = c10::Device(c10::DeviceType::PrivateUse1, 0);
@@ -592,7 +587,7 @@ c10::Device get_custom_device_from_ttnn(IDevice* ttnn_device) {
 }
 
 // TODO: Automatically close device without explicit calling
-void close_custom_device(c10::Device device) {
+void close_torch_device(c10::Device device) {
     LOGGING("");
     TtnnGuard device_guard(device);
     IDevice* ttnn_device = device_guard.get_ttnn_device();
@@ -615,9 +610,7 @@ ttnn::Tensor get_ttnn_tensor(at::Tensor& tensor) {
 // that's implemented in C++.
 // The implementation in this file maps directly to the `PrivateUse1` device type.
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("custom_device", &get_custom_device, "get custom device object");
-    m.def(
-        "custom_device_from_ttnn", &get_custom_device_from_ttnn, "get custom device object from existing ttnn device");
-    m.def("close_custom_device", &close_custom_device, "close custom device object");
+    m.def("as_torch_device", &as_torch_device, "get torch device from existing ttnn device");
+    m.def("close_torch_device", &close_torch_device, "close torch device and associated ttnn device");
     m.def("get_ttnn_tensor", &get_ttnn_tensor, "get underlying ttnn tensor");
 }
