@@ -71,6 +71,7 @@ ttnn_module = torch.utils.cpp_extension.load(
 )
 
 logging.info("Loaded custom extension.")
+torch.utils.rename_privateuse1_backend("ttnn")
 
 
 # The user will globally enable the below mode when calling this API
