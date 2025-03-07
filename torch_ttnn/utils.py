@@ -74,7 +74,11 @@ def get_opname(node):
 
 def users_have_getitem(node):
     for user in list(node.users.keys()):
-        if user.op != "output" and user.op != "placeholder" and user.target.__name__ == "getitem":
+        if (
+            user.op != "output"
+            and user.op != "placeholder"
+            and user.target.__name__ == "getitem"
+        ):
             return user
     return None
 
@@ -96,6 +100,11 @@ def HasValidPageSize(shape, strict=False):
 class TtnnDevice:
     def __repr__(self):
         return f"ttnn_Specified_Device"
+
+
+class TtnnComputeKernelConfig:
+    def __repr__(self):
+        return f"ttnn_Compute_Kernel_Config"
 
 
 class TtnnRowMajorLayout:
