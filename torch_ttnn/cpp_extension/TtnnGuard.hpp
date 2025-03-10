@@ -109,7 +109,6 @@ struct TtnnDeviceGuard final : public c10::impl::DeviceGuardImplInterface {
     }
 };
 
-
 struct TtnnGuard {
     explicit TtnnGuard() = delete;
     explicit TtnnGuard(at::DeviceIndex device_index) : guard_(device_index) {}
