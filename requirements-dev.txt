@@ -13,7 +13,7 @@ sentencepiece==0.2.0
 protobuf==5.27.3
 mlp-mixer-pytorch==0.1.1
 datasets
-diffusers
+diffusers==0.32.2
 pytorchcv
 librosa
 soundfile

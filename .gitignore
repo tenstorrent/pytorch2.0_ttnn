@@ -12,3 +12,5 @@ metrics
 metrics-autogen-op
 data
 .ttnn_runtime_artifacts
+test_fixture.log
+
