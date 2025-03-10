@@ -16,9 +16,9 @@ jobs:
       #- uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
-          echo $ARCH_NAME
-          #python3 -m pip list | grep ttnn
-          pip3 install ttnn
+          #echo $ARCH_NAME
+          python3 -m pip list
+          pip3 install tqdm
           python3 -m pytest --github-report tests/tools/ -s
 
   # build-docker-image:
