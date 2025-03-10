@@ -16,7 +16,12 @@ jobs:
       #- uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
-          echo $PWD
+          pwd
+          ls
+          cd ..
+          pwd
+          ls
+          
           python3 -m pytest --github-report tests/tools/ -s
 
   # build-docker-image:
