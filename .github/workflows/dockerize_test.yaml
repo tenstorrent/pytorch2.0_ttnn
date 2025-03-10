@@ -10,7 +10,7 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["self-hosted"]
-    image: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-amd64:fde9fe12936813272bdfaff81729e54a47e2bc96
+    container: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-amd64:fde9fe12936813272bdfaff81729e54a47e2bc96
     steps:      
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup        
