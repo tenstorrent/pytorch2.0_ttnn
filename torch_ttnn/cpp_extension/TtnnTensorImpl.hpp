@@ -21,11 +21,11 @@ struct TtnnTensorImpl : public TensorImpl {
 
     void set_sizes_and_strides_as(const at::Tensor& the_template);
 
-    ttnn::Tensor get_ttnn_tensor();
+    ttnn::Tensor get_ttnn_tensor() const;
 
     void set_ttnn_tensor(const ttnn::Tensor& tensor);
 
-    ttnn::Shape get_logical_shape();
+    ttnn::Shape get_logical_shape() const;
 
     /**
      * Return a TensorImpl that is a shallow-copy of this TensorImpl.
@@ -56,7 +56,6 @@ struct TtnnTensorImpl : public TensorImpl {
 private:
     ttnn::Tensor ttnn_tensor_;
     ttnn::Shape logical_shape_;
-    bool is_empty_initialized_;
 };
 
 }  // namespace at
