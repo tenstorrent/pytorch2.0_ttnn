@@ -1,6 +1,7 @@
 name: "Dockerize running a test"
 
 on:
+  push:
   workflow_dispatch: # manual trigger
 
 jobs:
