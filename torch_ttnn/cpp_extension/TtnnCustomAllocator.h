@@ -20,4 +20,3 @@ struct TtnnCustomAllocator final : at::Allocator {
 
     at::DeleterFnPtr raw_deleter() const override { return &ReportAndDelete; }
 };
-

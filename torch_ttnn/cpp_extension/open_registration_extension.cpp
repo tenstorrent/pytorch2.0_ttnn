@@ -11,14 +11,15 @@
 // errors about ambiguity.
 #include "ttnn/device.hpp"
 #include "ttnn/operations/creation.hpp"
+#include "ttnn/tensor/tensor_utils.hpp"
 #include "tt-metalium/small_vector.hpp"
 #include "tt-metalium/bfloat16.hpp"
 #include "ttnn/operations/core/core.hpp"
 
+#include "extension_utils.hpp"
 #include "TtnnCustomAllocator.h"
 #include "TtnnTensorImpl.hpp"
 #include "TtnnGuard.hpp"
-#include "extension_utils.hpp"
 
 // Debug Utils
 template <typename T>
@@ -31,73 +32,68 @@ void vector_compare(const std::vector<T>& first, const std::vector<T>& second) {
     }
 }
 
-void compare_torch_and_cpu_ttnn_tensors(const at::Tensor& torch_tensor, const ttnn::Tensor& ttnn_tensor) {
+using VariantVectorTy = std::variant<std::vector<float>, std::vector<int>>;
+
+VariantVectorTy tensor_to_vector(const at::Tensor& tensor) {
+    auto dtype = tensor.dtype();
+    if (dtype == at::ScalarType::BFloat16) {
+        auto torch_float = tensor.to(at::kFloat);
+        std::vector<float> v(torch_float.data_ptr<float>(), torch_float.data_ptr<float>() + torch_float.numel());
+        LOGGING("torch_tensor: ", v);
+        return v;
+    } else if (dtype == at::ScalarType::Int || dtype == at::ScalarType::Long) {
+        auto torch_int = tensor.toType(at::ScalarType::Int);
+        std::vector<int> v(torch_int.data_ptr<int>(), torch_int.data_ptr<int>() + torch_int.numel());
+        LOGGING("torch_tensor: ", v);
+        return v;
+    } else {
+        TORCH_INTERNAL_ASSERT(false);
+    }
+}
+
+VariantVectorTy tensor_to_vector(const ttnn::Tensor& ttnn_tensor) {
+    auto ttnn_dtype = ttnn_tensor.dtype();
+    auto is_tensor_on_device = ttnn::is_tensor_on_device_or_multidevice(ttnn_tensor);
+
+    ttnn::Tensor ttnn_tensor_tmp = ttnn_tensor;
+    if (is_tensor_on_device) {
+        auto logical_shape = ttnn_tensor.get_logical_shape();
+        auto logical_rank = logical_shape.rank();
+        if (logical_rank == 1) {
+            ttnn::Shape new_shape({1, logical_shape[0]});
+            ttnn_tensor_tmp = ttnn_tensor.reshape(new_shape);
+        }
+    }
+    if (ttnn_dtype == ttnn::DataType::BFLOAT16) {
+        std::vector<float> ttnn_vector = ttnn_tensor_tmp.to_vector<float>();
+        LOGGING("src_dev: ", ttnn_vector);
+        return ttnn_vector;
+    } else if (ttnn_dtype == ttnn::DataType::UINT32) {
+        auto ttnn_vector = ttnn_tensor_tmp.to_vector<uint32_t>();
+        std::vector<int> src_vector_int;
+        convert_vector_from_uint32_to_int(src_vector_int, ttnn_vector);
+        LOGGING("src_dev: ", src_vector_int);
+        return src_vector_int;
+    } else {
+        TORCH_INTERNAL_ASSERT(false);
+    }
+}
+
+void compare_torch_and_ttnn_tensors(const at::Tensor& torch_tensor, const ttnn::Tensor& ttnn_tensor) {
     const auto DEBUG_CPP_EXT = std::getenv("DEBUG_CPP_EXT") != nullptr;
     if (DEBUG_CPP_EXT) {
         auto ttnn_dtype = ttnn_tensor.dtype();
         if (ttnn_dtype == ttnn::DataType::BFLOAT16) {
-            // Convert torch tensor to vector
-            auto torch_float = torch_tensor.to(at::kFloat);
-            std::vector<float> v(torch_float.data_ptr<float>(), torch_float.data_ptr<float>() + torch_float.numel());
-            LOGGING("torch_tensor: ", v);
+            auto torch_vector = std::get<std::vector<float>>(tensor_to_vector(torch_tensor));
+            auto ttnn_vector = std::get<std::vector<float>>(tensor_to_vector(ttnn_tensor));
 
-            // TODO: Assert that ttnn_tensor is on CPU first
-            // Convert ttnn tensor on cpu to vector
-            std::vector<float> ttnn_cpu_vector = ttnn_tensor.to_vector<float>();
-            LOGGING("ttnn_cpu_tensor: ", ttnn_cpu_vector);
-
-            // Compare both
-            vector_compare(v, ttnn_cpu_vector);
+            vector_compare(torch_vector, ttnn_vector);
         } else if (ttnn_dtype == ttnn::DataType::UINT32) {
-            // Convert torch tensor to vector
-            auto torch_int = torch_tensor.toType(at::ScalarType::Int);
-            std::vector<int> v(torch_int.data_ptr<int>(), torch_int.data_ptr<int>() + torch_int.numel());
-            LOGGING("torch_tensor: ", v);
+            auto torch_vector = std::get<std::vector<int>>(tensor_to_vector(torch_tensor));
+            auto ttnn_vector = std::get<std::vector<int>>(tensor_to_vector(ttnn_tensor));
 
-            // TODO: Assert that ttnn_tensor is on CPU first
-            // Convert ttnn tensor on cpu to vector
-            auto ttnn_cpu_vector = ttnn_tensor.to_vector<uint32_t>();
-            std::vector<int> ttnn_cpu_vector_int;
-            convert_vector_from_uint32_to_int(ttnn_cpu_vector_int, ttnn_cpu_vector);
-            LOGGING("ttnn_cpu_tensor: ", ttnn_cpu_vector_int);
-
-            // Compare both
-            vector_compare(v, ttnn_cpu_vector_int);
+            vector_compare(torch_vector, ttnn_vector);
         }
-    }
-}
-
-void compare_torch_and_device_ttnn_tensors(
-    const at::Tensor& torch_tensor, const ttnn::Tensor& ttnn_tensor, const ttnn::Shape& logical_shape) {
-    const auto DEBUG_CPP_EXT = std::getenv("DEBUG_CPP_EXT") != nullptr;
-    if (DEBUG_CPP_EXT) {
-        // bfloat version
-        auto logical_rank = logical_shape.rank();
-        if (logical_rank == 1) {
-            ttnn::Shape new_shape({1, logical_shape[0]});
-            Tensor src_reshaped = ttnn_tensor.reshape(new_shape);
-            LOGGING("src_dev: ", src_reshaped.to_vector<float>());
-        } else {
-            LOGGING("src_dev: ", ttnn_tensor.to_vector<float>());
-        }
-
-        // uint32 version
-        // auto logical_rank = logical_shape.rank();
-        // if (logical_rank == 1) {
-        //     ttnn::Shape new_shape({1, logical_shape[0]});
-        //     Tensor src_reshaped = src_dev.reshape(new_shape);
-        //     if (dtype == ttnn::DataType::UINT32) {
-        //         auto src_reshaped_vector = src_reshaped.to_vector<uint32_t>();
-        //         std::vector<int> src_vector_int;
-        //         convert_vector_from_uint32_to_int(src_vector_int, src_reshaped_vector);
-        //         LOGGING("src_dev: ", src_vector_int);
-        //     }
-        // } else {
-        //     auto src_vector = src_dev.to_vector<uint32_t>();
-        //     std::vector<int> src_vector_int;
-        //     convert_vector_from_uint32_to_int(src_vector_int, src_vector);
-        //     LOGGING("src_dev: ", src_vector_int);
-        // }
     }
 }
 
@@ -201,7 +197,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
                 ttnn::Layout::ROW_MAJOR);
 
             // Verify the data is created on TTNN tensor correctly
-            compare_torch_and_cpu_ttnn_tensors(self, src_cpu);
+            compare_torch_and_ttnn_tensors(self, src_cpu);
 
             // TODO: Find out why there are problems when passing device directly to `to_layout` function
             ttnn::Tensor src_layout =
@@ -209,7 +205,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
             ttnn::Tensor src_dev = src_layout.to_device(ttnn_device);
 
             // Verify the device data is correct
-            // compare_torch_and_device_ttnn_tensors();
+            compare_torch_and_ttnn_tensors(self, src_dev);
 
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(src_dev);
@@ -242,7 +238,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
             vector_compare(v, src_cpu_vector_int);
 
             // Verify the data is created on TTNN tensor correctly
-            compare_torch_and_cpu_ttnn_tensors(self, src_cpu);
+            compare_torch_and_ttnn_tensors(self, src_cpu);
 
             // TODO: Find out why there are problems when passing device directly to `to_layout` function
             ttnn::Tensor src_layout =
@@ -250,7 +246,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
             ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
 
             // Verify the device data is correct
-            // compare_torch_and_device_ttnn_tensors();
+            compare_torch_and_ttnn_tensors(self, src_dev);
 
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(src_dev);
