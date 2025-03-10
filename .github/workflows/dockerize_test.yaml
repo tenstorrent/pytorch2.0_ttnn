@@ -9,6 +9,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
+      ARCH_NAME: "wormhole_b0"
     runs-on: ["self-hosted"]
     container: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc 
     #container: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-amd64:fde9fe12936813272bdfaff81729e54a47e2bc96
@@ -22,7 +23,8 @@ jobs:
           #pip3 install tqdm
 
 
-          python3 -m pytest tests/tools/ -s
+          gdb --args python3 -m pytest --github-report tests/tools/ -s
+
 
   # build-docker-image:
   #   uses: ./.github/workflows/build-docker-artifact.yaml
