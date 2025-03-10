@@ -16,7 +16,6 @@ TtnnTensorImpl::TtnnTensorImpl(
     sizes_and_strides_.set_sizes(size);
     ttnn::SmallVector<uint32_t> small_vector(size.begin(), size.end());
     logical_shape_ = ttnn::Shape(small_vector);
-    is_empty_initialized_ = true;
 }
 
 void TtnnTensorImpl::set_sizes_and_strides(const IntArrayRef& int_array_ref) {
@@ -27,31 +26,14 @@ void TtnnTensorImpl::set_sizes_and_strides_as(const at::Tensor& the_template) {
     sizes_and_strides_.set_sizes(the_template.sizes());
 }
 
-ttnn::Tensor TtnnTensorImpl::get_ttnn_tensor() {
+ttnn::Tensor TtnnTensorImpl::get_ttnn_tensor() const {
     LOGGING("");
-    if (is_empty_initialized_) {
-        at::Device at_device = GET_OPTIONAL_OR_ASSERT(device_opt_);
-        TtnnGuard device_guard(at_device);
-        IDevice* ttnn_device = device_guard.get_ttnn_device();
-
-        auto ttnn_dtype = dtype_torch_to_ttnn(c10::typeMetaToScalarType(this->dtype()));
-        ttnn_tensor_ = ttnn::empty(
-            get_logical_shape(),
-            ttnn_dtype,
-            ttnn::TILE_LAYOUT,
-            ttnn_device,
-            MemoryConfig{TensorMemoryLayout::INTERLEAVED, BufferType::DRAM, std::nullopt});
-        is_empty_initialized_ = false;
-    }
-
     TORCH_CHECK(ttnn_tensor_.tensor_attributes != nullptr);
     return ttnn_tensor_;
 }
 
 void TtnnTensorImpl::set_ttnn_tensor(const ttnn::Tensor& tensor) {
     LOGGING("");
-    // TORCH_CHECK(ttnn_tensor_.tensor_attributes == nullptr);
-    is_empty_initialized_ = false;
     ttnn_tensor_ = tensor;
 }
 
@@ -94,7 +76,7 @@ void TtnnTensorImpl::shallow_copy_from(const c10::intrusive_ptr<TensorImpl>& imp
     refresh_numel();
 }
 
-ttnn::Shape TtnnTensorImpl::get_logical_shape() {
+ttnn::Shape TtnnTensorImpl::get_logical_shape() const {
     // TODO: Do we need to check if this is valid?
     return logical_shape_;
 }
