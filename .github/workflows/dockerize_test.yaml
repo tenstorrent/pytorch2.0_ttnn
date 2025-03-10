@@ -12,10 +12,13 @@ jobs:
       ARCH_NAME: "wormhole_b0"
     runs-on: ["self-hosted"]
     #container: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release/wormhole_b0:latest-rc
-    container: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-amd64:fde9fe12936813272bdfaff81729e54a47e2bc96
+    container: 
+      image: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-amd64:fde9fe12936813272bdfaff81729e54a47e2bc96
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup        
+      #- uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           
