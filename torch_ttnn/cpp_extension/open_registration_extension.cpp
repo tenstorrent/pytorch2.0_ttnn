@@ -12,7 +12,6 @@
 #include "ttnn/device.hpp"
 #include "ttnn/operations/creation.hpp"
 #include "ttnn/tensor/tensor_utils.hpp"
-#include "tt-metalium/small_vector.hpp"
 #include "tt-metalium/bfloat16.hpp"
 #include "ttnn/operations/core/core.hpp"
 
@@ -129,17 +128,32 @@ at::Tensor create_empty_tensor(
     LOGGING("size: ", size);
     LOGGING("dtype: ", dtype_opt.value());
 
-    // Create storage with 0 size
+    // Create torch storage with 0 size
     auto storage_impl = c10::make_intrusive<c10::StorageImpl>(
         c10::StorageImpl::use_byte_size_t(),
         0,
         &ttnn_custom_alloc,
         /*resizeable=*/true);
 
-    auto torch_tensor =
-        at::detail::make_tensor<at::TtnnTensorImpl>(private_use_ks, dtype_meta, device, size, storage_impl);
+    TtnnGuard device_guard(device);
+    IDevice* ttnn_device = device_guard.get_ttnn_device();
+    auto ttnn_dtype = dtype_torch_to_ttnn(dtype);
+    ttnn::SmallVector<uint32_t> small_vector(size.begin(), size.end());
+    auto logical_shape = ttnn::Shape(small_vector);
 
-    return torch_tensor;
+    // Create ttnn::empty tensor on device
+    auto ttnn_tensor = ttnn::empty(
+        logical_shape,
+        ttnn_dtype,
+        ttnn::TILE_LAYOUT,
+        ttnn_device,
+        MemoryConfig{TensorMemoryLayout::INTERLEAVED, BufferType::DRAM, std::nullopt});
+
+    // Equivalent to at::detail::make_tensor<at::TtnnTensorImpl>(Args...)
+    auto ttnn_impl = c10::make_intrusive<at::TtnnTensorImpl>(private_use_ks, dtype_meta, device, size, storage_impl);
+    ttnn_impl->set_ttnn_tensor(ttnn_tensor);
+
+    return at::Tensor(ttnn_impl);
 }
 
 // =====================================
