@@ -11,7 +11,7 @@ jobs:
       pytest_report_title: "⭐️ Tools Tests"
       ARCH_NAME: "wormhole_b0"
     runs-on: ["self-hosted"]
-    container: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release/wormhole_b0
+    container: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release/wormhole_b0:latest-rc
     #container: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-amd64:fde9fe12936813272bdfaff81729e54a47e2bc96
     steps:      
       - uses: actions/checkout@v4
