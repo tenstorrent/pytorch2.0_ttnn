@@ -1,6 +1,6 @@
 import torch
 import torch_ttnn
-from torch_ttnn.cpp_extension.custom_device_mode import ttnn_module
+from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module
 import time
 
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
