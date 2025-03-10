@@ -22,8 +22,9 @@ jobs:
           python3 -m pip list
           #pip3 install tqdm
 
-
-          gdb --args python3 -m pytest --github-report tests/tools/ -s
+          (gdb) run -m pytest --github-report tests/tools/ -s
+          (gdb) bt
+          #gdb --args python3 -m pytest tests/tools/ -s
 
 
   # build-docker-image:
