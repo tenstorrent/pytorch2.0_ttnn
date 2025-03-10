@@ -52,17 +52,16 @@ tt_metal_libs = ["-l" + p for p in tt_metal_libs]
 
 # Use clang to match ttnn build
 os.environ["CXX"] = "clang++-17"
-# c++20 needed for __cpp_concepts
-# c++20 -std=libc++ needed for source_location
 
 working_file_path = Path(os.path.realpath(__file__))
 working_directory = working_file_path.parents[0]
 
 ttnn_module = torch.utils.cpp_extension.load(
-    name="custom_device_extension",
+    name="ttnn_device_extension",
     sources=[
         str(working_directory / "open_registration_extension.cpp"),
         str(working_directory / "TtnnTensorImpl.cpp"),
+        str(working_directory / "TtnnGuard.cpp"),
     ],
     extra_include_paths=[str(working_directory)] + ttnn_include_paths,
     extra_cflags=["-g", "-DFMT_HEADER_ONLY", "-std=c++20", "-stdlib=libc++"],
@@ -84,7 +83,7 @@ def enable_ttnn_device():
 
 # This is a simple TorchFunctionMode class that:
 # (a) Intercepts all torch.* calls
-# (b) Checks for kwargs of the form `device="foo:i"`
+# (b) Checks for kwargs of the form `device="ttnn:i"`
 # (c) Turns those into custom device objects: `device=ttnn_module.custom_device(i)`
 # (d) Forwards the call along into pytorch.
 class TtnnDeviceMode(TorchFunctionMode):

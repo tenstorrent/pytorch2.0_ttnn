@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string.h>
-
 #include <iostream>
 
 #include "c10/core/TensorImpl.h"
@@ -12,19 +10,11 @@
 namespace at {
 
 struct TtnnTensorImpl : public TensorImpl {
-    // TODO: Only difference is the storage type, combine these two
     TtnnTensorImpl(
         at::DispatchKeySet key_set,
         const caffe2::TypeMeta data_type,
         c10::Device device,
-        ttnn::Tensor& ttnn_tensor,
-        c10::intrusive_ptr<c10::StorageImpl> storage);
-
-    TtnnTensorImpl(
-        at::DispatchKeySet key_set,
-        const caffe2::TypeMeta data_type,
-        c10::Device device,
-        const ttnn::Tensor& ttnn_tensor,
+        const at::IntArrayRef& size,
         const c10::Storage& storage);
 
     void set_sizes_and_strides(const IntArrayRef& int_array_ref);
@@ -34,6 +24,8 @@ struct TtnnTensorImpl : public TensorImpl {
     ttnn::Tensor get_ttnn_tensor();
 
     void set_ttnn_tensor(const ttnn::Tensor& tensor);
+
+    ttnn::Shape get_logical_shape();
 
     /**
      * Return a TensorImpl that is a shallow-copy of this TensorImpl.
@@ -63,8 +55,8 @@ struct TtnnTensorImpl : public TensorImpl {
 
 private:
     ttnn::Tensor ttnn_tensor_;
-    // TODO: Debug only, should probably remove as it might be costly
-    std::string ttnn_tensor_string_;
+    ttnn::Shape logical_shape_;
+    bool is_empty_initialized_;
 };
 
 }  // namespace at

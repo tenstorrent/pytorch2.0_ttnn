@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
 from operator import getitem
-from torch_ttnn.cpp_extension.custom_device_mode import ttnn_module
+from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
