@@ -13,7 +13,7 @@ jobs:
     container: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-amd64:fde9fe12936813272bdfaff81729e54a47e2bc96
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup        
+      #- uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
