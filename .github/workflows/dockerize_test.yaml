@@ -55,7 +55,10 @@ jobs:
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup        
+      - uses: ./.github/actions/common_repo_setup
+      - name: Install OpenGL Dependencies
+        run: |
+          apt-get update && apt-get install -y libgl1-mesa-glx
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
