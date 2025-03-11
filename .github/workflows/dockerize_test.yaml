@@ -55,7 +55,7 @@ jobs:
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup        
+      #- uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
@@ -71,7 +71,7 @@ jobs:
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
       #- uses: ./.github/actions/common_lowering_tests
       - name: Run select lowering tests
         run: |
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true          
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
       - name: Run select model tests
         run: |
           python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s
@@ -175,7 +175,7 @@ jobs:
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Input Variations Tests
         run: |
@@ -204,7 +204,7 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+     # - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -227,7 +227,7 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+     # - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -253,7 +253,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+    # - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
@@ -282,7 +282,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+   #   - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
