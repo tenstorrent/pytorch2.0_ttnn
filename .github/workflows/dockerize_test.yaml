@@ -87,15 +87,21 @@ jobs:
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
     env:      
       pytest_verbosity: 0
-      pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
+      pytest_report_title: "⭐️ Model Tests"    
     steps:
+      - name: Install Git LFS
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+
       - uses: actions/checkout@v4
         with:
           lfs: true          
       - uses: ./.github/actions/common_repo_setup
       - name: Run select model tests
         run: |
-          python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s
+          python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s --gen_op_accuracy_tests
 #      - uses: ./.github/actions/common_model_tests
 
 #      - name: Upload Metrics Artifact
