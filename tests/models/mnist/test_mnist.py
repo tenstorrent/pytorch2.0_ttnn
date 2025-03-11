@@ -55,7 +55,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", pytest.param("eval", marks=pytest.mark.compilation_xfail)],
+    ["train", "eval"],
 )
 def test_mnist_train(record_property, mode):
     model_name = "Mnist"
