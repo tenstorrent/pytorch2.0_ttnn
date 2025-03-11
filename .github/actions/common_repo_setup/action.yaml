@@ -1,3 +1,30 @@
+#name: 'Setup Python Environment'
+#description: 'Sets up Python and installs dependencies'
+#runs:
+#  using: "composite"
+#  steps:
+#    - name: Setup Telemetry
+#      uses: catchpoint/workflow-telemetry-action@v2
+
+#    - name: Setup Python 3.8
+#      uses: actions/setup-python@v5
+#      with:
+#        python-version: '3.8'
+        #cache: 'pip'
+        #cache-dependency-path: |
+        #  requirements-dev.txt       
+
+#    - name: Install Dependencies
+#      shell: bash
+#      run: |
+#        df -h
+#        python3 -m pip install --upgrade pip                    
+#        python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
+#        python3 -m pip install -r requirements-dev.txt
+#        python3 -m pip install pytest-github-report
+#        df -h
+
+#    - uses: ./.github/actions/common_cleanup
 name: 'Setup Python Environment'
 description: 'Sets up Python and installs dependencies'
 runs:
@@ -10,12 +37,16 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.8'
-        #cache: 'pip'
-        #cache-dependency-path: |
-        #  requirements-dev.txt       
+
+    - name: Prepare Pip Cache Directory
+      shell: bash
+      run: |
+        mkdir -p /tmp/pip-cache
 
     - name: Install Dependencies
       shell: bash
+      env:
+        PIP_CACHE_DIR: /tmp/pip-cache
       run: |
         df -h
         python3 -m pip install --upgrade pip                    
@@ -23,5 +54,10 @@ runs:
         python3 -m pip install -r requirements-dev.txt
         python3 -m pip install pytest-github-report
         df -h
+      
+    - name: Cleanup Pip Cache Directory
+      shell: bash
+      run: |
+        rm -rf /tmp/pip-cache
 
     - uses: ./.github/actions/common_cleanup
