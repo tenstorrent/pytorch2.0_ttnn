@@ -48,7 +48,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
-    runs-on: ["in-service"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -61,7 +61,7 @@ jobs:
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
-    runs-on: ["in-service"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -80,7 +80,7 @@ jobs:
 
   model-tests:
     needs: lowering-tests
-    runs-on: ["in-service"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -161,7 +161,7 @@ jobs:
   model-autogen-op-tests:
     #needs: [push-autogen-op-tests]
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -244,7 +244,7 @@ jobs:
 
   gen-and-test-model-accuracy:
     needs: [model-tests]
-    runs-on: ["in-service"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -273,7 +273,7 @@ jobs:
   collect-metrics:
     needs: [model-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
