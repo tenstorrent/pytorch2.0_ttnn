@@ -60,8 +60,9 @@ ttnn_module = torch.utils.cpp_extension.load(
     name="ttnn_device_extension",
     sources=[
         str(working_directory / "open_registration_extension.cpp"),
-        str(working_directory / "TtnnTensorImpl.cpp"),
+        str(working_directory / "TtnnCustomAllocator.cpp"),
         str(working_directory / "TtnnGuard.cpp"),
+        str(working_directory / "TtnnTensorImpl.cpp"),
     ],
     extra_include_paths=[str(working_directory)] + ttnn_include_paths,
     extra_cflags=["-g", "-DFMT_HEADER_ONLY", "-std=c++20", "-stdlib=libc++"],
