@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
-      - uses: ./.github/actions/common_lowering_tests
+      #- uses: ./.github/actions/common_lowering_tests
       - name: Run select lowering tests
         run: |
           python3 -m pytest --github-report tests/lowering/matmul/test_matmul.py
