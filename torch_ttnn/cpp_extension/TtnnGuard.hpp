@@ -30,111 +30,53 @@ static uint16_t CURR_DEVICE = -1;
 // Create and register a dummy device guard.
 struct TtnnDeviceGuard final : public c10::impl::DeviceGuardImplInterface {
     static constexpr c10::DeviceType static_type = c10::DeviceType::PrivateUse1;
-    TtnnDeviceGuard() { LOGGING(""); }
-    explicit TtnnDeviceGuard(c10::DeviceType t) {
-        // LOGGING("");
-        TORCH_INTERNAL_ASSERT(t == c10::DeviceType::PrivateUse1);
-    }
-    at::DeviceType type() const override {
-        LOGGING("");
-        return at::DeviceType::PrivateUse1;
-    }
-    at::Device exchangeDevice(at::Device d) const override {
-        // LOGGING("");
-        TORCH_INTERNAL_ASSERT(d.type() == at::DeviceType::PrivateUse1);
-        TORCH_INTERNAL_ASSERT(d.index() < deviceCount(), "Error: device index ", d.index(), " does not exist.");
-        at::Device old_device = getDevice();
-        if (old_device.index() != d.index()) {
-            // "set the active device"
-            CURR_DEVICE = d.index();
-        }
-        return old_device;
-    }
-    at::Device getDevice() const override {
-        // LOGGING("");
-        return at::Device(at::DeviceType::PrivateUse1, CURR_DEVICE);
-    }
-    void setDevice(at::Device d) const override {
-        // LOGGING("");
-        TORCH_INTERNAL_ASSERT(d.type() == at::DeviceType::PrivateUse1);
-        TORCH_INTERNAL_ASSERT(d.index() < deviceCount(), "Error: device index ", d.index(), " does not exist.");
-        at::Device current_device = getDevice();
-        if (current_device != d) {
-            CURR_DEVICE = d.index();
-        }
-    }
-    void uncheckedSetDevice(at::Device d) const noexcept override {
-        // LOGGING("");
-        auto current_device = getDevice();
-        if (current_device != d) {
-            CURR_DEVICE = d.index();
-        }
-    }
-    at::Stream getStream(at::Device d) const noexcept override {
-        // no-op
-        return at::Stream(at::Stream::DEFAULT, d);
-    }
+    TtnnDeviceGuard();
+    explicit TtnnDeviceGuard(c10::DeviceType t);
+    at::DeviceType type() const override;
+    at::Device exchangeDevice(at::Device d) const override;
+    at::Device getDevice() const override;
+    void setDevice(at::Device d) const override;
+    void uncheckedSetDevice(at::Device d) const noexcept override;
+    at::Stream getStream(at::Device d) const noexcept override;
     // NB: These do NOT set the current device
-    at::Stream exchangeStream(at::Stream) const noexcept override {
-        // no-op
-        return at::Stream(at::Stream::DEFAULT, at::Device(at::DeviceType::PrivateUse1, CURR_DEVICE));
-    }
-    at::DeviceIndex deviceCount() const noexcept override {
-        // Hardcoding the number of "valid" devices here at 2.
-        return 2;
-    }
+    at::Stream exchangeStream(at::Stream) const noexcept override;
+    at::DeviceIndex deviceCount() const noexcept override;
 
     // Event-related functions
     void record(
         void** /*event*/,
         const at::Stream& /*stream*/,
         const at::DeviceIndex /*device_index*/,
-        const c10::EventFlag /*flag*/) const override {
-        TORCH_CHECK(false, at::DeviceType::PrivateUse1, " backend doesn't support events.");
-    }
-    void block(void* /*event*/, const at::Stream& /*stream*/) const override {
-        LOGGING("");
-        TORCH_CHECK(false, at::DeviceType::PrivateUse1, " backend doesn't support events.")
-    }
-    bool queryEvent(void* /*event*/) const override {
-        LOGGING("");
-        TORCH_CHECK(false, at::DeviceType::PrivateUse1, " backend doesn't support events.")
-    }
-    void destroyEvent(void* /*event*/, const at::DeviceIndex /*device_index*/) const noexcept override {}
+        const c10::EventFlag /*flag*/) const override;
+    void block(void* /*event*/, const at::Stream& /*stream*/) const override;
+    bool queryEvent(void* /*event*/) const override;
+    void destroyEvent(void* /*event*/, const at::DeviceIndex /*device_index*/) const noexcept override;
 
     // Stream-related functions
-    bool queryStream(const at::Stream& /*stream*/) const override { return true; }
-    void synchronizeStream(const at::Stream& /*stream*/) const override {
-        // Don't wait for anything.
-    }
+    bool queryStream(const at::Stream& /*stream*/) const override;
+    void synchronizeStream(const at::Stream& /*stream*/) const override;
 };
 
 struct TtnnGuard {
     explicit TtnnGuard() = delete;
-    explicit TtnnGuard(at::DeviceIndex device_index) : guard_(device_index) {}
-    explicit TtnnGuard(at::Device device) : guard_(device) {}
+    explicit TtnnGuard(at::DeviceIndex device_index);
+    explicit TtnnGuard(at::Device device);
     TtnnGuard(const TtnnGuard&) = delete;
     TtnnGuard& operator=(const TtnnGuard&) = delete;
     TtnnGuard(TtnnGuard&& other) = delete;
     TtnnGuard& operator=(TtnnGuard&& other) = delete;
 
-    void set_device(at::Device device) { guard_.set_device(device); }
+    void set_device(at::Device device);
 
-    void reset_device(at::Device device) { guard_.reset_device(device); }
+    void reset_device(at::Device device);
 
-    void set_index(at::DeviceIndex device_index) { guard_.set_index(device_index); }
+    void set_index(at::DeviceIndex device_index);
 
-    at::Device original_device() const { return guard_.original_device(); }
+    at::Device original_device() const;
 
-    at::Device current_device() const { return guard_.current_device(); }
+    at::Device current_device() const;
 
-    IDevice* get_ttnn_device() {
-        LOGGING("");
-        if (!ttnn_device) {
-            ttnn_device = &ttnn::open_device(0);
-        }
-        return ttnn_device;
-    }
+    IDevice* get_ttnn_device();
 
     static IDevice* ttnn_device;
 
