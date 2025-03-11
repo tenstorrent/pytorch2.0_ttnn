@@ -16,7 +16,7 @@
 #include "ttnn/operations/core/core.hpp"
 
 #include "extension_utils.hpp"
-#include "TtnnCustomAllocator.h"
+#include "TtnnCustomAllocator.hpp"
 #include "TtnnTensorImpl.hpp"
 #include "TtnnGuard.hpp"
 
