@@ -22,8 +22,7 @@ jobs:
       - name: Run Tools Tests 
         run: |
           
-
-          python3 -m pytest tests/tools/ -s
+          python3 -m pytest tests/pattern/ -s
 
 
   # build-docker-image:
