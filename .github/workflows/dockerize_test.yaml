@@ -101,7 +101,7 @@ jobs:
 
   push-autogen-op-tests:
     needs: [model-tests]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
