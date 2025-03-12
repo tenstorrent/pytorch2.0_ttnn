@@ -68,6 +68,7 @@ jobs:
           pwd
           ls
           cd ..
+          echo "$PYTHONPATH"
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
@@ -184,7 +185,6 @@ jobs:
         run: echo "uid_gid=$(id -u):$(id -g)" >> $GITHUB_OUTPUT
   model-autogen-op-tests:
     #needs: [push-autogen-op-tests]
-    needs: [get-uid-gid]
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
