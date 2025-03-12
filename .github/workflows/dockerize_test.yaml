@@ -84,12 +84,12 @@ jobs:
           python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s --gen_op_accuracy_tests
 #      - uses: ./.github/actions/common_model_tests
 
-#      - name: Upload Metrics Artifact
-#        if: success()  # Only run if tests passed
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: model-tests-metrics-group-${{ matrix.group }}
-#          path: metrics/
+      - name: Upload Metrics Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-tests-metrics
+          path: metrics/
 #
       - name: Upload All Accuracy Tests and Inputs Artifacts
         if: success()  # Only run if tests passed
@@ -253,7 +253,7 @@ jobs:
 
   collect-metrics:
     needs: [model-autogen-op-tests]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
