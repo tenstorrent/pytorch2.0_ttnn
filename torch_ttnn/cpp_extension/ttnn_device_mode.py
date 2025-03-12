@@ -12,27 +12,23 @@ tt_metal_home = Path(os.environ["TT_METAL_HOME"])
 cpmcache_pattern = Path(".cpmcache/**/include")
 cpmcache_dirs = glob.glob(str(tt_metal_home / cpmcache_pattern), recursive=True)
 
-# site_packages = Path("/home/ubuntu/virtualenv/torch_ttnn/lib/python3.8/site-packages")
-site_packages = tt_metal_home
-
 ttnn_include_paths = [
-    site_packages,
-    site_packages / Path("ttnn/cpp"),
-    site_packages / Path("tt_metal/api"),
-    site_packages / Path("tt_metal/third_party/umd/device/api"),
-    site_packages / Path("tt_metal/hostdevcommon/api"),
+    tt_metal_home,
+    tt_metal_home / Path("ttnn/cpp"),
+    tt_metal_home / Path("tt_metal/api"),
+    tt_metal_home / Path("tt_metal/third_party/umd/device/api"),
+    tt_metal_home / Path("tt_metal/hostdevcommon/api"),
+    tt_metal_home / Path("tt_metal/third_party/tracy/public"),
+    tt_metal_home / Path("tt_metal"),
+    tt_metal_home / Path("tt_metal/tt_stl"),
+    tt_metal_home / Path("ttnn"),
     tt_metal_home / Path(".cpmcache/reflect/e75434c4c5f669e4a74e4d84e0a30d7249c1e66f"),
-    site_packages / Path("tt_metal/third_party/tracy/public"),
-    site_packages / Path("tt_metal"),
-    site_packages / Path("tt_metal/tt_stl"),
-    site_packages / Path("ttnn"),
 ] + cpmcache_dirs
 ttnn_include_paths = [str(p) for p in ttnn_include_paths]
 
 # Load the C++ extension containing your custom kernels.
 tt_metal_lib_paths = [
     tt_metal_home / Path("build/lib"),
-    # site_packages / Path("ttnn/build/lib"),
 ]
 tt_metal_lib_paths = ["-L" + str(p) + " -Wl,-rpath=" + str(p) for p in tt_metal_lib_paths]
 tt_metal_libs = [
