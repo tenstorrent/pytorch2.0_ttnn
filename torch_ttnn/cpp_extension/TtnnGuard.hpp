@@ -76,9 +76,9 @@ struct TtnnGuard {
 
     at::Device current_device() const;
 
-    IDevice* get_ttnn_device();
+    ttnn::IDevice* get_ttnn_device();
 
-    static IDevice* ttnn_device;
+    static ttnn::IDevice* ttnn_device;
 
 private:
     c10::impl::InlineDeviceGuard<TtnnDeviceGuard> guard_;
