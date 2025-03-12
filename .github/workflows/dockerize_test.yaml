@@ -75,6 +75,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
+      - name: Install OpenGL Dependencies
+        run: |
+          apt-get update && apt-get install -y libgl1-mesa-glx
       #- uses: ./.github/actions/common_lowering_tests
       - name: Run select lowering tests
         run: |
@@ -181,7 +184,7 @@ jobs:
 
     env:
       pytest_verbosity: 0
-      pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
+      pytest_report_title: "⭐️ Model Input Variations Tests}}"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
