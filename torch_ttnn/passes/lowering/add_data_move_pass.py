@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+import logging
 import torch
 import ttnn
 from torch_ttnn.utils import (
@@ -121,7 +122,7 @@ TTNN_POINTWISE_TRINARY_OPS = [
     ttnn.where,
 ]
 
-TTNN_MATRIX_MULPIPLICATION_OPS = [
+TTNN_MATRIX_MULTIPLICATION_OPS = [
     ttnn.matmul,
     ttnn.linear,
 ]
@@ -173,7 +174,7 @@ def is_tt_compute(node) -> bool:
     if not is_function_call(node):
         return False
 
-    # if node is the built-in function "getitme", the result of split
+    # if node is the built-in function "getitem", the result of split
     # we have to check the input of split
     if node.op == "call_function" and node.target.__name__ == "getitem":
         return is_tt_compute(node.args[0])
@@ -182,7 +183,7 @@ def is_tt_compute(node) -> bool:
         TTNN_POINTWISE_UNARY_OPS
         + TTNN_POINTWISE_BINARY_OPS
         + TTNN_POINTWISE_TRINARY_OPS
-        + TTNN_MATRIX_MULPIPLICATION_OPS
+        + TTNN_MATRIX_MULTIPLICATION_OPS
         + TTNN_TARGET_WRAPPERS
         + TTNN_DATAMOVE_OPS
         + TTNN_NORM_OPS
@@ -230,11 +231,14 @@ def is_tt(node):
 def call_to_torch_with_meta(g, src_node, dtype=None):
     if dtype == "by_node_meta":
         dtype = get_dtype(src_node)
+
     call_func = g.call_function(ttnn.to_torch, (src_node,), {"dtype": dtype})
+
     if src_node.meta is not None:
         call_func.meta = src_node.meta.copy()
     if "original_input_variations" in call_func.meta:
         call_func.meta["original_input_variations"] = None
+
     return call_func
 
 
@@ -258,7 +262,7 @@ def is_target_a_user_of_curr_node(curr_node, target):
     """
     Trace the users of the current node to check if a target is found.
 
-    Returns true is so or returns false if the end of the graph is reached.
+    Returns true if the target is found or false if the end of the graph is reached.
     """
     if curr_node.target == target:
         return True
@@ -382,7 +386,9 @@ class NodeInputAligner:
             if spec.device is None and spec.layout is None and spec.dtype is None:
                 return None
             return spec
-        return None
+        else:
+            logging.debug(f"Not inserting data movement between torch op ({node}) and its input ({input_node})")
+            return None
 
     def _change_layout(self, spec, aligning_nodes):
         g = self.graph
@@ -478,45 +484,51 @@ class NodeInputAligner:
 
     def align(self, node, input_node, input_site, input_site_type: InputSiteType):
         # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
-        align_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
-        if align_spec is None:
+        data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
+        if data_move_spec is None:
             # No need to align input_node
             return 0
-        if align_spec in self.aligned_node_dict:
-            aligned_node = self.aligned_node_dict[align_spec]
+
+        if data_move_spec in self.aligned_node_dict:
+            aligned_node = self.aligned_node_dict[data_move_spec]
         else:
             with self.graph.inserting_before(node):
-                aligned_node = self._create_aligned_node(align_spec)
-            self.aligned_node_dict[align_spec] = aligned_node
-        if node.target != ttnn.layer_norm:
-            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
-        else:
+                aligned_node = self._create_aligned_node(data_move_spec)
+            self.aligned_node_dict[data_move_spec] = aligned_node
+
+        if node.target == ttnn.layer_norm:
             self._connect_aligned_node_layer_norm(node, input_node, aligned_node, input_site, input_site_type)
+        else:
+            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
+
         return 1
 
 
 class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
+        SiteType = NodeInputAligner.InputSiteType
+
         modified = False
         i = 0
         node_input_aligner = NodeInputAligner(gm.graph)
         nodes = list(gm.graph.nodes)
-        SiteType = NodeInputAligner.InputSiteType
+
         for node in nodes:
             args = node.args
-            kwargs = node.kwargs
             for idx, arg in enumerate(args):
-                if not isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
-                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS)
-                else:
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
                         i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE)
-            for key, arg in kwargs.items():
-                if not isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
-                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS)
                 else:
+                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS)
+
+            kwargs = node.kwargs
+            for key, arg in kwargs.items():
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
                         i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE)
+                else:
+                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS)
 
         modified = i > 0
         return PassResult(gm, modified)
