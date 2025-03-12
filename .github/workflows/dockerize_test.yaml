@@ -50,6 +50,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
+      PYTHONPATH:  ${{ github.workspace }}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
