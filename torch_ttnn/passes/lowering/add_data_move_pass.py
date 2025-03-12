@@ -355,16 +355,7 @@ class NodeInputAligner:
         if input_node.target == getitem and input_node.args[0].target == ttnn.split:
             spec.layout = TtnnTileLayout
         # legalize to the default layout and device
-        if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(
-            set(
-                [
-                    target_wrappers.repeat,
-                    target_wrappers.roll,
-                    target_wrappers.stack,
-                    ttnn.concat,
-                ]
-            )
-        ):
+        if input_node.target in TTNN_LAYOUT_CHANGE_OPS:
             spec.layout = TtnnTileLayout
             spec.device = TtnnDevice
         return spec
