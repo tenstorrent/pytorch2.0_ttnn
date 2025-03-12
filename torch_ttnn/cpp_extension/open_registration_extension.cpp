@@ -194,7 +194,6 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
         auto dtype = dtype_torch_to_ttnn(dst.scalar_type());
         LOGGING("ttnn dtype: ", (int)dtype);
 
-        // TODO: Combine and remove duplicate code for different dtype support
         if (dtype == ttnn::DataType::BFLOAT16) {
             LOGGING("");
 
@@ -239,17 +238,6 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
                 logical_shape,
                 dtype,
                 ttnn::Layout::ROW_MAJOR);
-
-            // Debug only: Convert torch tensor to vector
-            std::vector<int> v(self_int.data_ptr<int>(), self_int.data_ptr<int>() + self_int.numel());
-            LOGGING("src_ten: ", v);
-
-            // Debug only: Convert ttnn tensor on cpu to vector
-            auto src_cpu_vector = src_cpu.to_vector<uint32_t>();
-            std::vector<int> src_cpu_vector_int;
-            convert_vector_from_uint32_to_int(src_cpu_vector_int, src_cpu_vector);
-            LOGGING("src_cpu: ", src_cpu_vector_int);
-            vector_compare(v, src_cpu_vector_int);
 
             // Verify the data is created on TTNN tensor correctly
             compare_torch_and_ttnn_tensors(self, src_cpu);
