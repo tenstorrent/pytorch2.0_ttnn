@@ -48,7 +48,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
-      PYTHONPATH: ${{ github.workspace }}
+      #PYTHONPATH: ${{ github.workspace }}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
@@ -62,6 +62,12 @@ jobs:
      #     apt-get update && apt-get install -y libgl1-mesa-glx
       - name: Run Tools Tests 
         run: |
+          pwd
+          ls
+          cd tests
+          pwd
+          ls
+          cd ..
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
@@ -101,11 +107,10 @@ jobs:
       #    apt-get update
       #    apt-get install -y git-lfs
       #    git lfs install
-
+      - uses: ./.github/actions/common_repo_setup
       - uses: actions/checkout@v4
         with:
           lfs: true          
-      - uses: ./.github/actions/common_repo_setup
       - name: Run select model tests
         run: |
           python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s --gen_op_accuracy_tests
@@ -170,9 +175,16 @@ jobs:
 #            git commit -m '[auto][on-merge-queue] Update input variations tests'
 #            git push
 #          fi
-
+  get-uid-gid:
+    runs-on: ["self-hosted"]
+    outputs:
+      uid_gid: ${{ steps.get-user.outputs.uid_gid }}
+    steps:
+      - id: get-user
+        run: echo "uid_gid=$(id -u):$(id -g)" >> $GITHUB_OUTPUT
   model-autogen-op-tests:
     #needs: [push-autogen-op-tests]
+    needs: [get-uid-gid]
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
