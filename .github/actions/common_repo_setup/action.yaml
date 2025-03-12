@@ -53,6 +53,9 @@ runs:
         python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
         python3 -m pip install -r requirements-dev.txt
         python3 -m pip install pytest-github-report
+        apt-get update && apt-get install -y libgl1-mesa-glx
+        apt-get install -y git-lfs
+        git lfs install
         df -h
       
     - name: Cleanup Pip Cache Directory

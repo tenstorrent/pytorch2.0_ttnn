@@ -48,6 +48,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
+      PYTHONPATH: ${{ github.workspace }}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
@@ -56,9 +57,9 @@ jobs:
     steps:      
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
-      - name: Install OpenGL Dependencies
-        run: |
-          apt-get update && apt-get install -y libgl1-mesa-glx
+     # - name: Install OpenGL Dependencies
+     #   run: |
+     #     apt-get update && apt-get install -y libgl1-mesa-glx
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
@@ -75,9 +76,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
-      - name: Install OpenGL Dependencies
-        run: |
-          apt-get update && apt-get install -y libgl1-mesa-glx
+      #- name: Install OpenGL Dependencies
+      #  run: |
+      #    apt-get update && apt-get install -y libgl1-mesa-glx
       #- uses: ./.github/actions/common_lowering_tests
       - name: Run select lowering tests
         run: |
@@ -95,11 +96,11 @@ jobs:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"    
     steps:
-      - name: Install Git LFS
-        run: |
-          apt-get update
-          apt-get install -y git-lfs
-          git lfs install
+      #- name: Install Git LFS
+      #  run: |
+      #    apt-get update
+      #    apt-get install -y git-lfs
+      #    git lfs install
 
       - uses: actions/checkout@v4
         with:
@@ -117,12 +118,12 @@ jobs:
 #          name: model-tests-metrics-group-${{ matrix.group }}
 #          path: metrics/
 #
-#      - name: Upload All Accuracy Tests and Inputs Artifacts
-#        if: success()  # Only run if tests passed
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: model-accuracy-tests-group-${{ matrix.group }}
-#          path: tests/autogen_accuracy_tests/
+      - name: Upload All Accuracy Tests and Inputs Artifacts
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-accuracy-tests
+          path: tests/autogen_accuracy_tests/
 
 #  push-autogen-op-tests:
 #    needs: [model-tests]
@@ -184,7 +185,7 @@ jobs:
 
     env:
       pytest_verbosity: 0
-      pytest_report_title: "⭐️ Model Input Variations Tests}}"
+      pytest_report_title: "⭐️ Model Input Variations Tests"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
@@ -206,7 +207,7 @@ jobs:
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
         with:
-          name: model-autogen-op-tests-metrics-group-${{ matrix.group }}
+          name: model-autogen-op-tests-metrics-group
           path: metrics-autogen-op/
 
   collect-model-artifacts-from-matrix-jobs:
