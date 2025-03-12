@@ -53,6 +53,18 @@ Obtain the following in some way:
 
 That should be enough. Pytorch should now be installed in the current virtual environment.
 
+## Build tt-metal
+1. Build tt-metal using the `./build_metal.sh` script.
+
+## Running tests
+Check to make sure `PYTHONPATH` is unset. Currently, this extension checks for `TT_METAL_HOME`. Have that set to the root of the `tt-metal` repo you used to build tt-metal in the prior step.
+
+Run in the root of `pytorch2.0_ttnn` repo:
+```
+python -m pytest tests/cpp_extension/test_cpp_extension_functionality.py
+```
+
+You can also run with `DEBUG_CPP_EXT=1` ENV to enable logging messages.
 
 # References
 https://github.com/bdhirsh/pytorch_open_registration_example

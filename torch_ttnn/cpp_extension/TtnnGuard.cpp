@@ -89,7 +89,7 @@ void TtnnDeviceGuard::synchronizeStream(const at::Stream& /*stream*/) const {
 // =====================================
 // ============== TTNN Guard ===========
 // =====================================
-IDevice* TtnnGuard::ttnn_device = nullptr;
+ttnn::IDevice* TtnnGuard::ttnn_device = nullptr;
 
 TtnnGuard::TtnnGuard(at::DeviceIndex device_index) : guard_(device_index) {}
 TtnnGuard::TtnnGuard(at::Device device) : guard_(device) {}
@@ -104,7 +104,7 @@ at::Device TtnnGuard::original_device() const { return guard_.original_device();
 
 at::Device TtnnGuard::current_device() const { return guard_.current_device(); }
 
-IDevice* TtnnGuard::get_ttnn_device() {
+ttnn::IDevice* TtnnGuard::get_ttnn_device() {
     LOGGING("");
     if (!ttnn_device) {
         ttnn_device = &ttnn::open_device(0);

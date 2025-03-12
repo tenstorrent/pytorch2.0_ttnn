@@ -136,7 +136,7 @@ at::Tensor create_empty_tensor(
         /*resizeable=*/true);
 
     TtnnGuard device_guard(device);
-    IDevice* ttnn_device = device_guard.get_ttnn_device();
+    ttnn::IDevice* ttnn_device = device_guard.get_ttnn_device();
     auto ttnn_dtype = dtype_torch_to_ttnn(dtype);
     ttnn::SmallVector<uint32_t> small_vector(size.begin(), size.end());
     auto logical_shape = ttnn::Shape(small_vector);
@@ -147,7 +147,7 @@ at::Tensor create_empty_tensor(
         ttnn_dtype,
         ttnn::TILE_LAYOUT,
         ttnn_device,
-        MemoryConfig{TensorMemoryLayout::INTERLEAVED, BufferType::DRAM, std::nullopt});
+        ttnn::MemoryConfig{ttnn::TensorMemoryLayout::INTERLEAVED, ttnn::BufferType::DRAM, std::nullopt});
 
     // Equivalent to at::detail::make_tensor<at::TtnnTensorImpl>(Args...)
     auto ttnn_impl = c10::make_intrusive<at::TtnnTensorImpl>(private_use_ks, dtype_meta, device, size, storage_impl);
@@ -185,7 +185,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
         auto logical_shape = tensor_impl->get_logical_shape();
         LOGGING("TTNN Tensor logical shape: ", logical_shape);
 
-        IDevice* ttnn_device = device_guard.get_ttnn_device();
+        ttnn::IDevice* ttnn_device = device_guard.get_ttnn_device();
         auto logical_volume = logical_shape.volume();
 
         auto on_creation_callback = [] {};
@@ -203,7 +203,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
             // Create TTNN Tensor on CPU
             ttnn::Tensor src_cpu = ttnn::Tensor(
                 tt::tt_metal::BorrowedStorage{
-                    borrowed_buffer::Buffer(self_bfloat16_storage_ptr, logical_volume),
+                    tt::tt_metal::borrowed_buffer::Buffer(self_bfloat16_storage_ptr, logical_volume),
                     on_creation_callback,
                     on_destruction_callback},
                 logical_shape,
@@ -215,7 +215,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
 
             // TODO: Find out why there are problems when passing device directly to `to_layout` function
             ttnn::Tensor src_layout =
-                ttnn::to_layout(src_cpu, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, (IDevice*)nullptr);
+                ttnn::to_layout(src_cpu, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, (ttnn::IDevice*)nullptr);
             ttnn::Tensor src_dev = src_layout.to_device(ttnn_device);
 
             // Verify the device data is correct
@@ -233,7 +233,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
             // First create ttnn Tensor on CPU
             ttnn::Tensor src_cpu = ttnn::Tensor(
                 tt::tt_metal::BorrowedStorage{
-                    borrowed_buffer::Buffer(self_int_storage_ptr, logical_volume),
+                    tt::tt_metal::borrowed_buffer::Buffer(self_int_storage_ptr, logical_volume),
                     on_creation_callback,
                     on_destruction_callback},
                 logical_shape,
@@ -256,7 +256,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
 
             // TODO: Find out why there are problems when passing device directly to `to_layout` function
             ttnn::Tensor src_layout =
-                ttnn::to_layout(src_cpu, ttnn::ROW_MAJOR_LAYOUT, std::nullopt, std::nullopt, (IDevice*)nullptr);
+                ttnn::to_layout(src_cpu, ttnn::ROW_MAJOR_LAYOUT, std::nullopt, std::nullopt, (ttnn::IDevice*)nullptr);
             ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
 
             // Verify the device data is correct
@@ -324,7 +324,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
 // This function can be used when the TTNN device is initialized separately,
 // for example, `device = ttnn.open_device(device_index = 0)`. Pass that
 // device object to this function so that the cpp extension can use it.
-c10::Device as_torch_device(IDevice* ttnn_device) {
+c10::Device as_torch_device(ttnn::IDevice* ttnn_device) {
     LOGGING("");
     // TODO: Fix the index
     auto device = c10::Device(c10::DeviceType::PrivateUse1, 0);
@@ -338,7 +338,7 @@ c10::Device as_torch_device(IDevice* ttnn_device) {
 void close_torch_device(c10::Device device) {
     LOGGING("");
     TtnnGuard device_guard(device);
-    IDevice* ttnn_device = device_guard.get_ttnn_device();
+    ttnn::IDevice* ttnn_device = device_guard.get_ttnn_device();
     // TODO: Perform better error handling
     TORCH_INTERNAL_ASSERT(ttnn_device != nullptr);
     ttnn::close_device(*ttnn_device);
