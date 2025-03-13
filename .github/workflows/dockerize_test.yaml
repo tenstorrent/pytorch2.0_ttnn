@@ -22,7 +22,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
-      PYTHONPATH: ${{ github.workspace }}
+      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
@@ -49,7 +49,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
-      PYTHONPATH:  ${{ github.workspace }}
+      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
@@ -60,6 +60,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       - name: Run select lowering tests
         run: |
+          pwd
           echo "$TT_METAL_HOME"
           echo "$PYHONPATH"
           python3 -m pytest --github-report tests/lowering/matmul/test_matmul.py
@@ -68,7 +69,7 @@ jobs:
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"  
-      PYTHONPATH: ${{ github.workspace }}
+      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     needs: lowering-tests
     runs-on: ["self-hosted"]
     container: 
@@ -110,7 +111,7 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
     env:
-      PYTHONPATH: ${{ github.workspace }}
+      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
