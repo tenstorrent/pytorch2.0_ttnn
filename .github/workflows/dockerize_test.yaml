@@ -42,15 +42,13 @@ jobs:
           echo "Python version: $(python3 --version)"
       - name: Run Tools Tests 
         run: |
-          ls
-          pwd
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
-      PYTHONPATH:  ${{ github.workspace }}
+      #PYTHONPATH:  ${{ github.workspace }}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
@@ -61,8 +59,8 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       - name: Run select lowering tests
         run: |
-          ls
-          pwd
+          echo "$TT_METAL_HOME"
+          echo "$PYHONPATH"
           python3 -m pytest --github-report tests/lowering/matmul/test_matmul.py
 
   model-tests:
@@ -82,6 +80,8 @@ jobs:
           lfs: true          
       - name: Run select model tests
         run: |
+          echo "$TT_METAL_HOME"
+          echo "$PYHONPATH"
           python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s --gen_op_accuracy_tests
 #      - uses: ./.github/actions/common_model_tests
 
@@ -181,7 +181,7 @@ jobs:
 
   collect-model-artifacts-from-matrix-jobs:
     needs: model-tests
-    runs-on: ["self-hosted"]
+    runs-on: ubuntu-latest
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -208,7 +208,7 @@ jobs:
 
   collect-op-artifacts-from-matrix-jobs:
     needs: model-autogen-op-tests
-    runs-on: ["self-hosted"]
+    runs-on: ubuntu-latest
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
