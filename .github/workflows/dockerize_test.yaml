@@ -23,7 +23,7 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-    runs-on: ["self-hosted"]
+    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -54,7 +54,7 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-    runs-on: ["self-hosted"]
+    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -80,7 +80,7 @@ jobs:
         run: |
           pwd
           echo "$TT_METAL_HOME"
-          echo "$PYHONPATH"
+          echo "$PYTHONPATH"
           python3 -m pytest --github-report tests/lowering/matmul/test_matmul.py
 
   model-tests:
@@ -89,7 +89,7 @@ jobs:
       pytest_report_title: "⭐️ Model Tests"  
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     needs: lowering-tests
-    runs-on: ["self-hosted"]
+    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -112,7 +112,7 @@ jobs:
       - name: Run select model tests
         run: |
           echo "$TT_METAL_HOME"
-          echo "$PYHONPATH"
+          echo "$PYTHONPATH"
           python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s --gen_op_accuracy_tests
 #      - uses: ./.github/actions/common_model_tests
 
@@ -133,7 +133,7 @@ jobs:
   push-autogen-op-tests:
     needs: [model-tests]
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service"]
+    runs-on: ["in-service", "tt-metal-pytorch-vm-n300-4"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -178,7 +178,7 @@ jobs:
   model-autogen-op-tests:
     needs: [push-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["self-hosted"]
+    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
