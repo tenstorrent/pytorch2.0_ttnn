@@ -159,13 +159,15 @@ TTNN_POOL_OPS = [
     ttnn.max_pool2d,
 ]
 
-TTNN_LAYOUT_CHANGE_OPS = set(
+TTNN_ROW_LAYOUT_OPS = set(
     [
-        ttnn.reshape,
         ttnn.slice,
+        target_wrappers.roll,
         ttnn.argmax,
     ]
 )
+
+TTNN_HOST_ONLY_OPS = set()
 
 
 # For operations limitations
@@ -244,27 +246,6 @@ def is_ttnn_to_ttnn(src_node, dst_node):
     return True
 
 
-def is_target_a_user_of_curr_node(curr_node, target):
-    """
-    Trace the users of the current node to check if a target is found.
-
-    Returns true if the target is found or false if the end of the graph is reached.
-    """
-    if curr_node.target == target:
-        return True
-
-    # Only trace certain nodes that support different layouts
-    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS:
-        return False
-
-    for user in list(curr_node.users.keys()):
-        if is_target_a_user_of_curr_node(user, target):
-            return True
-
-    # Target is not found
-    return False
-
-
 class NodeInputAligner:
     def __init__(self, graph):
         self.graph = graph
@@ -302,20 +283,21 @@ class NodeInputAligner:
             spec.layout = TtnnTileLayout
 
         # legalize to the default layout and device
-        if input_node.target in TTNN_LAYOUT_CHANGE_OPS:
+        if input_node.target in TTNN_ROW_LAYOUT_OPS:
             spec.layout = TtnnTileLayout
+        if input_node.target in TTNN_HOST_ONLY_OPS:
             spec.device = TtnnDevice
 
         return spec
 
     def _align_special_cases(self, node, spec, input_site, input_site_type: InputSiteType):
-        if is_target_a_user_of_curr_node(target=ttnn.embedding, curr_node=node) and (
-            input_site_type == self.InputSiteType.ARGS and input_site == 0
-        ):
-            spec.dtype = TtnnUint32
         if node.target == ttnn.embedding:
             # Embedding is not as accurate with TileLayout (allclose with torch.embedding fails)
             spec.layout = TtnnRowMajorLayout
+
+            if input_site == 0:
+                # First input must be uint32
+                spec.dtype = TtnnUint32
         if node.target in [ttnn.slice, target_wrappers.roll] and (
             input_site_type == self.InputSiteType.ARGS and input_site == 0
         ):
