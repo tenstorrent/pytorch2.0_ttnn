@@ -302,7 +302,7 @@ class NodeInputAligner:
             spec.layout = TtnnTileLayout
 
         # legalize to the default layout and device
-        if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat])):
+        if input_node.target in TTNN_LAYOUT_CHANGE_OPS:
             spec.layout = TtnnTileLayout
             spec.device = TtnnDevice
 
@@ -313,39 +313,29 @@ class NodeInputAligner:
             input_site_type == self.InputSiteType.ARGS and input_site == 0
         ):
             spec.dtype = TtnnUint32
-        # TODO(#372): #322 will enable tile layout for more layout change ops
-        if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
+        if node.target == ttnn.embedding:
+            # Embedding is not as accurate with TileLayout (allclose with torch.embedding fails)
             spec.layout = TtnnRowMajorLayout
-            spec.device = "host"
-        if node.target in [
-            ttnn.split,
-            ttnn.embedding,
-            target_wrappers.repeat,
-            target_wrappers.roll,
-            target_wrappers.stack,
-        ]:
-            # TODO: Only uint32 needs to to_layout on host
+        if node.target in [ttnn.slice, target_wrappers.roll] and (
+            input_site_type == self.InputSiteType.ARGS and input_site == 0
+        ):
+            # Slice can only unpad tilized tensors with full tiles. Make input row major to be safe for now
+            # Roll is included because it calls slice under the hood
             spec.layout = TtnnRowMajorLayout
-            spec.device = TtnnDevice
+        if node.target == ttnn.argmax and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
+            # According to documentation, argmax input must be BFLOAT16 and ROW_MAJOR
+            spec.dtype = TtnnBfloat16
+            spec.layout = TtnnRowMajorLayout
         if (
             node.target == target_wrappers.stack
             and isinstance(spec, self.AlignSpecFromTorch)
             and get_dtype(node) in [torch.int32, torch.int64]
         ):
             spec.dtype = TtnnUint32
-
         if node.target == target_wrappers.conv and input_site == 1:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
-        if (
-            node.target == ttnn.reshape
-            and hasattr(spec.input_node, "meta")
-            and "val" in spec.input_node.meta
-            and hasattr(spec.input_node.meta["val"], "dtype")
-            and spec.input_node.meta["val"].dtype in [torch.int32, torch.int64]
-        ):
-            spec.dtype = TtnnUint32
         return spec
 
     def _get_align_spec(self, node, input_node, input_site, input_site_type: InputSiteType):
@@ -355,7 +345,7 @@ class NodeInputAligner:
             spec = self._align_special_cases(node, spec, input_site, input_site_type)
             return spec
         elif is_ttnn_to_torch(input_node, node):
-            spec = self.AlignSpecToTorch(input_node, "by_node_meta")
+            spec = self.AlignSpecToTorch(input_node, get_dtype(input_node))
             return spec
         elif is_ttnn_to_ttnn(input_node, node):
             # default do nothing between ttnn to ttnn
@@ -369,21 +359,8 @@ class NodeInputAligner:
             logging.debug(f"Not inserting data movement between torch op ({node}) and its input ({input_node})")
             return None
 
-    def _call_to_torch_with_meta(self, spec):
-        if spec.dtype == "by_node_meta":
-            spec.dtype = get_dtype(spec.input_node)
-
-        new_input_node = self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
-
-        if spec.input_node.meta is not None:
-            new_input_node.meta = spec.input_node.meta.copy()
-        if "original_input_variations" in new_input_node.meta:
-            new_input_node.meta["original_input_variations"] = None
-
-        return new_input_node
-
     def _change_layout(self, spec):
-        need_from_device = spec.device is not None
+        need_from_device = spec.device == "host"
         need_to_layout = spec.layout is not None
         need_to_device = spec.device == TtnnDevice
 
@@ -412,7 +389,7 @@ class NodeInputAligner:
             return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
-            return self._call_to_torch_with_meta(spec)
+            return self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
 
         elif isinstance(spec, self.AlignSpecInTtnn):
             return self._change_layout(spec)
