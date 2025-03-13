@@ -123,7 +123,7 @@ jobs:
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
         with:
-          name: model-tests-metrics
+          name: model-tests-metrics_
           path: metrics/
 #
       - name: Upload All Accuracy Tests and Inputs Artifacts
@@ -152,7 +152,7 @@ jobs:
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-tests-metrics
+          pattern: model-tests-metrics_
           merge-multiple: true
           path: metrics/
       - name: Push Autogen Op Tests
@@ -233,7 +233,7 @@ jobs:
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-tests-metrics
+          pattern: model-tests-metrics_
           merge-multiple: true
           path: metrics/
 
@@ -261,7 +261,7 @@ jobs:
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-autogen-op-tests-metrics-group-*
+          pattern: model-autogen-op-tests-metrics-group
           merge-multiple: true
           path: metrics-autogen-op/
 
@@ -325,7 +325,7 @@ jobs:
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-autogen-op-tests-metrics-group-*
+          pattern: model-autogen-op-tests-metrics-group
           merge-multiple: true
           path: metrics-autogen-op/
       # - name: Download Metrics Artifacts
