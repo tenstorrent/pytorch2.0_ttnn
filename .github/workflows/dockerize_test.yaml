@@ -54,6 +54,7 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
+    needs: tools-tests
     runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
