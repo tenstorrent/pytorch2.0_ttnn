@@ -322,6 +322,9 @@ class NodeInputAligner:
             # Slice can only unpad tilized tensors with full tiles. Make input row major to be safe for now
             # Roll is included because it calls slice under the hood
             spec.layout = TtnnRowMajorLayout
+        if node.target == ttnn.split and input_site == 0:
+            # Runtime error for tilized inputs to split
+            spec.layout = TtnnRowMajorLayout
         if node.target == ttnn.argmax and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
             # According to documentation, argmax input must be BFLOAT16 and ROW_MAJOR
             spec.dtype = TtnnBfloat16
