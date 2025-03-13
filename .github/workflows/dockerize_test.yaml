@@ -23,11 +23,12 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:      
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
@@ -54,12 +55,12 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-    needs: tools-tests
-    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
@@ -89,12 +90,13 @@ jobs:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"  
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-    needs: lowering-tests
-    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
+    #needs: lowering-tests
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: ./.github/actions/common_repo_setup
       - uses: actions/checkout@v4
@@ -134,11 +136,12 @@ jobs:
   push-autogen-op-tests:
     needs: [model-tests]
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service", "tt-metal-pytorch-vm-n300-4"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     steps:
@@ -179,11 +182,12 @@ jobs:
   model-autogen-op-tests:
     needs: [push-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["self-hosted", "tt-metal-pytorch-vm-n300-4"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Input Variations Tests"
@@ -218,6 +222,7 @@ jobs:
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 0
     steps:
@@ -245,6 +250,7 @@ jobs:
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 0
     steps:
@@ -271,6 +277,7 @@ jobs:
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
@@ -300,6 +307,7 @@ jobs:
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
