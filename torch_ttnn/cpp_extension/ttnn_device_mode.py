@@ -45,14 +45,13 @@ os.environ["CXX"] = "clang++-17"
 working_file_path = Path(os.path.realpath(__file__))
 working_directory = working_file_path.parents[0]
 
+# Automatically compile all .cpp files in this same directory
+source_file_pattern = Path("*.cpp")
+source_files = glob.glob(str(working_directory / source_file_pattern), recursive=False)
+
 ttnn_module = torch.utils.cpp_extension.load(
     name="ttnn_device_extension",
-    sources=[
-        str(working_directory / "open_registration_extension.cpp"),
-        str(working_directory / "TtnnCustomAllocator.cpp"),
-        str(working_directory / "TtnnGuard.cpp"),
-        str(working_directory / "TtnnTensorImpl.cpp"),
-    ],
+    sources=source_files,
     extra_include_paths=[str(working_directory)] + ttnn_include_paths,
     extra_cflags=["-g", "-DFMT_HEADER_ONLY", "-std=c++20", "-stdlib=libc++"],
     extra_ldflags=tt_metal_lib_paths + tt_metal_libs,
