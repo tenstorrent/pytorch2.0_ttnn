@@ -136,12 +136,13 @@ jobs:
   push-autogen-op-tests:
     needs: [model-tests]
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["in-service"]
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        --user root
     env:
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     steps:
@@ -217,7 +218,7 @@ jobs:
 
   collect-model-artifacts-from-matrix-jobs:
     needs: model-tests
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -245,7 +246,7 @@ jobs:
 
   collect-op-artifacts-from-matrix-jobs:
     needs: model-autogen-op-tests
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
       options: >-
@@ -368,7 +369,7 @@ jobs:
 
   validate-pr:
     if: ${{ always() }}
-    runs-on: ubuntu-latest    
+    runs-on: ["self-hosted"]  
     needs: [model-tests, tools-tests, lowering-tests, collect-metrics]
     steps:
       - run: |
