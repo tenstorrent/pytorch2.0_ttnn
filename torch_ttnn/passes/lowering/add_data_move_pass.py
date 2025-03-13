@@ -302,7 +302,7 @@ class NodeInputAligner:
             spec.layout = TtnnTileLayout
 
         # legalize to the default layout and device
-        if input_node.target in TTNN_LAYOUT_CHANGE_OPS:
+        if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(set([target_wrappers.repeat])):
             spec.layout = TtnnTileLayout
             spec.device = TtnnDevice
 
