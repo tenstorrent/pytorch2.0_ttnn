@@ -35,7 +35,11 @@ jobs:
         run: |
           echo "User: $(whoami) (ID: $(id))"
           echo "Working Directory: $(pwd)"
-          ls -la . tests/ || echo "No tests dir in current working dir"
+          #ls -la . tests/ || echo "No tests dir in current working dir"
+          ls 
+          cd tests/
+          ls
+          cd ..
           echo "PYTHONPATH from env: $PYTHONPATH"
           python3 -c "import sys; print('sys.path:', sys.path)"
           python3 -c "import os; print('os.getcwd():', os.getcwd())"
