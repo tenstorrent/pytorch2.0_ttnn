@@ -58,6 +58,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
+      - name: Debug Python Environment
+        run: |
+          echo "User: $(whoami) (ID: $(id))"
+          echo "Working Directory: $(pwd)"
+          ls -la . tests/ || echo "No tests dir in current working dir"
+          echo "PYTHONPATH from env: $PYTHONPATH"
+          python3 -c "import sys; print('sys.path:', sys.path)"
+          python3 -c "import os; print('os.getcwd():', os.getcwd())"
+          python3 -c "import tests.utils; print('Found tests.utils')" || echo "Import failed: $?"
+          echo "Python version: $(python3 --version)"
       - name: Run select lowering tests
         run: |
           pwd
@@ -81,6 +91,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true          
+      - name: Debug Python Environment
+        run: |
+          echo "User: $(whoami) (ID: $(id))"
+          echo "Working Directory: $(pwd)"
+          ls -la . tests/ || echo "No tests dir in current working dir"
+          echo "PYTHONPATH from env: $PYTHONPATH"
+          python3 -c "import sys; print('sys.path:', sys.path)"
+          python3 -c "import os; print('os.getcwd():', os.getcwd())"
+          python3 -c "import tests.utils; print('Found tests.utils')" || echo "Import failed: $?"
+          echo "Python version: $(python3 --version)"
       - name: Run select model tests
         run: |
           echo "$TT_METAL_HOME"
