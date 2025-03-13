@@ -155,7 +155,23 @@ jobs:
           pattern: model-tests-metrics
           merge-multiple: true
           path: metrics/
-
+      - name: Debug Git Environment (Inside Container)
+        run: |
+          set -x  # Enable shell tracing
+          echo "User: $(whoami)"
+          echo "Working Directory: $(pwd)"
+          echo "Contents of /:"
+          ls -la /
+          echo "Contents of ${{ github.workspace }}:"
+          ls -la ${{ github.workspace }}
+          echo "Contents of one level above:"
+          ls -la ../
+          echo "Checking for .git directory:"
+          ls -la ${{ github.workspace }}/.git
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "Running git status:"
+          git status
+          echo "Exit code of git status: $?"
       - name: Push Autogen Op Tests
         run: |
           git config user.name "GitHub Actions"
