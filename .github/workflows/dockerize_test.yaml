@@ -18,7 +18,21 @@ permissions:
   pull-requests: write
 
 jobs:
+  clear-docker:
+    runs-on: ["self-hosted"]
+    strategy:
+      matrix:
+        group: [1, 2, 3]
+    steps:
+      - name: Prune Docker Objects
+        run: |
+          docker container prune -f
+          docker volume prune -f
+          docker network prune -f
+          docker image prune -a -f
+
   tools-tests:
+    needs: [clear-docker]
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
@@ -51,6 +65,7 @@ jobs:
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
+    needs: [clear-docker]
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
@@ -86,6 +101,7 @@ jobs:
           python3 -m pytest --github-report tests/lowering/matmul/test_matmul.py
 
   model-tests:
+    needs: [clear-docker]
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests"  
@@ -288,7 +304,7 @@ jobs:
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-accuracy-tests-group-*
+          pattern: model-accuracy-tests
           merge-multiple: true
           path: tests/autogen_accuracy_tests/
 
