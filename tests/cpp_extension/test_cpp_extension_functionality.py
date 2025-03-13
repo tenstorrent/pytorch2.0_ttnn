@@ -17,7 +17,7 @@ import logging
 def test_cpp_extension(device, input_shape, dtype):
     # in pytest the device has already been initialized before this call
     # so instead we can wrap this around the custom device
-    ttnn_device = ttnn_module.as_torch_device(device)
+    ttnn_torch_device = ttnn_module.as_torch_device(device)
 
     logging.info("Creating bfloat tensor from -1 to 1")
     if dtype == torch.bfloat16:
@@ -29,7 +29,7 @@ def test_cpp_extension(device, input_shape, dtype):
         raise Exception(f"{dtype} not being tested at this time")
 
     logging.info("Transferring to ttnn")
-    torch_ttnn_tensor = torch_tensor.to(ttnn_device)
+    torch_ttnn_tensor = torch_tensor.to(ttnn_torch_device)
 
     logging.info("Get underlying ttnn tensor")
     ttnn_tensor = ttnn_module.get_ttnn_tensor(torch_ttnn_tensor)
@@ -58,10 +58,10 @@ def test_empty(device):
     # Sometimes nnModule.to(device) will directly allocate an empty tensor on device
     # and with not performa a copy.
 
-    ttnn_device = ttnn_module.as_torch_device(device)
+    ttnn_torch_device = ttnn_module.as_torch_device(device)
 
     logging.info("Creating bfloat tensor from -1 to 1")
-    torch_tensor = torch.empty((32, 1, 3, 3), dtype=torch.bfloat16, device=ttnn_device)
+    torch_tensor = torch.empty((32, 1, 3, 3), dtype=torch.bfloat16, device=ttnn_torch_device)
 
     logging.info("Get underlying ttnn tensor")
     ttnn_tensor = ttnn_module.get_ttnn_tensor(torch_tensor)
