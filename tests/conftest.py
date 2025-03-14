@@ -217,7 +217,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     logging.info(f"Accuracy calculated: {accuracy}.")
 
             metrics.save_pickle(
-                [x.original_inputs for x in option.compiled_schema_list],
+                [x.input_objects for x in option.compiled_schema_list],
                 option.metrics_path,
                 "compiled-schema_list",
             )
@@ -258,7 +258,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
         finally:
             logging.debug("Saving metrics.")
             metrics.save_pickle(
-                [x.original_inputs for x in option.original_schema_list],
+                [x.input_objects for x in option.original_schema_list],
                 option.metrics_path,
                 "original-schema_list",
             )
