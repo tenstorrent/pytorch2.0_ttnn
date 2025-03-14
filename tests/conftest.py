@@ -169,7 +169,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
         "success": False,
         "start_ts": start_ts,
         "test_name": request.node.name,
-        "test_filepath": test_file_path,
+        "test_filepath": str(test_file_path),
         "model_name": model_name,
         "model_path": str(test_file_path.parent),
     }
@@ -213,8 +213,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
             runtime_metrics["end_ts"] = end_ts
 
             if request.session.testsfailed > 0:
-                runtime_metrics['success'] = False
-                runtime_metrics['error_message'] = str(sys.last_value)
+                runtime_metrics["success"] = False
+                runtime_metrics["error_message"] = str(sys.last_value)
 
             with open(original_metrics_path, "wb") as f:
                 pickle.dump(runtime_metrics, f)
