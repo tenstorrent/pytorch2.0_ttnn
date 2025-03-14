@@ -361,6 +361,7 @@ jobs:
       - name: Collect Metrics Report
         run: |
           python3 tools/collect_metrics.py
+          git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git pull
