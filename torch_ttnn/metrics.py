@@ -68,6 +68,10 @@ class InputVariation:
     def dict(self):
         return {"opname": str(self.opname), "inputs": self.get_input_str_list()}
 
+    @property
+    def original_inputs(self):
+        return {"opname": str(self.opname), "inputs": self.inputs}
+
 
 class ConvertedInput:
     def __init__(self, opname, original_input_variation: InputVariation):
