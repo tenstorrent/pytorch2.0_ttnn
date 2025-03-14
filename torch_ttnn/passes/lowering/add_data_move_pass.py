@@ -282,6 +282,10 @@ class NodeInputAligner:
         if input_node.target == getitem and input_node.args[0].target == ttnn.split:
             spec.layout = TtnnTileLayout
 
+        # re-tilize max_pool2d after sharded_to_interleaved call - may be able to remove after #418
+        if input_node.target == ttnn.sharded_to_interleaved and input_node.args[0].target == ttnn.max_pool2d:
+            spec.layout = TtnnTileLayout
+
         # legalize to the default layout and device
         if input_node.target in TTNN_ROW_LAYOUT_OPS:
             spec.layout = TtnnTileLayout
@@ -341,7 +345,6 @@ class NodeInputAligner:
                 return None
             return spec
         else:
-            logging.debug(f"Not inserting data movement between torch op ({node}) and its input ({input_node})")
             return None
 
     def _change_layout(self, spec):
