@@ -129,7 +129,6 @@ def process_schema_list(option_schema_list):
         is_original_list = True
 
     for item in schema_list:
-
         if is_original_list:
             input_objects = item.pop("input_objects", [])
         else:

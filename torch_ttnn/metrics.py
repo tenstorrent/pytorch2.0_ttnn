@@ -89,7 +89,7 @@ class ConvertedInput:
         out = {
             "opname": str(self.opname),
             "original_inputs": self.original_input_variation.dict(),
-            "input_objects": self.original_input_variation.input_objects
+            "input_objects": self.original_input_variation.input_objects,
         }
         return out
 
