@@ -20,7 +20,7 @@ ttnn_include_paths = [
     tt_metal_home / Path("tt_metal/hostdevcommon/api"),
     tt_metal_home / Path("tt_metal/third_party/tracy/public"),
     tt_metal_home / Path("tt_metal"),
-    tt_metal_home / Path("tt_metal/tt_stl"),
+    tt_metal_home / Path("tt_stl"),
     tt_metal_home / Path("ttnn"),
     tt_metal_home / Path(".cpmcache/reflect/e75434c4c5f669e4a74e4d84e0a30d7249c1e66f"),
 ] + cpmcache_dirs
