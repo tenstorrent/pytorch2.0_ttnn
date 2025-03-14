@@ -167,6 +167,14 @@ TTNN_ROW_LAYOUT_OPS = set(
     ]
 )
 
+# Operations that might output row major layouts based on ToTtPass implementation
+TTNN_MAYBE_ROW_OPS = set(
+    [
+        ttnn.pad,
+        ttnn.concat,
+    ]
+)
+
 TTNN_HOST_ONLY_OPS = set()
 
 
@@ -288,6 +296,10 @@ class NodeInputAligner:
 
         # legalize to the default layout and device
         if input_node.target in TTNN_ROW_LAYOUT_OPS:
+            spec.layout = TtnnTileLayout
+        if input_node.target in TTNN_MAYBE_ROW_OPS:
+            # for now, convert to tile (might be nop)
+            # TODO: only insert to_layout call if needed
             spec.layout = TtnnTileLayout
         if input_node.target in TTNN_HOST_ONLY_OPS:
             spec.device = TtnnDevice
