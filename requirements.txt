@@ -6,5 +6,5 @@ networkx==3.1
 graphviz
 matplotlib==3.7.1
 
-ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc2/ttnn-0.57.0rc2+any-cp38-cp38-linux_x86_64.whl ; python_version=="3.8"
-ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc2/ttnn-0.57.0rc2+any-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
+ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc9/ttnn-0.57.0rc9+any-cp38-cp38-linux_x86_64.whl ; python_version=="3.8"
+ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc9/ttnn-0.57.0rc9+any-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
