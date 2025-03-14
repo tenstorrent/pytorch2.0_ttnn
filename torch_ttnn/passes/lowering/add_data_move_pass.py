@@ -294,6 +294,11 @@ class NodeInputAligner:
         if input_node.target == ttnn.sharded_to_interleaved and input_node.args[0].target == ttnn.max_pool2d:
             spec.layout = TtnnTileLayout
 
+        # be overly cautious and convert to tile layout. These could already be tilized
+        # TODO: only insert layout if needed
+        if input_node.target in [ttnn.ones, ttnn.ones_like, ttnn.zeros, ttnn.zeros_like]:
+            spec.layout = TtnnTileLayout
+
         # legalize to the default layout and device
         if input_node.target in TTNN_ROW_LAYOUT_OPS:
             spec.layout = TtnnTileLayout
