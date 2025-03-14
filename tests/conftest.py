@@ -142,7 +142,7 @@ def process_schema_list(option_schema_list):
             if isinstance(_obj, FakeTensor):
                 info["name"] = str(obj)
                 info["shape"] = [i for i in _obj.shape]
-                info["data_type"] = -1
+                info["data_type"] = "n/a"
                 info["buffer_type"] = "n/a"
                 info["layout"] = "n/a"
                 info["grid_shape"] = []
