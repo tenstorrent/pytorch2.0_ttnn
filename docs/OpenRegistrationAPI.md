@@ -95,7 +95,11 @@ python -m pytest tests/cpp_extension/test_cpp_extension_functionality.py
 You can also run with `DEBUG_CPP_EXT=1` ENV to enable logging messages.
 
 ## Troubleshooting
-You may have to set `PYTHONPATH=$TT_METAL_HOME:<location-of-pytorch2.0_ttnn-repo>`
+* You may have to set `PYTHONPATH=$TT_METAL_HOME:<location-of-pytorch2.0_ttnn-repo>`
+* Ensure `numpy < 2.0`
+* If you rerun `create_env.sh` script from tt-metal, you have to remove the wheel version of torch again.
+* If you get an error relating to Pytorch undefined symbols, check the version of torch installed. There is a chance the wheel and developer versions are both installed at the same time. Run `pip list | grep torch` and check that the version is NOT `torch 2.2.1+cpu`. If so, then simply run `pip uninstall torch`. Check the version again, and if you see something like `torch 2.2.0a0+git6c8c5ad  /home/ubuntu/repo/pytorch`, then you should be fine. If you don't see anything, then rerun the `python setup develop` command from the earlier seciton.
+
 
 # References
 https://github.com/bdhirsh/pytorch_open_registration_example
