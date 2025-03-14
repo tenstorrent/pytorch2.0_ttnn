@@ -84,6 +84,10 @@ class ConvertedInput:
     def dict(self):
         return {"opname": str(self.opname), "original_inputs": self.original_input_variation.dict()}
 
+    @property
+    def original_inputs(self):
+        return {"opname": str(self.opname), "original_inputs": self.original_input_variation.original_inputs}
+
 
 def collect_input_variation(target, args, kwargs):
     """
