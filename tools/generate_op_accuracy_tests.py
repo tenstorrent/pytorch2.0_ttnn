@@ -215,6 +215,7 @@ del globals()["{func_name}"]
         "ttnn_DRAM_MEMORY_CONFIG": "ttnn.DRAM_MEMORY_CONFIG",
         "ttnn_uint32": "ttnn.uint32",
         "ttnn_bfloat16": "ttnn.bfloat16",
+        "ttnn_float32": "ttnn.float32",
     }
 
     for k, v in replace_map.items():

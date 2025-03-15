@@ -123,6 +123,11 @@ class TtnnBfloat16:
         return f"ttnn_bfloat16"
 
 
+class TtnnFloat32:
+    def __repr__(self):
+        return f"ttnn_float32"
+
+
 class TtnnDramMemoryConfig:
     def __repr__(self):
         return f"ttnn_DRAM_MEMORY_CONFIG"
