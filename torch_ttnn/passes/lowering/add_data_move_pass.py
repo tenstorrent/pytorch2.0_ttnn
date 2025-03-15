@@ -5,10 +5,12 @@ import logging
 import torch
 import ttnn
 from torch_ttnn.utils import (
+    TtnnInt32,
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnDevice,
     TtnnBfloat16,
+    TtnnFloat32,
     TtnnUint32,
     HasValidPageSize,
     get_dtype,
@@ -347,7 +349,16 @@ class NodeInputAligner:
     def _get_align_spec(self, node, input_node, input_site, input_site_type: InputSiteType):
         if is_torch_to_ttnn(input_node, node):
             # default set these layout for torch to ttnn
-            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, TtnnBfloat16)
+            spec_dtype = TtnnBfloat16
+            if get_dtype(input_node) in [torch.int32, torch.int64]:
+                # TODO: Fix this. It is hateful.
+                # This is here because it makes beit work
+                # In particular, an index of 731 converted to bfloat16 and back to torch.int64 will turn into an index of 732.
+                # If we just convert to uint32, there is a weird index error that looks like overflow or underflow
+                # If we convert to int32, reshape fails due to the dtype
+                # Float32 gives enough precision for the conversion back to int64 to not change values
+                spec_dtype = TtnnFloat32
+            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, spec_dtype)
             spec = self._align_special_cases(node, spec, input_site, input_site_type)
             return spec
         elif is_ttnn_to_torch(input_node, node):
