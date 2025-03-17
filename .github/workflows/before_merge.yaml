@@ -280,6 +280,8 @@ jobs:
             git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
             git push
           fi
+          
+          python3 tools/send_to_data_team.py
 
   validate-pr:
     if: ${{ always() }}
