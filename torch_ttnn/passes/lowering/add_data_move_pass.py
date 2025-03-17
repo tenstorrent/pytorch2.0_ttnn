@@ -331,6 +331,9 @@ class NodeInputAligner:
         ):
             spec.dtype = TtnnUint32
 
+        if node.target == target_wrappers.conv and input_site == 0:
+            # TODO(tt-metal#18231): input currently needs to be row major
+            spec.layout = TtnnRowMajorLayout
         if node.target == target_wrappers.conv and input_site == 1:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
