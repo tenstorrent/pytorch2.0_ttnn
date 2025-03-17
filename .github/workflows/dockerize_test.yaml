@@ -1,7 +1,7 @@
-name: "Dockerize running a test"
+name: "Before Merge Docker Test"
 
 on:
-  push:
+  workflow_call:
   workflow_dispatch:
     inputs:
       commit_report:
@@ -18,25 +18,10 @@ permissions:
   pull-requests: write
 
 jobs:
-  clear-docker:
-    runs-on: ["self-hosted"]
-    strategy:
-      matrix:
-        group: [1, 2, 3]
-    steps:
-      - name: Prune Docker Objects
-        run: |
-          docker container prune -f
-          docker volume prune -f
-          docker network prune -f
-          docker image prune -a -f
-
   tools-tests:
-    needs: [clear-docker]
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
-      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
@@ -45,122 +30,75 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:      
       - uses: actions/checkout@v4
-     # - uses: ./.github/actions/common_repo_setup
-      - name: Debug Python Environment
-        run: |
-          echo "User: $(whoami) (ID: $(id))"
-          echo "Working Directory: $(pwd)"
-          #ls -la . tests/ || echo "No tests dir in current working dir"
-          ls 
-          cd tests/
-          ls
-          cd ..
-          echo "PYTHONPATH from env: $PYTHONPATH"
-          python3 -c "import sys; print('sys.path:', sys.path)"
-          python3 -c "import os; print('os.getcwd():', os.getcwd())"
-          python3 -c "import tests.utils; print('Found tests.utils')" || echo "Import failed: $?"
-          echo "Python version: $(python3 --version)"
+      #- uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
-    needs: [clear-docker]
+    runs-on: ["self-hosted"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
-      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-    runs-on: ["self-hosted"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2]
     steps:
       - uses: actions/checkout@v4
       #- uses: ./.github/actions/common_repo_setup
-      - name: Debug Python Environment
-        run: |
-          echo "User: $(whoami) (ID: $(id))"
-          echo "Working Directory: $(pwd)"
-          #ls -la . tests/ || echo "No tests dir in current working dir"
-          ls 
-          cd tests/
-          ls
-          cd ..
-          echo "PYTHONPATH from env: $PYTHONPATH"
-          python3 -c "import sys; print('sys.path:', sys.path)"
-          python3 -c "import os; print('os.getcwd():', os.getcwd())"
-          python3 -c "import tests.utils; print('Found tests.utils')" || echo "Import failed: $?"
-          echo "Python version: $(python3 --version)"
-      - name: Run select lowering tests
-        run: |
-          pwd
-          echo "$TT_METAL_HOME"
-          echo "$PYTHONPATH"
-          python3 -m pytest --github-report tests/lowering/matmul/test_matmul.py
+      - uses: ./.github/actions/common_lowering_tests
 
   model-tests:
-    needs: [clear-docker]
-    env:      
-      pytest_verbosity: 0
-      pytest_report_title: "⭐️ Model Tests"  
-      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-    #needs: lowering-tests
+    needs: lowering-tests
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+    env:      
+      pytest_verbosity: 0
+      pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
     steps:
-      #- uses: ./.github/actions/common_repo_setup
       - uses: actions/checkout@v4
         with:
           lfs: true          
-      - name: Debug Python Environment
-        run: |
-          echo "User: $(whoami) (ID: $(id))"
-          echo "Working Directory: $(pwd)"
-          ls -la . tests/ || echo "No tests dir in current working dir"
-          echo "PYTHONPATH from env: $PYTHONPATH"
-          python3 -c "import sys; print('sys.path:', sys.path)"
-          python3 -c "import os; print('os.getcwd():', os.getcwd())"
-          python3 -c "import tests.utils; print('Found tests.utils')" || echo "Import failed: $?"
-          echo "Python version: $(python3 --version)"
-      - name: Run select model tests
-        run: |
-          echo "$TT_METAL_HOME"
-          echo "$PYTHONPATH"
-          python3 -m pytest --github-report tests/models/resnet/test_resnet.py -s --gen_op_accuracy_tests
-#      - uses: ./.github/actions/common_model_tests
+     # - uses: ./.github/actions/common_repo_setup
+      - uses: ./.github/actions/common_model_tests
 
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
         with:
-          name: model-tests-metrics_
+          name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
-#
+
       - name: Upload All Accuracy Tests and Inputs Artifacts
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
         with:
-          name: model-accuracy-tests
+          name: model-accuracy-tests-group-${{ matrix.group }}
           path: tests/autogen_accuracy_tests/
 
   push-autogen-op-tests:
     needs: [model-tests]
-    #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        --user root
     env:
-      PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
      # - uses: ./.github/actions/common_repo_setup
@@ -168,12 +106,12 @@ jobs:
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-tests-metrics_
+          pattern: model-tests-metrics-group-*
           merge-multiple: true
           path: metrics/
+
       - name: Push Autogen Op Tests
         run: |
-          git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git pull
@@ -196,28 +134,33 @@ jobs:
             git commit -m '[auto][on-merge-queue] Update input variations tests'
             git push
           fi
+
   model-autogen-op-tests:
     needs: [push-autogen-op-tests]
-    #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+
     env:
       pytest_verbosity: 0
-      pytest_report_title: "⭐️ Model Input Variations Tests"
+      pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
     steps:
       - uses: actions/checkout@v4
-     # - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Input Variations Tests
         run: |
           set +e
           git pull
           rm -rf tests/autogen_op/ALL
-          python3 -m pytest --github-report tests/autogen_op/BERT -s
+          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
           ls -l
           cd metrics-autogen-op
@@ -229,17 +172,12 @@ jobs:
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
         with:
-          name: model-autogen-op-tests-metrics-group
+          name: model-autogen-op-tests-metrics-group-${{ matrix.group }}
           path: metrics-autogen-op/
 
   collect-model-artifacts-from-matrix-jobs:
     needs: model-tests
-    runs-on: ["self-hosted"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+    runs-on: ubuntu-latest
     env:
       pytest_verbosity: 0
     steps:
@@ -249,7 +187,7 @@ jobs:
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-tests-metrics_
+          pattern: model-tests-metrics-group-*
           merge-multiple: true
           path: metrics/
 
@@ -262,12 +200,7 @@ jobs:
 
   collect-op-artifacts-from-matrix-jobs:
     needs: model-autogen-op-tests
-    runs-on: ["self-hosted"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+    runs-on: ubuntu-latest
     env:
       pytest_verbosity: 0
     steps:
@@ -277,7 +210,7 @@ jobs:
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-autogen-op-tests-metrics-group
+          pattern: model-autogen-op-tests-metrics-group-*
           merge-multiple: true
           path: metrics-autogen-op/
 
@@ -304,7 +237,7 @@ jobs:
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-accuracy-tests
+          pattern: model-accuracy-tests-group-*
           merge-multiple: true
           path: tests/autogen_accuracy_tests/
 
@@ -318,7 +251,7 @@ jobs:
 
   collect-metrics:
     needs: [model-autogen-op-tests]
-    #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
@@ -334,41 +267,33 @@ jobs:
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-tests-metrics
+          pattern: model-tests-metrics-group-*
           merge-multiple: true
           path: metrics/
 
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-autogen-op-tests-metrics-group
+          pattern: model-autogen-op-tests-metrics-group-*
           merge-multiple: true
           path: metrics-autogen-op/
-      #- name: Download Metrics Artifacts
-      #  env:
+      # - name: Download Metrics Artifacts
+      #   env:
       #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
       #     GH_REPO: ${{ github.repository }}
-      #  run: |
+      #   run: |
       #     mkdir -p metrics
-      #     
-      #    gh run download ${{ github.run_id }} --name "model-tests-metrics" --dir metrics/
-      #     cd metrics
-      #     ls -l
-      #     cd ..
+      #     for i in $(seq 1 40); do
+      #       echo "Downloading metrics for Group $i"
+      #       gh run download ${{ github.run_id }} --name "model-tests-metrics-group-$i" --dir metrics/
+      #       cd metrics
+      #       ls -l
+      #       cd ..
       #     done
-      - name: Debug Metrics Directory
-        run: |
-          echo "Current working directory: $(pwd)"
-          echo "Listing root directory:"
-          ls -la
-          echo "Listing metrics directory:"
-          ls -la metrics/ || echo "Metrics directory not found or empty"
-          echo "Full tree of metrics directory:"
-          find metrics/ -type f -ls || echo "No files in metrics/"
+
       - name: Collect Metrics Report
         run: |
           python3 tools/collect_metrics.py
-          git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git pull
@@ -393,7 +318,7 @@ jobs:
 
   validate-pr:
     if: ${{ always() }}
-    runs-on: ["self-hosted"]  
+    runs-on: ubuntu-latest    
     needs: [model-tests, tools-tests, lowering-tests, collect-metrics]
     steps:
       - run: |
@@ -407,186 +332,3 @@ jobs:
           else
             exit 1
           fi
-
-
-  # build-docker-image:
-  #   uses: ./.github/workflows/build-docker-artifact.yaml
-  #   secrets: inherit
-  #   with:
-  #     distro: ${{ inputs.distro }}
-  #     version: ${{ inputs.version }}
-  #     architecture: ${{ inputs.architecture }}
-  #
-  # build-artifact:
-  #   name: "🛠️ Build ${{ inputs.build-type }} ${{ inputs.distro }} ${{ inputs.version }}"
-  #   needs: build-docker-image
-  #   timeout-minutes: 30
-  #   runs-on:
-  #     - build
-  #     - in-service
-  #   outputs:
-  #     packages-artifact-name: ${{ steps.set-artifact-name.outputs.name }}
-  #     build_artifact_name: ${{ steps.set_build_artifact_name.outputs.build_artifact_name }}
-  #     wheel_artifact_name: ${{ steps.set_wheel_artifact_name.outputs.wheel_artifact_name }}
-  #   container:
-  #     image: ${{ needs.build-docker-image.outputs.ci-build-tag }}
-  #     env:
-  #       CCACHE_TEMPDIR: /tmp/ccache
-  #       CARGO_HOME: /tmp/.cargo
-  #       TT_FROM_PRECOMPILED_DIR: /work
-  #     volumes:
-  #       - ${{ github.workspace }}/docker-job:/work # Subdir to workaround https://github.com/actions/runner/issues/691
-  #       - /home/ubuntu/.ccache-ci:/github/home/.ccache # HOME is hardcoded for no clear reason: https://github.com/actions/runner/issues/863
-  #       - /mnt/MLPerf/ccache:/mnt/MLPerf/ccache
-  #     # Group 1457 is for the shared ccache drive
-  #     # tmpfs is for efficiency
-  #     options: >
-  #       --group-add 1457
-  #       --tmpfs /tmp
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: /work # https://github.com/actions/runner/issues/878
-  #
-  #   steps:
-  #     - name: Verify ccache availability
-  #       shell: bash
-  #       run: |
-  #         if [ ! -d "/mnt/MLPerf/ccache" ]; then
-  #           echo "::error title=ccache-mlperf-not-mounted::NFS drive is not mounted; build machine not properly provisioned."
-  #           exit 1
-  #         fi
-  #         if [ ! -d "$HOME/.ccache" ]; then
-  #           echo "::error title=ccache-not-provisioned::Ccache is not properly provisioned."
-  #           exit 1
-  #         fi
-  #
-  #     - name: Set artifact name
-  #       id: set-artifact-name
-  #       run: |
-  #         TOOLCHAIN="${{ inputs.toolchain }}"
-  #         TOOLCHAIN_CLEANED=$(echo "$TOOLCHAIN" | sed -E 's/^cmake\///; s/-toolchain\.cmake$//')
-  #         ARTIFACT_NAME="packages-${{ inputs.distro }}-${{ inputs.version }}-${{ inputs.architecture }}-${{ inputs.build-type }}-${TOOLCHAIN_CLEANED}${{ (inputs.tracy && '_profiler') || '' }}"
-  #
-  #         echo "name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
-  #         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> "$GITHUB_ENV"
-  #
-  #     - name: ⬇️ Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         submodules: recursive
-  #         fetch-depth: 500 # Need enough history for `git describe`
-  #         fetch-tags: true # Need tags for `git describe`
-  #         path: docker-job # Here be dragons; keep it scoped to our desired volume, yet must be under github.workspace and be sure to clean up at the end
-  #
-  #     - name: Sanity check
-  #       run: |
-  #         set -eu # basic shell hygiene
-  #         if find . -maxdepth 1 -type d -name 'build*' -print -quit | grep -q .; then
-  #           echo "!!! ALERT !!! This should never happen, but does explain an issue we've been hunting. Please send a link to this job to Metal Infra.  kthxbye."
-  #           exit 42
-  #         fi
-  #
-  #     - name: Create ccache tmpdir
-  #       run: |
-  #         mkdir -p /tmp/ccache
-  #
-  #     - name: Prepare ccache summary
-  #       run: |
-  #         # Zero out the stats so we can see how we did this build
-  #         # NOTE: may be inaccurate if we have >1 build runner on the same machine, using the same local cache
-  #         ccache -z
-  #
-  #     - name: 🔧 CMake configure
-  #       run: |
-  #         set -eu # basic shell hygiene
-  #
-  #         args_fixme=$([ "${{ inputs.skip-tt-train }}" = "true" ] && echo "--build-metal-tests --build-ttnn-tests --build-programming-examples" || echo "--build-all")
-  #         echo "Args: ${args_fixme}"
-  #         build_command="./build_metal.sh --build-dir build --build-type ${{ inputs.build-type }} --toolchain-path ${{ inputs.toolchain }} ${args_fixme} --enable-ccache --configure-only --cpm-use-local-packages"
-  #         echo "Build tracy: ${{ inputs.tracy }}"
-  #         if [ "${{ inputs.tracy }}" = "true" ]; then
-  #           build_command="$build_command --enable-profiler"
-  #         fi
-  #
-  #         nice -n 19 $build_command
-  #
-  #     - name: 🛠️ Compile
-  #       run: |
-  #         # --target install is for the tarball that should get replaced by proper packaging later
-  #         nice -19 cmake --build build --target install
-  #
-  #     - name: 📦 Package
-  #       run: |
-  #         nice -n 19 cmake --build build --target package
-  #         ls -1sh build/*.deb build/*.ddeb
-  #
-  #     - name: 🐍 Build wheel
-  #       if: ${{ inputs.build-wheel }}
-  #       run: |
-  #         nice -n 19 python3 -m build
-  #
-  #     - name: Publish ccache summary
-  #       run: |
-  #         echo '## CCache Summary' >> $GITHUB_STEP_SUMMARY
-  #         echo '```' >> $GITHUB_STEP_SUMMARY
-  #         ccache -s >> $GITHUB_STEP_SUMMARY
-  #         echo '```' >> $GITHUB_STEP_SUMMARY
-  #
-  #     - name: ☁️ Upload packages
-  #       uses: actions/upload-artifact@v4
-  #       timeout-minutes: 10
-  #       with:
-  #         name: ${{ env.ARTIFACT_NAME }}
-  #         path: |
-  #           /work/build/*.deb
-  #           /work/build/*.ddeb
-  #         compression-level: 0
-  #         if-no-files-found: error
-  #
-  #     - name: Set wheel artifact name
-  #       id: set_wheel_artifact_name
-  #       run: |
-  #         WHEEL_ARTIFACT_NAME="eager-dist-${{ inputs.distro }}-${{ inputs.version }}-any${{ (inputs.tracy && '-profiler') || '' }}"
-  #         echo "wheel_artifact_name=$WHEEL_ARTIFACT_NAME" >> "$GITHUB_ENV"
-  #         echo "wheel_artifact_name=$WHEEL_ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
-  #
-  #     - name: ☁️ Upload wheel
-  #       if: ${{ inputs.build-wheel }}
-  #       uses: actions/upload-artifact@v4
-  #       timeout-minutes: 10
-  #       with:
-  #         name: ${{ env.wheel_artifact_name }}
-  #         path: /work/dist/
-  #         if-no-files-found: error
-  #
-  #     - name: 'Tar files'
-  #       if: ${{ inputs.publish-artifact }}
-  #       run: tar -cvhf /work/ttm_any.tar ttnn/ttnn/*.so build/lib ttnn/ttnn/*.so build/programming_examples build/test build/tools build/tt-train data runtime
-  #
-  #     - name: Set build artifact name
-  #       id: set_build_artifact_name
-  #       run: |
-  #         BUILD_ARTIFACT_NAME="TTMetal_build_any${{ (inputs.tracy && '_profiler') || '' }}"
-  #         echo "build_artifact_name=$BUILD_ARTIFACT_NAME" >> "$GITHUB_ENV"
-  #         echo "build_artifact_name=$BUILD_ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
-  #
-  #     - name: ☁️ Upload tarball
-  #       if: ${{ inputs.publish-artifact }}
-  #       uses: actions/upload-artifact@v4
-  #       timeout-minutes: 10
-  #       with:
-  #         name: ${{ env.build_artifact_name }}
-  #         path: /work/ttm_any.tar
-  #         if-no-files-found: error
-  #
-  #     - name: Cleanup
-  #       if: always()
-  #       run: |
-  #         # We are forced to checkout the repo into a subdir of the host's workdir; this pollutes the host
-  #         # with root-owned files.  Be sure to clean up after ourselves in case we're on a non-ephemeral runner.
-  #         echo "pre rm"
-  #         ls -al /__w/tt-metal/tt-metal
-  #         rm -rf /__w/tt-metal/tt-metal/docker-job
-  #         echo "post rm"
-  #         ls -al /__w/tt-metal/tt-metal
