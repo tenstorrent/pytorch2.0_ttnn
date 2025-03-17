@@ -344,19 +344,27 @@ jobs:
           pattern: model-autogen-op-tests-metrics-group
           merge-multiple: true
           path: metrics-autogen-op/
-      - name: Download Metrics Artifacts
-        env:
-           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-           GH_REPO: ${{ github.repository }}
+      #- name: Download Metrics Artifacts
+      #  env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     GH_REPO: ${{ github.repository }}
+      #  run: |
+      #     mkdir -p metrics
+      #     
+      #    gh run download ${{ github.run_id }} --name "model-tests-metrics" --dir metrics/
+      #     cd metrics
+      #     ls -l
+      #     cd ..
+      #     done
+      - name: Debug Metrics Directory
         run: |
-           mkdir -p metrics
-           
-           gh run download ${{ github.run_id }} --name "model-tests-metrics" --dir metrics/
-           cd metrics
-           ls -l
-           cd ..
-           done
-
+          echo "Current working directory: $(pwd)"
+          echo "Listing root directory:"
+          ls -la
+          echo "Listing metrics directory:"
+          ls -la metrics/ || echo "Metrics directory not found or empty"
+          echo "Full tree of metrics directory:"
+          find metrics/ -type f -ls || echo "No files in metrics/"
       - name: Collect Metrics Report
         run: |
           python3 tools/collect_metrics.py
