@@ -281,7 +281,11 @@ jobs:
             git push
           fi
           
-          python3 tools/send_to_data_team.py
+          python3 tools/send_to_data_team.py \
+              --github_workflow_id ${{ github.event.workflow_run.id }} \
+              --sftp_host to_be_added \
+              --sftp_user to_be_added \
+              --sftp_private_key to_be_added
 
   validate-pr:
     if: ${{ always() }}

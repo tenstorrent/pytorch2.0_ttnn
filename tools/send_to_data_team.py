@@ -1,3 +1,4 @@
+import argparse
 import gzip
 import pickle
 import tempfile
@@ -6,11 +7,24 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
 
+import pysftp
+
 from tools.data_collection.pydantic_models import TensorDesc, OpTest
 
 
 class SendToDataTeam:
-    def __init__(self, metrics_directory_name: str = "metrics"):
+    def __init__(
+        self,
+        github_workflow_id: int,
+        sftp_host: str,
+        sftp_user: str,
+        sftp_private_key: str,
+        metrics_directory_name: str = "metrics",
+    ):
+        self.github_workflow_id = github_workflow_id
+        self.sftp_host = sftp_host
+        self.sftp_user = sftp_user
+        self.sftp_private_key = sftp_private_key
         self.metrics_dir = Path(metrics_directory_name)
 
     def run(self):
@@ -26,14 +40,21 @@ class SendToDataTeam:
             self.write_file(pydantic_objects, file_path)
             self.send_file(file_path)
 
-    @staticmethod
-    def send_file(file_path: Path):
+    def send_file(self, file_path: Path):
         """
         Sends the given file to the data team sftp.
         Args:
             file_path: Path to the file to send.
         """
-        pass
+
+        # TODO: Get rid of try/except when sftp creds are available
+        try:
+            with pysftp.Connection(
+                host=self.sftp_host, username=self.sftp_user, private_key=self.sftp_private_key
+            ) as sftp:
+                sftp.put(str(file_path))
+        except Exception as e:
+            print(f"I will not work until I have the correct sftp creds.\n{e}")
 
     @staticmethod
     def write_file(pydantic_objects: List[OpTest], file_path: Path):
@@ -81,8 +102,7 @@ class SendToDataTeam:
 
         return results
 
-    @staticmethod
-    def collect_metrics(files: Dict[str, List[Path]]) -> List[OpTest]:
+    def collect_metrics(self, files: Dict[str, List[Path]]) -> List[OpTest]:
         """
         Collect the metrics from the given pickle files and return a list of OpTest objects.
         Args:
@@ -99,7 +119,7 @@ class SendToDataTeam:
             run_time_metrics = pickle.loads(run_time_metrics_path.read_bytes())
 
             base_op_test_data = {
-                "github_job_id": -1,
+                "github_job_id": self.github_workflow_id,
                 "full_test_name": run_time_metrics["test_name"],
                 "test_start_ts": run_time_metrics["start_ts"],
                 "test_end_ts": run_time_metrics["end_ts"],
@@ -142,4 +162,20 @@ class SendToDataTeam:
 
 
 if __name__ == "__main__":
-    SendToDataTeam().run()
+    parser = argparse.ArgumentParser(description="Send metrics to data team")
+
+    parser.add_argument("--github_workflow_id", type=int, help="Github workflow id associated with the run.")
+    parser.add_argument("--sftp_host", type=str, help="Sftp host.")
+    parser.add_argument("--sftp_user", type=str, help="Sftp user.")
+    parser.add_argument("--sftp_private_key", type=str, help="Path to private key.")
+
+    args = parser.parse_args()
+
+    sender = SendToDataTeam(
+        github_workflow_id=args.github_workflow_id,
+        sftp_host=args.sftp_host,
+        sftp_user=args.sftp_user,
+        sftp_private_key=args.sftp_private_key,
+    )
+
+    sender.run()
