@@ -325,8 +325,8 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    #env:
-    #  PYTHONPATH: ${{ github.workspace }}
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       #- uses: ./.github/actions/common_repo_setup
