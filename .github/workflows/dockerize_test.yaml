@@ -39,13 +39,13 @@ jobs:
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+     # - uses: ./.github/actions/common_repo_setup
       - name: Debug Python Environment
         run: |
           echo "User: $(whoami) (ID: $(id))"
@@ -72,13 +72,13 @@ jobs:
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
       - name: Debug Python Environment
         run: |
           echo "User: $(whoami) (ID: $(id))"
@@ -109,12 +109,12 @@ jobs:
     #needs: lowering-tests
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
       - uses: actions/checkout@v4
         with:
           lfs: true          
@@ -154,7 +154,7 @@ jobs:
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -163,7 +163,7 @@ jobs:
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+     # - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -201,7 +201,7 @@ jobs:
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -210,7 +210,7 @@ jobs:
       pytest_report_title: "⭐️ Model Input Variations Tests"
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+     # - uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Input Variations Tests
         run: |
@@ -236,7 +236,7 @@ jobs:
     needs: model-tests
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -244,7 +244,7 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -264,7 +264,7 @@ jobs:
     needs: model-autogen-op-tests
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -272,7 +272,7 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
 
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -291,7 +291,7 @@ jobs:
     needs: [model-tests]
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -299,7 +299,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
 
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
@@ -321,7 +321,7 @@ jobs:
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-20.04-amd64-release:latest-rc
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -329,7 +329,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
+      #- uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
