@@ -255,8 +255,9 @@ def is_ttnn_to_ttnn(src_node, dst_node):
 
 
 class NodeInputAligner:
-    def __init__(self, graph):
+    def __init__(self, graph, device):
         self.graph = graph
+        self.device = device
         self.aligned_node_dict = {}
 
     class InputSiteType(Enum):
@@ -280,7 +281,7 @@ class NodeInputAligner:
     @dataclass(unsafe_hash=True)
     class AlignSpecInTtnn:
         input_node: torch.fx.node.Node
-        device: Union[None, Type[TtnnDevice], Literal["host"]]
+        device: Union[None, Type[TtnnDevice], Literal["host"], Literal["temp_host_layout"]]
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
@@ -297,6 +298,10 @@ class NodeInputAligner:
         # be overly cautious and convert to tile layout. These could already be tilized
         # TODO: only insert layout if needed
         if input_node.target in [ttnn.ones, ttnn.ones_like, ttnn.zeros, ttnn.zeros_like]:
+            spec.layout = TtnnTileLayout
+
+        # TODO: remove when _align_special_cases no longer converts reshape inputs to row major
+        if input_node.target == ttnn.reshape:
             spec.layout = TtnnTileLayout
 
         # legalize to the default layout and device
@@ -337,17 +342,27 @@ class NodeInputAligner:
             and isinstance(spec, self.AlignSpecFromTorch)
             and get_dtype(node) in [torch.int32, torch.int64]
         ):
+            # This allows ViLT to work by coercing stack inputs to be uint32
+            # TODO: remove this and handle stack inputs more generally
             spec.dtype = TtnnUint32
+        if node.target == ttnn.reshape:
+            # Reshape breaks for tilized uint32 input
+            # TODO: only change layout for uint32 inputs, then fix in tt-metal
+            spec.layout = TtnnRowMajorLayout
         if node.target == target_wrappers.conv and input_site == 1:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
+
         return spec
 
     def _get_align_spec(self, node, input_node, input_site, input_site_type: InputSiteType):
         if is_torch_to_ttnn(input_node, node):
             # default set these layout for torch to ttnn
-            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, TtnnBfloat16)
+            spec_dtype = TtnnBfloat16
+            if get_dtype(input_node) in [torch.int32, torch.int64]:
+                spec_dtype = TtnnUint32
+            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, spec_dtype)
             spec = self._align_special_cases(node, spec, input_site, input_site_type)
             return spec
         elif is_ttnn_to_torch(input_node, node):
@@ -358,6 +373,11 @@ class NodeInputAligner:
             spec = self.AlignSpecInTtnn(input_node, None, None, None)
             spec = self._reset_to_default_layout(input_node, spec)
             spec = self._align_special_cases(node, spec, input_site, input_site_type)
+            # tilize fails on device for uint32 inputs
+            # TODO: remove this once tilize works in this case
+            if spec.layout == TtnnTileLayout and get_dtype(input_node) in [torch.int32, torch.int64]:
+                spec.device = "temp_host_layout"
+
             if spec.device is None and spec.layout is None and spec.dtype is None:
                 return None
             return spec
@@ -365,9 +385,9 @@ class NodeInputAligner:
             return None
 
     def _change_layout(self, spec):
-        need_from_device = spec.device == "host"
+        need_from_device = spec.device in ["host", "temp_host_layout"]
         need_to_layout = spec.layout is not None
-        need_to_device = spec.device == TtnnDevice
+        need_to_device = spec.device in [TtnnDevice, "temp_host_layout"]
 
         input_node = spec.input_node
 
@@ -378,7 +398,7 @@ class NodeInputAligner:
             input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
 
         if need_to_device:
-            input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": spec.device()})
+            input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
 
         return input_node
 
@@ -467,11 +487,14 @@ class NodeInputAligner:
 
 
 class AddDataMovePass(PassBase):
+    def __init__(self, device):
+        self.device = device
+
     def call(self, gm: torch.fx.GraphModule):
         SiteType = NodeInputAligner.InputSiteType
 
         i = 0
-        node_input_aligner = NodeInputAligner(gm.graph)
+        node_input_aligner = NodeInputAligner(gm.graph, self.device)
         nodes = list(gm.graph.nodes)
 
         for node in nodes:
