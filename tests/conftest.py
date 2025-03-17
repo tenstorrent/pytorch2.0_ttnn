@@ -143,8 +143,8 @@ def process_schema_list(option_schema_list):
                 info["name"] = str(obj)
                 info["shape"] = [i for i in _obj.shape]
                 info["data_type"] = str(_obj.dtype)
-                info["buffer_type"] = "n/a"
-                info["layout"] = "n/a"
+                info["buffer_type"] = "default"
+                info["layout"] = str(_obj.layout)
                 info["grid_shape"] = []
 
                 tensor_infos.append(info)
