@@ -1,7 +1,7 @@
 name: "Before Merge Docker Test"
 
 on:
-  workflow_call:
+  push:
   workflow_dispatch:
     inputs:
       commit_report:
