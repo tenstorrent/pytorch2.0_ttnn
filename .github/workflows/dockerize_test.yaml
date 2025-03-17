@@ -39,7 +39,7 @@ jobs:
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -72,7 +72,7 @@ jobs:
       PYTHONPATH:  /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -109,7 +109,7 @@ jobs:
     #needs: lowering-tests
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -154,7 +154,7 @@ jobs:
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -201,7 +201,7 @@ jobs:
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -236,7 +236,7 @@ jobs:
     needs: model-tests
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -264,7 +264,7 @@ jobs:
     needs: model-autogen-op-tests
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -291,7 +291,7 @@ jobs:
     needs: [model-tests]
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -321,7 +321,7 @@ jobs:
     #if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["self-hosted"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn-ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
