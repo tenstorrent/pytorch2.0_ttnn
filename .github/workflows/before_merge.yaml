@@ -1,7 +1,7 @@
 name: "Tests"
 
 on:
-  workflow_call:
+  push:
   workflow_dispatch:
     inputs:
       commit_report:
