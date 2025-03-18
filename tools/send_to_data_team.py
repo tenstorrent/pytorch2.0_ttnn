@@ -46,15 +46,13 @@ class SendToDataTeam:
         Args:
             file_path: Path to the file to send.
         """
-
-        # TODO: Get rid of try/except when sftp creds are available
-        try:
+        with tempfile.NamedTemporaryFile() as private_key_file:
+            private_key_file.write(bytes(self.sftp_private_key, "utf-8"))
+            private_key_file.flush()
             with pysftp.Connection(
-                host=self.sftp_host, username=self.sftp_user, private_key=self.sftp_private_key
+                host=self.sftp_host, username=self.sftp_user, private_key=private_key_file.name
             ) as sftp:
                 sftp.put(str(file_path))
-        except Exception as e:
-            print(f"I will not work until I have the correct sftp creds.\n{e}")
 
     @staticmethod
     def write_file(pydantic_objects: List[OpTest], file_path: Path):

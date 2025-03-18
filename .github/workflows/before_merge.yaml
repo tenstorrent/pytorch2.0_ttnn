@@ -283,9 +283,9 @@ jobs:
           
           python3 tools/send_to_data_team.py \
               --github_workflow_id ${{ github.event.workflow_run.id }} \
-              --sftp_host to_be_added \
-              --sftp_user to_be_added \
-              --sftp_private_key to_be_added
+              --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
+              --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
+              --sftp_private_key ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}
 
   validate-pr:
     if: ${{ always() }}
