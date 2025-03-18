@@ -212,13 +212,13 @@ def compile_and_run(device, reset_torch_dynamo, request):
             original_metrics_path = p / "original-run_time_metrics.pickle"
             runtime_metrics["end_ts"] = end_ts
 
-            # Get error message from `sys.last_value` when we can.
-            try:
-                error_message = str(sys.last_value)
-            except AttributeError:
-                error_message = ""
-
             if request.session.testsfailed > 0:
+                # Get error message from `sys.last_value` when we can.
+                try:
+                    error_message = str(sys.last_value)
+                except AttributeError:
+                    error_message = ""
+
                 runtime_metrics["success"] = False
                 runtime_metrics["error_message"] = error_message
 
