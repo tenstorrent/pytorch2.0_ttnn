@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 import torch.linalg
 import torch
 import torch._dynamo
@@ -242,6 +245,8 @@ def ttnn_backend(
 ) -> torch.fx.GraphModule:
     # Save all parameters and inputs if requested
     if options.gen_op_accuracy_tests and options._all_inputs is None:
+        import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
+
         options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
 
     tracer_option = options.tracer_option

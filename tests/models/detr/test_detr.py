@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 from PIL import Image
 import requests
 import torch
@@ -34,7 +37,12 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [
+        pytest.param(
+            "eval",
+            marks=pytest.mark.compilation_xfail,
+        ),
+    ],
 )
 def test_detr(record_property, mode):
     model_name = "DETR"

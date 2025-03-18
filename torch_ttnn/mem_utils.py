@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
 from torch_ttnn.utils import TtnnDevice
 import ttnn

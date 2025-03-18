@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 import inspect
 import logging
 import lzma
@@ -311,6 +314,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
             pass
         else:
             graph_code.append(f"  {_node_to_python_code(node)}")
+    # graph_code.append("  ttnn.close_device(device)")
 
     return graph_code
 
@@ -343,6 +347,7 @@ def generate_flat_args(gm, example_inputs):
 
 # rename to forward_definitions and forward_calls maybe?
 def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs):
+# def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
     """
     Generate standlone a python script along with an input file containing
     data for weights, biases, and inputs for a model run.

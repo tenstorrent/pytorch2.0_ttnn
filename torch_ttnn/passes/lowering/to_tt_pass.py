@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 import torch
 import ttnn
 import math
@@ -676,8 +679,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
-                # Repeat fails if last dimension of input is 1
-                if input_tensor_shape[-1] != 1 and len(input_tensor_shape) == len(output_shape):
+                if len(input_tensor_shape) == len(output_shape):
                     return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
 
                 return None

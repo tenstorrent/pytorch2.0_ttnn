@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 # Reference: https://github.com/facebookresearch/segment-anything-2
 # Hugging Face version: https://huggingface.co/facebook/sam2-hiera-tiny
 

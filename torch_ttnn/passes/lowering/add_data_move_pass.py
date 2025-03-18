@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 import torch
 import ttnn
 from torch_ttnn.utils import (
@@ -321,6 +324,13 @@ class NodeInputAligner:
             # TODO: Only uint32 needs to to_layout on host
             spec.layout = TtnnRowMajorLayout
             spec.device = TtnnDevice
+        if (
+            node.target == target_wrappers.stack
+            and isinstance(spec, self.AlignSpecFromTorch)
+            and get_dtype(node) in [torch.int32, torch.int64]
+        ):
+            spec.dtype = TtnnUint32
+
         if node.target == target_wrappers.conv and input_site == 1:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
