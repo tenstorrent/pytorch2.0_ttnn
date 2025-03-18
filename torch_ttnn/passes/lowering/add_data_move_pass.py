@@ -353,6 +353,14 @@ class NodeInputAligner:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
             spec.device = "host"
+        if (
+            node.target == ttnn.subtract
+            and isinstance(spec, self.AlignSpecFromTorch)
+            and get_dtype(node) in [torch.int32, torch.int64]
+        ):
+            # Needed to have GPT2 pass: from_torch -> subtract -> remainder -> indexing but subtract may go below 0
+            # TODO: remove when we have signed int support for required ops
+            spec.dtype = TtnnBfloat16
 
         return spec
 
