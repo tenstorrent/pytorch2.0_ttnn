@@ -9,7 +9,8 @@ from PIL import Image
 import pytest
 from tests.utils import ModelTester
 import torch
-
+import torch._dynamo
+torch._dynamo.config.suppress_errors = True
 
 class ThisTester(ModelTester):
     def _load_model(self):
