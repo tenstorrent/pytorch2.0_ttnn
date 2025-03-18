@@ -71,6 +71,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true          
+      - name: Install libsndfile
+        run: apt-get update && apt-get install -y libsndfile1
      # - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_model_tests
 
