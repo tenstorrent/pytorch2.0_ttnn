@@ -54,6 +54,8 @@ jobs:
       - uses: ./.github/actions/common_lowering_tests
 
   model-tests:
+    env:
+      XDG_CACHE_HOME: /root/.cache
     needs: lowering-tests
     runs-on: ["self-hosted"]
     container: 
