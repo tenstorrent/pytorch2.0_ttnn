@@ -163,6 +163,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
     logging.info("Starting the compile_and_run fixture.")
 
     test_file_path = Path(request.node.location[0])
+    print(f"Running tests in {test_file_path}")
     model_name = test_file_path.parent.name.lower()
 
     runtime_metrics = {
