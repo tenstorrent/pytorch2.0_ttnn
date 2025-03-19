@@ -92,10 +92,6 @@ class InputVariation:
 
         return out
 
-    @property
-    def input_objects(self):
-        return {"opname": str(self.opname), "inputs": self.get_input_str_list(), "input_objects": self.inputs}
-
 
 class ConvertedInput:
     def __init__(self, opname, original_input_variation: InputVariation):
@@ -107,15 +103,6 @@ class ConvertedInput:
 
     def dict(self):
         return {"opname": str(self.opname), "original_inputs": self.original_input_variation.dict()}
-
-    @property
-    def input_objects(self):
-        out = {
-            "opname": str(self.opname),
-            "original_inputs": self.original_input_variation.dict(),
-            "input_objects": self.original_input_variation.input_objects,
-        }
-        return out
 
 
 def collect_input_variation(target, args, kwargs):
