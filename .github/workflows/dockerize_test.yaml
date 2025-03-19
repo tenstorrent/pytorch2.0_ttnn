@@ -83,7 +83,15 @@ jobs:
           chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
         with:
-          lfs: true          
+          lfs: true    
+      - name: Debug LFS Pull
+        run: |
+          echo "Git LFS version:"
+          git lfs version
+          echo "Pulling LFS files:"
+          git lfs pull || echo "LFS pull failed"
+          ls -la ${{ github.workspace }}/models/hand_landmark/ || echo "Dir missing"
+          find ${{ github.workspace }} -name "hand_landmarker.task" || echo "File not found"      
       - name: Install libsndfile
         run: apt-get update && apt-get install -y libsndfile1
      # - uses: ./.github/actions/common_repo_setup
