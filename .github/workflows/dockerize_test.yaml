@@ -45,7 +45,6 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
@@ -53,6 +52,9 @@ jobs:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2]
     steps:
+      - name: Reset Workspace Permissions
+        run: |
+          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
       #- uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_lowering_tests
@@ -65,7 +67,6 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
         -v /home/ubuntu/.cache/huggingface:/root/.cache/huggingface
         -v /home/ubuntu/.cache/torch/hub:/root/.cache/torch/hub
     env:      
@@ -77,6 +78,9 @@ jobs:
         #group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
         group: [9]
     steps:
+      - name: Reset Workspace Permissions
+        run: |
+          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
         with:
           lfs: true          
@@ -115,10 +119,12 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
+      - name: Reset Workspace Permissions
+        run: |
+          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
      # - uses: ./.github/actions/common_repo_setup
 
@@ -163,7 +169,6 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
@@ -172,6 +177,9 @@ jobs:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
     steps:
+      - name: Reset Workspace Permissions
+        run: |
+          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
       #- uses: ./.github/actions/common_repo_setup
 
