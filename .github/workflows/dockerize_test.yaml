@@ -28,12 +28,10 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
     steps:      
       - name: Reset Workspace Permissions
         run: |
-          sudo chown -R ubuntu:ubuntu ${{ github.workspace }}
-          rm -rf ${{ github.workspace }}/.git/*
+          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
       #- uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
