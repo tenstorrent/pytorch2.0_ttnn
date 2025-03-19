@@ -121,42 +121,6 @@ def skip_by_platform(request, device):
             )
 
 
-def process_schema_list(option_schema_list):
-    schema_list = [x.input_objects for x in option_schema_list]
-
-    is_original_list = False
-    if len(schema_list) > 0 and set(schema_list[0]) == {"input_objects", "inputs", "opname"}:
-        is_original_list = True
-
-    for item in schema_list:
-        if is_original_list:
-            input_objects = item.pop("input_objects", [])
-        else:
-            input_objects = item.pop("input_objects", {})
-            input_objects = input_objects.pop("input_objects", [])
-
-        tensor_infos = []
-        for obj in input_objects:
-            _obj = obj.shape_
-            info = {}
-            if isinstance(_obj, FakeTensor):
-                info["name"] = str(obj)
-                info["shape"] = [i for i in _obj.shape]
-                info["data_type"] = str(_obj.dtype)
-                info["buffer_type"] = "default"
-                info["layout"] = str(_obj.layout)
-                info["grid_shape"] = []
-
-                tensor_infos.append(info)
-
-        if is_original_list:
-            item["tensor_infos"] = tensor_infos
-        else:
-            item["original_inputs"]["tensor_infos"] = tensor_infos
-
-    return schema_list
-
-
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
     start_ts = datetime.datetime.now(datetime.timezone.utc)
@@ -278,7 +242,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     logging.info(f"Accuracy calculated: {accuracy}.")
 
             metrics.save_pickle(
-                process_schema_list(option.compiled_schema_list),
+                [x.dict_for_pickle() for x in option.compiled_schema_list],
                 option.metrics_path,
                 "compiled-schema_list",
             )
@@ -320,7 +284,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             logging.debug("Saving metrics.")
 
             metrics.save_pickle(
-                process_schema_list(option.original_schema_list),
+                [x.dict_for_pickle() for x in option.original_schema_list],
                 option.metrics_path,
                 "original-schema_list",
             )

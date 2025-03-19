@@ -5,6 +5,7 @@ from typing import List
 import torch
 import pickle
 from pathlib import Path
+from torch._subclasses import FakeTensor
 
 
 # Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
@@ -67,6 +68,29 @@ class InputVariation:
 
     def dict(self):
         return {"opname": str(self.opname), "inputs": self.get_input_str_list()}
+
+    def dict_for_pickle(self):
+        out = {"opname": str(self.opname)}
+
+        inputs = []
+        tensor_infos = []
+        for obj in self.inputs:
+            inputs.append(str(obj))
+            _obj = obj.shape_
+            if isinstance(_obj, FakeTensor):
+                info = {}
+                info["name"] = str(obj)
+                info["shape"] = [i for i in _obj.shape]
+                info["data_type"] = str(_obj.dtype)
+                info["buffer_type"] = "default"
+                info["layout"] = str(_obj.layout)
+                info["grid_shape"] = []
+                tensor_infos.append(info)
+
+        out["inputs"] = inputs
+        out["tensor_infos"] = tensor_infos
+
+        return out
 
     @property
     def input_objects(self):
