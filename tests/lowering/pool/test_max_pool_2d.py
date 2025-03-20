@@ -24,15 +24,7 @@ class MaxPool2dModule(torch.nn.Module):
         ((1, 512, 19, 19), (3, 3), 1, 1, 1, False),
         ((1, 192, 28, 28), (3, 3), 1, 1, 1, False),
         ((1, 64, 360, 640), (3, 3), 2, 1, 1, False),
-        pytest.param(
-            (1, 320, 28, 28),
-            (3, 3),
-            1,
-            1,
-            1,
-            False,
-            marks=pytest.mark.xfail(reason="wide channel not divisible by TILE_SIZE * 8 (tt-metal#13901)"),
-        ),
+        ((1, 320, 28, 28), (3, 3), 1, 1, 1, False),
         pytest.param(
             (1, 256, 28, 28),
             (3, 3),

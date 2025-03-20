@@ -1028,8 +1028,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if (
                     # TODO(tt-metal#14976): ceil mode isn't supported yet
                     ceil_mode
-                    # TODO(tt-metal#13901): Wide input channels can only be multiple of 8 tiles
-                    or (in_c > (ttnn.TILE_SIZE * 8) and in_c % (ttnn.TILE_SIZE * 8) != 0)
                     # TODO(#419): Currently fails with in_c < 16
                     or in_c < 16
                     # TODO(tt-metal#12099): Currently it doesn't return indices. Convert if only the value is used
