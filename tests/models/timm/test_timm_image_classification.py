@@ -62,7 +62,7 @@ model_and_mode_list = [
     ["inception_v4.tf_in1k", "eval"],
     ["mixer_b16_224.goog_in21k", "eval"],
     pytest.param(["mobilenetv1_100.ra4_e3600_r224_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
-    ["ese_vovnet19b_dw.ra_in1k", "eval"],
+    pytest.param(["ese_vovnet19b_dw.ra_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(["xception71.tf_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(["dla34.in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     ["hrnet_w18.ms_aug_in1k", "eval"],

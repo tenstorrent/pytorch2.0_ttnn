@@ -25,14 +25,13 @@ class MaxPool2dModule(torch.nn.Module):
         ((1, 192, 28, 28), (3, 3), 1, 1, 1, False),
         ((1, 64, 360, 640), (3, 3), 2, 1, 1, False),
         ((1, 320, 28, 28), (3, 3), 1, 1, 1, False),
-        pytest.param(
+        (
             (1, 256, 28, 28),
             (3, 3),
             1,
             1,
             1,
             True,
-            marks=pytest.mark.xfail(reason="ceil_mode=True is not supported yet (tt-metal#14976)"),
         ),
         pytest.param(
             (1, 4, 14, 14),
