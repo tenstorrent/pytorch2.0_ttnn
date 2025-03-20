@@ -195,11 +195,37 @@ jobs:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
 
+  calculate-accuracy-tests-groups:
+    runs-on: ubuntu-latest
+    outputs:
+      groups: ${{ steps.set-groups.outputs.groups }}
+    steps:
+    - name: Determine Number of Groups
+      id: set-groups
+      run: |
+        # Count the number of test files
+        num_files=$(find tests/autogen_accuracy_tests -type f -name "*.py" | wc -l)
+
+        # Get the number of available CPUs (or set a default if not available)
+        num_cpus=$(nproc || echo 4)
+
+        # Calculate the number of groups (e.g., 1 group per CPU, or adjust as needed)
+        num_groups=$((num_files < num_cpus ? num_files : num_cpus))
+
+        # Ensure at least 1 group
+        num_groups=$((num_groups > 0 ? num_groups : 1))
+
+        # Generate the list of groups as JSON
+        groups=$(seq 1 $num_groups | jq -c '.')
+        echo "groups=$groups" >> $GITHUB_OUTPUT
   gen-and-test-model-accuracy:
     needs: [model-tests]
     runs-on: ["in-service"]
     env:
       PYTHONPATH: ${{ github.workspace }}
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
@@ -215,7 +241,8 @@ jobs:
         run: |
           cd tests/autogen_accuracy_tests
           set +e
-          find . -type f -name "*.py" -exec python {} ";"
+          test_file=$(find . -type f -name "*.py" | sed -n "${{ matrix.group }}p")
+          python3 -m pytest $test_file -s
           exit 0;
         shell: bash
 
