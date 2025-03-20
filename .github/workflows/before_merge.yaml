@@ -196,7 +196,7 @@ jobs:
           path: metrics-autogen-op/
 
   calculate-accuracy-tests-groups:
-    needs: model-autogen-op-tests
+    needs: model-tests
     runs-on: ubuntu-latest
     outputs:
       groups: ${{ steps.set-groups.outputs.groups }}
