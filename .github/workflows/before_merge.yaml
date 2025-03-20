@@ -196,7 +196,7 @@ jobs:
           path: metrics-autogen-op/
 
   calculate-accuracy-tests-groups:
-    needs: model-tests
+    needs: [model-tests]
     runs-on: ubuntu-latest
     outputs:
       groups: ${{ steps.set-groups.outputs.groups }}
@@ -220,7 +220,7 @@ jobs:
         groups=$(seq 1 $num_groups | jq -c '.')
         echo "groups=$groups" >> $GITHUB_OUTPUT
   gen-and-test-model-accuracy:
-    needs: [model-tests]
+    needs: [calculate-accuracy-tests-groups]
     runs-on: ["in-service"]
     env:
       PYTHONPATH: ${{ github.workspace }}
