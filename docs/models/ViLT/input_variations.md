@@ -8,7 +8,7 @@
 |  4 | aten.clone.default             |                  1 |           1 |         0 |          0 | ✅          |     1   |
 |  5 | aten.convolution.default       |                  1 |           0 |         0 |          0 | ✘           |     0   |
 |  6 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |     1   |
-|  7 | aten.expand.default            |                  1 |           0 |         0 |          0 | ✘           |     0   |
+|  7 | aten.expand.default            |                  1 |           1 |         0 |          0 | ✅          |     1   |
 |  8 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |     1   |
 |  9 | aten.select.int                |                  4 |           3 |         1 |          0 | ✅          |     1   |
 | 10 | aten.slice.Tensor              |                 11 |           2 |         9 |          0 | ✅          |     1   |
@@ -52,7 +52,7 @@
 ### aten.expand.default
 |    | ATen Input Variations                                  | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[12, 1]> self = ?,<br>List[int] size = [12, 16] | None     | Fallback   |     1 |     -1 |
+|  0 | Tensor<[12, 1]> self = ?,<br>List[int] size = [12, 16] | Done     | Done       |     1 |      0 |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   | PCC   |   Host |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|-------:|
@@ -60,9 +60,9 @@
 ### aten.select.int
 |    | ATen Input Variations                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 1, 12, 16]> self = ?,<br>int dim = 1,<br>int index = 0 | Done     | Done       |     1 |      0 |
-|  1 | Tensor<[1, 12]> self = ?,<br>int dim = 1,<br>int index = 0        | Done     | Done       |     1 |      0 |
-|  2 | Tensor<[1, 16]> self = ?,<br>int dim = 1,<br>int index = 0        | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[1, 1, 12, 16]> self = ?,<br>int dim = 1,<br>int index = 0 | Done     | Done       |     1 |     -1 |
+|  1 | Tensor<[1, 12]> self = ?,<br>int dim = 1,<br>int index = 0        | Done     | Done       |     1 |     -1 |
+|  2 | Tensor<[1, 16]> self = ?,<br>int dim = 1,<br>int index = 0        | Done     | Done       |     1 |     -1 |
 |  3 | Tensor<[1]> self = ?,<br>int dim = 0,<br>int index = 0            | Removed  | Fallback   |     1 |     -1 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                     | Status   | Isolated   |   PCC |   Host |
