@@ -130,7 +130,7 @@ class SendToDataTeam:
                 "frontend": "pytorch2.0_ttnn",
                 "model_name": run_time_metrics.get("model_name"),
                 "op_kind": "default",  # TODO: where to get this
-                "framework_op_name": "default",  # TODO: where to get this
+                "framework_op_name": "",
                 "inputs": [],
                 "outputs": [],
                 "op_params": {},
