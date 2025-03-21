@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+import datetime
+
 import pytest
 import ttnn
 import torch
@@ -11,6 +13,7 @@ import time
 from pathlib import Path
 import os
 import pickle
+from torch._subclasses import FakeTensor
 from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
 import subprocess
@@ -124,30 +127,49 @@ def skip_by_platform(request, device):
 
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
+    start_ts = datetime.datetime.now(datetime.timezone.utc)
     logging.info("Starting the compile_and_run fixture.")
 
-    runtime_metrics = {"success": False}  # Initialize early to ensure it's defined
+    test_file_path = Path(request.node.location[0])
+    print(f"Running tests in {test_file_path}")
+    model_name = test_file_path.parent.name.lower()
+
+    runtime_metrics = {
+        "success": False,
+        "start_ts": start_ts,
+        "test_name": request.node.name,
+        "test_filepath": str(test_file_path),
+        "model_name": model_name,
+        "model_path": str(test_file_path.parent),
+    }
+
     comp_runtime_metrics = {
         "success": False,
+        "start_ts": start_ts,
         "fits_in_memory": "N/A",
         "peak_sram_usage": 0,
     }
+
     try:
         logging.debug("Initializing test run timing.")
         start = time.perf_counter() * 1000
         yield
         end = time.perf_counter() * 1000
-        runtime_metrics = {"success": True, "run_time": round(end - start, 2)}
+        end_ts = datetime.datetime.now(datetime.timezone.utc)
+
+        runtime_metrics["end_time"] = end_ts
+        runtime_metrics["success"] = True
+        runtime_metrics["run_time"] = round(end - start, 2)
+
         logging.info(f"Test run completed successfully in {runtime_metrics['run_time']} ms.")
     except Exception as e:
-        runtime_metrics = {"success": False}
+        runtime_metrics["success"] = False
         logging.error(f"Test run failed. Exception: {e}", exc_info=True)
         raise
     finally:
+        end_ts = datetime.datetime.now(datetime.timezone.utc)
         logging.debug("Processing runtime metrics.")
         record = dict(request.node.user_properties)
-        model_path = Path(request.node.location[0])
-        runtime_metrics["model_path"] = str(model_path.parent)
 
         if "model_name" in record:
             model_name = record["model_name"]
@@ -157,6 +179,18 @@ def compile_and_run(device, reset_torch_dynamo, request):
             os.makedirs(p, exist_ok=True)
 
             original_metrics_path = p / "original-run_time_metrics.pickle"
+            runtime_metrics["end_ts"] = end_ts
+
+            if request.session.testsfailed > 0:
+                # Get error message from `sys.last_value` when we can.
+                try:
+                    error_message = str(sys.last_value)
+                except AttributeError:
+                    error_message = ""
+
+                runtime_metrics["success"] = False
+                runtime_metrics["error_message"] = error_message
+
             with open(original_metrics_path, "wb") as f:
                 pickle.dump(runtime_metrics, f)
             logging.info(f"Runtime metrics saved to {original_metrics_path}.")
@@ -193,12 +227,11 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 if idx == 0:
                     first_iter_runtime = run_time
 
-            comp_runtime_metrics = {
-                "success": True,
-                "run_time": round(run_time, 2),
-                "run_time_first_iter": round(first_iter_runtime, 2),
-                "has_aten": None,
-            }
+            comp_runtime_metrics["success"] = True
+            comp_runtime_metrics["run_time"] = round(run_time, 2)
+            comp_runtime_metrics["run_time_first_iter"] = round(first_iter_runtime, 2)
+            comp_runtime_metrics["has_aten"] = None
+
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
             # set to one variable?
@@ -229,17 +262,18 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     break
         except Exception as e:
             logging.error("Compilation failed.", exc_info=True)
-            comp_runtime_metrics = {
-                "success": False,
-                "fits_in_memory": "N/A",
-                "peak_sram_usage": 0,
-            }
+
+            comp_runtime_metrics["success"] = False
+            comp_runtime_metrics["fits_in_memory"] = "N/A"
+            comp_runtime_metrics["peak_sram_usage"] = 0
+
             try:
                 logging.debug("Attempting rerun with bypass option to collect aten op metrics.")
                 torch._dynamo.reset()
                 option.bypass_compile = True
                 option.reset_containers()
                 model_tester.test_model(as_ttnn=True, option=option)
+                end_ts = datetime.datetime.now(datetime.timezone.utc)
             except Exception as e2:
                 logging.critical(
                     "Rerun with bypass compilation failed. Please check model or model.generate.",
@@ -256,12 +290,14 @@ def compile_and_run(device, reset_torch_dynamo, request):
                     raise TypeError(f"{model_name} compiled failed to run.") from e
         finally:
             logging.debug("Saving metrics.")
+
             metrics.save_pickle(
-                [x.dict() for x in option.original_schema_list],
+                [x.dict_for_pickle() for x in option.original_schema_list],
                 option.metrics_path,
                 "original-schema_list",
             )
             compiled_metrics_path = p / "compiled-run_time_metrics.pickle"
+            comp_runtime_metrics["end_ts"] = end_ts
             with open(compiled_metrics_path, "wb") as f:
                 pickle.dump(comp_runtime_metrics, f)
             logging.info(f"Compiled runtime metrics saved to {compiled_metrics_path}.")

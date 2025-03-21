@@ -30,11 +30,11 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?    | Done     | Done       | 0.999963 |      0 |
-|  1 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ? | Done     | Done       | 0.999945 |      0 |
-|  2 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ? | Done     | Done       | 0.999802 |      0 |
-|  3 | Tensor<[3840]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 3840]> mat2 = ? | Done     | Done       | 0.999946 |      0 |
-|  4 | Tensor<[5120]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 5120]> mat2 = ? | Done     | Done       | 0.999945 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?    | Done     | Done       | 0.99996  |      0 |
+|  1 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ? | Done     | Done       | 0.999946 |      0 |
+|  2 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ? | Done     | Done       | 0.999801 |      0 |
+|  3 | Tensor<[3840]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 3840]> mat2 = ? | Done     | Done       | 0.999945 |      0 |
+|  4 | Tensor<[5120]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 5120]> mat2 = ? | Done     | Done       | 0.999946 |      0 |
 ### aten.cat.default
 |    | ATen Input Variations                                                      | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -69,10 +69,10 @@
 ### aten.select.int
 |    | ATen Input Variations                                                 | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 1370, 1280]> self = ?,<br>int dim = 1,<br>int index = 0    | Done     | Done       |     1 |      0 |
-|  1 | Tensor<[3, 1370, 1, 1280]> self = ?,<br>int dim = 0,<br>int index = 0 | Done     | Done       |     1 |      0 |
-|  2 | Tensor<[3, 1370, 1, 1280]> self = ?,<br>int dim = 0,<br>int index = 1 | Done     | Done       |     1 |      0 |
-|  3 | Tensor<[3, 1370, 1, 1280]> self = ?,<br>int dim = 0,<br>int index = 2 | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[1, 1370, 1280]> self = ?,<br>int dim = 1,<br>int index = 0    | Done     | Done       |     1 |     -1 |
+|  1 | Tensor<[3, 1370, 1, 1280]> self = ?,<br>int dim = 0,<br>int index = 0 | Done     | Done       |     1 |     -1 |
+|  2 | Tensor<[3, 1370, 1, 1280]> self = ?,<br>int dim = 0,<br>int index = 1 | Done     | Done       |     1 |     -1 |
+|  3 | Tensor<[3, 1370, 1, 1280]> self = ?,<br>int dim = 0,<br>int index = 2 | Done     | Done       |     1 |     -1 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -92,7 +92,7 @@
 ### aten.transpose.int
 |    | ATen Input Variations                                                     | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 1370, 1, 3, 1280]> self = ?,<br>int dim0 = 0,<br>int dim1 = -2 | Done     | Done       |     1 |      1 |
+|  0 | Tensor<[1, 1370, 1, 3, 1280]> self = ?,<br>int dim0 = 0,<br>int dim1 = -2 | Done     | Done       |     1 |      0 |
 |  1 | Tensor<[1, 1370, 1280]> self = ?,<br>int dim0 = 1,<br>int dim1 = 0        | Done     | Done       |     1 |      0 |
 |  2 | Tensor<[1370, 1, 1280]> self = ?,<br>int dim0 = 1,<br>int dim1 = 0        | Done     | Done       |     1 |      0 |
 |  3 | Tensor<[1370, 16, 80]> self = ?,<br>int dim0 = 0,<br>int dim1 = 1         | Done     | Done       |     1 |      0 |
