@@ -177,11 +177,11 @@ This usually happens because a `ttnn.from_torch` was not inserted for this parti
 
 
 # Mismatch between values
-If the model has a very low accuracy score and you want to be able to narrow down the Aten-TTNN op pair that produced low accuracy, you can run pytest with `--gen_op_accuracy_tests` to export a self-contained python script containing the graph and input data. This script will compare each original aten op and the corresponding TTNN op and report the first pair that has an accuracy score below a threshold. The scripts and input files can be found under `tests/autogen_accuracy_tests`.
+If the model has a very low accuracy score and you want to be able to narrow down the Aten-TTNN op pair that produced low accuracy, you can run pytest with `--export_code` to export a self-contained python script containing the graph and input data. This script will compare each original aten op and the corresponding TTNN op and report the first pair that has an accuracy score below a threshold. The scripts and input files can be found under `tests/autogen_accuracy_tests`.
 
 For example:
 ```
-pytest tests/models/mobilenet_ssd/test_mobilenet_ssd.py --gen_op_accuracy_tests
+pytest tests/models/mobilenet_ssd/test_mobilenet_ssd.py --export_code
 python3 tests/autogen_accuracy_tests/MobileNetSSD_code.py
 ```
 

@@ -17,7 +17,7 @@ import subprocess
 import sys
 import logging
 
-import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
+import tools.export_code as export_code
 
 mb_in_bytes = 1048576
 
@@ -38,7 +38,7 @@ def pytest_addoption(parser):
         default=1,
         help="Run up to the specified iteration count and report metrics based on this iteration.",
     )
-    parser.addoption("--gen_op_accuracy_tests", action="store_true")
+    parser.addoption("--export_code", action="store_true")
 
 
 @pytest.fixture(scope="session")
@@ -173,7 +173,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
-                gen_op_accuracy_tests=request.config.getoption("--gen_op_accuracy_tests"),
+                export_code=request.config.getoption("--export_code"),
             )
 
             for idx in range(int(request.config.getoption("--report_nth_iteration"))):
@@ -194,10 +194,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
             # set to one variable?
-            if request.config.getoption("--gen_op_accuracy_tests"):
-                generate_op_accuracy_tests.generate_op_accuracy_tests(
-                    model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs
-                )
+            if request.config.getoption("--export_code"):
+                export_code.export_code(model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs)
 
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()

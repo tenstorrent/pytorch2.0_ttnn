@@ -347,7 +347,7 @@ def generate_flat_args(gm, example_inputs):
 
 # rename to forward_definitions and forward_calls maybe?
 def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs):
-# def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
+    # def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
     """
     Generate standlone a python script along with an input file containing
     data for weights, biases, and inputs for a model run.
@@ -452,7 +452,7 @@ if __name__ == "__main__":
         logging.info(f"Accuracy data object saved to {data_full_path}.")
 
 
-def generate_op_accuracy_tests(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs):
+def export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs):
     """
     Main entry to generate standalone python script with accuracy checks
 
