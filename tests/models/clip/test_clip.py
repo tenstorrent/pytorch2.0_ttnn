@@ -47,10 +47,7 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "mode",
     [
-        pytest.param(
-            "train",
-            marks=pytest.mark.compilation_xfail,
-        ),
+        "train",
         "eval",
     ],
 )
