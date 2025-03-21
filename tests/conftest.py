@@ -38,7 +38,11 @@ def pytest_addoption(parser):
         default=1,
         help="Run up to the specified iteration count and report metrics based on this iteration.",
     )
-    parser.addoption("--export_code", action="store_true")
+    parser.addoption(
+        "--export_code",
+        action="store",
+        help=f"Export standalone Python code. Supported options: {export_code.export_code_options}",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -167,13 +171,17 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
         try:
             logging.debug("Compiling model with ttnn backend.")
+            # verify --export_code has valid option
+            export_code_opt = request.config.getoption("--export_code")
+            assert export_code_opt in export_code.export_code_options
+
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
-                export_code=request.config.getoption("--export_code"),
+                export_code=export_code_opt,
             )
 
             for idx in range(int(request.config.getoption("--report_nth_iteration"))):
@@ -195,7 +203,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             # set to one variable?
             if request.config.getoption("--export_code"):
-                export_code.export_code(model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs)
+                export_code.export_code(
+                    model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs, export_code_opt
+                )
 
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()

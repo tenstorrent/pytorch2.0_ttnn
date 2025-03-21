@@ -33,7 +33,7 @@ class TorchTtnnOption:
         tracer_option=None,
         bypass_compile=False,
         use_less_ttnn_op_types=True,
-        export_code=False,
+        export_code="",
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -53,7 +53,7 @@ class TorchTtnnOption:
         # Used for generate standalone python script
         self.export_code = export_code
         self._aten_fx_graphs = list()
-        self._all_inputs = None
+        self._all_inputs = list()
 
     def reset_containers(self):
         self._out_fx_graphs = list()
@@ -244,10 +244,10 @@ def ttnn_backend(
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
     # Save all parameters and inputs if requested
-    if options.export_code and options._all_inputs is None:
+    if options.export_code:
         import tools.export_code as export_code
 
-        options._all_inputs = export_code.generate_flat_args(gm, example_inputs)
+        options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
 
     tracer_option = options.tracer_option
     if tracer_option is not None:

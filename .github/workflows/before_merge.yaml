@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: model-accuracy-tests-group-${{ matrix.group }}
-          path: tests/autogen_accuracy_tests/
+          path: tests/export_code/accuracy/
 
   push-autogen-op-tests:
     needs: [model-tests]
@@ -209,11 +209,11 @@ jobs:
         with:
           pattern: model-accuracy-tests-group-*
           merge-multiple: true
-          path: tests/autogen_accuracy_tests/
+          path: tests/export_code/accuracy
 
       - name: Run Accuracy Tests
         run: |
-          cd tests/autogen_accuracy_tests
+          cd tests/export_code/accuracy
           set +e
           find . -type f -name "*.py" -exec python {} ";"
           exit 0;
