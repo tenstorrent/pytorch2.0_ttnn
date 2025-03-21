@@ -40,7 +40,7 @@
 |  36 | Tensor<[1, 3, 3, 4, 91]> self = ?,<br>List[int] size = [1, 36, 91]            | Done     | Done       |     1 |     -1 |
 |  37 | Tensor<[1, 3, 3, 6, 4]> self = ?,<br>List[int] size = [1, 54, 4]              | Done     | Done       |     1 |     -1 |
 |  38 | Tensor<[1, 3, 3, 6, 91]> self = ?,<br>List[int] size = [1, 54, 91]            | Done     | Done       |     1 |     -1 |
-|  39 | Tensor<[1, 32, 16, 96]> self = ?,<br>List[int] size = [1, 32, 1536]           | Done     | Done       |     1 |     -1 |
+|  39 | Tensor<[1, 32, 16, 96]> self = ?,<br>List[int] size = [1, 32, 1536]           | Unknown  | Done       |     1 |     -1 |
 |  40 | Tensor<[1, 38, 38, 4, 4]> self = ?,<br>List[int] size = [1, 5776, 4]          | Done     | Done       |     1 |     -1 |
 |  41 | Tensor<[1, 38, 38, 4, 91]> self = ?,<br>List[int] size = [1, 5776, 91]        | Done     | Done       |     1 |     -1 |
 |  42 | Tensor<[1, 4, 4, 7, 7, 192]> self = ?,<br>List[int] size = [16, 49, 192]      | Done     | Done       |     1 |     -1 |
