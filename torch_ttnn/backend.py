@@ -54,6 +54,11 @@ class TorchTtnnOption:
         self._aten_fx_graphs = list()
         self._all_inputs = None
 
+        # Used for multi-device
+        self._n_parameters = None
+        self._n_buffers = None
+        self._n_arguments = None
+
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
@@ -132,9 +137,23 @@ def aten_backend(
     # Register ttnn objects as graph globals
     register_ttnn_objects(option)
 
-    # Rewrite with ttnn ops, will insert redundant data movement
+    # Run analysis passes to help with ttnn ops
     from torch.fx.passes.infra.pass_manager import PassManager
+    from torch_ttnn.passes.analysis.input_analysis_pass import InputAnalysisPass
+
+    passes = [
+        InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
+    ]
+    pm = PassManager(passes=passes)
+    gm, modified = pm(gm)
+
+    if modified:
+        gm.graph.lint()
+        gm.recompile()
+
+    # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
+    from torch_ttnn.passes.multi_device_pass import MultiDevicePass
     from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
@@ -143,9 +162,14 @@ def aten_backend(
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
     from torch_ttnn.passes.memory_pass import MemoryPass
 
+    counts = [options._n_parameters, options._n_buffers, options._n_arguments]
     passes = [
         ConstantFoldingPass(),
-        ToTtPass(option.device, option.use_less_ttnn_op_types),
+        MultiDevicePass(
+            option.device, option._n_parameters, option._n_buffers, option._n_arguments, gm, example_inputs
+        ),
+        ToTtPass(option.device, option.use_less_ttnn_op_types, counts),
+        # MultiDevicePass(option.device, option._n_parameters, option._n_buffers, option._n_arguments),
         AddDataMovePass(option.device),
         EliminateCoreopsPass(),
         CSEPass(),
@@ -247,6 +271,19 @@ def ttnn_backend(
         import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
 
         options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
+
+    # Analysis of params, buffers, and args
+    options._n_parameters = len(list(gm.parameters()))
+    options._n_buffers = len(list(gm.buffers()))
+    options._n_arguments = len(example_inputs)
+
+    # "shard" inputs if we are running multi-device
+    if isinstance(options.device, ttnn.MeshDevice) and False:
+        num_devices = options.device.get_num_devices()
+        batch_dimension = 0
+        for i, input in enumerate(example_inputs):
+            sharded = torch.chunk(input, num_devices, dim=batch_dimension)[0]
+            example_inputs[i] = sharded.new_empty(sharded.size())
 
     tracer_option = options.tracer_option
     if tracer_option is not None:

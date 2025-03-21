@@ -148,6 +148,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.roll,
     target_wrappers.stack,
     target_wrappers.all,
+    target_wrappers.concat_tensor,
 ]
 
 TTNN_NORM_OPS = [
