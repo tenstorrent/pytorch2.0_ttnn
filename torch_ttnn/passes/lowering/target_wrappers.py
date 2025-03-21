@@ -4,6 +4,8 @@
 import ttnn
 import torch
 
+from torch_ttnn.utils import TtnnDevice
+
 
 @torch.fx.wrap
 def clone(t):
@@ -22,7 +24,27 @@ def pack_to_tuple(*args):
 
 
 @torch.fx.wrap
+def from_device(device_tensor):
+    if device_tensor.storage_type() == ttnn.StorageType.MULTI_DEVICE:
+        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
+    return ttnn.from_device(device_tensor)
+
+
+@torch.fx.wrap
+def to_device(device_tensor, device=None):
+    if device_tensor.storage_type() == ttnn.StorageType.MULTI_DEVICE:
+        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
+    return ttnn.to_device(device_tensor, device=device)
+
+
+@torch.fx.wrap
 def move_to_host(device_tensor, layout):
+    if device_tensor.storage_type() == ttnn.StorageType.MULTI_DEVICE:
+        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
+        # if device tensor is distributed, have to marshal through pytorch
+        # host_tensor = ttnn.from_device(device_tensor)
+        # torch_version = ttnn.to_torch(host_tensor, mesh_composer=ttnn.ConcatMeshToTensor(device_tensor.device(), 0))
+        # host_tensor = ttnn.from_torch(torch_version)
     host_tensor = ttnn.from_device(device_tensor)
     return ttnn.to_layout(host_tensor, layout)
 
@@ -166,3 +188,28 @@ def all(tensor, num_elements):
     neq_zero = ttnn.ne(tensor, 0)
     total_none_zero = ttnn.sum(neq_zero)
     return ttnn.eq(total_none_zero, num_elements)
+
+
+@torch.fx.wrap
+def replicate_tensor(tensor):
+    return tensor
+    device = TtnnDevice()
+    replicator = ttnn.ReplicateTensorToMesh(device)
+    return ttnn.from_torch(tensor, mesh_mapper=replicator, device=device)
+
+
+@torch.fx.wrap
+def shard_tensor(tensor, dim, num_devices):
+    return torch.chunk(tensor, num_devices, dim)[0]
+    device = TtnnDevice()
+    sharder = ttnn.ShardTensorToMesh(device, dim=dim)
+    return ttnn.from_torch(tensor, mesh_mapper=sharder, device=device)
+
+
+@torch.fx.wrap
+def concat_tensor(tensor, dim, num_devices):
+    sharded_version = [tensor] * num_devices
+    return torch.concat(sharded_version, dim)
+    device = TtnnDevice()
+    sharder = ttnn.ConcatMeshToTensor(device, dim=dim)
+    return ttnn.from_torch(tensor, mesh_mapper=sharder, device=device)
