@@ -425,7 +425,7 @@ class NodeInputAligner:
 
         return input_node
 
-    def _create_aligned_node(self, spec):
+    def _create_aligned_node(self, spec, node, input_site):
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
             if spec.device is not None and spec.device != "host":
@@ -445,7 +445,11 @@ class NodeInputAligner:
                 and hasattr(spec.input_node.meta["val"], "device")
                 and str(spec.input_node.meta["val"].device) == "ttnn:0"
             ):
-                return self.graph.call_function(ttnn_module.get_ttnn_tensor, (spec.input_node,), {})
+                aligning_nodes = []
+                aligning_nodes.append(self.graph.call_function(ttnn_module.get_ttnn_tensor, (spec.input_node,), {}))
+                if node.target == ttnn.embedding and input_site == 0:
+                    aligning_nodes.append(self.graph.call_function(ttnn.to_layout, (aligning_nodes[-1], spec.layout())))
+                return aligning_nodes[-1]
             else:
                 return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
         elif isinstance(spec, self.AlignSpecToTorch):
@@ -519,7 +523,7 @@ class NodeInputAligner:
             aligned_node = self.aligned_node_dict[data_move_spec]
         else:
             with self.graph.inserting_before(node):
-                aligned_node = self._create_aligned_node(data_move_spec)
+                aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
         if node.target == ttnn.layer_norm:
