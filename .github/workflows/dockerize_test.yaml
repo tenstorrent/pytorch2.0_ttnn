@@ -82,52 +82,49 @@ jobs:
           chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
         with:
-          lfs: true    
-  model-tests:
-  steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Setup Git and LFS
-      run: |
-        apt-get update && apt-get install -y git-lfs
-        git lfs install
-        # Debug initial state
-        ls -la .git || echo "No .git dir"
-        git rev-parse --git-dir || echo "Not a repo yet"
-        # Rebuild full repo
-        git fetch --unshallow origin  # Convert shallow to full
-        git checkout ${{ github.sha }}  # Ensure commit matches
-        git rev-parse --git-dir || echo "Still not a repo"
-        # Pull LFS files
-        git lfs pull || { echo "LFS pull failed"; exit 1; }
-        ls -la ${{ github.workspace }}/tests/models/hand_landmark/
-        python3 -c "from zipfile import ZipFile; p='${{ github.workspace }}/tests/models/hand_landmark/hand_landmarker.task'; print(f'Checking {p}'); with ZipFile(p, 'r') as z: print('Contents:', z.namelist())"
-    - name: Install libsndfile
-      run: apt-get update && apt-get install -y libsndfile1
+          lfs: true
+          fetch-depth: 0    
+          
+      - name: Setup Git and LFS
+        run: |
+          apt-get update && apt-get install -y git-lfs
+          git lfs install
+          # Debug initial state
+          ls -la .git || echo "No .git dir"
+          git rev-parse --git-dir || echo "Not a repo yet"
+          # Rebuild full repo
+          git fetch --unshallow origin  # Convert shallow to full
+          git checkout ${{ github.sha }}  # Ensure commit matches
+          git rev-parse --git-dir || echo "Still not a repo"
+          # Pull LFS files
+          git lfs pull || { echo "LFS pull failed"; exit 1; }
+          ls -la ${{ github.workspace }}/tests/models/hand_landmark/
+          python3 -c "from zipfile import ZipFile; p='${{ github.workspace }}/tests/models/hand_landmark/hand_landmarker.task'; print(f'Checking {p}'); with ZipFile(p, 'r') as z: print('Contents:', z.namelist())"
+      - name: Install libsndfile
+        run: apt-get update && apt-get install -y libsndfile1
      # - uses: ./.github/actions/common_repo_setup
-    - name: Check Cache Before Test
-      run: |
+      - name: Check Cache Before Test
+        run: |
           echo "Cache contents before test:"
           ls -la /root/.cache/huggingface/ || echo "Cache dir empty or not mounted"
           du -sh /root/.cache/huggingface/ || echo "Size not calculated"
           ls -la /root/.cache/torch/hub/ || echo "Cache dir empty or not mounted"
           du -sh /root/.cache/torch/hub/ || echo "Size not calculated"
-    - uses: ./.github/actions/common_model_tests
+      - uses: ./.github/actions/common_model_tests
 
-    - name: Upload Metrics Artifact
-      if: success()  # Only run if tests passed
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Upload Metrics Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
 
-    - name: Upload All Accuracy Tests and Inputs Artifacts
-      if: success()  # Only run if tests passed
-      uses: actions/upload-artifact@v4
-      with:
-        name: model-accuracy-tests-group-${{ matrix.group }}
-        path: tests/autogen_accuracy_tests/
+      - name: Upload All Accuracy Tests and Inputs Artifacts
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-accuracy-tests-group-${{ matrix.group }}
+          path: tests/autogen_accuracy_tests/
 
   push-autogen-op-tests:
     needs: [model-tests]
