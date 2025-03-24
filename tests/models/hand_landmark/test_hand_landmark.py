@@ -19,8 +19,6 @@ class ThisTester(ModelTester):
 
         model_asset_path = Path(__file__).parent / "hand_landmarker.task"
 
-        assert model_asset_path.exists(), f"Model file not found at {model_asset_path}"
-
         base_options = python.BaseOptions(model_asset_path=str(model_asset_path))
         options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=2)
         detector = vision.HandLandmarker.create_from_options(options)
@@ -53,7 +51,8 @@ def test_hand_landmark(record_property, mode):
     """
      Forcely do `git lfs pull` to make sure the LFS files needed by this test are available.
     """
-    subprocess.run(["git", "lfs", "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # subprocess.run(["git", "lfs", "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["git", "lfs", "pull"], check=True)
 
     """
     Workaround!
