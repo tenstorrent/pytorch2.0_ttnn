@@ -491,7 +491,7 @@ class NodeInputAligner:
         else:
             raise RuntimeError(f"Cannot create aligned node for unknown spec ({spec})")
 
-    def _create_aligned_node(self, spec):
+    def _create_aligned_node(self, spec, node, input_site):
         args, kwargs = self._extract_args_kwargs_from_spec(spec)
 
         if isinstance(spec, self.AlignSpecFromTorch):
@@ -501,7 +501,11 @@ class NodeInputAligner:
                 and hasattr(spec.input_node.meta["val"], "device")
                 and str(spec.input_node.meta["val"].device) == "ttnn:0"
             ):
-                return self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {})
+                aligning_nodes = []
+                aligning_nodes.append(self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {}))
+                if node.target == ttnn.embedding and input_site == 0:
+                    aligning_nodes.append(self.graph.call_function(ttnn.to_layout, (aligning_nodes[-1], spec.layout())))
+                return aligning_nodes[-1]
             else:
                 return self.graph.call_function(ttnn.from_torch, args, kwargs)
 
@@ -601,10 +605,10 @@ class NodeInputAligner:
                 # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
                 # is a good place to check
                 with self.graph.inserting_before(first_node):
-                    aligned_node = self._create_aligned_node(data_move_spec)
+                    aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
             else:
                 with self.graph.inserting_before(node):
-                    aligned_node = self._create_aligned_node(data_move_spec)
+                    aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
         self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
