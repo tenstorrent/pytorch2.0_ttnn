@@ -88,18 +88,6 @@ jobs:
       - name: Install libsndfile
         run: apt-get update && apt-get install -y libsndfile1
      # - uses: ./.github/actions/common_repo_setup
-      - name: Debug and Fix Permissions
-        run: |
-          whoami  # Current user
-          id  # Full UID/GID
-          ls -la ${{ github.workspace }}/tests/models/hand_landmark/
-          FILE_PATH="${{ github.workspace }}/tests/models/hand_landmark/hand_landmarker.task"
-          stat -c "%u:%g %A" "$FILE_PATH"
-          # Fix perms for current user
-          chown $(id -u):$(id -g) "$FILE_PATH"
-          chmod 644 "$FILE_PATH"
-          ls -l "$FILE_PATH"
-          python3 -c "from zipfile import ZipFile; p='$FILE_PATH'; print(f'Checking {p}'); with ZipFile(p, 'r') as z: print('Contents:', z.namelist())"
       - uses: ./.github/actions/common_model_tests
 
       - name: Upload Metrics Artifact
