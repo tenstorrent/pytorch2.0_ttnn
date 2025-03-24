@@ -33,7 +33,7 @@ class SendToDataTeam:
         pydantic_objects = self.collect_metrics(files)
 
         start_str = str(start).replace(" ", "_").replace(":", "")
-        file_name = f"pytorch_{start_str}.json.gz"
+        file_name = f"pytorch_{start_str}.json"
         with tempfile.TemporaryDirectory() as d:
             file_path = Path(d) / file_name
             self.write_file(pydantic_objects, file_path)
