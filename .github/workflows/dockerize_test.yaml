@@ -85,22 +85,6 @@ jobs:
           lfs: true
           fetch-depth: 0    
           
-      - name: Setup Git and LFS
-        run: |
-          apt-get update && apt-get install -y git-lfs
-          git lfs install
-          # Debug initial state
-          whoami  # Confirm root
-          ls -la .git || echo "No .git dir"
-          git rev-parse --git-dir || echo "Not a repo yet"
-          # Rebuild full repo
-          git fetch --unshallow origin
-          git checkout ${{ github.sha }}
-          git rev-parse --git-dir || echo "Still not a repo"
-          # Pull LFS files
-          git lfs pull || { echo "LFS pull failed"; exit 1; }
-          ls -la ${{ github.workspace }}/tests/models/hand_landmark/
-          python3 -c "from zipfile import ZipFile; p='${{ github.workspace }}/tests/models/hand_landmark/hand_landmarker.task'; print(f'Checking {p}'); with ZipFile(p, 'r') as z: print('Contents:', z.namelist()); z.testzip(); print('Zip valid')"
       - name: Install libsndfile
         run: apt-get update && apt-get install -y libsndfile1
      # - uses: ./.github/actions/common_repo_setup
