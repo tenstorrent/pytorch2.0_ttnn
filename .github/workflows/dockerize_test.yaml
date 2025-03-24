@@ -82,6 +82,7 @@ jobs:
           chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
         with:
+          fetch_depth: 0
           lfs: true    
       - name: Debug and Fix LFS Pull
         run: |
