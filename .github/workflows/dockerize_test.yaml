@@ -95,6 +95,10 @@ jobs:
           du -sh /root/.cache/huggingface/ || echo "Size not calculated"
           ls -la /root/.cache/torch/hub/ || echo "Cache dir empty or not mounted"
           du -sh /root/.cache/torch/hub/ || echo "Size not calculated"
+          pwd 
+          cd pytorch2.0_ttnn
+          cd tests/models/hand_landmark
+          ls -a
       - uses: ./.github/actions/common_model_tests
 
       - name: Upload Metrics Artifact
