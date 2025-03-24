@@ -51,7 +51,7 @@ def test_hand_landmark(record_property, mode):
     """
      Forcely do `git lfs pull` to make sure the LFS files needed by this test are available.
     """
-    # subprocess.run(["git", "lfs", "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["git", "lfs", "pull"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     # subprocess.run(["git", "lfs", "pull"], check=True)
 
     """
