@@ -83,14 +83,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true    
-      - name: Debug LFS Pull
+      - name: Debug and Fix LFS Pull
         run: |
+          echo "Git version:"
+          git --version
           echo "Git LFS version:"
           git lfs version
+          echo "Current dir:"
+          pwd
+          ls -la .git || echo "No .git dir"
           echo "Pulling LFS files:"
-          git lfs pull || echo "LFS pull failed"
-          ls -la ${{ github.workspace }}/models/hand_landmark/ || echo "Dir missing"
-          find ${{ github.workspace }} -name "hand_landmarker.task" || echo "File not found"      
+          git lfs pull || { echo "LFS pull failed"; exit 1; }
+          ls -la ${{ github.workspace }}/tests/models/hand_landmark/ || echo "Dir missing"
+          find ${{ github.workspace }} -name "hand_landmarker.task" -exec ls -l {} \;    
       - name: Install libsndfile
         run: apt-get update && apt-get install -y libsndfile1
      # - uses: ./.github/actions/common_repo_setup
