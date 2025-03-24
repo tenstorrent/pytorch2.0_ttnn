@@ -1,5 +1,4 @@
 import argparse
-import gzip
 import pickle
 import tempfile
 from collections import defaultdict
@@ -57,7 +56,7 @@ class SendToDataTeam:
     @staticmethod
     def write_file(pydantic_objects: List[OpTest], file_path: Path):
         """
-        Writes the given Pydantic objects to a compressed file in json format.
+        Writes the given Pydantic objects to a json file.
         Args:
             pydantic_objects: List of OpTest objects to write to the file.
             file_path: Path to the file to write to.
@@ -65,9 +64,8 @@ class SendToDataTeam:
         """
         json_strings = [i.model_dump_json() for i in pydantic_objects]
         json_content = "[" + ", ".join(json_strings) + "]"
-        json_bytes = bytes(json_content, "utf-8")
-        with gzip.open(file_path, "wb+") as f:
-            f.write(json_bytes)
+        with open(file_path, "w+") as f:
+            f.write(json_content)
 
     @staticmethod
     def find_pickle_files(metrics_path: Path):
