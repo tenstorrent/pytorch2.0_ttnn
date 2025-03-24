@@ -577,17 +577,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 )
 
             if node.target == target_wrappers.shard_tensor:
-                inp_node, shard_dim = node.args
+                inp_node, shard_dim, _ = node.args
                 rep = g.call_function(ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
                 return g.call_function(
                     ttnn.from_torch, args=(inp_node,), kwargs={"mesh_mapper": rep, "device": TtnnDevice()}
                 )
 
             if node.target == target_wrappers.concat_tensor:
-                inp_node, shard_dim = node.args
+                inp_node, shard_dim, _ = node.args
                 rep = g.call_function(ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
                 return g.call_function(
-                    ttnn.to_torch, args=(inp_node,), kwargs={"mesh_mapper": rep, "device": TtnnDevice()}
+                    ttnn.to_torch, args=(inp_node,), kwargs={"mesh_composer": rep, "device": TtnnDevice()}
                 )
 
             if node.target == torch.ops.aten.zeros.default:

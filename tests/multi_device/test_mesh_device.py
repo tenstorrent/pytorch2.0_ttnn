@@ -74,7 +74,7 @@ class ConvModule(torch.nn.Module):
         return [(2, 3, 32, 32)]
 
 
-def do_conv():
+def test_conv():
     module = ConvModule().to(torch.bfloat16)
     input_shapes = module.input_shapes()
     inputs = [torch.rand(shape, requires_grad=True, dtype=torch.bfloat16) for shape in input_shapes]
@@ -87,7 +87,7 @@ def do_conv():
     )
     # mesh_device = ttnn.open_device(device_id=0, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size)
     try:
-        option = torch_ttnn.TorchTtnnOption(device=mesh_device, gen_graphviz=False)
+        option = torch_ttnn.TorchTtnnOption(device=mesh_device, gen_graphviz=False, data_parallel=True)
         ttnn_module = torch.compile(module, backend=torch_ttnn.backend, options=option)
 
         # Running inference / training
@@ -163,6 +163,6 @@ def do_single():
     ttnn.close_device(device)
 
 
-do_conv()
+test_conv()
 # do_mesh()
 # do_single()

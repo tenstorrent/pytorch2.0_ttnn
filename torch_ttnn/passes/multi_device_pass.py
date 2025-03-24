@@ -6,7 +6,7 @@ from torch._guards import detect_fake_mode
 import torch_ttnn.metrics as metrics
 from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
-from torch_ttnn.utils import TtnnDevice
+from torch_ttnn.utils import GraphCleanup, TtnnDevice
 from torch_ttnn.passes.lowering import target_wrappers
 import math
 
@@ -23,28 +23,28 @@ class GraphWrapper:
 
     def call_function(self, target, args=(), kwargs={}):
         new_node = self.g.call_function(target, args, kwargs)
-        new_node.meta = dict(self.node.meta)
-        if hasattr(self.node.target, "_schema"):
-            new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
-        new_node.meta["val"] = self._get_val(new_node)
-
-        # fixup val for sharding
-        if target == target_wrappers.shard_tensor:
-            num_devices = self.device.get_num_devices()
-            batch_dimension = 0
-            new_node.meta["val"] = torch.chunk(new_node.meta["val"], num_devices, dim=batch_dimension)[0]
-            new_node.meta["tensor_meta"] = torch.fx.passes.shape_prop._extract_tensor_metadata(new_node.meta["val"])
-
-            # recursively fix users
-            print("here")
-
-            # batch_dimension = 0
-            # output_tensor = new_node.meta["val"]
-            # output_shape = list(output_tensor.size())
-            # num_devices = math.prod(self.device.shape)
-            # output_shape[batch_dimension] = int((output_shape[batch_dimension]+num_devices-1)//num_devices)
-            # result_tensor = output_tensor.new_empty(output_shape)
-            # new_node.meta["val"] = result_tensor
+        # new_node.meta = dict(self.node.meta)
+        # if hasattr(self.node.target, "_schema"):
+        #     new_node.meta["original_input_variations"] = metrics.collect_input_variation_from_node(self.node)
+        # new_node.meta["val"] = self._get_val(new_node)
+        #
+        # # fixup val for sharding
+        # if target == target_wrappers.shard_tensor:
+        #     num_devices = self.device.get_num_devices()
+        #     batch_dimension = 0
+        #     new_node.meta["val"] = torch.chunk(new_node.meta["val"], num_devices, dim=batch_dimension)[0]
+        #     new_node.meta["tensor_meta"] = torch.fx.passes.shape_prop._extract_tensor_metadata(new_node.meta["val"])
+        #
+        #     # recursively fix users
+        #     print("here")
+        #
+        #     # batch_dimension = 0
+        #     # output_tensor = new_node.meta["val"]
+        #     # output_shape = list(output_tensor.size())
+        #     # num_devices = math.prod(self.device.shape)
+        #     # output_shape[batch_dimension] = int((output_shape[batch_dimension]+num_devices-1)//num_devices)
+        #     # result_tensor = output_tensor.new_empty(output_shape)
+        # new_node.meta["val"] = result_tensor
 
         return new_node
 
@@ -85,6 +85,7 @@ class MultiDevicePass(PassBase):
         if not isinstance(self.device, ttnn._ttnn.multi_device.MeshDevice):
             return PassResult(gm, False)
 
+        # rewrite with wrappers
         placeholder_counter = 0
         for node in gm.graph.nodes:
             g = GraphWrapper(gm, node, self.device)
@@ -107,31 +108,58 @@ class MultiDevicePass(PassBase):
             else:
                 pass
 
-        # try running shape prop at end
+        fake_mode = detect_fake_mode(self.example_inputs)
+        # propagates meta["val"]
+        torch.fx.passes.fake_tensor_prop.FakeTensorProp(gm, mode=fake_mode).propagate(*self.example_inputs)
+        # propagates meta["tensor_meta"]
+        torch.fx.passes.shape_prop.ShapeProp(gm, fake_mode=fake_mode).propagate(*self.example_inputs)
+
+        # # convert wrappers to actual calls
+        # def rewrite_wrappers(g, node):
+        #     if node.target == target_wrappers.replicate_tensor:
+        #         rep = g.call_function(ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),))
+        #         return g.call_function(
+        #             ttnn.from_torch, args=node.args, kwargs={"mesh_mapper": rep, "device": TtnnDevice()}
+        #         )
+        #     if node.target == target_wrappers.shard_tensor:
+        #         inp_node, shard_dim, _ = node.args
+        #         rep = g.call_function(ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
+        #         return g.call_function(
+        #             ttnn.from_torch, args=(inp_node,), kwargs={"mesh_mapper": rep, "device": TtnnDevice()}
+        #         )
+        #
+        #     if node.target == target_wrappers.concat_tensor:
+        #         inp_node, shard_dim, _ = node.args
+        #         rep = g.call_function(ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
+        #         return g.call_function(
+        #             ttnn.to_torch, args=(inp_node,), kwargs={"mesh_composer": rep, "device": TtnnDevice()}
+        #         )
+        #
+        #     return None
+        #
+        # node_list = [node for node in gm.graph.nodes]
+        #
+        # for node in node_list:
+        #     g = GraphWrapper(gm, node, self.device)
+        #     with g.inserting_before(node):
+        #         new_node = rewrite_wrappers(g, node)
+        #         if new_node is not None:
+        #             node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
+        # gm = GraphCleanup(gm)
 
         return PassResult(gm, True)
 
     def replicate_to_mesh(self, gm: torch.fx.GraphModule, node):
-        # if self.replicator is None:
-        #     with gm.graph.inserting_before(node):
-        #         self.replicator = gm.graph.call_function(target_wrappers.replicate_tensor, (TtnnDevice(),))
-        #         # self.replicator = gm.graph.call_function(ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),))
-
         with gm.inserting_after(node):
             new_node = gm.call_function(target_wrappers.replicate_tensor, (node,))
-            # new_node = gm.graph.call_function(ttnn.from_torch, args=(node,), kwargs={"mesh_mapper": self.replicator, "device": TtnnDevice()})
-            node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
+            node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node and node.op != "output")
 
     def shard_to_mesh(self, gm: torch.fx.GraphModule, node):
-        # if self.mapper is None:
-        #     with gm.graph.inserting_before(node):
-        #         batch_dimension = 0
-        #         self.mapper = gm.graph.call_function(ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": batch_dimension})
-
         batch_dimension = 0
         with gm.inserting_after(node):
-            new_node = gm.call_function(target_wrappers.shard_tensor, (node, batch_dimension))
-            # new_node = gm.graph.call_function(ttnn.from_torch, args=(node,), kwargs={"mesh_mapper": self.mapper, "device": TtnnDevice()})
+            new_node = gm.call_function(
+                target_wrappers.shard_tensor, (node, batch_dimension, self.device.get_num_devices())
+            )
             node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
 
         # mark all transitive users as sharded
@@ -146,11 +174,6 @@ class MultiDevicePass(PassBase):
             user_list += list(users)
 
     def concat_to_tensor(self, gm: torch.fx.GraphModule, node):
-        # if self.composer is None:
-        #     with gm.graph.inserting_before(node):
-        #         batch_dimension = 0
-        #         self.composer = gm.graph.call_function(ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": batch_dimension})
-
         new_arg_list = []
         batch_dimension = 0
         with gm.inserting_before(node):
@@ -161,8 +184,9 @@ class MultiDevicePass(PassBase):
                 else:
                     # change the node so we get the right metadata
                     gm.node = arg_node
-                    new_arg = gm.call_function(target_wrappers.concat_tensor, (arg_node, batch_dimension))
-                    # new_arg = gm.graph.call_function(ttnn.to_torch, args=(arg_node,), kwargs={"mesh_composer": self.mapper})
+                    new_arg = gm.call_function(
+                        target_wrappers.concat_tensor, (arg_node, batch_dimension, self.device.get_num_devices())
+                    )
                 new_arg_list.append(new_arg)
 
             new_node = gm.graph.create_node("output", target="output", args=(new_arg_list,))

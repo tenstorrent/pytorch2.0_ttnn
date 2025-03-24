@@ -33,6 +33,7 @@ class TorchTtnnOption:
         bypass_compile=False,
         use_less_ttnn_op_types=True,
         gen_op_accuracy_tests=False,
+        data_parallel=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -42,6 +43,7 @@ class TorchTtnnOption:
         self.run_eviction_opt = run_eviction_opt
         self.verbose = verbose
         self.tracer_option = tracer_option
+        self.data_parallel = data_parallel
 
         self.metrics_path = metrics_path
         self.bypass_compile = bypass_compile

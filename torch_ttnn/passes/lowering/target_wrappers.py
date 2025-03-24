@@ -192,20 +192,24 @@ def all(tensor, num_elements):
 
 @torch.fx.wrap
 def replicate_tensor(tensor):
+    return tensor
     device = TtnnDevice()
     replicator = ttnn.ReplicateTensorToMesh(device)
     return ttnn.from_torch(tensor, mesh_mapper=replicator, device=device)
 
 
 @torch.fx.wrap
-def shard_tensor(tensor, dim):
+def shard_tensor(tensor, dim, num_devices):
+    return torch.chunk(tensor, num_devices, dim)[0]
     device = TtnnDevice()
     sharder = ttnn.ShardTensorToMesh(device, dim=dim)
     return ttnn.from_torch(tensor, mesh_mapper=sharder, device=device)
 
 
 @torch.fx.wrap
-def concat_tensor(tensor, dim):
+def concat_tensor(tensor, dim, num_devices):
+    sharded_version = [tensor] * num_devices
+    return torch.concat(sharded_version, dim)
     device = TtnnDevice()
     sharder = ttnn.ConcatMeshToTensor(device, dim=dim)
     return ttnn.from_torch(tensor, mesh_mapper=sharder, device=device)
