@@ -96,7 +96,7 @@ jobs:
           ls -la /root/.cache/torch/hub/ || echo "Cache dir empty or not mounted"
           du -sh /root/.cache/torch/hub/ || echo "Size not calculated"
           pwd 
-          cd pytorch2.0_ttnn
+          ls -a
           cd tests/models/hand_landmark
           ls -a
       - uses: ./.github/actions/common_model_tests
