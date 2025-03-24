@@ -129,6 +129,7 @@ class SendToDataTeam:
                 "config": {},
                 "frontend": "pytorch2.0_ttnn",
                 "model_name": run_time_metrics.get("model_name"),
+                "op_name": "",
                 "op_kind": "",
                 "framework_op_name": "",
                 "inputs": [],
@@ -136,22 +137,27 @@ class SendToDataTeam:
                 "op_params": {},
             }
             schema_list_path = model_metrics_path / "original-schema_list.pickle"
-            schema_list = pickle.loads(schema_list_path.read_bytes())
 
-            tensor_descriptions = defaultdict(list)
+            if schema_list_path.is_file():
+                schema_list = pickle.loads(schema_list_path.read_bytes())
+                tensor_descriptions = defaultdict(list)
 
-            for sl in schema_list:
-                opname = sl.get("opname", "")
-                tensor_infos = sl.get("tensor_infos", {})
-                for ti in tensor_infos:
-                    ti.pop("name", None)
-                    tensor_descriptions[opname].append(TensorDesc(**ti))
+                for sl in schema_list:
+                    opname = sl.get("opname", "")
+                    tensor_infos = sl.get("tensor_infos", {})
+                    for ti in tensor_infos:
+                        ti.pop("name", None)
+                        tensor_descriptions[opname].append(TensorDesc(**ti))
 
-            for op_name, tensor_description_objects in tensor_descriptions.items():
+                for op_name, tensor_description_objects in tensor_descriptions.items():
+                    op_test_data = base_op_test_data.copy()
+
+                    op_test_data["op_name"] = op_name
+                    op_test_data["inputs"] = tensor_description_objects
+                    op_test = OpTest(**op_test_data)
+                    op_test_objects.append(op_test)
+            else:
                 op_test_data = base_op_test_data.copy()
-
-                op_test_data["op_name"] = op_name
-                op_test_data["inputs"] = tensor_description_objects
                 op_test = OpTest(**op_test_data)
                 op_test_objects.append(op_test)
 
