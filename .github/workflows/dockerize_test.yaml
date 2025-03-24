@@ -37,26 +37,26 @@ jobs:
         run: |
           python3 -m pytest --github-report tests/tools/ -s
 
-  #lowering-tests:
-  #  runs-on: ["old"]
-  #  container: 
-  #    image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-  #    options: >-
-  #      --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-  #      -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-  #  env:
-  #    pytest_verbosity: 2    
-  #    pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
-  #  strategy:
-  #    matrix: # Need to find a way to replace this with a generator
-  #      group: [1, 2]
-  #  steps:
-  #    - name: Reset Workspace Permissions
-  #      run: |
-  #        chown -R 1000:1000 ${{ github.workspace }}
-  #    - uses: actions/checkout@v4
-  #    #- uses: ./.github/actions/common_repo_setup
-  #   - uses: ./.github/actions/common_lowering_tests
+  lowering-tests:
+    runs-on: ["old"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+    env:
+      pytest_verbosity: 2    
+      pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: [1, 2]
+    steps:
+      - name: Reset Workspace Permissions
+        run: |
+          chown -R 1000:1000 ${{ github.workspace }}
+      - uses: actions/checkout@v4
+      #- uses: ./.github/actions/common_repo_setup
+      - uses: ./.github/actions/common_lowering_tests
 
   model-tests:
     #needs: lowering-tests
