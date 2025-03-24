@@ -142,9 +142,11 @@ def aten_backend(
     # Run analysis passes to help with ttnn ops
     from torch.fx.passes.infra.pass_manager import PassManager
     from torch_ttnn.passes.analysis.input_analysis_pass import InputAnalysisPass
+    from torch_ttnn.passes.analysis.multi_device_shard_analysis_pass import MultiDeviceShardAnalysisPass
 
     passes = [
         InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
+        MultiDeviceShardAnalysisPass(option.device),
     ]
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
