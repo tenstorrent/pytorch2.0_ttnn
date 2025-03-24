@@ -77,9 +77,9 @@ jobs:
         #group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
         group: [9]
     steps:
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
+      #- name: Reset Workspace Permissions
+      #  run: |
+      #    chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
         with:
           lfs: true
@@ -92,14 +92,16 @@ jobs:
           # Debug initial state
           ls -la .git || echo "No .git dir"
           git rev-parse --git-dir || echo "Not a repo yet"
+          # Fix ownership
+          chown -R $(id -u):$(id -g) .git
           # Rebuild full repo
-          git fetch --unshallow origin  # Convert shallow to full
-          git checkout ${{ github.sha }}  # Ensure commit matches
+          git fetch --unshallow origin
+          git checkout ${{ github.sha }}  # Use SHA from checkout
           git rev-parse --git-dir || echo "Still not a repo"
           # Pull LFS files
           git lfs pull || { echo "LFS pull failed"; exit 1; }
           ls -la ${{ github.workspace }}/tests/models/hand_landmark/
-          python3 -c "from zipfile import ZipFile; p='${{ github.workspace }}/tests/models/hand_landmark/hand_landmarker.task'; print(f'Checking {p}'); with ZipFile(p, 'r') as z: print('Contents:', z.namelist())"
+          python3 -c "from zipfile import ZipFile; p='${{ github.workspace }}/tests/models/hand_landmark/hand_landmarker.task'; print(f'Checking {p}'); with ZipFile(p, 'r') as z: print('Contents:', z.namelist()); z.testzip(); print('Zip valid')"
       - name: Install libsndfile
         run: apt-get update && apt-get install -y libsndfile1
      # - uses: ./.github/actions/common_repo_setup
