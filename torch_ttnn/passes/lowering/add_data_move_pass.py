@@ -345,6 +345,10 @@ class NodeInputAligner:
             # This allows ViLT to work by coercing stack inputs to be uint32
             # TODO: remove this and handle stack inputs more generally
             spec.dtype = TtnnUint32
+        if node.target == ttnn.reshape:
+            # Reshape breaks for tilized uint32 input
+            # TODO: only change layout for uint32 inputs, then fix in tt-metal
+            spec.layout = TtnnRowMajorLayout
         if node.target == target_wrappers.conv and input_site == 1:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
@@ -395,11 +399,11 @@ class NodeInputAligner:
 
         input_node = spec.input_node
 
-        if need_from_device:
-            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
-
         if need_to_layout:
             input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+
+        if need_from_device:
+            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
 
         if need_to_device:
             input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
@@ -411,6 +415,12 @@ class NodeInputAligner:
             kwargs = {}
             if spec.device is not None and spec.device != "host":
                 kwargs["device"] = spec.device()
+                if spec.input_node.meta.get("is_sharded"):
+                    batch_dimension = 0
+                    sharder = self.graph.call_function(
+                        ttnn.ShardTensorToMesh, args=(spec.device(),), kwargs={"dim": batch_dimension}
+                    )
+                    kwargs["mesh_mapper"] = sharder
             if spec.layout is not None:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
@@ -418,7 +428,16 @@ class NodeInputAligner:
             return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
-            return self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
+            if spec.input_node.meta.get("is_sharded"):
+                batch_dimension = 0
+                composer = self.graph.call_function(
+                    ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": batch_dimension}
+                )
+                return self.graph.call_function(
+                    ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype, "mesh_composer": composer}
+                )
+            else:
+                return self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
 
         elif isinstance(spec, self.AlignSpecInTtnn):
             return self._change_layout(spec)
