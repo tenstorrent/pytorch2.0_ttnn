@@ -80,6 +80,10 @@ jobs:
       #- name: Reset Workspace Permissions
       #  run: |
       #    chown -R 1000:1000 ${{ github.workspace }}
+      - name: Cleanup Docker Images
+        run: |
+          docker system prune -a -f --volumes
+          df -h  # Debug space
       - uses: actions/checkout@v4
         with:
           lfs: true
