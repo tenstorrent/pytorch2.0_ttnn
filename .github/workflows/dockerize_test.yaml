@@ -18,6 +18,17 @@ permissions:
   pull-requests: write
 
 jobs:
+  docker-cleanup:
+    runs-on: ["old"]
+    strategy:
+      matrix:
+        group: [1, 2, 3, 4, 5]
+    steps:
+      - name: docker-cleanup
+        run: |
+          docker system prune -a -f --volumes
+          df -h  # Debug space
+
   tools-tests:
     env:
       pytest_verbosity: 2    
@@ -55,12 +66,16 @@ jobs:
         run: |
           chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
-      #- uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_lowering_tests
 
   model-tests:
     needs: lowering-tests
     runs-on: ["old"]
+    steps:
+      - name: Cleanup Docker Images
+        run: |
+          docker system prune -a -f --volumes
+          df -h  # Debug space
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
@@ -77,13 +92,6 @@ jobs:
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
         #group: [9]
     steps:
-      #- name: Reset Workspace Permissions
-      #  run: |
-      #    chown -R 1000:1000 ${{ github.workspace }}
-      - name: Cleanup Docker Images
-        run: |
-          docker system prune -a -f --volumes
-          df -h  # Debug space
       - uses: actions/checkout@v4
         with:
           lfs: true
