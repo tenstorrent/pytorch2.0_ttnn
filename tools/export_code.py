@@ -233,7 +233,7 @@ del globals()["{func_name}"]
     return statement
 
 
-def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, option):
+def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, option, chunk_idx, graph_idx):
     """
     Given a pair of aten and ttnn graphs, build a list of lines of code.
 
@@ -297,7 +297,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, opti
     arg_node_names = [node.name for node in arg_nodes]
     arg_node_names.append("device")
 
-    forward_signature = f"def forward_{len(output_nodes)}({', '.join(arg_node_names)}):"
+    forward_signature = f"def forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)}):"
     # comment out signature if not the first graph
     graph_code = [forward_signature]
     for node in aten_all_nodes:
@@ -469,12 +469,106 @@ if __name__ == "__main__":
     code_full_path = directory / Path(f"{model_name}_code.py")
     with open(code_full_path, "w") as text_file:
         print(full_text, file=text_file)
-        logging.info(f"Accuracy test code saved to {code_full_path}.")
+        logging.info(f"{option} test code saved to {code_full_path}.")
 
     data_full_path = directory / Path(f"{model_name}_inputs.pickle")
     with lzma.open(data_full_path, "wb") as f:
         pickle.dump(all_inputs, f)
-        logging.info(f"Accuracy data object saved to {data_full_path}.")
+        logging.info(f"{option} data object saved to {data_full_path}.")
+
+
+def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, option, chunk_idx):
+    """
+    Main entry to generate standalone python script with accuracy checks
+
+    Args:
+        model_name (str): The name of the model used for filename purposes.
+        aten_fx_graphs (List[torch.fx.graph.Graph]): List of unmodified aten graphs.
+        ttnn_fx_graphs (List[torch.fx.graph.Graph]): List of modified ttnn graphs.
+        all_inputs (List[List]): List of list of inputs including weights, biases, and dynamic data.
+        verbose (boolean): Print out additional info.
+
+    Returns:
+        None.
+    """
+    if option is not None:
+        assert option in export_code_options
+
+    call_forwards_in_main = []
+
+    # Map input arg names of first forward graph to inputs.
+    def get_names_of_args(graph):
+        arg_nodes = []
+        for node in graph.nodes:
+            if node.op == "placeholder":
+                arg_nodes.append(node)
+        arg_node_names = [node.name for node in arg_nodes]
+        return arg_node_names
+
+    def get_names_of_outputs(graph):
+        out_nodes = []
+        for node in graph.nodes:
+            if node.op == "output":
+                out_nodes.extend(node.args[0])
+        out_node_names = [node.name if node is not None else "_" for node in out_nodes]
+        return out_node_names
+
+    for graph_idx, aten_graph in enumerate(aten_fx_graphs):
+        arg_node_names = get_names_of_args(aten_graph)
+        logging.info(f"graph {graph_idx} inputs: {arg_node_names}")
+
+        if graph_idx == 0:
+            assert len(arg_node_names) == len(inputs)
+            # Map indices
+            for i, arg in enumerate(arg_node_names):
+                call_forwards_in_main.append(f"{arg} = inputs[{chunk_idx}][{i}]")
+        else:
+            prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
+            logging.info(f"graph {graph_idx - 1} outputs: {prev_out_node_names}")
+
+            for arg in arg_node_names:
+                if arg == "clone":
+                    for out_arg in reversed(prev_out_node_names):
+                        if out_arg.startswith("primals"):
+                            call_forwards_in_main.append(f"{arg} = {out_arg}")
+                            break
+                if arg.startswith("tangents"):
+                    first_primal_idx = 0
+                    for i, out_arg in enumerate(prev_out_node_names):
+                        if out_arg.startswith("primals"):
+                            first_primal_idx = i
+                            break
+                    tangent_node = prev_out_node_names[first_primal_idx - 1]
+                    call_forwards_in_main.append(f"{arg} = {tangent_node}")
+
+        # append device to the end of arg list
+        arg_node_names.append("device")
+        # Then lastly call the forward function
+        out_node_names = get_names_of_outputs(aten_graph)
+        call_forwards_in_main.append(
+            f"{', '.join(out_node_names)} = forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)})"
+        )
+
+    logging.info(f"\n".join(call_forwards_in_main))
+
+    assert len(aten_fx_graphs) == len(ttnn_fx_graphs)
+
+    # Contains a list of each forward graph
+    forward_code = []
+    # Tracks the output nodes for models with graph breakages
+    output_nodes = []
+    for graph_idx, (aten_graph, ttnn_graph) in enumerate(zip(aten_fx_graphs, ttnn_fx_graphs)):
+        graph_code = _build_code_from_aten_ttnn_graphs(
+            aten_graph, ttnn_graph, output_nodes, option, chunk_idx, graph_idx
+        )
+        if option == "profiling":
+            graph_code.insert(-1, "  ttnn.DumpDeviceProfiler(device)")
+        forward_code.append(graph_code)
+        logging.info(f"forward_code len: {len(forward_code)}")
+        # Insert last one before return
+
+    return forward_code, call_forwards_in_main
+    # _generate_code(model_name, forward_code, call_forwards_in_main, option)
 
 
 def export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs, option):
@@ -491,75 +585,19 @@ def export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs, option):
     Returns:
         None.
     """
+
+    # list of forward definitions
+    forward_code_list = []
+    # list of calls to forward functions inside main()
+    call_forwards_in_main_list = []
     assert len(aten_fx_graphs) == len(all_inputs)
-    assert option in export_code_options
+    for chunk_idx, (aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs) in enumerate(
+        zip(aten_fx_graphs, ttnn_fx_graphs, all_inputs)
+    ):
+        forward_code, call_forwards_in_main = _export_code(
+            model_name, aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs, option, chunk_idx
+        )
+        forward_code_list.extend(forward_code)
+        call_forwards_in_main_list.extend(call_forwards_in_main)
 
-    call_forwards_in_main = []
-
-    # Map input arg names of first forward graph to all_inputs.
-    def get_names_of_args(graph):
-        arg_nodes = []
-        for node in graph.nodes:
-            if node.op == "placeholder":
-                arg_nodes.append(node)
-        arg_node_names = [node.name for node in arg_nodes]
-        return arg_node_names
-
-    def get_names_of_outputs(graph):
-        out_nodes = []
-        for node in graph.nodes:
-            if node.op == "output":
-                out_nodes.extend(node.args[0])
-        out_node_names = [node.name for node in out_nodes]
-        return out_node_names
-
-    for graph_idx, aten_graph in enumerate(aten_fx_graphs):
-        arg_node_names = get_names_of_args(aten_graph)
-        logging.info(f"graph {graph_idx} inputs: {arg_node_names}")
-
-        assert len(arg_node_names) == len(all_inputs[graph_idx])
-        # Map indices
-        for i, arg in enumerate(arg_node_names):
-            call_forwards_in_main.append(f"{arg} = inputs[{graph_idx}][{i}]")
-
-        prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
-        logging.info(f"graph {graph_idx - 1} outputs: {prev_out_node_names}")
-
-        for arg in arg_node_names:
-            if arg == "clone":
-                for out_arg in reversed(prev_out_node_names):
-                    if out_arg.startswith("primals"):
-                        call_forwards_in_main.append(f"{arg} = {out_arg}")
-                        break
-            if arg.startswith("tangents"):
-                first_primal_idx = 0
-                for i, out_arg in enumerate(prev_out_node_names):
-                    if out_arg.startswith("primals"):
-                        first_primal_idx = i
-                        break
-                tangent_node = prev_out_node_names[first_primal_idx - 1]
-                call_forwards_in_main.append(f"{arg} = {tangent_node}")
-
-        # append device to the end of arg list
-        arg_node_names.append("device")
-        # Then lastly call the forward function
-        out_node_names = get_names_of_outputs(aten_graph)
-        call_forwards_in_main.append(f"{', '.join(out_node_names)} = forward_{graph_idx}({', '.join(arg_node_names)})")
-
-    logging.info(f"\n".join(call_forwards_in_main))
-
-    assert len(aten_fx_graphs) == len(ttnn_fx_graphs)
-
-    # Contains a list of each forward graph
-    forward_code = []
-    # Tracks the output nodes for models with graph breakages
-    output_nodes = []
-    for aten_graph, ttnn_graph in zip(aten_fx_graphs, ttnn_fx_graphs):
-        graph_code = _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, option)
-        if option == "profiling":
-            graph_code.insert(-1, "  ttnn.DumpDeviceProfiler(device)")
-        forward_code.append(graph_code)
-        logging.info(f"forward_code len: {len(forward_code)}")
-        # Insert last one before return
-
-    _generate_code(model_name, forward_code, call_forwards_in_main, all_inputs, option)
+    _generate_code(model_name, forward_code_list, call_forwards_in_main_list, all_inputs, option)

@@ -207,7 +207,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
             logging.debug("Compiling model with ttnn backend.")
             # verify --export_code has valid option
             export_code_opt = request.config.getoption("--export_code")
-            assert export_code_opt in export_code.export_code_options
+            if export_code_opt is not None:
+                assert export_code_opt in export_code.export_code_options
 
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
@@ -235,9 +236,12 @@ def compile_and_run(device, reset_torch_dynamo, request):
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
             # set to one variable?
-            if request.config.getoption("--export_code"):
+            if export_code_opt:
+                logging.info(
+                    f"len aten_fx_graph: {len(option._aten_fx_graphs)}, ttnn_fx_graphs: {len(option._ttnn_fx_graphs)}"
+                )
                 export_code.export_code(
-                    model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs, export_code_opt
+                    model_name, option._aten_fx_graphs, option._ttnn_fx_graphs, option._all_inputs, export_code_opt
                 )
 
             if len(option._out_fx_graphs) > 0:

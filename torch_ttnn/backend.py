@@ -33,7 +33,7 @@ class TorchTtnnOption:
         tracer_option=None,
         bypass_compile=False,
         use_less_ttnn_op_types=True,
-        export_code="",
+        export_code=None,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -54,10 +54,12 @@ class TorchTtnnOption:
         self.export_code = export_code
         self._aten_fx_graphs = list()
         self._all_inputs = list()
+        self._ttnn_fx_graphs = list()
 
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
+        self._ttnn_fx_graphs = list()
 
 
 def register_ttnn_objects(option: TorchTtnnOption):
@@ -113,7 +115,7 @@ def aten_backend(
         # Will this hamper memory usage?
         graph_copy = copy.deepcopy(gm.graph)
         graph_copy.owning_module = gm
-        option._aten_fx_graphs.append(graph_copy)
+        option._aten_fx_graphs[-1].append(graph_copy)
 
     # Save the number of aten ops before compilation
     if option.metrics_path:
@@ -218,6 +220,8 @@ def aten_backend(
         option.compiled_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
 
     option._out_fx_graphs.append(gm.graph)
+    if options.export_code:
+        option._ttnn_fx_graphs[-1].append(gm.graph)
 
     for node in gm.graph.nodes:
         if node.op == "placeholder":
@@ -247,6 +251,8 @@ def ttnn_backend(
     if options.export_code:
         import tools.export_code as export_code
 
+        options._aten_fx_graphs.append(list())
+        options._ttnn_fx_graphs.append(list())
         options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
 
     tracer_option = options.tracer_option
