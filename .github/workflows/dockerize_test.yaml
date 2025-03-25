@@ -18,17 +18,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  docker-cleanup:
-    runs-on: ["old"]
-    strategy:
-      matrix:
-        group: [1, 2, 3, 4, 5]
-    steps:
-      - name: docker-cleanup
-        run: |
-          docker system prune -a -f --volumes
-          df -h  # Debug space
-
   tools-tests:
     env:
       pytest_verbosity: 2    
@@ -91,10 +80,10 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0    
-          
-      - name: Install libsndfile
-        run: apt-get update && apt-get install -y libsndfile1
-     # - uses: ./.github/actions/common_repo_setup
+      - name: docker-cleanup
+        run: |
+          docker system prune -a -f --volumes
+          df -h  # Debug space
       - uses: ./.github/actions/common_model_tests
 
       - name: Upload Metrics Artifact
