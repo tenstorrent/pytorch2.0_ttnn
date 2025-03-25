@@ -71,11 +71,6 @@ jobs:
   model-tests:
     needs: lowering-tests
     runs-on: ["old"]
-    steps:
-      - name: Cleanup Docker Images
-        run: |
-          docker system prune -a -f --volumes
-          df -h  # Debug space
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
