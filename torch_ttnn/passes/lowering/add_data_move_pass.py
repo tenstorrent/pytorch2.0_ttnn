@@ -300,10 +300,6 @@ class NodeInputAligner:
         if input_node.target in [ttnn.ones, ttnn.ones_like, ttnn.zeros, ttnn.zeros_like]:
             spec.layout = TtnnTileLayout
 
-        # TODO: remove when _align_special_cases no longer converts reshape inputs to row major
-        # if input_node.target == ttnn.reshape:
-        #     spec.layout = TtnnTileLayout
-
         # legalize to the default layout and device
         if input_node.target in TTNN_ROW_LAYOUT_OPS:
             spec.layout = TtnnTileLayout
@@ -344,10 +340,6 @@ class NodeInputAligner:
             # This allows ViLT to work by coercing stack inputs to be uint32
             # TODO: remove this and handle stack inputs more generally
             spec.dtype = TtnnUint32
-        # if node.target == ttnn.reshape:
-        #     # Reshape breaks for tilized uint32 input
-        #     # TODO: only change layout for uint32 inputs, then fix in tt-metal
-        #     spec.layout = TtnnRowMajorLayout
         if node.target == target_wrappers.conv and input_site == 1:
             # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
             spec.layout = TtnnRowMajorLayout
