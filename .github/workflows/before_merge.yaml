@@ -242,8 +242,8 @@ jobs:
           exit 0;
         shell: bash
         strategy:
-        matrix:
-          group: ${{ fromJson(steps.calculate-groups.outputs.groups) }}
+          matrix:
+            group: ${{ fromJson(steps.calculate-groups.outputs.groups) }}
 
   collect-metrics:
     needs: [model-autogen-op-tests]
