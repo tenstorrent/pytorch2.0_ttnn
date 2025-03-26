@@ -1,0 +1,108 @@
+name: "Accuracy Tests"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+  pages: read
+  id-token: write
+  pull-requests: read
+
+jobs:
+  tools-tests:
+    env:
+      pytest_verbosity: 2    
+      pytest_report_title: "⭐️ Tools Tests"
+    runs-on: ["in-service"]
+    steps:      
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup        
+      - name: Run Tools Tests 
+        run: |
+          python3 -m pytest --github-report tests/tools/ -s
+
+  gen-model-accuracy:
+    runs-on: ["in-service"]
+    outputs:
+      groups: ${{ steps.calculate-groups.outputs.groups }}
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download All Accuracy Tests and Inputs Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-accuracy-tests-group-*
+          merge-multiple: true
+          path: tests/autogen_accuracy_tests/
+
+      - name: Calculate Number of Groups
+        id: calculate-groups
+        run: |
+          # Count the number of test files
+          num_files=$(find tests/autogen_accuracy_tests -type f -name "*.py" | wc -l)
+
+          # Get the number of available CPUs (or set a default if not available)
+          num_cpus=$(nproc || echo 4)
+
+          # Calculate the number of groups (e.g., 1 group per CPU, or adjust as needed)
+          num_groups=$((num_files < num_cpus ? num_files : num_cpus))
+
+          # Ensure at least 1 group
+          num_groups=$((num_groups > 0 ? num_groups : 1))
+
+          # Generate the list of groups as JSON
+          groups=$(seq 1 $num_groups | jq -c '.')
+          echo "groups=$groups" >> $GITHUB_OUTPUT
+        outputs:
+          groups: ${{ steps.calculate-groups.outputs.groups }}
+
+      - name: Upload Accuracy Tests Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: autogen-accuracy-tests
+          path: tests/autogen_accuracy_tests/
+
+  test-model-accuracy:
+    needs: [gen-model-accuracy]
+    runs-on: ["in-service"]
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    strategy:
+      matrix:
+        group: ${{ fromJson(needs.gen-model-accuracy.outputs.groups) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
+      - name: Download Accuracy Tests Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: autogen-accuracy-tests
+          path: tests/autogen_accuracy_tests/
+
+      - name: Run Accuracy Tests
+        run: |
+          cd tests/autogen_accuracy_tests
+          set +e
+          test_file=$(find . -type f -name "*.py" | sed -n "${{ matrix.group }}p")
+          python3 -m pytest $test_file -s
+          exit 0;
+        shell: bash
+
+  validate-results:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest    
+    needs: [test-model-accuracy]
+    steps:
+      - run: |
+          model_result="${{ needs.test-model-accuracy.result }}"
+          if [[ $model_result == "success" ]]; then
+            exit 0
+          else
+            exit 1
+          fi
