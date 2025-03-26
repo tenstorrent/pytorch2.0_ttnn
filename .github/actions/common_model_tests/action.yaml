@@ -2,6 +2,17 @@ name: 'Run Model tests'
 description: 'Run Model tests'
 runs:
   using: "composite"
+  inputs:
+    splits:
+      description: 'Number of splits for test distribution'
+      required: true
+    commit_report:
+      description: 'Commit report input (None, Docs, All)'
+      required: false
+      default: 'None'
+    matrix_group:
+      description: 'Matrix group index for splitting tests'
+      required: true
   steps:
     - name: Run Model Tests
       shell: bash
@@ -12,7 +23,7 @@ runs:
         else
           num_iterations=5
         fi
-        python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --gen_op_accuracy_tests --splits 40 --group ${{ matrix.group }} -s
+        python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --gen_op_accuracy_tests --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
         exit_code=$?  # Capture the exit code
         if [ $exit_code -eq 5 ]; then
           if [ ${{ matrix.group }} -eq 0 ]; then

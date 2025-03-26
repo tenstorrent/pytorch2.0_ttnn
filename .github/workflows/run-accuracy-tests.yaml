@@ -11,10 +11,19 @@ permissions:
   pull-requests: read
 
 jobs:
-  tools-tests:
-    env:
-      pytest_verbosity: 2    
-      pytest_report_title: "⭐️ Tools Tests"
+  count-test-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Count Test Files
+        id: count-files
+        uses: ./.github/actions/count_test_files
+        with:
+          test_directory: 'tests/models/'
+  model-tests:
+    needs: [count-test-files]
     runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
@@ -24,14 +33,30 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    steps:      
+    with:
+      splits: ${{ needs.count-test-files.outputs.num_files }}
+      matrix_group: ${{ matrix.group }}
+    env:      
+      pytest_verbosity: 0
+    strategy:
+      matrix: # Need to find a way to replace this with a generator
+        group: ${{ range(1, needs.count-test-files.outputs.num_files | int + 1) }}
+    steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup        
-      - name: Run Tools Tests 
-        run: |
-          python3 -m pytest --github-report tests/tools/ -s
+        with:
+          lfs: true          
+      - uses: ./.github/actions/common_repo_setup
+      - uses: ./.github/actions/common_model_tests
+
+      - name: Upload All Accuracy Tests and Inputs Artifacts
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-accuracy-tests-group-${{ matrix.group }}
+          path: tests/autogen_accuracy_tests/
 
   gen-model-accuracy:
+    depends-on: [ "model-tests" ]
     runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
@@ -110,9 +135,13 @@ jobs:
       - name: Run Accuracy Tests
         run: |
           cd tests/autogen_accuracy_tests
-          set +e
           test_file=$(find . -type f -name "*.py" | sed -n "${{ matrix.group }}p")
           python3 -m pytest $test_file -s
+          exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+            echo "Tests failed with exit code $exit_code"
+            exit $exit_code
+          fi
           exit 0;
         shell: bash
 
