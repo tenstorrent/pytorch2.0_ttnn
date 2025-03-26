@@ -1,7 +1,7 @@
 name: "Tests"
 
 on:
-  push:
+  workflow_call:
   workflow_dispatch:
     inputs:
       commit_report:
@@ -22,7 +22,7 @@ jobs:
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
-    runs-on: ["old"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
@@ -38,7 +38,7 @@ jobs:
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
-    runs-on: ["old"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
@@ -59,7 +59,7 @@ jobs:
 
   model-tests:
     needs: lowering-tests
-    runs-on: ["old"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
@@ -102,7 +102,7 @@ jobs:
   push-autogen-op-tests:
     needs: [model-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["old"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
@@ -152,7 +152,7 @@ jobs:
   model-autogen-op-tests:
     needs: [push-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["old"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
@@ -234,7 +234,7 @@ jobs:
 
   gen-and-test-model-accuracy:
     needs: [model-tests]
-    runs-on: ["old"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
@@ -265,7 +265,7 @@ jobs:
   collect-metrics:
     needs: [model-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
-    runs-on: ["old"]
+    runs-on: ["in-service"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
       options: >-
