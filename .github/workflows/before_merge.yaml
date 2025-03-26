@@ -129,7 +129,7 @@ jobs:
     runs-on: ["in-service"]
     strategy:
       matrix: 
-        group: group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
 
     env:
       pytest_verbosity: 0
