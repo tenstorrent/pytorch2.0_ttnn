@@ -1,8 +1,6 @@
 name: 'Run Model tests'
 description: 'Run Model tests'
-runs:
-  using: "composite"
-  inputs:
+inputs:
     splits:
       description: 'Number of splits for test distribution'
       required: true
@@ -13,6 +11,8 @@ runs:
     matrix_group:
       description: 'Matrix group index for splitting tests'
       required: true
+runs:
+  using: "composite"
   steps:
     - name: Run Model Tests
       shell: bash
