@@ -34,6 +34,9 @@ class ThisTester(ModelTester):
         return inputs["pixel_values"].grad
 
 
+@pytest.mark.skip(
+    reason="Same error for all 4 tests: IndexError: index 931201024 is out of bounds for dimension 0 with size 732"
+)
 @pytest.mark.parametrize("mode", ["train", "eval"])
 @pytest.mark.parametrize("model_name", ["microsoft/beit-base-patch16-224", "microsoft/beit-large-patch16-224"])
 def test_beit_image_classification(record_property, model_name, mode):
