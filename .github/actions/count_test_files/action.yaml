@@ -1,0 +1,29 @@
+name: 'Count Test Files'
+description: 'Counts the number of valid test files in a directory'
+
+inputs:
+  test_directory:
+    description: 'Directory containing the test files'
+    required: true
+    default: 'tests/models/'
+
+outputs:
+  num_files:
+    description: 'The number of valid test files'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Count Test Files
+      id: count-files
+      shell: bash
+      run: |
+        # Count the number of valid test files (e.g., test_*.py or *_test.py)
+        num_files=$(find ${{ inputs.test_directory }} -type f \( -name "test_*.py" -o -name "*_test.py" \) | wc -l)
+        echo "Number of valid test files: $num_files"
+        echo "num_files=$num_files" >> $GITHUB_ENV
+        echo "::set-output name=num_files::$num_files"
+        if [ "$num_files" -eq 0 ]; then
+        echo "No test files found. Exiting."
+          exit 0
+        fi
