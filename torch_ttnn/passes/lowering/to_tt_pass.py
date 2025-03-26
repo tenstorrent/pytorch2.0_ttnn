@@ -526,6 +526,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return reshape_1d(ttnn.round, (args[0],), {"decimals": 0})
 
             if node.target == torch.ops.aten.clone.default:
+                # Only convert if the input is from graph arguments and node is also returned as an output
+                # Otherwise, optimize node out and return input
+                node_users = list(node.users.keys())
+                if not (args[0].op == "placeholder" and len(node_users) == 1 and node_users[0].op == "output"):
+                    return args[0]
+
                 arg_metadata = node.meta["val"]
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
