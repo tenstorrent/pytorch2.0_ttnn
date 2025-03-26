@@ -74,9 +74,7 @@ jobs:
           # Generate the list of groups as JSON
           groups=$(seq 1 $num_groups | jq -c '.')
           echo "groups=$groups" >> $GITHUB_OUTPUT
-        outputs:
-          groups: ${{ steps.calculate-groups.outputs.groups }}
-
+        
       - name: Upload Accuracy Tests Artifact
         uses: actions/upload-artifact@v4
         with:
