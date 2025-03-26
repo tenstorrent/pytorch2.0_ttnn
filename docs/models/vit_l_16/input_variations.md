@@ -20,9 +20,9 @@
 | 16 | aten.view.default                                |                 12 |          12 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._scaled_dot_product_flash_attention.default
-|    | ATen Input Variations                                                                                          | Status   | Isolated   |   PCC |   Host |
-|---:|:---------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 16, 197, 64]> query = ?,<br>Tensor<[1, 16, 197, 64]> key = ?,<br>Tensor<[1, 16, 197, 64]> value = ? | None     | Fallback   |     1 |      0 |
+|    | ATen Input Variations                                                                                          | Status   | Isolated   |      PCC |   Host |
+|---:|:---------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
+|  0 | Tensor<[1, 16, 197, 64]> query = ?,<br>Tensor<[1, 16, 197, 64]> key = ?,<br>Tensor<[1, 16, 197, 64]> value = ? | None     | Fallback   | 0.857143 |      0 |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
@@ -30,9 +30,9 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                      | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?   | Done     | Done       | 0.999964 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?   | Done     | Done       | 0.999965 |      0 |
 |  1 | Tensor<[1024]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
-|  2 | Tensor<[1024]> self = ?,<br>Tensor<[197, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ? | Done     | Done       | 0.999933 |      0 |
+|  2 | Tensor<[1024]> self = ?,<br>Tensor<[197, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ? | Done     | Done       | 0.999932 |      0 |
 |  3 | Tensor<[3072]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
 |  4 | Tensor<[4096]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 4096]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
 ### aten.cat.default
@@ -69,10 +69,10 @@
 ### aten.select.int
 |    | ATen Input Variations                                                | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>int index = 0    | Done     | Done       |     1 |      0 |
-|  1 | Tensor<[3, 197, 1, 1024]> self = ?,<br>int dim = 0,<br>int index = 0 | Done     | Done       |     1 |      0 |
-|  2 | Tensor<[3, 197, 1, 1024]> self = ?,<br>int dim = 0,<br>int index = 1 | Done     | Done       |     1 |      0 |
-|  3 | Tensor<[3, 197, 1, 1024]> self = ?,<br>int dim = 0,<br>int index = 2 | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[1, 197, 1024]> self = ?,<br>int dim = 1,<br>int index = 0    | Done     | Done       |     1 |     -1 |
+|  1 | Tensor<[3, 197, 1, 1024]> self = ?,<br>int dim = 0,<br>int index = 0 | Done     | Done       |     1 |     -1 |
+|  2 | Tensor<[3, 197, 1, 1024]> self = ?,<br>int dim = 0,<br>int index = 1 | Done     | Done       |     1 |     -1 |
+|  3 | Tensor<[3, 197, 1, 1024]> self = ?,<br>int dim = 0,<br>int index = 2 | Done     | Done       |     1 |     -1 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                   | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -92,7 +92,7 @@
 ### aten.transpose.int
 |    | ATen Input Variations                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 197, 1, 3, 1024]> self = ?,<br>int dim0 = 0,<br>int dim1 = -2 | Done     | Done       |     1 |      1 |
+|  0 | Tensor<[1, 197, 1, 3, 1024]> self = ?,<br>int dim0 = 0,<br>int dim1 = -2 | Done     | Done       |     1 |      0 |
 |  1 | Tensor<[1, 197, 1024]> self = ?,<br>int dim0 = 1,<br>int dim1 = 0        | Done     | Done       |     1 |      0 |
 |  2 | Tensor<[197, 1, 1024]> self = ?,<br>int dim0 = 1,<br>int dim1 = 0        | Done     | Done       |     1 |      0 |
 |  3 | Tensor<[197, 16, 64]> self = ?,<br>int dim0 = 0,<br>int dim1 = 1         | Done     | Done       |     1 |      0 |

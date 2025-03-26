@@ -8,7 +8,7 @@
 |  4 | aten.convolution.default                |                  2 |           2 |         0 |          0 | ✅          |       1 |
 |  5 | aten.convolution_backward.default       |                  2 |           0 |         0 |          0 | ✘           |       0 |
 |  6 | aten.div.Scalar                         |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  7 | aten.expand.default                     |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  7 | aten.expand.default                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  8 | aten.gelu.default                       |                  2 |           2 |         0 |          0 | ✅          |       1 |
 |  9 | aten.gelu_backward.default              |                  2 |           0 |         0 |          0 | ✘           |       0 |
 | 10 | aten.mean.dim                           |                  1 |           1 |         0 |          0 | ✅          |       1 |
@@ -33,7 +33,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | 0.999969 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 512]> mat1 = ?,<br>Tensor<[512, 1000]> mat2 = ? | Done     | Done       | 0.999972 |      0 |
 |  1 | Tensor<[256]> self = ?,<br>Tensor<[256, 512]> mat1 = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.99997  |      0 |
 |  2 | Tensor<[512]> self = ?,<br>Tensor<[256, 256]> mat1 = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999978 |      0 |
 |  3 | Tensor<[512]> self = ?,<br>Tensor<[256, 768]> mat1 = ?,<br>Tensor<[768, 512]> mat2 = ? | Done     | Done       | 0.999962 |      0 |
@@ -48,8 +48,8 @@
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                             | Status   | Isolated   |      PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1024, 512]> input = ?,<br>Tensor<[256, 1024, 1]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>List[int] stride = [1],<br>List[int] padding = [0],<br>List[int] dilation = [1],<br>bool transposed = False,<br>List[int] output_padding = [0],<br>int groups = 1 | Done     | Done       | 0.999954 |      6 |
-|  1 | Tensor<[1, 256, 512]> input = ?,<br>Tensor<[1024, 256, 1]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[int] stride = [1],<br>List[int] padding = [0],<br>List[int] dilation = [1],<br>bool transposed = False,<br>List[int] output_padding = [0],<br>int groups = 1 | Done     | Done       | 0.999974 |      6 |
+|  0 | Tensor<[1, 1024, 512]> input = ?,<br>Tensor<[256, 1024, 1]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>List[int] stride = [1],<br>List[int] padding = [0],<br>List[int] dilation = [1],<br>bool transposed = False,<br>List[int] output_padding = [0],<br>int groups = 1 | Done     | Done       | 0.999954 |      3 |
+|  1 | Tensor<[1, 256, 512]> input = ?,<br>Tensor<[1024, 256, 1]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[int] stride = [1],<br>List[int] padding = [0],<br>List[int] dilation = [1],<br>bool transposed = False,<br>List[int] output_padding = [0],<br>int groups = 1 | Done     | Done       | 0.999974 |      3 |
 ### aten.convolution_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                              | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -62,7 +62,7 @@
 ### aten.expand.default
 |    | ATen Input Variations                                           | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 512, 1]> self = ?,<br>List[int] size = [1, 512, 256] | None     | Fallback   |     1 |     -1 |
+|  0 | Tensor<[1, 512, 1]> self = ?,<br>List[int] size = [1, 512, 256] | Done     | Done       |     1 |      0 |
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------|:---------|:-----------|---------:|-------:|
@@ -80,7 +80,7 @@
 ### aten.mm.default
 |    | ATen Input Variations                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.99997  |      0 |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.999965 |      0 |
 |  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 512]> mat2 = ?    | Done     | Done       | 0.999992 |      0 |
 |  2 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999979 |      0 |
 |  3 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999971 |      0 |

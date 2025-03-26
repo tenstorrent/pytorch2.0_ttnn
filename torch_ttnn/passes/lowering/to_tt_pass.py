@@ -679,8 +679,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
-                # Repeat fails if last dimension of input is 1
-                if input_tensor_shape[-1] != 1 and len(input_tensor_shape) == len(output_shape):
+                if len(input_tensor_shape) == len(output_shape):
                     return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
 
                 return None
@@ -1027,10 +1026,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 dilation = params.get("dilation", (1, 1))
                 ceil_mode = params.get("ceil_mode", False)
                 if (
-                    # TODO(tt-metal#14976): ceil mode isn't supported yet
-                    ceil_mode
-                    # TODO(tt-metal#13901): Wide input channels can only be multiple of 8 tiles
-                    or (in_c > (ttnn.TILE_SIZE * 8) and in_c % (ttnn.TILE_SIZE * 8) != 0)
+                    # # TODO: in_c must be 16 or a multiple of 32
+                    (in_c != 16 and in_c % 32 != 0)
                     # TODO(#419): Currently fails with in_c < 16
                     or in_c < 16
                     # TODO(tt-metal#12099): Currently it doesn't return indices. Convert if only the value is used
@@ -1056,6 +1053,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         padding,
                         dilation,
                     ),
+                    {"ceil_mode": ceil_mode},
                 )
                 output_tensor = insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
