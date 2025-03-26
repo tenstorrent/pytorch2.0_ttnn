@@ -148,7 +148,7 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     strategy:
       matrix: 
-        group: group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
 
     env:
       pytest_verbosity: 0
