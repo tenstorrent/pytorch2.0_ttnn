@@ -4,6 +4,8 @@
 import torch
 import numpy as np
 import re
+import requests
+from os import path
 from collections.abc import Mapping, Sequence
 from typing import List, Dict, Tuple
 
@@ -145,6 +147,17 @@ class ModelTester:
             return self.test_model_eval(as_ttnn, option)
         else:
             raise ValueError(f"Current mode is not supported: {self.mode}")
+
+
+def get_cached_image_or_reload(cache_path, url):
+    if path.exists(cache_path):
+        return cache_path
+
+    image_file = requests.get(url, stream=True)
+    with open(cache_path, "wb") as file:
+        for chunk in image_file.iter_content(chunk_size=8192):
+            file.write(chunk)
+    return cache_path
 
 
 # Testing utils copied from tt-metal/tests/ttnn/utils_for_testing.py
