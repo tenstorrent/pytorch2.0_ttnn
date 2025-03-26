@@ -10,6 +10,11 @@ inputs:
 outputs:
   num_files:
     description: 'The number of valid test files'
+    value: ${{ steps.count-files.outputs.num_files }}
+
+  matrix:
+    description: 'A JSON array of test groups'
+    value: ${{ steps.generate-matrix.outputs.matrix }}
 
 runs:
   using: "composite"
@@ -18,12 +23,24 @@ runs:
       id: count-files
       shell: bash
       run: |
-        # Count the number of valid test files (e.g., test_*.py or *_test.py)
-        num_files=$(find ${{ inputs.test_directory }} -type f \( -name "test_*.py" -o -name "*_test.py" \) | wc -l)
-        echo "Number of valid test files: $num_files"
-        echo "num_files=$num_files" >> $GITHUB_ENV
-        echo "::set-output name=num_files::$num_files"
-        if [ "$num_files" -eq 0 ]; then
-        echo "No test files found. Exiting."
-          exit 0
+        # Count the number of valid test files
+        num_tests=$(find "${{ inputs.test_directory }}" -type f \( -name "test_*.py" -o -name "*_test.py" \) | wc -l)
+        if [ "$num_tests" -eq 0 ]; then
+          echo "Error: No test files found in the directory '${{ inputs.test_directory }}'."
+          exit 1
         fi
+        echo "num_files=$num_tests" >> $GITHUB_OUTPUT
+
+    - name: Generate Matrix
+      id: generate-matrix
+      shell: bash
+      run: |
+        num_files="${{ steps.count-files.outputs.num_files }}"
+        matrix_tmp=$(seq 1 $num_files | jq -c --slurp '.')
+        echo "matrix=$matrix_tmp" >> $GITHUB_OUTPUT
+
+    - name: Debug Outputs
+      shell: bash
+      run: |
+        echo "Number of files: ${{ steps.count-files.outputs.num_files }}"
+        echo "Matrix: ${{ steps.generate-matrix.outputs.matrix }}"
