@@ -2,7 +2,8 @@ name: "Accuracy Tests"
 
 on:
   workflow_dispatch:
-
+  schedule:
+    - cron: "0 21 * * 6" # Run every Saturday at 9:00 PM UTC
 permissions:
   actions: read
   contents: write
