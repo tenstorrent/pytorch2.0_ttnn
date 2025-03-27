@@ -257,7 +257,7 @@ jobs:
           fi
           
           python3 tools/send_to_data_team.py \
-              --github_workflow_id ${{ github.event.workflow_run.id }} \
+              --github_workflow_id ${{ github.run_id }} \
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
               --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
               --sftp_private_key ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}
