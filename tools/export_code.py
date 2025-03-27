@@ -297,13 +297,17 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, opti
     arg_node_names = [node.name for node in arg_nodes]
     arg_node_names.append("device")
 
-    forward_signature = f"def forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)}):"
+    forward_func_name = f"forward_{chunk_idx}_{graph_idx}"
+    forward_signature = f"def {forward_func_name}({', '.join(arg_node_names)}):"
     # comment out signature if not the first graph
     graph_code = [forward_signature]
     for node in aten_all_nodes:
         if node.op == "output":
-            output_nodes.append(node.args[0])
-            graph_code.append(f"  # return {node.args[0]}")
+            aten_out_list = node.args[0]
+            output_nodes.append(aten_out_list)
+            # comment out aten return for referencing purposes
+            graph_code.append(f"  # return {aten_out_list}")
+            graph_code.append(f"  aten_outputs = {aten_out_list}")
             continue
         else:
             if option == "accuracy":
@@ -317,6 +321,14 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, opti
             if option == "accuracy":
                 graph_code.append(f"  test_accuracy({node[0]}, {node[1]})")
         else:
+            # Print the accuracy of the outputs for this forward function
+            if node.op == "output" and option == "accuracy":
+                graph_code.append(f"  ttnn_outputs = {node.args[0]}")
+                graph_code.append(
+                    "  accuracy = np.mean([comp_pcc_wrapper(a, t) for a, t in zip(aten_outputs, ttnn_outputs)])"
+                )
+                graph_code.append(f'  print(f"{forward_func_name} accuracy: {{accuracy}}")')
+
             graph_code.append(f"  {_node_to_python_code(node)}")
 
     return graph_code
@@ -413,6 +425,12 @@ def test_accuracy(expected, actual):
     if isinstance(actual, ttnn.Tensor):
         actual = ttnn.to_torch(actual)
     assert_with_pcc(expected, actual, pcc = 0.90)
+
+def comp_pcc_wrapper(expected, actual):
+    assert isinstance(expected, torch.Tensor)
+    assert isinstance(actual, torch.Tensor)
+    _, pcc = comp_pcc(expected, actual)
+    return pcc
 """
         if option == "accuracy"
         else ""
