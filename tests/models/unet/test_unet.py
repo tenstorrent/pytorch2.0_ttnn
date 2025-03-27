@@ -29,7 +29,7 @@ class ThisTester(ModelTester):
 
     def _load_inputs(self):
         image_file = get_cached_image_or_reload(
-            cache_path="/mnt/tt-metal-pytorch-cache/.cache/inputs/TCGA_CS_4944.png",
+            relative_cache_path="inputs/TCGA_CS_4944.png",
             url="https://github.com/mateuszbuda/brain-segmentation-pytorch/raw/master/assets/TCGA_CS_4944.png",
         )
         input_image = Image.open(image_file)
