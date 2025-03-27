@@ -23,27 +23,15 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:      
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
     runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
@@ -51,38 +39,24 @@ jobs:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2]
     steps:
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_lowering_tests
 
   model-tests:
     needs: lowering-tests
     runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -v /home/ubuntu/.cache/huggingface:/root/.cache/huggingface
-        -v /home/ubuntu/.cache/torch/hub:/root/.cache/torch/hub
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
-      XDG_CACHE_HOME: /root/.cache
     strategy:
       matrix: # Need to find a way to replace this with a generator
-        group: [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          fetch-depth: 0    
-      - name: docker-cleanup
-        run: |
-          docker system prune -a -f --volumes
-          df -h  # Debug space
+          lfs: true          
+      - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_model_tests
 
       - name: Upload Metrics Artifact
@@ -103,19 +77,11 @@ jobs:
     needs: [model-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
-     # - uses: ./.github/actions/common_repo_setup
+      - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -153,11 +119,6 @@ jobs:
     needs: [push-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
@@ -166,10 +127,8 @@ jobs:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
     steps:
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Input Variations Tests
         run: |
@@ -198,6 +157,8 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -219,6 +180,8 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -231,49 +194,16 @@ jobs:
         with:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
-
-  gen-and-test-model-accuracy:
-    needs: [model-tests]
-    runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
-    env:
-      PYTHONPATH: ${{ github.workspace }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download All Accuracy Tests and Inputs Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: model-accuracy-tests-group-*
-          merge-multiple: true
-          path: tests/autogen_accuracy_tests/
-
-      - name: Run Accuracy Tests
-        run: |
-          cd tests/autogen_accuracy_tests
-          set +e
-          find . -type f -name "*.py" -exec python {} ";"
-          exit 0;
-        shell: bash
-
   collect-metrics:
     needs: [model-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
