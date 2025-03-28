@@ -24,14 +24,14 @@ jobs:
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:      
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
       - name: Run Tools Tests 
         run: |
@@ -40,7 +40,10 @@ jobs:
   lowering-tests:
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -51,9 +54,6 @@ jobs:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2]
     steps:
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_lowering_tests
 
@@ -61,7 +61,10 @@ jobs:
     needs: lowering-tests
     runs-on: ["in-service", "nfs"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -105,16 +108,16 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
      # - uses: ./.github/actions/common_repo_setup
 
@@ -155,7 +158,10 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -167,9 +173,6 @@ jobs:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
     steps:
-      - name: Reset Workspace Permissions
-        run: |
-          chown -R 1000:1000 ${{ github.workspace }}
       - uses: actions/checkout@v4
 
       - name: Run Model Input Variations Tests
@@ -237,11 +240,13 @@ jobs:
     needs: [model-tests]
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
@@ -268,11 +273,13 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-20.04-amd64:dev
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -u 1000:1000
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
