@@ -119,7 +119,6 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-     # - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4

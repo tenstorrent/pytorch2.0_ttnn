@@ -43,6 +43,7 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.converted_end_to_end
+@pytest.mark.skip(reason="Issues with calling git lfs pull on CI")
 def test_hand_landmark(record_property, mode):
     model_name = "Hand Landmark"
     record_property("model_name", model_name)
