@@ -52,7 +52,34 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
             modified = True
 
     if modified:
-        gm = GraphCleanup(gm)
+        """
+        Do not call `eliminate_dead_code()` before `aot_autograd` because the function has not
+        been functionalized yet. This means some other mutations will be eliminate
+        inadvertently.
+
+        Example:
+        ```
+        1: def f():
+        2:    mask = torch.full((1, 1), 1)
+        3:    mask_cond = torch.full((1, 1), True)
+        4:    masked_fill = mask.masked_fill_(mask_cond, 0)
+        5:    mask_1 = mask.to(torch.bfloat16)
+        6:    return mask_1
+        ```
+
+        In the function above, `eliminate_dead_code()` does not know that `mask.masked_fill_` mutates
+        the `mask` tensor in-place. Therefore, it sees that `masked_fill` is not used and will eliminate lines 3 and 4. The result of the function above should be `tensor([[0.]], dtype=torch.bfloat16)`. However, after code elimination, the function will become below and
+        the result will be `tensor([[1.]], dtype=torch.bfloat16)` which is incorrect.
+
+        ```
+        1: def f():
+        2:    mask = torch.full((1, 1), 1)
+        3:    mask_1 = mask.to(torch.bfloat16)
+        4:    return mask_1
+        ```
+        """
+        gm.graph.lint()
+        gm.recompile()
 
     return gm
 
