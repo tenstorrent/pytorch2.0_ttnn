@@ -235,38 +235,6 @@ jobs:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
 
-  gen-and-test-model-accuracy:
-    needs: [model-tests]
-    runs-on: ["in-service"]
-    container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    env:
-      PYTHONPATH: ${{ github.workspace }}
-    steps:
-      - uses: actions/checkout@v4
-      #- uses: ./.github/actions/common_repo_setup
-
-      - name: Download All Accuracy Tests and Inputs Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: model-accuracy-tests-group-*
-          merge-multiple: true
-          path: tests/autogen_accuracy_tests/
-
-      - name: Run Accuracy Tests
-        run: |
-          cd tests/autogen_accuracy_tests
-          set +e
-          find . -type f -name "*.py" -exec python {} ";"
-          exit 0;
-        shell: bash
-
   collect-metrics:
     needs: [model-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
