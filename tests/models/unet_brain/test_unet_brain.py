@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 from torchvision import transforms
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, get_cached_image_or_reload
 
 
 class ThisTester(ModelTester):
@@ -23,19 +23,16 @@ class ThisTester(ModelTester):
             out_channels=1,
             init_features=32,
             pretrained=True,
+            skip_validation=True,
         )
         model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
-        url, filename = (
-            "https://github.com/mateuszbuda/brain-segmentation-pytorch/raw/master/assets/TCGA_CS_4944.png",
-            "TCGA_CS_4944.png",
+        filename = get_cached_image_or_reload(
+            relative_cache_path="inputs/TCGA_CS_4944.png",
+            url="https://github.com/mateuszbuda/brain-segmentation-pytorch/raw/master/assets/TCGA_CS_4944.png",
         )
-        try:
-            urllib.URLopener().retrieve(url, filename)
-        except:
-            urllib.request.urlretrieve(url, filename)
 
         input_image = Image.open(filename)
         m, s = np.mean(input_image, axis=(0, 1)), np.std(input_image, axis=(0, 1))

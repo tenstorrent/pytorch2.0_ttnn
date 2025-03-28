@@ -7,9 +7,9 @@ import torchvision
 
 def get_model(model_name):
     if model_name == "dinov2_vits14":
-        m = torch.hub.load("facebookresearch/dinov2", model_name)
+        m = torch.hub.load("facebookresearch/dinov2", model_name, skip_validation=True)
     elif model_name == "detr_resnet50":
-        m = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True)
+        m = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True, skip_validation=True)
     else:
         try:
             m = torchvision.models.get_model(model_name, pretrained=True)

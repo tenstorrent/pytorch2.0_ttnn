@@ -23,15 +23,30 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:      
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup        
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
@@ -40,23 +55,38 @@ jobs:
         group: [1, 2]
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_lowering_tests
 
   model-tests:
     needs: lowering-tests
-    runs-on: ["in-service"]
+    runs-on: ["in-service", "nfs"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
+      XDG_CACHE_HOME: /root/.cache
+      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
+      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true          
-      - uses: ./.github/actions/common_repo_setup
+          lfs: true
+          fetch-depth: 0    
+      - name: docker-cleanup
+        run: |
+          docker system prune -a -f --volumes
+          df -h  # Debug space
       - uses: ./.github/actions/common_model_tests
 
       - name: Upload Metrics Artifact
@@ -77,11 +107,18 @@ jobs:
     needs: [model-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -119,6 +156,14 @@ jobs:
     needs: [push-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
@@ -128,7 +173,6 @@ jobs:
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Input Variations Tests
         run: |
@@ -157,8 +201,6 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -180,8 +222,6 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -194,16 +234,23 @@ jobs:
         with:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
+
   collect-metrics:
     needs: [model-autogen-op-tests]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
