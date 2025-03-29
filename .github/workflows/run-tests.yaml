@@ -3,6 +3,10 @@ name: "Run Tests"
 on:
   workflow_call:
     inputs:
+      commit_report:
+        description: 'Commit generated report files: None, Docs, All'
+        required: false
+        default: 'None'
       docker_tag:
         description: 'Docker container tag to use'
         required: false
@@ -10,6 +14,7 @@ on:
         default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
     outputs:
       tests_passed:
+        description: "Whether tests passed (0 means pass, 1 means fail)"
         value: ${{ jobs.tests-passed.outputs.didpass }}
   workflow_dispatch:
     inputs:
