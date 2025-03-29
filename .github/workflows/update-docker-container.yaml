@@ -40,7 +40,6 @@ jobs:
       - name: Query images exist
         id: images
         run: |
-          docker manifest inspect ${{ steps.tags.outputs.dev-tag }}
           if docker manifest inspect ${{ steps.tags.outputs.dev-tag }} > /dev/null 2>&1; then
             echo "${{ steps.tags.outputs.dev-tag }} exists"
             echo "dev-exists=true" >> $GITHUB_OUTPUT
@@ -77,7 +76,7 @@ jobs:
           echo ${{ needs.check-docker-images.outputs.dev-tag }}
 
   run-tests:
-    needs: create-new-container-and-upload
+    needs: [create-new-container-and-upload, check-docker-images]
     if: ${{ always() }}
     uses: ./.github/workflows/run-tests.yaml
     secrets: inherit
@@ -87,7 +86,7 @@ jobs:
 
   tag-latest:
     name: "Update latest tag"
-    needs: run-tests
+    needs: [run-tests, check-docker-images]
     if: ${{ needs.run-tests.outputs.tests_passed == 0 }}
     runs-on: ubuntu-latest
     steps:
