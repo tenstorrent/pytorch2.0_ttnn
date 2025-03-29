@@ -22,7 +22,6 @@ on:
         description: 'Commit generated report files: None, Docs, All'
         required: false
         default: 'None'
-    inputs:
       docker_tag:
         description: 'Docker container tag to use'
         required: false
