@@ -6,6 +6,7 @@ on:
       commit_report:
         description: 'Commit generated report files: None, Docs, All'
         required: false
+        type: string
         default: 'None'
       docker_tag:
         description: 'Docker container tag to use'
@@ -21,6 +22,7 @@ on:
       commit_report:
         description: 'Commit generated report files: None, Docs, All'
         required: false
+        type: string
         default: 'None'
       docker_tag:
         description: 'Docker container tag to use'
