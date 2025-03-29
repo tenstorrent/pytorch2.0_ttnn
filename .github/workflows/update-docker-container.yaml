@@ -64,6 +64,9 @@ jobs:
           file: dockerfile/Dockerfile
           target: release
           tags: ${{ needs.check-docker-images.outputs.dev-tag }}
+      - name: show output
+        run: |
+          echo ${{ needs.check-docker-images.outputs.dev-tag }}
 
   run-tests:
     needs: create-new-container-and-upload
