@@ -63,7 +63,7 @@ jobs:
 
       - name: Update Docker Container
         if: ${{ steps.create-pr.outputs.pull-request-number }}
-        uses: update-docker-container
+        uses: ./.github/workflows/update-docker-container.yaml
         id: update-docker
           
       - name: Enable Pull Request Automerge
