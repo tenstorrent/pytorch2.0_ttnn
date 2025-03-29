@@ -74,6 +74,7 @@ jobs:
     secrets: inherit
     with:
       docker_tag: ${{ needs.check-docker-images.outputs.dev-tag }}
+      commit_report: 'None'
 
   tag-latest:
     name: "Update latest tag"

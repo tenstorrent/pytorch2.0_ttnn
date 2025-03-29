@@ -42,7 +42,7 @@ jobs:
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service"]
     container: 
-      image: ${{ env.DOCKER_TAG }}
+      image: ${{ github.event.inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -58,7 +58,7 @@ jobs:
   lowering-tests:
     runs-on: ["in-service"]
     container: 
-      image: ${{ env.DOCKER_TAG }}
+      image: ${{ github.event.inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
     needs: lowering-tests
     runs-on: ["in-service", "nfs"]
     container: 
-      image: ${{ env.DOCKER_TAG }}
+      image: ${{ github.event.inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -126,7 +126,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ env.DOCKER_TAG }}
+      image: ${{ github.event.inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -175,7 +175,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ env.DOCKER_TAG }}
+      image: ${{ github.event.inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -258,7 +258,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ env.DOCKER_TAG }}
+      image: ${{ github.event.inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
