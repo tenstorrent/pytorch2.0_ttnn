@@ -129,6 +129,8 @@ jobs:
 
       - name: Push Autogen Op Tests
         run: |
+          pwd
+          
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git pull
