@@ -7,8 +7,45 @@ on:
   workflow_dispatch:  # Manual trigger
   pull_request:
 
+env:
+  IMAGE_NAME: ubuntu-22.04-dev-amd64
+
 jobs:
+  check-docker-images:
+    runs-on: ubuntu-latest
+    outputs:
+      dev-exists: ${{ steps.images.outputs.dev-exists }}
+      dev-tag: ${{ steps.tags.outputs.dev-tag }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Compute tags
+        id: tags
+        run: |
+          DEV_TAG=$(cat \
+            requirements.txt \
+            dockerfile/Dockerfile \
+            requirements-dev.txt \
+            | sha1sum | cut -d' ' -f1)
+          echo "dev-tag=ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu22.04:${DEV_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Query images exist
+        id: images
+        run: |
+          if docker manifest inspect ${{ steps.tags.outputs.dev-tag }} > /dev/null 2>&1; then
+            echo "${{ steps.tags.outputs.dev-tag }} exists"
+            echo "dev-exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "${{ steps.tags.outputs.dev-tag }} does not exist"
+            echo "dev-exists=false" >> $GITHUB_OUTPUT
+          fi
+
   create-new-container-and-upload:
+    needs: check-docker-images
+    if: needs.check-docker-images.outputs.dev-exists != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -28,4 +65,36 @@ jobs:
           context: .
           file: dockerfile/Dockerfile
           target: release
-          tags: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+          tags: ${{ needs.check-docker-images.outputs.dev-tag }}
+
+  before_merge:
+    needs: create-new-container-and-upload
+    if: ${{ always() }}
+    uses: ./.github/workflows/before_merge.yaml
+    secrets: inherit
+    with:
+      docker_tag: ${{ needs.check-docker-images.outputs.dev-tag }}
+
+  tag-latest:
+    name: "Update latest tag"
+    needs: before_merge
+    if: ${{ needs.before_merge.result }} == "success"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: Tag and push latest
+        run: |
+          IMAGE_REPO="ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64"
+          LATEST_TAG="${IMAGE_REPO}:latest"
+          DEV_TAG="${{ needs.check-docker-images.outputs.dev-tag }}"
+          echo "Tagging ${DEV_TAG} as ${LATEST_TAG}"
+          docker pull ${DEV_TAG}
+          docker tag ${DEV_TAG} ${LATEST_TAG}
+          docker push ${LATEST_TAG}
+          exit 0
