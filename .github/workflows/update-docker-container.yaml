@@ -67,18 +67,18 @@ jobs:
           target: release
           tags: ${{ needs.check-docker-images.outputs.dev-tag }}
 
-  before_merge:
+  run-tests:
     needs: create-new-container-and-upload
     if: ${{ always() }}
-    uses: ./.github/workflows/before_merge.yaml
+    uses: ./.github/workflows/run-tests.yaml
     secrets: inherit
     with:
       docker_tag: ${{ needs.check-docker-images.outputs.dev-tag }}
 
   tag-latest:
     name: "Update latest tag"
-    needs: before_merge
-    if: ${{ needs.before_merge.result }} == "success"
+    needs: run-tests
+    if: ${{ needs.run-tests.outputs.tests_passed == 0 }}
     runs-on: ubuntu-latest
     steps:
       - name: Login to GitHub Container Registry
