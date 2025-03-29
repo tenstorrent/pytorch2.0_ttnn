@@ -44,7 +44,7 @@ jobs:
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
   lowering-tests:
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -81,7 +81,7 @@ jobs:
     needs: lowering-tests
     runs-on: ["in-service", "nfs"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -125,10 +125,10 @@ jobs:
 
   push-autogen-op-tests:
     needs: [model-tests]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -156,9 +156,9 @@ jobs:
           rm -rf tests/autogen_op/ # Remove old tests
           python3 tools/generate_input_variation_test_from_models.py
           python3 tools/generate_input_variation_test_from_models.py --merge=True
-          if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
+          if [ "${{ inputs.commit_report }}" == "All" ]; then
             git add --all
-          elif [ "${{ github.event.inputs.commit_report }}" == "Tests" ]; then
+          elif [ "${{ inputs.commit_report }}" == "Tests" ]; then
             git add tests/
           else
             echo "No files will be committed"
@@ -174,10 +174,10 @@ jobs:
 
   model-autogen-op-tests:
     needs: [push-autogen-op-tests]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -257,10 +257,10 @@ jobs:
 
   collect-metrics:
     needs: [model-autogen-op-tests]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -305,9 +305,9 @@ jobs:
           git config user.email "actions@github.com"
           git pull
 
-          if [ "${{ github.event.inputs.commit_report }}" == "All" ]; then
+          if [ "${{ inputs.commit_report }}" == "All" ]; then
             git add --all
-          elif [ "${{ github.event.inputs.commit_report }}" == "Docs" ]; then
+          elif [ "${{ inputs.commit_report }}" == "Docs" ]; then
             git add README.md
             git add docs/
           else

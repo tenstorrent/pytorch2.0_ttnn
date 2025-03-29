@@ -1,11 +1,8 @@
 name: Update Docker Container
 
 on:
-  push:
-    paths: ["requirements*.txt"]
-    branches: ["main"]
+  workflow_call:
   workflow_dispatch:  # Manual trigger
-  pull_request:
 
 env:
   IMAGE_NAME: ubuntu-22.04-dev-amd64
