@@ -6,6 +6,7 @@ on:
       docker_tag:
         description: 'Docker container tag to use'
         required: false
+        type: string
         default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
   workflow_dispatch:
     inputs:
@@ -13,11 +14,10 @@ on:
         description: 'Commit generated report files: None, Docs, All'
         required: false
         default: 'None'
-      docker_tag:
-        description: 'Docker container tag to use'
-        required: false
-        default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
   merge_group:
+
+env:
+  docker_tag: ${{ inputs.docker_tag == null && 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' || inputs.foo }}
 
 permissions:
   actions: read
@@ -33,7 +33,7 @@ jobs:
       pytest_report_title: "⭐️ Tools Tests"
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ env.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -49,7 +49,7 @@ jobs:
   lowering-tests:
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ env.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -70,7 +70,7 @@ jobs:
     needs: lowering-tests
     runs-on: ["in-service", "nfs"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ env.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -117,7 +117,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ env.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -166,7 +166,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ env.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -249,7 +249,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
-      image: ${{ github.event.inputs.docker_tag }}
+      image: ${{ env.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
