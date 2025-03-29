@@ -33,6 +33,7 @@ jobs:
       - name: Query images exist
         id: images
         run: |
+          docker manifest inspect ${{ steps.tags.outputs.dev-tag }}
           if docker manifest inspect ${{ steps.tags.outputs.dev-tag }} > /dev/null 2>&1; then
             echo "${{ steps.tags.outputs.dev-tag }} exists"
             echo "dev-exists=true" >> $GITHUB_OUTPUT
