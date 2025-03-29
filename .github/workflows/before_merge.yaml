@@ -2,6 +2,11 @@ name: "Tests"
 
 on:
   workflow_call:
+    inputs:
+      docker_tag:
+        description: 'Docker container tag to use'
+        required: false
+        default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
   workflow_dispatch:
     inputs:
       commit_report:
