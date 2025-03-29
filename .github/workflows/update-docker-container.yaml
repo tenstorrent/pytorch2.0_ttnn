@@ -30,6 +30,13 @@ jobs:
             | sha1sum | cut -d' ' -f1)
           echo "dev-tag=ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu22.04:${DEV_TAG}" >> $GITHUB_OUTPUT
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+
       - name: Query images exist
         id: images
         run: |
