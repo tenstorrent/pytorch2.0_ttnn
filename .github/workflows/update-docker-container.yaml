@@ -87,7 +87,6 @@ jobs:
   tag-latest:
     name: "Update latest tag"
     needs: [run-tests, check-docker-images]
-    if: ${{ needs.run-tests.outputs.tests_passed == 0 }}
     runs-on: ubuntu-latest
     steps:
       - name: Login to GitHub Container Registry
