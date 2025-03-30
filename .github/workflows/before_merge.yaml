@@ -127,10 +127,14 @@ jobs:
           merge-multiple: true
           path: metrics/
 
-      # - name: Push Autogen Op Tests
-      #   run: |
-      #     pwd
-      #     ls -al
+      - name: Push Autogen Op Tests
+        run: |
+          pwd
+          ls -al
+
+          cd ..
+          pwd
+          ls -al
       #     git config user.name "GitHub Actions"
       #     git config user.email "actions@github.com"
       #     git pull
