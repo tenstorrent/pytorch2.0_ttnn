@@ -357,7 +357,6 @@ def generate_flat_args(gm, example_inputs):
     full_args.extend(params_flat)
     full_args.extend(example_inputs)
 
-    print("ttnn_backend:", [x.shape for x in full_args])
     return full_args
 
 
