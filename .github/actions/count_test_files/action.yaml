@@ -23,16 +23,11 @@ runs:
       id: count-files
       shell: bash
       run: |
-        if [ "$MOCK_RUN" = "true" ]; then
-          echo "Mock mode enabled. Skipping test file count."
-          num_tests=1
-        else
-          # Count the number of valid test files
-          num_tests=$(find "${{ inputs.test_directory }}" -type f \( -name "test_*.py" -o -name "*_test.py" \) | wc -l)
-          if [ "$num_tests" -eq 0 ]; then
-            echo "Error: No test files found in the directory '${{ inputs.test_directory }}'."
-            exit 1
-          fi
+        # Count the number of valid test files
+        num_tests=$(find "${{ inputs.test_directory }}" -type f \( -name "test_*.py" -o -name "*_test.py" \) | wc -l)
+        if [ "$num_tests" -eq 0 ]; then
+          echo "Error: No test files found in the directory '${{ inputs.test_directory }}'."
+          exit 1
         fi
         echo "num_files=$num_tests" >> $GITHUB_OUTPUT
 
@@ -41,8 +36,7 @@ runs:
       shell: bash
       run: |
         if [ "$MOCK_RUN" = "true" ]; then
-          echo "Mock mode enabled. Skipping test file count."
-          num_tests=1
+          echo "Mock mode enabled. Setting matrix to [3]."
           matrix_tmp=[3] # this test is really fast
         else
           num_files="${{ steps.count-files.outputs.num_files }}"
