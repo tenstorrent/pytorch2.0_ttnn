@@ -72,7 +72,7 @@ jobs:
   merge-pr:
     runs-on: ubuntu-latest
     needs: [update-docker-container, fetch-release-and-create-pr]
-    if: ${{ needs.fetch-release-and-create-pr.outputs.pull-request-number && needs.update-docker.outputs.did_update }}
+    if: ${{ needs.fetch-release-and-create-pr.outputs.pull-request-number && needs.update-docker-container.outputs.did_update }}
     steps: 
       - name: Enable Pull Request Automerge
         run: gh pr merge --merge --auto "${{ needs.fetch-release-and-create-pr.outputs.pull-request-number }}"
