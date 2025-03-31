@@ -113,7 +113,7 @@ jobs:
 
   test-model-accuracy:
     needs: [gen-model-accuracy]
-    runs-on: ["in-service"]
+    runs-on: ["in-service", "nfs"]
     container: 
       image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
       credentials:
@@ -122,15 +122,22 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
       PYTHONPATH: ${{ github.workspace }}
+      XDG_CACHE_HOME: /root/.cache
+      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
+      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
       matrix:
         group: ${{ fromJson(needs.gen-model-accuracy.outputs.groups) }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup        
-
+      - name: docker-cleanup
+        run: |
+          docker system prune -a -f --volumes
+          df -h  # Debug space
       - name: Download Accuracy Tests Artifact
         uses: actions/download-artifact@v4
         with:
