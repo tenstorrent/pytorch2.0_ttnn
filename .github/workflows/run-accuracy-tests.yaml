@@ -70,7 +70,7 @@ jobs:
       - name: Upload Accuracy Tests Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: autogen-accuracy-tests
+          name: autogen-accuracy-tests-group-${{ matrix.group }}
           path: tests/autogen_accuracy_tests/
 
   gen-model-accuracy:
@@ -95,7 +95,7 @@ jobs:
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-accuracy-tests
+          pattern: model-accuracy-tests-group-*
           merge-multiple: true
           path: tests/autogen_accuracy_tests/
 
