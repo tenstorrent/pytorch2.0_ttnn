@@ -37,9 +37,6 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    with:
-      splits: ${{ needs.count-test-files.outputs.num_files }}
-      matrix_group: ${{ matrix.group }}
     env:      
       pytest_verbosity: 0
     strategy:
