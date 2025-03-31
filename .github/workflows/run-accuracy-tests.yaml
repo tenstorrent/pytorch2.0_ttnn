@@ -60,12 +60,11 @@ jobs:
           splits: ${{ needs.count-test-files.outputs.num_files }}
           matrix_group: ${{ matrix.group }}
           commit_report: ${{ github.event.inputs.commit_report }}
-      - name: Upload Metrics Artifact
-        if: success()  # Only run if tests passed
+      - name: Upload Accuracy Tests Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: model-tests-metrics-group-${{ matrix.group }}
-          path: metrics/
+          name: autogen-accuracy-tests
+          path: tests/autogen_accuracy_tests/
 
   gen-model-accuracy:
     needs: [model-tests]
@@ -89,7 +88,6 @@ jobs:
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-accuracy-tests-group-*
           merge-multiple: true
           path: tests/autogen_accuracy_tests/
 
