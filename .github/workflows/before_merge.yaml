@@ -310,6 +310,9 @@ jobs:
           #   git push
           # fi
           
+          mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.SFTP_OPTEST_HOST }} >> ~/.ssh/known_hosts
+           
           python3 tools/send_to_data_team.py \
               --github_workflow_id ${{ github.run_id }} \
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
