@@ -109,12 +109,6 @@ jobs:
           groups=$(seq 1 $num_groups | jq -c --slurp '.')
           echo "Found: $groups"
           echo "groups=$groups" >> $GITHUB_OUTPUT
-        
-      - name: Upload Accuracy Tests Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: autogen-accuracy-tests
-          path: tests/autogen_accuracy_tests/
 
   test-model-accuracy:
     needs: [gen-model-accuracy]
