@@ -64,13 +64,10 @@ jobs:
           gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --approve      
 
   update-docker-container:
-    runs-on: ubuntu-latest
     needs: fetch-release-and-create-pr
     if: needs.fetch-release-and-create-pr.outputs.pull-request-number
-    steps:
-      - name: Update Docker Container
-        uses: ./.github/workflows/update-docker-container.yaml
-        id: update-docker
+    uses: ./.github/workflows/update-docker-container.yaml
+    secrets: inherit
 
   merge-pr:
     runs-on: ubuntu-latest

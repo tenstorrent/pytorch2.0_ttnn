@@ -3,7 +3,6 @@ name: Update Docker Container
 on:
   workflow_dispatch:  # Manual trigger
   workflow_call:
-  pull_request:
 
 env:
   IMAGE_NAME: ubuntu-22.04-dev-amd64
