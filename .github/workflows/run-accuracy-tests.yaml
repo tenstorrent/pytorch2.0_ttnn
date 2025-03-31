@@ -2,6 +2,11 @@ name: "Accuracy Tests"
 
 on:
   workflow_dispatch:
+    inputs:
+      MockRun:
+        description: "Run in mock mode (true/false)"
+        required: false
+        default: "false"
   schedule:
     - cron: "0 21 * * 6" # Run every Saturday at 9:00 PM UTC
 permissions:
@@ -17,6 +22,8 @@ jobs:
     outputs:
       matrix: ${{ steps.count-files.outputs.matrix }}
       num_files: ${{ steps.count-files.outputs.num_files }}
+    env:
+      MOCK_RUN: ${{ github.event.inputs.MockRun }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
