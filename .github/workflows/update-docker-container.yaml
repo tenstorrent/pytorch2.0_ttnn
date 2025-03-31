@@ -3,6 +3,7 @@ name: Update Docker Container
 on:
   workflow_dispatch:  # Manual trigger
   workflow_call:
+  pull_request:
 
 env:
   IMAGE_NAME: ubuntu-22.04-dev-amd64
@@ -87,7 +88,7 @@ jobs:
     name: "Update latest tag"
     needs: [run-tests, check-docker-images]
     runs-on: ubuntu-latest
-    if: ${{ needs.run-tests.result == 'success' && needs.check-docker-images.result == 'success' }}
+    if: ${{ needs.run-tests.outputs.tests_passed == 0 && needs.check-docker-images.result == 'success' }}
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
