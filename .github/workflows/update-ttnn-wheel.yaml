@@ -13,8 +13,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        # with:
-        #   ref: main
+        with:
+          ref: main
 
       - name: Fetch Latest Pre-release from Another Repo
         id: fetch_release
@@ -78,6 +78,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Enable Pull Request Automerge
-        run: gh pr merge --merge --auto "${{ needs.fetch-release-and-create-pr.outputs.pull-request-number }}"
+        run: gh pr merge --merge --admin "${{ needs.fetch-release-and-create-pr.outputs.pull-request-number }}"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
