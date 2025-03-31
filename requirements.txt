@@ -7,5 +7,6 @@ graphviz
 matplotlib==3.7.1
 pysftp==0.2.9
 
-ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc45/ttnn-0.57.0rc45+any-cp38-cp38-linux_x86_64.whl ; python_version=="3.8"
-ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc45/ttnn-0.57.0rc45+any-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
+# if you manually update these, you *must* manually run the Update Docker Container workflow to ensure the requirements and the container do not diverge
+ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc50/ttnn-0.57.0rc50+any-cp38-cp38-linux_x86_64.whl ; python_version=="3.8"
+ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.57.0-rc50/ttnn-0.57.0rc50+any-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
