@@ -35,12 +35,14 @@ runs:
       id: generate-matrix
       shell: bash
       run: |
-        if [ "$MOCK_RUN" = "true" ]; then
-          echo "Mock mode enabled. Setting matrix to [3]."
-          matrix_tmp=[3] # this test is really fast
-        else
+        if [ -z "$MOCK_RUN" ]; then
+          # Generate matrix based on the number of test files
           num_files="${{ steps.count-files.outputs.num_files }}"
           matrix_tmp=$(seq 1 $num_files | jq -c --slurp '.')
+        else
+          # Use MOCK_RUN directly as the matrix
+          matrix_tmp="$MOCK_RUN"
+          echo "Mock mode enabled. Using MOCK_RUN as matrix: $matrix_tmp"
         fi
         echo "matrix=$matrix_tmp" >> $GITHUB_OUTPUT
 

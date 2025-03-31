@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       MockRun:
-        description: "Run in mock mode (true/false)"
+        description: "Array of test groups to run. If empty, all tests will be run."
         required: false
-        default: "false"
+        default: ""
   schedule:
     - cron: "0 21 * * 6" # Run every Saturday at 9:00 PM UTC
 permissions:
