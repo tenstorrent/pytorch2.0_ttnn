@@ -6,6 +6,7 @@ import ttnn
 import math
 from torch._guards import detect_fake_mode
 from torch._subclasses.fake_tensor import unset_fake_temporarily
+
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
@@ -1244,7 +1245,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
                 [step] = step or [1]
-                
+
                 assert dim < rank, f"The slice dim {dim} should be less than rank {rank}"
 
                 dim = (dim + rank) % rank
