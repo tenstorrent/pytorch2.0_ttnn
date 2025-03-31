@@ -701,7 +701,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 [step] = step or [1]
                 rank = len(input_size)
 
-                if step != 1 or dim >= rank:
+                if dim >= rank:
                     return None
 
                 # Check if no-op, just return the input tensor
@@ -1152,9 +1152,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
                 [step] = step or [1]
-                if step != 1:
-                    return None
-
+                
                 assert dim < rank, f"The slice dim {dim} should be less than rank {rank}"
 
                 dim = (dim + rank) % rank
