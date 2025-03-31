@@ -27,15 +27,11 @@ https://github.com/pytorch/TensorRT/commit/7daa1120dc1bc72d6f92f1e7aa2b357a65b6e
 """
 
 
-# torch.fx defines a placeholder node as a function input
-def get_input_nodes(gm: torch.fx.GraphModule) -> List[torch.fx.Node]:
-    input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder")]
-    return input_nodes
-
-
 # Insert aten.clone nodes after every input to prevent input aliasing
 def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    input_nodes = get_input_nodes(gm)
+    # get input tensor nodes only
+    input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder" and node.meta["grapharg"].is_tensor)]
+
     modified = False
     for node in input_nodes:
         """TODO(kevinwuTT): This does not work if inserting right after the node itself.
