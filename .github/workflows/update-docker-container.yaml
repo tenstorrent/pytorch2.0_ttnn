@@ -3,7 +3,10 @@ name: Update Docker Container
 on:
   workflow_dispatch:  # Manual trigger
   workflow_call:
-  pull_request:
+    outputs:
+      did_update:
+        description: "Whether or not the latest tag was set"
+        value: ${{ jobs.tag-latest.outputs.did_update }}
 
 env:
   IMAGE_NAME: ubuntu-22.04-dev-amd64
@@ -89,6 +92,8 @@ jobs:
     needs: [run-tests, check-docker-images]
     runs-on: ubuntu-latest
     if: always() # Run always so skipping create-new-container-and-upload doesn't skip this too
+    outputs:
+      did_update: ${{ steps.tag.outputs.did_update }}
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -98,6 +103,7 @@ jobs:
           password: ${{ secrets.GH_TOKEN }}
 
       - name: Tag and push latest
+        id: tag
         run: |
           checkout_passed="${{ needs.check-docker-images.result == 'success' }}"
           tests_passed="${{needs.run-tests.outputs.tests_passed == 0 }}"
@@ -109,7 +115,9 @@ jobs:
             docker pull ${DEV_TAG}
             docker tag ${DEV_TAG} ${LATEST_TAG}
             docker push ${LATEST_TAG}
+            echo "did_update=true" >> $GITHUB_OUTPUT
             exit 0
           else
+            echo "did_update=false" >> $GITHUB_OUTPUT
             exit 1
           fi
