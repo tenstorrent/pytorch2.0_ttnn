@@ -107,3 +107,16 @@ jobs:
           docker tag ${DEV_TAG} ${LATEST_TAG}
           docker push ${LATEST_TAG}
           exit 0
+
+  debug:
+    name: "Debug tag-latest"
+    needs: [run-tests, check-docker-images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print stuff
+        run: |
+          echo "run-tests outputs: $${{ needs.run-tests.outputs }}"
+          echo "run-tests outputs passed: $${{ needs.run-tests.outputs.tests_passed }}"
+          echo "run-tests outputs passed eq 0: $${{ needs.run-tests.outputs.tests_passed == 0 }}"
+          echo "check-docker-images result: $${{ needs.check-docker-images.result }}"
+          echo "check-docker-images result eq success: $${{ needs.check-docker-images.result == 'success' }}"
