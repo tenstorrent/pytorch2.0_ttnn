@@ -48,8 +48,15 @@ class SendToDataTeam:
         with tempfile.NamedTemporaryFile() as private_key_file:
             private_key_file.write(bytes(self.sftp_private_key, "utf-8"))
             private_key_file.flush()
+
+            cnopts = pysftp.CnOpts()
+            cnopts.hostkeys = None
+
             with pysftp.Connection(
-                host=self.sftp_host, username=self.sftp_user, private_key=private_key_file.name
+                host=self.sftp_host,
+                username=self.sftp_user,
+                private_key=private_key_file.name,
+                cnopts=cnopts
             ) as sftp:
                 sftp.put(str(file_path))
 
