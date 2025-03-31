@@ -112,6 +112,7 @@ jobs:
     name: "Debug tag-latest"
     needs: [run-tests, check-docker-images]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Print stuff
         run: |
