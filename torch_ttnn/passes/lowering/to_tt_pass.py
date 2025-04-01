@@ -859,7 +859,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 # convert from PyTorch size of chunk to ttnn number of chunks
                 if isinstance(args[1], int):
-                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
+                    num_chunks = args[1]
                 else:
                     # ttnn.split only supports chunks of same size.
                     return None
