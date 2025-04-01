@@ -17,7 +17,7 @@ def run_model(
     device=None,
 ):
     if model_name == "dinov2_vits14":
-        m = torch.hub.load("facebookresearch/dinov2", model_name)
+        m = torch.hub.load("facebookresearch/dinov2", model_name, skip_validation=True)
     else:
         try:
             m = torchvision.models.get_model(model_name, pretrained=True)

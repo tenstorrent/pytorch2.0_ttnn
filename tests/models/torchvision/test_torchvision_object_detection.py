@@ -43,10 +43,16 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "model_info",
     [
-        pytest.param(("ssd300_vgg16", "SSD300_VGG16_Weights"), marks=pytest.mark.compilation_xfail),
+        ("ssd300_vgg16", "SSD300_VGG16_Weights"),
         ("ssdlite320_mobilenet_v3_large", "SSDLite320_MobileNet_V3_Large_Weights"),
-        ("retinanet_resnet50_fpn", "RetinaNet_ResNet50_FPN_Weights"),
-        ("retinanet_resnet50_fpn_v2", "RetinaNet_ResNet50_FPN_V2_Weights"),
+        pytest.param(
+            ("retinanet_resnet50_fpn", "RetinaNet_ResNet50_FPN_Weights"),
+            marks=pytest.mark.skip(reason="https://github.com/tenstorrent/pytorch2.0_ttnn/issues/866"),
+        ),
+        pytest.param(
+            ("retinanet_resnet50_fpn_v2", "RetinaNet_ResNet50_FPN_V2_Weights"),
+            marks=pytest.mark.skip(reason="https://github.com/tenstorrent/pytorch2.0_ttnn/issues/866"),
+        ),
     ],
 )
 def test_torchvision_object_detection(record_property, model_info, mode):

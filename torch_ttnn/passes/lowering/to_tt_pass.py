@@ -526,6 +526,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return reshape_1d(ttnn.round, (args[0],), {"decimals": 0})
 
             if node.target == torch.ops.aten.clone.default:
+                # Only convert if the input is from graph arguments and node is also returned as an output
+                # Otherwise, optimize node out and return input
+                node_users = list(node.users.keys())
+                if not (args[0].op == "placeholder" and len(node_users) == 1 and node_users[0].op == "output"):
+                    return args[0]
+
                 arg_metadata = node.meta["val"]
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
@@ -859,12 +865,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 # convert from PyTorch size of chunk to ttnn number of chunks
                 if isinstance(args[1], int):
-                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
+                    chunk_size = args[1]
                 else:
                     # ttnn.split only supports chunks of same size.
                     return None
 
-                new_args = (args[0], num_chunks, split_dim)
+                new_args = (args[0], chunk_size, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
@@ -1026,10 +1032,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 dilation = params.get("dilation", (1, 1))
                 ceil_mode = params.get("ceil_mode", False)
                 if (
-                    # TODO(tt-metal#14976): ceil mode isn't supported yet
-                    ceil_mode
-                    # TODO(tt-metal#13901): Wide input channels can only be multiple of 8 tiles
-                    or (in_c > (ttnn.TILE_SIZE * 8) and in_c % (ttnn.TILE_SIZE * 8) != 0)
+                    # # TODO: in_c must be 16 or a multiple of 32
+                    (in_c != 16 and in_c % 32 != 0)
                     # TODO(#419): Currently fails with in_c < 16
                     or in_c < 16
                     # TODO(tt-metal#12099): Currently it doesn't return indices. Convert if only the value is used
@@ -1055,6 +1059,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         padding,
                         dilation,
                     ),
+                    {"ceil_mode": ceil_mode},
                 )
                 output_tensor = insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type

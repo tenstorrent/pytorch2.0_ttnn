@@ -53,6 +53,7 @@ def test_clone_from_arg(device, input_shapes):
     [[(4, 4)]],
 )
 def test_clone_from_node(device, input_shapes):
+    # This test checks that the clone op has been removed since there is no need
     m = CloneFromNodeModule()
     inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
     result_before = m.forward(*inputs)
@@ -66,8 +67,6 @@ def test_clone_from_node(device, input_shapes):
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
-    assert target.count(torch_ttnn.target_wrappers.clone) == 1
-    clone_arg_0 = nodes[target.index(torch_ttnn.target_wrappers.clone)].args[0].target
-    assert isinstance(clone_arg_0, ttnn.decorators.FastOperation) or isinstance(clone_arg_0, ttnn.decorators.Operation)
+    assert target.count(torch_ttnn.target_wrappers.clone) == 0
     # Check inference result
     assert torch.allclose(result_before, result_after)

@@ -6,6 +6,7 @@ import torch
 import pickle
 from pathlib import Path
 from torch._subclasses import FakeTensor
+from torch.fx.experimental.symbolic_shapes import hint_int
 
 
 # Save a pickle file from a Python object to metrics/{base_path}/{filename}.pickle
@@ -70,7 +71,6 @@ class InputVariation:
         return {"opname": str(self.opname), "inputs": self.get_input_str_list()}
 
     def dict_for_pickle(self):
-        unpickleables = [torch.SymInt]
         out = {"opname": str(self.opname)}
 
         inputs = []
@@ -88,8 +88,8 @@ class InputVariation:
 
                 shape = []
                 for _s in _obj.shape:
-                    if type(_s) in unpickleables:
-                        shape.append(str(_s))
+                    if type(_s) is torch.SymInt:
+                        shape.append(hint_int(_s))
                         continue
 
                     shape.append(_s)
