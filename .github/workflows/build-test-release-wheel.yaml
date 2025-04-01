@@ -23,18 +23,18 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python 3.8
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-      - name: Configure python for ssl
-        run: |
-          prev_dir=${pwd}
-          cd /__w/_tool/Python/3.8.18/
-          ./configure --enable-optimizations
-          sudo make install
-          python3 -c 'import ssl'
-          cd ${prev_dir}
+      # - name: Setup Python 3.8
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: '3.8'
+      # - name: Configure python for ssl
+      #   run: |
+      #     prev_dir=${pwd}
+      #     cd /__w/_tool/Python/3.8.18/
+      #     ./configure --enable-optimizations
+      #     sudo make install
+      #     python3 -c 'import ssl'
+      #     cd ${prev_dir}
       - name: Build Python package distribution
         run: |
           python3 -m pip install build
