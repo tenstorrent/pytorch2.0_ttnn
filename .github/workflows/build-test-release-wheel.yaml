@@ -13,6 +13,14 @@ on:
 jobs:
   build-wheel:
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python 3.8
@@ -33,6 +41,14 @@ jobs:
   test-wheel-smoke:
     needs: [build-wheel]
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: ./.github/actions/common_wheel_install
       - uses: ./.github/actions/common_smoke_tests
@@ -40,6 +56,14 @@ jobs:
   test-wheel-lowering:
     needs: [build-wheel]
     runs-on: ["in-service"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2]
@@ -51,7 +75,15 @@ jobs:
   test-wheel-model:
     needs: [build-wheel, test-wheel-lowering]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
-    runs-on: ["in-service"]
+    runs-on: ["in-service", "nfs"]
+    container: 
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"
