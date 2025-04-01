@@ -50,7 +50,7 @@ class SendToDataTeam:
             private_key_file.flush()
 
             with pysftp.Connection(
-                host=self.sftp_host, username=self.sftp_user, private_key=private_key_file.name, cnopts=cnopts
+                host=self.sftp_host, username=self.sftp_user, private_key=private_key_file.name
             ) as sftp:
                 sftp.put(str(file_path))
 
