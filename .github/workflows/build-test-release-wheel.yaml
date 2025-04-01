@@ -23,6 +23,8 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install openssl
+        run: sudo apt-get install openssl -y
       - name: Setup Python 3.8
         uses: actions/setup-python@v5
         with:
