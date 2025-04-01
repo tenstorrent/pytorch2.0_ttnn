@@ -94,7 +94,6 @@ jobs:
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
-      XDG_CACHE_HOME: /root/.cache
       TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
