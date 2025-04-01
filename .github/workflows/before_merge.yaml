@@ -2,6 +2,7 @@ name: "Before Merge"
 
 on:
   merge_group:
+  workflow_dispatch:
 
 jobs:
   run-tests:
