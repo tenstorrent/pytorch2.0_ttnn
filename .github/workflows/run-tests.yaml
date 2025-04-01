@@ -53,6 +53,7 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:      
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
@@ -75,6 +76,7 @@ jobs:
         group: [1, 2]
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_lowering_tests
 
   model-tests:
@@ -103,6 +105,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0    
+      - uses: ./.github/actions/common_repo_setup
       - name: docker-cleanup
         run: |
           docker system prune -a -f --volumes
@@ -139,6 +142,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -193,6 +197,7 @@ jobs:
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
 
       - name: Run Model Input Variations Tests
         run: |
@@ -221,6 +226,7 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -242,6 +248,7 @@ jobs:
       pytest_verbosity: 0
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -271,6 +278,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
