@@ -446,7 +446,10 @@ def comp_pcc_wrapper(expected, actual):
         forward_calls_joined = f"""
     profiler = Profiler()
     for i in range(5):
-        profiler.enable()
+        if i == 5 or i == 1:
+            # We want to profile the first and the last one,
+            # so we measure without cache and with cache
+            profiler.enable()   
         signpost(header=f"Run number {{i}}")
 {format_forward_calls(call_forwards_in_main, "        ")}
         signpost(header="Run result post proc")
