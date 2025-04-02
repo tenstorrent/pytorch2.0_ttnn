@@ -378,12 +378,18 @@ jobs:
           add-paths: ${{ steps.collect-metrics.outputs.commit-glob }}
 
       - name: Send To Data Team
-        run: |
+        run: |          
+          # Add to known hosts and create id_rsa file
+          mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.SFTP_OPTEST_HOST }} >> ~/.ssh/known_hosts
+          echo ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }} > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+
           python3 tools/send_to_data_team.py \
               --github_workflow_id ${{ github.run_id }} \
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
               --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
-              --sftp_private_key ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}
+              --sftp_private_key_path ~/.ssh/id_rsa
 
   tests-passed:
     if: ${{ always() }}
