@@ -47,6 +47,7 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup        
 
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
@@ -79,7 +80,7 @@ jobs:
       - name: Upload Accuracy Tests Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: autogen-accuracy-tests
+          name: export-accuracy-tests
           path: tests/export_code/accuracy/
 
   test-model-accuracy:
@@ -100,11 +101,12 @@ jobs:
         group: ${{ fromJson(needs.gen-model-accuracy.outputs.groups) }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup        
 
       - name: Download Accuracy Tests Artifact
         uses: actions/download-artifact@v4
         with:
-          name: autogen-accuracy-tests
+          name: export-accuracy-tests
           path: tests/export_code/accuracy/
 
       - name: Run Accuracy Tests
