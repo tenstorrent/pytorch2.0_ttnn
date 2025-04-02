@@ -45,9 +45,7 @@ class SendToDataTeam:
         Args:
             file_path: Path to the file to send.
         """
-        with pysftp.Connection(
-            host=self.sftp_host, username=self.sftp_user, private_key=sftp_private_key_path
-        ) as sftp:
+        with pysftp.Connection(host=self.sftp_host, username=self.sftp_user, private_key=sftp_private_key_path) as sftp:
             sftp.put(str(file_path))
 
     @staticmethod
