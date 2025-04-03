@@ -375,11 +375,9 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     dtype_map = {
         torch.float32: TtnnBfloat16(),  # Should this be changed to TtnnFloat32?
         torch.bfloat16: TtnnBfloat16(),
-
         torch.int8: TtnnInt8(),
         torch.int32: TtnnInt32(),
         torch.int64: TtnnInt32(),
-
         # Note: uint16, uint32, uint64 have limited support only in eager mode in pytorch
         torch.uint8: TtnnUint8(),
     }
@@ -900,7 +898,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.fill.Scalar:
                 return g.call_function(ttnn.fill, args=args)
-            
+
             if node.target in [torch.ops.aten.masked_fill.Scalar, torch.ops.aten.masked_fill.Tensor]:
                 # aten.masked_fill is equivalent to the following:
                 # masked_fill = (tensor * (ones - mask)) + (mask * full)

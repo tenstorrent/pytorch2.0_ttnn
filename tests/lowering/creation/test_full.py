@@ -20,8 +20,8 @@ class FullModule(torch.nn.Module):
         [64, 128],
         [19, 19],
         [59, 59],
-        [33,],
-        [],   # scalar
+        [33],
+        [],  # scalar
     ],
 )
 def test_full(device, input_shape):

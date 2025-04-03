@@ -112,17 +112,21 @@ class TtnnInt8:
     def __repr__(self):
         return f"ttnn_int8"
 
+
 class TtnnUint8:
     def __repr__(self):
         return f"ttnn_uint8"
+
 
 class TtnnInt32:
     def __repr__(self):
         return f"ttnn_int32"
 
+
 class TtnnUint32:
     def __repr__(self):
         return f"ttnn_uint32"
+
 
 class TtnnBfloat16:
     def __repr__(self):
