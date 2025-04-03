@@ -40,7 +40,7 @@ def teardown_module(module):
         ["Tensor<[1, 256, 1]> self = ?", "int dim = -1"],
         ["Tensor<[1, 25, 1]> self = ?", "int dim = -1"],
         ["Tensor<[1, 1, 480, 640]> self = ?", "int dim = 1"],
-        ["Tensor self = ?", "int dim = 0"],
+        ["Tensor<[1, 19]> self = ?", "int dim = 0"],
         ["Tensor<[1, 160, 7, 7]> self = ?", "int dim = 0"],
         ["Tensor<[1, 112, 14, 14]> self = ?", "int dim = 0"],
         ["Tensor<[1, 80, 14, 14]> self = ?", "int dim = 0"],
@@ -55,6 +55,8 @@ def teardown_module(module):
         ["Tensor<[3, 1370, 1, 1, 1280]> self = ?", "int dim = -2"],
         ["Tensor<[3, 197, 1, 1, 1024]> self = ?", "int dim = -2"],
         ["Tensor<[3, 50, 1, 1, 1024]> self = ?", "int dim = -2"],
+        ["Tensor<[1]> self = ?", "int dim = 0"],
+        ["Tensor<[]> self = ?", "int dim = 0"],
     ],
 )
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
@@ -135,6 +137,7 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
 
     if not input_var_only_native:
         assert metric["run"] == True
+        assert metric["native_run"] == True
         if input_var_check_accu:
             assert metric["accuracy"] >= 0.99
         if input_var_check_ttnn:

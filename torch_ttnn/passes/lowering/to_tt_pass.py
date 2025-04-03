@@ -738,16 +738,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
-                if get_shape(gm, args[0]) in [torch.Size([1]), torch.Size([])]:
-                    # see #442
-                    return None
-                if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
-                    # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
-                    # squeezing is the same as reshaping to shape of output tensor of squeeze
-                    output_size = list(node.meta["val"].size())
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
-                else:
-                    return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
+                return g.call_function(ttnn.squeeze, args=args, kwargs=kwargs)
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_shape_num_element = node.meta["val"].numel()
