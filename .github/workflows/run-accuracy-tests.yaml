@@ -144,7 +144,7 @@ jobs:
       - name: Download Accuracy Tests Artifact
         uses: actions/download-artifact@v4
         with:
-          name: autogen-accuracy-tests
+          name: autogen-accuracy-tests-group-${{ matrix.group }}
           path: tests/autogen_accuracy_tests/
 
       - name: Run Accuracy Tests
