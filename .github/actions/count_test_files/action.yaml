@@ -1,0 +1,53 @@
+name: 'Count Test Files'
+description: 'Counts the number of valid test files in a directory'
+
+inputs:
+  test_directory:
+    description: 'Directory containing the test files'
+    required: true
+    default: 'tests/models/'
+
+outputs:
+  num_files:
+    description: 'The number of valid test files'
+    value: ${{ steps.count-files.outputs.num_files }}
+
+  matrix:
+    description: 'A JSON array of test groups'
+    value: ${{ steps.generate-matrix.outputs.matrix }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Count Test Files
+      id: count-files
+      shell: bash
+      run: |
+        # Count the number of valid test files
+        num_tests=$(find "${{ inputs.test_directory }}" -type f \( -name "test_*.py" -o -name "*_test.py" \) | wc -l)
+        if [ "$num_tests" -eq 0 ]; then
+          echo "Error: No test files found in the directory '${{ inputs.test_directory }}'."
+          exit 1
+        fi
+        echo "num_files=$num_tests" >> $GITHUB_OUTPUT
+
+    - name: Generate Matrix
+      id: generate-matrix
+      shell: bash
+      run: |
+        if [ -z "$MOCK_RUN" ]; then
+          # Generate matrix based on the number of test files
+          num_files="${{ steps.count-files.outputs.num_files }}"
+          matrix_tmp=$(seq 1 $num_files | jq -c --slurp '.')
+        else
+          # Use MOCK_RUN directly as the matrix
+          matrix_tmp="$MOCK_RUN"
+          echo "Mock mode enabled. Using MOCK_RUN as matrix: $matrix_tmp"
+        fi
+        echo "matrix=$matrix_tmp" >> $GITHUB_OUTPUT
+
+    - name: Debug Outputs
+      shell: bash
+      run: |
+        echo "Number of files: ${{ steps.count-files.outputs.num_files }}"
+        echo "Matrix: ${{ steps.generate-matrix.outputs.matrix }}"
