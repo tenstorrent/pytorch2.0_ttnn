@@ -888,6 +888,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 # Essentially remove this op
                 return node.args[0]
 
+            if node.target == torch.ops.aten.fill.Scalar:
+                return g.call_function(ttnn.fill, args=args)
+            
             if node.target in [torch.ops.aten.masked_fill.Scalar, torch.ops.aten.masked_fill.Tensor]:
                 # aten.masked_fill is equivalent to the following:
                 # masked_fill = (tensor * (ones - mask)) + (mask * full)
