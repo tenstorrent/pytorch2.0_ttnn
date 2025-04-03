@@ -9,7 +9,10 @@ from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
+    TtnnInt8,
+    TtnnUint8,
     TtnnInt32,
+    TtnnUint32,
     TtnnDevice,
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
@@ -370,8 +373,15 @@ class ReplaceMoreTt(torch.fx.Transformer):
 def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     # Add newly supported dtypes here:
     dtype_map = {
-        torch.float32: TtnnBfloat16(),
+        torch.float32: TtnnBfloat16(),  # Should this be changed to TtnnFloat32?
         torch.bfloat16: TtnnBfloat16(),
+
+        torch.int8: TtnnInt8(),
+        torch.int32: TtnnInt32(),
+        torch.int64: TtnnInt32(),
+
+        # Note: uint16, uint32, uint64 have limited support only in eager mode in pytorch
+        torch.uint8: TtnnUint8(),
     }
     if dtype in dtype_map:
         return dtype_map.get(dtype)
@@ -1207,6 +1217,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_shape = get_shape(gm, args[0])
                 ttnn_all = g.call_function(target_wrappers.all, args=(args[0], input_shape.numel()))
                 return g.call_function(torch.ops.aten.squeeze.default, args=(ttnn_all,))
+
+            if node.target == torch.ops.aten.empty.memory_format:
+                # raise RuntimeError(f"{str(kwargs)}, {str(args)}, {str(type(args[0]))}")
+                new_kwargs = {
+                    "dtype": torch_dtype_to_ttnn_dtype(kwargs["dtype"]),
+                    "layout": TtnnTileLayout(),
+                    "device": TtnnDevice(),
+                }
+                return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
 
             # PEP 8 suggests this explicit statement
             return None

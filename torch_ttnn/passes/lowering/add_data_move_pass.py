@@ -217,6 +217,7 @@ def is_tt_compute(node) -> bool:
             ttnn.typecast,
             ttnn.argmax,
             ttnn.fill,
+            ttnn.empty,
         ]
     )
 
