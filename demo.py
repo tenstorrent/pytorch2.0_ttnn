@@ -131,7 +131,7 @@ with torch.no_grad():
             padding="max_length",
             truncation=True,
         )
-        input_token_count = inputs['input_ids'].ne(tokenizer.pad_token_id).sum().item()  # Count non-padding tokens
+        total_token_count = inputs['input_ids'].ne(tokenizer.pad_token_id).sum().item()  # Count non-padding tokens
         if use_ttnn:
             print("Opening TTNN device...")
             dispatch_core_config = get_dispatch_core_config()
@@ -152,13 +152,12 @@ with torch.no_grad():
             response_tokens = inputs.input_ids[0, response_start:response_end]
             return tokenizer.decode(response_tokens)
         answer = decode_output(outputs)
-        output_token_count = len(tokenizer.encode(answer, add_special_tokens=False))
         print(f"Answer: {answer}")
-        print(f"Input tokens: {input_token_count}, Output tokens: {output_token_count}")
+        print(f"Total tokens (context + question): {total_token_count}")
         if use_ttnn:
             ttnn.close_device(device)
             print("TTNN device closed.")
-        return answer, inference_time, input_token_count, output_token_count
+        return answer, inference_time, total_token_count
 
 
     @capture_output
@@ -311,13 +310,6 @@ with torch.no_grad():
 
 
     def main():
-        #try:
-        #    st._is_running_with_streamlit
-        #    print("Running with Streamlit context.")
-        #except AttributeError:
-        #    print("Warning: Not running with 'streamlit run'. Use 'streamlit run script.py' for full functionality.")
-        #    st.warning("Please run this script with 'streamlit run script.py' to ensure proper execution.")
-
         st.title("Compiler Performance Benchmark (models)")
 
         task = st.selectbox(
@@ -412,6 +404,7 @@ with torch.no_grad():
             prompt = "Classify MNIST Digit"
 
         iterations = st.number_input("Number of Iterations:", min_value=1, value=5, step=1, format="%d")
+        test_cpu = st.checkbox("Get CPU performance in addition to TTNN", value=True)
         run_button = st.button("Run")
 
         st.subheader("Chat History")
@@ -427,49 +420,58 @@ with torch.no_grad():
                 st.error("Please provide context via text before asking a question.")
             else:
                 user_input = prompt if isinstance(prompt, str) else prompt
-                st.session_state.messages.append({"role": "user", "content": f"{user_input} (Iterations: {iterations})"})
+                st.session_state.messages.append({"role": "user", "content": f"{user_input} (Iterations: {iterations}{', CPU Tested' if test_cpu else ''})"})
                 with st.chat_message("user"):
-                    st.markdown(f"{user_input} (Iterations: {iterations})")
+                    st.markdown(f"{user_input} (Iterations: {iterations}{', CPU Tested' if test_cpu else ''})")
 
                 with st.chat_message("assistant"):
                     message_placeholder = st.empty()
                     full_response = ""
 
                     if task == "Question Answering with BERT":
-                        (ttnn_answer, ttnn_time, ttnn_input_tokens, ttnn_output_tokens), ttnn_output = ask_question(
+                        (ttnn_answer, ttnn_time, ttnn_total_tokens), ttnn_output = ask_question(
                             st.session_state.context, prompt, use_ttnn=True, iterations=iterations
                         )
-                        (uncompiled_answer, uncompiled_time, uncompiled_input_tokens, uncompiled_output_tokens), uncompiled_output = ask_question(
-                            st.session_state.context, prompt, use_ttnn=False, iterations=iterations
-                        )
+                        if test_cpu:
+                            (cpu_answer, cpu_time, cpu_total_tokens), cpu_output = ask_question(
+                                st.session_state.context, prompt, use_ttnn=False, iterations=iterations
+                            )
                         for chunk in stream_response(ttnn_answer):
                             full_response += chunk
                             message_placeholder.markdown(full_response + "▌")
                         message_placeholder.markdown(full_response)
+                        terminal_output_value = f"TTNN:\n{ttnn_output}"
+                        if test_cpu:
+                            terminal_output_value += f"\n\nCPU:\n{cpu_output}"
                         terminal_output = st.text_area(
                             "Terminal",
-                            value=f"TTNN:\n{ttnn_output}\n\nUncompiled:\n{uncompiled_output}",
+                            value=terminal_output_value,
                             height=100,
                             disabled=True,
                         )
-                        ttnn_input_tokens_per_sec = ttnn_input_tokens / ttnn_time if ttnn_time > 0 else float('inf')
-                        ttnn_output_tokens_per_sec = ttnn_output_tokens / ttnn_time if ttnn_time > 0 else float('inf')
-                        uncompiled_input_tokens_per_sec = uncompiled_input_tokens / uncompiled_time if uncompiled_time > 0 else float('inf')
-                        uncompiled_output_tokens_per_sec = uncompiled_output_tokens / uncompiled_time if uncompiled_time > 0 else float('inf')
-                        speedup = ttnn_output_tokens_per_sec / uncompiled_output_tokens_per_sec if uncompiled_output_tokens_per_sec > 0 else float('inf')
-                        response_with_metrics = (
-                            f"{full_response}\n\n"
-                            f"TTNN Time: {ttnn_time:.3f}s, Input Tokens/Sec: {ttnn_input_tokens_per_sec:.2f}, Output Tokens/Sec: {ttnn_output_tokens_per_sec:.2f}\n"
-                            f"Uncompiled Time: {uncompiled_time:.3f}s, Input Tokens/Sec: {uncompiled_input_tokens_per_sec:.2f}, Output Tokens/Sec: {uncompiled_output_tokens_per_sec:.2f}\n"
-                            f"Speedup: {speedup:.2f}x (Output Tokens/Sec, after {iterations} iterations)"
-                        )
+                        ttnn_tokens_per_sec = ttnn_total_tokens / ttnn_time if ttnn_time > 0 else float('inf')
+                        if test_cpu:
+                            cpu_tokens_per_sec = cpu_total_tokens / cpu_time if cpu_time > 0 else float('inf')
+                            speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float('inf')
+                            response_with_metrics = (
+                                f"{full_response}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
+                                f"CPU Time: {cpu_time:.4f}s, Tokens/Sec: {cpu_tokens_per_sec:.3f}\n"
+                                f"Speedup: {speedup:.3f}x (Tokens/Sec, after {iterations} iterations)"
+                            )
+                        else:
+                            response_with_metrics = (
+                                f"{full_response}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}"
+                            )
                     elif task == "Text Generation with GPT-2":
                         (ttnn_outputs, ttnn_time, ttnn_tokens), ttnn_output = generate_text(
                             prompt, max_length=500, num_return_sequences=2, use_ttnn=True, iterations=iterations
                         )
-                        (uncompiled_outputs, uncompiled_time, uncompiled_tokens), uncompiled_output = generate_text(
-                            prompt, max_length=500, num_return_sequences=2, use_ttnn=False, iterations=iterations
-                        )
+                        if test_cpu:
+                            (cpu_outputs, cpu_time, cpu_tokens), cpu_output = generate_text(
+                                prompt, max_length=500, num_return_sequences=2, use_ttnn=False, iterations=iterations
+                            )
                         for chunk in stream_response(ttnn_outputs[0]):
                             full_response += chunk
                             message_placeholder.markdown(full_response + "▌")
@@ -477,28 +479,38 @@ with torch.no_grad():
                         st.write("**Generated Texts (TTNN):**")
                         for i, text in enumerate(ttnn_outputs):
                             st.write(f"Sequence {i+1}: {text}")
+                        terminal_output_value = f"TTNN:\n{ttnn_output}"
+                        if test_cpu:
+                            terminal_output_value += f"\n\nCPU:\n{cpu_output}"
                         terminal_output = st.text_area(
                             "Terminal",
-                            value=f"TTNN:\n{ttnn_output}\n\nUncompiled:\n{uncompiled_output}",
+                            value=terminal_output_value,
                             height=100,
                             disabled=True,
                         )
                         ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float('inf')
-                        uncompiled_tokens_per_sec = uncompiled_tokens / uncompiled_time if uncompiled_time > 0 else float('inf')
-                        speedup = ttnn_tokens_per_sec / uncompiled_tokens_per_sec if uncompiled_tokens_per_sec > 0 else float('inf')
-                        response_with_metrics = (
-                            f"{ttnn_outputs[0]}\n\n"
-                            f"TTNN Time: {ttnn_time:.3f}s, Tokens/Sec: {ttnn_tokens_per_sec:.2f}\n"
-                            f"Uncompiled Time: {uncompiled_time:.3f}s, Tokens/Sec: {uncompiled_tokens_per_sec:.2f}\n"
-                            f"Speedup: {speedup:.2f}x (Tokens/Sec, after {iterations} iterations)"
-                        )
+                        if test_cpu:
+                            cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float('inf')
+                            speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float('inf')
+                            response_with_metrics = (
+                                f"{ttnn_outputs[0]}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
+                                f"CPU Time: {cpu_time:.4f}s, Tokens/Sec: {cpu_tokens_per_sec:.3f}\n"
+                                f"Speedup: {speedup:.3f}x (Tokens/Sec, after {iterations} iterations)"
+                            )
+                        else:
+                            response_with_metrics = (
+                                f"{ttnn_outputs[0]}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}"
+                            )
                     elif task == "Code Generation with CodeGen":
                         (ttnn_outputs, ttnn_time, ttnn_tokens), ttnn_output = generate_code(
                             prompt, max_length=500, num_return_sequences=1, use_ttnn=True, iterations=iterations
                         )
-                        (uncompiled_outputs, uncompiled_time, uncompiled_tokens), uncompiled_output = generate_code(
-                            prompt, max_length=500, num_return_sequences=1, use_ttnn=False, iterations=iterations
-                        )
+                        if test_cpu:
+                            (cpu_outputs, cpu_time, cpu_tokens), cpu_output = generate_code(
+                                prompt, max_length=500, num_return_sequences=1, use_ttnn=False, iterations=iterations
+                            )
                         for chunk in stream_response(ttnn_outputs[0]):
                             full_response += chunk
                             message_placeholder.markdown(full_response + "▌")
@@ -507,78 +519,108 @@ with torch.no_grad():
                         for i, code in enumerate(ttnn_outputs):
                             st.write(f"Sequence {i+1}:")
                             st.code(code, language="python")
+                        terminal_output_value = f"TTNN ({ttnn_tokens} tokens):\n{ttnn_output}"
+                        if test_cpu:
+                            terminal_output_value += f"\n\nCPU ({cpu_tokens} tokens):\n{cpu_output}"
                         terminal_output = st.text_area(
                             "Terminal",
-                            value=f"TTNN ({ttnn_tokens} tokens):\n{ttnn_output}\n\nCPU ({uncompiled_tokens} tokens):\n{uncompiled_output}",
+                            value=terminal_output_value,
                             height=100,
                             disabled=True,
                         )
                         ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float('inf')
-                        uncompiled_tokens_per_sec = uncompiled_tokens / uncompiled_time if uncompiled_time > 0 else float('inf')
-                        speedup = ttnn_tokens_per_sec / uncompiled_tokens_per_sec if uncompiled_tokens_per_sec > 0 else float('inf')
-                        response_with_metrics = (
-                            f"{ttnn_outputs[0]}\n\n"
-                            f"TTNN Time: {ttnn_time:.3f}s, Tokens/Sec: {ttnn_tokens_per_sec:.2f}\n"
-                            f"CPU Time: {uncompiled_time:.3f}s, Tokens/Sec: {uncompiled_tokens_per_sec:.2f}\n"
-                            f"Speedup: {speedup:.2f}x (Tokens/Sec, after {iterations} iterations)"
-                        )
+                        if test_cpu:
+                            cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float('inf')
+                            speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float('inf')
+                            response_with_metrics = (
+                                f"{ttnn_outputs[0]}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
+                                f"CPU Time: {cpu_time:.4f}s, Tokens/Sec: {cpu_tokens_per_sec:.3f}\n"
+                                f"Speedup: {speedup:.3f}x (Tokens/Sec, after {iterations} iterations)"
+                            )
+                        else:
+                            response_with_metrics = (
+                                f"{ttnn_outputs[0]}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}"
+                            )
                     elif task == "Image Classification with ResNet18":
                         (ttnn_label, ttnn_confidence, ttnn_time), ttnn_output = classify_image(
                             selected_image, use_ttnn=True, iterations=iterations
                         )
-                        (uncompiled_label, uncompiled_confidence, uncompiled_time), uncompiled_output = classify_image(
-                            selected_image, use_ttnn=False, iterations=iterations
-                        )
+                        if test_cpu:
+                            (cpu_label, cpu_confidence, cpu_time), cpu_output = classify_image(
+                                selected_image, use_ttnn=False, iterations=iterations
+                            )
                         full_response = f"Predicted Label: {ttnn_label} (Confidence: {ttnn_confidence:.2f}%)"
                         message_placeholder.markdown(full_response)
+                        terminal_output_value = f"TTNN:\n{ttnn_output}"
+                        if test_cpu:
+                            terminal_output_value += f"\n\nCPU:\n{cpu_output}"
                         terminal_output = st.text_area(
                             "Terminal",
-                            value=f"TTNN:\n{ttnn_output}\n\nUncompiled:\n{uncompiled_output}",
+                            value=terminal_output_value,
                             height=100,
                             disabled=True,
                         )
-                        speedup = uncompiled_time / ttnn_time if ttnn_time > 0 else float('inf')
-                        response_with_metrics = (
-                            f"{full_response}\n\n"
-                            f"TTNN Time: {ttnn_time:.5f}s, CPU Time: {uncompiled_time:.5f}s, Speedup: {speedup:.3f}x (after {iterations} iterations)"
-                        )
+                        if test_cpu:
+                            speedup = cpu_time / ttnn_time if ttnn_time > 0 else float('inf')
+                            response_with_metrics = (
+                                f"{full_response}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, CPU Time: {cpu_time:.4f}s, Speedup: {speedup:.3f}x (after {iterations} iterations)"
+                            )
+                        else:
+                            response_with_metrics = (
+                                f"{full_response}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s"
+                            )
                     else:  # MNIST Classification
                         (ttnn_logits, ttnn_label, ttnn_confidence, ttnn_time), ttnn_output = classify_mnist(
                             use_ttnn=True, iterations=iterations
                         )
-                        (
-                            uncompiled_logits,
-                            uncompiled_label,
-                            uncompiled_confidence,
-                            uncompiled_time,
-                        ), uncompiled_output = classify_mnist(use_ttnn=False, iterations=iterations)
+                        if test_cpu:
+                            (cpu_logits, cpu_label, cpu_confidence, cpu_time), cpu_output = classify_mnist(
+                                use_ttnn=False, iterations=iterations
+                            )
                         full_response = f"Predicted Digit: {ttnn_label} (Confidence: {ttnn_confidence:.2f}%)"
                         message_placeholder.markdown(full_response)
                         st.write("**Logits (TTNN):**")
                         st.write(ttnn_logits.numpy())
+                        terminal_output_value = f"TTNN:\n{ttnn_output}"
+                        if test_cpu:
+                            terminal_output_value += f"\n\nCPU:\n{cpu_output}"
                         terminal_output = st.text_area(
                             "Terminal",
-                            value=f"TTNN:\n{ttnn_output}\n\nCPU:\n{uncompiled_output}",
+                            value=terminal_output_value,
                             height=100,
                             disabled=True,
                         )
-                        speedup = uncompiled_time / ttnn_time if ttnn_time > 0 else float('inf')
-                        response_with_metrics = (
-                            f"{full_response}\n\n"
-                            f"TTNN Time: {ttnn_time:.5f}s, CPU Time: {uncompiled_time:.5f}s, Speedup: {speedup:.3f}x (after {iterations} iterations)"
-                        )
+                        if test_cpu:
+                            speedup = cpu_time / ttnn_time if ttnn_time > 0 else float('inf')
+                            response_with_metrics = (
+                                f"{full_response}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s, CPU Time: {cpu_time:.4f}s, Speedup: {speedup:.3f}x (after {iterations} iterations)"
+                            )
+                        else:
+                            response_with_metrics = (
+                                f"{full_response}\n\n"
+                                f"TTNN Time: {ttnn_time:.4f}s"
+                            )
 
-                    st.write(f"**Performance Comparison (Average per Iteration):**")
+                    st.write(f"**Performance Comparison (Latency):**")
                     if task == "Question Answering with BERT":
-                        st.write(f"- TTNN: {ttnn_time:.5f}s, Input Tokens/s: {ttnn_input_tokens_per_sec:.2f}, Output Tokens/s: {ttnn_output_tokens_per_sec:.2f}")
-                        st.write(f"- CPU: {uncompiled_time:.5f}s, Input Tokens/s: {uncompiled_input_tokens_per_sec:.2f}, Output Tokens/s: {uncompiled_output_tokens_per_sec:.2f}")
+                        st.write(f"- TTNN: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}")
+                        if test_cpu:
+                            st.write(f"- CPU: {cpu_time:.4f}s, Tokens/Sec: {cpu_tokens_per_sec:.3f}")
                     elif task in ["Text Generation with GPT-2", "Code Generation with CodeGen"]:
-                        st.write(f"- TTNN: {ttnn_time:.5f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}")
-                        st.write(f"- CPU: {uncompiled_time:.5f}s, Tokens/Sec: {uncompiled_tokens_per_sec:.3f}")
+                        st.write(f"- TTNN: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}")
+                        if test_cpu:
+                            st.write(f"- CPU: {cpu_time:.4f}s, Tokens/Sec: {cpu_tokens_per_sec:.3f}")
                     else:
-                        st.write(f"- TTNN: {ttnn_time:.5f}s")
-                        st.write(f"- CPU: {uncompiled_time:.5f}s")
-                    st.write(f"- Speedup: {speedup:.3f}x ({'Output Tokens/Sec' if task in ['Question Answering with BERT', 'Text Generation with GPT-2', 'Code Generation with CodeGen'] else 'Time'} after {iterations} iterations)")
+                        st.write(f"- TTNN: {ttnn_time:.4f}s")
+                        if test_cpu:
+                            st.write(f"- CPU: {cpu_time:.4f}s")
+                    if test_cpu:
+                        st.write(f"- Speedup: {speedup:.3f}x ({'Tokens/Sec' if task in ['Question Answering with BERT', 'Text Generation with GPT-2', 'Code Generation with CodeGen'] else 'Time'} after {iterations} iterations)")
 
                 st.session_state.messages.append({"role": "assistant", "content": response_with_metrics})
 
