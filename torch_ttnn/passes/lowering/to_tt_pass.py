@@ -1159,6 +1159,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 dim = (dim + rank) % rank
                 start = start if start is not None else 0
+                start = start if start >= 0 else (start + tensor_shape[dim])
                 end = end if end is not None else tensor_shape[dim]
                 end = end if end >= 0 else (end + tensor_shape[dim])
                 end = 0 if end < 0 else min(tensor_shape[dim], end)
