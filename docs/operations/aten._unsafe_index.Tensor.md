@@ -135,13 +135,14 @@
 | 131 | Tensor<[1, 72, 7, 7]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_24, _folded__to_copy_98]               | None     | Unknown    | N/A   | N/A    |
 | 132 | Tensor<[1, 72, 7, 7]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_30, _folded__to_copy_122]              | None     | Unknown    | N/A   | N/A    |
 | 133 | Tensor<[1, 72, 7, 7]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_30, _folded__to_copy_720]              | None     | Unknown    | N/A   | N/A    |
-| 134 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_10, _folded__to_copy_238]             | None     | Unknown    | N/A   | N/A    |
-| 135 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_10, _folded__to_copy_42]              | None     | Unknown    | N/A   | N/A    |
-| 136 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_11, _folded__to_copy_256]             | None     | Unknown    | N/A   | N/A    |
-| 137 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_11, _folded__to_copy_46]              | None     | Unknown    | N/A   | N/A    |
-| 138 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_12, _folded__to_copy_274]             | None     | Unknown    | N/A   | N/A    |
-| 139 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_12, _folded__to_copy_50]              | None     | Unknown    | N/A   | N/A    |
-| 140 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_13, _folded__to_copy_292]             | None     | Unknown    | N/A   | N/A    |
-| 141 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_13, _folded__to_copy_54]              | None     | Unknown    | N/A   | N/A    |
-| 142 | Tensor<[1, s0, s1, s2]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, <[2*s1, 1]>, <[2*s2]>]                                 | Unknown  | Unknown    | N/A   | N/A    |
+| 134 | Tensor<[1, 768, 37, 37]> self = ?,<br>List[Optional[Tensor]] indices = [_folded_view_2, _folded_view_3, <[1, 1, 16, 1]>, <[1, 1, 1, 16]>] | None     | Unknown    | N/A   | N/A    |
+| 135 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_10, _folded__to_copy_238]             | None     | Unknown    | N/A   | N/A    |
+| 136 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_10, _folded__to_copy_42]              | None     | Unknown    | N/A   | N/A    |
+| 137 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_11, _folded__to_copy_256]             | None     | Unknown    | N/A   | N/A    |
+| 138 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_11, _folded__to_copy_46]              | None     | Unknown    | N/A   | N/A    |
+| 139 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_12, _folded__to_copy_274]             | None     | Unknown    | N/A   | N/A    |
+| 140 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_12, _folded__to_copy_50]              | None     | Unknown    | N/A   | N/A    |
+| 141 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_13, _folded__to_copy_292]             | None     | Unknown    | N/A   | N/A    |
+| 142 | Tensor<[1, 960, 3, 3]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_13, _folded__to_copy_54]              | None     | Unknown    | N/A   | N/A    |
+| 143 | Tensor<[1, s0, s1, s2]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, <[2*s1, 1]>, <[2*s2]>]                                 | Unknown  | Unknown    | N/A   | N/A    |
 

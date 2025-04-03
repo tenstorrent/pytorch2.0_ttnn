@@ -146,7 +146,7 @@ def aten_backend(
     passes = [
         ConstantFoldingPass(),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
-        AddDataMovePass(),
+        AddDataMovePass(option.device),
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),

@@ -4,6 +4,8 @@
 import torch
 import numpy as np
 import re
+import requests
+from os import path, makedirs
 from collections.abc import Mapping, Sequence
 from typing import List, Dict, Tuple
 
@@ -145,6 +147,33 @@ class ModelTester:
             return self.test_model_eval(as_ttnn, option)
         else:
             raise ValueError(f"Current mode is not supported: {self.mode}")
+
+
+def get_absolute_cache_path(path_relative_to_cache):
+    # convenience method to use NFS if available
+    nfs_cache_base = "/mnt/tt-metal-pytorch-cache/.cache"
+    if path.exists(nfs_cache_base):
+        return path.join(nfs_cache_base, path_relative_to_cache)
+    else:
+        absolute_cache_base = path.expanduser("~/.cache")
+        return path.join(absolute_cache_base, path_relative_to_cache)
+
+
+def get_cached_image_or_reload(relative_cache_path, url):
+    absolute_cache_path = get_absolute_cache_path(relative_cache_path)
+
+    if path.exists(absolute_cache_path):
+        return absolute_cache_path
+
+    dir, _ = path.split(absolute_cache_path)
+    makedirs(dir, exist_ok=True)
+
+    image_file = requests.get(url, stream=True)
+    with open(absolute_cache_path, "wb") as file:
+        for chunk in image_file.iter_content(chunk_size=8192):
+            file.write(chunk)
+
+    return absolute_cache_path
 
 
 # Testing utils copied from tt-metal/tests/ttnn/utils_for_testing.py

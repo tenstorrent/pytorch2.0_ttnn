@@ -17,7 +17,9 @@ dependencies = ["ultralytics==8.2.92", "ultralytics-thop==2.0.6"]
 class ThisTester(ModelTester):
     def _load_model(self):
         # Model
-        model = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True, autoshape=False, device="cpu")
+        model = torch.hub.load(
+            "ultralytics/yolov5", "yolov5s", pretrained=True, autoshape=False, device="cpu", skip_validation=True
+        )
         return model.to(torch.bfloat16)
 
     def _load_inputs(self):

@@ -15,6 +15,6 @@
 | 11 | Tensor<[1, s1*s2, 10240]> self = ?,<br>int split_size = 5120,<br>int dim = -1 | Unknown  | Unknown    | N/A   | N/A    |
 | 12 | Tensor<[1, s1*s2, 2560]> self = ?,<br>int split_size = 1280,<br>int dim = -1  | Unknown  | Unknown    | N/A   | N/A    |
 | 13 | Tensor<[1, s1*s2, 5120]> self = ?,<br>int split_size = 2560,<br>int dim = -1  | Unknown  | Unknown    | N/A   | N/A    |
-| 14 | Tensor<[768, 256]> self = ?,<br>int split_size = 256                          | Done     | Done       | 1.0   | 1      |
-| 15 | Tensor<[768]> self = ?,<br>int split_size = 256                               | None     | Fallback   | 1.0   | -3     |
+| 14 | Tensor<[768, 256]> self = ?,<br>int split_size = 256                          | Unknown  | Done       | 1.0   | 1      |
+| 15 | Tensor<[768]> self = ?,<br>int split_size = 256                               | Unknown  | Fallback   | 1.0   | -3     |
 

@@ -311,18 +311,6 @@ aten_convolution_default_blocklist = [
         "List[int] output_padding = [0, 0]",
         "int groups = 1",
     ],
-    # TODO(tt-metal#16173): weight_matrix_width_ntiles % weight_block_w_ntiles == 0
-    [
-        "Tensor<[1, 1232, 14, 14]> input = ?",
-        "Tensor<[3024, 1232, 1, 1]> weight = ?",
-        "Optional[Tensor] bias = ?",
-        "List[int] stride = [2, 2]",
-        "List[int] padding = [0, 0]",
-        "List[int] dilation = [1, 1]",
-        "bool transposed = False",
-        "List[int] output_padding = [0, 0]",
-        "int groups = 1",
-    ],
 ]
 
 aten_argmax_default_blocklist = [

@@ -8,7 +8,7 @@ on:
         description: 'Set wheel type: pre-release or release'
         required: true
         default: 'pre-release'
-  merge_group:
+  # merge_group:
 
 jobs:
   build-wheel:

@@ -40,14 +40,14 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999997 |      0 |
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999998 |      0 |
 ### aten.slice.Tensor
-|    | ATen Input Variations                                                                                                 | Status   | Isolated   |   PCC |   Host |
-|---:|:----------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Done       |     1 |     -1 |
-|  1 | Tensor<[1, 512]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807     | Removed  | Done       |     1 |     -1 |
-|  2 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 8                       | Done     | Done       |     1 |     -1 |
-|  3 | Tensor<[1, 8]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Done       |     1 |     -1 |
+|    | ATen Input Variations                                                                                                 | Status   | Isolated   | PCC   | Host   |
+|---:|:----------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Done       | 1.0   | -1     |
+|  1 | Tensor<[1, 512]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807     | Removed  | Done       | 1.0   | -1     |
+|  2 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 8                       | Done     | Done       | 1.0   | -1     |
+|  3 | Tensor<[1, 8]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Unknown    | N/A   | N/A    |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                      | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------|:---------|:-----------|------:|-------:|

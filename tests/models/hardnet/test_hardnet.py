@@ -14,7 +14,7 @@ from tests.utils import ModelTester
 
 class ThisTester(ModelTester):
     def _load_model(self):
-        model = torch.hub.load("PingoLH/Pytorch-HarDNet", "hardnet68", pretrained=False)
+        model = torch.hub.load("PingoLH/Pytorch-HarDNet", "hardnet68", pretrained=False, skip_validation=True)
         checkpoint = "https://github.com/PingoLH/Pytorch-HarDNet/raw/refs/heads/master/hardnet68.pth"
         model.load_state_dict(torch.hub.load_state_dict_from_url(checkpoint, progress=False, map_location="cpu"))
         model = model.to(torch.bfloat16)
@@ -39,7 +39,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", "eval"],
+    ["train", pytest.param("eval", marks=pytest.mark.converted_end_to_end)],
 )
 def test_hardnet(record_property, mode):
     model_name = "HardNet"
