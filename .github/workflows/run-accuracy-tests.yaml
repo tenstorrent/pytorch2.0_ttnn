@@ -7,6 +7,11 @@ on:
         description: "Array of test groups to run. If empty, all tests will be run."
         required: false
         default: ""
+      docker_tag:
+        description: 'Docker container tag to use'
+        required: false
+        type: string
+        default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
   schedule:
     - cron: "0 21 * * 6" # Run every Saturday at 9:00 PM UTC
 permissions:
@@ -37,7 +42,7 @@ jobs:
     needs: [count-test-files]
     runs-on: ["in-service", "nfs"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -47,7 +52,6 @@ jobs:
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:      
       pytest_verbosity: 0
-      XDG_CACHE_HOME: /root/.cache
       TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
@@ -77,7 +81,7 @@ jobs:
     needs: [model-tests]
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -91,7 +95,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup        
-
+      
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -115,7 +119,7 @@ jobs:
     needs: [gen-model-accuracy]
     runs-on: ["in-service", "nfs"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -125,7 +129,6 @@ jobs:
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
       PYTHONPATH: ${{ github.workspace }}
-      XDG_CACHE_HOME: /root/.cache
       TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
