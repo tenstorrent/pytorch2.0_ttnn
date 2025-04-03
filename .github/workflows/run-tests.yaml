@@ -97,7 +97,7 @@ jobs:
     needs: [count-test-files, lowering-tests]
     runs-on: ["in-service", "nfs"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -108,7 +108,6 @@ jobs:
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
-      XDG_CACHE_HOME: /root/.cache
       TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
@@ -134,53 +133,6 @@ jobs:
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
-
-  
-  model-tests:
-    needs: [count-test-files, lowering-tests]
-    runs-on: ["in-service", "nfs"]
-    container: 
-      image: ${{ inputs.docker_tag }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
-    env:      
-      pytest_verbosity: 0
-      pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
-      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
-      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
-    strategy:
-      matrix: 
-        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-          fetch-depth: 0    
-      - uses: ./.github/actions/common_repo_setup
-      - name: docker-cleanup
-        run: |
-          docker system prune -a -f --volumes
-          df -h  # Debug space
-      - uses: ./.github/actions/common_model_tests
-
-      - name: Upload Metrics Artifact
-        if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-tests-metrics-group-${{ matrix.group }}
-          path: metrics/
-
-      - name: Upload All Accuracy Tests and Inputs Artifacts
-        if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-accuracy-tests-group-${{ matrix.group }}
-          path: tests/autogen_accuracy_tests/
 
   push-autogen-op-tests:
     needs: [model-tests]
