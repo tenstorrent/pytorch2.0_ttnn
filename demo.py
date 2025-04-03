@@ -68,10 +68,12 @@ def capture_output(func):
             return result, output_str
         finally:
             sys.stdout = old_stdout
+
     return wrapper
 
 
 with torch.no_grad():
+
     @capture_output
     def classify_mnist(use_ttnn=False, iterations=1):
         print("Loading MNIST dataset...")
@@ -114,7 +116,6 @@ with torch.no_grad():
             print("TTNN device closed.")
         return logits, predicted_label, confidence_score, inference_time
 
-
     @capture_output
     def ask_question(context, question, use_ttnn=True, iterations=1):
         model_name = "phiyodr/bert-large-finetuned-squad2"
@@ -131,7 +132,7 @@ with torch.no_grad():
             padding="max_length",
             truncation=True,
         )
-        total_token_count = inputs['input_ids'].ne(tokenizer.pad_token_id).sum().item()  # Count non-padding tokens
+        total_token_count = inputs["input_ids"].ne(tokenizer.pad_token_id).sum().item()  # Count non-padding tokens
         if use_ttnn:
             print("Opening TTNN device...")
             dispatch_core_config = get_dispatch_core_config()
@@ -145,12 +146,14 @@ with torch.no_grad():
         start_time = time.time()
         outputs = model(**inputs)
         end_time = time.time()
-        inference_time = (end_time - start_time)
+        inference_time = end_time - start_time
+
         def decode_output(outputs):
             response_start = torch.argmax(outputs.start_logits)
             response_end = torch.argmax(outputs.end_logits) + 1
             response_tokens = inputs.input_ids[0, response_start:response_end]
             return tokenizer.decode(response_tokens)
+
         answer = decode_output(outputs)
         print(f"Answer: {answer}")
         print(f"Total tokens (context + question): {total_token_count}")
@@ -158,7 +161,6 @@ with torch.no_grad():
             ttnn.close_device(device)
             print("TTNN device closed.")
         return answer, inference_time, total_token_count
-
 
     @capture_output
     def generate_text(prompt, max_length=500, num_return_sequences=1, use_ttnn=True, iterations=1):
@@ -203,7 +205,7 @@ with torch.no_grad():
         )
         num_generated_tokens = len(outputs[0])  # Count tokens in first sequence
         end_time = time.time()
-        inference_time = (end_time - start_time)
+        inference_time = end_time - start_time
         generated_texts = [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
         print(f"Generated text (first sequence): {generated_texts[0][:100]}...")
         print(f"Generated tokens: {num_generated_tokens}")
@@ -211,7 +213,6 @@ with torch.no_grad():
             ttnn.close_device(device)
             print("TTNN device closed.")
         return generated_texts, inference_time, num_generated_tokens
-
 
     @capture_output
     def generate_code(prompt, max_length=500, num_return_sequences=1, use_ttnn=True, iterations=1):
@@ -256,7 +257,7 @@ with torch.no_grad():
         )
         num_generated_tokens = len(outputs[0])  # Count tokens in first sequence
         end_time = time.time()
-        inference_time = (end_time - start_time)
+        inference_time = end_time - start_time
         generated_codes = [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
         print(f"Generated code (first sequence): {generated_codes[0][:100]}...")
         print(f"Generated tokens: {num_generated_tokens}")
@@ -264,7 +265,6 @@ with torch.no_grad():
             ttnn.close_device(device)
             print("TTNN device closed.")
         return generated_codes, inference_time, num_generated_tokens
-
 
     @capture_output
     def classify_image(image, use_ttnn=True, iterations=1):
@@ -292,7 +292,7 @@ with torch.no_grad():
         start_time = time.time()
         outputs = model(input_tensor)
         end_time = time.time()
-        inference_time = (end_time - start_time)
+        inference_time = end_time - start_time
         probabilities = torch.nn.functional.softmax(outputs, dim=1)
         confidence, predicted_idx = torch.max(probabilities, 1)
         label = classes[predicted_idx.item()]
@@ -303,11 +303,9 @@ with torch.no_grad():
             print("TTNN device closed.")
         return label, confidence_score, inference_time
 
-
     def stream_response(response):
         for char in response:
             yield char
-
 
     def main():
         st.title("Compiler Performance Benchmark (models)")
@@ -420,7 +418,12 @@ with torch.no_grad():
                 st.error("Please provide context via text before asking a question.")
             else:
                 user_input = prompt if isinstance(prompt, str) else prompt
-                st.session_state.messages.append({"role": "user", "content": f"{user_input} (Iterations: {iterations}{', CPU Tested' if test_cpu else ''})"})
+                st.session_state.messages.append(
+                    {
+                        "role": "user",
+                        "content": f"{user_input} (Iterations: {iterations}{', CPU Tested' if test_cpu else ''})",
+                    }
+                )
                 with st.chat_message("user"):
                     st.markdown(f"{user_input} (Iterations: {iterations}{', CPU Tested' if test_cpu else ''})")
 
@@ -449,10 +452,12 @@ with torch.no_grad():
                             height=100,
                             disabled=True,
                         )
-                        ttnn_tokens_per_sec = ttnn_total_tokens / ttnn_time if ttnn_time > 0 else float('inf')
+                        ttnn_tokens_per_sec = ttnn_total_tokens / ttnn_time if ttnn_time > 0 else float("inf")
                         if test_cpu:
-                            cpu_tokens_per_sec = cpu_total_tokens / cpu_time if cpu_time > 0 else float('inf')
-                            speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float('inf')
+                            cpu_tokens_per_sec = cpu_total_tokens / cpu_time if cpu_time > 0 else float("inf")
+                            speedup = (
+                                ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
+                            )
                             response_with_metrics = (
                                 f"{full_response}\n\n"
                                 f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
@@ -488,10 +493,12 @@ with torch.no_grad():
                             height=100,
                             disabled=True,
                         )
-                        ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float('inf')
+                        ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float("inf")
                         if test_cpu:
-                            cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float('inf')
-                            speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float('inf')
+                            cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float("inf")
+                            speedup = (
+                                ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
+                            )
                             response_with_metrics = (
                                 f"{ttnn_outputs[0]}\n\n"
                                 f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
@@ -528,10 +535,12 @@ with torch.no_grad():
                             height=100,
                             disabled=True,
                         )
-                        ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float('inf')
+                        ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float("inf")
                         if test_cpu:
-                            cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float('inf')
-                            speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float('inf')
+                            cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float("inf")
+                            speedup = (
+                                ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
+                            )
                             response_with_metrics = (
                                 f"{ttnn_outputs[0]}\n\n"
                                 f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
@@ -563,16 +572,13 @@ with torch.no_grad():
                             disabled=True,
                         )
                         if test_cpu:
-                            speedup = cpu_time / ttnn_time if ttnn_time > 0 else float('inf')
+                            speedup = cpu_time / ttnn_time if ttnn_time > 0 else float("inf")
                             response_with_metrics = (
                                 f"{full_response}\n\n"
                                 f"TTNN Time: {ttnn_time:.4f}s, CPU Time: {cpu_time:.4f}s, Speedup: {speedup:.3f}x (after {iterations} iterations)"
                             )
                         else:
-                            response_with_metrics = (
-                                f"{full_response}\n\n"
-                                f"TTNN Time: {ttnn_time:.4f}s"
-                            )
+                            response_with_metrics = f"{full_response}\n\n" f"TTNN Time: {ttnn_time:.4f}s"
                     else:  # MNIST Classification
                         (ttnn_logits, ttnn_label, ttnn_confidence, ttnn_time), ttnn_output = classify_mnist(
                             use_ttnn=True, iterations=iterations
@@ -595,16 +601,13 @@ with torch.no_grad():
                             disabled=True,
                         )
                         if test_cpu:
-                            speedup = cpu_time / ttnn_time if ttnn_time > 0 else float('inf')
+                            speedup = cpu_time / ttnn_time if ttnn_time > 0 else float("inf")
                             response_with_metrics = (
                                 f"{full_response}\n\n"
                                 f"TTNN Time: {ttnn_time:.4f}s, CPU Time: {cpu_time:.4f}s, Speedup: {speedup:.3f}x (after {iterations} iterations)"
                             )
                         else:
-                            response_with_metrics = (
-                                f"{full_response}\n\n"
-                                f"TTNN Time: {ttnn_time:.4f}s"
-                            )
+                            response_with_metrics = f"{full_response}\n\n" f"TTNN Time: {ttnn_time:.4f}s"
 
                     st.write(f"**Performance Comparison (Latency):**")
                     if task == "Question Answering with BERT":
@@ -620,7 +623,9 @@ with torch.no_grad():
                         if test_cpu:
                             st.write(f"- CPU: {cpu_time:.4f}s")
                     if test_cpu:
-                        st.write(f"- Speedup: {speedup:.3f}x ({'Tokens/Sec' if task in ['Question Answering with BERT', 'Text Generation with GPT-2', 'Code Generation with CodeGen'] else 'Time'} after {iterations} iterations)")
+                        st.write(
+                            f"- Speedup: {speedup:.3f}x ({'Tokens/Sec' if task in ['Question Answering with BERT', 'Text Generation with GPT-2', 'Code Generation with CodeGen'] else 'Time'} after {iterations} iterations)"
+                        )
 
                 st.session_state.messages.append({"role": "assistant", "content": response_with_metrics})
 
