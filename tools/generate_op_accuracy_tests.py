@@ -142,7 +142,7 @@ def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
             if aten_node := aten_name_to_node_map[aten_node_name]:
                 # this is the last ttnn node for this aten op, compare the output of this
                 if node == aten_to_ttnn_map[aten_node][-1]:
-                    # this will be converted to test_accuracy(node1, node2) later
+                    # this will be converted to check_accuracy(node1, node2) later
                     # do not emit if users are getitem
                     if not users_have_getitem(node):
                         if (getitem := users_have_getitem(aten_node)) is not None:
@@ -298,7 +298,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes):
             graph_code.append(f"  {_node_to_python_code(node)}")
     for node in ttnn_all_nodes:
         if isinstance(node, tuple):
-            graph_code.append(f"  test_accuracy({node[0]}, {node[1]})")
+            graph_code.append(f"  check_accuracy({node[0]}, {node[1]})")
         else:
             graph_code.append(f"  {_node_to_python_code(node)}")
     graph_code.append("  ttnn.close_device(device)")
@@ -374,9 +374,9 @@ def _generate_code(model_name, test_accuracy_graph_codes, all_inputs):
         inspect.getsource(assert_with_pcc),
     ]
 
-    # test_accuracy helper function definition
+    # check_accuracy helper function definition
     test_accuracy_code = """
-def test_accuracy(expected, actual):
+def check_accuracy(expected, actual):
     if isinstance(actual, ttnn.Tensor):
         actual = ttnn.to_torch(actual)
     assert_with_pcc(expected, actual, pcc = 0.90)
@@ -388,11 +388,10 @@ def test_accuracy(expected, actual):
     full_input_pkl_path = directory / input_pkl_file
     full_input_pkl_path.parent.mkdir(parents=True, exist_ok=True)
     main_code = f"""
-if __name__ == "__main__":
-    filepath = Path(__file__).with_name("{input_pkl_file.name}")
-    file = lzma.open(filepath, "rb")
-    inputs = pickle.load(file)
-    forward(*inputs)
+filepath = Path(__file__).with_name("{input_pkl_file.name}")
+file = lzma.open(filepath, "rb")
+inputs = pickle.load(file)
+forward(*inputs)
 """
 
     # Assemble all of pieces of code into one script
