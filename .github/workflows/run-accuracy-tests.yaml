@@ -6,6 +6,7 @@ on:
       mock_run:
         description: "Array of test groups to run. If empty, all tests will be run. Example: [1,2,3] or [1] or [1... x]"
         required: false
+        type: string
         default: ""
       docker_tag:
         description: 'Docker container tag to use'
@@ -28,7 +29,7 @@ jobs:
       matrix: ${{ steps.count-files.outputs.matrix }}
       num_files: ${{ steps.count-files.outputs.num_files }}
     env:
-      MOCK_RUN: ${{ github.event.inputs.MockRun }}
+      MOCK_RUN: ${{ github.event.inputs.mock_run }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

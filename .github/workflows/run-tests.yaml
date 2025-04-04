@@ -15,6 +15,7 @@ on:
       mock_run:
         description: "Array of test groups to run. If empty, all tests will be run. Example: [1,2,3] or [1] or [1... x]"
         required: false
+        type: string
         default: ""
     outputs:
       tests_passed:
