@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       mock_run:
-        description: "Array of test groups to run. If empty, all tests will be run. Example: [1,2,3] or [1] or [1... x]"
+        description: "Array of test groups to run. If empty, all tests will be run."
         required: false
         type: string
         default: ""
