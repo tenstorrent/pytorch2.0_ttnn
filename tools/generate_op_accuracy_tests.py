@@ -388,10 +388,11 @@ def check_accuracy(expected, actual):
     full_input_pkl_path = directory / input_pkl_file
     full_input_pkl_path.parent.mkdir(parents=True, exist_ok=True)
     main_code = f"""
-filepath = Path(__file__).with_name("{input_pkl_file.name}")
-file = lzma.open(filepath, "rb")
-inputs = pickle.load(file)
-forward(*inputs)
+if __name__ == "__main__":
+    filepath = Path(__file__).with_name("{input_pkl_file.name}")
+    file = lzma.open(filepath, "rb")
+    inputs = pickle.load(file)
+    forward(*inputs)
 """
 
     # Assemble all of pieces of code into one script
