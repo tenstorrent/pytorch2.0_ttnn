@@ -166,30 +166,30 @@ jobs:
           merge-multiple: true
           path: metrics/
 
-      - name: Push Autogen Op Tests
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git pull
+      # - name: Push Autogen Op Tests
+      #   run: |
+      #     git config user.name "GitHub Actions"
+      #     git config user.email "actions@github.com"
+      #     git pull
 
-          rm -rf tests/autogen_op/ # Remove old tests
-          python3 tools/generate_input_variation_test_from_models.py
-          python3 tools/generate_input_variation_test_from_models.py --merge=True
-          if [ "${{ inputs.commit_report }}" == "All" ]; then
-            git add --all
-          elif [ "${{ inputs.commit_report }}" == "Tests" ]; then
-            git add tests/
-          else
-            echo "No files will be committed"
-            exit 0
-          fi
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            exit 0
-          else
-            git commit -m '[auto][on-merge-queue] Update input variations tests'
-            git push
-          fi
+      #     rm -rf tests/autogen_op/ # Remove old tests
+      #     python3 tools/generate_input_variation_test_from_models.py
+      #     python3 tools/generate_input_variation_test_from_models.py --merge=True
+      #     if [ "${{ inputs.commit_report }}" == "All" ]; then
+      #       git add --all
+      #     elif [ "${{ inputs.commit_report }}" == "Tests" ]; then
+      #       git add tests/
+      #     else
+      #       echo "No files will be committed"
+      #       exit 0
+      #     fi
+      #     if git diff --cached --quiet; then
+      #       echo "No changes to commit"
+      #       exit 0
+      #     else
+      #       git commit -m '[auto][on-merge-queue] Update input variations tests'
+      #       git push
+      #     fi
 
   model-autogen-op-tests:
     needs: [push-autogen-op-tests, count-test-files]
@@ -322,34 +322,39 @@ jobs:
 
       - name: Collect Metrics Report
         run: |
-          python3 tools/collect_metrics.py
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git pull
+          # python3 tools/collect_metrics.py
+          # git config user.name "GitHub Actions"
+          # git config user.email "actions@github.com"
+          # git pull
 
-          if [ "${{ inputs.commit_report }}" == "All" ]; then
-            git add --all
-          elif [ "${{ inputs.commit_report }}" == "Docs" ]; then
-            git add README.md
-            git add docs/
-          else
-            echo "No files will be committed"
-            exit 0
-          fi
+          # if [ "${{ inputs.commit_report }}" == "All" ]; then
+          #   git add --all
+          # elif [ "${{ inputs.commit_report }}" == "Docs" ]; then
+          #   git add README.md
+          #   git add docs/
+          # else
+          #   echo "No files will be committed"
+          #   exit 0
+          # fi
 
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            exit 0
-          else
-            git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
-            git push
-          fi
+          # if git diff --cached --quiet; then
+          #   echo "No changes to commit"
+          #   exit 0
+          # else
+          #   git commit -m '[auto][on-merge-queue] Update metrics report in README.md'
+          #   git push
+          # fi
           
+          mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.SFTP_OPTEST_HOST }} >> ~/.ssh/known_hosts
+          echo ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }} > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+
           python3 tools/send_to_data_team.py \
               --github_workflow_id ${{ github.run_id }} \
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
               --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
-              --sftp_private_key ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}
+              --sftp_private_key_path ~/.ssh/id_rsa
 
   tests-passed:
     if: ${{ always() }}
