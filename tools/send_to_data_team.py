@@ -17,13 +17,13 @@ class SendToDataTeam:
         github_workflow_id: int,
         sftp_host: str,
         sftp_user: str,
-        sftp_private_key: str,
+        sftp_private_key_path: str,
         metrics_directory_name: str = "metrics",
     ):
         self.github_workflow_id = github_workflow_id
         self.sftp_host = sftp_host
         self.sftp_user = sftp_user
-        self.sftp_private_key = sftp_private_key
+        self.sftp_private_key_path = sftp_private_key_path
         self.metrics_dir = Path(metrics_directory_name)
 
     def run(self):
@@ -45,13 +45,10 @@ class SendToDataTeam:
         Args:
             file_path: Path to the file to send.
         """
-        with tempfile.NamedTemporaryFile() as private_key_file:
-            private_key_file.write(bytes(self.sftp_private_key, "utf-8"))
-            private_key_file.flush()
-            with pysftp.Connection(
-                host=self.sftp_host, username=self.sftp_user, private_key=private_key_file.name
-            ) as sftp:
-                sftp.put(str(file_path))
+        with pysftp.Connection(
+            host=self.sftp_host, username=self.sftp_user, private_key=self.sftp_private_key_path
+        ) as sftp:
+            sftp.put(str(file_path))
 
     @staticmethod
     def write_file(pydantic_objects: List[OpTest], file_path: Path):
@@ -168,7 +165,7 @@ if __name__ == "__main__":
     parser.add_argument("--github_workflow_id", type=int, help="Github workflow id associated with the run.")
     parser.add_argument("--sftp_host", type=str, help="Sftp host.")
     parser.add_argument("--sftp_user", type=str, help="Sftp user.")
-    parser.add_argument("--sftp_private_key", type=str, help="Path to private key.")
+    parser.add_argument("--sftp_private_key_path", type=str, help="Path to private key.")
 
     args = parser.parse_args()
 
@@ -176,7 +173,7 @@ if __name__ == "__main__":
         github_workflow_id=args.github_workflow_id,
         sftp_host=args.sftp_host,
         sftp_user=args.sftp_user,
-        sftp_private_key=args.sftp_private_key,
+        sftp_private_key_path=args.sftp_private_key_path,
     )
 
     sender.run()
