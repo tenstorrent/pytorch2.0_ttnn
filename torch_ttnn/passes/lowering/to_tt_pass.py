@@ -1241,6 +1241,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 ttnn_all = g.call_function(target_wrappers.all, args=(args[0], input_shape.numel()))
                 return g.call_function(torch.ops.aten.squeeze.default, args=(ttnn_all,))
 
+            if node.target == torch.ops.aten.copy.default:
+                return args[1]
+
             # PEP 8 suggests this explicit statement
             return None
 
