@@ -1149,6 +1149,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if tensor_shape == src_tensor_shape:
                     return src_tensor
 
+                # Error: Cannot pad RM tensor with specified format if tensors are int
+                if tensor.meta["val"].dtype not in [torch.bfloat16, torch.float]:
+                    tensor = g.call_function(ttnn.typecast, (tensor, TtnnBfloat16()))
+
+                if src_tensor.meta["val"].dtype not in [torch.bfloat16, torch.float]:
+                    src_tensor = g.call_function(ttnn.typecast, (src_tensor, TtnnBfloat16()))
+
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
                 [step] = step or [1]
@@ -1159,6 +1166,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 dim = (dim + rank) % rank
                 start = start if start is not None else 0
+                start = start if start >= 0 else (start + tensor_shape[dim])
                 end = end if end is not None else tensor_shape[dim]
                 end = end if end >= 0 else (end + tensor_shape[dim])
                 end = 0 if end < 0 else min(tensor_shape[dim], end)
@@ -1185,6 +1193,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensors_to_concat = []
                 for tensor in tensors_list:
                     tensors_to_concat.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnTileLayout()}))
+
+                # Bug: https://github.com/tenstorrent/tt-metal/issues/20205
+                # If rank is 1D, unsqueeze to 2D, then squeeze back to 1D
+                # Delete this block once the bug is fixed.
+                if rank == 1:
+                    for idx, ten in enumerate(tensors_to_concat):
+                        tensors_to_concat[idx] = g.call_function(ttnn.unsqueeze, (ten, 0))
+
+                    concat = g.call_function(ttnn.concat, (tensors_to_concat, dim + 1))
+                    return g.call_function(ttnn.squeeze, (concat, 0))
 
                 return g.call_function(ttnn.concat, (tensors_to_concat, dim))
 
@@ -1222,6 +1240,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_shape = get_shape(gm, args[0])
                 ttnn_all = g.call_function(target_wrappers.all, args=(args[0], input_shape.numel()))
                 return g.call_function(torch.ops.aten.squeeze.default, args=(ttnn_all,))
+
+            if node.target == torch.ops.aten.copy.default:
+                return args[1]
 
             # PEP 8 suggests this explicit statement
             return None

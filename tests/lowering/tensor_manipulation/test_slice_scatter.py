@@ -16,17 +16,31 @@ class SliceScatterModule(torch.nn.Module):
         return torch.slice_scatter(input_tensor, out_relu, dim, start, end)
 
 
+class SliceScatterWithSrcModule(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input_tensor, src_tensor, dim, start, end):
+        return torch.slice_scatter(input_tensor, src_tensor, dim, start, end)
+
+
 @pytest.mark.parametrize(
-    "input_shape, dim, start, end",
+    "input_shape, src_tensor_shape, dim, start, end",
     [
-        ((1, 128, 28, 28), 1, 3, 20),
+        ((1, 128, 28, 28), None, 1, 3, 20),
+        ((49, 56), (49, 4), 1, -7, -3),
+        ((288), (96), 0, 96, 192),
     ],
 )
-def test_slice_scatter(device, input_shape, dim, start, end):
-    m = SliceScatterModule()
+def test_slice_scatter(device, input_shape, src_tensor_shape, dim, start, end):
     input_tensor = torch.rand(input_shape, dtype=torch.bfloat16)
-    src_tensor_shape = list(input_shape)
-    src_tensor_shape[dim] = end - start
+
+    if src_tensor_shape is None:
+        m = SliceScatterModule()
+        src_tensor_shape = list(input_shape)
+        src_tensor_shape[dim] = end - start
+    else:
+        m = SliceScatterWithSrcModule()
     src_tensor = torch.rand(src_tensor_shape, dtype=torch.bfloat16)
 
     result_before = m.forward(input_tensor, src_tensor, dim, start, end)
