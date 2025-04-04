@@ -262,53 +262,43 @@ def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.999):
     return pcc_passed, construct_pcc_assert_message(pcc_message, expected_pytorch_result, actual_pytorch_result)
 
 
-def calculate_accuracy(original_outputs, compiled_outputs):
-    if (
-        isinstance(original_outputs, list) and len(original_outputs) == 1 and isinstance(original_outputs[0], dict)
-    ) and (isinstance(compiled_outputs, list) and len(compiled_outputs) == 1 and isinstance(compiled_outputs[0], dict)):
-        original_outputs = original_outputs[0]
-        compiled_outputs = compiled_outputs[0]
-    if isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
-        # Handle case where outputs can be converted to dictionaries
-        original_outputs = dict(original_outputs)
-        compiled_outputs = dict(compiled_outputs)
-        output_pccs = []
-        assert original_outputs.keys() == compiled_outputs.keys(), (
-            f"Original and compiled output do not have the same set of keys."
-            f"original keys:\n{original_outputs.keys()}\ncompiled keys:\n{compiled_outputs.keys()}"
-        )
-        for original_outputs, compiled_outputs in zip(original_outputs.values(), compiled_outputs.values()):
-            # TODO: Support other sequence types
-            if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
-                _, pcc = comp_pcc(original_outputs, compiled_outputs)
-                output_pccs.append(pcc)
-        assert (
-            output_pccs
-        ), f"No comparable outputs:\noriginal_outputs:\n{original_outputs}\ncompiled_outputs:\n{compiled_outputs}"
-        accuracy = torch.mean(torch.tensor(output_pccs)).item()
+# Outputs can be a mix of nested Lists/Dicts of Torch Tensors.
+# This function will recursively process them.
+def calculate_accuracy(original_outputs, compiled_outputs) -> float:
+    if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
+        # Base case: Outputs are Torch tensors
+        _, accuracy = comp_pcc(original_outputs, compiled_outputs)
+        return accuracy
     elif (isinstance(original_outputs, list) and isinstance(compiled_outputs, list)) or (
         isinstance(original_outputs, tuple) and isinstance(compiled_outputs, tuple)
     ):
-        # Handle case where outputs are lists
-        output_pccs = []
+        # Outputs are lists or tuples
         assert len(original_outputs) == len(compiled_outputs), (
             f"Original and compiled output do not have the same length."
             f"original length: {len(original_outputs)}\ncompiled length: {len(compiled_outputs)}"
         )
-        for original_outputs, compiled_outputs in zip(original_outputs, compiled_outputs):
-            if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
-                _, pcc = comp_pcc(original_outputs, compiled_outputs)
-                output_pccs.append(pcc)
-        assert (
-            output_pccs
-        ), f"No comparable outputs:\noriginal_outputs:\n{original_outputs}\ncompiled_outputs:\n{compiled_outputs}"
-        accuracy = torch.mean(torch.tensor(output_pccs)).item()
-    elif isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
-        # Handle case where outputs are Pytorch Tensors
-        _, accuracy = comp_pcc(original_outputs, compiled_outputs)
+        accuracies = []
+        for original_output, compiled_output in zip(original_outputs, compiled_outputs):
+            accuracies.append(calculate_accuracy(original_output, compiled_output))
+        return np.mean(accuracies)
+    elif isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
+        # Outputs are dicts
+        original_outputs = dict(original_outputs)
+        compiled_outputs = dict(compiled_outputs)
+        accuracies = []
+        assert original_outputs.keys() == compiled_outputs.keys(), (
+            f"Original and compiled output do not have the same set of keys."
+            f"original keys:\n{original_outputs.keys()}\ncompiled keys:\n{compiled_outputs.keys()}"
+        )
+        for key in original_outputs.keys():
+            original_output = original_outputs[key]
+            compiled_output = compiled_outputs[key]
+            accuracies.append(calculate_accuracy(original_output, compiled_output))
+        return np.mean(accuracies)
     else:
-        accuracy = None
-    return accuracy
+        raise ValueError(
+            f"Output types are not comparable:\noriginal_outputs:\n{type(original_outputs)}\ncompiled_outputs:\n{type(compiled_outputs)}"
+        )
 
 
 class MetricStrRenderer:

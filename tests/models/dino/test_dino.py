@@ -40,6 +40,5 @@ def test_dino(record_property, mode):
 
     tester = ThisTester(model_name, mode)
     results = tester.test_model()
-    results = results.last_hidden_state
 
     record_property("torch_ttnn", (tester, results))
