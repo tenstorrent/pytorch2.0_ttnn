@@ -1149,6 +1149,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if tensor_shape == src_tensor_shape:
                     return src_tensor
 
+                # Error: Cannot pad RM tensor with specified format if tensors are int
+                if tensor.meta["val"].dtype not in [torch.bfloat16, torch.float]:
+                    tensor = g.call_function(ttnn.typecast, (tensor, TtnnBfloat16()))
+
+                if src_tensor.meta["val"].dtype not in [torch.bfloat16, torch.float]:
+                    src_tensor = g.call_function(ttnn.typecast, (src_tensor, TtnnBfloat16()))
+
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
                 [step] = step or [1]
