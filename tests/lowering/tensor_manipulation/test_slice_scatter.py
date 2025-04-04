@@ -29,6 +29,7 @@ class SliceScatterWithSrcModule(torch.nn.Module):
     [
         ((1, 128, 28, 28), None, 1, 3, 20),
         ((49, 56), (49, 4), 1, -7, -3),
+        ((288), (96), 0, 96, 192),
     ],
 )
 def test_slice_scatter(device, input_shape, src_tensor_shape, dim, start, end):

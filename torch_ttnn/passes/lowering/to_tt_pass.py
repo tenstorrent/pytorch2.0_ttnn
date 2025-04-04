@@ -1187,6 +1187,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 for tensor in tensors_list:
                     tensors_to_concat.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnTileLayout()}))
 
+                # Bug: https://github.com/tenstorrent/tt-metal/issues/20205
+                # If rank is 1D, unsqueeze to 2D, then squeeze back to 1D
+                # Delete this block once the bug is fixed.
+                if rank == 1:
+                    for idx, ten in enumerate(tensors_to_concat):
+                        tensors_to_concat[idx] = g.call_function(ttnn.unsqueeze, (ten, 0))
+
+                    concat = g.call_function(ttnn.concat, (tensors_to_concat, dim + 1))
+                    return g.call_function(ttnn.squeeze, (concat, 0))
+
                 return g.call_function(ttnn.concat, (tensors_to_concat, dim))
 
             if node.target == torch.ops.aten.argmax.default:
