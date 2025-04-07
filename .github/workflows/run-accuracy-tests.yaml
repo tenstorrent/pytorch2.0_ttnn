@@ -3,9 +3,10 @@ name: "Accuracy Tests"
 on:
   workflow_dispatch:
     inputs:
-      MockRun:
+      mock_run:
         description: "Array of test groups to run. If empty, all tests will be run."
         required: false
+        type: string
         default: ""
       docker_tag:
         description: 'Docker container tag to use'
@@ -28,7 +29,7 @@ jobs:
       matrix: ${{ steps.count-files.outputs.matrix }}
       num_files: ${{ steps.count-files.outputs.num_files }}
     env:
-      MOCK_RUN: ${{ github.event.inputs.MockRun }}
+      MOCK_RUN: ${{ github.event.inputs.mock_run }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -55,6 +56,7 @@ jobs:
       TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
+      fail-fast: false
       matrix:
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
     steps:
@@ -132,6 +134,7 @@ jobs:
       TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
+      fail-fast: false
       matrix:
         group: ${{ fromJson(needs.gen-model-accuracy.outputs.groups) }}
     steps:
@@ -151,7 +154,7 @@ jobs:
         run: |
           cd tests/autogen_accuracy_tests
           test_file=$(find . -type f -name "*.py" | sed -n "${{ matrix.group }}p")
-          python3 -m pytest $test_file -s
+          python3 $test_file -s
           exit_code=$?
           if [ $exit_code -ne 0 ]; then
             echo "Tests failed with exit code $exit_code"

@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
+      mock_run:
+        description: "Array of test groups to run. If empty, all tests will be run."
+        required: false
+        type: string
+        default: ""
     outputs:
       tests_passed:
         description: "Whether tests passed (0 means pass, 1 means fail)"
@@ -83,6 +88,8 @@ jobs:
     outputs:
       matrix: ${{ steps.count-files.outputs.matrix }}
       num_files: ${{ steps.count-files.outputs.num_files }}
+    env:
+      MOCK_RUN: ${{ github.event.inputs.mock_run }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -211,7 +218,7 @@ jobs:
           set +e
           git pull
           rm -rf tests/autogen_op/ALL
-          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/autogen_op --splits ${{ needs.count-test-files.outputs.num_files }} --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
           ls -l
           cd metrics-autogen-op
