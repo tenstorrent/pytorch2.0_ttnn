@@ -11,7 +11,6 @@ jobs:
       docker_tag: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
       commit_report: 'None'
 
-
   validate-pr:
     if: ${{ always() }}
     runs-on: ubuntu-latest    

@@ -2,7 +2,19 @@ name: "Accuracy Tests"
 
 on:
   workflow_dispatch:
-
+    inputs:
+      mock_run:
+        description: "Array of test groups to run. If empty, all tests will be run."
+        required: false
+        type: string
+        default: ""
+      docker_tag:
+        description: 'Docker container tag to use'
+        required: false
+        type: string
+        default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
+  schedule:
+    - cron: "0 21 * * 6" # Run every Saturday at 9:00 PM UTC
 permissions:
   actions: read
   contents: write
@@ -11,30 +23,67 @@ permissions:
   pull-requests: read
 
 jobs:
-  tools-tests:
+  count-test-files:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.count-files.outputs.matrix }}
+      num_files: ${{ steps.count-files.outputs.num_files }}
     env:
-      pytest_verbosity: 2    
-      pytest_report_title: "⭐️ Tools Tests"
-    runs-on: ["in-service"]
+      MOCK_RUN: ${{ github.event.inputs.mock_run }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Count Test Files
+        id: count-files
+        uses: ./.github/actions/count_test_files
+        with:
+          test_directory: 'tests/models/'
+  model-tests:
+    needs: [count-test-files]
+    runs-on: ["in-service", "nfs"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    steps:      
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:      
+      pytest_verbosity: 0
+      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
+      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
+    strategy:
+      fail-fast: false
+      matrix:
+        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+    steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup        
-      - name: Run Tools Tests 
+        with:
+          lfs: true
+          fetch-depth: 0    
+      - name: docker-cleanup
         run: |
-          python3 -m pytest --github-report tests/tools/ -s
+          docker system prune -a -f --volumes
+          df -h  # Debug space
+      - uses: ./.github/actions/common_model_tests
+        with:
+          splits: ${{ needs.count-test-files.outputs.num_files }}
+          matrix_group: ${{ matrix.group }}
+          commit_report: ${{ github.event.inputs.commit_report }}
+      - name: Upload Accuracy Tests Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: autogen-accuracy-tests-group-${{ matrix.group }}
+          path: tests/autogen_accuracy_tests/
 
   gen-model-accuracy:
+    needs: [model-tests]
     runs-on: ["in-service"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
@@ -48,11 +97,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup        
-
+      
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: model-accuracy-tests-group-*
+          pattern: autogen-accuracy-tests-group-*
           merge-multiple: true
           path: tests/autogen_accuracy_tests/
 
@@ -60,61 +109,57 @@ jobs:
         id: calculate-groups
         run: |
           # Count the number of test files
-          num_files=$(find tests/autogen_accuracy_tests -type f -name "*.py" | wc -l)
-
-          # Get the number of available CPUs (or set a default if not available)
-          num_cpus=$(nproc || echo 4)
-
-          # Calculate the number of groups (e.g., 1 group per CPU, or adjust as needed)
-          num_groups=$((num_files < num_cpus ? num_files : num_cpus))
-
+          num_groups=$(find tests/autogen_accuracy_tests -type f -name "*.py" | wc -l)
           # Ensure at least 1 group
           num_groups=$((num_groups > 0 ? num_groups : 1))
-
           # Generate the list of groups as JSON
-          groups=$(seq 1 $num_groups | jq -c '.')
+          groups=$(seq 1 $num_groups | jq -c --slurp '.')
+          echo "Found: $groups"
           echo "groups=$groups" >> $GITHUB_OUTPUT
-        outputs:
-          groups: ${{ steps.calculate-groups.outputs.groups }}
-
-      - name: Upload Accuracy Tests Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: autogen-accuracy-tests
-          path: tests/autogen_accuracy_tests/
 
   test-model-accuracy:
     needs: [gen-model-accuracy]
-    runs-on: ["in-service"]
+    runs-on: ["in-service", "nfs"]
     container: 
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
       PYTHONPATH: ${{ github.workspace }}
+      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
+      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
+      fail-fast: false
       matrix:
         group: ${{ fromJson(needs.gen-model-accuracy.outputs.groups) }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup        
-
+      - name: docker-cleanup
+        run: |
+          docker system prune -a -f --volumes
+          df -h  # Debug space
       - name: Download Accuracy Tests Artifact
         uses: actions/download-artifact@v4
         with:
-          name: autogen-accuracy-tests
+          pattern: autogen-accuracy-tests-group-*
           path: tests/autogen_accuracy_tests/
 
       - name: Run Accuracy Tests
         run: |
           cd tests/autogen_accuracy_tests
-          set +e
           test_file=$(find . -type f -name "*.py" | sed -n "${{ matrix.group }}p")
-          python3 -m pytest $test_file -s
+          python3 $test_file -s
+          exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+            echo "Tests failed with exit code $exit_code"
+            exit $exit_code
+          fi
           exit 0;
         shell: bash
 
