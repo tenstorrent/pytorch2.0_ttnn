@@ -1,5 +1,4 @@
 name: "Run Tests"
-
 on:
   workflow_call:
     inputs:
@@ -13,6 +12,11 @@ on:
         required: false
         type: string
         default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
+      mock_run:
+        description: "Array of test groups to run. If empty, all tests will be run."
+        required: false
+        type: string
+        default: ""
     outputs:
       tests_passed:
         description: "Whether tests passed (0 means pass, 1 means fail)"
@@ -79,8 +83,25 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_lowering_tests
 
+  count-test-files:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.count-files.outputs.matrix }}
+      num_files: ${{ steps.count-files.outputs.num_files }}
+    env:
+      MOCK_RUN: ${{ github.event.inputs.mock_run }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Count Test Files
+        id: count-files
+        uses: ./.github/actions/count_test_files
+        with:
+          test_directory: 'tests/models/'
+
   model-tests:
-    needs: lowering-tests
+    needs: [count-test-files, lowering-tests]
     runs-on: ["in-service", "nfs"]
     container: 
       image: ${{ inputs.docker_tag }}
@@ -97,33 +118,28 @@ jobs:
       TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
-      matrix: # Need to find a way to replace this with a generator
-        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+      matrix: 
+        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
           fetch-depth: 0    
-      - uses: ./.github/actions/common_repo_setup
       - name: docker-cleanup
         run: |
           docker system prune -a -f --volumes
           df -h  # Debug space
       - uses: ./.github/actions/common_model_tests
-
+        with:
+          splits: ${{ needs.count-test-files.outputs.num_files }}
+          matrix_group: ${{ matrix.group }}
+          commit_report: ${{ github.event.inputs.commit_report }}
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
-
-      - name: Upload All Accuracy Tests and Inputs Artifacts
-        if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-accuracy-tests-group-${{ matrix.group }}
-          path: tests/export_code/accuracy/
 
   push-autogen-op-tests:
     needs: [model-tests]
@@ -176,7 +192,7 @@ jobs:
           fi
 
   model-autogen-op-tests:
-    needs: [push-autogen-op-tests]
+    needs: [push-autogen-op-tests, count-test-files]
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
     container: 
@@ -188,9 +204,8 @@ jobs:
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     strategy:
-      matrix: # Need to find a way to replace this with a generator
-        group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
-
+      matrix: 
+        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
@@ -203,7 +218,7 @@ jobs:
           set +e
           git pull
           rm -rf tests/autogen_op/ALL
-          python3 -m pytest --github-report tests/autogen_op --splits 40 --group ${{ matrix.group }} -s
+          python3 -m pytest --github-report tests/autogen_op --splits ${{ needs.count-test-files.outputs.num_files }} --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
           ls -l
           cd metrics-autogen-op

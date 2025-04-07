@@ -149,7 +149,7 @@ def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
             if aten_node := aten_name_to_node_map[aten_node_name]:
                 # this is the last ttnn node for this aten op, compare the output of this
                 if node == aten_to_ttnn_map[aten_node][-1]:
-                    # this will be converted to test_accuracy(node1, node2) later
+                    # this will be converted to check_accuracy(node1, node2) later
                     # do not emit if users are getitem
                     if not users_have_getitem(node):
                         if (getitem := users_have_getitem(aten_node)) is not None:
@@ -286,7 +286,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, opti
 
     """
     Gather all ttnn ops into one list. Use `aten_to_ttnn_map` to determine where to insert
-    the test_accuracy functions. 
+    the check_accuracy functions. 
     """
     ttnn_all_nodes = _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map)
 
@@ -318,7 +318,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, opti
 
         if isinstance(node, tuple):
             if option == "accuracy":
-                graph_code.append(f"  test_accuracy({node[0]}, {node[1]})")
+                graph_code.append(f"  check_accuracy({node[0]}, {node[1]})")
         else:
             # Print the accuracy of the outputs for this forward function
             if node.op == "output" and option == "accuracy":
@@ -367,14 +367,14 @@ def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs,
 
     Args:
         model_name (str): The name of the model used for filename purposes.
-        test_accuracy_graph_codes (List[str]): List of lines of code.
+        check_accuracy_graph_codes (List[str]): List of lines of code.
         all_inputs (List[List]): List of list of inputs including weights, biases, and dynamic data.
 
     Returns:
         None.
     """
 
-    test_accuracy_graph_codes = [elem for sublist in forward_codes for elem in sublist]
+    check_accuracy_graph_codes = [elem for sublist in forward_codes for elem in sublist]
 
     # List of modules
     import_code = [
@@ -416,10 +416,10 @@ def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs,
         else []
     )
 
-    # test_accuracy helper function definition
-    test_accuracy_code = (
+    # check_accuracy helper function definition
+    check_accuracy_code = (
         """
-def test_accuracy(expected, actual):
+def check_accuracy(expected, actual):
     if isinstance(actual, ttnn.Tensor):
         actual = ttnn.to_torch(actual)
     assert_with_pcc(expected, actual, pcc = 0.90)
@@ -479,8 +479,8 @@ if __name__ == "__main__":
         + wrapper_code
         + rename_wrapper_code
         + pcc_funcs
-        + [test_accuracy_code]
-        + test_accuracy_graph_codes
+        + [check_accuracy_code]
+        + check_accuracy_graph_codes
         + [main_code]
     )
     full_text = "\n".join(full_code)
