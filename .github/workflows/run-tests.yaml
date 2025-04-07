@@ -77,8 +77,7 @@ jobs:
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
     strategy:
       matrix: # Need to find a way to replace this with a generator
-        # group: [1, 2]
-        group: [ 2]
+        group: [1, 2]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_repo_setup
@@ -201,34 +200,6 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           add-paths: ${{ steps.generate-op-tests.outputs.commit-glob }}
 
-
-      # - name: Push Autogen Op Tests
-      #   run: |
-      #     pwd
-      #     ls -a
-      #     # /usr/bin/git config user.name "GitHub Actions"
-      #     # /usr/bin/git config user.email "actions@github.com"
-      #     # /usr/bin/git pull
-      #
-      #     rm -rf tests/autogen_op/ # Remove old tests
-      #     python3 tools/generate_input_variation_test_from_models.py
-      #     python3 tools/generate_input_variation_test_from_models.py --merge=True
-      #     if [ "${{ inputs.commit_report }}" == "All" ]; then
-      #       /usr/bin/git add --all
-      #     elif [ "${{ inputs.commit_report }}" == "Tests" ]; then
-      #       /usr/bin/git add tests/
-      #     else
-      #       echo "No files will be committed"
-      #       exit 0
-      #     fi
-      #     if git diff --cached --quiet; then
-      #       echo "No changes to commit"
-      #       exit 0
-      #     else
-      #       /usr/bin/git commit -m '[auto][on-merge-queue] Update input variations tests'
-      #       /usr/bin/git push
-      #     fi
-
   model-autogen-op-tests:
     needs: [push-autogen-op-tests, count-test-files]
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
@@ -254,7 +225,6 @@ jobs:
       - name: Run Model Input Variations Tests
         run: |
           set +e
-          # /usr/bin/git pull
           rm -rf tests/autogen_op/ALL
           python3 -m pytest --github-report tests/autogen_op --splits ${{ needs.count-test-files.outputs.num_files }} --group ${{ matrix.group }} -s
           exit_code=$?  # Capture the exit code, but ignore any errors for now.
@@ -373,11 +343,6 @@ jobs:
             echo "No files will be committed"
             exit 0
           fi
-
-      - name: Debug
-        run: |
-          echo ${{steps.collect-metrics.outputs.commit-glob}}
-          echo ${{steps.collect-metrics.outputs.commit-glob != 'nothing'}}
 
       - name: Push Metrics Report
         uses: peter-evans/create-pull-request@v7
