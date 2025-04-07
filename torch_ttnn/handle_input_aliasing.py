@@ -29,8 +29,22 @@ https://github.com/pytorch/TensorRT/commit/7daa1120dc1bc72d6f92f1e7aa2b357a65b6e
 
 # Insert aten.clone nodes after every input to prevent input aliasing
 def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    # get input tensor nodes only
-    input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder" and node.meta["grapharg"].is_tensor)]
+    # Helper function to determine if a node has in-place mutation. For example, the torch op
+    # `self_tensor.copy_(source_tensor)` will replace the self_tensor with the source_tensor.
+    # The arguments for this op will be (self_tensor, source_tensor) in this order.
+    # TODO: Is there a better way to determine if an op mutates an input without listing manually?
+    def is_node_mutated(node):
+        torch_ops_that_mutate = ["copy_", "torch.slice_scatter"]
+        for user in list(node.users.keys()):
+            # always the first argument
+            return str(user.target) in torch_ops_that_mutate and len(user.args) > 1 and node == user.args[0]
+
+    # get input tensor nodes only, but skip if the input is also mutated
+    input_nodes = [
+        node
+        for node in gm.graph.nodes
+        if (node.op == "placeholder" and node.meta["grapharg"].is_tensor and not is_node_mutated(node))
+    ]
 
     modified = False
     for node in input_nodes:
