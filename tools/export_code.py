@@ -333,6 +333,27 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, opti
     return graph_code
 
 
+def _reformat_inputs(all_inputs):
+    """
+    Some inputs are in special formats (e.g. SymInts) that need to be reformatted to hold
+    static values. Otherwise, the data cannot be exported.
+
+    Args:
+        all_inputs (List[List[]]): Lists of lists
+
+    Returns:
+        Reformatted list of inputs
+    """
+
+    for inputs in all_inputs:
+        for i, inpt in enumerate(inputs):
+            if isinstance(inpt, torch.SymInt):
+                assert inpt.node.has_hint()
+                inputs[i] = torch.tensor(inpt.node.hint)
+
+    return all_inputs
+
+
 def generate_flat_args(gm, example_inputs):
     """
     Combines weights, biases, and dynamic inputs into a list. This should be
@@ -490,6 +511,7 @@ if __name__ == "__main__":
         print(full_text, file=text_file)
         logging.info(f"{option} test code saved to {code_full_path}.")
 
+    all_inputs = _reformat_inputs(all_inputs)
     data_full_path = directory / Path(f"{model_name}_inputs.pickle")
     with lzma.open(data_full_path, "wb") as f:
         pickle.dump(all_inputs, f)
