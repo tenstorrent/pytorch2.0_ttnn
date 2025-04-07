@@ -586,9 +586,8 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, option, chu
         arg_node_names.append("device")
         # Then lastly call the forward function
         out_node_names = get_names_of_outputs(aten_graph)
-        call_forwards_in_main.append(
-            f"{', '.join(out_node_names)} = forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)})"
-        )
+        out_nodes_string = f"{', '.join(out_node_names)} = " if out_node_names else ""
+        call_forwards_in_main.append(f"{out_nodes_string}forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)})")
 
     logging.info(f"\n".join(call_forwards_in_main))
 
