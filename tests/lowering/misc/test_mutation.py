@@ -29,7 +29,6 @@ def test_mutation(device):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    # assert [node.target for node in nodes].count(ttnn.add) == 1
 
     # Check inference result
     assert torch.allclose(result_before, result_after)
