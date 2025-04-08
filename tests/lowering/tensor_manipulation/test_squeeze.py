@@ -22,6 +22,9 @@ class SqueezeDimModule(torch.nn.Module):
         ((1, 256, 1), -1),
         ((33, 44, 1, 32, 16), 1),
         ((33, 44, 1, 32, 16), 2),
+        ((1, 12), 0),
+        ((1), 0),
+        ((), 0),
     ],
 )
 def test_squeeze_dim(device, input_shape, dim):
@@ -36,11 +39,7 @@ def test_squeeze_dim(device, input_shape, dim):
     option._out_fx_graphs[0].print_tabular()
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    if option.use_less_ttnn_op_types:
-        # squeeze is lowered to reshape
-        assert [node.target for node in nodes].count(ttnn.reshape) == 1
-    else:
-        assert [node.target for node in nodes].count(ttnn.squeeze) == 1
+    assert [node.target for node in nodes].count(ttnn.squeeze) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
 
@@ -60,6 +59,10 @@ class SqueezeNoneDimModule(torch.nn.Module):
         ((1, 1, 55, 23, 44, 32, 32)),
         ((22, 1, 55, 23, 44, 32, 1)),
         ((1, 1, 55, 1, 1, 1, 1)),
+        ((1, 12)),
+        ((1, 1)),
+        ((1)),
+        (()),
     ],
 )
 def test_squeeze_none_dim(device, input_shape):
@@ -74,6 +77,6 @@ def test_squeeze_none_dim(device, input_shape):
     option._out_fx_graphs[0].print_tabular()
     # Check the graph has be rewritten and contain ttnn ops (squeeze without provided dim is lowered to reshape)
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.reshape) == 1
+    assert [node.target for node in nodes].count(ttnn.squeeze) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)

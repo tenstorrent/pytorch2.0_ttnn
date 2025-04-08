@@ -10,6 +10,7 @@ from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
     TtnnInt32,
+    TtnnUint32,
     TtnnDevice,
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
@@ -370,7 +371,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     # Add newly supported dtypes here:
     dtype_map = {
-        torch.float32: TtnnBfloat16(),
+        torch.float32: TtnnBfloat16(),  # Should this be changed to TtnnFloat32?
         torch.bfloat16: TtnnBfloat16(),
     }
     if dtype in dtype_map:
@@ -597,21 +598,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.full.default:
-                # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
-                if args[0]:
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                    }
-                    return g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
-                # Replace op with scalar for eltwise ops
-                # TODO: Generalize this to support all eltwise ops
-                node_users = list(node.users.keys())
-                for node_user in node_users:
-                    if node_user.target == torch.ops.aten.div.Tensor:
-                        node_user.update_arg(1, args[1])
-                return None
+                new_kwargs = {
+                    "fill_value": args[1],
+                    "device": TtnnDevice(),
+                    "layout": TtnnTileLayout(),
+                }
+                return g.call_function(ttnn.full, args=(args[0],), kwargs=new_kwargs)
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
@@ -738,16 +730,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
-                if get_shape(gm, args[0]) in [torch.Size([1]), torch.Size([])]:
-                    # see #442
-                    return None
-                if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
-                    # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
-                    # squeezing is the same as reshaping to shape of output tensor of squeeze
-                    output_size = list(node.meta["val"].size())
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
-                else:
-                    return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
+                return g.call_function(ttnn.squeeze, args=args, kwargs=kwargs)
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_shape_num_element = node.meta["val"].numel()
@@ -905,6 +888,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 # Essentially remove this op
                 return node.args[0]
+
+            if node.target == torch.ops.aten.fill.Scalar:
+                return g.call_function(ttnn.fill, args=args)
 
             if node.target in [torch.ops.aten.masked_fill.Scalar, torch.ops.aten.masked_fill.Tensor]:
                 # aten.masked_fill is equivalent to the following:
@@ -1222,6 +1208,21 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_shape = get_shape(gm, args[0])
                 ttnn_all = g.call_function(target_wrappers.all, args=(args[0], input_shape.numel()))
                 return g.call_function(torch.ops.aten.squeeze.default, args=(ttnn_all,))
+
+            if node.target == torch.ops.aten.empty.memory_format:
+                # raise RuntimeError(f"{str(kwargs)}, {str(args)}, {str(type(args[0]))}")
+                dtype_mapping = {
+                    torch.float32: TtnnBfloat16(),
+                    torch.float16: TtnnBfloat16(),
+                    torch.int32: TtnnInt32(),
+                }
+                dtype = dtype_mapping.get(kwargs["dtype"], TtnnUint32())
+                new_kwargs = {
+                    "dtype": dtype,
+                    "layout": TtnnTileLayout(),
+                    "device": TtnnDevice(),
+                }
+                return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
 
             # PEP 8 suggests this explicit statement
             return None
