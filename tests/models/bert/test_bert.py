@@ -19,11 +19,13 @@ class ThisTester(ModelTester):
 
     def _load_inputs(self):
         # Set up sample input
-        self.context = 'Johann Joachim Winckelmann was a German art historian and archaeologist. He was a pioneering Hellenist who first articulated the difference between Greek, Greco-Roman and Roman art. "The prophet and founding hero of modern archaeology", Winckelmann was one of the founders of scientific archaeology and first applied the categories of style on a large, systematic basis to the history of art. '
-        self.question = "What discipline did Winkelmann create?"
-        inputs = self.tokenizer.encode_plus(
-            self.question,
-            self.context,
+        batch_size = 2
+        self.context = [
+            'Johann Joachim Winckelmann was a German art historian and archaeologist. He was a pioneering Hellenist who first articulated the difference between Greek, Greco-Roman and Roman art. "The prophet and founding hero of modern archaeology", Winckelmann was one of the founders of scientific archaeology and first applied the categories of style on a large, systematic basis to the history of art. '
+        ] * batch_size
+        self.question = ["What discipline did Winkelmann create?"] * batch_size
+        inputs = self.tokenizer.batch_encode_plus(
+            list(zip(self.question, self.context)),
             add_special_tokens=True,
             return_tensors="pt",
             max_length=256,
