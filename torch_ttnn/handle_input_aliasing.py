@@ -35,9 +35,13 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
     # TODO: Is there a better way to determine if an op mutates an input without listing manually?
     def is_node_mutated(node):
         torch_ops_that_mutate = ["copy_", "torch.slice_scatter"]
-        for user in list(node.users.keys()):
-            # always the first argument
-            return str(user.target) in torch_ops_that_mutate and len(user.args) > 1 and node == user.args[0]
+        # the mutated tensor will always be the first argument, args[0]
+        return any(
+            [
+                str(user.target) in torch_ops_that_mutate and len(user.args) > 1 and node == user.args[0]
+                for user in list(node.users.keys())
+            ]
+        )
 
     # get input tensor nodes only, but skip if the input is also mutated
     input_nodes = [
