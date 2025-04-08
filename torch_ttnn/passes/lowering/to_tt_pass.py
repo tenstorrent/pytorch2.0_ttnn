@@ -1149,7 +1149,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if tensor_shape == src_tensor_shape:
                     return src_tensor
 
-                # Error: Cannot pad RM tensor with specified format if tensors are int
+                # Convert both inputs to bfloat16 because ttnn.concat does not work with certain
+                # shapes if they are of uint32 dtype.
+                # https://github.com/tenstorrent/tt-metal/issues/20376
                 if tensor.meta["val"].dtype not in [torch.bfloat16, torch.float]:
                     tensor = g.call_function(ttnn.typecast, (tensor, TtnnBfloat16()))
 
