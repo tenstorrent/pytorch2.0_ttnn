@@ -9,8 +9,6 @@ from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
-    TtnnInt8,
-    TtnnUint8,
     TtnnInt32,
     TtnnUint32,
     TtnnDevice,
@@ -375,11 +373,6 @@ def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     dtype_map = {
         torch.float32: TtnnBfloat16(),  # Should this be changed to TtnnFloat32?
         torch.bfloat16: TtnnBfloat16(),
-        torch.int8: TtnnInt8(),
-        torch.int32: TtnnInt32(),
-        torch.int64: TtnnInt32(),
-        # Note: uint16, uint32, uint64 have limited support only in eager mode in pytorch
-        torch.uint8: TtnnUint8(),
     }
     if dtype in dtype_map:
         return dtype_map.get(dtype)
@@ -1218,8 +1211,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target == torch.ops.aten.empty.memory_format:
                 # raise RuntimeError(f"{str(kwargs)}, {str(args)}, {str(type(args[0]))}")
+                dtype_mapping = {
+                    torch.float32: TtnnBfloat16(),
+                    torch.float16: TtnnBfloat16(),
+                    torch.int32: TtnnInt32(),
+                }
+                dtype = dtype_mapping.get(kwargs["dtype"], TtnnUint32())
                 new_kwargs = {
-                    "dtype": torch_dtype_to_ttnn_dtype(kwargs["dtype"]),
+                    "dtype": dtype,
                     "layout": TtnnTileLayout(),
                     "device": TtnnDevice(),
                 }

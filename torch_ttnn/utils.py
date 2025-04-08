@@ -108,16 +108,6 @@ class TtnnTileLayout:
         return f"ttnn_TILE_LAYOUT"
 
 
-class TtnnInt8:
-    def __repr__(self):
-        return f"ttnn_int8"
-
-
-class TtnnUint8:
-    def __repr__(self):
-        return f"ttnn_uint8"
-
-
 class TtnnInt32:
     def __repr__(self):
         return f"ttnn_int32"
