@@ -7,7 +7,6 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
 
-
 @pytest.mark.parametrize(
     "batch_size", (1, pytest.param(8, marks=pytest.mark.skip(reason="Bug in ttnn.reshape tt-metal/issues/19223")))
 )
@@ -97,7 +96,6 @@ def test_bert_with_cpp_extension(device, batch_size):
             end = time.perf_counter() * 1000
             run_time = end - start
             print(f"iter {idx}: {run_time} (ms)")
-
 
     print(
         f"""
