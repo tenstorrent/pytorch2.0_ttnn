@@ -33,7 +33,6 @@ tt_metal_lib_paths = [
 tt_metal_lib_paths = ["-L" + str(p) + " -Wl,-rpath=" + str(p) for p in tt_metal_lib_paths]
 tt_metal_libs = [
     "tt_metal",
-    "c++",
     ":_ttnn.so",
     "device",
 ]
@@ -53,7 +52,7 @@ ttnn_module = torch.utils.cpp_extension.load(
     name="ttnn_device_extension",
     sources=source_files,
     extra_include_paths=[str(working_directory)] + ttnn_include_paths,
-    extra_cflags=["-g", "-DFMT_HEADER_ONLY", "-std=c++20", "-stdlib=libc++"],
+    extra_cflags=["-g", "-DFMT_HEADER_ONLY", "-std=c++20"],
     extra_ldflags=tt_metal_lib_paths + tt_metal_libs,
     verbose=True,
 )
