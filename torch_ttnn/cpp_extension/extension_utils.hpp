@@ -18,7 +18,7 @@ void doPrint(
     Args&&... args) {
     const auto DEBUG_CPP_EXT = std::getenv("DEBUG_CPP_EXT") != nullptr;
     if (DEBUG_CPP_EXT) {
-        out << std::format("{}({})({}): ", filename, lineno, fn);
+        out << fmt::format("{}({})({}): ", filename, lineno, fn);
         out << std::forward<Arg>(arg);
         ((out << std::forward<Args>(args)), ...);
         out << std::endl;
