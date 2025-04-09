@@ -15,22 +15,24 @@ class FullModule(torch.nn.Module):
 
 
 @pytest.mark.parametrize(
-    "input_shapes",
+    "input_shape",
     [
-        [(64, 128)],
-        [(19, 19)],
-        [(59, 59)],
+        [64, 128],
+        [19, 19],
+        [59, 59],
+        [33],
+        [],  # scalar
     ],
 )
-def test_full(device, input_shapes):
+def test_full(device, input_shape):
     m = FullModule()
     fill_value = 1.23
-    result_before = m.forward(input_shapes[0], fill_value).to(torch.bfloat16)
+    result_before = m.forward(input_shape, fill_value).to(torch.bfloat16)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    result_after = m.forward(input_shapes[0], fill_value).to(torch.bfloat16)
+    result_after = m.forward(input_shape, fill_value).to(torch.bfloat16)
     option._out_fx_graphs[0].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops

@@ -9,7 +9,7 @@
 |  5 | aten.bmm.default               |                  2 |           2 |         0 |          0 | ✅          |       1 |
 |  6 | aten.cat.default               |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  7 | aten.clamp.default             |                  2 |           2 |         0 |          0 | ✅          |       1 |
-|  8 | aten.clone.default             |                  4 |           4 |         0 |          0 | ✅          |       1 |
+|  8 | aten.clone.default             |                  4 |           0 |         4 |          0 | ✅          |       1 |
 |  9 | aten.convolution.default       |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 10 | aten.div.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 11 | aten.expand.default            |                  4 |           0 |         4 |          0 | ✅          |       1 |
@@ -78,10 +78,10 @@
 ### aten.clone.default
 |    | ATen Input Variations                                                                       | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[1, 12, 257, 257]> self = ?                                                          | Done     | Unknown    | N/A   | N/A    |
-|  1 | Tensor<[1, 257, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Done     | Unknown    | N/A   | N/A    |
-|  2 | Tensor<[1, 257, 768]> self = ?                                                              | Done     | Unknown    | N/A   | N/A    |
-|  3 | Tensor<[1, 768, 16, 16]> self = ?,<br>Optional[int] memory_format = torch.channels_last     | Done     | Unknown    | N/A   | N/A    |
+|  0 | Tensor<[1, 12, 257, 257]> self = ?                                                          | Removed  | Unknown    | N/A   | N/A    |
+|  1 | Tensor<[1, 257, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Removed  | Unknown    | N/A   | N/A    |
+|  2 | Tensor<[1, 257, 768]> self = ?                                                              | Removed  | Unknown    | N/A   | N/A    |
+|  3 | Tensor<[1, 768, 16, 16]> self = ?,<br>Optional[int] memory_format = torch.channels_last     | Removed  | Unknown    | N/A   | N/A    |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                               | Status   | Isolated   | PCC   | Host   |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|

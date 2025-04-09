@@ -22,6 +22,8 @@ class FullLikeModule(torch.nn.Module):
         (1, 1),
         (2, 2),
         (17, 17),
+        (33,),
+        (),
     ],
 )
 def test_full_like(device, input_shape):

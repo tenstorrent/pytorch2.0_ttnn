@@ -37,15 +37,14 @@
 | 33 | List[int] size = [14, 14],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
 | 34 | List[int] size = [15680],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
 | 35 | List[int] size = [16, 16],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
-| 36 | List[int] size = [200704],<br>Optional[int] dtype = torch.bfloat16                                                                                      | Done     | Unknown    | N/A   | N/A    |
-| 37 | List[int] size = [21952],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
-| 38 | List[int] size = [28, 28],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
-| 39 | List[int] size = [31360],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
-| 40 | List[int] size = [32, 32],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
-| 41 | List[int] size = [56, 56],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
-| 42 | List[int] size = [64, 64],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
-| 43 | List[int] size = [732, 12],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu          | Done     | Unknown    | N/A   | N/A    |
-| 44 | List[int] size = [732, 16],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu          | Done     | Unknown    | N/A   | N/A    |
-| 45 | List[int] size = [75264],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
-| 46 | List[int] size = [7840],<br>Optional[int] dtype = torch.bfloat16                                                                                        | Done     | Unknown    | N/A   | N/A    |
+| 36 | List[int] size = [2, 7, 512],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu        | Done     | Unknown    | N/A   | N/A    |
+| 37 | List[int] size = [200704],<br>Optional[int] dtype = torch.bfloat16                                                                                      | Done     | Unknown    | N/A   | N/A    |
+| 38 | List[int] size = [21952],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
+| 39 | List[int] size = [28, 28],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
+| 40 | List[int] size = [31360],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
+| 41 | List[int] size = [32, 32],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
+| 42 | List[int] size = [56, 56],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
+| 43 | List[int] size = [64, 64],<br>Optional[bool] pin_memory = False,<br>Optional[int] dtype = torch.bfloat16                                                | Done     | Unknown    | N/A   | N/A    |
+| 44 | List[int] size = [75264],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
+| 45 | List[int] size = [7840],<br>Optional[int] dtype = torch.bfloat16                                                                                        | Done     | Unknown    | N/A   | N/A    |
 
