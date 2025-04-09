@@ -27,15 +27,29 @@ https://github.com/pytorch/TensorRT/commit/7daa1120dc1bc72d6f92f1e7aa2b357a65b6e
 """
 
 
-# torch.fx defines a placeholder node as a function input
-def get_input_nodes(gm: torch.fx.GraphModule) -> List[torch.fx.Node]:
-    input_nodes = [node for node in gm.graph.nodes if (node.op == "placeholder")]
-    return input_nodes
-
-
 # Insert aten.clone nodes after every input to prevent input aliasing
 def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
-    input_nodes = get_input_nodes(gm)
+    # Helper function to determine if a node has in-place mutation. For example, the torch op
+    # `self_tensor.copy_(source_tensor)` will replace the self_tensor with the source_tensor.
+    # The arguments for this op will be (self_tensor, source_tensor) in this order.
+    # TODO: Is there a better way to determine if an op mutates an input without listing manually?
+    def is_node_mutated(node):
+        torch_ops_that_mutate = ["copy_", "torch.slice_scatter"]
+        # the mutated tensor will always be the first argument, args[0]
+        return any(
+            [
+                str(user.target) in torch_ops_that_mutate and len(user.args) > 1 and node == user.args[0]
+                for user in list(node.users.keys())
+            ]
+        )
+
+    # get input tensor nodes only, but skip if the input is also mutated
+    input_nodes = [
+        node
+        for node in gm.graph.nodes
+        if (node.op == "placeholder" and node.meta["grapharg"].is_tensor and not is_node_mutated(node))
+    ]
+
     modified = False
     for node in input_nodes:
         """TODO(kevinwuTT): This does not work if inserting right after the node itself.
@@ -52,7 +66,34 @@ def insert_clones_for_input_aliasing(gm: torch.fx.GraphModule) -> torch.fx.Graph
             modified = True
 
     if modified:
-        gm = GraphCleanup(gm)
+        """
+        Do not call `eliminate_dead_code()` before `aot_autograd` because the function has not
+        been functionalized yet. This means some other mutations will be eliminate
+        inadvertently.
+
+        Example:
+        ```
+        1: def f():
+        2:    mask = torch.full((1, 1), 1)
+        3:    mask_cond = torch.full((1, 1), True)
+        4:    masked_fill = mask.masked_fill_(mask_cond, 0)
+        5:    mask_1 = mask.to(torch.bfloat16)
+        6:    return mask_1
+        ```
+
+        In the function above, `eliminate_dead_code()` does not know that `mask.masked_fill_` mutates
+        the `mask` tensor in-place. Therefore, it sees that `masked_fill` is not used and will eliminate lines 3 and 4. The result of the function above should be `tensor([[0.]], dtype=torch.bfloat16)`. However, after code elimination, the function will become below and
+        the result will be `tensor([[1.]], dtype=torch.bfloat16)` which is incorrect.
+
+        ```
+        1: def f():
+        2:    mask = torch.full((1, 1), 1)
+        3:    mask_1 = mask.to(torch.bfloat16)
+        4:    return mask_1
+        ```
+        """
+        gm.graph.lint()
+        gm.recompile()
 
     return gm
 

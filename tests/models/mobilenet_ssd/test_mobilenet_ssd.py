@@ -35,7 +35,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.converted_end_to_end
 def test_mobilenet_ssd(record_property, mode):
     model_name = "MobileNetSSD"
     record_property("model_name", model_name)
