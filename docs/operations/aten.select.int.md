@@ -34,7 +34,7 @@
 | 30 | Tensor<[1, 59]> self = ?,<br>int dim = 1,<br>int index = -1           | Unknown  | Done       | 1.0   | 0      |
 | 31 | Tensor<[1, 5]> self = ?,<br>int dim = 1,<br>int index = -1            | Unknown  | Done       | 1.0   | 0      |
 | 32 | Tensor<[1, 9, 768]> self = ?,<br>int dim = 1,<br>int index = 0        | Done     | Done       | 1.0   | 0      |
-| 33 | Tensor<[1]> self = ?,<br>int dim = 0,<br>int index = 0                | Removed  | Fallback   | 1.0   | -1     |
+| 33 | Tensor<[1]> self = ?,<br>int dim = 0,<br>int index = 0                | Removed  | Done       | 1.0   | 0      |
 | 34 | Tensor<[3, 1, 24, 49, 32]> self = ?,<br>int dim = 0,<br>int index = 0 | Done     | Done       | 1.0   | 0      |
 | 35 | Tensor<[3, 1, 24, 49, 32]> self = ?,<br>int dim = 0,<br>int index = 1 | Done     | Done       | 1.0   | 0      |
 | 36 | Tensor<[3, 1, 24, 49, 32]> self = ?,<br>int dim = 0,<br>int index = 2 | Done     | Done       | 1.0   | 0      |
