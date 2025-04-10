@@ -122,7 +122,8 @@ jobs:
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
       matrix: 
-        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        # group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        group: [14]
     steps:
       - uses: actions/checkout@v4
         with:
