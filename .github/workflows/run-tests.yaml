@@ -21,6 +21,9 @@ on:
       tests_passed:
         description: "Whether tests passed (0 means pass, 1 means fail)"
         value: ${{ jobs.tests-passed.outputs.didpass }}
+      pull_request_number:
+        description: "Number of created pull request, if it exists"
+        value: ${{ jobs.push-autogen-op-tests.outputs.pull-request-number || jobs.collect-metrics.outputs.pull-request-number }}
   workflow_dispatch:
     inputs:
       commit_report:
@@ -141,12 +144,24 @@ jobs:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
 
+  get-pr-branch:
+    if: ${{ inputs.commit_report != 'None' }}
+    runs-on: ubuntu-latest
+    outputs:
+      branch-name: ${{ steps.create-branch.outputs.branch-name }}
+    steps:
+      - name: Create PR Branch Name
+        id: create-branch
+        run: |
+          echo "branch-name=update-docs-$(date +%s)" >> $GITHUB_OUTPUT
+
+
   push-autogen-op-tests:
-    needs: [model-tests]
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
+    needs: [model-tests, get-pr-branch]
+    if: ${{ inputs.commit_report != 'None' }}
     runs-on: ["in-service"]
     outputs:
-      pull-request-branch: ${{ steps.push-op-tests.outputs.pull-request-branch }}
+      pull-request-number: ${{ steps.push-op-tests.outputs.pull-request-number }}
     container: 
       image: ${{ inputs.docker_tag }}
       credentials:
@@ -189,7 +204,7 @@ jobs:
         id: push-op-tests
         if: ${{ steps.generate-op-tests.outputs.commit-glob != 'nothing' }}
         with:
-          branch: ${{ env.BRANCH_NAME }}
+          branch: ${{ needs.get-pr-branch.outputs.branch-name }}
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           base: main
@@ -202,7 +217,7 @@ jobs:
 
   model-autogen-op-tests:
     needs: [push-autogen-op-tests, count-test-files]
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
+    if: ${{ inputs.commit_report != 'None' }}
     runs-on: ["in-service"]
     container: 
       image: ${{ inputs.docker_tag }}
@@ -285,9 +300,11 @@ jobs:
           path: metrics-autogen-op/
 
   collect-metrics:
-    needs: [model-autogen-op-tests, push-autogen-op-tests]
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit_report != 'None'}}
+    needs: [model-autogen-op-tests, push-autogen-op-tests, get-pr-branch]
+    if: ${{ inputs.commit_report != 'None'}}
     runs-on: ["in-service"]
+    outputs:
+      pull-request-number: ${{ steps.push-metrics-report.outputs.pull-request-number }}
     container: 
       image: ${{ inputs.docker_tag }}
       credentials:
@@ -349,7 +366,7 @@ jobs:
         id: push-metrics-report
         if: ${{ steps.collect-metrics.outputs.commit-glob != 'nothing' }}
         with:
-          branch: ${{ env.BRANCH_NAME }}
+          branch: ${{ needs.get-pr-branch.outputs.branch-name }}
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           base: main
