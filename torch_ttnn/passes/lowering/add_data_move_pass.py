@@ -395,11 +395,22 @@ class NodeInputAligner:
 
         input_node = spec.input_node
 
-        if need_to_layout:
-            input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+        # TODO: always layout on device once that is supported (once tilize uint32 works on device)
+        layout_on_host = spec.device == "temp_host_layout"
+        if layout_on_host:
+            # temp_host_layout means we must layout on host
+            if need_from_device:
+                input_node = self.graph.call_function(ttnn.from_device, (input_node,))
 
-        if need_from_device:
-            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
+            if need_to_layout:
+                input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+        else:
+            # mesh device tensors need layout on device
+            if need_to_layout:
+                input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+
+            if need_from_device:
+                input_node = self.graph.call_function(ttnn.from_device, (input_node,))
 
         if need_to_device:
             input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
