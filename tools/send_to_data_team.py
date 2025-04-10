@@ -1,6 +1,5 @@
 import argparse
 import pickle
-import tempfile
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
