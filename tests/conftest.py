@@ -72,7 +72,7 @@ def device(request):
 
         yield device
 
-        ttnn.synchronize_mesh_device(device)
+        ttnn.synchronize_device(device)
         ttnn.close_mesh_device(device)
     else:
         # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined

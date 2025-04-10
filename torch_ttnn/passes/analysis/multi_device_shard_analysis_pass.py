@@ -19,7 +19,7 @@ def propagate_sharding_to_users(node, shard_dim, concat_size):
 
     # permute changes which dimension is sharded
     if node.target == torch.ops.aten.permute.default:
-        shard_dim = node.args[0].index(shard_dim)
+        shard_dim = node.args[1].index(shard_dim)
 
     node.meta["shard_dim"] = shard_dim
 
