@@ -2,22 +2,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 import torch
-from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
-from torch_ttnn.utils import TtnnDevice
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 
 import ttnn
-from enum import Enum
-
-seen = []
 
 
 def propagate_sharding_to_users(node, shard_dim, concat_size, seen_set):
-    global seen
-    seen.append(node)
-
-    if node.op == "output" or (seen_set is not None and node in seen_set):
+    if node.op == "output" or node in seen_set:
         return
 
     seen_set.add(node)
@@ -27,7 +19,6 @@ def propagate_sharding_to_users(node, shard_dim, concat_size, seen_set):
     # permute changes which dimension is sharded
     if node.target == torch.ops.aten.permute.default:
         shard_dim = node.args[1].index(shard_dim)
-
     node.meta["shard_dim"] = shard_dim
 
     # if any ops change the size after concatenating all shards, adjust here
