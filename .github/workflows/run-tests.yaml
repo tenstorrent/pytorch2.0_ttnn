@@ -384,6 +384,9 @@ jobs:
         with:
           name: before-sftp
           path: ~
+          overwrite: true
+          include-hidden-files: true
+          retention-days: 1
 
       - name: Send To Data Team
         run: |          
@@ -404,6 +407,10 @@ jobs:
         with:
           name: after-sftp
           path: ~
+          overwrite: true
+          include-hidden-files: true
+          retention-days: 1
+
 
   tests-passed:
     if: ${{ always() }}
