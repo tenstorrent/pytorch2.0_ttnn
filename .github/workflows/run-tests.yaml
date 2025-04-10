@@ -383,7 +383,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: before-sftp
-          path: /
+          path: ~
 
       - name: Send To Data Team
         run: |          
@@ -403,7 +403,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: after-sftp
-          path: /
+          path: ~
 
   tests-passed:
     if: ${{ always() }}
