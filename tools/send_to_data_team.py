@@ -34,10 +34,12 @@ class SendToDataTeam:
 
         start_str = str(start).replace(" ", "_").replace(":", "")
         file_name = f"pytorch_{start_str}.json"
-        with tempfile.TemporaryDirectory() as d:
-            file_path = Path(d) / file_name
-            self.write_file(pydantic_objects, file_path)
-            self.send_file(file_path)
+        folder_path = Path("~/data_team")
+        folder_path.mkdir(parents=True, exist_ok=True)
+        file_path = folder_path / file_name
+
+        self.write_file(pydantic_objects, file_path)
+        self.send_file(file_path)
 
     def send_file(self, file_path: Path):
         """
