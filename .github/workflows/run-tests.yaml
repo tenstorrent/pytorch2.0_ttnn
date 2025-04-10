@@ -395,7 +395,9 @@ jobs:
           path: .
 
       - name: Send To Data Team
-        run: |          
+        run: |
+          which sftp
+          
           pwd
           ls -al
           ls -al ~
@@ -403,11 +405,11 @@ jobs:
           # list everything under metrics/
           find metrics/
 
-          # Cat the contenst of the failing files
-          for file in `ls -p /__w/_temp/ | grep -v /`; do
-            echo "!!! FILE $file contents"
-            cat $file
-          done
+          # # Cat the contenst of the failing files
+          # for file in `ls -p /__w/_temp/ | grep -v /`; do
+          #   echo "!!! FILE $file contents"
+          #   cat $file
+          # done
 
           # Add to known hosts and create id_rsa file
           mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
