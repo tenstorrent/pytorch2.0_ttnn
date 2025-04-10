@@ -166,14 +166,10 @@ def aten_backend(
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
     from torch_ttnn.passes.memory_pass import MemoryPass
 
-    counts = [options._n_parameters, options._n_buffers, options._n_arguments]
     passes = [
         ConstantFoldingPass(),
-        MultiDevicePass(
-            option.device, option._n_parameters, option._n_buffers, option._n_arguments, gm, example_inputs
-        ),
-        ToTtPass(option.device, option.use_less_ttnn_op_types, counts),
-        # MultiDevicePass(option.device, option._n_parameters, option._n_buffers, option._n_arguments),
+        MultiDevicePass(option.device, example_inputs),
+        ToTtPass(option.device, option.use_less_ttnn_op_types),
         AddDataMovePass(option.device),
         EliminateCoreopsPass(),
         CSEPass(),
@@ -280,14 +276,6 @@ def ttnn_backend(
     options._n_parameters = len(list(gm.parameters()))
     options._n_buffers = len(list(gm.buffers()))
     options._n_arguments = len(example_inputs)
-
-    # "shard" inputs if we are running multi-device
-    if isinstance(options.device, ttnn.MeshDevice) and False:
-        num_devices = options.device.get_num_devices()
-        batch_dimension = 0
-        for i, input in enumerate(example_inputs):
-            sharded = torch.chunk(input, num_devices, dim=batch_dimension)[0]
-            example_inputs[i] = sharded.new_empty(sharded.size())
 
     tracer_option = options.tracer_option
     if tracer_option is not None:

@@ -53,14 +53,6 @@ ops_incompatible_with_grayskull = {
     torch.ops.aten.trunc.default,
 }
 
-ops_already_converted = {
-    ttnn.ReplicateTensorToMesh,
-    ttnn.ShardTensorToMesh,
-    ttnn.ConcatMeshToTensor,
-    ttnn.from_torch,
-    ttnn.to_torch,
-}
-
 
 def is_target_incompatible_with_grayskull(target, device):
     return ttnn.device.is_grayskull(device) and target in ops_incompatible_with_grayskull
@@ -71,10 +63,6 @@ def are_args_from_int_output_ops(args):
         if isinstance(arg, torch.fx.proxy.Proxy):
             if arg.node.target in int_output_ops:
                 return True
-
-
-def is_already_converted(node):
-    return node.target in ops_already_converted
 
 
 def create_call_function(transformer, target, args, kwargs):
@@ -220,8 +208,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if are_args_from_int_output_ops(args) or is_target_incompatible_with_grayskull(target, self.device):
             return self.call_function_prop_meta(target, args, kwargs)
-
-        # if is_already_converted(pseudo_node): return self.call_function_prop_meta(target, args, kwargs)
 
         ############################################################
         # Matrix multiplication
@@ -380,10 +366,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
 
-        if target == ttnn.ReplicateTensorToMesh or target == ttnn.ShardTensorToMesh:
-            # fixup arg
-            return self.call_function_prop_meta(target, (torch.fx.wrap(str(TtnnDevice())),), kwargs)
-
         return self.call_function_prop_meta(target, args, kwargs)
 
 
@@ -441,12 +423,6 @@ class GraphWrapper:
             return torch.reshape(self._get_val(args[0]), args[1])
         if node.target == ttnn.permute:
             return torch.permute(self._get_val(args[0]), args[1])
-        # if node.target == ttnn.from_torch:
-        #     if 'mesh_mapper' in node.kwargs and node.kwargs['mesh_mapper'].target == ttnn.ShardTensorToMesh:
-        #         output_val = self._get_val(self.node)
-        #         output_tensor = output_val[0] if isinstance(output_val, tuple) else output_val
-        #         output_shape = list(output_tensor.size())
-        #         return output_tensor.new_empty((1, 1, output_shape[0] * math.prod(output_shape[2:]), output_shape[1]))
         return self._get_val(node)
 
     def _get_val(self, obj):
@@ -1422,95 +1398,9 @@ def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphMo
 
 
 class ToTtPass(PassBase):
-    def __init__(self, device, use_less_ttnn_op_types, counts):
+    def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
-
-        self.n_distributed = counts[0] + counts[1]
-        self.n_sharded = counts[2]
-
-        self.mapper = None
-        self.replicator = None
-        self.composer = None
-
-    def shim_calls(self, gm):
-        if not isinstance(self.device, ttnn._ttnn.multi_device.MeshDevice):
-            return PassResult(gm, False)
-
-        placeholder_counter = 0
-        for node in gm.graph.nodes:
-            if node.op == "placeholder":
-                try:
-                    if placeholder_counter < self.n_distributed:
-                        self.replicate_to_mesh(gm, node)
-                    else:
-                        self.shard_to_mesh(gm, node)
-                except Exception as e:
-                    print(f"Warning: Could not shard node {node.name}: {e}")
-                finally:
-                    placeholder_counter += 1
-
-            elif node.op == "output":
-                try:
-                    self.concat_to_tensor(gm, node)
-                except Exception as e:
-                    print(f"Warning: Could not concat node {node.name}: {e}")
-
-        return PassResult(gm, True)
-
-    def replicate_to_mesh(self, gm: torch.fx.GraphModule, node):
-        if self.replicator is None:
-            with gm.graph.inserting_before(node):
-                self.replicator = gm.graph.call_function(ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),))
-
-        g = GraphWrapper(gm, node)
-        with gm.graph.inserting_after(node):
-            new_node = g.call_function(
-                ttnn.from_torch, args=(node,), kwargs={"mesh_mapper": self.replicator, "device": TtnnDevice()}
-            )
-            node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
-
-    def shard_to_mesh(self, gm: torch.fx.GraphModule, node):
-        batch_dimension = 0
-        if self.mapper is None:
-            with gm.graph.inserting_before(node):
-                # batch_dimension = 0
-                self.mapper = gm.graph.call_function(
-                    ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": batch_dimension}
-                )
-
-        num_devices_in_mesh = 2  # TODO: calculate this from self.device()
-
-        with gm.graph.inserting_after(node):
-            new_node = gm.graph.call_function(
-                ttnn.from_torch, args=(node,), kwargs={"mesh_mapper": self.mapper, "device": TtnnDevice()}
-            )
-            new_node.meta = dict(node.meta)
-            output_tensor = new_node.meta["val"]
-            output_shape = list(output_tensor.size())
-            output_shape[batch_dimension] = (
-                output_shape[batch_dimension] + num_devices_in_mesh - 1
-            ) // num_devices_in_mesh
-            new_node.meta["val"] = output_tensor.new_empty(output_shape)
-            node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
-
-    def concat_to_tensor(self, gm: torch.fx.GraphModule, node):
-        if self.composer is None:
-            with gm.graph.inserting_before(node):
-                batch_dimension = 0
-                self.composer = gm.graph.call_function(
-                    ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": batch_dimension}
-                )
-
-        new_arg_list = []
-        g = GraphWrapper(gm, node)
-        with gm.graph.inserting_before(node):
-            for arg_node in node.args[0]:
-                new_arg = g.call_function(ttnn.to_torch, args=(arg_node,), kwargs={"mesh_composer": self.mapper})
-                new_arg_list.append(new_arg)
-            new_node = gm.graph.create_node("output", target="output", args=(new_arg_list,))
-            node.replace_all_uses_with(new_node)
-        gm.graph.erase_node(node)
 
     def call(self, gm: torch.fx.GraphModule):
         # Decompose some aten ops to simpler aten ops
@@ -1526,9 +1416,6 @@ class ToTtPass(PassBase):
 
         # Replace more patterns with torch.fx.Transformer
         gm = ReplaceMoreTt(gm, self.device, self.use_less_ttnn_op_types).transform()
-
-        # # Shim in calls for input and output
-        # self.shim_calls(gm)
 
         # Replace patterns manually
         max_try = 10
