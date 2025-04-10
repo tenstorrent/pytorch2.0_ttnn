@@ -396,6 +396,10 @@ jobs:
           echo ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }} > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
 
+          pwd
+          ls -al
+          ls -al ~
+
           python3 tools/send_to_data_team.py \
               --github_workflow_id ${{ github.run_id }} \
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
