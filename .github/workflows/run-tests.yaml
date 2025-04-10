@@ -377,6 +377,12 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           add-paths: ${{ steps.collect-metrics.outputs.commit-glob }}
 
+      - name: Artifacts-01
+        uses: actions/upload-artifact@v4
+        with:
+          name: before-sftp
+          path: /
+
       - name: Send To Data Team
         run: |          
           # Add to known hosts and create id_rsa file
@@ -390,6 +396,12 @@ jobs:
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
               --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
               --sftp_private_key_path ~/.ssh/id_rsa
+
+      - name: Artifacts-02
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-sftp
+          path: /
 
   tests-passed:
     if: ${{ always() }}
