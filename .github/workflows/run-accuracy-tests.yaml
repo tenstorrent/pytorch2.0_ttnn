@@ -154,6 +154,7 @@ jobs:
         run: |
           cd tests/export_code/accuracy
           test_file=$(find . -type f -name "*.py" | sed -n "${{ matrix.group }}p")
+          echo "$test_file"
           python3 $test_file -s
           exit_code=$?
           if [ $exit_code -ne 0 ]; then
