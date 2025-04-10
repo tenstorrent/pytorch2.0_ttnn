@@ -86,6 +86,10 @@ class MultiDevicePass(PassBase):
             elif node.op == "call_function":
                 if node.target == torch.ops.aten.view.default:
                     self.rewrite_const_args(gm, node)
+                elif node.target == torch.ops.aten._unsafe_view.default:
+                    self.rewrite_const_args(gm, node)
+                elif node.target == torch.ops.aten.expand.default:
+                    self.rewrite_const_args(gm, node)
 
             else:
                 pass
@@ -155,9 +159,9 @@ class MultiDevicePass(PassBase):
             return int(shard_dim_size * num_shards_per_device)
 
         new_args = list(node.args)
-        if node.target == torch.ops.aten.view.default:
-            output_dim = new_args[1].copy()
-            output_dim[node.meta["shard_dim"]] = get_sharded_size(output_dim[node.meta["shard_dim"]], node)
-            new_args[1] = output_dim
+        rewrite_arg_idx = 1
+        output_dim = new_args[rewrite_arg_idx].copy()
+        output_dim[node.meta["shard_dim"]] = get_sharded_size(output_dim[node.meta["shard_dim"]], node)
+        new_args[rewrite_arg_idx] = output_dim
 
         node.args = tuple(new_args)
