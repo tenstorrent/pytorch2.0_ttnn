@@ -39,7 +39,27 @@ def _get_indent(tabs=1, tabstop=4):
     return spaces * tabs
 
 
-def _rename_input_args_from_graph_break(output_nodes, node):
+def _get_output_to_rename(outputs, node):
+    """
+    Match an output to a node.
+
+    Args:
+        outputs (List[str|torch.fx.node.Node]): List of strings or nodes of the outputs
+        node (str|torch.fx.node.Node): A string or fx node
+
+    Returns:
+        (str|torch.fx.node.Node|None): If a match is found, return that output. Otherwise
+        return None.
+    """
+
+    def get_node_name(node):
+        if isinstance(node, str):
+            return node
+        elif isinstance(node, torch.fx.node.Node):
+            return node.name
+        else:
+            raise ValueError(f"Unsupported node type: {type(node)}")
+
     """
     When graph breaks occur, usually due to control flow, PyTorch keeps the names
     of the nodes consistent between graphs. For example, in the following example,
@@ -69,12 +89,10 @@ def _rename_input_args_from_graph_break(output_nodes, node):
         %clone = placeholder(clone)  <==>  same as primals_3, replace uses of clone with primals_3
 
     """
-    if node.name == "clone":
-        for out_arg in reversed(output_nodes[-1]):
-            if out_arg.name.startswith("primals"):
-                node.replace_all_uses_with(out_arg, delete_user_cb=lambda node: node != out_arg)
-                break
-
+    if get_node_name(node) == "clone":
+        for out_arg in reversed(outputs):
+            if get_node_name(out_arg).startswith("primals"):
+                return out_arg
     """
     For nodes that start with "tangents", this is the same as the node before the first primal
     from the outputs.
@@ -86,14 +104,16 @@ def _rename_input_args_from_graph_break(output_nodes, node):
     def forward_2(..., tangents_1):
         %tangents_1 = placeholder(tangents_1)  <==>  same as out3, replace uses of tangents_1 with out3
     """
-    if node.name.startswith("tangents"):
+    if get_node_name(node).startswith("tangents"):
         first_primal_idx = 0
-        for i, out_arg in enumerate(output_nodes[-1]):
-            if out_arg.name.startswith("primals"):
+        for i, out_arg in enumerate(outputs):
+            if get_node_name(out_arg).startswith("primals"):
                 first_primal_idx = i
                 break
-        tangent_node = output_nodes[-1][first_primal_idx - 1]
-        node.replace_all_uses_with(tangent_node, delete_user_cb=lambda node: node != tangent_node)
+        tangent_node = outputs[first_primal_idx - 1]
+        return tangent_node
+
+    return None
 
 
 def _compute_key(node):
@@ -124,7 +144,10 @@ def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
     aten_to_ttnn_map = defaultdict(list)
     for node in ttnn_graph.nodes:
         if node.op == "placeholder":
-            _rename_input_args_from_graph_break(output_nodes, node)
+            if len(output_nodes) > 0:
+                out_node = _get_output_to_rename(output_nodes[-1], node)
+                if out_node is not None:
+                    node.replace_all_uses_with(out_node, delete_user_cb=lambda node: node != out_node)
             continue
 
         if node.op != "output":
@@ -282,7 +305,6 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
     arg_nodes = []
     for node in aten_graph.nodes:
         if node.op == "placeholder":
-            # _rename_input_args_from_graph_break(output_nodes, node)
             arg_nodes.append(node)
             continue
         aten_all_nodes.append(node)
@@ -588,22 +610,14 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_
             for i, arg in enumerate(arg_node_names):
                 call_forwards_in_main.append(f"{arg} = inputs[{chunk_idx}][{i}]")
         else:
+            # In some cases where there are graph breakages, outputs of the previous graphs
+            # can become inputs for subsequent graphs. Some are given new names based on
+            # some pattern. The following renames some of these nodes.
             prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
-
             for arg in arg_node_names:
-                if arg == "clone":
-                    for out_arg in reversed(prev_out_node_names):
-                        if out_arg.startswith("primals"):
-                            call_forwards_in_main.append(f"{arg} = {out_arg}")
-                            break
-                if arg.startswith("tangents"):
-                    first_primal_idx = 0
-                    for i, out_arg in enumerate(prev_out_node_names):
-                        if out_arg.startswith("primals"):
-                            first_primal_idx = i
-                            break
-                    tangent_node = prev_out_node_names[first_primal_idx - 1]
-                    call_forwards_in_main.append(f"{arg} = {tangent_node}")
+                out_node = _get_output_to_rename(prev_out_node_names, arg)
+                if out_node is not None:
+                    call_forwards_in_main.append(f"{arg} = {out_node}")
 
         # append device to the end of arg list
         arg_node_names.append("device")
