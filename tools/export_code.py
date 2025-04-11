@@ -300,17 +300,20 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
     forward_signature = f"def {forward_func_name}({', '.join(arg_node_names)}):"
     # comment out signature if not the first graph
     graph_code = [forward_signature]
-    for node in aten_all_nodes:
-        if node.op == "output":
-            aten_out_list = node.args[0]
-            output_nodes.append(aten_out_list)
-            # comment out aten return for referencing purposes
-            graph_code.append(f"  # return {aten_out_list}")
-            graph_code.append(f"  aten_outputs = {aten_out_list}")
-            continue
-        else:
-            if option == "accuracy":
-                graph_code.append(f"  {_node_to_python_code(node)}")
+
+    # Only emit original aten nodes for accuracy
+    option = torch_ttnn_option.export_code
+    if option == "accuracy":
+        for node in aten_all_nodes:
+            if node.op == "output":
+                aten_out_list = node.args[0]
+                output_nodes.append(aten_out_list)
+                # comment out aten return for referencing purposes
+                graph_code.append(f"    # return {aten_out_list}")
+                graph_code.append(f"    aten_outputs = {aten_out_list}")
+                continue
+            else:
+                graph_code.append(f"    {_node_to_python_code(node)}")
 
     for i, node in enumerate(ttnn_all_nodes):
         if option == "profiling" and i % 500 == 0:
