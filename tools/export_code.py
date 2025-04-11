@@ -232,7 +232,7 @@ del globals()["{func_name}"]
     return statement
 
 
-def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, option, chunk_idx, graph_idx):
+def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx):
     """
     Given a pair of aten and ttnn graphs, build a list of lines of code.
 
@@ -381,7 +381,7 @@ def generate_flat_args(gm, example_inputs):
 
 
 # rename to forward_definitions and forward_calls maybe?
-def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs, option):
+def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs, torch_ttnn_option):
     """
     Generate standlone a python script along with an input file containing
     data for weights, biases, and inputs for a model run.
@@ -395,6 +395,7 @@ def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs,
         None.
     """
 
+    option = torch_ttnn_option.export_code
     check_accuracy_graph_codes = [elem for sublist in forward_codes for elem in sublist]
 
     # List of modules
@@ -462,14 +463,15 @@ def comp_pcc_wrapper(expected, actual):
         forward_calls_joined = "\n".join(forward_calls_joined)
         return forward_calls_joined
 
+    total_num_iterations = torch_ttnn_option.total_num_iterations
     if option == "profiling":
         forward_calls_joined = f"""
     profiler = Profiler()
-    for i in range(5):
-        if i == 5 or i == 1:
+    for i in range({total_num_iterations}):
+        if i == 0 or i == {total_num_iterations - 1}:
             # We want to profile the first and the last one,
             # so we measure without cache and with cache
-            profiler.enable()   
+            profiler.enable()
         signpost(header=f"Run number {{i}}")
 {format_forward_calls(call_forwards_in_main, "        ")}
         signpost(header="Run result post proc")
@@ -518,7 +520,7 @@ if __name__ == "__main__":
         logging.info(f"{option} data object saved to {data_full_path}.")
 
 
-def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, option, chunk_idx):
+def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx):
     """
     Main entry to generate standalone python script with accuracy checks
 
@@ -532,6 +534,7 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, option, chu
     Returns:
         None.
     """
+    option = torch_ttnn_option.export_code
     if option is not None:
         assert option in export_code_options
 
@@ -599,32 +602,30 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, option, chu
     output_nodes = []
     for graph_idx, (aten_graph, ttnn_graph) in enumerate(zip(aten_fx_graphs, ttnn_fx_graphs)):
         graph_code = _build_code_from_aten_ttnn_graphs(
-            aten_graph, ttnn_graph, output_nodes, option, chunk_idx, graph_idx
+            aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx
         )
         if option == "profiling":
+            # Insert last one before return
             graph_code.insert(-1, "  ttnn.DumpDeviceProfiler(device)")
         forward_code.append(graph_code)
-        logging.info(f"forward_code len: {len(forward_code)}")
-        # Insert last one before return
 
     return forward_code, call_forwards_in_main
-    # _generate_code(model_name, forward_code, call_forwards_in_main, option)
 
 
-def export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs, option):
+def export_code(model_name, torch_ttnn_option):
     """
     Main entry to generate standalone python script with accuracy checks
 
     Args:
         model_name (str): The name of the model used for filename purposes.
-        aten_fx_graphs (List[torch.fx.graph.Graph]): List of unmodified aten graphs.
-        ttnn_fx_graphs (List[torch.fx.graph.Graph]): List of modified ttnn graphs.
-        all_inputs (List[List]): List of list of inputs including weights, biases, and dynamic data.
-        verbose (boolean): Print out additional info.
-
+        torch_ttnn_option (TorchTtnnOption): object that holds aten_fx_graphs, ttnn_fx_graphs, all_inputs, and export_code options
     Returns:
         None.
     """
+
+    aten_fx_graphs = torch_ttnn_option._aten_fx_graphs  # List[torch.fx.graph.Graph]
+    ttnn_fx_graphs = torch_ttnn_option._ttnn_fx_graphs  # List[torch.fx.graph.Graph]
+    all_inputs = torch_ttnn_option._all_inputs  # List[List]
 
     # list of forward definitions
     forward_code_list = []
@@ -635,9 +636,9 @@ def export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs, option):
         zip(aten_fx_graphs, ttnn_fx_graphs, all_inputs)
     ):
         forward_code, call_forwards_in_main = _export_code(
-            model_name, aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs, option, chunk_idx
+            model_name, aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs, torch_ttnn_option, chunk_idx
         )
         forward_code_list.extend(forward_code)
         call_forwards_in_main_list.extend(call_forwards_in_main)
 
-    _generate_code(model_name, forward_code_list, call_forwards_in_main_list, all_inputs, option)
+    _generate_code(model_name, forward_code_list, call_forwards_in_main_list, all_inputs, torch_ttnn_option)

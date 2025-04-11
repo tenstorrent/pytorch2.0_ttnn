@@ -210,6 +210,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
             if export_code_opt is not None:
                 assert export_code_opt in export_code.export_code_options
 
+            total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
+
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
@@ -217,9 +219,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 metrics_path=model_name,
                 verbose=True,
                 export_code=export_code_opt,
+                total_num_iterations=total_num_iterations,
             )
 
-            for idx in range(int(request.config.getoption("--report_nth_iteration"))):
+            for idx in range(total_num_iterations):
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
@@ -237,12 +240,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             # set to one variable?
             if export_code_opt:
-                logging.info(
-                    f"len aten_fx_graph: {len(option._aten_fx_graphs)}, ttnn_fx_graphs: {len(option._ttnn_fx_graphs)}"
-                )
-                export_code.export_code(
-                    model_name, option._aten_fx_graphs, option._ttnn_fx_graphs, option._all_inputs, export_code_opt
-                )
+                export_code.export_code(model_name, option)
 
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()
