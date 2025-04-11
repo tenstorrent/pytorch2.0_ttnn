@@ -37,13 +37,13 @@ class SendToDataTeam:
         folder_path.mkdir(parents=True, exist_ok=True)
         file_path = folder_path / file_name
 
-        self.write_file(pydantic_objects, file_path)
-
-        if len(file_path.read_text()) == 0:
-            print(f"File `{file_path}` is empty. No data to send.")
+        if not pydantic_objects:
+            print(f"There is no data to write.")
             return
 
-        self.send_file(file_path)
+        self.write_file(pydantic_objects, file_path)
+
+        # self.send_file(file_path)  # TODO:
 
     def send_file(self, file_path: Path):
         """
