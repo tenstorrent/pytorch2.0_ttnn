@@ -3,9 +3,9 @@ import pickle
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+import shlex
+import subprocess
 from typing import List, Dict
-
-import pysftp
 
 from tools.data_collection.pydantic_models import TensorDesc, OpTest
 
@@ -46,10 +46,16 @@ class SendToDataTeam:
         Args:
             file_path: Path to the file to send.
         """
-        with pysftp.Connection(
-            host=self.sftp_host, username=self.sftp_user, private_key=self.sftp_private_key_path
-        ) as sftp:
-            sftp.put(str(file_path))
+        process = subprocess.run(
+            shlex.split(f"sftp -i {self.sftp_key} {self.sftp_user}@{self.sftp_host}"),
+            input=f"put {str(file_path)} .\n",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            universal_newlines=True,
+        )
+
+        print(f"Data sent to the Data Team SFTP successfully | {process.stdout}")
 
     @staticmethod
     def write_file(pydantic_objects: List[OpTest], file_path: Path):
