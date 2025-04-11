@@ -11,6 +11,7 @@ import pickle
 from pathlib import Path
 import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
+import tools.export_code as export_code
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
 import copy
@@ -32,7 +33,8 @@ class TorchTtnnOption:
         tracer_option=None,
         bypass_compile=False,
         use_less_ttnn_op_types=True,
-        gen_op_accuracy_tests=False,
+        export_code=None,
+        total_num_iterations=1,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -42,6 +44,7 @@ class TorchTtnnOption:
         self.run_eviction_opt = run_eviction_opt
         self.verbose = verbose
         self.tracer_option = tracer_option
+        self.total_num_iterations = total_num_iterations
 
         self.metrics_path = metrics_path
         self.bypass_compile = bypass_compile
@@ -50,13 +53,15 @@ class TorchTtnnOption:
         self.compiled_schema_list = list()
 
         # Used for generate standalone python script
-        self.gen_op_accuracy_tests = gen_op_accuracy_tests
+        self.export_code = export_code
         self._aten_fx_graphs = list()
-        self._all_inputs = None
+        self._all_inputs = list()
+        self._ttnn_fx_graphs = list()
 
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
+        self._ttnn_fx_graphs = list()
 
 
 def register_ttnn_objects(option: TorchTtnnOption):
@@ -108,11 +113,11 @@ def aten_backend(
     gm = remove_clones_for_input_aliasing(gm)
 
     # Save aten graph if requested
-    if options.gen_op_accuracy_tests:
+    if options.export_code:
         # Will this hamper memory usage?
         graph_copy = copy.deepcopy(gm.graph)
         graph_copy.owning_module = gm
-        option._aten_fx_graphs.append(graph_copy)
+        option._aten_fx_graphs[-1].append(graph_copy)
 
     # Save the number of aten ops before compilation
     if option.metrics_path:
@@ -217,6 +222,8 @@ def aten_backend(
         option.compiled_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
 
     option._out_fx_graphs.append(gm.graph)
+    if options.export_code:
+        option._ttnn_fx_graphs[-1].append(gm.graph)
 
     for node in gm.graph.nodes:
         if node.op == "placeholder":
@@ -243,10 +250,12 @@ def ttnn_backend(
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
     # Save all parameters and inputs if requested
-    if options.gen_op_accuracy_tests and options._all_inputs is None:
-        import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
+    if options.export_code:
+        import tools.export_code as export_code
 
-        options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
+        options._aten_fx_graphs.append(list())
+        options._ttnn_fx_graphs.append(list())
+        options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
 
     tracer_option = options.tracer_option
     if tracer_option is not None:
