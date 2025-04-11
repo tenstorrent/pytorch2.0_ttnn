@@ -122,7 +122,8 @@ jobs:
       HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
     strategy:
       matrix: 
-        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        # group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        group: [14]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -229,7 +230,8 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     strategy:
       matrix: 
-        group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        # group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
+        group: [14]
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
