@@ -403,7 +403,7 @@ jobs:
           ls -al ~
 
           # list everything under metrics/
-          echo "running 'find metrics/'"
+          echo "-> running 'find metrics/'"
           find metrics/
 
           # # Cat the contenst of the failing files
@@ -414,17 +414,17 @@ jobs:
 
           # Add to known hosts and create id_rsa file
 
-          echo "running 'mkdir -p ~/.ssh && touch ~/.ssh/known_hosts'"
+          echo "-> running 'mkdir -p ~/.ssh && touch ~/.ssh/known_hosts'"
           mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
 
-          echo "appending to '~/.ssh/known_hosts'"
+          echo "-> appending to '~/.ssh/known_hosts'"
           echo "s-dbd4b8a190fa40a4b.server.transfer.us-east-2.amazonaws.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDEaYp/Uoxy8uRYEMwsLnYmmzyc9Vg2ZQqijbYr2pe05frr75ugDAVhI8W3M2KUqVwL6wim+FzmGMAI/wgBQnrC6L7oSdOaLZEpQe1jMJcjIpccdLR+Rf3JD4K6ETlDig8ljG8mBv+dESwEgpxpoCCmyp/1ywQoGjF3Y57/SsUN+BgwR2rTicdaO59pPQ/7dmysd9h3y7MUSel49K4fvkOvT639+xFxm9wjzpVPy6fc2irDVmd7AdxtP6+KjYfeyXxVW/6wTSTFpcbSg2SvT4YlvgJuhtcZ5WSm7hvQnpgaMDkOdZpzr7b7wSZB9AI+mkJQOMupT6v7GJnalAN4NmjUOLMCOUWjsLG5RXYe55h9JJCbyRra6zJ6hB9Xwj788Dq6xDFaQxL/d5pz85C0iS4XnMmMd2HyGXVWMbuOFFbr9aRSf4bHS3iKddPkvlysxDeBPa1HEZFoopdVEz97fs6nCUa5HZN6pKXQi8Zbt5Giieu3twoWsacVbxpwrOLmCjtRqjKEoWFgTPWzWwega/5uhvg0P6pt/qds34cViUEdVi6xu3QOCdRHmrRDEJPnuLRESzCaIiy+YnesvY+jfU+PKzPeBuxHA7Y4OThcrx3AL1dkk2uVXyeCOu6CyAiPdnsKf+3uJ3b59ZepoMVgE+JoPSDR1OTfRuHWzbRjVCdVCw==" >> ~/.ssh/known_hosts
           
-          echo "creating '~/.ssh/id_rsa'"
+          echo "-> creating '~/.ssh/id_rsa'"
           mkdir -p ~/.ssh/id_rsa
-          echo ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }} > ~/.ssh/id_rsa
+          echo "${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}" > ~/.ssh/id_rsa
 
-          echo "running 'chmod 400 ~/.ssh/id_rsa'"
+          echo "-> running 'chmod 400 ~/.ssh/id_rsa'"
           chmod 400 ~/.ssh/id_rsa
 
           python3 tools/send_to_data_team.py \
