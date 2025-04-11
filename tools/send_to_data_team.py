@@ -47,7 +47,7 @@ class SendToDataTeam:
             file_path: Path to the file to send.
         """
         process = subprocess.run(
-            shlex.split(f"sftp -i {self.sftp_key} {self.sftp_user}@{self.sftp_host}"),
+            shlex.split(f"sftp -i {self.sftp_private_key_path} {self.sftp_user}@{self.sftp_host}"),
             input=f"put {str(file_path)} .\n",
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
