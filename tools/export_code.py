@@ -187,7 +187,8 @@ def _node_to_python_code(node):
         # Embed get_attr constant into code
         tensor_data = getattr(node.graph.owning_module, node.target).data
         torch.set_printoptions(profile="full")
-        statement = f"{node} = torch.tensor({tensor_data})"
+        tensor_str = f"torch.{tensor_data}" if isinstance(tensor_data, torch.Tensor) else f"torch.tensor({tensor_data})"
+        statement = f"{node} = {tensor_str}"
         torch.set_printoptions(profile="default")
         return statement
 
