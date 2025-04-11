@@ -495,7 +495,7 @@ if __name__ == "__main__":
     file = lzma.open(filepath, "rb")
     inputs = pickle.load(file)
     device = ttnn.open_device(device_id=0, l1_small_size=16384)
-    ttnn.enable_program_cache(device)
+    # ttnn.enable_program_cache(device)
 {forward_calls_joined}
     ttnn.close_device(device)
 """
