@@ -392,8 +392,8 @@ jobs:
               --github_workflow_id ${{ github.run_id }} \
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
               --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
-              --sftp_private_key ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}
               --sftp_private_key_path ~/.ssh/id_rsa
+
           echo "Successfully sent to Data Team sftp server."
 
   tests-passed:
