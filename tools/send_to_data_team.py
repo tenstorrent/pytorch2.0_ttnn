@@ -31,15 +31,15 @@ class SendToDataTeam:
         files = self.find_pickle_files(self.metrics_dir)
         pydantic_objects = self.collect_metrics(files)
 
+        if not pydantic_objects:
+            print(f"There is no data to write.")
+            return
+
         start_str = str(start).replace(" ", "_").replace(":", "")
         file_name = f"pytorch_{start_str}.json"
         folder_path = Path(".")
         folder_path.mkdir(parents=True, exist_ok=True)
         file_path = folder_path / file_name
-
-        if not pydantic_objects:
-            print(f"There is no data to write.")
-            return
 
         self.write_file(pydantic_objects, file_path)
 
