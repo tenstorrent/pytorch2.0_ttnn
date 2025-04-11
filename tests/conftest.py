@@ -62,10 +62,11 @@ def input_var_check_ttnn(request):
 
 @pytest.fixture(scope="session")
 def device(request):
-    if request.config.getoption("--data_parallel"):
-        l1_small_size = 16384
-        dispatch_core_config = get_dispatch_core_config()
+    # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined
+    l1_small_size = 16384
+    dispatch_core_config = get_dispatch_core_config()
 
+    if request.config.getoption("--data_parallel"):
         device = ttnn.open_mesh_device(
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
@@ -75,12 +76,11 @@ def device(request):
         ttnn.synchronize_device(device)
         ttnn.close_mesh_device(device)
     else:
-        # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined
         device_id = 0
-        l1_small_size = 16384
-        dispatch_core_config = get_dispatch_core_config()
 
-        device = ttnn.open_device(device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=16384)
+        device = ttnn.open_device(
+            device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
+        )
 
         ttnn.SetDefaultDevice(device)
 
