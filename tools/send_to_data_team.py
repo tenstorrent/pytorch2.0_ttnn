@@ -32,7 +32,7 @@ class SendToDataTeam:
         pydantic_objects = self.collect_metrics(files)
 
         if not pydantic_objects:
-            print(f"There is no data to write.")
+            print(f"There is no data to send to the Data Team.")
             return
 
         start_str = str(start).replace(" ", "_").replace(":", "")
