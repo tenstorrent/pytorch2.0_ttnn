@@ -450,6 +450,8 @@ def check_accuracy(expected, actual):
     assert_with_pcc(expected, actual, pcc = 0.90)
 
 def comp_pcc_wrapper(expected, actual):
+    if expected is None and actual is None:
+        return 1.0
     assert isinstance(expected, torch.Tensor)
     assert isinstance(actual, torch.Tensor)
     _, pcc = comp_pcc(expected, actual)
