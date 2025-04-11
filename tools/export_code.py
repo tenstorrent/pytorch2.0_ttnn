@@ -317,21 +317,21 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
 
     for i, node in enumerate(ttnn_all_nodes):
         if option == "profiling" and i % 500 == 0:
-            graph_code.append(f"  ttnn.DumpDeviceProfiler(device)")
+            graph_code.append(f"    ttnn.DumpDeviceProfiler(device)")
 
         if isinstance(node, tuple):
             if option == "accuracy":
-                graph_code.append(f"  check_accuracy({node[0]}, {node[1]})")
+                graph_code.append(f"    check_accuracy({node[0]}, {node[1]})")
         else:
             # Print the accuracy of the outputs for this forward function
             if node.op == "output" and option == "accuracy":
-                graph_code.append(f"  ttnn_outputs = {node.args[0]}")
+                graph_code.append(f"    ttnn_outputs = {node.args[0]}")
                 graph_code.append(
-                    "  accuracy = np.mean([comp_pcc_wrapper(a, t) for a, t in zip(aten_outputs, ttnn_outputs)])"
+                    "    accuracy = np.mean([comp_pcc_wrapper(a, t) for a, t in zip(aten_outputs, ttnn_outputs)])"
                 )
-                graph_code.append(f'  print(f"{forward_func_name} accuracy: {{accuracy}}")')
+                graph_code.append(f'    print(f"{forward_func_name} accuracy: {{accuracy}}")')
 
-            graph_code.append(f"  {_node_to_python_code(node)}")
+            graph_code.append(f"    {_node_to_python_code(node)}")
 
     return graph_code
 
@@ -562,7 +562,6 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_
 
     for graph_idx, aten_graph in enumerate(aten_fx_graphs):
         arg_node_names = get_names_of_args(aten_graph)
-        logging.info(f"graph {graph_idx} inputs: {arg_node_names}")
 
         if graph_idx == 0:
             assert len(arg_node_names) == len(inputs)
@@ -571,7 +570,6 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_
                 call_forwards_in_main.append(f"{arg} = inputs[{chunk_idx}][{i}]")
         else:
             prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
-            logging.info(f"graph {graph_idx - 1} outputs: {prev_out_node_names}")
 
             for arg in arg_node_names:
                 if arg == "clone":
@@ -594,8 +592,6 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_
         out_node_names = get_names_of_outputs(aten_graph)
         out_nodes_string = f"{', '.join(out_node_names)} = " if out_node_names else ""
         call_forwards_in_main.append(f"{out_nodes_string}forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)})")
-
-    logging.info(f"\n".join(call_forwards_in_main))
 
     assert len(aten_fx_graphs) == len(ttnn_fx_graphs)
 
