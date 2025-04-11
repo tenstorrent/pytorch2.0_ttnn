@@ -44,6 +44,13 @@ class MultiDeviceShardAnalysisPass(PassBase):
             if node.op == "placeholder" and node.meta.get("primal_tag") == PrimalTag.ARGUMENT:
                 shard_dim = 0
                 concat_size = node.meta["val"].shape[shard_dim]
+
+                # TODO: remove limitation that sharded dimension size is multiple of batch size
+                if concat_size % self.device.get_num_devices() != 0:
+                    raise RuntimeError(
+                        "Data Parallel runs currently only support sharding dimensions that are multiples of the number of devices"
+                    )
+
                 propagate_sharding_to_users(node, shard_dim=shard_dim, concat_size=concat_size, seen_set=set())
 
         modified = False
