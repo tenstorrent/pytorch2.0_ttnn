@@ -42,8 +42,7 @@ class SendToDataTeam:
         file_path = folder_path / file_name
 
         self.write_file(pydantic_objects, file_path)
-
-        # self.send_file(file_path)  # TODO:
+        self.send_file(file_path)
 
     def send_file(self, file_path: Path):
         """
