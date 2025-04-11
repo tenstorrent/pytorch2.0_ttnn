@@ -174,8 +174,6 @@ def _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map):
     for node in ttnn_graph.nodes:
         if node.op == "placeholder":
             continue
-        # if not is_operation(node):
-        #     continue
 
         ttnn_all_nodes.append(node)
 
@@ -213,9 +211,8 @@ def _node_to_python_code(node):
     """
     Convert a node to a function call statement.
     """
-    # assume no placeholder and output
+    # assume no placeholder
     assert node.op != "placeholder"
-    # assert is_operation(node)
 
     if node.op == "output":
         return f"return {node.args[0]}"
@@ -281,6 +278,9 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
         output_nodes (List[tuple(torch.fx.Node])):
             List of output tuple of nodes used to track graph breakage.
             The final code will be one fused function.
+        torch_ttnn_option (TorchTtnnOption): options containing various useful attributes
+        chunk_idx (int): Index to the top level list of aten/ttnn graphs
+        graph_idx (int): Index to the sublist of graphs
 
     Returns:
         List[str]: List of lines of code
@@ -339,8 +339,9 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
     # comment out signature if not the first graph
     graph_code = [forward_signature]
 
-    # Only emit original aten nodes for accuracy
+    # Assume export_code parent function has checked for validity
     option = torch_ttnn_option.export_code
+    # Only emit original aten nodes for the accuracy option
     if option == "accuracy":
         for node in aten_all_nodes:
             if node.op == "output":
@@ -422,21 +423,23 @@ def generate_flat_args(gm, example_inputs):
     return full_args
 
 
-# rename to forward_definitions and forward_calls maybe?
-def _generate_code(model_name, forward_codes, call_forwards_in_main, all_inputs, torch_ttnn_option):
+def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, torch_ttnn_option):
     """
     Generate standlone a python script along with an input file containing
     data for weights, biases, and inputs for a model run.
 
     Args:
         model_name (str): The name of the model used for filename purposes.
-        check_accuracy_graph_codes (List[str]): List of lines of code.
+        forward_codes (List[str]): List of lines of code.
+        call_forwards_in_main (List[str]): List of lines of code.
         all_inputs (List[List]): List of list of inputs including weights, biases, and dynamic data.
+        torch_ttnn_option (TorchTtnnOption): options containing various useful attributes
 
     Returns:
         None.
     """
 
+    # Assume export_code parent function has checked for validity
     option = torch_ttnn_option.export_code
     check_accuracy_graph_codes = [elem for sublist in forward_codes for elem in sublist]
 
@@ -502,6 +505,7 @@ def comp_pcc_wrapper(expected, actual):
 
     # main function definition
 
+    # process each line of the forward calls with appropriate indentation
     def format_forward_calls(call_forwards_in_main, indents=""):
         forward_calls_joined = [indents + line for line in call_forwards_in_main]
         forward_calls_joined = "\n".join(forward_calls_joined)
@@ -534,7 +538,6 @@ if __name__ == "__main__":
     file = lzma.open(filepath, "rb")
     inputs = pickle.load(file)
     device = ttnn.open_device(device_id=0, l1_small_size=16384)
-    # ttnn.enable_program_cache(device)
 {forward_calls_joined}
     ttnn.close_device(device)
 """
@@ -564,23 +567,24 @@ if __name__ == "__main__":
         logging.info(f"{option} data object saved to {data_full_path}.")
 
 
-def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx):
+def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx):
     """
-    Main entry to generate standalone python script with accuracy checks
+    Take all the graphs and assemble into a list of
 
     Args:
-        model_name (str): The name of the model used for filename purposes.
         aten_fx_graphs (List[torch.fx.graph.Graph]): List of unmodified aten graphs.
         ttnn_fx_graphs (List[torch.fx.graph.Graph]): List of modified ttnn graphs.
-        all_inputs (List[List]): List of list of inputs including weights, biases, and dynamic data.
+        inputs (List[]): List of inputs including weights, biases, and dynamic data.
         verbose (boolean): Print out additional info.
+        torch_ttnn_option (TorchTtnnOption): object containing other useful attributes
+        chunk_idx: index of the top level list of aten/ttnn graphs
 
     Returns:
-        None.
+        (List[str], List[str]): List of forward definitions, list of forward call in main
     """
+
+    # Assume export_code parent function has checked for validity
     option = torch_ttnn_option.export_code
-    if option is not None:
-        assert option in export_code_options
 
     call_forwards_in_main = []
 
@@ -602,6 +606,7 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_
         return out_node_names
 
     for graph_idx, aten_graph in enumerate(aten_fx_graphs):
+        # Process arguments
         arg_node_names = get_names_of_args(aten_graph)
 
         if graph_idx == 0:
@@ -644,33 +649,44 @@ def _export_code(model_name, aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_
     return forward_code, call_forwards_in_main
 
 
-def export_code(model_name, torch_ttnn_option):
+def export_code(torch_ttnn_option):
     """
     Main entry to generate standalone python script with accuracy checks
 
     Args:
-        model_name (str): The name of the model used for filename purposes.
-        torch_ttnn_option (TorchTtnnOption): object that holds aten_fx_graphs, ttnn_fx_graphs, all_inputs, and export_code options
+        torch_ttnn_option (TorchTtnnOption): object that holds model_name, aten_fx_graphs, ttnn_fx_graphs, all_inputs, and export_code options
     Returns:
         None.
     """
 
-    aten_fx_graphs = torch_ttnn_option._aten_fx_graphs  # List[torch.fx.graph.Graph]
-    ttnn_fx_graphs = torch_ttnn_option._ttnn_fx_graphs  # List[torch.fx.graph.Graph]
+    # This will not do anything if export_code is not set to something valid
+    option = torch_ttnn_option.export_code
+    if option is None:
+        return
+    else:
+        assert option in export_code_options
+
+    model_name = torch_ttnn_option.metrics_path  # str: Use the same name for metrics
+    aten_fx_graphs = torch_ttnn_option._aten_fx_graphs  # List[List[torch.fx.graph.Graph]]
+    ttnn_fx_graphs = torch_ttnn_option._ttnn_fx_graphs  # List[List[torch.fx.graph.Graph]]
     all_inputs = torch_ttnn_option._all_inputs  # List[List]
+
+    # Flatten the nested lists above to lists of definitions and calls
+    # Top level contains one input list per group(list) of forward functions
 
     # list of forward definitions
     forward_code_list = []
     # list of calls to forward functions inside main()
     call_forwards_in_main_list = []
+
     assert len(aten_fx_graphs) == len(all_inputs)
     for chunk_idx, (aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs) in enumerate(
         zip(aten_fx_graphs, ttnn_fx_graphs, all_inputs)
     ):
-        forward_code, call_forwards_in_main = _export_code(
-            model_name, aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs, torch_ttnn_option, chunk_idx
+        forward_code, call_forwards_in_main = _assemble_forward_functions(
+            aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs, torch_ttnn_option, chunk_idx
         )
         forward_code_list.extend(forward_code)
         call_forwards_in_main_list.extend(call_forwards_in_main)
 
-    _generate_code(model_name, forward_code_list, call_forwards_in_main_list, all_inputs, torch_ttnn_option)
+    _save_to_disk(model_name, forward_code_list, call_forwards_in_main_list, all_inputs, torch_ttnn_option)
