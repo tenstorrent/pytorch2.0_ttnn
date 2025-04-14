@@ -136,8 +136,10 @@ TTNN_DATAMOVE_OPS = [
     ttnn.sharded_to_interleaved,
     ttnn.slice,
     ttnn.split,
+    ttnn.squeeze,
     ttnn.to_layout,
     ttnn.transpose,
+    ttnn.unsqueeze,
 ]
 
 TTNN_TARGET_WRAPPERS = [
