@@ -394,8 +394,6 @@ jobs:
               --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
               --sftp_private_key_path ~/.ssh/id_rsa
 
-          echo "Successfully sent to Data Team sftp server."
-
   tests-passed:
     if: ${{ always() }}
     outputs:

@@ -46,6 +46,7 @@ class SendToDataTeam:
             file_path: Path to the file to send.
         """
         ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         ssh.connect(hostname=self.sftp_host, username=self.sftp_user, key_filename=self.sftp_private_key_path)
 
         sftp = ssh.open_sftp()
