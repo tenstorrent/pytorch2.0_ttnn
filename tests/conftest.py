@@ -238,9 +238,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
-            # set to one variable?
             if export_code_opt:
-                export_code.export_code(model_name, option)
+                export_code.export_code(option)
 
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()

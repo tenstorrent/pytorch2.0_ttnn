@@ -249,10 +249,14 @@ def ttnn_backend(
     example_inputs: List[torch.Tensor],
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
-    # Save all parameters and inputs if requested
     if options.export_code:
         import tools.export_code as export_code
 
+        # Some models have multiple forward functions with separate inputs for each.
+        # Within these forward functions, there can be graph breakages which are
+        # also represented by separate forward functions, but these do not have their
+        # own separate inputs. Therefore, we organize the list of aten/ttnn graphs
+        # with sublists where the top level list corresponds to the respective list of inputs.
         options._aten_fx_graphs.append(list())
         options._ttnn_fx_graphs.append(list())
         options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
