@@ -19,7 +19,7 @@ cd tt-metal
 2. Create a new venv and install tt-metal onto it. By default this will create a directory called `python_env` inside the `tt-metal` repo. You can set the environment variable `PYTHON_ENV_DIR` to a different location if desired.
 ```
 ./create_venv.sh
-. ./python_env/bin/activate
+source ./python_env/bin/activate
 ```
 
 ## Install pytorch2.0_ttnn dependencies
