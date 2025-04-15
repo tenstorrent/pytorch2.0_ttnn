@@ -6,30 +6,31 @@ from pathlib import Path
 import glob
 import logging
 
+
 assert os.environ.get("TT_METAL_HOME") is not None
 tt_metal_home = Path(os.environ["TT_METAL_HOME"])
+
+ttnn_module_dir = tt_metal_home / Path("ttnn/cpp")
+tt_metal_module_dir = tt_metal_home / Path("tt_metal")
 
 cpmcache_pattern = Path(".cpmcache/**/include")
 cpmcache_dirs = glob.glob(str(tt_metal_home / cpmcache_pattern), recursive=True)
 
 ttnn_include_paths = [
-    tt_metal_home,
-    tt_metal_home / Path("ttnn/cpp"),
-    tt_metal_home / Path("tt_metal/api"),
-    tt_metal_home / Path("tt_metal/third_party/umd/device/api"),
-    tt_metal_home / Path("tt_metal/hostdevcommon/api"),
-    tt_metal_home / Path("tt_metal/third_party/tracy/public"),
-    tt_metal_home / Path("tt_metal"),
+    ttnn_module_dir.parent,
+    ttnn_module_dir,
+    ttnn_module_dir / Path("cpp"),
+    tt_metal_module_dir / Path("api"),
+    tt_metal_module_dir / Path("third_party/umd/device/api"),
+    tt_metal_module_dir / Path("hostdevcommon/api"),
+    tt_metal_module_dir / Path("third_party/tracy/public"),
     tt_metal_home / Path("tt_stl"),
-    tt_metal_home / Path("ttnn"),
     tt_metal_home / Path(".cpmcache/reflect/e75434c4c5f669e4a74e4d84e0a30d7249c1e66f"),
 ] + cpmcache_dirs
 ttnn_include_paths = [str(p) for p in ttnn_include_paths]
 
 # Load the C++ extension containing your custom kernels.
-tt_metal_lib_paths = [
-    tt_metal_home / Path("build/lib"),
-]
+tt_metal_lib_paths = [tt_metal_home / Path("build/lib")]  # ttnn_module_dir / Path("build/lib"),
 tt_metal_lib_paths = ["-L" + str(p) + " -Wl,-rpath=" + str(p) for p in tt_metal_lib_paths]
 tt_metal_libs = [
     "tt_metal",
