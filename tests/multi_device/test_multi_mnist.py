@@ -47,7 +47,7 @@ class ThisTester(ModelTester):
     def _load_inputs(self):
         transform = transforms.Compose([transforms.ToTensor()])
         test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
-        dataloader = DataLoader(test_dataset, batch_size=2)
+        dataloader = DataLoader(test_dataset, batch_size=32)
         test_input, _ = next(iter(dataloader))
         test_input = test_input.to(torch.bfloat16)
         return test_input
