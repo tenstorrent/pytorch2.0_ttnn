@@ -12,7 +12,7 @@ tt-metal has its own script to create a Python venv with all the dependencies. S
 
 ```
 git clone --recursive https://github.com/tenstorrent/tt-metal.git
-cd tt-metal
+pushd tt-metal
 ./build_metal.sh --enable-ccache
 ```
 
@@ -20,9 +20,12 @@ cd tt-metal
 ```
 ./create_venv.sh
 source ./python_env/bin/activate
+popd
 ```
 
 ## Install pytorch2.0_ttnn dependencies
+
+1. `cd pytorch2.0_ttnn` and edit `requirements.txt` and remove the two lines starting with `ttnn`
 
 1. Install requirements
     ```
