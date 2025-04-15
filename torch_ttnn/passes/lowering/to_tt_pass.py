@@ -508,6 +508,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target in TTNN_POINTWISE_UNARY_OPS:
                 code = TTNN_POINTWISE_UNARY_OPS[node.target]
+                # TODO: Remove once tanh accuracy implementation is realized as a device operation in tt-metal
+                if code == ttnn.tanh:
+                    kwargs = {
+                        "accuracy": True,
+                    }
 
             # NOTE(jdh8): Workaround for tenstorrent/tt-metal#12671
             # Passing a tensor shaped `(N,)` to the kernel results in `(1, N)`.
