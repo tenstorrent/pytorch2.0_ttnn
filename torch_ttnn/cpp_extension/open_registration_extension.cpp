@@ -244,7 +244,7 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
 
             // TODO: Find out why there are problems when passing device directly to `to_layout` function
             ttnn::Tensor src_layout =
-                ttnn::to_layout(src_cpu, ttnn::ROW_MAJOR_LAYOUT, std::nullopt, std::nullopt, (ttnn::IDevice*)nullptr);
+                ttnn::to_layout(src_cpu, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, (ttnn::IDevice*)nullptr);
             ttnn::Tensor src_dev = src_layout.to_device(ttnn_device);
 
             // Verify the device data is correct
