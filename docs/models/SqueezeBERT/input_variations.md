@@ -30,9 +30,9 @@
 |  1 | Tensor<[30528, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?,<br>int padding_idx = 0 | Done     | Done       |     1 |      0 |
 |  2 | Tensor<[512, 768]> weight = ?,<br>Tensor<[1, 8]> indices = ?                           | Done     | Done       |     1 |      0 |
 ### aten.mul.Tensor
-|    | ATen Input Variations                                                    | Status   | Isolated   |      PCC |   Host |
-|---:|:-------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       | 0.999995 |      0 |
+|    | ATen Input Variations                                                    | Status   | Isolated   |   PCC |   Host |
+|---:|:-------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
+|  0 | Tensor<[1, 1, 1, 8]> self = ?,<br>Tensor other = -3.3895313892515355e+38 | Done     | Done       |     1 |      0 |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   | PCC   |   Host |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|-------:|

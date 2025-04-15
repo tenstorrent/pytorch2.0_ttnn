@@ -19,7 +19,7 @@
 | 15 | List[int] size = [1, 256, 16, 16],<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu    | Done     | Unknown    | N/A   | N/A    |
 | 16 | List[int] size = [1, 256, 32, 32],<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu    | Done     | Unknown    | N/A   | N/A    |
 | 17 | List[int] size = [1, 256, 64, 64],<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu    | Done     | Unknown    | N/A   | N/A    |
-| 18 | List[int] size = [1, 3, 720, 1280],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False     | Unknown  | Done       | 1.0   | 0      |
+| 18 | List[int] size = [1, 3, 720, 1280],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False     | Done     | Done       | 1.0   | 0      |
 | 19 | List[int] size = [1, 36, 14, 14],<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu     | Done     | Unknown    | N/A   | N/A    |
 | 20 | List[int] size = [1, 36, 7, 7],<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu       | Done     | Unknown    | N/A   | N/A    |
 | 21 | List[int] size = [1, 480, 7, 7],<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu      | Done     | Unknown    | N/A   | N/A    |
