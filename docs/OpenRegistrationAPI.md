@@ -24,12 +24,17 @@ popd
 ```
 
 ## Install pytorch2.0_ttnn dependencies
-
-1. `cd pytorch2.0_ttnn` and edit `requirements.txt` and remove the two lines starting with `ttnn`
+NOTE: The ttnn packages are intentionally removed for this branch. They will be restored once a ttnn dev package containing all the dependencies is available.
 
 1. Install requirements
     ```
     pip install -r requirements-dev.txt
+    ```
+
+    You can ignore the following message for now:
+    ```
+    ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+    tt-smi 3.0.12 requires pre-commit==3.5.0, but you have pre-commit 3.0.4 which is incompatible.
     ```
 
 ## Running tests
