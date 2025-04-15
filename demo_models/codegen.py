@@ -5,7 +5,6 @@ import time
 import torch_ttnn
 
 
-
 @capture_output
 def generate_code(prompt, max_length=500, num_return_sequences=1, use_ttnn=True, iterations=1):
     model_name = "Salesforce/codegen-350M-mono"

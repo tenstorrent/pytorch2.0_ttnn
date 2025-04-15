@@ -33,6 +33,7 @@ class MnistModel(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
+
 @capture_output
 def classify_mnist(use_ttnn=False, iterations=1):
     print("Loading MNIST dataset...")
@@ -43,7 +44,7 @@ def classify_mnist(use_ttnn=False, iterations=1):
     print("Initializing MnistModel...")
     model = MnistModel()
     for param in model.parameters():
-        param.requires_grad = False # This is necessary to convert to numpy, so the logits can be displayed.
+        param.requires_grad = False  # This is necessary to convert to numpy, so the logits can be displayed.
     model.eval()
     display_image = (image * 0.3081) + 0.1307
     display_image = display_image.clamp(0, 1)

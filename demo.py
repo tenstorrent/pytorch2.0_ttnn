@@ -154,9 +154,7 @@ def main():
                     ttnn_tokens_per_sec = ttnn_total_tokens / ttnn_time if ttnn_time > 0 else float("inf")
                     if test_cpu:
                         cpu_tokens_per_sec = cpu_total_tokens / cpu_time if cpu_time > 0 else float("inf")
-                        speedup = (
-                            ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
-                        )
+                        speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
                         response_with_metrics = (
                             f"{full_response}\n\n"
                             f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
@@ -165,8 +163,7 @@ def main():
                         )
                     else:
                         response_with_metrics = (
-                            f"{full_response}\n\n"
-                            f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}"
+                            f"{full_response}\n\n" f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}"
                         )
                 elif task == "Text Generation with GPT-2":
                     (ttnn_outputs, ttnn_time, ttnn_tokens), ttnn_output = generate_text(
@@ -195,9 +192,7 @@ def main():
                     ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float("inf")
                     if test_cpu:
                         cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float("inf")
-                        speedup = (
-                            ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
-                        )
+                        speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
                         response_with_metrics = (
                             f"{ttnn_outputs[0]}\n\n"
                             f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"
@@ -237,9 +232,7 @@ def main():
                     ttnn_tokens_per_sec = ttnn_tokens / ttnn_time if ttnn_time > 0 else float("inf")
                     if test_cpu:
                         cpu_tokens_per_sec = cpu_tokens / cpu_time if cpu_time > 0 else float("inf")
-                        speedup = (
-                            ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
-                        )
+                        speedup = ttnn_tokens_per_sec / cpu_tokens_per_sec if cpu_tokens_per_sec > 0 else float("inf")
                         response_with_metrics = (
                             f"{ttnn_outputs[0]}\n\n"
                             f"TTNN Time: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}\n"

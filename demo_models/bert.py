@@ -5,6 +5,7 @@ import time
 import torch_ttnn
 import ttnn
 
+
 @capture_output
 def ask_question(context, question, use_ttnn=True, iterations=1):
     model_name = "phiyodr/bert-large-finetuned-squad2"

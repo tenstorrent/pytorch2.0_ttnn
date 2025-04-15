@@ -4,6 +4,7 @@ import io
 import torch_ttnn
 import torch
 
+
 def get_dispatch_core_type():
     return ttnn.device.DispatchCoreType.ETH
 
@@ -18,6 +19,7 @@ def get_dispatch_core_config():
     dispatch_core_config = ttnn.DispatchCoreConfig(dispatch_core_type, dispatch_core_axis)
     return dispatch_core_config
 
+
 def capture_output(func):
     def wrapper(*args, **kwargs):
         old_stdout = sys.stdout
@@ -31,11 +33,14 @@ def capture_output(func):
             return result, output_str
         finally:
             sys.stdout = old_stdout
+
     return wrapper
+
 
 def stream_response(response):
     for char in response:
         yield char
+
 
 def compile_ttnn(model, iterations, inputs, mapping=True):
     print("Opening TTNN device...")
@@ -50,7 +55,8 @@ def compile_ttnn(model, iterations, inputs, mapping=True):
             _ = model(**inputs)
         else:
             _ = model(inputs)
-    return device # This is necessary to make sure device is included in the scope of the model script (So it can be closed in the model script)
+    return device  # This is necessary to make sure device is included in the scope of the model script (So it can be closed in the model script)
+
 
 def compile_ttnn_clm(model, iterations, max_length, inputs):
     print("Opening TTNN device...")
@@ -68,4 +74,4 @@ def compile_ttnn_clm(model, iterations, max_length, inputs):
             num_return_sequences=1,
             do_sample=True,
         )
-    return device # This is necessary to make sure device is included in the scope of the model script (So it can be closed in the model script)
+    return device  # This is necessary to make sure device is included in the scope of the model script (So it can be closed in the model script)
