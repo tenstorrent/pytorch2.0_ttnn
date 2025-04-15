@@ -27,6 +27,7 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
 from .to_tt_guard import can_lowering_to_ttnn
+import operator
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -187,6 +188,11 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 call_func.node.meta["original_input_variations"] = metrics.collect_input_variation(
                     self.old_target, self.old_args, self.old_kwargs
                 )
+            # Related to https://github.com/tenstorrent/tt-metal/issues/16021 
+            # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 
+            # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
+            if target == ttnn.transformer.scaled_dot_product_attention and (val := meta.get("val", None)) is not None:
+                call_func.node.meta["val"] = val[0]
 
         return call_func
 
@@ -376,6 +382,12 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 )
 
             return select(*args[3:])
+
+        # Removes getitem after ttnn.transformer.scaled_dot_product_attention
+        # Related to https://github.com/tenstorrent/tt-metal/issues/16021 
+        if target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
+            if args[0].node.target == ttnn.transformer.scaled_dot_product_attention:
+                return args[0]
 
         return self.call_function_prop_meta(target, args, kwargs)
 
