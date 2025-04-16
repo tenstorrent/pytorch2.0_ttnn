@@ -8,62 +8,56 @@ from torch_ttnn.passes.lowering import target_wrappers
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 
 import math
+import logging
 
 import ttnn
 
 
-class GraphWrapper:
-    def __init__(self, gm, node, device):
-        self.graph = node.graph
-
-    def call_function(self, target, args=(), kwargs={}):
-        new_node = self.graph.call_function(target, args, kwargs)
-        return new_node
-
-    def inserting_before(self, node):
-        return self.graph.inserting_before(node)
-
-    def inserting_after(self, node):
-        return self.graph.inserting_after(node)
-
-
 class MultiDevicePass(PassBase):
+    """Pass to introduce sharding, replication, and concatenation for multi device support.
+
+    This pass is multi-device aware, and will return early if the input device is not a MeshDevice. Currently, this pass will introduce wrappers for sharding, replication, and concatenation that mock the shape changes that will occur with the real operations. This is used to propagate shape info throughout the computation graph. Additionally, this pass rewrites lowered constant arguments for functions that will need to change for multi-device support.
+
+    :param device: The device that was used for compilation. Can be MeshDevice or Device.
+    :param example_inputs: The inputs supplied to compilation, used for shape propagation.
+    """
+
     def __init__(self, device, example_inputs):
         super().__init__()
 
         self.device = device
         self.example_inputs = example_inputs
 
-    def replicate_to_mesh(self, graph_wrapper: GraphWrapper, node):
-        with graph_wrapper.inserting_after(node):
-            new_node = graph_wrapper.call_function(target_wrappers.replicate_tensor, (node,))
+    def replicate_to_mesh(self, node):
+        with node.graph.inserting_after(node):
+            new_node = node.graph.call_function(target_wrappers.replicate_tensor, (node,))
             node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node and node.op != "output")
 
-    def shard_to_mesh(self, graph_wrapper: GraphWrapper, node):
+    def shard_to_mesh(self, node):
         batch_dimension = 0
-        with graph_wrapper.inserting_after(node):
-            new_node = graph_wrapper.call_function(
+        with node.graph.inserting_after(node):
+            new_node = node.graph.call_function(
                 target_wrappers.shard_tensor, (node, batch_dimension, self.device.get_num_devices())
             )
             node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
 
-    def concat_to_tensor(self, graph_wrapper: GraphWrapper, node):
+    def concat_to_tensor(self, node):
         new_arg_list = []
         batch_dimension = 0
-        with graph_wrapper.inserting_before(node):
+        with node.graph.inserting_before(node):
             for arg_node in node.args[0]:
                 # only concat sharded nodes
                 if arg_node.meta.get("is_sharded", False) is False:
                     new_arg = arg_node
                 else:
-                    new_arg = graph_wrapper.call_function(
+                    new_arg = node.graph.call_function(
                         target_wrappers.concat_tensor, (arg_node, batch_dimension, self.device.get_num_devices())
                     )
                 new_arg_list.append(new_arg)
 
-            new_node = graph_wrapper.graph.create_node("output", target="output", args=(new_arg_list,))
+            new_node = node.graph.create_node("output", target="output", args=(new_arg_list,))
             node.replace_all_uses_with(new_node)
-        graph_wrapper.graph.erase_node(node)
+        node.graph.erase_node(node)
 
     def rewrite_const_args(self, node):
         if node.meta.get("is_sharded", False) == False:
@@ -85,29 +79,28 @@ class MultiDevicePass(PassBase):
         node.args = tuple(new_args)
 
     def call(self, graph_module: torch.fx.GraphModule):
-        if not isinstance(self.device, ttnn._ttnn.multi_device.MeshDevice):
+        if isinstance(self.device, ttnn.Device) or self.device.get_num_devices() < 2:
             modified = False
             return PassResult(graph_module, modified)
 
         node_list = list(graph_module.graph.nodes)
         for node in node_list:
-            wrapper = GraphWrapper(graph_module, node, self.device)
             if node.op == "placeholder":
                 try:
                     if (node.meta["primal_tag"] == PrimalTag.PARAMETER) or (
                         node.meta["primal_tag"] == PrimalTag.BUFFER
                     ):
-                        self.replicate_to_mesh(wrapper, node)
+                        self.replicate_to_mesh(node)
                     elif node.meta["primal_tag"] == PrimalTag.ARGUMENT:
-                        self.shard_to_mesh(wrapper, node)
+                        self.shard_to_mesh(node)
                 except Exception as e:
-                    print(f"Warning: Could not distribute node {node.name}: {e}")
+                    logging.error(f"Could not distribute node {node.name}: {e}")
 
             elif node.op == "output":
                 try:
-                    self.concat_to_tensor(wrapper, node)
+                    self.concat_to_tensor(node)
                 except Exception as e:
-                    print(f"Warning: Could not concat node {node.name}: {e}")
+                    logging.error(f"Could not concat node {node.name}: {e}")
 
             elif node.op == "call_function":
                 if node.target == torch.ops.aten.view.default:

@@ -67,6 +67,7 @@ def device(request):
     dispatch_core_config = get_dispatch_core_config()
 
     if request.config.getoption("--data_parallel"):
+        # TODO: allow user to specify how to split model (data parallel vs tensor parallel)
         device = ttnn.open_mesh_device(
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )

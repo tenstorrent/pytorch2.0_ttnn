@@ -35,7 +35,7 @@ class MultiDeviceShardAnalysisPass(PassBase):
         self.device = device
 
     def call(self, gm: torch.fx.GraphModule):
-        if not isinstance(self.device, ttnn._ttnn.multi_device.MeshDevice):
+        if isinstance(self.device, ttnn.Device) or self.device.get_num_devices() < 2:
             modified = False
             return PassResult(gm, modified)
 
@@ -45,7 +45,7 @@ class MultiDeviceShardAnalysisPass(PassBase):
                 shard_dim = 0
                 concat_size = node.meta["val"].shape[shard_dim]
 
-                # TODO: remove limitation that sharded dimension size is multiple of batch size
+                # TODO: remove limitation that tensor size in sharded dimension is divisible by number of devices in mesh
                 if concat_size % self.device.get_num_devices() != 0:
                     raise RuntimeError(
                         "Data Parallel runs currently only support sharding dimensions that are multiples of the number of devices"

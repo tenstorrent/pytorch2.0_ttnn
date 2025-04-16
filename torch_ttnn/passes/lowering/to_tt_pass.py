@@ -560,9 +560,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == target_wrappers.replicate_tensor:
-                spec_dtype = TtnnBfloat16()
                 if get_dtype(node.args[0]) in [torch.int32, torch.int64]:
                     spec_dtype = TtnnUint32()
+                else:
+                    spec_dtype = TtnnBfloat16()
+
                 rep = g.call_function(ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),))
                 return g.call_function(
                     ttnn.from_torch,
@@ -1398,6 +1400,14 @@ def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphMo
 
 
 class ToTtPass(PassBase):
+    """Pass to convert aten ops to ttnn ops.
+
+    This pass is currently multi-device aware since it rewrites the shard / replicate / concat operations inserted by the MultiDevicePass. Some aten to ttnn conversions are performed with the torch.fx.Transformer, while others are manually rewritten.
+
+    :param device: The device on which the workflow will execute. Can be a MeshDevice or Device.
+    :param use_less_ttnn_op_types: Whether to use less ttnn op types (maybe unused).
+    """
+
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types

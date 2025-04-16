@@ -517,6 +517,13 @@ class NodeInputAligner:
 
 
 class AddDataMovePass(PassBase):
+    """Pass that adds instructions to move data between host and device and align tensor dtype and layout.
+
+    This pass is multi-device aware, since it must marshal tensors differently in the multi-device case. This pass attempts to introduce the minimum amount of operations while maintaining correctness and performance.
+
+    :param device: The device on which a workload will run (either a MeshDevice or Device).
+    """
+
     def __init__(self, device):
         self.device = device
 

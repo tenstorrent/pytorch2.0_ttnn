@@ -24,20 +24,6 @@ def pack_to_tuple(*args):
 
 
 @torch.fx.wrap
-def from_device(device_tensor):
-    if device_tensor.storage_type() == ttnn.StorageType.MULTI_DEVICE:
-        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
-    return ttnn.from_device(device_tensor)
-
-
-@torch.fx.wrap
-def to_device(device_tensor, device=None):
-    if device_tensor.storage_type() == ttnn.StorageType.MULTI_DEVICE:
-        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
-    return ttnn.to_device(device_tensor, device=device)
-
-
-@torch.fx.wrap
 def move_to_host(device_tensor, layout):
     if device_tensor.storage_type() == ttnn.StorageType.MULTI_DEVICE:
         device_tensor = ttnn.get_device_tensors(device_tensor)[0]

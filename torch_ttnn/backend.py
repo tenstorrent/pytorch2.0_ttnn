@@ -144,17 +144,6 @@ def aten_backend(
     from torch_ttnn.passes.analysis.input_analysis_pass import InputAnalysisPass
     from torch_ttnn.passes.analysis.multi_device_shard_analysis_pass import MultiDeviceShardAnalysisPass
 
-    passes = [
-        InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
-        MultiDeviceShardAnalysisPass(option.device),
-    ]
-    pm = PassManager(passes=passes)
-    gm, modified = pm(gm)
-
-    if modified:
-        gm.graph.lint()
-        gm.recompile()
-
     # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
     from torch_ttnn.passes.multi_device_pass import MultiDevicePass
@@ -167,6 +156,8 @@ def aten_backend(
     from torch_ttnn.passes.memory_pass import MemoryPass
 
     passes = [
+        InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
+        MultiDeviceShardAnalysisPass(option.device),
         ConstantFoldingPass(),
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
