@@ -76,8 +76,8 @@ jobs:
       - name: Upload Accuracy Tests Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: autogen-accuracy-tests-group-${{ matrix.group }}
-          path: tests/autogen_accuracy_tests/
+          name: export-accuracy-tests-group-${{ matrix.group }}
+          path: tests/export_code/accuracy/
 
   gen-model-accuracy:
     needs: [model-tests]
@@ -101,15 +101,15 @@ jobs:
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: autogen-accuracy-tests-group-*
+          pattern: export-accuracy-tests-group-*
           merge-multiple: true
-          path: tests/autogen_accuracy_tests/
+          path: tests/export_code/accuracy/
 
       - name: Calculate Number of Groups
         id: calculate-groups
         run: |
           # Count the number of test files
-          num_groups=$(find tests/autogen_accuracy_tests -type f -name "*.py" | wc -l)
+          num_groups=$(find tests/export_code/accuracy -type f -name "*.py" | wc -l)
           # Ensure at least 1 group
           num_groups=$((num_groups > 0 ? num_groups : 1))
           # Generate the list of groups as JSON
@@ -147,13 +147,14 @@ jobs:
       - name: Download Accuracy Tests Artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: autogen-accuracy-tests-group-*
-          path: tests/autogen_accuracy_tests/
+          pattern: export-accuracy-tests-group-*
+          path: tests/export_code/accuracy/
 
       - name: Run Accuracy Tests
         run: |
-          cd tests/autogen_accuracy_tests
+          cd tests/export_code/accuracy
           test_file=$(find . -type f -name "*.py" | sed -n "${{ matrix.group }}p")
+          echo "$test_file"
           python3 $test_file -s
           exit_code=$?
           if [ $exit_code -ne 0 ]; then

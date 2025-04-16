@@ -23,7 +23,7 @@ runs:
         else
           num_iterations=5
         fi
-        python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --gen_op_accuracy_tests --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
+        python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
         exit_code=$?  # Capture the exit code
         if [ $exit_code -eq 5 ]; then
           if [ ${{ matrix.group }} -eq 0 ]; then
