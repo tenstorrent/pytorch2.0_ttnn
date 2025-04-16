@@ -68,6 +68,8 @@ def device():
 
     device = ttnn.open_device(device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=16384)
 
+    ttnn.enable_program_cache(device)
+
     ttnn.SetDefaultDevice(device)
 
     yield device
