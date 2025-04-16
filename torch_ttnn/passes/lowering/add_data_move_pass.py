@@ -285,7 +285,7 @@ class NodeInputAligner:
     @dataclass(unsafe_hash=True)
     class AlignSpecInTtnn:
         input_node: torch.fx.node.Node
-        device: Union[None, Type[TtnnDevice], Literal["host"], Literal["temp_host_layout"]]
+        device: Union[None, Type[TtnnDevice], Literal["host"]]
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
@@ -376,10 +376,6 @@ class NodeInputAligner:
             spec = self.AlignSpecInTtnn(input_node, None, None, None)
             spec = self._reset_to_default_layout(input_node, spec)
             spec = self._align_special_cases(node, spec, input_site, input_site_type)
-            # tilize fails on device for uint32 inputs
-            # TODO: remove this once tilize works in this case
-            if spec.layout == TtnnTileLayout and get_dtype(input_node) in [torch.int32, torch.int64]:
-                spec.device = "temp_host_layout"
 
             if spec.device is None and spec.layout is None and spec.dtype is None:
                 return None
@@ -388,9 +384,9 @@ class NodeInputAligner:
             return None
 
     def _change_layout(self, spec):
-        need_from_device = spec.device in ["host", "temp_host_layout"]
+        need_from_device = spec.device in ["host"]
         need_to_layout = spec.layout is not None
-        need_to_device = spec.device in [TtnnDevice, "temp_host_layout"]
+        need_to_device = spec.device in [TtnnDevice]
 
         input_node = spec.input_node
 
