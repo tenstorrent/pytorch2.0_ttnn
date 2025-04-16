@@ -72,6 +72,8 @@ def device(request):
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
 
+        device.enable_program_cache()
+
         yield device
 
         ttnn.synchronize_device(device)
@@ -82,6 +84,8 @@ def device(request):
         device = ttnn.open_device(
             device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
+
+        ttnn.enable_program_cache(device)
 
         ttnn.SetDefaultDevice(device)
 
