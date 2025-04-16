@@ -36,12 +36,10 @@ class MnistModel(nn.Module):
 
 @capture_output
 def classify_mnist(use_ttnn=False, iterations=1):
-    print("Loading MNIST dataset...")
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
     mnist_test = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
     image, label = mnist_test[0]
     input_tensor = image.unsqueeze(0)
-    print("Initializing MnistModel...")
     model = MnistModel()
     for param in model.parameters():
         param.requires_grad = False  # This is necessary to convert to numpy, so the logits can be displayed.
@@ -51,16 +49,11 @@ def classify_mnist(use_ttnn=False, iterations=1):
     st.image(display_image.squeeze().numpy(), caption=f"Sample MNIST Digit (Label: {label})", width=100)
     if use_ttnn:
         device = compile_ttnn(model, iterations, input_tensor, mapping=False)
-    start_time = time.time()
-    logits = model(input_tensor)
-    end_time = time.time()
-    inference_time = end_time - start_time
+    inference_time, logits = get_inference_latency(model, input_tensor, mapping=False)
     probabilities = torch.exp(logits)
     confidence, predicted_idx = torch.max(probabilities, 1)
     predicted_label = predicted_idx.item()
     confidence_score = confidence.item() * 100
-    print(f"Prediction: {predicted_label}, Confidence: {confidence_score:.2f}% after {iterations} iterations")
     if use_ttnn:
         ttnn.close_device(device)
-        print("TTNN device closed.")
     return logits, predicted_label, confidence_score, inference_time

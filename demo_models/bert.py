@@ -9,10 +9,8 @@ import ttnn
 @capture_output
 def ask_question(context, question, use_ttnn=True, iterations=1):
     model_name = "phiyodr/bert-large-finetuned-squad2"
-    print(f"Loading tokenizer and model: {model_name}...")
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
     model = AutoModelForQuestionAnswering.from_pretrained(model_name, torch_dtype=torch.bfloat16)
-    print("Encoding inputs...")
     inputs = tokenizer.encode_plus(
         question,
         context,
@@ -25,10 +23,7 @@ def ask_question(context, question, use_ttnn=True, iterations=1):
     total_token_count = inputs["input_ids"].ne(tokenizer.pad_token_id).sum().item()  # Count non-padding tokens
     if use_ttnn:
         device = compile_ttnn(model, iterations, inputs)
-    start_time = time.time()
-    outputs = model(**inputs)
-    end_time = time.time()
-    inference_time = end_time - start_time
+    inference_time, outputs = get_inference_latency(model, inputs)
 
     def decode_output(outputs):
         response_start = torch.argmax(outputs.start_logits)
@@ -37,9 +32,6 @@ def ask_question(context, question, use_ttnn=True, iterations=1):
         return tokenizer.decode(response_tokens)
 
     answer = decode_output(outputs)
-    print(f"Answer: {answer}")
-    print(f"Total tokens (context + question): {total_token_count}")
     if use_ttnn:
         ttnn.close_device(device)
-        print("TTNN device closed.")
     return answer, inference_time, total_token_count

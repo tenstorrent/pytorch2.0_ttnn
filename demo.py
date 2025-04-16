@@ -5,6 +5,8 @@ import io
 import sys
 from demo_models import *
 
+MAX_GENERATION_LENGTH = 512
+
 
 def main():
     st.title("Compiler Performance Benchmark (models)")
@@ -167,11 +169,19 @@ def main():
                         )
                 elif task == "Text Generation with GPT-2":
                     (ttnn_outputs, ttnn_time, ttnn_tokens), ttnn_output = generate_text(
-                        prompt, max_length=500, num_return_sequences=2, use_ttnn=True, iterations=iterations
+                        prompt,
+                        max_length=MAX_GENERATION_LENGTH,
+                        num_return_sequences=2,
+                        use_ttnn=True,
+                        iterations=iterations,
                     )
                     if test_cpu:
                         (cpu_outputs, cpu_time, cpu_tokens), cpu_output = generate_text(
-                            prompt, max_length=500, num_return_sequences=2, use_ttnn=False, iterations=iterations
+                            prompt,
+                            max_length=MAX_GENERATION_LENGTH,
+                            num_return_sequences=2,
+                            use_ttnn=False,
+                            iterations=iterations,
                         )
                     for chunk in stream_response(ttnn_outputs[0]):
                         full_response += chunk
@@ -206,11 +216,19 @@ def main():
                         )
                 elif task == "Code Generation with CodeGen":
                     (ttnn_outputs, ttnn_time, ttnn_tokens), ttnn_output = generate_code(
-                        prompt, max_length=500, num_return_sequences=1, use_ttnn=True, iterations=iterations
+                        prompt,
+                        max_length=MAX_GENERATION_LENGTH,
+                        num_return_sequences=1,
+                        use_ttnn=True,
+                        iterations=iterations,
                     )
                     if test_cpu:
                         (cpu_outputs, cpu_time, cpu_tokens), cpu_output = generate_code(
-                            prompt, max_length=500, num_return_sequences=1, use_ttnn=False, iterations=iterations
+                            prompt,
+                            max_length=MAX_GENERATION_LENGTH,
+                            num_return_sequences=1,
+                            use_ttnn=False,
+                            iterations=iterations,
                         )
                     for chunk in stream_response(ttnn_outputs[0]):
                         full_response += chunk
