@@ -37,10 +37,10 @@ class ThisTester(ModelTester):
 
 model_info_and_mode_list = [
     [("googlenet", "GoogLeNet_Weights"), "eval"],
-    [("densenet121", "DenseNet121_Weights"), "eval"],
-    [("densenet161", "DenseNet161_Weights"), "eval"],
-    [("densenet169", "DenseNet169_Weights"), "eval"],
-    [("densenet201", "DenseNet201_Weights"), "eval"],
+    pytest.param([("densenet121", "DenseNet121_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
+    pytest.param([("densenet161", "DenseNet161_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
+    pytest.param([("densenet169", "DenseNet169_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
+    pytest.param([("densenet201", "DenseNet201_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param([("mobilenet_v2", "MobileNet_V2_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(
         [("mobilenet_v3_small", "MobileNet_V3_Small_Weights"), "eval"], marks=pytest.mark.converted_end_to_end
