@@ -1079,6 +1079,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 count_include_pad = params.get("count_include_pad", True)
                 divisor_override = params.get("divisor_override", None)
 
+                dilation = [0, 0]
+
                 if ceil_mode or not count_include_pad or divisor_override is not None:
                     return None
                 input_tensor = insert_ncx_to_nxc(g, input_tensor)
@@ -1095,12 +1097,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         kernel_size,
                         stride,
                         padding,
+                        dilation,
                     ),
                     (
                         {
                             "ceil_mode": ceil_mode,
-                            "count_include_pad": count_include_pad,
-                            "divisor_override": divisor_override,
                         }
                     ),
                 )

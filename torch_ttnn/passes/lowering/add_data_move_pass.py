@@ -159,6 +159,7 @@ TTNN_NORM_OPS = [
 
 TTNN_POOL_OPS = [
     ttnn.max_pool2d,
+    ttnn.avg_pool2d,
 ]
 
 TTNN_ROW_LAYOUT_OPS = set(
@@ -296,7 +297,10 @@ class NodeInputAligner:
             spec.layout = TtnnTileLayout
 
         # re-tilize max_pool2d after sharded_to_interleaved call - may be able to remove after #418
-        if input_node.target == ttnn.sharded_to_interleaved and input_node.args[0].target == ttnn.max_pool2d:
+        if input_node.target == ttnn.sharded_to_interleaved and input_node.args[0].target in [
+            ttnn.max_pool2d,
+            ttnn.avg_pool2d,
+        ]:
             spec.layout = TtnnTileLayout
 
         # be overly cautious and convert to tile layout. These could already be tilized
