@@ -42,6 +42,7 @@ def pytest_addoption(parser):
         help="Run up to the specified iteration count and report metrics based on this iteration.",
     )
     parser.addoption("--gen_op_accuracy_tests", action="store_true")
+    parser.addoption("--data_parallel", action="store_true")
 
 
 @pytest.fixture(scope="session")
@@ -60,20 +61,34 @@ def input_var_check_ttnn(request):
 
 
 @pytest.fixture(scope="session")
-def device():
+def device(request):
     # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined
-    device_id = 0
     l1_small_size = 16384
     dispatch_core_config = get_dispatch_core_config()
 
-    device = ttnn.open_device(device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=16384)
+    if request.config.getoption("--data_parallel"):
+        # TODO: allow user to specify how to split model (data parallel vs tensor parallel)
+        device = ttnn.open_mesh_device(
+            ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
+        )
 
-    ttnn.SetDefaultDevice(device)
+        yield device
 
-    yield device
+        ttnn.synchronize_device(device)
+        ttnn.close_mesh_device(device)
+    else:
+        device_id = 0
 
-    ttnn.synchronize_device(device)
-    ttnn.close_device(device)
+        device = ttnn.open_device(
+            device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
+        )
+
+        ttnn.SetDefaultDevice(device)
+
+        yield device
+
+        ttnn.synchronize_device(device)
+        ttnn.close_device(device)
 
 
 def get_dispatch_core_type():
@@ -208,6 +223,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 metrics_path=model_name,
                 verbose=True,
                 gen_op_accuracy_tests=request.config.getoption("--gen_op_accuracy_tests"),
+                data_parallel=request.config.getoption("--data_parallel"),
             )
 
             for idx in range(int(request.config.getoption("--report_nth_iteration"))):
