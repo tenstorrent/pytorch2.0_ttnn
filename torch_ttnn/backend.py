@@ -13,6 +13,7 @@ import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
+from torch_ttnn.utils import GraphCleanup
 import copy
 
 torch._dynamo.config.suppress_errors = False
@@ -193,8 +194,7 @@ def aten_backend(
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
-    gm.graph.lint()
-    gm.recompile()
+    GraphCleanup(gm)
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
@@ -230,8 +230,7 @@ def aten_backend(
             pm = PassManager(passes=passes)
             gm, modified = pm(gm)
 
-            gm.graph.lint()
-            gm.recompile()
+            GraphCleanup(gm)
 
             # Get the memory manager object for memory analysis
             option.memory_manager = mem_pass.mm
