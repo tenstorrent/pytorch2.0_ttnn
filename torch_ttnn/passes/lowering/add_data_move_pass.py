@@ -150,6 +150,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.roll,
     target_wrappers.stack,
     target_wrappers.all,
+    target_wrappers.concat_tensor,
 ]
 
 TTNN_NORM_OPS = [
@@ -394,11 +395,22 @@ class NodeInputAligner:
 
         input_node = spec.input_node
 
-        if need_from_device:
-            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
+        # TODO: always layout on device once that is supported (once tilize uint32 works on device)
+        layout_on_host = spec.device == "temp_host_layout"
+        if layout_on_host:
+            # temp_host_layout means we must layout on host
+            if need_from_device:
+                input_node = self.graph.call_function(ttnn.from_device, (input_node,))
 
-        if need_to_layout:
-            input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+            if need_to_layout:
+                input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+        else:
+            # mesh device tensors need layout on device
+            if need_to_layout:
+                input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+
+            if need_from_device:
+                input_node = self.graph.call_function(ttnn.from_device, (input_node,))
 
         if need_to_device:
             input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
@@ -410,6 +422,12 @@ class NodeInputAligner:
             kwargs = {}
             if spec.device is not None and spec.device != "host":
                 kwargs["device"] = spec.device()
+                if spec.input_node.meta.get("is_sharded"):
+                    batch_dimension = 0
+                    sharder = self.graph.call_function(
+                        ttnn.ShardTensorToMesh, args=(spec.device(),), kwargs={"dim": batch_dimension}
+                    )
+                    kwargs["mesh_mapper"] = sharder
             if spec.layout is not None:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
@@ -417,7 +435,16 @@ class NodeInputAligner:
             return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
-            return self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
+            if spec.input_node.meta.get("is_sharded"):
+                batch_dimension = 0
+                composer = self.graph.call_function(
+                    ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": batch_dimension}
+                )
+                return self.graph.call_function(
+                    ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype, "mesh_composer": composer}
+                )
+            else:
+                return self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
 
         elif isinstance(spec, self.AlignSpecInTtnn):
             return self._change_layout(spec)
@@ -490,6 +517,13 @@ class NodeInputAligner:
 
 
 class AddDataMovePass(PassBase):
+    """Pass that adds instructions to move data between host and device and align tensor dtype and layout.
+
+    This pass is multi-device aware, since it must marshal tensors differently in the multi-device case. This pass attempts to introduce the minimum amount of operations while maintaining correctness and performance.
+
+    :param device: The device on which a workload will run (either a MeshDevice or Device).
+    """
+
     def __init__(self, device):
         self.device = device
 
