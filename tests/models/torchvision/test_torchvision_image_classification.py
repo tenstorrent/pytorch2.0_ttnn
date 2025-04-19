@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 from torchvision import models, transforms
+import pandas as pd
+import numpy as np
+import os
+import random
+import ttnn
+import torch_ttnn
 from PIL import Image
 import torch
 import requests
@@ -111,3 +117,121 @@ def test_torchvision_image_classification(record_property, model_info_and_mode):
         print(f"Model: {model_name} | Top 5 predictions: {indices[0].tolist()}")
 
     record_property("torch_ttnn", (tester, results))
+    
+    
+class ImageClassificationDataset(torch.utils.data.Dataset):
+    
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        
+        self.data = []
+        self.labels = []
+
+        name_to_label_file_path = kagglehub.dataset_download("tusonggao/imagenet-labels")
+        synset_to_name_file_path = os.path.join(root_dir, "words.txt")
+        
+        with open(os.path.join(name_to_label_file_path, "imagenet_labels.json"), 'r') as file:
+            json_data = json.load(file)
+            
+        name_to_label_mapping = {label:int(idx) for idx, label in json_data.items()}
+        synset_to_name_mapping = {}
+        
+        with open(synset_to_name_file_path, 'r') as file:
+            for line in file:
+                line = line.strip()
+                synset, name = line.split("\t")
+                synset_to_name_mapping[synset] = name
+        
+        synsets = sorted(os.listdir(os.path.join(root_dir, 'train')))
+        
+        for synset in synsets:
+            synset_dir = os.path.join(root_dir, 'train', synset, 'images')
+            for img_name in os.listdir(synset_dir):
+                self.data.append(os.path.join(synset_dir, img_name))
+                name = synset_to_name_mapping[synset]
+                label = name_to_label_mapping[name]
+                self.labels.append(label)
+            
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        img_path = self.data[idx]
+        image = Image.open(img_path).convert('RGB')
+        label = self.labels[idx]
+        
+        if self.transform:
+            image = self.transform(image).to(torch.bfloat16)
+        
+        return image, label
+            
+            
+from torch.utils.data import DataLoader, Subset
+from tqdm import tqdm  
+import kagglehub
+import json
+
+def evaluate_torchvision_image_classification():
+    random.seed(0)
+    torch.manual_seed(0)
+    
+    # Load model and weights
+    model_name, weights_name = "vgg13", "VGG13_Weights"
+    weights = getattr(models, weights_name).DEFAULT
+    model = models.get_model(model_name, weights=weights).to(torch.bfloat16)
+
+    # Prepare dataset
+    path = kagglehub.dataset_download("akash2sharma/tiny-imagenet")
+    dataset_dir = os.path.join(path, 'tiny-imagenet-200')
+    print("Path to dataset files:", dataset_dir)
+
+    dataset = ImageClassificationDataset(dataset_dir, transform=weights.transforms())
+
+    num_samples = 1000
+    indices = list(range(len(dataset)))
+    random.shuffle(indices)
+    subset = Subset(dataset, indices[:num_samples])
+    
+    dataloader = DataLoader(subset, batch_size=1, shuffle=False)
+
+    # Run inference with progress bar
+    model.eval()
+    
+    ground_truths = []
+    preds = []
+    with torch.no_grad():
+        for inputs, ground_truth in tqdm(dataloader, desc="Running Inference"):
+            outputs = model(inputs)
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            pred = torch.argmax(probabilities, dim=1).item()
+            ground_truths.append(ground_truth)
+            preds.append(pred)
+
+    accuracy = sum(gt == pred for gt, pred in zip(ground_truth, preds)) / len(ground_truth)
+    print(f"Accuracy: {accuracy:.4f}")
+    
+    device = ttnn.open_device(device_id=0)
+    option = torch_ttnn.TorchTtnnOption(device=self.device)
+    ttnn_model = torch.compile(model, backend=torch_ttnn.backend, options=option)
+            
+    ground_truths = []
+    preds = []
+    with torch.no_grad():
+        for inputs, ground_truth in tqdm(dataloader, desc="Running Inference"):
+            outputs = ttnn_model(inputs)
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            pred = torch.argmax(probabilities, dim=1).item()
+            ground_truths.append(ground_truths)
+            preds.append(pred)
+
+    accuracy = sum(gt == pred for gt, pred in zip(ground_truth, preds)) / len(ground_truth)
+    print(f"Accuracy: {accuracy:.4f}")
+    
+    ttnn.close_device(device)
+
+
+if __name__ == "__main__":
+    evaluate_torchvision_image_classification()
+    
+    
