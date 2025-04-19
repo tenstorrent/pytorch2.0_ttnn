@@ -149,6 +149,54 @@ class ModelTester:
             raise ValueError(f"Current mode is not supported: {self.mode}")
 
 
+class ImageClassificationDataset(torch.utils.data.Dataset):
+    
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        
+        self.data = []
+        self.labels = []
+
+        name_to_label_file_path = kagglehub.dataset_download("tusonggao/imagenet-labels")
+        synset_to_name_file_path = os.path.join(root_dir, "words.txt")
+        
+        with open(os.path.join(name_to_label_file_path, "imagenet_labels.json"), 'r') as file:
+            json_data = json.load(file)
+            
+        name_to_label_mapping = {label:int(idx) for idx, label in json_data.items()}
+        synset_to_name_mapping = {}
+        
+        with open(synset_to_name_file_path, 'r') as file:
+            for line in file:
+                line = line.strip()
+                synset, name = line.split("\t")
+                synset_to_name_mapping[synset] = name
+        
+        synsets = sorted(os.listdir(os.path.join(root_dir, 'train')))
+        
+        for synset in synsets:
+            synset_dir = os.path.join(root_dir, 'train', synset, 'images')
+            for img_name in os.listdir(synset_dir):
+                self.data.append(os.path.join(synset_dir, img_name))
+                name = synset_to_name_mapping[synset]
+                label = name_to_label_mapping[name]
+                self.labels.append(label)
+            
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        img_path = self.data[idx]
+        image = Image.open(img_path).convert('RGB')
+        label = self.labels[idx]
+        
+        if self.transform:
+            image = self.transform(image).to(torch.bfloat16)
+        
+        return image, label
+
+
 def get_absolute_cache_path(path_relative_to_cache):
     # convenience method to use NFS if available
     nfs_cache_base = "/mnt/tt-metal-pytorch-cache/.cache"
