@@ -8,7 +8,7 @@ Fetch repo and install dependencies
 git clone https://github.com/tenstorrent/tt-metal.git
 cd tt-metal
 sudo ./install_dependencies.sh
-git submodule foreach 'git lfs fetch --all && git lfs pull'
+git submodule update --init --recursive
 ```
 setup env
 ```console

@@ -17,7 +17,6 @@ class ArgmaxModule(torch.nn.Module):
         return torch.argmax(input, dim=dim)
 
 
-@pytest.mark.xfail(reason="argmax issues (#605)")
 @pytest.mark.parametrize(
     "input_shapes, dim",
     [
