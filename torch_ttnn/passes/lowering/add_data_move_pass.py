@@ -263,6 +263,11 @@ class NodeInputAligner:
         self.device = device
         self.aligned_node_dict = {}
 
+        # fields for data parallel
+        self.shard_to_mesh = dict()
+        self.replicate_to_mesh = None
+        self.concat_to_mesh = dict()
+
     class InputSiteType(Enum):
         ARGS = 1
         KWARGS = 2
@@ -421,34 +426,50 @@ class NodeInputAligner:
             args = (spec.input_node,)
             if spec.device is not None and spec.device != "host":
                 kwargs["device"] = spec.device()
-                if isinstance(self.device, ttnn.MeshDevice) and self.device.get_num_devices() > 1:
-                    # A bit tricky: here we actually end up replacing the input_node with its equivalent from_torch call by accessing its arguments. Sharding and replicating are determined by the wrapper name
-                    if spec.input_node.target == target_wrappers.shard_tensor:
-                        actual_inp_node, shard_dim, _ = spec.input_node.args
-                        mesh_mapper = self.graph.call_function(
-                            ttnn.ShardTensorToMesh, args=(spec.device(),), kwargs={"dim": shard_dim}
-                        )
-                        args = (actual_inp_node,)
-                    else:
-                        mesh_mapper = self.graph.call_function(ttnn.ReplicateTensorToMesh, args=(spec.device(),))
-                        args = spec.input_node.args
-                    kwargs["mesh_mapper"] = mesh_mapper
             if spec.layout is not None:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent from_torch call by accessing its arguments. Sharding and replicating are determined by the wrapper name
+            if isinstance(self.device, ttnn.MeshDevice) and self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.shard_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.shard_to_mesh.get(shard_dim) is None:
+                        self.shard_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    mesh_mapper = self.shard_to_mesh[shard_dim]
+                    args = (actual_inp_node,)
+                else:
+                    if self.replicate_to_mesh is None:
+                        self.replicate_to_mesh = self.graph.call_function(
+                            ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),)
+                        )
+
+                    mesh_mapper = self.replicate_to_mesh
+                    args = spec.input_node.args
+                kwargs["mesh_mapper"] = mesh_mapper
+
             return self.graph.call_function(ttnn.from_torch, args, kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
             kwargs = {"dtype": spec.dtype}
             args = (spec.input_node,)
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent to_torch call by accessing its arguments
             if isinstance(self.device, ttnn.MeshDevice) and self.device.get_num_devices() > 1:
                 if spec.input_node.target == target_wrappers.concat_tensor:
-                    # A bit tricky: here we actually end up replacing the input_node with its equivalent to_torch call by accessing its arguments
                     actual_inp_node, shard_dim, _ = spec.input_node.args
-                    composer = self.graph.call_function(
-                        ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
-                    )
+
+                    if self.concat_to_mesh.get(shard_dim) is None:
+                        self.concat_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    composer = self.concat_to_mesh[shard_dim]
                     kwargs["mesh_composer"] = composer
                     args = (actual_inp_node,)
 
