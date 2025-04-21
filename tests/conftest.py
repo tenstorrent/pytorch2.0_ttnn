@@ -70,7 +70,8 @@ def device(request):
         device = ttnn.open_mesh_device(
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
-        device.enable_async(True)
+        device.enable_program_cache()
+        # device.enable_async(True)
 
         yield device
 
