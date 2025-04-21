@@ -9,6 +9,9 @@ from os import path, makedirs
 from collections.abc import Mapping, Sequence
 from typing import List, Dict, Tuple
 
+from collections import OrderedDict
+import torch.nn as nn
+
 
 class ModelTester:
     def __init__(self, model_name, mode):
@@ -18,6 +21,9 @@ class ModelTester:
         self.mode = mode
         self.model = self._load_model()
         self.inputs = self._load_inputs()
+        
+    def set_postprocessing_steps(self, model_name, mode, outputs):
+        self.postprocessing = None
 
     def _load_model(self):
         raise NotImplementedError("This method should be implemented in the derived class")
@@ -40,7 +46,8 @@ class ModelTester:
         return model
 
     def set_model_eval(self, model):
-        model.eval()
+        if isinstance(model, torch.nn.Module):
+            model.eval()
         return model
 
     def set_inputs_train(self, inputs):
@@ -147,7 +154,7 @@ class ModelTester:
             return self.test_model_eval(as_ttnn, option)
         else:
             raise ValueError(f"Current mode is not supported: {self.mode}")
-
+        
 
 def get_absolute_cache_path(path_relative_to_cache):
     # convenience method to use NFS if available

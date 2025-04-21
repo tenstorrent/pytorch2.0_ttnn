@@ -1103,6 +1103,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return batch_norm_inference(*args)
 
             if node.target == torch.ops.aten.convolution.default:
+                return None
                 params = map_args_to_kwargs(
                     args,
                     (
