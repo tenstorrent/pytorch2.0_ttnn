@@ -20,9 +20,9 @@
 | 16 | aten.view.default                                |                 12 |          12 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._scaled_dot_product_flash_attention.default
-|    | ATen Input Variations                                                                                       | Status   | Isolated   |      PCC |   Host |
-|---:|:------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 12, 50, 64]> query = ?,<br>Tensor<[1, 12, 50, 64]> key = ?,<br>Tensor<[1, 12, 50, 64]> value = ? | None     | Fallback   | 0.857143 |      0 |
+|    | ATen Input Variations                                                                                       | Status   | Isolated   | PCC   |   Host |
+|---:|:------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|-------:|
+|  0 | Tensor<[1, 12, 50, 64]> query = ?,<br>Tensor<[1, 12, 50, 64]> key = ?,<br>Tensor<[1, 12, 50, 64]> value = ? | None     | Fallback   | N/A   |      0 |
 ### aten.add.Tensor
 |    | ATen Input Variations                                            | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|---------:|-------:|
@@ -30,7 +30,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                   | Status   | Isolated   |      PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1000]> mat2 = ?  | Done     | Done       | 0.999965 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 1000]> mat2 = ?  | Done     | Done       | 0.999966 |      0 |
 |  1 | Tensor<[2304]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 2304]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
 |  2 | Tensor<[3072]> self = ?,<br>Tensor<[50, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
 |  3 | Tensor<[768]> self = ?,<br>Tensor<[50, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | 0.999943 |      0 |
