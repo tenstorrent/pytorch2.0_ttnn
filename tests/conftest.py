@@ -141,6 +141,13 @@ def skip_by_platform(request, device):
 
 
 @pytest.fixture(autouse=True)
+def reset_program_cache(device):
+    # TODO: delete this fixture when program cache can be left on between tests
+    ttnn.disable_and_clear_program_cache(device)
+    ttnn.enable_program_cache(device)
+
+
+@pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
     start_ts = datetime.datetime.now(datetime.timezone.utc)
     logging.info("Starting the compile_and_run fixture.")
