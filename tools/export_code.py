@@ -15,6 +15,7 @@ from pathlib import Path
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
 from tests.conftest import get_dispatch_core_type, get_dispatch_core_axis, get_dispatch_core_config
 from torch_ttnn.utils import get_opname, users_have_getitem, is_operation
+from typing import Dict, List
 
 wrapper_funcs = set()
 rename_wrappers = set()
@@ -298,6 +299,37 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
             if not opname.startswith("aten.") and not opname.startswith("ttnn."):
                 node._rename(f"ttnn_prefix_{node.name}")
 
+    from torch.fx.node import Node, map_arg
+
+    node_to_last_use: Dict[Node, Node] = {}
+    user_to_last_uses: Dict[Node, List[Node]] = {}
+
+    def register_last_uses(n: Node, user: Node):
+        if n not in node_to_last_use:
+            node_to_last_use[n] = user
+            user_to_last_uses.setdefault(user, []).append(n)
+
+    for node in reversed(ttnn_graph.nodes):
+        map_arg(node.args, lambda n: register_last_uses(n, node))
+        map_arg(node.kwargs, lambda n: register_last_uses(n, node))
+
+    def will_delete_unused_values(user: Node):
+        """
+        Delete values after their last use. This ensures that values that are
+        not used in the remainder of the code are freed and the memory usage
+        of the code is optimal.
+        """
+        if user.op == "placeholder":
+            return ""
+        if user.op == "output":
+            return ""
+        nodes_to_delete = user_to_last_uses.get(user, [])
+        if len(nodes_to_delete):
+            to_delete_str = " = ".join([repr(n) for n in nodes_to_delete] + ["None"])
+            return to_delete_str
+        else:
+            return ""
+
     """
     Gather together all the aten nodes and argument (placeholder) nodes into one list.
     Rename some input arguments to match names due to graph breakage. 
@@ -373,6 +405,8 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
                 graph_code.append(_get_indent(1) + f'print(f"{forward_func_name} accuracy: {{accuracy}}")')
 
             graph_code.append(_get_indent(1) + f"{_node_to_python_code(node)}")
+            if to_delete_str := will_delete_unused_values(node):
+                graph_code[-1] += f"; {to_delete_str}"
 
     return graph_code
 
