@@ -17,6 +17,7 @@ from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnHighAccuracyComputeConfig,
+    TtnnMidAccuracyComputeConfig,
     get_shape,
     get_dtype,
     get_arg,
@@ -1361,7 +1362,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         kwargs={
                             "is_causal": is_causal,
                             "scale": kwargs.get("scale", None),
-                            "compute_kernel_config": TtnnHighAccuracyComputeConfig(),
+                            "compute_kernel_config": TtnnMidAccuracyComputeConfig() if is_causal else TtnnHighAccuracyComputeConfig(),
                         }
                     )
                     # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 

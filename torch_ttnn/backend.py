@@ -78,6 +78,13 @@ HighAccuracyComputeConfig = ttnn.WormholeComputeKernelConfig(
     packer_l1_acc=False,
 )
 
+MidAccuracyComputeConfig = ttnn.WormholeComputeKernelConfig(
+    math_fidelity=ttnn.MathFidelity.HiFi2,
+    math_approx_mode=True,
+    fp32_dest_acc_en=False,
+    packer_l1_acc=False,
+)
+
 def register_ttnn_objects(option: TorchTtnnOption):
     """
     torch.fx builds a source object as a string, calls builtin compile(), and finally
@@ -94,6 +101,7 @@ def register_ttnn_objects(option: TorchTtnnOption):
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
 
     torch.fx.graph._register_custom_builtin("HighAccuracyComputeConfig", "", HighAccuracyComputeConfig)
+    torch.fx.graph._register_custom_builtin("MidAccuracyComputeConfig", "", MidAccuracyComputeConfig)
 
     torch.fx.graph._register_custom_builtin(
         "ttnn_DRAM_MEMORY_CONFIG",

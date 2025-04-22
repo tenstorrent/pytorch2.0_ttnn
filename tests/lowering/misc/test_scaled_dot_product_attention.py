@@ -21,6 +21,18 @@ def rand_in_range(shape, a, b, dtype=torch.bfloat16):
 @pytest.mark.parametrize(
     "input_shape, is_causal",
     (
+        ((1, 16, 197, 64), True),
+        ((1, 12, 197, 64), True),
+        ((1, 16, 50, 64), True),
+        ((1, 8, 4096, 40), True),
+        ((1, 8, 1024, 80), True),
+        ((1, 8, 256, 160), True),
+        ((1, 8, 64, 160), True),
+        ((1, 12, 50, 64), True),
+        ((1, 16, 1370, 80), True),
+        ((1, 12, 1, 64), True),
+        ((1, 12, 4, 64), True),
+
         ((1, 16, 197, 64), False),
         ((1, 12, 197, 64), False),
         ((1, 16, 50, 64), False),
@@ -31,10 +43,11 @@ def rand_in_range(shape, a, b, dtype=torch.bfloat16):
         ((1, 12, 50, 64), False),
         ((1, 16, 1370, 80), False),
         ((1, 12, 1, 64), False),
-        ((1, 12, 4, 64), True),
+        ((1, 12, 4, 64), False),
     ),
 )
 def test_sdpa(device, input_shape, is_causal):
+    torch.manual_seed(0)
     module = ScaledDotProductAttentionModule()
     # Values must be centered around 0 to avoid accuracy issues
     query = rand_in_range(input_shape, -10.0, 10.0, dtype=torch.bfloat16)
@@ -52,4 +65,4 @@ def test_sdpa(device, input_shape, is_causal):
     nodes = [node.target for node in option._out_fx_graphs[0].nodes]
     assert torch.ops.aten._scaled_dot_product_flash_attention.default not in nodes
     assert nodes.count(ttnn.transformer.scaled_dot_product_attention) == 1
-    assert_with_pcc(result_before, result_after, 0.99)
+    assert_with_pcc(result_before, result_after, 0.997)
