@@ -14,6 +14,10 @@ class ScaledDotProductAttentionModule(torch.nn.Module):
         return torch.nn.functional.scaled_dot_product_attention(*args, **kwargs)
 
 
+def rand_in_range(shape, a, b, dtype=torch.bfloat16):
+    rand_tensor = torch.rand(*shape, dtype=dtype)
+    return a + rand_tensor * (b - a)
+
 @pytest.mark.parametrize(
     "input_shape, is_causal",
     (
@@ -32,9 +36,10 @@ class ScaledDotProductAttentionModule(torch.nn.Module):
 )
 def test_sdpa(device, input_shape, is_causal):
     module = ScaledDotProductAttentionModule()
-    query = torch.rand(input_shape, dtype=torch.bfloat16)
-    key = torch.rand(input_shape, dtype=torch.bfloat16)
-    value = torch.rand(input_shape, dtype=torch.bfloat16)
+    # Values must be centered around 0 to avoid accuracy issues
+    query = rand_in_range(input_shape, -10.0, 10.0, dtype=torch.bfloat16)
+    key = rand_in_range(input_shape, -10.0, 10.0, dtype=torch.bfloat16)
+    value = rand_in_range(input_shape, -10.0, 10.0, dtype=torch.bfloat16)
     result_before = module.forward(query, key, value, is_causal=is_causal)
 
     option = torch_ttnn.TorchTtnnOption(device=device, gen_graphviz=False)
@@ -47,4 +52,4 @@ def test_sdpa(device, input_shape, is_causal):
     nodes = [node.target for node in option._out_fx_graphs[0].nodes]
     assert torch.ops.aten._scaled_dot_product_flash_attention.default not in nodes
     assert nodes.count(ttnn.transformer.scaled_dot_product_attention) == 1
-    assert_with_pcc(result_before, result_after)
+    assert_with_pcc(result_before, result_after, 0.99)

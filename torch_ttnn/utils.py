@@ -131,3 +131,7 @@ class TtnnDramMemoryConfig:
 class TtnnL1MemoryConfig:
     def __repr__(self):
         return f"ttnn_L1_MEMORY_CONFIG"
+
+class TtnnHighAccuracyComputeConfig:
+    def __repr__(self):
+        return f"HighAccuracyComputeConfig"

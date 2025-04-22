@@ -16,6 +16,7 @@ from torch_ttnn.utils import (
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
+    TtnnHighAccuracyComputeConfig,
     get_shape,
     get_dtype,
     get_arg,
@@ -188,12 +189,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 call_func.node.meta["original_input_variations"] = metrics.collect_input_variation(
                     self.old_target, self.old_args, self.old_kwargs
                 )
-            # Related to https://github.com/tenstorrent/tt-metal/issues/16021 
-            # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 
-            # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
-            if target == ttnn.transformer.scaled_dot_product_attention and (val := meta.get("val", None)) is not None:
-                call_func.node.meta["val"] = val[0]
-
         return call_func
 
     def call_function(self, target, args, kwargs):
@@ -368,26 +363,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
 
         if target == torch.ops.aten.permute.default:
             return self.call_function_prop_meta(ttnn.permute, args, kwargs)
-        if target == torch.ops.aten._scaled_dot_product_flash_attention.default:
-
-            def select(dropout_p=0.0, is_causal=False):
-                # TODO(jdh8): Add suuport for training mode
-                if dropout_p > 0.0:
-                    return self.call_function_prop_meta(target, args, kwargs)
-
-                return self.call_function_prop_meta(
-                    ttnn.transformer.scaled_dot_product_attention,
-                    args[:3],
-                    {"is_causal": is_causal},
-                )
-
-            return select(*args[3:])
-
-        # Removes getitem after ttnn.transformer.scaled_dot_product_attention
-        # Related to https://github.com/tenstorrent/tt-metal/issues/16021 
-        if target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
-            if args[0].node.target == ttnn.transformer.scaled_dot_product_attention:
-                return args[0]
 
         return self.call_function_prop_meta(target, args, kwargs)
 
@@ -1375,34 +1350,33 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 }
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
             if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
-                query, key, value = args
-                query_shape = query.meta["val"].size()
-                key_shape = key.meta["val"].size()
-                value_shape = value.meta["val"].size()
+                def select(dropout_p=0.0, is_causal=False):
+                    # TODO(jdh8): Add suuport for training mode
+                    if dropout_p > 0.0:
+                        return g.call_function(node.target, args, kwargs)
 
-                attn_mask = kwargs.get("attn_mask")
-                dropout_p = kwargs.get("dropout_p", 0.0)
-                scale = kwargs.get("scale", 1.0 / math.sqrt(query_shape[-1]))
+                    res_node = g.call_function(
+                        ttnn.transformer.scaled_dot_product_attention,
+                        args=args[:3],
+                        kwargs={
+                            "is_causal": is_causal,
+                            "scale": kwargs.get("scale", None),
+                            "compute_kernel_config": TtnnHighAccuracyComputeConfig(),
+                        }
+                    )
+                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 
+                    # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
+                    if(val := res_node.meta.get("val", None)) is not None:
+                        res_node.meta["val"] = val[0]
+                    return res_node
 
-                if kwargs.get("is_causal", False):
-                    attn_mask = torch.ones(query_shape[-2], key_shape[-2], dtype=torch.bool).tril()
+                return select(*args[3:])
 
-                key_perm = [*range(len(key_shape))]
-                key_perm[-2], key_perm[-1] = key_perm[-1], key_perm[-2]
-                key = g.call_function(ttnn.permute, (key, key_perm))
-
-                attn_weight = g.call_function(ttnn.matmul, (query, key))
-                attn_weight = g.call_function(ttnn.mul, (attn_weight, scale))
-
-                if attn_mask is not None:
-                    if attn_mask.dtype == torch.bool:
-                        attn_weight = g.call_function(ttnn.where, (attn_mask, attn_weight, -math.inf))
-                    else:
-                        attn_weight = g.call_function(ttnn.add, (attn_weight, attn_mask))
-
-                attn_weight = g.call_function(ttnn.softmax, (attn_weight,), {"dim": -1, "numeric_stable": True})
-                attn_weight = g.call_function(ttnn.dropout, (attn_weight,), {"p": dropout_p})
-                return g.call_function(ttnn.matmul, (attn_weight, value))
+            # Removes getitem after ttnn.transformer.scaled_dot_product_attention
+            # Related to https://github.com/tenstorrent/tt-metal/issues/16021
+            if node.target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
+                if args[0].target == ttnn.transformer.scaled_dot_product_attention:
+                    return args[0]
 
             # PEP 8 suggests this explicit statement
             return None
