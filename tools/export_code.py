@@ -643,7 +643,7 @@ def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_tt
         )
         if option == "profiling":
             # Insert last one before return
-            graph_code.insert(-1, "  ttnn.DumpDeviceProfiler(device)")
+            graph_code.insert(-1, _get_indent(1) + f"ttnn.DumpDeviceProfiler(device)")
         forward_code.append(graph_code)
 
     return forward_code, call_forwards_in_main
