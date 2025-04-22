@@ -13,6 +13,7 @@ import types
 from collections import defaultdict
 from pathlib import Path
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
+from tests.conftest import get_dispatch_core_type, get_dispatch_core_axis, get_dispatch_core_config
 from torch_ttnn.utils import get_opname, users_have_getitem, is_operation
 
 wrapper_funcs = set()
@@ -483,6 +484,12 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
         else []
     )
 
+    device_funcs = [
+        inspect.getsource(get_dispatch_core_type),
+        inspect.getsource(get_dispatch_core_axis),
+        inspect.getsource(get_dispatch_core_config),
+    ]
+
     # check_accuracy helper function definition
     check_accuracy_code = (
         """
@@ -537,8 +544,10 @@ if __name__ == "__main__":
     filepath = Path(__file__).with_name("{input_pkl_file.name}")
     file = lzma.open(filepath, "rb")
     inputs = pickle.load(file)
-    device = ttnn.open_device(device_id=0, l1_small_size=16384)
+    device = ttnn.open_device(device_id=0, dispatch_core_config=get_dispatch_core_config(), l1_small_size=16384)
+    ttnn.SetDefaultDevice(device)
 {forward_calls_joined}
+    ttnn.synchronize_device(device)
     ttnn.close_device(device)
 """
 
@@ -549,6 +558,7 @@ if __name__ == "__main__":
         + wrapper_code
         + rename_wrapper_code
         + pcc_funcs
+        + device_funcs
         + [check_accuracy_code]
         + check_accuracy_graph_codes
         + [main_code]
