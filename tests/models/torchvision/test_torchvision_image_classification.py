@@ -212,7 +212,7 @@ def evaluate_torchvision_image_classification():
     print(f"Accuracy: {accuracy:.4f}")
     
     device = ttnn.open_device(device_id=0)
-    option = torch_ttnn.TorchTtnnOption(device=self.device)
+    option = torch_ttnn.TorchTtnnOption(device=device)
     ttnn_model = torch.compile(model, backend=torch_ttnn.backend, options=option)
             
     ground_truths = []
@@ -222,7 +222,7 @@ def evaluate_torchvision_image_classification():
             outputs = ttnn_model(inputs)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
             pred = torch.argmax(probabilities, dim=1).item()
-            ground_truths.append(ground_truths)
+            ground_truths.append(ground_truth)
             preds.append(pred)
 
     accuracy = sum(gt == pred for gt, pred in zip(ground_truth, preds)) / len(ground_truth)
