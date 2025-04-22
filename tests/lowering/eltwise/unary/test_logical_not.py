@@ -17,7 +17,7 @@ class LogicalNotModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4)]],
+    [[(4, 4)], [(4,)]],
 )
 def test_logical_not(device, input_shapes):
     m = LogicalNotModule()
