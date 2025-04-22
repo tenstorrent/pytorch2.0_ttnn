@@ -671,12 +671,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten.div.Tensor:
-                shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
-                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
-                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
-                ):
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
                 if isinstance(args[1], (float, int)):
                     return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
 

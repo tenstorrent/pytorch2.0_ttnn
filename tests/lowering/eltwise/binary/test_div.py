@@ -31,70 +31,22 @@ class DivModule(torch.nn.Module):
             ((1, 23, 40, 1), (128,)),
             marks=pytest.mark.xfail(reason="Bidirectional broadcasting issue (#64)"),
         ),
-        pytest.param(
-            ((), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 12, 9, 9), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 64, 9, 9), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 12, 25, 25), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 16, 9, 9), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 12, 7, 7), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 1280, 8, 8), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((10, 10), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((2, 2), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 16, 5, 5), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 16, 1, 6), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 128, 1568), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 64, 6272), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((1, 32, 25088), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((15, 15), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
-        pytest.param(
-            ((17, 17), ()),
-            marks=pytest.mark.xfail(reason="ttnn.div does not handle 0-D tensors (tt-metal#15630)"),
-        ),
+        ((), ()),
+        ((1, 12, 9, 9), ()),
+        ((1, 64, 9, 9), ()),
+        ((1, 12, 25, 25), ()),
+        ((1, 16, 9, 9), ()),
+        ((1, 12, 7, 7), ()),
+        ((1, 1280, 8, 8), ()),
+        ((10, 10), ()),
+        ((2, 2), ()),
+        ((1, 16, 5, 5), ()),
+        ((1, 16, 1, 6), ()),
+        ((1, 128, 1568), ()),
+        ((1, 64, 6272), ()),
+        ((1, 32, 25088), ()),
+        ((15, 15), ()),
+        ((17, 17), ()),
     ),
 )
 def test_div(device, input_shapes):
