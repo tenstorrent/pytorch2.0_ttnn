@@ -128,6 +128,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0    
+      - uses: ./.github/actions/common_repo_setup
       - name: docker-cleanup
         run: |
           docker system prune -a -f --volumes
@@ -155,6 +156,38 @@ jobs:
         run: |
           echo "branch-name=update-docs-$(date +%s)" >> $GITHUB_OUTPUT
 
+  multi-device-tests:
+    needs: lowering-tests
+    runs-on: ["in-service", "nfs", "n300"]
+    container: 
+      image: ${{ inputs.docker_tag }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:
+      pytest_verbosity: 0
+      pytest_report_title: "⭐️ Multi-Device Tests"
+      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
+      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+      - uses: ./.github/actions/common_repo_setup
+      - uses: ./.github/actions/common_multi_device_tests
+        with:
+          commit_report: ${{ github.event.inputs.commit_report }}
+      - name: Upload Metrics Artifact
+        if: success()  # Only run if tests passed
+        uses: actions/upload-artifact@v4
+        with:
+          name: multi-device-tests-metrics
+          path: metrics/
 
   push-autogen-op-tests:
     needs: [model-tests, get-pr-branch]
@@ -390,14 +423,16 @@ jobs:
     outputs:
       didpass: ${{ steps.check.outputs.didpass }}
     runs-on: ubuntu-latest    
-    needs: [model-tests, tools-tests, lowering-tests, collect-metrics]
+    needs: [model-tests, multi-device-tests, tools-tests, lowering-tests, collect-metrics]
     steps:
       - id: check
         run: |
           model_result="${{ needs.model-tests.result}}"
+          multi_device_result="${{ needs.multi-device-tests.result}}"
           tools_result="${{ needs.tools-tests.result}}"
           lowering_result="${{ needs.lowering-tests.result}}"
           if [[ ($tools_result == "success" || $tools_result == "skipped") && 
+                ($multi_device_result == "success" || $multi_device_result == "skipped") && 
                 ($lowering_result == "success" || $lowering_result == "skipped") && 
                 ($model_result == "success" || $model_result == "skipped") ]] ; then
             echo "didpass=0" >> $GITHUB_OUTPUT
