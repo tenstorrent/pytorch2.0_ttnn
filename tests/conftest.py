@@ -89,7 +89,7 @@ def device(request):
             device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
 
-        ttnn.enable_program_cache(device)
+        device.enable_program_cache()
 
         ttnn.SetDefaultDevice(device)
 
@@ -147,8 +147,8 @@ def skip_by_platform(request, device):
 @pytest.fixture(autouse=True)
 def reset_program_cache(device):
     # TODO: delete this fixture when program cache can be left on between tests
-    ttnn.disable_and_clear_program_cache(device)
-    ttnn.enable_program_cache(device)
+    device.disable_and_clear_program_cache()
+    device.enable_program_cache()
 
 
 @pytest.fixture(autouse=True)
