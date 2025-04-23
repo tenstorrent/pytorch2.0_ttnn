@@ -16,8 +16,7 @@ from torch_ttnn.utils import (
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
-    TtnnMidAccuracyComputeConfig,
-    TtnnSPDAProgramConfig,
+    get_emplace_custom_object_in_graph,
     get_shape,
     get_dtype,
     get_arg,
@@ -438,7 +437,7 @@ class GraphWrapper:
     def inserting_after(self, node):
         return self.g.inserting_after(node)
 
-def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
+def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
         if not can_lowering_to_ttnn(node):
@@ -1388,14 +1387,30 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     q, k, v = args[:3]
                     q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None), tile_size=32)
 
+                    # TODO: Those configs can be further optimized based on input shape to get 
+                    # best performance/accuracy tradeoff
+                    compute_kernel_config = get_emplace_custom_object_in_graph(
+                        ttnn.WormholeComputeKernelConfig,
+                        math_fidelity=ttnn.MathFidelity.HiFi2,
+                        math_approx_mode=True,
+                        fp32_dest_acc_en=False,
+                        packer_l1_acc=False,
+                    )
+                    progra_config = get_emplace_custom_object_in_graph(
+                        ttnn.SDPAProgramConfig,
+                        compute_with_storage_grid_size=device.compute_with_storage_grid_size(),
+                        q_chunk_size=32,
+                        k_chunk_size=32,
+                        exp_approx_mode=False,
+                    )
                     res_node = g.call_function(
                         ttnn.transformer.scaled_dot_product_attention,
                         args=(q_padded, k_padded, v_padded),
                         kwargs={
                             "is_causal": is_causal,
                             "scale": kwargs.get("scale", None),
-                            "compute_kernel_config": TtnnMidAccuracyComputeConfig(),
-                            "program_config": TtnnSPDAProgramConfig(),
+                            "compute_kernel_config": compute_kernel_config,
+                            "program_config": progra_config,
                         }
                     )
 
@@ -1560,7 +1575,7 @@ class ToTtPass(PassBase):
         cnt = 0
         while True:
             cnt += 1
-            gm, modified = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
+            gm, modified = ReplaceMoreTtManually(gm, self.device, self.use_less_ttnn_op_types)
             if not modified:
                 break
             if cnt == max_try:
