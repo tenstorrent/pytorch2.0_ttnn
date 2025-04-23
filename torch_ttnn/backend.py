@@ -83,26 +83,8 @@ def register_ttnn_objects(option: TorchTtnnOption):
     get_add_custom_object_in_graph("ttnn_ROW_MAJOR_LAYOUT", ttnn.ROW_MAJOR_LAYOUT)
     get_add_custom_object_in_graph("ttnn_TILE_LAYOUT", ttnn.TILE_LAYOUT)
 
-    torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
-    torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
-    torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
-
-    MidAccuracyComputeConfig = ttnn.WormholeComputeKernelConfig(
-        math_fidelity=ttnn.MathFidelity.HiFi2,
-        math_approx_mode=True,
-        fp32_dest_acc_en=False,
-        packer_l1_acc=False,
-    )
-    torch.fx.graph._register_custom_builtin("MidAccuracyComputeConfig", "", MidAccuracyComputeConfig)
-
-    SPDAProgramConfig = ttnn.SDPAProgramConfig(
-        compute_with_storage_grid_size=option.device.compute_with_storage_grid_size(),
-        q_chunk_size=32,
-        k_chunk_size=32,
-        exp_approx_mode=False,
-    )
-    torch.fx.graph._register_custom_builtin("SPDAProgramConfig", "", SPDAProgramConfig)
     get_add_custom_object_in_graph("ttnn_uint32", ttnn.uint32)
+    get_add_custom_object_in_graph("ttnn_int32", ttnn.int32)
     get_add_custom_object_in_graph("ttnn_bfloat16", ttnn.bfloat16)
 
     torch.fx.graph._register_custom_builtin(
