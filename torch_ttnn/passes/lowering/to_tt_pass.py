@@ -1388,7 +1388,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     return q, k, v, d
 
                 def select(dropout_p=0.0, is_causal=False):
-                    # TODO(jdh8): Add suuport for training mode
+                    # TODO(jdh8): Add support for training mode
                     if dropout_p > 0.0:
                         return g.call_function(node.target, args, kwargs)
 
@@ -1407,7 +1407,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         fp32_dest_acc_en=False,
                         packer_l1_acc=False,
                     )
-                    progra_config = get_emplace_custom_object_in_graph(
+                    program_config = get_emplace_custom_object_in_graph(
                         ttnn.SDPAProgramConfig,
                         compute_with_storage_grid_size=device.compute_with_storage_grid_size(),
                         q_chunk_size=32,
@@ -1421,7 +1421,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                             "is_causal": is_causal,
                             "scale": kwargs.get("scale", None),
                             "compute_kernel_config": compute_kernel_config,
-                            "program_config": progra_config,
+                            "program_config": program_config,
                         },
                     )
 

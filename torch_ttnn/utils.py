@@ -171,14 +171,4 @@ def get_emplace_custom_object_in_graph(object_type, *args, **kwargs):
 
     key = build_repr()
 
-    if key in __custom_objects_registry:
-        return __custom_objects_registry[key][0]
-
-    class WrapperObj:
-        def __repr__(self):
-            return key
-
-    obj = object_type(*args, **kwargs)
-    torch.fx.graph._register_custom_builtin(key, "", obj)
-    __custom_objects_registry[key] = (WrapperObj(), obj)
-    return __custom_objects_registry[key][0]
+    return get_add_custom_object_in_graph(key, object_type(*args, **kwargs))
