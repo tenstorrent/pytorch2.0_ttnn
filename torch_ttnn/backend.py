@@ -71,20 +71,6 @@ class TorchTtnnOption:
         self._ttnn_fx_graphs = list()
 
 
-HighAccuracyComputeConfig = ttnn.WormholeComputeKernelConfig(
-    math_fidelity=ttnn.MathFidelity.HiFi4,
-    math_approx_mode=False,
-    fp32_dest_acc_en=False,
-    packer_l1_acc=False,
-)
-
-MidAccuracyComputeConfig = ttnn.WormholeComputeKernelConfig(
-    math_fidelity=ttnn.MathFidelity.HiFi2,
-    math_approx_mode=True,
-    fp32_dest_acc_en=False,
-    packer_l1_acc=False,
-)
-
 def register_ttnn_objects(option: TorchTtnnOption):
     """
     torch.fx builds a source object as a string, calls builtin compile(), and finally
@@ -100,8 +86,21 @@ def register_ttnn_objects(option: TorchTtnnOption):
     torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
     torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
 
-    torch.fx.graph._register_custom_builtin("HighAccuracyComputeConfig", "", HighAccuracyComputeConfig)
+    MidAccuracyComputeConfig = ttnn.WormholeComputeKernelConfig(
+        math_fidelity=ttnn.MathFidelity.HiFi2,
+        math_approx_mode=True,
+        fp32_dest_acc_en=False,
+        packer_l1_acc=False,
+    )
     torch.fx.graph._register_custom_builtin("MidAccuracyComputeConfig", "", MidAccuracyComputeConfig)
+
+    SPDAProgramConfig = ttnn.SDPAProgramConfig(
+        compute_with_storage_grid_size=option.device.compute_with_storage_grid_size(),
+        q_chunk_size=32,
+        k_chunk_size=32,
+        exp_approx_mode=False,
+    )
+    torch.fx.graph._register_custom_builtin("SPDAProgramConfig", "", SPDAProgramConfig)
 
     torch.fx.graph._register_custom_builtin(
         "ttnn_DRAM_MEMORY_CONFIG",

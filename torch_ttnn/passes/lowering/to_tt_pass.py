@@ -16,8 +16,8 @@ from torch_ttnn.utils import (
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
-    TtnnHighAccuracyComputeConfig,
     TtnnMidAccuracyComputeConfig,
+    TtnnSPDAProgramConfig,
     get_shape,
     get_dtype,
     get_arg,
@@ -1384,6 +1384,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     if dropout_p > 0.0:
                         return g.call_function(node.target, args, kwargs)
 
+                    # Pad last dimension of Q, K, V to tile size
                     q, k, v = args[:3]
                     q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None), tile_size=32)
 
@@ -1393,16 +1394,25 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         kwargs={
                             "is_causal": is_causal,
                             "scale": kwargs.get("scale", None),
-                            "compute_kernel_config": TtnnMidAccuracyComputeConfig() if is_causal else TtnnHighAccuracyComputeConfig(),
+                            "compute_kernel_config": TtnnMidAccuracyComputeConfig(),
+                            "program_config": TtnnSPDAProgramConfig(),
                         }
                     )
+
                     # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 
                     # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
                     if(val := res_node.meta.get("val", None)) is not None:
                         res_node.meta["val"] = val[0]
 
-                    res_node.meta["original_dim"] = d
-                    res_node.meta["padding"] = (-d) % 32
+                    # If padding was applied, slice the result back to original dimension
+                    pad = (-d) % 32
+                    if pad:
+                        output_shape = list(res_node.meta["val"].shape)
+                        slice_start = [0] * len(output_shape)
+                        slice_end = output_shape.copy()
+                        slice_end[-1] = d  # Set last dimension back to original size
+                        res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
+ 
                     return res_node
 
                 return select(*args[3:])
@@ -1426,30 +1436,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
                 )
-
-        if new_node is not None:
-            with g.inserting_after(new_node):
-                if new_node.target == ttnn.transformer.scaled_dot_product_attention:
-                    # Check if we stored padding information and if padding was applied
-                    if "padding" in new_node.meta and new_node.meta["padding"] > 0:
-                        # Get original dimension before padding
-                        d = new_node.meta["original_dim"]
-                        output_shape = list(new_node.meta["val"].shape)
-
-                        # Create slice parameters
-                        slice_start = [0] * len(output_shape)
-                        slice_end = output_shape.copy()
-                        slice_end[-1] = d  # Set last dimension back to original size
-
-                        # Add slice operation
-                        sliced_node = g.call_function(ttnn.slice, (new_node, slice_start, slice_end))
-
-                        # Replace all uses of the attention output with the sliced output
-                        new_node.replace_all_uses_with(
-                            sliced_node,
-                            delete_user_cb=lambda node: node != sliced_node
-                        )
-
 
     gm = GraphCleanup(gm)
     return gm, modified

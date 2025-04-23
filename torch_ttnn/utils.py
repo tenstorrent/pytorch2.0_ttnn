@@ -132,10 +132,10 @@ class TtnnL1MemoryConfig:
     def __repr__(self):
         return f"ttnn_L1_MEMORY_CONFIG"
 
-class TtnnHighAccuracyComputeConfig:
-    def __repr__(self):
-        return f"HighAccuracyComputeConfig"
-
 class TtnnMidAccuracyComputeConfig:
     def __repr__(self):
         return f"MidAccuracyComputeConfig"
+
+class TtnnSPDAProgramConfig:
+    def __repr__(self):
+        return f"SPDAProgramConfig"
