@@ -1392,7 +1392,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 def select(dropout_p=0.0, is_causal=False):
                     # TODO(jdh8): Add support for training mode
-                    if dropout_p > 0.0 or ttnn.device.is_grayskull(device):
+                    if dropout_p > 0.0:
                         return g.call_function(node.target, args, kwargs)
 
                     # Pad last dimension of Q, K, V to tile size
