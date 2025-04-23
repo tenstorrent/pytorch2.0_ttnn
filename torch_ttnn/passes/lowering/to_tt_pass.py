@@ -1413,13 +1413,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         )
                     else:
                         raise RuntimeError(f"Unsupported device for {device.arch()} compute kernel config")
-                    compute_kernel_config = get_emplace_custom_object_in_graph(
-                        ttnn.WormholeComputeKernelConfig,
-                        math_fidelity=ttnn.MathFidelity.HiFi2,
-                        math_approx_mode=True,
-                        fp32_dest_acc_en=False,
-                        packer_l1_acc=False,
-                    )
                     program_config = get_emplace_custom_object_in_graph(
                         ttnn.SDPAProgramConfig,
                         compute_with_storage_grid_size=device.compute_with_storage_grid_size(),
