@@ -189,6 +189,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 call_func.node.meta["original_input_variations"] = metrics.collect_input_variation(
                     self.old_target, self.old_args, self.old_kwargs
                 )
+
         return call_func
 
     def call_function(self, target, args, kwargs):
@@ -442,8 +443,6 @@ class GraphWrapper:
             return val
         return obj.meta["val"]
 
-    def inserting_after(self, node):
-        return self.g.inserting_after(node)
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
