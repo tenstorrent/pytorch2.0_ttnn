@@ -423,16 +423,9 @@ class GraphWrapper:
         if node.target == ttnn.permute:
             return torch.permute(self._get_val(args[0]), args[1])
         if node.target == ttnn.pad:
-            # Convert tt padding inputs to torch padding inputs
-            # ttnn padding if output_shape (Shape of output tensor) and input_tensor_start
-            #   (Start indices to place input tensor in output tensor),
-            # while torch's is (pad_start, pad_end, .. for all dimensions)
-            pad = []
-            input_shape = args[0].meta["val"].shape
-            for dim in range(len(args[1])):
-                pad.append(args[2][dim])
-                pad.append(args[1][dim] - args[2][dim] - input_shape[dim])
-            return torch.nn.functional.pad(self._get_val(args[0]), tuple(pad), value=args[3])
+            # Convert tt padding inputs to torch padding inputs (List[Tuple[int, int]] -> Tuple[int, ...])
+            pad = tuple(x for pair in args[1] for x in pair)
+            return torch.nn.functional.pad(self._get_val(args[0]), pad, value=self._get_val(args[2]))
         return self._get_val(node)
 
     def _get_val(self, obj):
@@ -1379,9 +1372,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                     if pad:
                         # 1) zero‑pad along head_dim
-                        q = g.call_function(ttnn.pad, args=(q, padded_shape, [0, 0, 0, 0], 0))
-                        k = g.call_function(ttnn.pad, args=(k, padded_shape, [0, 0, 0, 0], 0))
-                        v = g.call_function(ttnn.pad, args=(v, padded_shape, [0, 0, 0, 0], 0))
+                        q = g.call_function(ttnn.pad, args=(q, [(0, pad)], 0))
+                        k = g.call_function(ttnn.pad, args=(k, [(0, pad)], 0))
+                        v = g.call_function(ttnn.pad, args=(v, [(0, pad)], 0))
 
                         # 2) rescale Q so that Q*K^T / sqrt(d') == Q_p*K_p^T / sqrt(d)
                         if scale is None:
