@@ -108,7 +108,7 @@ class ToCopyExpand(torch.nn.Module):
 @pytest.mark.parametrize(
     "module, ttnn_op",
     [
-        (ToCopyViewModule(), ttnn.reshape),
+        (ToCopyViewModule(), ttnn.experimental.view),
         (ToCopyExpand(), torch_ttnn.target_wrappers.repeat),
     ],
 )
