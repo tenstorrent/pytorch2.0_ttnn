@@ -427,8 +427,8 @@ class GraphWrapper:
             pad = []
             input_shape = args[0].meta["val"].shape
             for dim in range(len(args[1])):
-                pad.append(-args[2][dim])
-                pad.append(args[1][dim] - input_shape[dim])
+                pad.append(args[2][dim])
+                pad.append(args[1][dim] - args[2][dim] - input_shape[dim])
             return torch.nn.functional.pad(self._get_val(args[0]), tuple(pad), value=args[3])
         return self._get_val(node)
 
