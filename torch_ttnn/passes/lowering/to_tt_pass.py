@@ -897,8 +897,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 second_last_dimension_unpadded = (
                     len(input_shape) > 1
                     and len(output_shape) > 1
-                    and input_shape[-2] % 32 == 0
-                    and output_shape[-2] % 32 == 0
+                    and input_shape[-2] % ttnn.TILE_SIZE == 0
+                    and output_shape[-2] % ttnn.TILE_SIZE == 0
                 )
 
                 if last_dimension_constant and (second_last_dimension_constant or second_last_dimension_unpadded):
