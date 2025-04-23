@@ -421,6 +421,14 @@ class GraphWrapper:
             return torch.reshape(self._get_val(args[0]), args[1])
         if node.target == ttnn.permute:
             return torch.permute(self._get_val(args[0]), args[1])
+        if node.target == ttnn.pad:
+            # Convert tt padding inputs to torch padding inputs
+            pad = []
+            input_shape = args[0].meta["val"].shape
+            for dim in range(len(args[1])):
+                pad.append(-args[2][dim])
+                pad.append(args[1][dim] - input_shape[dim])
+            return torch.nn.functional.pad(self._get_val(args[0]), tuple(pad), value=args[3])
         return self._get_val(node)
 
     def _get_val(self, obj):
@@ -1414,19 +1422,19 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         }
                     )
 
-                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 
-                    # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
-                    if(val := res_node.meta.get("val", None)) is not None:
-                        res_node.meta["val"] = val[0]
-
                     # If padding was applied, slice the result back to original dimension
                     pad = (-d) % 32
                     if pad:
-                        output_shape = list(res_node.meta["val"].shape)
+                        output_shape = list(res_node.meta["val"][0].shape)
                         slice_start = [0] * len(output_shape)
                         slice_end = output_shape.copy()
                         slice_end[-1] = d  # Set last dimension back to original size
                         res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
+
+                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 
+                    # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
+                    if(val := res_node.meta.get("val", None)) is not None:
+                        res_node.meta["val"] = val[0]
  
                     return res_node
 
