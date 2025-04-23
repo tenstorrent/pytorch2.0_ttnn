@@ -133,8 +133,11 @@ class TtnnL1MemoryConfig:
     def __repr__(self):
         return f"ttnn_L1_MEMORY_CONFIG"
 
+
 # repr_str -> (object_wrapper, object)
 __custom_objects_registry = {}
+
+
 # Note: key MUST be unique!
 def get_add_custom_object_in_graph(key: str, obj):
     if key in __custom_objects_registry:
@@ -148,13 +151,14 @@ def get_add_custom_object_in_graph(key: str, obj):
     __custom_objects_registry[key] = (WrapperObj(), obj)
     return __custom_objects_registry[key][0]
 
+
 def get_emplace_custom_object_in_graph(object_type, *args, **kwargs):
     def sanitize(s):
         # Replace non-alphanumeric characters with underscores
-        s = re.sub(r'[^0-9a-zA-Z_]', '_', str(s))
+        s = re.sub(r"[^0-9a-zA-Z_]", "_", str(s))
         # Remove consecutive underscores
-        s = re.sub(r'_+', '_', s)
-        return s.strip('_')
+        s = re.sub(r"_+", "_", s)
+        return s.strip("_")
 
     # This representation of an object MUST be unique
     def build_repr():
@@ -164,6 +168,7 @@ def get_emplace_custom_object_in_graph(object_type, *args, **kwargs):
         for k, v in kwargs.items():
             repr_str += f"_{sanitize(k)}_{sanitize(v)}"
         return repr_str
+
     key = build_repr()
 
     if key in __custom_objects_registry:

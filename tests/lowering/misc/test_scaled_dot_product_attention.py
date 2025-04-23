@@ -21,6 +21,7 @@ def fa_rand(*shape, dtype=torch.bfloat16):
     bernoulli = torch.bernoulli(torch.full(shape, 0.001, dtype=dtype))
     return normal_1 + normal_2 * bernoulli
 
+
 @pytest.mark.parametrize(
     "input_shape, is_causal",
     (
@@ -35,7 +36,6 @@ def fa_rand(*shape, dtype=torch.bfloat16):
         ((1, 16, 1370, 80), True),
         ((1, 12, 1, 64), True),
         ((1, 12, 4, 64), True),
-
         ((1, 16, 197, 64), False),
         ((1, 12, 197, 64), False),
         ((1, 16, 50, 64), False),
@@ -69,4 +69,4 @@ def test_sdpa(device, input_shape, is_causal):
     nodes = [node.target for node in option._out_fx_graphs[0].nodes]
     assert torch.ops.aten._scaled_dot_product_flash_attention.default not in nodes
     assert nodes.count(ttnn.transformer.scaled_dot_product_attention) == 1
-    assert_with_pcc(result_before, result_after, 0.994) # <- Same pcc as in ttnn tests
+    assert_with_pcc(result_before, result_after, 0.994)  # <- Same pcc as in ttnn tests

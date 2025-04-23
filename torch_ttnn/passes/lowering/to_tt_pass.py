@@ -1359,6 +1359,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 }
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
             if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
+
                 def pad_qkv_ttnn(q, k, v, scale=None, tile_size=32):
                     """
                     Pads the last dimension of Q, K, V tensors to `tile_size`
@@ -1385,6 +1386,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                             q = g.call_function(ttnn.multiply, args=(q, calc_scale))
 
                     return q, k, v, d
+
                 def select(dropout_p=0.0, is_causal=False):
                     # TODO(jdh8): Add suuport for training mode
                     if dropout_p > 0.0:
@@ -1392,9 +1394,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                     # Pad last dimension of Q, K, V to tile size
                     q, k, v = args[:3]
-                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None), tile_size=32)
+                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(
+                        q, k, v, scale=kwargs.get("scale", None), tile_size=32
+                    )
 
-                    # TODO: Those configs can be further optimized based on input shape to get 
+                    # TODO: Those configs can be further optimized based on input shape to get
                     # best performance/accuracy tradeoff
                     compute_kernel_config = get_emplace_custom_object_in_graph(
                         ttnn.WormholeComputeKernelConfig,
@@ -1418,7 +1422,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                             "scale": kwargs.get("scale", None),
                             "compute_kernel_config": compute_kernel_config,
                             "program_config": progra_config,
-                        }
+                        },
                     )
 
                     # If padding was applied, slice the result back to original dimension
@@ -1430,11 +1434,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         slice_end[-1] = d  # Set last dimension back to original size
                         res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
 
-                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a 
+                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a
                     # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
-                    if(val := res_node.meta.get("val", None)) is not None:
+                    if (val := res_node.meta.get("val", None)) is not None:
                         res_node.meta["val"] = val[0]
- 
+
                     return res_node
 
                 return select(*args[3:])
@@ -1442,8 +1446,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
             # Removes getitem after ttnn.transformer.scaled_dot_product_attention
             # Related to https://github.com/tenstorrent/tt-metal/issues/16021
             if node.target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
-                if args[0].target == ttnn.transformer.scaled_dot_product_attention or \
-                    (args[0].target == ttnn.slice and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention):
+                if args[0].target == ttnn.transformer.scaled_dot_product_attention or (
+                    args[0].target == ttnn.slice
+                    and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
+                ):
                     return args[0]
 
             # PEP 8 suggests this explicit statement
