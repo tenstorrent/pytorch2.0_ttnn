@@ -39,7 +39,13 @@ def test_squeeze_dim(device, input_shape, dim):
     option._out_fx_graphs[0].print_tabular()
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.squeeze) == 1
+    if option.use_less_ttnn_op_types:
+        # squeeze is lowered to reshape
+        assert [node.target for node in nodes].count(ttnn.reshape) == 1
+    else:
+        assert [node.target for node in nodes].count(ttnn.squeeze) == 1
+    # TODO: use following line when we update tt-metal
+    # assert [node.target for node in nodes].count(ttnn.squeeze) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
 
@@ -77,6 +83,8 @@ def test_squeeze_none_dim(device, input_shape):
     option._out_fx_graphs[0].print_tabular()
     # Check the graph has be rewritten and contain ttnn ops (squeeze without provided dim is lowered to reshape)
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.squeeze) == 1
+    assert [node.target for node in nodes].count(ttnn.reshape) == 1
+    # TODO: use following line when we update tt-metal
+    # assert [node.target for node in nodes].count(ttnn.squeeze) == 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
