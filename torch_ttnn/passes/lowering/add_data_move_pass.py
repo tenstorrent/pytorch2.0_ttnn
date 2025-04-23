@@ -293,6 +293,43 @@ class NodeInputAligner:
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
+    def _align_for_special_layout(self, node, spec, input_site, input_site_type: InputSiteType):
+        if is_target_a_user_of_curr_node(node, ttnn.embedding) and (
+            input_site_type == self.InputSiteType.ARGS and input_site == 0
+        ):
+            spec.dtype = TtnnUint32
+        # TODO(#372): #322 will enable tile layout for more layout change ops
+        if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
+            spec.layout = TtnnRowMajorLayout
+            spec.device = "host"
+        if node.target in [
+            ttnn.split,
+            ttnn.embedding,
+            target_wrappers.repeat,
+            target_wrappers.roll,
+            target_wrappers.stack,
+        ]:
+            # TODO: Only uint32 needs to to_layout on host
+            spec.layout = TtnnRowMajorLayout
+            spec.device = TtnnDevice
+        if node.target == target_wrappers.conv2d and input_site == 1:
+            # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
+            spec.layout = TtnnRowMajorLayout
+            spec.device = "host"
+        if (
+            node.target == ttnn.reshape
+            and hasattr(spec.input_node, "meta")
+            and "val" in spec.input_node.meta
+            and hasattr(spec.input_node.meta["val"], "dtype")
+            and spec.input_node.meta["val"].dtype in [torch.int32, torch.int64]
+        ):
+            spec.dtype = TtnnUint32
+        # Slice works only on device with any layout right now
+        if node.target == ttnn.slice and input_site_type == self.InputSiteType.ARGS and input_site == 0:
+            spec.layout = None
+            spec.device = TtnnDevice
+        return spec
+
     def _reset_to_default_layout(self, input_node, spec):
         # split(list of tensor with row major layout) => getitem(row major layout)
         # convert back to tile layout

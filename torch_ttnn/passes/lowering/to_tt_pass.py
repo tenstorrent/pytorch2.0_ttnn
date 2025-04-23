@@ -435,6 +435,8 @@ class GraphWrapper:
             return val
         return obj.meta["val"]
 
+    def inserting_after(self, node):
+        return self.g.inserting_after(node)
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
@@ -1351,14 +1353,43 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 }
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
             if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
+                def pad_qkv_ttnn(q, k, v, scale=None, tile_size=32):
+                    """
+                    Pads the last dimension of Q, K, V tensors to `tile_size`
+                    and rescales Q so that the scaled-dot-product attention
+                    is numerically identical to the unpadded case.
+                    """
+                    # Extract shape from metadata
+                    q_shape = list(q.meta["val"].shape)
+                    d = q_shape[-1]
+                    pad = (-d) % tile_size  # 0 – 31
+
+                    padded_shape = q_shape.copy()
+                    padded_shape[-1] = d + pad
+
+                    if pad:
+                        # 1) zero‑pad along head_dim
+                        q = g.call_function(ttnn.pad, args=(q, padded_shape, [0, 0, 0, 0], 0))
+                        k = g.call_function(ttnn.pad, args=(k, padded_shape, [0, 0, 0, 0], 0))
+                        v = g.call_function(ttnn.pad, args=(v, padded_shape, [0, 0, 0, 0], 0))
+
+                        # 2) rescale Q so that Q*K^T / sqrt(d') == Q_p*K_p^T / sqrt(d)
+                        if scale is None:
+                            calc_scale = math.sqrt((d + pad) / d)
+                            q = g.call_function(ttnn.multiply, args=(q, calc_scale))
+
+                    return q, k, v, d
                 def select(dropout_p=0.0, is_causal=False):
                     # TODO(jdh8): Add suuport for training mode
                     if dropout_p > 0.0:
                         return g.call_function(node.target, args, kwargs)
 
+                    q, k, v = args[:3]
+                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None), tile_size=32)
+
                     res_node = g.call_function(
                         ttnn.transformer.scaled_dot_product_attention,
-                        args=args[:3],
+                        args=(q_padded, k_padded, v_padded),
                         kwargs={
                             "is_causal": is_causal,
                             "scale": kwargs.get("scale", None),
@@ -1369,6 +1400,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
                     if(val := res_node.meta.get("val", None)) is not None:
                         res_node.meta["val"] = val[0]
+
+                    res_node.meta["original_dim"] = d
+                    res_node.meta["padding"] = (-d) % 32
                     return res_node
 
                 return select(*args[3:])
@@ -1376,7 +1410,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             # Removes getitem after ttnn.transformer.scaled_dot_product_attention
             # Related to https://github.com/tenstorrent/tt-metal/issues/16021
             if node.target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
-                if args[0].target == ttnn.transformer.scaled_dot_product_attention:
+                if args[0].target == ttnn.transformer.scaled_dot_product_attention or \
+                    (args[0].target == ttnn.slice and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention):
                     return args[0]
 
             # PEP 8 suggests this explicit statement
@@ -1391,6 +1426,30 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     new_node,
                     delete_user_cb=lambda node: node != new_node,
                 )
+
+        if new_node is not None:
+            with g.inserting_after(new_node):
+                if new_node.target == ttnn.transformer.scaled_dot_product_attention:
+                    # Check if we stored padding information and if padding was applied
+                    if "padding" in new_node.meta and new_node.meta["padding"] > 0:
+                        # Get original dimension before padding
+                        d = new_node.meta["original_dim"]
+                        output_shape = list(new_node.meta["val"].shape)
+
+                        # Create slice parameters
+                        slice_start = [0] * len(output_shape)
+                        slice_end = output_shape.copy()
+                        slice_end[-1] = d  # Set last dimension back to original size
+
+                        # Add slice operation
+                        sliced_node = g.call_function(ttnn.slice, (new_node, slice_start, slice_end))
+
+                        # Replace all uses of the attention output with the sliced output
+                        new_node.replace_all_uses_with(
+                            sliced_node,
+                            delete_user_cb=lambda node: node != sliced_node
+                        )
+
 
     gm = GraphCleanup(gm)
     return gm, modified
