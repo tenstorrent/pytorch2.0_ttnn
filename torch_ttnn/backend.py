@@ -87,16 +87,8 @@ def register_ttnn_objects(option: TorchTtnnOption):
     get_add_custom_object_in_graph("ttnn_int32", ttnn.int32)
     get_add_custom_object_in_graph("ttnn_bfloat16", ttnn.bfloat16)
 
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_DRAM_MEMORY_CONFIG",
-        "",
-        ttnn.DRAM_MEMORY_CONFIG,
-    )
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_L1_MEMORY_CONFIG",
-        "",
-        ttnn.L1_MEMORY_CONFIG,
-    )
+    get_add_custom_object_in_graph("ttnn_DRAM_MEMORY_CONFIG", ttnn.DRAM_MEMORY_CONFIG)
+    get_add_custom_object_in_graph("ttnn_L1_MEMORY_CONFIG", ttnn.L1_MEMORY_CONFIG)
 
 
 # The backend for torch.compile that converts a graph to use ttnn.
