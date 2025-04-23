@@ -17,7 +17,7 @@ runs:
         else
           num_iterations=5
         fi
-        python3 -m pytest --github-report tests/multi_device/ --data_parallel --report_nth_iteration=$num_iterations --gen_op_accuracy_tests -s
+        python3 -m pytest --github-report tests/multi_device/ --data_parallel --report_nth_iteration=$num_iterations --export_code=accuracy -s
         exit_code=$?  # Capture the exit code
         if [ $exit_code -eq 5 ]; then
           echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
