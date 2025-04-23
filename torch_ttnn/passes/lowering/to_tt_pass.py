@@ -424,6 +424,9 @@ class GraphWrapper:
             return torch.permute(self._get_val(args[0]), args[1])
         if node.target == ttnn.pad:
             # Convert tt padding inputs to torch padding inputs
+            # ttnn padding if output_shape (Shape of output tensor) and input_tensor_start
+            #   (Start indices to place input tensor in output tensor),
+            # while torch's is (pad_start, pad_end, .. for all dimensions)
             pad = []
             input_shape = args[0].meta["val"].shape
             for dim in range(len(args[1])):
@@ -1360,7 +1363,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
             if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
 
-                def pad_qkv_ttnn(q, k, v, scale=None, tile_size=32):
+                def pad_qkv_ttnn(q, k, v, scale=None, align_by=ttnn.TILE_SIZE):
                     """
                     Pads the last dimension of Q, K, V tensors to `tile_size`
                     and rescales Q so that the scaled-dot-product attention
@@ -1369,7 +1372,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     # Extract shape from metadata
                     q_shape = list(q.meta["val"].shape)
                     d = q_shape[-1]
-                    pad = (-d) % tile_size  # 0 – 31
+                    pad = (-d) % align_by  # 0 – 31
 
                     padded_shape = q_shape.copy()
                     padded_shape[-1] = d + pad
@@ -1389,17 +1392,34 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 def select(dropout_p=0.0, is_causal=False):
                     # TODO(jdh8): Add support for training mode
-                    if dropout_p > 0.0:
+                    if dropout_p > 0.0 or ttnn.device.is_grayskull(device):
                         return g.call_function(node.target, args, kwargs)
 
                     # Pad last dimension of Q, K, V to tile size
                     q, k, v = args[:3]
-                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(
-                        q, k, v, scale=kwargs.get("scale", None), tile_size=32
-                    )
+                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None))
 
                     # TODO: Those configs can be further optimized based on input shape to get
                     # best performance/accuracy tradeoff
+                    default_q_chunk_size = 32  # <- The bigger the better accuracy but slower
+                    default_k_chunk_size = 32
+
+                    compute_config_params = {
+                        "math_fidelity": ttnn.MathFidelity.HiFi2,
+                        "math_approx_mode": True,
+                        "fp32_dest_acc_en": False,
+                        "packer_l1_acc": False,
+                    }
+                    if ttnn.device.is_wormhole_b0(device):
+                        compute_kernel_config = get_emplace_custom_object_in_graph(
+                            ttnn.WormholeComputeKernelConfig, **compute_config_params
+                        )
+                    elif ttnn.device.is_blackhole(device):
+                        compute_kernel_config = get_emplace_custom_object_in_graph(
+                            ttnn.BlackholeComputeKernelConfig, **compute_config_params
+                        )
+                    else:
+                        raise RuntimeError(f"Unsupported device for {device.arch()} compute kernel config")
                     compute_kernel_config = get_emplace_custom_object_in_graph(
                         ttnn.WormholeComputeKernelConfig,
                         math_fidelity=ttnn.MathFidelity.HiFi2,
@@ -1410,8 +1430,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     program_config = get_emplace_custom_object_in_graph(
                         ttnn.SDPAProgramConfig,
                         compute_with_storage_grid_size=device.compute_with_storage_grid_size(),
-                        q_chunk_size=32,
-                        k_chunk_size=32,
+                        q_chunk_size=default_q_chunk_size,
+                        k_chunk_size=default_k_chunk_size,
                         exp_approx_mode=False,
                     )
                     res_node = g.call_function(
@@ -1436,7 +1456,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                     # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a
                     # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
-                    if (val := res_node.meta.get("val", None)) is not None:
+                    if (val := res_node.meta.get("val", None)) is not None and is_getitem_0_only_user(node):
                         res_node.meta["val"] = val[0]
 
                     return res_node
