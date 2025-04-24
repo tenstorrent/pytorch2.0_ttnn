@@ -3,6 +3,7 @@ FROM ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-22.04-release-amd64:latest-
 # Install system-level dependencies (using apt-get)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        sudo \
         libgl1-mesa-glx \
         git-lfs \
         libsndfile1 \
