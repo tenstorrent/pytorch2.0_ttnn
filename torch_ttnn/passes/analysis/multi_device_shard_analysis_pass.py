@@ -35,7 +35,7 @@ class MultiDeviceShardAnalysisPass(PassBase):
         self.device = device
 
     def call(self, gm: torch.fx.GraphModule):
-        if not isinstance(self.device, ttnn._ttnn.multi_device.MeshDevice):
+        if not isinstance(self.device, ttnn.MeshDevice) or self.device.get_num_devices() == 1:
             modified = False
             return PassResult(gm, modified)
 
