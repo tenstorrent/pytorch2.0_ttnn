@@ -83,6 +83,7 @@ def device(request):
         device = ttnn.open_device(
             device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
+        device.enable_program_cache()
 
         ttnn.SetDefaultDevice(device)
 
