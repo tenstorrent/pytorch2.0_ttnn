@@ -45,7 +45,7 @@
 |  41 | Tensor<[1, 2048, 2048]> self = ?,<br>int dim = 1      | Done     | Done       | 1.0   | 0      |
 |  42 | Tensor<[1, 2048]> self = ?,<br>int dim = 1            | Done     | Done       | 1.0   | 0      |
 |  43 | Tensor<[1, 224, 224]> self = ?,<br>int dim = 1        | Done     | Done       | 1.0   | 0      |
-|  44 | Tensor<[1, 23, 40]> self = ?,<br>int dim = 3          | Done     | Done       | 1.0   | 0      |
+|  44 | Tensor<[1, 23, 40]> self = ?,<br>int dim = 3          | Unknown  | Done       | 1.0   | 0      |
 |  45 | Tensor<[1, 24]> self = ?,<br>int dim = 1              | Done     | Done       | 1.0   | 0      |
 |  46 | Tensor<[1, 256]> self = ?,<br>int dim = 1             | Done     | Done       | 1.0   | 0      |
 |  47 | Tensor<[1, 25]> self = ?,<br>int dim = 1              | Done     | Done       | 1.0   | 0      |
@@ -59,7 +59,7 @@
 |  55 | Tensor<[1, 46]> self = ?,<br>int dim = 1              | Unknown  | Done       | 1.0   | 0      |
 |  56 | Tensor<[1, 5, 1, 16]> self = ?,<br>int dim = 4        | Unknown  | Done       | 1.0   | 0      |
 |  57 | Tensor<[1, 5, 16]> self = ?,<br>int dim = 2           | Unknown  | Done       | 1.0   | 0      |
-|  58 | Tensor<[1, 512]> self = ?,<br>int dim = 2             | Done     | Done       | 1.0   | 0      |
+|  58 | Tensor<[1, 512]> self = ?,<br>int dim = 1             | Done     | Unknown    | N/A   | N/A    |
 |  59 | Tensor<[1, 59, 59]> self = ?,<br>int dim = 1          | Unknown  | Done       | 1.0   | 0      |
 |  60 | Tensor<[1, 59]> self = ?,<br>int dim = 1              | Unknown  | Done       | 1.0   | 0      |
 |  61 | Tensor<[1, 5]> self = ?,<br>int dim = 1               | Unknown  | Done       | 1.0   | 0      |
@@ -69,7 +69,7 @@
 |  65 | Tensor<[1, 6]> self = ?,<br>int dim = 1               | Unknown  | Done       | 1.0   | 0      |
 |  66 | Tensor<[1, 7, 64]> self = ?,<br>int dim = 1           | Done     | Done       | 1.0   | 0      |
 |  67 | Tensor<[1, 7, 7]> self = ?,<br>int dim = 1            | Done     | Done       | 1.0   | 0      |
-|  68 | Tensor<[1, 720, 1280]> self = ?,<br>int dim = 0       | Done     | Unknown    | N/A   | N/A    |
+|  68 | Tensor<[1, 720, 1280]> self = ?,<br>int dim = 0       | Unknown  | Unknown    | N/A   | N/A    |
 |  69 | Tensor<[1, 768]> self = ?,<br>int dim = 0             | Done     | Unknown    | N/A   | N/A    |
 |  70 | Tensor<[1, 768]> self = ?,<br>int dim = 1             | Done     | Done       | 1.0   | 0      |
 |  71 | Tensor<[1, 7]> self = ?,<br>int dim = 1               | Done     | Done       | 1.0   | 0      |
@@ -77,7 +77,7 @@
 |  73 | Tensor<[1, 9]> self = ?,<br>int dim = 1               | Done     | Done       | 1.0   | 0      |
 |  74 | Tensor<[1, s0 + 1]> self = ?,<br>int dim = 1          | Unknown  | Unknown    | N/A   | N/A    |
 |  75 | Tensor<[1, s10 + 1]> self = ?,<br>int dim = 1         | Unknown  | Unknown    | N/A   | N/A    |
-|  76 | Tensor<[100, 256]> self = ?,<br>int dim = 1           | Done     | Done       | 1.0   | 0      |
+|  76 | Tensor<[100, 256]> self = ?,<br>int dim = 1           | Unknown  | Done       | 1.0   | 0      |
 |  77 | Tensor<[10]> self = ?,<br>int dim = 1                 | Unknown  | Done       | 1.0   | 0      |
 |  78 | Tensor<[12, 1, 1]> self = ?,<br>int dim = 0           | Unknown  | Done       | 1.0   | 0      |
 |  79 | Tensor<[12, 10, 10]> self = ?,<br>int dim = 0         | Unknown  | Done       | 1.0   | 0      |
