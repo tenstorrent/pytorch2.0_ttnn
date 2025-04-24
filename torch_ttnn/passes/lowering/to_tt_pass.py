@@ -1385,7 +1385,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 def select(dropout_p=0.0, is_causal=False):
                     # TODO(jdh8): Add support for training mode
-                    if dropout_p > 0.0:
+                    if dropout_p > 0.0 or not is_getitem_0_only_user(node):
                         return g.call_function(node.target, args, kwargs)
 
                     # Pad last dimension of Q, K, V to tile size
@@ -1442,7 +1442,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                     # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a
                     # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
-                    if (val := res_node.meta.get("val", None)) is not None and is_getitem_0_only_user(node):
+                    if (val := res_node.meta.get("val", None)) is not None:
                         res_node.meta["val"] = val[0]
 
                     return res_node
