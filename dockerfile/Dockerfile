@@ -1,4 +1,4 @@
-FROM ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-22.04-amd64-release:latest-rc AS release
+FROM ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-22.04-release-amd64:latest-rc AS release
 
 # Install system-level dependencies (using apt-get)
 RUN apt-get update && \
