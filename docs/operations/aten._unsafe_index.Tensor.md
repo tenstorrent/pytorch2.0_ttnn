@@ -2,7 +2,7 @@
 |     | ATen Input Variations                                                                                                                     | Status   | Isolated   | PCC   | Host   |
 |----:|:------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
 |   0 | Tensor<[1, 1, 384, 512]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_1, _folded__to_copy_2]              | None     | Unknown    | N/A   | N/A    |
-|   1 | Tensor<[1, 1, 720, 1280]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_2, _folded__to_copy_2]             | None     | Unknown    | N/A   | N/A    |
+|   1 | Tensor<[1, 1, 720, 1280]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_2, _folded__to_copy_2]             | Unknown  | Unknown    | N/A   | N/A    |
 |   2 | Tensor<[1, 120, 14, 14]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_2, _folded__to_copy_10]             | None     | Unknown    | N/A   | N/A    |
 |   3 | Tensor<[1, 120, 14, 14]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_2, _folded__to_copy_78]             | None     | Unknown    | N/A   | N/A    |
 |   4 | Tensor<[1, 128, 32, 32]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_1, _folded__to_copy_6]              | None     | Unknown    | N/A   | N/A    |

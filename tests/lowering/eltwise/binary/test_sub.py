@@ -42,6 +42,7 @@ class RSubScalarModule(torch.nn.Module):
             marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),
         ),
         ((64, 32), (64, 1)),
+        ((64, 32), ()),
         pytest.param(
             ((64, 1), (1, 64)),
             marks=pytest.mark.xfail(reason="broadcasting issues (#64)"),

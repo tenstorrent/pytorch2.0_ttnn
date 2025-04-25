@@ -25,7 +25,7 @@ def pack_to_tuple(*args):
 
 @torch.fx.wrap
 def move_to_host(device_tensor, layout):
-    if device_tensor.storage_type() == ttnn.StorageType.MULTI_DEVICE:
+    if len(ttnn.get_device_tensors(device_tensor)) > 1:
         device_tensor = ttnn.get_device_tensors(device_tensor)[0]
     host_tensor = ttnn.from_device(device_tensor)
     return ttnn.to_layout(host_tensor, layout)
@@ -52,7 +52,7 @@ def conv(
     if len(in_spatial_shape) == 1:
         # TODO(tt-metal#16258): conv1d API doesn't support transposed yet
         assert not transposed, "conv1d doesn't support transposed yet"
-        return ttnn.Conv1d(
+        return ttnn.conv1d(
             input_tensor=input_tensor,
             weight_tensor=weight_tensor,
             bias_tensor=bias_tensor,

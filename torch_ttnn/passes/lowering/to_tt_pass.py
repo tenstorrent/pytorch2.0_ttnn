@@ -299,9 +299,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
 
         if target == torch.ops.aten.where.self:
-            if get_shape(None, args[2]) == torch.Size():
-                # ttnn.from_torch not yet support scalar tensor, see issue 442
-                return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.where, args, kwargs)
 
         ############################################################
@@ -473,12 +470,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             def lower_binary_eltwise(fn, args):
                 shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
 
-                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
-                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
-                ):
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
-
                 if any(s is None for s in shapes):
                     return None
 
@@ -509,6 +500,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
             if node.target in TTNN_POINTWISE_UNARY_OPS:
                 code = TTNN_POINTWISE_UNARY_OPS[node.target]
+                # TODO: Remove once tanh accuracy implementation is realized as a device operation in tt-metal
+                if code == ttnn.tanh:
+                    kwargs = {
+                        "accuracy": True,
+                    }
 
             # NOTE(jdh8): Workaround for tenstorrent/tt-metal#12671
             # Passing a tensor shaped `(N,)` to the kernel results in `(1, N)`.
@@ -675,12 +671,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten.div.Tensor:
-                shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
-                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
-                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
-                ):
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
                 if isinstance(args[1], (float, int)):
                     return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
 
@@ -773,15 +763,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
-                if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
-                    # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
-                    # squeezing is the same as reshaping to shape of output tensor of squeeze
-                    output_size = list(node.meta["val"].size())
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
-                else:
-                    return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
-                # TODO: use the following line instead when we have a newer tt-metal
-                # return g.call_function(ttnn.squeeze, args=args, kwargs=kwargs)
+                return g.call_function(ttnn.squeeze, args=args, kwargs=kwargs)
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_shape_num_element = node.meta["val"].numel()
@@ -881,7 +863,30 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_shape_num_element = node.meta["val"].numel()
                 if input_tensor_num_element == 0 or output_shape_num_element == 0:
                     return None
-                return g.call_function(ttnn.reshape, (args[0], args[1]), {})
+
+                input_shape = args[0].meta["val"].shape
+                output_shape = args[1]
+
+                # To lower as ttnn.experimental.view:
+                # * the last dimension must not change
+                # * In Layout::TILE the second last two dimensions must not change OR there is no padding on the second last dimension
+                # Be cautious and assume Layout::TILE for now
+
+                last_dimension_constant = input_shape[-1] == output_shape[-1]
+                second_last_dimension_constant = (
+                    len(input_shape) > 1 and len(output_shape) > 1 and input_shape[-2] == output_shape[-2]
+                )
+                second_last_dimension_unpadded = (
+                    len(input_shape) > 1
+                    and len(output_shape) > 1
+                    and input_shape[-2] % ttnn.TILE_SIZE == 0
+                    and output_shape[-2] % ttnn.TILE_SIZE == 0
+                )
+
+                if last_dimension_constant and (second_last_dimension_constant or second_last_dimension_unpadded):
+                    return g.call_function(ttnn.experimental.view, (args[0], args[1]), {})
+                else:
+                    return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
                 if len(args[0].meta["val"].size()) == 1:

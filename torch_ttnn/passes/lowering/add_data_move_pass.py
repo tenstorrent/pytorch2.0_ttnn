@@ -132,6 +132,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.pad,
     ttnn.permute,
     ttnn.reshape,
+    ttnn.experimental.view,
     ttnn.sharded_to_interleaved,
     ttnn.slice,
     ttnn.split,

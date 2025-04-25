@@ -30,13 +30,13 @@
 |---:|:-----------------------------------------------------------------|:---------|:-----------|------:|-------:|
 |  0 | List[Tensor] tensors = [<[1, 160]>, <[1, 160]>],<br>int dim = -1 | Done     | Done       |     1 |      0 |
 ### aten.convolution.default
-|    | ATen Input Variations                                                                                                                                                                                                                                                                             | Status   | Isolated   | PCC   | Host   |
-|---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[1, 320, 64, 64]> input = ?,<br>Tensor<[320, 320, 3, 3]> weight = ?,<br>Optional[Tensor]<[320]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Unknown    | N/A   | N/A    |
+|    | ATen Input Variations                                                                                                                                                                                                                                                                             | Status   | Isolated   |   PCC |   Host |
+|---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
+|  0 | Tensor<[1, 320, 64, 64]> input = ?,<br>Tensor<[320, 320, 3, 3]> weight = ?,<br>Optional[Tensor]<[320]> bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | None     | Fallback   |     1 |     -1 |
 ### aten.cos.default
 |    | ATen Input Variations     | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999989 |      0 |
+|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999993 |      0 |
 ### aten.div.Tensor
 |    | ATen Input Variations                  | Status   | Isolated   | PCC   | Host   |
 |---:|:---------------------------------------|:---------|:-----------|:------|:-------|
@@ -44,12 +44,12 @@
 ### aten.exp.default
 |    | ATen Input Variations   | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999977 |      0 |
+|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999974 |      0 |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 160]> self = ?,<br>Tensor other = 1         | Done     | Done       | 1        |      0 |
-|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       | 0.999996 |      0 |
+|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       | 0.999997 |      0 |
 ### aten.native_group_norm.default
 |    | ATen Input Variations                                                                                                                                                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
