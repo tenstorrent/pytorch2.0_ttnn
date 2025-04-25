@@ -222,10 +222,15 @@ def _node_to_python_code(node):
     if node.op == "get_attr":
         # Embed get_attr constant into code
         tensor_data = getattr(node.graph.owning_module, node.target).data
+        # printoptions needed to display entirety of large tensor
         torch.set_printoptions(profile="full")
-        tensor_str = f"torch.{tensor_data}" if isinstance(tensor_data, torch.Tensor) else f"torch.tensor({tensor_data})"
-        statement = f"{node} = {tensor_str}"
+        tensor_str = (
+            f"torch.{str(tensor_data)}"
+            if isinstance(tensor_data, torch.Tensor)
+            else f"torch.tensor({str(tensor_data)})"
+        )
         torch.set_printoptions(profile="default")
+        statement = f"{node} = {tensor_str}"
         return statement
 
     # handle getitem nodes
