@@ -9,6 +9,7 @@ from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
+    TtnnUint32,
     TtnnInt32,
     TtnnUint32,
     TtnnDevice,
@@ -298,9 +299,6 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
 
         if target == torch.ops.aten.where.self:
-            if get_shape(None, args[2]) == torch.Size():
-                # ttnn.from_torch not yet support scalar tensor, see issue 442
-                return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.where, args, kwargs)
 
         ############################################################
@@ -472,12 +470,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             def lower_binary_eltwise(fn, args):
                 shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
 
-                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
-                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
-                ):
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
-
                 if any(s is None for s in shapes):
                     return None
 
@@ -558,6 +550,48 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     node_user.replace_all_uses_with(new_node)
                 return None
 
+            if node.target == target_wrappers.replicate_tensor:
+                if get_dtype(node.args[0]) in [torch.int32, torch.int64]:
+                    spec_dtype = TtnnUint32()
+                else:
+                    spec_dtype = TtnnBfloat16()
+
+                rep = g.call_function(ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),))
+                return g.call_function(
+                    ttnn.from_torch,
+                    args=node.args,
+                    kwargs={
+                        "mesh_mapper": rep,
+                        "device": TtnnDevice(),
+                        "layout": TtnnTileLayout(),
+                        "dtype": spec_dtype,
+                    },
+                )
+
+            if node.target == target_wrappers.shard_tensor:
+                inp_node, shard_dim, _ = node.args
+                spec_dtype = TtnnBfloat16()
+                if get_dtype(inp_node) in [torch.int32, torch.int64]:
+                    spec_dtype = TtnnUint32()
+                rep = g.call_function(ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
+                return g.call_function(
+                    ttnn.from_torch,
+                    args=(inp_node,),
+                    kwargs={
+                        "mesh_mapper": rep,
+                        "device": TtnnDevice(),
+                        "layout": TtnnTileLayout(),
+                        "dtype": spec_dtype,
+                    },
+                )
+
+            if node.target == target_wrappers.concat_tensor:
+                inp_node, shard_dim, _ = node.args
+                rep = g.call_function(ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
+                return g.call_function(
+                    ttnn.to_torch, args=(inp_node,), kwargs={"mesh_composer": rep, "device": TtnnDevice()}
+                )
+
             if node.target == torch.ops.aten.zeros.default:
                 return g.call_function(ttnn.zeros, args=args, kwargs={"device": TtnnDevice()})
 
@@ -637,12 +671,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten.div.Tensor:
-                shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
-                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
-                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
-                ):
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
                 if isinstance(args[1], (float, int)):
                     return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
 
@@ -835,7 +863,30 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_shape_num_element = node.meta["val"].numel()
                 if input_tensor_num_element == 0 or output_shape_num_element == 0:
                     return None
-                return g.call_function(ttnn.reshape, (args[0], args[1]), {})
+
+                input_shape = args[0].meta["val"].shape
+                output_shape = args[1]
+
+                # To lower as ttnn.experimental.view:
+                # * the last dimension must not change
+                # * In Layout::TILE the second last two dimensions must not change OR there is no padding on the second last dimension
+                # Be cautious and assume Layout::TILE for now
+
+                last_dimension_constant = input_shape[-1] == output_shape[-1]
+                second_last_dimension_constant = (
+                    len(input_shape) > 1 and len(output_shape) > 1 and input_shape[-2] == output_shape[-2]
+                )
+                second_last_dimension_unpadded = (
+                    len(input_shape) > 1
+                    and len(output_shape) > 1
+                    and input_shape[-2] % ttnn.TILE_SIZE == 0
+                    and output_shape[-2] % ttnn.TILE_SIZE == 0
+                )
+
+                if last_dimension_constant and (second_last_dimension_constant or second_last_dimension_unpadded):
+                    return g.call_function(ttnn.experimental.view, (args[0], args[1]), {})
+                else:
+                    return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
                 if len(args[0].meta["val"].size()) == 1:
@@ -1408,6 +1459,14 @@ def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphMo
 
 
 class ToTtPass(PassBase):
+    """Pass to convert aten ops to ttnn ops.
+
+    This pass is currently multi-device aware since it rewrites the shard / replicate / concat operations inserted by the MultiDevicePass. Some aten to ttnn conversions are performed with the torch.fx.Transformer, while others are manually rewritten.
+
+    :param device: The device on which the workflow will execute. Can be a MeshDevice or Device.
+    :param use_less_ttnn_op_types: Whether to use less ttnn op types (maybe unused).
+    """
+
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types

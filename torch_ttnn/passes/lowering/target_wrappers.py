@@ -4,6 +4,8 @@
 import ttnn
 import torch
 
+from torch_ttnn.utils import TtnnDevice
+
 
 @torch.fx.wrap
 def clone(t):
@@ -23,6 +25,8 @@ def pack_to_tuple(*args):
 
 @torch.fx.wrap
 def move_to_host(device_tensor, layout):
+    if len(ttnn.get_device_tensors(device_tensor)) > 1:
+        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
     host_tensor = ttnn.from_device(device_tensor)
     return ttnn.to_layout(host_tensor, layout)
 
@@ -166,3 +170,25 @@ def all(tensor, num_elements):
     neq_zero = ttnn.ne(tensor, 0)
     total_none_zero = ttnn.sum(neq_zero)
     return ttnn.eq(total_none_zero, num_elements)
+
+
+"""
+replicate_tensor, shard_tensor, and concat_tensor are needed to propagate shape data throughout the computation graph. These wrappers just replicate the shape change that occurs from the actual ttnn ops without requiring access to a TtnnDevice. It is expected that they are substituted back out during the ToTtPass.
+TODO: Find a better way to propagate shapes
+"""
+
+
+@torch.fx.wrap
+def replicate_tensor(tensor):
+    return tensor
+
+
+@torch.fx.wrap
+def shard_tensor(tensor, dim, num_devices):
+    return torch.chunk(tensor, num_devices, dim)[0]
+
+
+@torch.fx.wrap
+def concat_tensor(tensor, dim, num_devices):
+    sharded_version = [tensor] * num_devices
+    return torch.concat(sharded_version, dim)
