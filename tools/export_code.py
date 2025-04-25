@@ -256,8 +256,16 @@ del globals()["{func_name}"]
         rename_wrappers.add(rename_func)
         opname += "_wrapper"
 
+    # function to process special args
+    def process_arg(arg):
+        # some args can be string literals, add quotes to them
+        if isinstance(arg, str):
+            return f'"{arg}"'
+        else:
+            return arg
+
     # find a better way to use registered custom builtins to replace TTNN constants
-    node_args = ", ".join([str(arg) for arg in node.args])
+    node_args = ", ".join([str(process_arg(arg)) for arg in node.args])
     statement = f"{node} = {opname}({node_args}, {_format_dict(node.kwargs)})"
     replace_map = {
         "ttnn_Specified_Device": "device",
@@ -499,6 +507,8 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
     check_accuracy_code = (
         """
 def check_accuracy(expected, actual):
+    if expected == None and actual == None:
+        return
     if isinstance(actual, ttnn.Tensor):
         actual = ttnn.to_torch(actual)
     assert_with_pcc(expected, actual, pcc = 0.90)
