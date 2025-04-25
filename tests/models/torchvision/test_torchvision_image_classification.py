@@ -111,3 +111,55 @@ def test_torchvision_image_classification(record_property, model_info_and_mode):
         print(f"Model: {model_name} | Top 5 predictions: {indices[0].tolist()}")
 
     record_property("torch_ttnn", (tester, results))
+
+            
+            
+from torch.utils.data import DataLoader, Subset
+from tqdm import tqdm  
+import kagglehub
+import json
+import random
+import torchvision
+from tests.datasets_utils import ImageClassificationDataset
+
+def evaluate_torchvision_image_classification():
+    random.seed(0)
+    torch.manual_seed(0)
+    
+    # Load model and weights
+    model_name, weights_name = "vgg13", "VGG13_Weights"
+    weights = getattr(models, weights_name).DEFAULT
+    model = models.get_model(model_name, weights=weights).to(torch.bfloat16)
+
+    # Prepare dataset
+    dataset_dir = "processed_dataset"
+    dataset = ImageClassificationDataset(dataset_dir, transform=weights.transforms())
+    # num_samples = 200
+    # indices = list(range(len(dataset)))
+    # subset = Subset(dataset, indices[:num_samples])
+    dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
+
+    # Run inference with progress bar
+    model.eval()
+    
+    ground_truths = []
+    preds = []
+    with torch.no_grad():
+        for inputs, ground_truth in tqdm(dataloader, desc="Running Inference"):
+            outputs = model(inputs)
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            preds.append(torch.argmax(probabilities, dim=1).item())
+            ground_truths.append(ground_truth.item())
+
+    accuracy = sum(gt == pred for gt, pred in zip(ground_truths, preds)) / len(ground_truths)
+    print(f"Accuracy: {accuracy:.4f}")
+
+    with open('numbers.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        for i in range(len(preds)):
+            writer.writerow([ground_truths[i], preds[i]])
+
+
+if __name__ == "__main__":
+    evaluate_torchvision_image_classification()
+    
