@@ -411,7 +411,7 @@ class GraphWrapper:
         # so we can use the output shape from it
         if node.target == ttnn.layer_norm:
             return self._get_val(self.node)[0]
-        if node.target in [ttnn.max_pool2d, target_wrappers.conv]:
+        if node.target in [ttnn.max_pool2d, ttnn.avg_pool2d, target_wrappers.conv]:
             output_val = self._get_val(self.node)
             output_tensor = output_val[0] if isinstance(output_val, tuple) else output_val
             output_shape = list(output_tensor.size())
@@ -1130,8 +1130,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 count_include_pad = params.get("count_include_pad", True)
                 divisor_override = params.get("divisor_override", None)
 
-                dilation = [0, 0]
+                dilation = [1, 1]
 
+                if (
+                    # # TODO: in_c must be 16 or a multiple of 32
+                    (in_c != 16 and in_c % 32 != 0)
+                    # TODO(#419): Currently fails with in_c < 16
+                    or in_c < 16
+                ):
+                    return None
                 if ceil_mode or not count_include_pad or divisor_override is not None:
                     return None
                 input_tensor = insert_ncx_to_nxc(g, input_tensor)
