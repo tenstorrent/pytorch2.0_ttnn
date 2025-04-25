@@ -98,6 +98,7 @@ def test_reshape(device, input_shape, new_shape, module):
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
-    assert [node.target for node in nodes].count(ttnn.reshape) >= 1
+    targets = [node.target for node in nodes]
+    assert targets.count(ttnn.reshape) + targets.count(ttnn.experimental.view) >= 1
     # Check inference result
     assert torch.allclose(result_before, result_after)
