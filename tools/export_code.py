@@ -465,7 +465,11 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
         "import torch",
         "import ttnn",
         "from pathlib import Path",
+        "from typing import Dict",
     ]
+    import_code += (
+        ["from ttnn import TensorToMesh, MeshToTensor, MeshDevice"] if torch_ttnn_option.data_parallel else []
+    )
     import_code += (
         [
             "from tracy import Profiler",
@@ -550,6 +554,22 @@ def comp_pcc_wrapper(expected, actual):
     else:
         forward_calls_joined = format_forward_calls(call_forwards_in_main, _get_indent(1))
 
+    # TODO: Find a more dynamic way to copy device initialization from conftest.py
+    if torch_ttnn_option.data_parallel:
+        # Support mesh device
+        open_device = [
+            "device = ttnn.open_mesh_device(ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size)"
+        ]
+        close_device = "ttnn.close_mesh_device(device)"
+    else:
+        open_device = [
+            "device = ttnn.open_device(device_id=0, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size)",
+            "ttnn.SetDefaultDevice(device)",
+        ]
+        close_device = "ttnn.close_device(device)"
+    open_device = "\n".join(f"{_get_indent(1)}{i}" for i in open_device)
+    close_device = _get_indent(1) + close_device
+
     directory = Path("tests/export_code") / Path(option)
     input_pkl_file = Path(f"{model_name}_inputs.pickle")
     full_input_pkl_path = directory / input_pkl_file
@@ -559,11 +579,12 @@ if __name__ == "__main__":
     filepath = Path(__file__).with_name("{input_pkl_file.name}")
     file = lzma.open(filepath, "rb")
     inputs = pickle.load(file)
-    device = ttnn.open_device(device_id=0, dispatch_core_config=get_dispatch_core_config(), l1_small_size=16384)
-    ttnn.SetDefaultDevice(device)
+    l1_small_size = 16384
+    dispatch_core_config = get_dispatch_core_config()
+{open_device}
 {forward_calls_joined}
     ttnn.synchronize_device(device)
-    ttnn.close_device(device)
+{close_device}
 """
 
     # Assemble all of pieces of code into one script
