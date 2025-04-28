@@ -32,9 +32,8 @@ jobs:
           # Remove any existing ttnn lines (adjust the regex if needed)
           sed -i '/^ttnn @ https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt
       
-          # Append the two lines for the different python versions.
-          echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short+any-cp38-cp38-linux_x86_64.whl ; python_version==\"3.8\"" >> requirements.txt
-          echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short+any-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
+          # Append the line for the newest version
+          echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
           
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7

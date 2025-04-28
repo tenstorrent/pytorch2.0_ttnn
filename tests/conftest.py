@@ -20,7 +20,7 @@ import subprocess
 import sys
 import logging
 
-import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
+import tools.export_code as export_code
 
 mb_in_bytes = 1048576
 
@@ -41,7 +41,11 @@ def pytest_addoption(parser):
         default=1,
         help="Run up to the specified iteration count and report metrics based on this iteration.",
     )
-    parser.addoption("--gen_op_accuracy_tests", action="store_true")
+    parser.addoption(
+        "--export_code",
+        action="store",
+        help=f"Export standalone Python code. Supported options: {export_code.export_code_options}",
+    )
     parser.addoption("--data_parallel", action="store_true")
 
 
@@ -72,6 +76,8 @@ def device(request):
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
 
+        device.enable_program_cache()
+
         yield device
 
         ttnn.synchronize_device(device)
@@ -82,6 +88,8 @@ def device(request):
         device = ttnn.open_device(
             device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
+
+        device.enable_program_cache()
 
         ttnn.SetDefaultDevice(device)
 
@@ -134,6 +142,13 @@ def skip_by_platform(request, device):
             raise ValueError(
                 f'pytest.skip_platform missing arch argument string, i.e. pytest.skip_platform("grayskull")'
             )
+
+
+@pytest.fixture(autouse=True)
+def reset_program_cache(device):
+    # TODO: delete this fixture when program cache can be left on between tests
+    device.disable_and_clear_program_cache()
+    device.enable_program_cache()
 
 
 @pytest.fixture(autouse=True)
@@ -216,17 +231,25 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
         try:
             logging.debug("Compiling model with ttnn backend.")
+            # verify --export_code has valid option
+            export_code_opt = request.config.getoption("--export_code")
+            if export_code_opt is not None:
+                assert export_code_opt in export_code.export_code_options
+
+            total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
+
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
                 run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
-                gen_op_accuracy_tests=request.config.getoption("--gen_op_accuracy_tests"),
+                export_code=export_code_opt,
+                total_num_iterations=total_num_iterations,
                 data_parallel=request.config.getoption("--data_parallel"),
             )
 
-            for idx in range(int(request.config.getoption("--report_nth_iteration"))):
+            for idx in range(total_num_iterations):
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
@@ -242,11 +265,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
-            # set to one variable?
-            if request.config.getoption("--gen_op_accuracy_tests"):
-                generate_op_accuracy_tests.generate_op_accuracy_tests(
-                    model_name, option._aten_fx_graphs, option._out_fx_graphs, option._all_inputs
-                )
+            if export_code_opt:
+                export_code.export_code(option)
 
             if len(option._out_fx_graphs) > 0:
                 option._out_fx_graphs[0].print_tabular()
