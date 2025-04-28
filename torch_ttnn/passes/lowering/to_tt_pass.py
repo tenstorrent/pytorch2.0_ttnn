@@ -411,7 +411,7 @@ class GraphWrapper:
         # so we can use the output shape from it
         if node.target == ttnn.layer_norm:
             return self._get_val(self.node)[0]
-        if node.target in [ttnn.max_pool2d, target_wrappers.conv]:
+        if node.target in [ttnn.max_pool2d, ttnn.avg_pool2d, target_wrappers.conv]:
             output_val = self._get_val(self.node)
             output_tensor = output_val[0] if isinstance(output_val, tuple) else output_val
             output_shape = list(output_tensor.size())
@@ -1106,6 +1106,64 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_tensor = insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
                 return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
+
+            if node.target == torch.ops.aten.avg_pool2d.default:
+                params = map_args_to_kwargs(
+                    args,
+                    (
+                        (0, "input_tensor"),
+                        (1, "kernel_size"),
+                        (2, "stride"),
+                        (3, "padding"),
+                        (4, "ceil_mode"),
+                        (5, "count_include_pad"),
+                        (6, "divisor_override"),
+                    ),
+                )
+                input_tensor = params["input_tensor"]
+                input_shape = input_tensor.meta["val"].size()
+                batch_size, in_c, in_h, in_w = input_shape
+                kernel_size = params["kernel_size"]
+                stride = params.get("stride", kernel_size)
+                padding = params.get("padding", (0, 0))
+                ceil_mode = params.get("ceil_mode", False)
+                count_include_pad = params.get("count_include_pad", True)
+                divisor_override = params.get("divisor_override", None)
+
+                dilation = [1, 1]
+
+                if (
+                    # # TODO: in_c must be 16 or a multiple of 32
+                    (in_c != 16 and in_c % 32 != 0)
+                    # TODO(#419): Currently fails with in_c < 16
+                    or in_c < 16
+                ):
+                    return None
+                if ceil_mode or not count_include_pad or divisor_override is not None:
+                    return None
+                input_tensor = insert_ncx_to_nxc(g, input_tensor)
+                input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
+                input_tensor = g.call_function(ttnn.to_layout, (input_tensor, TtnnRowMajorLayout()))
+                output_tensor = g.call_function(
+                    ttnn.avg_pool2d,
+                    (
+                        input_tensor,
+                        batch_size,
+                        in_h,
+                        in_w,
+                        in_c,
+                        kernel_size,
+                        stride,
+                        padding,
+                        dilation,
+                    ),
+                    (
+                        {
+                            "ceil_mode": ceil_mode,
+                        }
+                    ),
+                )
+                return insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"].size())
 
             if node.target == torch.ops.aten._native_batch_norm_legit_no_training.default:
                 return batch_norm_inference(*args)
