@@ -51,8 +51,8 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "mode",
     [
-        "train",
-        pytest.param("eval", marks=pytest.mark.converted_end_to_end),
+        pytest.param("train", marks=pytest.mark.xfail(reason="OOM with program cache enabled")),
+        pytest.param("eval", marks=pytest.mark.xfail(reason="OOM with program cache enabled")),
     ],
 )
 def test_unet_brain(record_property, mode):

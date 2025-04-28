@@ -27,7 +27,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [pytest.param("eval", marks=pytest.mark.xfail(reason="OOM with program cache enabled"))],
 )
 def test_glpn_kitti(record_property, mode):
     model_name = "GLPN-KITTI"
