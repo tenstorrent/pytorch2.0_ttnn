@@ -17,7 +17,7 @@ class LogModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     ("input_shape", "init_offset"),
-    [((4, 4), 0), ((15, 15), 0), ((1, 1), 0), ((2, 2), 0), ((17, 17), 0), ((10, 10), 0)],
+    [((4, 4), 0), ((4,), 0), ((15, 15), 0), ((1, 1), 0), ((2, 2), 0), ((17, 17), 0), ((10, 10), 0)],
 )
 def test_log(device, input_shape, init_offset):
     m = LogModule()
