@@ -76,9 +76,6 @@ def device(request):
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
         device.enable_program_cache()
-        # device.enable_async(True)
-
-        device.enable_program_cache()
 
         yield device
 
