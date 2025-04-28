@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 
 #include "c10/core/TensorImpl.h"
@@ -56,6 +57,9 @@ struct TtnnTensorImpl : public TensorImpl {
 private:
     ttnn::Tensor ttnn_tensor_;
     ttnn::Shape logical_shape_;
+
+    std::vector<int64_t> sizes_;
+    std::vector<int64_t> strides_;
 };
 
 }  // namespace at

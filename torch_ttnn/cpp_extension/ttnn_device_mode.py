@@ -47,7 +47,8 @@ working_directory = working_file_path.parents[0]
 
 # Automatically compile all .cpp files in this same directory
 source_file_pattern = Path("*.cpp")
-source_files = glob.glob(str(working_directory / source_file_pattern), recursive=False)
+source_files = list(glob.glob(str(working_directory / source_file_pattern), recursive=False))
+source_files += list(glob.glob(str(working_directory / "core" / source_file_pattern), recursive=False))
 
 extra_cflags = ["-g", "-DFMT_HEADER_ONLY", "-std=c++20"]
 # Undefine the following problematic macros https://github.com/tenstorrent/tt-metal/issues/20361

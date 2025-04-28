@@ -1,5 +1,8 @@
 #include <ATen/native/DispatchStub.h>
-#include <ATen/native/UnaryOps.h>  // abs_stub
+#include <ATen/native/UnaryOps.h>   // abs_stub
+#include <ATen/native/BinaryOps.h>  // add_stub
+#include <c10/core/Scalar.h>
+#include <c10/util/BFloat16.h>
 #include <torch/csrc/Device.h>
 #include <torch/csrc/utils/pybind.h>
 #include <torch/extension.h>
@@ -11,14 +14,16 @@
 // errors about ambiguity.
 #include "ttnn/device.hpp"
 #include "ttnn/operations/creation.hpp"
+#include "ttnn/operations/eltwise/binary/binary.hpp"
 #include "ttnn/tensor/tensor_utils.hpp"
 #include "tt-metalium/bfloat16.hpp"
 #include "ttnn/operations/core/core.hpp"
 
 #include "extension_utils.hpp"
-#include "TtnnCustomAllocator.hpp"
-#include "TtnnTensorImpl.hpp"
-#include "TtnnGuard.hpp"
+#include "core/TtnnCustomAllocator.hpp"
+#include "core/TtnnTensorImpl.hpp"
+#include "core/TtnnGuard.hpp"
+#include "ttnn/types.hpp"
 
 // Debug Utils
 template <typename T>
@@ -96,18 +101,6 @@ void compare_torch_and_ttnn_tensors(const at::Tensor& torch_tensor, const ttnn::
     }
 }
 
-namespace {
-
-void abs_kernel(at::TensorIteratorBase& iter) {
-    // empty because we don't need it, but it has to be defined if we're intercepting torch.abs
-}
-
-}  // namespace
-
-namespace at::native {
-REGISTER_PRIVATEUSE1_DISPATCH(abs_stub, &abs_kernel);
-}
-
 // Register custom allocator. Only used to create dummy Torch tensor object.
 static TtnnCustomAllocator ttnn_custom_alloc;
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &ttnn_custom_alloc);
@@ -153,7 +146,8 @@ at::Tensor create_empty_tensor(
     auto ttnn_impl = c10::make_intrusive<at::TtnnTensorImpl>(private_use_ks, dtype_meta, device, size, storage_impl);
     ttnn_impl->set_ttnn_tensor(ttnn_tensor);
 
-    return at::Tensor(ttnn_impl);
+    auto res = at::Tensor(ttnn_impl);
+    return res;
 }
 
 // =====================================
@@ -174,13 +168,12 @@ at::Tensor custom_empty_memory_format(
 // TODO: Support "ttnn ==> cpu" and "ttnn ==> ttnn"
 at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
     LOGGING(self.device().type(), " ==> ", dst.device().type());
+    TORCH_CHECK(self.sizes() == dst.sizes());
+    TORCH_CHECK(self.scalar_type() == dst.scalar_type());
+    TORCH_CHECK(self.is_contiguous() && dst.is_contiguous());
 
     if (self.is_cpu() && dst.device().type() == c10::DeviceType::PrivateUse1) {
         TtnnGuard device_guard(at::device_of(dst).value());
-        TORCH_CHECK(self.sizes() == dst.sizes());
-        TORCH_CHECK(self.scalar_type() == dst.scalar_type());
-        TORCH_CHECK(self.is_contiguous() && dst.is_contiguous());
-
         at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(dst.unsafeGetTensorImpl());
         auto logical_shape = tensor_impl->get_logical_shape();
         LOGGING("TTNN Tensor logical shape: ", logical_shape);
@@ -253,6 +246,35 @@ at::Tensor custom__copy_from(const at::Tensor& self, const at::Tensor& dst, bool
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(src_dev);
         }
+    } else if (self.device().type() == c10::DeviceType::PrivateUse1 && dst.is_cpu()) {
+        // Handle TTNN => CPU copy
+        LOGGING("Copying from TTNN to CPU");
+        dst.reshape_as(self);
+
+        at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+        auto ttnn_tensor = tensor_impl->get_ttnn_tensor();
+
+        auto dtype = ttnn_tensor.dtype();
+
+        if (dtype == ttnn::DataType::BFLOAT16) {
+            // TODO: Is this making extra copy?
+            auto ttnn_vec = ttnn_tensor.to_vector<bfloat16>();
+            auto* dst_ptr = dst.data_ptr<at::BFloat16>();
+            std::memcpy(dst_ptr, ttnn_vec.data(), ttnn_vec.size() * sizeof(bfloat16));
+        } else if (dtype == ttnn::DataType::INT32) {
+            auto ttnn_vec = ttnn_tensor.to_vector<int32_t>();
+            auto* dst_ptr = dst.data_ptr<int32_t>();
+            std::memcpy(dst_ptr, ttnn_vec.data(), ttnn_vec.size() * sizeof(int32_t));
+        } else if (dtype == ttnn::DataType::UINT32) {
+            auto ttnn_vec = ttnn_tensor.to_vector<uint32_t>();
+            auto dst_uint32_t = dst.to(at::ScalarType::Int);
+            auto* dst_ptr = dst_uint32_t.data_ptr<int>();
+            std::memcpy(dst_ptr, ttnn_vec.data(), ttnn_vec.size() * sizeof(uint32_t));
+            dst.copy_(dst_uint32_t);
+        }
+
+        // Verify the data was copied correctly for debugging
+        compare_torch_and_ttnn_tensors(dst, ttnn_tensor);
     } else {
         TORCH_INTERNAL_ASSERT(false, "Current do not support direction.");
     }
@@ -295,6 +317,46 @@ at::Tensor& custom_abs_out(const at::Tensor& self, at::Tensor& out) {
     return out;
 }
 
+at::Tensor& ttnn_add(const at::Tensor& input, const at::Tensor& other, const at::Scalar& alpha, at::Tensor& out) {
+    LOGGING("input device: {}, other device: {}", input.device(), other.device());
+    TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1);
+    TORCH_CHECK(other.device().type() == c10::DeviceType::PrivateUse1);
+
+    at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
+    auto ttnn_tensor_input = tensor_impl->get_ttnn_tensor();
+    at::TtnnTensorImpl* other_tensor_impl = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
+    auto ttnn_tensor_other = other_tensor_impl->get_ttnn_tensor();
+
+    auto result = ttnn::add(ttnn_tensor_input, ttnn_tensor_other);
+
+    // tensor_impl->set_ttnn_tensor(result);
+    // Get underlying TTNN tensor object from output
+    at::TtnnTensorImpl* out_tensor_impl = static_cast<at::TtnnTensorImpl*>(out.unsafeGetTensorImpl());
+    out_tensor_impl->set_sizes_and_strides_as(input);
+
+    // Set output TTNN tensor to result
+    auto out_ttnn_tensor = out_tensor_impl->get_ttnn_tensor();
+    out_tensor_impl->set_ttnn_tensor(result);
+    return out;
+}
+
+// Add this function to your open_registration_extension.cpp
+at::Tensor ttnn_add_tensor(const at::Tensor& input, const at::Tensor& other, const at::Scalar& alpha) {
+    LOGGING("Creating new output tensor");
+    // Create a new output tensor on the right device
+    // auto output = at::empty(input.sizes(), input.options());
+    auto output = create_empty_tensor(
+        input.sizes(),
+        c10::optional<at::ScalarType>(input.scalar_type()),
+        c10::nullopt,  // layout
+        c10::optional<at::Device>(input.device()),
+        c10::nullopt  // pin_memory
+    );
+
+    // Call the existing out version
+    return ttnn_add(input, other, alpha, output);
+}
+
 // This macro registers the kernels to the PyTorch Dispatcher.
 // More details on the dispatcher can be found at
 // http://blog.ezyang.com/2020/09/lets-talk-about-the-pytorch-dispatcher/.
@@ -303,6 +365,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("empty.memory_format", &custom_empty_memory_format);
     m.impl("_copy_from", &custom__copy_from);
     m.impl("abs.out", &custom_abs_out);
+    m.impl("add.out", &ttnn_add);
+    m.impl("add.Tensor", &ttnn_add_tensor);
 }
 
 // ==============================================
