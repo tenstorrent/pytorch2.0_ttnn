@@ -76,6 +76,8 @@ def device(request):
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
 
+        device.enable_program_cache()
+
         yield device
 
         ttnn.synchronize_device(device)
@@ -86,6 +88,8 @@ def device(request):
         device = ttnn.open_device(
             device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
+
+        device.enable_program_cache()
 
         ttnn.SetDefaultDevice(device)
 
@@ -138,6 +142,13 @@ def skip_by_platform(request, device):
             raise ValueError(
                 f'pytest.skip_platform missing arch argument string, i.e. pytest.skip_platform("grayskull")'
             )
+
+
+@pytest.fixture(autouse=True)
+def reset_program_cache(device):
+    # TODO: delete this fixture when program cache can be left on between tests
+    device.disable_and_clear_program_cache()
+    device.enable_program_cache()
 
 
 @pytest.fixture(autouse=True)
