@@ -26,7 +26,7 @@
 ### aten.all.default
 |    | ATen Input Variations   | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 7]> self = ? | Fallback | Fallback   |     1 |      0 |
+|  0 | Tensor<[1, 7]> self = ? | Fallback | Fallback   |     1 |     -1 |
 ### aten.argmax.default
 |    | ATen Input Variations                                                     | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
@@ -34,12 +34,12 @@
 ### aten.embedding.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   | Host   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ? | Done     | Done       | 1.0   | 0      |
+|  0 | Tensor<[65024, 4544]> weight = ?,<br>Tensor<[1, 7]> indices = ? | Done     | Done       | 1.0   | -1     |
 |  1 | Tensor<[7, 64]> weight = ?,<br>Tensor<[1, 7]> indices = ?       | Done     | Unknown    | N/A   | N/A    |
 ### aten.eq.Scalar
 |    | ATen Input Variations                        | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 7]> self = ?,<br>number other = 1 | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[1, 7]> self = ?,<br>number other = 1 | Done     | Done       |     1 |     -1 |
 ### aten.expand.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   | Host   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|:-------|
@@ -56,7 +56,7 @@
 ### aten.index.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 7]>] | Removed  | Done       |     1 |      0 |
+|  0 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 7]>] | Removed  | Done       |     1 |     -1 |
 ### aten.lt.Tensor
 |    | ATen Input Variations                | Status   | Isolated   | PCC   | Host   |
 |---:|:-------------------------------------|:---------|:-----------|:------|:-------|
@@ -81,12 +81,12 @@
 |  1 | Tensor<[1, 1, 7, 7]> self = ?,<br>int dim = 2,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Unknown    | N/A   | N/A    |
 |  2 | Tensor<[1, 1, 7, 7]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Unknown    | N/A   | N/A    |
 |  3 | Tensor<[1, 7]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Unknown    | N/A   | N/A    |
-|  4 | Tensor<[2048, 64]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 7                     | Done     | Done       | 1.0   | 0      |
+|  4 | Tensor<[2048, 64]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 7                     | Done     | Done       | 1.0   | -1     |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                       | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------|:---------|:-----------|:------|:-------|
 |  0 | Tensor<[1, 1, 7]> self = ?,<br>int dim = 2  | Done     | Unknown    | N/A   | N/A    |
-|  1 | Tensor<[1, 7, 64]> self = ?,<br>int dim = 1 | Done     | Done       | 1.0   | 0      |
+|  1 | Tensor<[1, 7, 64]> self = ?,<br>int dim = 1 | Done     | Done       | 1.0   | -1     |
 |  2 | Tensor<[1, 7, 7]> self = ?,<br>int dim = 1  | Done     | Unknown    | N/A   | N/A    |
 |  3 | Tensor<[1, 7]> self = ?,<br>int dim = 1     | Done     | Unknown    | N/A   | N/A    |
 |  4 | Tensor<[7, 7]> self = ?,<br>int dim = 0     | Done     | Unknown    | N/A   | N/A    |
