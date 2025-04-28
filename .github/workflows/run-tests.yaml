@@ -131,7 +131,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       - name: docker-cleanup
         run: |
-          docker system prune -a -f --volumes
+          docker system prune -a -f
           df -h  # Debug space
       - uses: ./.github/actions/common_model_tests
         with:
