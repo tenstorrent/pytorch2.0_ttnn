@@ -651,6 +651,7 @@ if __name__ == "__main__":
     l1_small_size = 16384
     dispatch_core_config = get_dispatch_core_config()
 {open_device}
+    device.enable_program_cache()
 {forward_calls_joined}
     ttnn.synchronize_device(device)
 {close_device}
