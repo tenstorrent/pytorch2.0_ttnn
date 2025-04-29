@@ -51,6 +51,13 @@ You can also run with `DEBUG_CPP_EXT=1` ENV to enable logging messages.
 * You may have to set `PYTHONPATH=$TT_METAL_HOME:<location-of-pytorch2.0_ttnn-repo>` after all
 * Ensure `numpy < 2.0`
 
+## Development
+When developing cpp extension, it might be convenient to have `compile_commands.json` to enable syntax highlighting and indexing of code. bear utility can help generate them: 
+```bash
+sudo apt install bear
+rm -rf ${HOME}/.cache/torch_extensions
+bear -- pytest tests/cpp_extension/test_cpp_extension_functionality.py -s
+```
 
 # References
 https://github.com/bdhirsh/pytorch_open_registration_example
