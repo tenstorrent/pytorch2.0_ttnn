@@ -4,8 +4,6 @@
 
 #include <ttnn/device.hpp>
 
-#include "utils/extension_utils.hpp"
-
 // =====================================
 // ============= Device Guards =========
 // =====================================

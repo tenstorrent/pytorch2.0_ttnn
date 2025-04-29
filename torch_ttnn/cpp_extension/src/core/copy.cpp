@@ -7,6 +7,8 @@
 #include "core/TtnnGuard.hpp"
 #include "core/TtnnTensorImpl.hpp"
 
+#include "utils/extension_utils.hpp"
+
 at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
     LOGGING(self.device().type(), " ==> ", dst.device().type());
     TORCH_CHECK(self.sizes() == dst.sizes());

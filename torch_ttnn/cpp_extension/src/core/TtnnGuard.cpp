@@ -1,4 +1,5 @@
-#include "TtnnGuard.hpp"
+#include "core/TtnnGuard.hpp"
+#include "utils/extension_utils.hpp"
 
 TtnnDeviceGuard::TtnnDeviceGuard() { LOGGING(""); }
 
