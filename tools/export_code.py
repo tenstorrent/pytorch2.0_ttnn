@@ -580,7 +580,7 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
     check_accuracy_code = (
         """
 def check_accuracy(expected, actual):
-    if expected == None and actual == None:
+    if expected is None and actual is None:
         return
     if isinstance(actual, ttnn.Tensor):
         actual = ttnn.to_torch(actual)
