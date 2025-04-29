@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include "vector_utils.hpp"
-#include "extension_utils.hpp"
+#include "utils/vector_utils.hpp"
+#include "utils/extension_utils.hpp"
 
 namespace {
 // Debug Utils

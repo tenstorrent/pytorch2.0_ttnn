@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 import glob
 import logging
-from pprint import pprint
 
 assert os.environ.get("TT_METAL_HOME") is not None
 tt_metal_home = Path(os.environ["TT_METAL_HOME"])
