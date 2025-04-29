@@ -43,13 +43,14 @@ os.environ["CXX"] = "clang++-17"
 
 working_file_path = Path(os.path.realpath(__file__))
 working_directory = working_file_path.parents[0]
+src_directory = working_directory / Path("src")
 
 # Automatically compile all .cpp files in this same directory
 source_file_pattern = Path("*.cpp")
-source_files = list(glob.glob(str(working_directory / source_file_pattern), recursive=False))
-source_files += list(glob.glob(str(working_directory / "src" / "core" / source_file_pattern), recursive=False))
-source_files += list(glob.glob(str(working_directory / "src" / "ops" / source_file_pattern), recursive=False))
-source_files += list(glob.glob(str(working_directory / "src" / "utils" / source_file_pattern), recursive=False))
+source_files = list(glob.glob(str(src_directory / source_file_pattern), recursive=False))
+source_files += list(glob.glob(str(src_directory / "core" / source_file_pattern), recursive=False))
+source_files += list(glob.glob(str(src_directory / "ops" / source_file_pattern), recursive=False))
+source_files += list(glob.glob(str(src_directory / "utils" / source_file_pattern), recursive=False))
 
 extra_cflags = ["-g", "-DFMT_HEADER_ONLY", "-std=c++20"]
 # Undefine the following problematic macros https://github.com/tenstorrent/tt-metal/issues/20361
