@@ -10,6 +10,7 @@ metrics-autogen-op
 data
 .ttnn_runtime_artifacts
 test_fixture.log
+compile_commands.json
 
 # https://github.com/github/gitignore/blob/main/Python.gitignore
 # Byte-compiled / optimized / DLL files

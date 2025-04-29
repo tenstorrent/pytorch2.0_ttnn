@@ -1,11 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
 
 #include "c10/core/TensorImpl.h"
 #include "ATen/core/Tensor.h"
-#include "extension_utils.hpp"
 #include "ttnn/tensor/tensor.hpp"
 
 namespace at {
