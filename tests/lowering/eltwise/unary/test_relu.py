@@ -17,7 +17,7 @@ class ReluModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4)]],
+    [[(4, 4)], [(4,)]],
 )
 def test_relu(device, input_shapes):
     m = ReluModule()

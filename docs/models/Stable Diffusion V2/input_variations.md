@@ -28,7 +28,7 @@
 ### aten.cat.default
 |    | ATen Input Variations                                            | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | List[Tensor] tensors = [<[1, 160]>, <[1, 160]>],<br>int dim = -1 | Done     | Done       |     1 |      0 |
+|  0 | List[Tensor] tensors = [<[1, 160]>, <[1, 160]>],<br>int dim = -1 | Done     | Done       |     1 |     -1 |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -36,7 +36,7 @@
 ### aten.cos.default
 |    | ATen Input Variations     | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999993 |      0 |
+|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999993 |     -1 |
 ### aten.div.Tensor
 |    | ATen Input Variations                  | Status   | Isolated   | PCC   | Host   |
 |---:|:---------------------------------------|:---------|:-----------|:------|:-------|
@@ -44,12 +44,12 @@
 ### aten.exp.default
 |    | ATen Input Variations   | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999974 |      0 |
+|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999975 |     -1 |
 ### aten.mul.Tensor
-|    | ATen Input Variations                                  | Status   | Isolated   |      PCC |   Host |
-|---:|:-------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 160]> self = ?,<br>Tensor other = 1         | Done     | Done       | 1        |      0 |
-|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       | 0.999997 |      0 |
+|    | ATen Input Variations                                  | Status   | Isolated   |   PCC |   Host |
+|---:|:-------------------------------------------------------|:---------|:-----------|------:|-------:|
+|  0 | Tensor<[1, 160]> self = ?,<br>Tensor other = 1         | Done     | Done       |     1 |     -1 |
+|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       |     1 |     -1 |
 ### aten.native_group_norm.default
 |    | ATen Input Variations                                                                                                                                                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -62,22 +62,22 @@
 ### aten.silu.default
 |    | ATen Input Variations             | Status   | Isolated   |      PCC |   Host |
 |---:|:----------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 320, 64, 64]> self = ? | Done     | Done       | 0.999982 |      0 |
+|  0 | Tensor<[1, 320, 64, 64]> self = ? | Done     | Done       | 0.999982 |     -1 |
 ### aten.sin.default
 |    | ATen Input Variations     | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999997 |      0 |
+|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999997 |     -1 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                               | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
 |  0 | Tensor self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807             | Removed  | Unknown    | N/A   | N/A    |
 |  1 | Tensor<[1, 160]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807   | Removed  | Done       | 1.0   | -1     |
 |  2 | Tensor<[1, 320]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807   | Removed  | Done       | 1.0   | -1     |
-|  3 | Tensor<[1, 320]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 160                   | Done     | Done       | 1.0   | 0      |
-|  4 | Tensor<[1, 320]> self = ?,<br>int dim = 1,<br>Optional[int] start = 160,<br>Optional[int] end = 9223372036854775807 | Done     | Done       | 1.0   | 0      |
+|  3 | Tensor<[1, 320]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 160                   | Done     | Done       | 1.0   | -1     |
+|  4 | Tensor<[1, 320]> self = ?,<br>int dim = 1,<br>Optional[int] start = 160,<br>Optional[int] end = 9223372036854775807 | Done     | Done       | 1.0   | -1     |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                  | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[160]> self = ?,<br>int dim = 0 | Done     | Done       |     1 |      0 |
-|  1 | Tensor<[1]> self = ?,<br>int dim = 1   | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[160]> self = ?,<br>int dim = 0 | Done     | Done       |     1 |     -1 |
+|  1 | Tensor<[1]> self = ?,<br>int dim = 1   | Done     | Done       |     1 |     -1 |
 

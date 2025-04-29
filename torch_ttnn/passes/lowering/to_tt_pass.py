@@ -498,30 +498,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.sub.Tensor:
                 return lower_binary_eltwise(ttnn.sub, args)
 
-            if node.target in TTNN_POINTWISE_UNARY_OPS:
-                code = TTNN_POINTWISE_UNARY_OPS[node.target]
+            if node.target == torch.ops.aten.tanh.default:
                 # TODO: Remove once tanh accuracy implementation is realized as a device operation in tt-metal
-                if code == ttnn.tanh:
-                    kwargs = {
-                        "accuracy": True,
-                    }
-
-            # NOTE(jdh8): Workaround for tenstorrent/tt-metal#12671
-            # Passing a tensor shaped `(N,)` to the kernel results in `(1, N)`.
-            # Reshape the tensor back to get the correct shape.
-            def reshape_1d(code, args=args, kwargs=kwargs):
-                shape = get_shape(gm, node)
-                if shape == torch.Size():
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
-                result = g.call_function(code, args, kwargs)
-                return result if len(shape) > 1 else g.call_function(ttnn.reshape, (result, shape))
+                new_kwargs = kwargs.copy()
+                new_kwargs["accuracy"] = True
+                kwargs = new_kwargs
 
             if node.target in TTNN_POINTWISE_UNARY_OPS:
-                return reshape_1d(TTNN_POINTWISE_UNARY_OPS[node.target])
+                return g.call_function(TTNN_POINTWISE_UNARY_OPS[node.target], args, kwargs)
 
             if node.target == torch.ops.aten.round.default:
-                return reshape_1d(ttnn.round, (args[0],), {"decimals": 0})
+                return g.call_function(ttnn.round, (args[0],), {"decimals": 0})
 
             if node.target == torch.ops.aten.clone.default:
                 # Only convert if the input is from graph arguments and node is also returned as an output
