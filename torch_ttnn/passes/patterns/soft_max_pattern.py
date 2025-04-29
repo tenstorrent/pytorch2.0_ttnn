@@ -78,9 +78,8 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 softmax.replace_all_uses_with(fused_node)
 
             # Remove old nodes in reverse order
-            for node in [softmax, add, multiply]:
-                self.gm.graph.erase_node(node)
-
+            nodes_to_remove = [softmax, add, multiply]
+            self.safe_remove_nodes(nodes_to_remove)
         self.gm.graph.lint()
         self.gm.recompile()
         return matches

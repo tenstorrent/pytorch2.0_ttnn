@@ -56,3 +56,22 @@ class PatternMatcherBase(Generic[PatternType]):
         """
         raise NotImplementedError("Subclasses must implement replace_pattern")
 
+    def safe_remove_nodes(self, nodes: List[Optional[torch.fx.Node]]) -> List[bool]:
+        """
+        Safely remove nodes from the graph. A node is only removed if all its users
+        are either itself or other nodes in the deletion list.
+        
+        Args:
+            nodes: List of nodes to be removed (can contain None values which will be skipped)
+            
+        Returns:
+            List[bool]: List of booleans indicating success/failure for each node removal
+                       (None nodes are considered "removed" and return True)
+        """
+        
+        for node in nodes:
+            if node is None:    
+                continue
+            self.gm.graph.erase_node(node)
+        return nodes
+

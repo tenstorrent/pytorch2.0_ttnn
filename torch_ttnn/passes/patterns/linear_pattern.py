@@ -28,6 +28,9 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
             if not transpose:
                 continue
 
+            if (self._find_single_user_of_type(transpose, ttnn.to_torch)):
+                continue
+            
             # Find matmul operation using transpose
             matmul = self._find_single_user_of_type(transpose, ttnn.matmul)
             if not matmul or not self._is_node_in_args(transpose, matmul):
@@ -55,6 +58,10 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                     if not view:
                         continue
                         
+                    to_torch = self._find_single_user_of_type(view, ttnn.to_torch)
+                    if to_torch:
+                        continue
+
                     # Check for optional activation operations
                     gelu = self._find_single_user_of_type(view, ttnn.gelu)
                     relu = self._find_single_user_of_type(view, ttnn.relu)
@@ -107,8 +114,7 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 matmul,
                 transpose
             ]
-            for node in [n for n in nodes_to_remove if n]:
-                self.gm.graph.erase_node(node)
+            self.safe_remove_nodes(nodes_to_remove)
 
         self.gm.graph.lint()
         self.gm.recompile()
