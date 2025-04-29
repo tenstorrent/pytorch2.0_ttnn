@@ -15,6 +15,7 @@ import tools.export_code as export_code
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
 import copy
+from torch_ttnn.utils import get_add_custom_object_in_graph
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -77,25 +78,17 @@ def register_ttnn_objects(option: TorchTtnnOption):
     calls builtin exec() with a dictionary of globals that contains the strings (keys)
     that will be replaced by the ttnn objects (values) during evaluation.
     """
-    torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
+    get_add_custom_object_in_graph("ttnn_Specified_Device", option.device)
 
-    torch.fx.graph._register_custom_builtin("ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT)
-    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
+    get_add_custom_object_in_graph("ttnn_ROW_MAJOR_LAYOUT", ttnn.ROW_MAJOR_LAYOUT)
+    get_add_custom_object_in_graph("ttnn_TILE_LAYOUT", ttnn.TILE_LAYOUT)
 
-    torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
-    torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
-    torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
+    get_add_custom_object_in_graph("ttnn_uint32", ttnn.uint32)
+    get_add_custom_object_in_graph("ttnn_int32", ttnn.int32)
+    get_add_custom_object_in_graph("ttnn_bfloat16", ttnn.bfloat16)
 
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_DRAM_MEMORY_CONFIG",
-        "",
-        ttnn.DRAM_MEMORY_CONFIG,
-    )
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_L1_MEMORY_CONFIG",
-        "",
-        ttnn.L1_MEMORY_CONFIG,
-    )
+    get_add_custom_object_in_graph("ttnn_DRAM_MEMORY_CONFIG", ttnn.DRAM_MEMORY_CONFIG)
+    get_add_custom_object_in_graph("ttnn_L1_MEMORY_CONFIG", ttnn.L1_MEMORY_CONFIG)
 
 
 # The backend for torch.compile that converts a graph to use ttnn.

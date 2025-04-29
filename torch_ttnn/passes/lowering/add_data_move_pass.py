@@ -223,6 +223,7 @@ def is_tt_compute(node) -> bool:
             ttnn.argmax,
             ttnn.fill,
             ttnn.empty,
+            ttnn.transformer.scaled_dot_product_attention,
         ]
     )
 

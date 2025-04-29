@@ -16,6 +16,7 @@ from torch_ttnn.utils import (
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
+    get_emplace_custom_object_in_graph,
     get_shape,
     get_dtype,
     get_arg,
@@ -27,6 +28,7 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
 from .to_tt_guard import can_lowering_to_ttnn
+import operator
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -434,7 +436,7 @@ class GraphWrapper:
         return obj.meta["val"]
 
 
-def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
+def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
         if not can_lowering_to_ttnn(node):
@@ -1348,6 +1350,119 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                     "device": TtnnDevice(),
                 }
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
+            if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
+
+                def pad_qkv_ttnn(q, k, v, scale=None, align_by=ttnn.TILE_SIZE):
+                    """
+                    Pads the last dimension of Q, K, V tensors to `tile_size`
+                    and rescales Q so that the scaled-dot-product attention
+                    is numerically identical to the unpadded case.
+                    """
+                    # Extract shape from metadata
+                    q_shape = list(q.meta["val"].shape)
+                    d = q_shape[-1]
+                    pad = (-d) % align_by  # 0 – 31
+
+                    padded_shape = q_shape.copy()
+                    padded_shape[-1] = d + pad
+
+                    if pad:
+                        ttnn_pad = [(0, pad)]
+
+                        # metadata is broken because torch fx expects sdpa to return a tuple
+                        torch_pad = tuple(x for pair in ttnn_pad for x in pair)
+                        meta_val = torch.nn.functional.pad(g._get_val(q), torch_pad, value=0)
+
+                        # 1) zero‑pad along head_dim
+                        q = g.call_function(ttnn.pad, args=(q, ttnn_pad, 0))
+                        k = g.call_function(ttnn.pad, args=(k, ttnn_pad, 0))
+                        v = g.call_function(ttnn.pad, args=(v, ttnn_pad, 0))
+
+                        q.meta["val"] = meta_val
+                        k.meta["val"] = meta_val
+                        v.meta["val"] = meta_val
+
+                        # 2) rescale Q so that Q*K^T / sqrt(d') == Q_p*K_p^T / sqrt(d)
+                        if scale is None:
+                            calc_scale = math.sqrt((d + pad) / d)
+                            q = g.call_function(ttnn.multiply, args=(q, calc_scale))
+
+                    return q, k, v, d
+
+                def select(dropout_p=0.0, is_causal=False):
+                    # TODO(jdh8): Add support for training mode
+                    if dropout_p > 0.0 or not is_getitem_0_only_user(node):
+                        return None
+
+                    # Pad last dimension of Q, K, V to tile size
+                    q, k, v = args[:3]
+                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None))
+
+                    # TODO: Those configs can be further optimized based on input shape to get
+                    # best performance/accuracy tradeoff
+                    default_q_chunk_size = 32  # <- The bigger the better accuracy but slower
+                    default_k_chunk_size = 32
+
+                    compute_config_params = {
+                        "math_fidelity": ttnn.MathFidelity.HiFi2,
+                        "math_approx_mode": True,
+                        "fp32_dest_acc_en": False,
+                        "packer_l1_acc": False,
+                    }
+                    if ttnn.device.is_wormhole_b0(device):
+                        compute_kernel_config = get_emplace_custom_object_in_graph(
+                            ttnn.WormholeComputeKernelConfig, **compute_config_params
+                        )
+                    elif ttnn.device.is_blackhole(device):
+                        compute_kernel_config = get_emplace_custom_object_in_graph(
+                            ttnn.BlackholeComputeKernelConfig, **compute_config_params
+                        )
+                    else:
+                        raise RuntimeError(f"Unsupported device for {device.arch()} compute kernel config")
+                    program_config = get_emplace_custom_object_in_graph(
+                        ttnn.SDPAProgramConfig,
+                        compute_with_storage_grid_size=device.compute_with_storage_grid_size(),
+                        q_chunk_size=default_q_chunk_size,
+                        k_chunk_size=default_k_chunk_size,
+                        exp_approx_mode=False,
+                    )
+                    res_node = g.call_function(
+                        ttnn.transformer.scaled_dot_product_attention,
+                        args=(q_padded, k_padded, v_padded),
+                        kwargs={
+                            "is_causal": is_causal,
+                            "scale": kwargs.get("scale", None),
+                            "compute_kernel_config": compute_kernel_config,
+                            "program_config": program_config,
+                        },
+                    )
+
+                    # If padding was applied, slice the result back to original dimension
+                    pad = (-d) % 32
+                    if pad:
+                        output_shape = list(res_node.meta["val"][0].shape)
+                        slice_start = [0] * len(output_shape)
+                        slice_end = output_shape.copy()
+                        slice_end[-1] = d  # Set last dimension back to original size
+                        res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
+
+                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a
+                    # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
+                    if (val := res_node.meta.get("val", None)) is not None:
+                        res_node.meta["val"] = val[0]
+
+                    return res_node
+
+                return select(*args[3:])
+
+            # Removes getitem after ttnn.transformer.scaled_dot_product_attention
+            # Related to https://github.com/tenstorrent/tt-metal/issues/16021
+            if node.target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
+                if args[0].target == ttnn.transformer.scaled_dot_product_attention or (
+                    args[0].target == ttnn.slice
+                    and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
+                ):
+                    return args[0]
 
             # PEP 8 suggests this explicit statement
             return None
@@ -1485,7 +1600,7 @@ class ToTtPass(PassBase):
         cnt = 0
         while True:
             cnt += 1
-            gm, modified = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
+            gm, modified = ReplaceMoreTtManually(gm, self.device, self.use_less_ttnn_op_types)
             if not modified:
                 break
             if cnt == max_try:
