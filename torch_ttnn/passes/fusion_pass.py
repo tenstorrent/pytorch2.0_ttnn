@@ -23,9 +23,4 @@ class FusionPass(PassBase):
         softmax_patterns = SoftMaxPatterns(gm)
         softmax_replaced = softmax_patterns.replace_softmax()
         modified |= len(softmax_replaced) > 0
-
-        output_file = Path.home() / "compiled_code.py"
-        with open(output_file, "w") as f:
-            f.write(gm.code)
-
         return PassResult(gm, modified)

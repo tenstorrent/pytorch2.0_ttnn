@@ -23,12 +23,15 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
         """
         matches = []
         
-        # Find all multiply nodes with scale 0.125 (1/sqrt(64))
+        # Find all multiply nodes with something similar to a scale
+        # (int, float bigger than 0)
         multiply_nodes = self._find_nodes_of_type(ttnn.multiply)
         for multiply in multiply_nodes:
             # Check for the scale factor (1/sqrt(head_size))
             # this number should be always be positive
-            if not (len(multiply.args) > 1 and multiply.args[1] > 0):
+            if not (len(multiply.args) > 1 and 
+                    isinstance(multiply.args[1], (int, float)) and 
+                    multiply.args[1] > 0):
                 continue
 
             # Find add operation that combines with attention mask
