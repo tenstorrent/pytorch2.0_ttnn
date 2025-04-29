@@ -23,7 +23,7 @@ class EluModule(torch.nn.Module):
         ((1, 128, 28, 28), 2.0),
         ((16, 32, 128, 28, 28), 1.0),
         ((1, 28), 1.0),
-        pytest.param((28,), 1.0, marks=pytest.mark.xfail(reason="lost 1D shape with tile layout (tt-metal#12671)")),
+        ((28,), 1.0),
     ],
 )
 def test_elu(device, input_shape, alpha):

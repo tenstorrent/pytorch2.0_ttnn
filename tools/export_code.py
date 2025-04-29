@@ -13,7 +13,9 @@ import types
 from collections import defaultdict
 from pathlib import Path
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
+from torch.fx.node import Node, map_arg
 from torch_ttnn.utils import get_opname, users_have_getitem, is_operation
+from typing import Dict, List
 
 wrapper_funcs = set()
 rename_wrappers = set()
@@ -268,6 +270,64 @@ del globals()["{func_name}"]
     return statement
 
 
+class TrackUnusedValues:
+    """
+    Adapted from CodeGen._gen_python_code in pytorch/torch/fx/graph.py
+    Given a graph, tracks the last uses of each node in order to
+    deallocate them appropriately. This is useful for TTNN graphs because
+    of limited L1 memory.
+
+    Methods
+    -------
+    get_delete_code(user=""):
+        Given a node, returns an empty string or string that deallocates the
+        node(s) prior.
+
+    Usage
+    unused_values = TrackUnusedValues(graph)
+    for node in graph.nodes:
+        print(unused_values.get_delete_code(node))
+    """
+
+    def __init__(self, graph):
+        node_to_last_use: Dict[Node, Node] = {}
+        self._user_to_last_uses: Dict[Node, List[Node]] = {}
+
+        def register_last_uses(n: Node, user: Node):
+            if n not in node_to_last_use:
+                node_to_last_use[n] = user
+                self._user_to_last_uses.setdefault(user, []).append(n)
+
+        for node in reversed(graph.nodes):
+            map_arg(node.args, lambda n: register_last_uses(n, node))
+            map_arg(node.kwargs, lambda n: register_last_uses(n, node))
+
+    def get_delete_code(self, user: Node):
+        """
+        Delete values after their last use. This ensures that values that are
+        not used in the remainder of the code are freed and the memory usage
+        of the code is optimal. Returns a string of all the values to delete.
+        Returns an empty string if none.
+        """
+        if user.op == "placeholder":
+            return ""
+        if user.op == "output":
+            return ""
+        nodes_to_delete = self._user_to_last_uses.get(user, [])
+
+        if len(user.users.keys()) == 0:
+            # This node is not used by any others. however it's also not
+            # removed by DCE since side-effect. We want to free it's outputs
+            # right after its execution done to save memory.
+            nodes_to_delete.append(user)
+
+        if len(nodes_to_delete):
+            to_delete_str = " = ".join([repr(n) for n in nodes_to_delete] + ["None"])
+            return f"; {to_delete_str}"
+        else:
+            return ""
+
+
 def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx):
     """
     Given a pair of aten and ttnn graphs, build a list of lines of code.
@@ -296,6 +356,12 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
             opname = get_opname(node)
             if not opname.startswith("aten.") and not opname.startswith("ttnn."):
                 node._rename(f"ttnn_prefix_{node.name}")
+
+    """
+    After pre-processing above, track the last uses of all the nodes. Code will be inserted
+    to deallocate these last uses later.
+    """
+    unused_values = TrackUnusedValues(ttnn_graph)
 
     """
     Gather together all the aten nodes and argument (placeholder) nodes into one list.
@@ -372,6 +438,9 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
                 graph_code.append(_get_indent(1) + f'print(f"{forward_func_name} accuracy: {{accuracy}}")')
 
             graph_code.append(_get_indent(1) + f"{_node_to_python_code(node)}")
+            # Append deallocation code if needed
+            if to_delete_code := unused_values.get_delete_code(node):
+                graph_code[-1] += to_delete_code
 
     return graph_code
 
