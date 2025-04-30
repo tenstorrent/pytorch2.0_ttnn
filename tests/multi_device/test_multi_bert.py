@@ -19,7 +19,7 @@ class ThisTester(ModelTester):
 
     def _load_inputs(self):
         # Set up sample input
-        batch_size = 2
+        batch_size = 8
         self.context = [
             'Johann Joachim Winckelmann was a German art historian and archaeologist. He was a pioneering Hellenist who first articulated the difference between Greek, Greco-Roman and Roman art. "The prophet and founding hero of modern archaeology", Winckelmann was one of the founders of scientific archaeology and first applied the categories of style on a large, systematic basis to the history of art. '
         ] * batch_size
