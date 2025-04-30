@@ -28,7 +28,7 @@ class PatternMatcherBase(Generic[PatternType]):
 
     def _find_exclusive_user_of_type(self, node: torch.fx.Node, op_type) -> Optional[torch.fx.Node]:
         """
-        Find if node is consumed by exactly one user of the specified type and no other users.
+        Find a node that is exclusively consumed by a single user of the specified type.
         Also ensures the user is not ttnn.to_torch.
         
         Args:

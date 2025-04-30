@@ -35,7 +35,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 continue
 
             # Find add operation that combines with attention mask
-            add = self._find_single_user_of_type(multiply, ttnn.add)
+            add = self._find_exclusive_user_of_type(multiply, ttnn.add)
             if not add:
                 continue
 
@@ -44,7 +44,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 continue
 
             # Find softmax operation with numeric stability
-            softmax = self._find_single_user_of_type(add, ttnn.softmax)
+            softmax = self._find_exclusive_user_of_type(add, ttnn.softmax)
             if not softmax:
                 continue
 
@@ -62,9 +62,8 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 # Get the input tensor and attention mask
                 input_tensor = multiply.args[0]
                 scale = multiply.args[1]
-                head_size = int(1 / (scale * scale))
-                attention_mask = add.args[1]
-
+                head_size = None if scale is None else (int(1 / (scale * scale)) if scale < 1 else int(scale))
+                attention_mask = add.args[0] if add.args[1] == multiply else add.args[1]
                 fused_node = self.gm.graph.call_function(
                     ttnn.transformer.attention_softmax_,
                     args=(input_tensor,),
