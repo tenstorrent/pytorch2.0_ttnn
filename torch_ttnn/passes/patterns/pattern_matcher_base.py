@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
-
+import ttnn
 import torch
 import torch._dynamo
 from typing import Optional, Tuple, List, TypeVar, Generic
@@ -27,7 +27,17 @@ class PatternMatcherBase(Generic[PatternType]):
         return node.op == 'call_function' and node.target == op_type
 
     def _find_single_user_of_type(self, node: torch.fx.Node, op_type) -> Optional[torch.fx.Node]:
-        """Find a single user of the given node with the specified operation type."""
+        """Find a single user of the given node with the specified operation type,
+        ensuring no immediate user is a ttnn.to_torch operation."""
+        
+        # Why not ttnn.to_torch? Simply because it breaks the tree structure of the graph.
+        # if I do a replacement, let's say linear and then we have a ttnn.to_torch with one of 
+        # the intermediate nodes, I need to do something fancier to avoid breaking the graph.
+        # I prefer to be conservative when reducing nodes instead of adding an extra layer
+        # of complexity to the pattern matcher.
+        if any(self._is_ttnn_op(user, ttnn.to_torch) for user in node.users):
+            return None
+            
         matching_users = [user for user in node.users if self._is_ttnn_op(user, op_type)]
         return matching_users[0] if len(matching_users) == 1 else None
 
@@ -56,22 +66,17 @@ class PatternMatcherBase(Generic[PatternType]):
         """
         raise NotImplementedError("Subclasses must implement replace_pattern")
 
-    def safe_remove_nodes(self, nodes: List[Optional[torch.fx.Node]]) -> List[bool]:
+    def safe_remove_nodes(self, nodes: List[Optional[torch.fx.Node]]) -> None:
         """
-        Safely remove nodes from the graph. A node is only removed if all its users
-        are either itself or other nodes in the deletion list.
+        Remove nodes from the graph. Since ttnn.to_torch checks are handled during pattern matching,
+        we can safely remove these nodes.
         
         Args:
             nodes: List of nodes to be removed (can contain None values which will be skipped)
-            
-        Returns:
-            List[bool]: List of booleans indicating success/failure for each node removal
-                       (None nodes are considered "removed" and return True)
         """
-        
+
         for node in nodes:
-            if node is None:    
-                continue
-            self.gm.graph.erase_node(node)
-        return nodes
+            if node is not None:
+                node.users.clear()  # Clear users to ensure clean removal
+                self.gm.graph.erase_node(node)
 
