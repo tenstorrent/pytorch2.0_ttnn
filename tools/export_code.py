@@ -357,11 +357,11 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
             if not opname.startswith("aten.") and not opname.startswith("ttnn."):
                 node._rename(f"ttnn_prefix_{node.name}")
 
-    """
-    After pre-processing above, track the last uses of all the nodes. Code will be inserted
-    to deallocate these last uses later.
-    """
-    unused_values = TrackUnusedValues(ttnn_graph)
+    # """
+    # After pre-processing above, track the last uses of all the nodes. Code will be inserted
+    # to deallocate these last uses later.
+    # """
+    # unused_values = TrackUnusedValues(ttnn_graph)
 
     """
     Gather together all the aten nodes and argument (placeholder) nodes into one list.
@@ -438,9 +438,9 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
                 graph_code.append(_get_indent(1) + f'print(f"{forward_func_name} accuracy: {{accuracy}}")')
 
             graph_code.append(_get_indent(1) + f"{_node_to_python_code(node)}")
-            # Append deallocation code if needed
-            if to_delete_code := unused_values.get_delete_code(node):
-                graph_code[-1] += to_delete_code
+            # # Append deallocation code if needed
+            # if to_delete_code := unused_values.get_delete_code(node):
+            #     graph_code[-1] += to_delete_code
 
     return graph_code
 
