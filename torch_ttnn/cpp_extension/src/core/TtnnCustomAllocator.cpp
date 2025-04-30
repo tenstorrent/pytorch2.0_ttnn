@@ -1,4 +1,6 @@
-#include "TtnnCustomAllocator.hpp"
+#include "core/TtnnCustomAllocator.hpp"
+
+#include "utils/extension_utils.hpp"
 
 at::DataPtr TtnnCustomAllocator::allocate(size_t nbytes) const {
     LOGGING("");
@@ -13,3 +15,8 @@ void TtnnCustomAllocator::ReportAndDelete(void* ptr) {
 }
 
 at::DeleterFnPtr TtnnCustomAllocator::raw_deleter() const { return &ReportAndDelete; }
+
+TtnnCustomAllocator& get_ttnn_custom_allocator() {
+    static TtnnCustomAllocator allocator;
+    return allocator;
+}
