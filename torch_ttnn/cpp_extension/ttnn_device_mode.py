@@ -5,31 +5,24 @@ import os
 from pathlib import Path
 import glob
 import logging
+from pprint import pprint
 
-assert os.environ.get("TT_METAL_HOME") is not None
-tt_metal_home = Path(os.environ["TT_METAL_HOME"])
-
-ttnn_module_dir = tt_metal_home / Path("ttnn/cpp")
-tt_metal_module_dir = tt_metal_home / Path("tt_metal")
-
-cpmcache_pattern = Path(".cpmcache/**/include")
-cpmcache_dirs = glob.glob(str(tt_metal_home / cpmcache_pattern), recursive=True)
-
+# TODO: We need to swtich to cmake and use find script to find the include paths and libraries
 ttnn_include_paths = [
-    ttnn_module_dir.parent,
-    ttnn_module_dir,
-    ttnn_module_dir / Path("cpp"),
-    tt_metal_module_dir / Path("api"),
-    tt_metal_module_dir / Path("third_party/umd/device/api"),
-    tt_metal_module_dir / Path("hostdevcommon/api"),
-    tt_metal_module_dir / Path("third_party/tracy/public"),
-    tt_metal_home / Path("tt_stl"),
-    tt_metal_home / Path(".cpmcache/reflect/e75434c4c5f669e4a74e4d84e0a30d7249c1e66f"),
-] + cpmcache_dirs
-ttnn_include_paths = [str(p) for p in ttnn_include_paths]
+    "/usr/include/tt-metal",
+    "/usr/include/tt-metal/tt_stl",
+    "/usr/include/tt-metal/ttnn",
+    "/usr/include/tt-metal/ttnn/cpp",
+    "/usr/include/tt-metal/tt_metal",
+    "/usr/include/tt-metal/tt_metal/api",
+    "/usr/include/tt-metal/tt_metal/third_party/umd/device/api",
+    "/usr/include/tt-metal/tt_metal/third_party/tracy/public",
+    "/usr/include/tt-metal/tt_metal/hostdevcommon/api",
+    "/usr/include/tt-metal/third-party/",
+]
 
 # Load the C++ extension containing your custom kernels.
-tt_metal_lib_paths = [tt_metal_home / Path("build/lib")]  # ttnn_module_dir / Path("build/lib"),
+tt_metal_lib_paths = ["/usr/lib"]  # ttnn_module_dir / Path("build/lib"),
 tt_metal_lib_paths = ["-L" + str(p) + " -Wl,-rpath=" + str(p) for p in tt_metal_lib_paths]
 tt_metal_libs = [
     "tt_metal",
