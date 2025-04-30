@@ -49,39 +49,29 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                     from_torch_2 in node.args
                 ]
                 
-                if not add_users:
+                # we only care about one user of this, it must be a view with gelu, relu, or silu
+                if len(add_users) != 1:
                     continue
-
+                
                 # For each valid add operation, look for view and optional activation
                 for add in add_users:
-                    view = self._find_single_user_of_type(add, ttnn.experimental.view)
-                    if not view:
-                        continue
+                    potential_replaceable_view = self._find_exclusive_user_of_type(add, ttnn.experimental.view)
+                    if potential_replaceable_view != None:
+                        gelu = self._find_single_user_of_type(potential_replaceable_view, ttnn.gelu)
+                        relu = self._find_single_user_of_type(potential_replaceable_view, ttnn.relu)
+                        silu = self._find_single_user_of_type(potential_replaceable_view, ttnn.silu)
+                        activation = (None, None)
                         
-                    to_torch = self._find_single_user_of_type(view, ttnn.to_torch)
-                    if to_torch:
-                        continue
-
-                    # Check for optional activation operations
-                    gelu = self._find_single_user_of_type(view, ttnn.gelu)
-                    relu = self._find_single_user_of_type(view, ttnn.relu)
-                    silu = self._find_single_user_of_type(view, ttnn.silu)
-                    
-                    # Store activation type and node if found
-                    activation = (None, None)
-                    view2 = None
-                    
-                    if gelu:
-                        activation = ('gelu', gelu)
-                    elif relu:
-                        activation = ('relu', relu)
-                    elif silu:
-                        activation = ('silu', silu)
-                    
-                    if (activation[0] is not None):
-                        view2 = self._find_single_user_of_type(activation[1], ttnn.experimental.view)
-                    
-                    matches.append((from_torch, transpose, matmul, from_torch_2, add, view, activation, view2))
+                        if gelu:
+                            activation = ('gelu', gelu)
+                        elif relu:
+                            activation = ('relu', relu)
+                        elif silu:
+                            activation = ('silu', silu)
+                        
+                        if activation[0] is None:
+                            potential_replaceable_view = None
+                        matches.append((from_torch, transpose, matmul, from_torch_2, add, potential_replaceable_view, activation))
 
         return matches
 
@@ -89,9 +79,10 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
         matches = self.match_linear_pattern()
 
         for match in matches:
-            from_torch, transpose, matmul, from_torch_2, add, view, activation, view2 = match
+            from_torch, transpose, matmul, from_torch_2, add, view, activation = match
             
-            with self.gm.graph.inserting_after(view2 if view2 else (activation[1] if activation[0] else view)):
+            # please notice that if this has no transformation, I want to keep the last view node
+            with self.gm.graph.inserting_after(activation[1] if activation[0] else add):
                 fused_node = self.gm.graph.call_function(
                     ttnn.linear,
                     args=(matmul.args[0], from_torch),
@@ -103,13 +94,12 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 )
 
                 # Connect output to the next node
-                (view2 if view2 else (activation[1] if activation[0] else view)).replace_all_uses_with(fused_node)
+                (activation[1] if activation[0] else add).replace_all_uses_with(fused_node)
 
             # Remove old nodes in reverse order to handle dependencies
             nodes_to_remove = [
-                view2,
                 activation[1] if activation[0] else None,
-                view,
+                view if activation[0] else None,
                 add,
                 matmul,
                 transpose

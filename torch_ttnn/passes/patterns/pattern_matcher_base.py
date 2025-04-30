@@ -26,6 +26,28 @@ class PatternMatcherBase(Generic[PatternType]):
         """Helper to check if a node is a specific ttnn operation."""
         return node.op == 'call_function' and node.target == op_type
 
+    def _find_exclusive_user_of_type(self, node: torch.fx.Node, op_type) -> Optional[torch.fx.Node]:
+        """
+        Find if node is consumed by exactly one user of the specified type and no other users.
+        Also ensures the user is not ttnn.to_torch.
+        
+        Args:
+            node: The node to check users for
+            op_type: The operation type to match against
+            
+        Returns:
+            The single user of specified type if found and exclusive, None otherwise
+        """
+        users = list(node.users)
+        if len(users) != 1:  # Must have exactly one user
+            return None
+            
+        user = users[0]
+        if self._is_ttnn_op(user, ttnn.to_torch):  # Check not ttnn.to_torch
+            return None
+            
+        return user if self._is_ttnn_op(user, op_type) else None
+
     def _find_single_user_of_type(self, node: torch.fx.Node, op_type) -> Optional[torch.fx.Node]:
         """Find a single user of the given node with the specified operation type,
         ensuring no immediate user is a ttnn.to_torch operation."""
