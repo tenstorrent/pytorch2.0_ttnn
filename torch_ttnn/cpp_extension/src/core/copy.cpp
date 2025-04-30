@@ -3,6 +3,7 @@
 
 #include <ttnn/tensor/tensor.hpp>
 #include <tt-metalium/bfloat16.hpp>
+#include <ttnn/tensor/storage.hpp>
 
 #include "core/TtnnGuard.hpp"
 #include "core/TtnnTensorImpl.hpp"
@@ -24,9 +25,6 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
         ttnn::MeshDevice* ttnn_device = device_guard.get_ttnn_device();
         auto logical_volume = logical_shape.volume();
 
-        auto on_creation_callback = [] {};
-        auto on_destruction_callback = [] {};
-
         auto dtype = dtype_torch_to_ttnn(dst.scalar_type());
         LOGGING("ttnn dtype: ", (int)dtype);
 
@@ -37,10 +35,8 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
 
             // Create TTNN Tensor on CPU
             ttnn::Tensor src_cpu = ttnn::Tensor(
-                tt::tt_metal::BorrowedStorage{
-                    tt::tt_metal::borrowed_buffer::Buffer(self_bfloat16_storage_ptr, logical_volume),
-                    on_creation_callback,
-                    on_destruction_callback},
+                tt::tt_metal::HostStorage{tt::tt_metal::host_buffer::create<bfloat16>(
+                    tt::stl::Span(self_bfloat16_storage_ptr, logical_volume))},
                 logical_shape,
                 dtype,
                 ttnn::Layout::ROW_MAJOR);
@@ -67,10 +63,8 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
 
             // First create ttnn Tensor on CPU
             ttnn::Tensor src_cpu = ttnn::Tensor(
-                tt::tt_metal::BorrowedStorage{
-                    tt::tt_metal::borrowed_buffer::Buffer(self_int_storage_ptr, logical_volume),
-                    on_creation_callback,
-                    on_destruction_callback},
+                tt::tt_metal::HostStorage{
+                    tt::tt_metal::host_buffer::create<uint32_t>(tt::stl::Span(self_int_storage_ptr, logical_volume))},
                 logical_shape,
                 dtype,
                 ttnn::Layout::ROW_MAJOR);
