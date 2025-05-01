@@ -5,6 +5,8 @@ import torch
 import ttnn
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from torch.fx.node import Node, map_arg
+from .lowering import target_wrappers
+import operator
 
 # from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
 from typing import Dict, List
@@ -95,6 +97,10 @@ class DeallocationPass(PassBase):
         for node in node_list:
             if (to_delete_nodes := unused_values.get_delete_code(node)) is not None:
                 for n in to_delete_nodes:
+                    # Skip nodes that are references to other nodes
+                    # We don't want to delete these too early
+                    if node.target in [target_wrappers.pack_to_tuple, operator.getitem]:
+                        continue
                     with graph.inserting_after(node):
                         new_node = graph.call_function(deallocate, args=(n,))
                         modified = True
