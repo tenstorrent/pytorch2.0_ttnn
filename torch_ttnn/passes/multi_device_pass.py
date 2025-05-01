@@ -79,7 +79,7 @@ class MultiDevicePass(PassBase):
         node.args = tuple(new_args)
 
     def call(self, graph_module: torch.fx.GraphModule):
-        if isinstance(self.device, ttnn.Device) or self.device.get_num_devices() < 2:
+        if self.device.get_num_devices() < 2:
             modified = False
             return PassResult(graph_module, modified)
 
