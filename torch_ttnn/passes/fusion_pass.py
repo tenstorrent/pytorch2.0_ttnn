@@ -16,11 +16,15 @@ class FusionPass(PassBase):
         
         # Try linear pattern fusion first
         linear_patterns = LinearPatterns(gm)
-        linear_replaced = linear_patterns.replace_linear()
-        modified |= len(linear_replaced) > 0
+        linear_matches = linear_patterns.match_pattern()
+        linear_patterns.replace_pattern(linear_matches)
+        modified |= len(linear_matches) > 0
         
         # Then try softmax pattern fusion
         softmax_patterns = SoftMaxPatterns(gm)
-        softmax_replaced = softmax_patterns.replace_softmax()
-        modified |= len(softmax_replaced) > 0
+        softmax_matches = softmax_patterns.match_pattern()
+        softmax_patterns.replace_pattern(softmax_matches)
+        modified |= len(softmax_matches) > 0
+        
+
         return PassResult(gm, modified)

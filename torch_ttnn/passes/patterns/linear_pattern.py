@@ -75,9 +75,7 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
         return matches
 
-    def replace_linear(self):
-        matches = self.match_linear_pattern()
-
+    def replace_linear(self, matches: List[Tuple[torch.fx.Node, ...]]):
         for match in matches:
             from_torch, transpose, matmul, from_torch_2, add, view, activation = match
             
@@ -116,5 +114,5 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
     def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
         """Implementation of abstract method from base class."""
-        self.replace_linear()
+        self.replace_linear(matches)
 

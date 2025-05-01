@@ -52,9 +52,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
         return matches
 
-    def replace_softmax(self):
-        matches = self.match_softmax_pattern()
-
+    def replace_softmax(self, matches: List[Tuple[torch.fx.Node, ...]]):
         for match in matches:
             multiply, add, softmax = match
             
@@ -89,5 +87,5 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
     def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
         """Implementation of abstract method from base class."""
-        self.replace_softmax()
+        self.replace_softmax(matches)
 
