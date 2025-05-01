@@ -192,3 +192,19 @@ def shard_tensor(tensor, dim, num_devices):
 def concat_tensor(tensor, dim, num_devices):
     sharded_version = [tensor] * num_devices
     return torch.concat(sharded_version, dim)
+
+
+@torch.fx.wrap
+def native_layer_norm(input_tensor, norm_dims, weight, bias, epsilon):
+    # based on reference implementation from pytorch
+    # https://github.com/pytorch/pytorch/blob/6c8c5ad/torch/_refs/__init__.py#L2993
+
+    layer_norm = ttnn.layer_norm(input_tensor, weight=weight, bias=bias, epsilon=epsilon)
+
+    mean = ttnn.mean(input_tensor, norm_dims)
+
+    var = ttnn.var(input_tensor, norm_dims)
+    add = ttnn.add(var, epsilon)
+    rstd = ttnn.rsqrt(add)
+
+    return (layer_norm, mean, rstd)

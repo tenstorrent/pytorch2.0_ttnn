@@ -528,16 +528,26 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
+                input_tensor, normalized_shape, weight, bias, epsilon = args
+
+                input_tensor_ndim = len(input_tensor.meta["val"].size())
+                normalized_ndim = len(normalized_shape)
+                axis = input_tensor_ndim - normalized_ndim
+                reduction_dims = list(range(axis, input_tensor_ndim))
+                norm_dims = torch._prims_common.canonicalize_dims(input_tensor_ndim, reduction_dims)
+
                 new_node = g.call_function(
-                    ttnn.layer_norm,
-                    args=(args[0],),
-                    kwargs={"epsilon": args[4], "weight": args[2], "bias": args[3]},
+                    target_wrappers.native_layer_norm,
+                    (input_tensor, norm_dims, weight, bias, epsilon),
                 )
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
-                node_users = list(new_node.users.keys())
+
+                # update metadata for related getitem nodes
+                node_users = list(node.users.keys())
                 for node_user in node_users:
-                    node_user.replace_all_uses_with(new_node)
-                return None
+                    node_user.meta["val"] = node_user.meta["val"].to(torch.bfloat16)
+                    print(node, node_user, node_user.meta["val"].dtype)
+
+                return new_node
 
             if node.target == target_wrappers.replicate_tensor:
                 if get_dtype(node.args[0]) in [torch.int32, torch.int64]:

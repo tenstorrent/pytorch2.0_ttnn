@@ -152,6 +152,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.stack,
     target_wrappers.all,
     target_wrappers.concat_tensor,
+    target_wrappers.native_layer_norm,
 ]
 
 TTNN_NORM_OPS = [
