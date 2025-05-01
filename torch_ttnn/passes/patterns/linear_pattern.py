@@ -8,6 +8,7 @@ from torch.fx import Node
 from torch_ttnn.passes.patterns.pattern_matcher_base import PatternMatcherBase
 from typing import List, Tuple
 
+
 class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
     """Pattern matcher for linear operations with optional activation and views."""
 
@@ -18,7 +19,7 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
         Returns a list of tuples containing the matched nodes.
         """
         matches = []
-        
+
         # Find all from_torch nodes
         from_torch_nodes = self._find_nodes_of_type(ttnn.from_torch)
 
@@ -28,9 +29,9 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
             if not transpose:
                 continue
 
-            if (self._find_single_user_of_type(transpose, ttnn.to_torch)):
+            if self._find_single_user_of_type(transpose, ttnn.to_torch):
                 continue
-            
+
             # Find matmul operation using transpose
             matmul = self._find_single_user_of_type(transpose, ttnn.matmul)
             if not matmul or not self._is_node_in_args(transpose, matmul):
@@ -43,16 +44,15 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
                 # Find add operation using matmul and from_torch_2
                 add_users = [
-                    node for node in from_torch_2.users 
-                    if self._is_ttnn_op(node, ttnn.add) and 
-                    matmul in node.args and 
-                    from_torch_2 in node.args
+                    node
+                    for node in from_torch_2.users
+                    if self._is_ttnn_op(node, ttnn.add) and matmul in node.args and from_torch_2 in node.args
                 ]
-                
+
                 # we only care about one user of this, it must be a view with gelu, relu, or silu
                 if len(add_users) != 1:
                     continue
-                
+
                 # For each valid add operation, look for view and optional activation
                 for add in add_users:
                     potential_replaceable_view = self._find_exclusive_user_of_type(add, ttnn.experimental.view)
@@ -61,34 +61,36 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                         relu = self._find_single_user_of_type(potential_replaceable_view, ttnn.relu)
                         silu = self._find_single_user_of_type(potential_replaceable_view, ttnn.silu)
                         activation = (None, None)
-                        
+
                         if gelu:
-                            activation = ('gelu', gelu)
+                            activation = ("gelu", gelu)
                         elif relu:
-                            activation = ('relu', relu)
+                            activation = ("relu", relu)
                         elif silu:
-                            activation = ('silu', silu)
-                        
+                            activation = ("silu", silu)
+
                         if activation[0] is None:
                             potential_replaceable_view = None
-                        matches.append((from_torch, transpose, matmul, from_torch_2, add, potential_replaceable_view, activation))
+                        matches.append(
+                            (from_torch, transpose, matmul, from_torch_2, add, potential_replaceable_view, activation)
+                        )
 
         return matches
 
     def replace_linear(self, matches: List[Tuple[torch.fx.Node, ...]]):
         for match in matches:
             from_torch, transpose, matmul, from_torch_2, add, view, activation = match
-            
+
             # please notice that if this has no transformation, I want to keep the last view node
             with self.gm.graph.inserting_after(activation[1] if activation[0] else add):
                 fused_node = self.gm.graph.call_function(
                     ttnn.linear,
                     args=(matmul.args[0], from_torch),
                     kwargs={
-                        'transpose_b': True,
-                        'bias': from_torch_2,
-                        'activation': activation[0] if activation[0] else None
-                    }
+                        "transpose_b": True,
+                        "bias": from_torch_2,
+                        "activation": activation[0] if activation[0] else None,
+                    },
                 )
 
                 # Connect output to the next node
@@ -100,7 +102,7 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 view if activation[0] else None,
                 add,
                 matmul,
-                transpose
+                transpose,
             ]
             self.safe_remove_nodes(nodes_to_remove)
 
@@ -115,4 +117,3 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
     def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
         """Implementation of abstract method from base class."""
         self.replace_linear(matches)
-

@@ -8,6 +8,7 @@ from torch.fx import Node
 from torch_ttnn.passes.patterns.pattern_matcher_base import PatternMatcherBase
 from typing import List, Tuple
 
+
 class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
     """Pattern matcher for attention softmax operations."""
 
@@ -15,23 +16,21 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
         """
         Match the attention softmax pattern:
         multiply(x) -> add(attention_mask) -> softmax(numeric_stable=True)
-        
+
         This pattern represents:
         1. Division by sqrt(head_size)
         2. Addition of attention mask
         3. Numerically stable softmax computation
         """
         matches = []
-        
+
         # Find all multiply nodes with something similar to a scale
         # (int, float bigger than 0)
         multiply_nodes = self._find_nodes_of_type(ttnn.multiply)
         for multiply in multiply_nodes:
             # Check for the scale factor (1/sqrt(head_size))
             # this number should be always be positive
-            if not (len(multiply.args) > 1 and 
-                    isinstance(multiply.args[1], (int, float)) and 
-                    multiply.args[1] > 0):
+            if not (len(multiply.args) > 1 and isinstance(multiply.args[1], (int, float)) and multiply.args[1] > 0):
                 continue
 
             # Find add operation that combines with attention mask
@@ -55,7 +54,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
     def replace_softmax(self, matches: List[Tuple[torch.fx.Node, ...]]):
         for match in matches:
             multiply, add, softmax = match
-            
+
             with self.gm.graph.inserting_after(softmax):
                 # Get the input tensor and attention mask
                 input_tensor = multiply.args[0]
@@ -65,10 +64,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 fused_node = self.gm.graph.call_function(
                     ttnn.transformer.attention_softmax_,
                     args=(input_tensor,),
-                    kwargs={
-                        'head_size': head_size,
-                        'attention_mask': attention_mask
-                    }
+                    kwargs={"head_size": head_size, "attention_mask": attention_mask},
                 )
 
                 # Connect output to the next node
@@ -88,4 +84,3 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
     def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
         """Implementation of abstract method from base class."""
         self.replace_softmax(matches)
-
