@@ -441,7 +441,7 @@ class NodeInputAligner:
                 kwargs["dtype"] = spec.dtype()
 
             # A bit tricky: here we actually end up replacing the input_node with its equivalent from_torch call by accessing its arguments. Sharding and replicating are determined by the wrapper name
-            if isinstance(self.device, ttnn.MeshDevice) and self.device.get_num_devices() > 1:
+            if self.device.get_num_devices() > 1:
                 if spec.input_node.target == target_wrappers.shard_tensor:
                     actual_inp_node, shard_dim, _ = spec.input_node.args
 
@@ -469,7 +469,7 @@ class NodeInputAligner:
             args = (spec.input_node,)
 
             # A bit tricky: here we actually end up replacing the input_node with its equivalent to_torch call by accessing its arguments
-            if isinstance(self.device, ttnn.MeshDevice) and self.device.get_num_devices() > 1:
+            if self.device.get_num_devices() > 1:
                 if spec.input_node.target == target_wrappers.concat_tensor:
                     actual_inp_node, shard_dim, _ = spec.input_node.args
 
