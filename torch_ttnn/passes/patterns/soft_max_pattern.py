@@ -40,7 +40,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 continue
 
             # Verify add has both multiply output and attention mask
-            if not (multiply in add.args):
+            if not (multiply in add.args and add.args[0] == multiply):
                 continue
 
             # Find softmax operation with numeric stability
@@ -63,7 +63,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 input_tensor = multiply.args[0]
                 scale = multiply.args[1]
                 head_size = None if scale is None else (int(1 / (scale * scale)) if scale < 1 else int(scale))
-                attention_mask = add.args[0] if add.args[1] == multiply else add.args[1]
+                attention_mask = add.args[1]
                 fused_node = self.gm.graph.call_function(
                     ttnn.transformer.attention_softmax_,
                     args=(input_tensor,),
