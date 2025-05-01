@@ -12,6 +12,7 @@ import types
 
 from collections import defaultdict
 from pathlib import Path
+from tests.conftest import get_dispatch_core_type, get_dispatch_core_axis, get_dispatch_core_config
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
 from torch.fx.node import Node, map_arg
 from torch_ttnn.utils import get_opname, users_have_getitem, is_operation
@@ -223,10 +224,15 @@ def _node_to_python_code(node):
     if node.op == "get_attr":
         # Embed get_attr constant into code
         tensor_data = getattr(node.graph.owning_module, node.target).data
+        # printoptions needed to display entirety of large tensor
         torch.set_printoptions(profile="full")
-        tensor_str = f"torch.{tensor_data}" if isinstance(tensor_data, torch.Tensor) else f"torch.tensor({tensor_data})"
-        statement = f"{node} = {tensor_str}"
+        tensor_str = (
+            f"torch.{str(tensor_data)}"
+            if isinstance(tensor_data, torch.Tensor)
+            else f"torch.tensor({str(tensor_data)})"
+        )
         torch.set_printoptions(profile="default")
+        statement = f"{node} = {tensor_str}"
         return statement
 
     # handle getitem nodes
@@ -252,8 +258,16 @@ del globals()["{func_name}"]
         rename_wrappers.add(rename_func)
         opname += "_wrapper"
 
+    # function to process special args
+    def process_arg(arg):
+        # some args can be string literals, add quotes to them
+        if isinstance(arg, str):
+            return f'"{arg}"'
+        else:
+            return arg
+
     # find a better way to use registered custom builtins to replace TTNN constants
-    node_args = ", ".join([str(arg) for arg in node.args])
+    node_args = ", ".join([str(process_arg(arg)) for arg in node.args])
     statement = f"{node} = {opname}({node_args}, {_format_dict(node.kwargs)})"
     replace_map = {
         "ttnn_Specified_Device": "device",
@@ -520,7 +534,11 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
         "import torch",
         "import ttnn",
         "from pathlib import Path",
+        "from typing import Dict",
     ]
+    import_code += (
+        ["from ttnn import TensorToMesh, MeshToTensor, MeshDevice"] if torch_ttnn_option.data_parallel else []
+    )
     import_code += (
         [
             "from tracy import Profiler",
@@ -552,10 +570,18 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
         else []
     )
 
+    device_funcs = [
+        inspect.getsource(get_dispatch_core_type),
+        inspect.getsource(get_dispatch_core_axis),
+        inspect.getsource(get_dispatch_core_config),
+    ]
+
     # check_accuracy helper function definition
     check_accuracy_code = (
         """
 def check_accuracy(expected, actual):
+    if expected is None and actual is None:
+        return
     if isinstance(actual, ttnn.Tensor):
         actual = ttnn.to_torch(actual)
     assert_with_pcc(expected, actual, pcc = 0.90)
@@ -597,6 +623,22 @@ def comp_pcc_wrapper(expected, actual):
     else:
         forward_calls_joined = format_forward_calls(call_forwards_in_main, _get_indent(1))
 
+    # TODO: Find a more dynamic way to copy device initialization from conftest.py
+    if torch_ttnn_option.data_parallel:
+        # Support mesh device
+        open_device = [
+            "device = ttnn.open_mesh_device(ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size)"
+        ]
+        close_device = "ttnn.close_mesh_device(device)"
+    else:
+        open_device = [
+            "device = ttnn.open_device(device_id=0, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size)",
+            "ttnn.SetDefaultDevice(device)",
+        ]
+        close_device = "ttnn.close_device(device)"
+    open_device = "\n".join(f"{_get_indent(1)}{i}" for i in open_device)
+    close_device = _get_indent(1) + close_device
+
     directory = Path("tests/export_code") / Path(option)
     input_pkl_file = Path(f"{model_name}_inputs.pickle")
     full_input_pkl_path = directory / input_pkl_file
@@ -606,9 +648,13 @@ if __name__ == "__main__":
     filepath = Path(__file__).with_name("{input_pkl_file.name}")
     file = lzma.open(filepath, "rb")
     inputs = pickle.load(file)
-    device = ttnn.open_device(device_id=0, l1_small_size=16384)
+    l1_small_size = 16384
+    dispatch_core_config = get_dispatch_core_config()
+{open_device}
+    device.enable_program_cache()
 {forward_calls_joined}
-    ttnn.close_device(device)
+    ttnn.synchronize_device(device)
+{close_device}
 """
 
     # Assemble all of pieces of code into one script
@@ -618,6 +664,7 @@ if __name__ == "__main__":
         + wrapper_code
         + rename_wrapper_code
         + pcc_funcs
+        + device_funcs
         + [check_accuracy_code]
         + check_accuracy_graph_codes
         + [main_code]
