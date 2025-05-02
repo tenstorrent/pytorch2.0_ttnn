@@ -30,7 +30,7 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                 continue
 
             # Find matmul operation using transpose
-            matmul = self._find_single_user_of_type(transpose, ttnn.matmul)
+            matmul = self._find_exclusive_user_of_type(transpose, ttnn.matmul)
             if not matmul or not self._is_node_in_args(transpose, matmul):
                 continue
 
