@@ -51,6 +51,18 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
             if add is None or arg_2 is None:
                 continue
 
+            # in ttnn.linear, B can't be batched and have bias
+            # in this case, B is the one that is going to be transposed
+            shape = arg.meta["tensor_meta"].shape
+            batched = False
+            if len(shape) > 2:
+                dims_to_check = shape[: 1 if len(shape) == 3 else 2]
+                for dim in dims_to_check:
+                    batched |= dim != 1
+
+            if batched:
+                continue
+
             # For each valid add operation, look for view and optional activation
             potential_replaceable_view = self._find_exclusive_user_of_type(add, ttnn.experimental.view)
             if potential_replaceable_view is not None:
@@ -74,9 +86,6 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
     def replace_linear(self, matches: List[Tuple[torch.fx.Node, ...]]):
         for match in matches:
-            if match == matches[-1]:
-                print("last match")
-
             transpose, matmul, add, view, activation = match
 
             bias_arg = add.args[1] if add.args[0] is matmul else add.args[0]
