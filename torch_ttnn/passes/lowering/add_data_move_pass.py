@@ -532,7 +532,7 @@ class NodeInputAligner:
         else:
             self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
 
-    def align(self, node, input_node, input_site, input_site_type: InputSiteType):
+    def align(self, node, input_node, input_site, input_site_type: InputSiteType, first_node):
         # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
         data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
         if data_move_spec is None:
@@ -542,8 +542,12 @@ class NodeInputAligner:
         if data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
         else:
-            with self.graph.inserting_before(node):
-                aligned_node = self._create_aligned_node(data_move_spec)
+            if isinstance(data_move_spec, self.AlignSpecFromTorch) and input_node.op == "placeholder":
+                with self.graph.inserting_before(first_node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
+            else:
+                with self.graph.inserting_before(node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
         if node.target == ttnn.layer_norm:
@@ -572,22 +576,28 @@ class AddDataMovePass(PassBase):
         node_input_aligner = NodeInputAligner(gm.graph, self.device)
         nodes = list(gm.graph.nodes)
 
+        first_node = [node for node in nodes if node.op != "placeholder"][0]
+
         for node in nodes:
             args = node.args
             for idx, arg in enumerate(args):
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE)
+                        i += node_input_aligner.align(
+                            node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node
+                        )
                 else:
-                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS)
+                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS, first_node)
 
             kwargs = node.kwargs
             for key, arg in kwargs.items():
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE)
+                        i += node_input_aligner.align(
+                            node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node
+                        )
                 else:
-                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS)
+                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node)
 
         modified = i > 0
         return PassResult(gm, modified)
