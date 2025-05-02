@@ -74,8 +74,12 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
     def replace_linear(self, matches: List[Tuple[torch.fx.Node, ...]]):
         for match in matches:
+            if match == matches[-1]:
+                print("last match")
+
             transpose, matmul, add, view, activation = match
 
+            bias_arg = add.args[1] if add.args[0] is matmul else add.args[0]
             # If there is no activation, keep the last view node
             with self.gm.graph.inserting_after(activation[1] if activation[0] else add):
                 fused_node = self.gm.graph.call_function(
@@ -83,7 +87,7 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
                     args=(matmul.args[0], transpose.args[0]),
                     kwargs={
                         "transpose_b": True,
-                        "bias": add.args[0],
+                        "bias": bias_arg,
                         "activation": activation[0] if activation[0] else None,
                     },
                 )
