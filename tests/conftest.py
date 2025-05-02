@@ -75,6 +75,7 @@ def device(request):
         device = ttnn.open_mesh_device(
             ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
         )
+
         device.enable_program_cache()
 
         yield device
@@ -141,68 +142,6 @@ def skip_by_platform(request, device):
             raise ValueError(
                 f'pytest.skip_platform missing arch argument string, i.e. pytest.skip_platform("grayskull")'
             )
-
-
-class Profiler:
-    def __init__(self):
-        self.start_times = dict()
-        self.times = dict()
-        self.disabled = False
-
-    def clear(self):
-        self.start_times = dict()
-        self.times = dict()
-        self.disabled = False
-
-    def enable(self):
-        self.disabled = False
-
-    def disable(self):
-        self.disabled = True
-
-    def start(self, key, force_enable=False):
-        if self.disabled and not force_enable:
-            return
-
-        self.start_times[key] = time.time()
-
-    def end(self, key, PERF_CNT=1, force_enable=False):
-        if self.disabled and not force_enable:
-            return
-
-        if key not in self.start_times:
-            return
-
-        diff = time.time() - self.start_times[key]
-
-        if key not in self.times:
-            self.times[key] = []
-
-        self.times[key].append(diff / PERF_CNT)
-
-    def get(self, key):
-        if key not in self.times:
-            return 0
-
-        return sum(self.times[key]) / len(self.times[key])
-
-    def print(self, units="s"):
-        for key in self.times:
-            average = self.get(key)
-            if units == "s":
-                pass
-            elif units == "ms":
-                average *= 1000
-            elif units == "us":
-                average *= 1000000
-            elif units == "ns":
-                average *= 1000000000
-            else:
-                raise ValueError(f"Invalid units: {units}")
-            print(f"{key}: {average:.3f}{units}")
-
-
-profiler = Profiler()
 
 
 @pytest.fixture(autouse=True)
@@ -310,18 +249,14 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 data_parallel=request.config.getoption("--data_parallel"),
             )
 
-            profiler.enable()
             for idx in range(total_num_iterations):
-                profiler.start(f"model_run_{idx}")
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
                 end = time.perf_counter() * 1000
                 run_time = end - start
-                profiler.end(f"model_run_{idx}")
                 if idx == 0:
                     first_iter_runtime = run_time
-            profiler.disable()
 
             comp_runtime_metrics["success"] = True
             comp_runtime_metrics["run_time"] = round(run_time, 2)
