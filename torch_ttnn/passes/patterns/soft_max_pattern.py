@@ -30,7 +30,12 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
         for multiply in multiply_nodes:
             # Check for the scale factor (1/sqrt(head_size))
             # this number should be always be positive
-            if not (len(multiply.args) > 1 and isinstance(multiply.args[1], (int, float)) and multiply.args[1] > 0):
+            if not (
+                len(multiply.args) > 1
+                and isinstance(multiply.args[1], (int, float))
+                and multiply.args[1] > 0
+                and multiply.args[1] < 1
+            ):  # since is 1/sqrt(head_size), it should be less than 1
                 continue
 
             # Find add operation that combines with attention mask

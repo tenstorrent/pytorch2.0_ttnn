@@ -160,11 +160,11 @@ def aten_backend(
         ConstantFoldingPass(),
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
+        FusionPass(),
         AddDataMovePass(option.device),
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
-        FusionPass(),
     ]
 
     mem_pass = MemoryPass(option.verbose)

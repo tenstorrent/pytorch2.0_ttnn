@@ -14,22 +14,19 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
     def match_linear_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
         """
-        Match the linear pattern: from_torch -> transpose -> matmul -> add(from_torch_2) -> view -> [activation] -> [view2]
+        Match the linear pattern: arg -> transpose -> matmul -> add(arg_2) -> view -> [activation] -> [view2]
         where activation can be gelu, relu, or silu (optional), followed by an optional second view.
         Returns a list of tuples containing the matched nodes.
         """
         matches = []
 
-        # Find all from_torch nodes
-        from_torch_nodes = self._find_nodes_of_type(ttnn.from_torch)
+        # Find all transpose nodes
+        transpose_nodes = self._find_nodes_of_type(ttnn.transpose)
 
-        for from_torch in from_torch_nodes:
-            # Find transpose operation using from_torch
-            transpose = self._find_single_user_of_type(from_torch, ttnn.transpose)
-            if not transpose:
-                continue
-
-            if self._find_single_user_of_type(transpose, ttnn.to_torch):
+        for transpose in transpose_nodes:
+            # The input to transpose can be any node (arg)
+            arg = transpose.args[0] if len(transpose.args) > 0 else None
+            if arg is None:
                 continue
 
             # Find matmul operation using transpose
@@ -37,58 +34,56 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
             if not matmul or not self._is_node_in_args(transpose, matmul):
                 continue
 
-            # Find other from_torch nodes that could be the bias
-            for from_torch_2 in from_torch_nodes:
-                if from_torch_2 == from_torch:
-                    continue
+            # Look for add operation that uses matmul and any other node as bias (arg_2)
+            add = None
+            arg_2 = None
+            for user in matmul.users:
+                if self._is_ttnn_op(user, ttnn.add):
+                    # Find the other argument to add (not matmul)
+                    for possible_arg_2 in user.args:
+                        if possible_arg_2 is not matmul:
+                            add = user
+                            arg_2 = possible_arg_2
+                            break
+                if add is not None:
+                    break
 
-                # Find add operation using matmul and from_torch_2
-                add_users = [
-                    node
-                    for node in from_torch_2.users
-                    if self._is_ttnn_op(node, ttnn.add) and matmul in node.args and from_torch_2 in node.args
-                ]
+            if add is None or arg_2 is None:
+                continue
 
-                # we only care about one user of this, it must be a view with gelu, relu, or silu
-                if len(add_users) != 1:
-                    continue
+            # For each valid add operation, look for view and optional activation
+            potential_replaceable_view = self._find_exclusive_user_of_type(add, ttnn.experimental.view)
+            if potential_replaceable_view is not None:
+                gelu = self._find_single_user_of_type(potential_replaceable_view, ttnn.gelu)
+                relu = self._find_single_user_of_type(potential_replaceable_view, ttnn.relu)
+                silu = self._find_single_user_of_type(potential_replaceable_view, ttnn.silu)
+                activation = (None, None)
 
-                # For each valid add operation, look for view and optional activation
-                for add in add_users:
-                    potential_replaceable_view = self._find_exclusive_user_of_type(add, ttnn.experimental.view)
-                    if potential_replaceable_view != None:
-                        gelu = self._find_single_user_of_type(potential_replaceable_view, ttnn.gelu)
-                        relu = self._find_single_user_of_type(potential_replaceable_view, ttnn.relu)
-                        silu = self._find_single_user_of_type(potential_replaceable_view, ttnn.silu)
-                        activation = (None, None)
+                if gelu:
+                    activation = ("gelu", gelu)
+                elif relu:
+                    activation = ("relu", relu)
+                elif silu:
+                    activation = ("silu", silu)
 
-                        if gelu:
-                            activation = ("gelu", gelu)
-                        elif relu:
-                            activation = ("relu", relu)
-                        elif silu:
-                            activation = ("silu", silu)
-
-                        if activation[0] is None:
-                            potential_replaceable_view = None
-                        matches.append(
-                            (from_torch, transpose, matmul, from_torch_2, add, potential_replaceable_view, activation)
-                        )
+                if activation[0] is None:
+                    potential_replaceable_view = None
+                matches.append((transpose, matmul, add, potential_replaceable_view, activation))
 
         return matches
 
     def replace_linear(self, matches: List[Tuple[torch.fx.Node, ...]]):
         for match in matches:
-            from_torch, transpose, matmul, from_torch_2, add, view, activation = match
+            transpose, matmul, add, view, activation = match
 
-            # please notice that if this has no transformation, I want to keep the last view node
+            # If there is no activation, keep the last view node
             with self.gm.graph.inserting_after(activation[1] if activation[0] else add):
                 fused_node = self.gm.graph.call_function(
                     ttnn.linear,
-                    args=(matmul.args[0], from_torch),
+                    args=(matmul.args[0], transpose.args[0]),
                     kwargs={
                         "transpose_b": True,
-                        "bias": from_torch_2,
+                        "bias": add.args[0],
                         "activation": activation[0] if activation[0] else None,
                     },
                 )
