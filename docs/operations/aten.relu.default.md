@@ -376,8 +376,8 @@
 | 372 | Tensor<[1, 8, 1, 1]> self = ?       | Done     | Done       | 1.0   | -1     |
 | 373 | Tensor<[1, 8, 112, 112]> self = ?   | Done     | Done       | 1.0   | -1     |
 | 374 | Tensor<[1, 80, 1, 1]> self = ?      | Done     | Done       | 1.0   | -1     |
-| 375 | Tensor<[1, 80, 112, 112]> self = ?  | Done     | Done       | 1.0   | -1     |
-| 376 | Tensor<[1, 80, 56, 56]> self = ?    | Done     | Done       | 1.0   | -1     |
+| 375 | Tensor<[1, 80, 112, 112]> self = ?  | Done     | Unknown    | N/A   | N/A    |
+| 376 | Tensor<[1, 80, 56, 56]> self = ?    | Done     | Unknown    | N/A   | N/A    |
 | 377 | Tensor<[1, 800, 14, 14]> self = ?   | Done     | Done       | 1.0   | -1     |
 | 378 | Tensor<[1, 800, 7, 7]> self = ?     | Done     | Done       | 1.0   | -1     |
 | 379 | Tensor<[1, 816, 14, 14]> self = ?   | Done     | Done       | 1.0   | -1     |
