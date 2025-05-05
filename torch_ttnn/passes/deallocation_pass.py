@@ -8,7 +8,6 @@ from torch.fx.node import Node, map_arg
 from .lowering import target_wrappers
 import operator
 
-# from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
 from typing import Dict, List
 
 
@@ -23,19 +22,18 @@ class TrackUnusedValues:
     """
     Adapted from CodeGen._gen_python_code in pytorch/torch/fx/graph.py
     Given a graph, tracks the last uses of each node in order to
-    deallocate them appropriately. This is useful for TTNN graphs because
+    deallocate them appropriately. This is important for TTNN graphs because
     of limited L1 memory.
 
     Methods
     -------
-    get_delete_code(user=""):
-        Given a node, returns an empty string or string that deallocates the
-        node(s) prior.
+    get_nodes_to_delete(user=""):
+        Given a user, returns a list of nodes to deallocate
 
     Usage
     unused_values = TrackUnusedValues(graph)
     for node in graph.nodes:
-        print(unused_values.get_delete_code(node))
+        to_delete_nodes = unused_values.get_nodes_to_delete(node)
     """
 
     def __init__(self, graph):
@@ -51,7 +49,7 @@ class TrackUnusedValues:
             map_arg(node.args, lambda n: register_last_uses(n, node))
             map_arg(node.kwargs, lambda n: register_last_uses(n, node))
 
-    def get_delete_code(self, user: Node):
+    def get_nodes_to_delete(self, user: Node):
         """
         Delete values after their last use. This ensures that values that are
         not used in the remainder of the code are freed and the memory usage
@@ -72,8 +70,6 @@ class TrackUnusedValues:
 
         if len(nodes_to_delete):
             return nodes_to_delete
-            # to_delete_str = " ".join([repr(n) + ".deallocate();" for n in nodes_to_delete])
-            # return f"; {to_delete_str}"
         else:
             return None
 
@@ -83,7 +79,6 @@ class DeallocationPass(PassBase):
         super().__init__()
 
     def call(self, gm: torch.fx.GraphModule):
-        print("get call")
         graph = gm.graph
 
         unused_values = TrackUnusedValues(graph)
@@ -95,7 +90,7 @@ class DeallocationPass(PassBase):
         # Instead we create a new list and iterate through that.
         node_list = list(graph.nodes)
         for node in node_list:
-            if (to_delete_nodes := unused_values.get_delete_code(node)) is not None:
+            if (to_delete_nodes := unused_values.get_nodes_to_delete(node)) is not None:
                 for n in to_delete_nodes:
                     # Skip nodes that are references to other nodes
                     # We don't want to delete these too early
@@ -106,6 +101,7 @@ class DeallocationPass(PassBase):
                         modified = True
 
         if modified:
+            # Becareful about dead code elimination at this point
             gm.graph.lint()
             gm.recompile()
 
