@@ -6,13 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 project(ttnn_device_extension CXX)
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(CPM)
-include(NoMKLWorkaround)
 
 find_package(Torch REQUIRED)
 find_package(Python COMPONENTS Development REQUIRED)
-
-CPMAddPackage(NAME pybind11 GITHUB_REPOSITORY pybind/pybind11 GIT_TAG v2.13.6 OPTIONS "CMAKE_MESSAGE_LOG_LEVEL NOTICE")
 
 if(NOT DEFINED ENV{TT_METAL_HOME})
     message(FATAL_ERROR "TT_METAL_HOME environment variable is not set")
@@ -62,11 +58,9 @@ target_include_directories(ttnn_device_extension PRIVATE
 )
 target_link_directories(ttnn_device_extension PRIVATE "${TORCH_INSTALL_PREFIX}/lib")
 target_link_libraries(ttnn_device_extension PUBLIC 
-    # torch::torch
     ${TORCH_LIBRARIES} 
     Python::Python
     torch_python
-    pybind11::module
 
     -L${TT_METAL_HOME}/build/lib -Wl,-rpath=${TT_METAL_HOME}/build/lib
     -ltt_metal
