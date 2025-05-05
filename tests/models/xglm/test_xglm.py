@@ -27,7 +27,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [pytest.param("eval", marks=pytest.mark.skip(reason="temp fail due to (tt-metal#21494)"))],
 )
 def test_xglm(record_property, mode):
     model_name = "XGLM"
