@@ -40,7 +40,7 @@ VariantVectorTy tensor_to_vector(const at::Tensor& tensor) {
 
 VariantVectorTy tensor_to_vector(const ttnn::Tensor& ttnn_tensor) {
     auto ttnn_dtype = ttnn_tensor.dtype();
-    auto is_tensor_on_device = ttnn::is_tensor_on_device_or_multidevice(ttnn_tensor);
+    auto is_tensor_on_device = tt::tt_metal::is_device_tensor(ttnn_tensor);
 
     ttnn::Tensor ttnn_tensor_tmp = ttnn_tensor;
     if (is_tensor_on_device) {
