@@ -9,14 +9,17 @@ from torch_ttnn.passes.patterns.pattern_matcher_base import PatternMatcherBase
 from typing import List, Tuple
 
 
-class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
+class LinearPatterns(PatternMatcherBase):
     """Pattern matcher for linear operations with optional activation and views."""
 
-    def match_linear_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
+    def match_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
         """
         Match the linear pattern: arg -> transpose -> matmul -> add(arg_2) -> view -> [activation] -> [view2]
         where activation can be gelu, relu, or silu (optional), followed by an optional second view.
         Returns a list of tuples containing the matched nodes.
+
+        The expected output will be:
+        ttnn.linear(input_tensor, weight, bias, activation)
         """
         matches = []
 
@@ -63,65 +66,61 @@ class LinearPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
             if batched:
                 continue
 
-            # For each valid add operation, look for view and optional activation
+            # Create a mapping of activation function types to their string names
+            activation_map = {ttnn.gelu: "gelu", ttnn.relu: "relu", ttnn.silu: "silu"}
+
             potential_replaceable_view = self._find_exclusive_user_of_type(add, ttnn.experimental.view)
             if potential_replaceable_view is not None:
-                gelu = self._find_single_user_of_type(potential_replaceable_view, ttnn.gelu)
-                relu = self._find_single_user_of_type(potential_replaceable_view, ttnn.relu)
-                silu = self._find_single_user_of_type(potential_replaceable_view, ttnn.silu)
+                # Default activation to None
                 activation = (None, None)
 
-                if gelu:
-                    activation = ("gelu", gelu)
-                elif relu:
-                    activation = ("relu", relu)
-                elif silu:
-                    activation = ("silu", silu)
+                # Check each activation type from the map
+                for act_func, act_name in activation_map.items():
+                    act_node = self._find_single_user_of_type(potential_replaceable_view, act_func)
+                    if act_node:
+                        activation = (act_name, act_node)
+                        break
 
+                # If no activation was found, set view to None
                 if activation[0] is None:
                     potential_replaceable_view = None
-                matches.append((transpose, matmul, add, potential_replaceable_view, activation))
 
+                matches.append((transpose, matmul, add, potential_replaceable_view, activation))
         return matches
 
-    def replace_linear(self, matches: List[Tuple[torch.fx.Node, ...]]):
+    def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
         for match in matches:
             transpose, matmul, add, view, activation = match
 
             bias_arg = add.args[1] if add.args[0] is matmul else add.args[0]
             # If there is no activation, keep the last view node
-            with self.gm.graph.inserting_after(activation[1] if activation[0] else add):
+            last_node = activation[1] if activation[0] else add
+            potential_activation = activation[0] if activation[0] else None
+            with self.gm.graph.inserting_after(last_node):
                 fused_node = self.gm.graph.call_function(
                     ttnn.linear,
                     args=(matmul.args[0], transpose.args[0]),
                     kwargs={
                         "transpose_b": True,
                         "bias": bias_arg,
-                        "activation": activation[0] if activation[0] else None,
+                        "activation": potential_activation,
                     },
                 )
 
                 # Connect output to the next node
-                (activation[1] if activation[0] else add).replace_all_uses_with(fused_node)
+                (last_node).replace_all_uses_with(fused_node)
 
             # Remove old nodes in reverse order to handle dependencies
             nodes_to_remove = [
-                activation[1] if activation[0] else None,
+                activation[1] if potential_activation else None,
                 view if activation[0] else None,
                 add,
                 matmul,
                 transpose,
             ]
+
             self.safe_remove_nodes(nodes_to_remove)
 
         self.gm.graph.lint()
         self.gm.recompile()
         return matches
-
-    def match_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
-        """Implementation of abstract method from base class."""
-        return self.match_linear_pattern()
-
-    def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
-        """Implementation of abstract method from base class."""
-        self.replace_linear(matches)

@@ -16,16 +16,13 @@ class FusionPass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         modified = False
 
-        # Try linear pattern fusion first
-        linear_patterns = LinearPatterns(gm)
-        linear_matches = linear_patterns.match_pattern()
-        linear_patterns.replace_pattern(linear_matches)
-        modified |= len(linear_matches) > 0
+        # List of pattern classes to apply
+        pattern_classes = [LinearPatterns, SoftMaxPatterns]
 
-        # Then try softmax pattern fusion
-        softmax_patterns = SoftMaxPatterns(gm)
-        softmax_matches = softmax_patterns.match_pattern()
-        softmax_patterns.replace_pattern(softmax_matches)
-        modified |= len(softmax_matches) > 0
+        for pattern_cls in pattern_classes:
+            pattern = pattern_cls(gm)
+            matches = pattern.match_pattern()
+            pattern.replace_pattern(matches)
+            modified |= len(matches) > 0
 
         return PassResult(gm, modified)

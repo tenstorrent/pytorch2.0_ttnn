@@ -4,20 +4,14 @@
 import ttnn
 import torch
 import torch._dynamo
-from typing import Optional, Tuple, List, TypeVar, Generic
-
-# Type variable for pattern matching results
-# Can be a tuple of nodes, a single node, or any other pattern structure
-PatternType = TypeVar("PatternType")
+from typing import Optional, Tuple, List
 
 
-class PatternMatcherBase(Generic[PatternType]):
+class PatternMatcherBase:
     """
     Base class for pattern matching in FX graphs.
 
-    PatternType: The type of pattern this matcher returns.
-                For example: Tuple[torch.fx.Node, ...] for a sequence of nodes,
-                            or a custom dataclass for more structured patterns.
+    All pattern matchers should return a list of tuples of torch.fx.Node objects.
     """
 
     def __init__(self, gm: torch.fx.GraphModule):
@@ -72,14 +66,14 @@ class PatternMatcherBase(Generic[PatternType]):
         """Find all nodes of a specific operation type in the graph."""
         return [node for node in self.gm.graph.nodes if self._is_ttnn_op(node, op_type)]
 
-    def match_pattern(self) -> List[PatternType]:
+    def match_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
         """
         Abstract method to be implemented by subclasses.
-        Should return a list of matched patterns.
+        Should return a list of matched patterns as tuples of torch.fx.Node.
         """
         raise NotImplementedError("Subclasses must implement match_pattern")
 
-    def replace_pattern(self, matches: List[PatternType]) -> None:
+    def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
         """
         Abstract method to be implemented by subclasses.
         Should implement the pattern replacement logic.
@@ -97,5 +91,4 @@ class PatternMatcherBase(Generic[PatternType]):
 
         for node in nodes:
             if node is not None:
-                node.users.clear()  # Clear users to ensure clean removal
                 self.gm.graph.erase_node(node)

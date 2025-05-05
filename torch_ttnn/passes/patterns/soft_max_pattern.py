@@ -9,10 +9,10 @@ from torch_ttnn.passes.patterns.pattern_matcher_base import PatternMatcherBase
 from typing import List, Tuple
 
 
-class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
+class SoftMaxPatterns(PatternMatcherBase):
     """Pattern matcher for attention softmax operations."""
 
-    def match_softmax_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
+    def match_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
         """
         Match the attention softmax pattern:
         multiply(x) -> add(attention_mask) -> softmax(numeric_stable=True)
@@ -21,6 +21,11 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
         1. Division by sqrt(head_size)
         2. Addition of attention mask
         3. Numerically stable softmax computation
+
+        The expected output will be:
+        ttnn.transformer.attention_softmax_(input_tensor, head_size, attention_mask)
+
+        Please note that we are doing this in place
         """
         matches = []
 
@@ -32,7 +37,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
             # this number should be always be positive
             if not (
                 len(multiply.args) > 1
-                and isinstance(multiply.args[1], (int, float))
+                and isinstance(multiply.args[1], (float))
                 and multiply.args[1] > 0
                 and multiply.args[1] < 1
             ):  # since is 1/sqrt(head_size), it should be less than 1
@@ -56,7 +61,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
 
         return matches
 
-    def replace_softmax(self, matches: List[Tuple[torch.fx.Node, ...]]):
+    def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
         for match in matches:
             multiply, add, softmax = match
 
@@ -78,14 +83,7 @@ class SoftMaxPatterns(PatternMatcherBase[Tuple[torch.fx.Node, ...]]):
             # Remove old nodes in reverse order
             nodes_to_remove = [softmax, add, multiply]
             self.safe_remove_nodes(nodes_to_remove)
+
         self.gm.graph.lint()
         self.gm.recompile()
         return matches
-
-    def match_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
-        """Implementation of abstract method from base class."""
-        return self.match_softmax_pattern()
-
-    def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
-        """Implementation of abstract method from base class."""
-        self.replace_softmax(matches)
