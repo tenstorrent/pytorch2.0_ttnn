@@ -118,8 +118,8 @@ jobs:
     env:      
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
-      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
-      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
+      TORCH_HOME: /root/.cache/torch
+      HF_HOME: /root/.cache/huggingface
     strategy:
       matrix: 
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
@@ -171,8 +171,8 @@ jobs:
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Multi-Device Tests"
-      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
-      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
+      TORCH_HOME: /root/.cache/torch
+      HF_HOME: /root/.cache/huggingface
     steps:
       - uses: actions/checkout@v4
         with:

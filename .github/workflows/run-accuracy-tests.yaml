@@ -53,8 +53,8 @@ jobs:
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:      
       pytest_verbosity: 0
-      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
-      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
+      TORCH_HOME: /root/.cache/torch
+      HF_HOME: /root/.cache/huggingface
     strategy:
       fail-fast: false
       matrix:
@@ -131,8 +131,8 @@ jobs:
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
       PYTHONPATH: ${{ github.workspace }}
-      TORCH_HOME: /mnt/tt-metal-pytorch-cache/.cache/torch
-      HF_HOME: /mnt/tt-metal-pytorch-cache/.cache/huggingface
+      TORCH_HOME: /root/.cache/torch
+      HF_HOME: /root/.cache/huggingface
     strategy:
       fail-fast: false
       matrix:
