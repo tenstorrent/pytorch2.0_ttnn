@@ -80,7 +80,7 @@
 ### aten.mm.default
 |    | ATen Input Variations                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.999968 |     -1 |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 512]> mat2 = ? | Done     | Done       | 0.999966 |     -1 |
 |  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 512]> mat2 = ?    | Done     | Done       | 0.999992 |     -1 |
 |  2 | Tensor<[256, 256]> self = ?,<br>Tensor<[256, 512]> mat2 = ? | Done     | Done       | 0.999979 |     -1 |
 |  3 | Tensor<[256, 512]> self = ?,<br>Tensor<[512, 256]> mat2 = ? | Done     | Done       | 0.999971 |     -1 |

@@ -45,7 +45,7 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                            | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | 0.999997 |     -1 |
+|  0 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | 0.999998 |     -1 |
 ### aten.mm.default
 |    | ATen Input Variations                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------|:---------|:-----------|---------:|-------:|
