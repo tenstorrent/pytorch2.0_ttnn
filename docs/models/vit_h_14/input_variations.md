@@ -1,7 +1,7 @@
 # High Level Operations Status
 |    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._scaled_dot_product_flash_attention.default |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  0 | aten._scaled_dot_product_flash_attention.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  1 | aten.add.Tensor                                  |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  2 | aten.addmm.default                               |                  5 |           5 |         0 |          0 | ✅          |       1 |
 |  3 | aten.cat.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
@@ -22,7 +22,7 @@
 ### aten._scaled_dot_product_flash_attention.default
 |    | ATen Input Variations                                                                                             | Status   | Isolated   | PCC   |   Host |
 |---:|:------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|-------:|
-|  0 | Tensor<[1, 16, 1370, 80]> query = ?,<br>Tensor<[1, 16, 1370, 80]> key = ?,<br>Tensor<[1, 16, 1370, 80]> value = ? | None     | Fallback   | N/A   |      0 |
+|  0 | Tensor<[1, 16, 1370, 80]> query = ?,<br>Tensor<[1, 16, 1370, 80]> key = ?,<br>Tensor<[1, 16, 1370, 80]> value = ? | Done     | Fallback   | N/A   |      0 |
 ### aten.add.Tensor
 |    | ATen Input Variations                                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
@@ -30,11 +30,11 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?    | Done     | Done       | 0.999963 |     -1 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?    | Done     | Done       | 0.999962 |     -1 |
 |  1 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ? | Done     | Done       | 0.999945 |     -1 |
 |  2 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ? | Done     | Done       | 0.999801 |     -1 |
 |  3 | Tensor<[3840]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 3840]> mat2 = ? | Done     | Done       | 0.999946 |     -1 |
-|  4 | Tensor<[5120]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 5120]> mat2 = ? | Done     | Done       | 0.999946 |     -1 |
+|  4 | Tensor<[5120]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 5120]> mat2 = ? | Done     | Done       | 0.999945 |     -1 |
 ### aten.cat.default
 |    | ATen Input Variations                                                      | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|------:|-------:|

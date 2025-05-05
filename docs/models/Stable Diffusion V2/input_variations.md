@@ -36,7 +36,7 @@
 ### aten.cos.default
 |    | ATen Input Variations     | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999993 |     -1 |
+|  0 | Tensor<[1, 160]> self = ? | Done     | Done       | 0.999989 |     -1 |
 ### aten.div.Tensor
 |    | ATen Input Variations                  | Status   | Isolated   | PCC   | Host   |
 |---:|:---------------------------------------|:---------|:-----------|:------|:-------|
@@ -44,12 +44,12 @@
 ### aten.exp.default
 |    | ATen Input Variations   | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999975 |     -1 |
+|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999953 |     -1 |
 ### aten.mul.Tensor
-|    | ATen Input Variations                                  | Status   | Isolated   |   PCC |   Host |
-|---:|:-------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 160]> self = ?,<br>Tensor other = 1         | Done     | Done       |     1 |     -1 |
-|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       |     1 |     -1 |
+|    | ATen Input Variations                                  | Status   | Isolated   |      PCC |   Host |
+|---:|:-------------------------------------------------------|:---------|:-----------|---------:|-------:|
+|  0 | Tensor<[1, 160]> self = ?,<br>Tensor other = 1         | Done     | Done       | 1        |     -1 |
+|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       | 0.999997 |     -1 |
 ### aten.native_group_norm.default
 |    | ATen Input Variations                                                                                                                                                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
