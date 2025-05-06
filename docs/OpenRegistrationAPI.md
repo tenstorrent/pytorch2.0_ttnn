@@ -23,8 +23,33 @@ source ./python_env/bin/activate
 popd
 ```
 
+## Build pytorch
+Wheel torch doesn't work with cmake cpp extension, probably due to different ABI used for pybind in ttnn and pytorch. One solution is to rebuild torch with clang-17
+```bash
+# Remove torch
+pip uninstall torch torchvision torchmetrics torch-fidelity
+
+# Other dependencies
+sudo apt install libomp-17-dev
+
+# Clone and build torch
+git clone https://github.com/pytorch/pytorch.git
+cd pytorch
+git checkout tags/v2.2.1
+git submodule sync
+git submodule update --init --recursive
+
+pip install mkl-static mkl-include
+pip install -U numpy==1.26.4
+pip install -r requirements.txt
+
+CC=clang-17 CXX=clang++-17  CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
+```
+
 ## Install pytorch2.0_ttnn dependencies
 NOTE: The ttnn packages are intentionally removed for this branch. They will be restored once a ttnn dev package containing all the dependencies is available.
+
+0. If you built torch from source, remove `torch` and `torchvision` from `requirements.txt`
 
 1. Install requirements
     ```
