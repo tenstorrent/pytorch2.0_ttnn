@@ -1,0 +1,243 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
+
+import torch
+import ttnn
+from torch.fx import Node
+from torch_ttnn.passes.patterns.pattern_matcher_base import PatternMatcherBase
+from typing import List, Tuple
+
+
+class AttentionPatterns(PatternMatcherBase):
+    """Pattern matcher for attention operations."""
+
+    def match_pattern(self) -> List[Tuple[torch.fx.Node, ...]]:
+        """
+        Match the attention pattern:
+        linear -> view -> reshape -> permute -> view -> matmul(q, k) -> view -> softmax -> view -> matmul(softmax, v)
+
+        Returns a list of tuples: (q_linear, q_view1, q_reshape, q_permute, q_view2,
+                                 k_linear, k_view1, k_reshape, k_permute, k_transpose, k_view2,
+                                 v_linear, v_view1, v_reshape, v_permute, v_view2,
+                                 matmul_qk, view1, softmax, view2, matmul_sv, attn_mask, scale)
+        """
+        matches = []
+
+        # Find all potential QKV candidates
+        query_candidates = self._find_query_candidates()
+        key_candidates = self._find_key_candidates()
+        value_candidates = self._find_value_candidates()
+
+        # For each query candidate, try to find matching key and value candidates
+        for q_candidate in query_candidates:
+            q_linear, q_view1, q_reshape, q_permute, q_view2, q_matmul = q_candidate
+
+            # Find matching key candidate where the matmul connects q and k
+            for k_candidate in key_candidates:
+                k_linear, k_view1, k_reshape, k_permute, k_transpose, k_view2, k_matmul = k_candidate
+
+                # Check if this is the QK matmul
+                if k_matmul is not q_matmul:
+                    continue
+
+                # Check if QK matmul output goes to a view
+                view1 = self._find_exclusive_user_of_type(q_matmul, ttnn.experimental.view)
+                if not view1:
+                    continue
+
+                # Check if view output goes to softmax and get the mask if it exists
+                softmax = self._find_exclusive_user_of_type(view1, ttnn.transformer.attention_softmax_)
+                if not softmax:
+                    continue
+
+                # Get attention mask if it exists (it would be an additional argument to softmax)
+                attn_mask = softmax.kwargs.get("attention_mask")
+                # Get scale if it exists in kwargs
+                head_size = softmax.kwargs.get("head_size")
+                scale = 1.0 / (head_size**0.5) if head_size is not None else None
+
+                # Check if softmax output goes to a view
+                view2 = self._find_exclusive_user_of_type(softmax, ttnn.experimental.view)
+                if not view2:
+                    continue
+
+                # Find matching value candidate
+                for v_candidate in value_candidates:
+                    v_linear, v_view1, v_reshape, v_permute, v_view2, v_matmul = v_candidate
+
+                    # Check if view output goes to matmul with value
+                    matmul_sv = self._find_exclusive_user_of_type(view2, ttnn.matmul)
+                    if not matmul_sv or matmul_sv is not v_matmul:
+                        continue
+
+                    # We found a complete attention pattern
+                    matches.append(
+                        (
+                            q_linear,
+                            q_view1,
+                            q_reshape,
+                            q_permute,
+                            q_view2,
+                            k_linear,
+                            k_view1,
+                            k_reshape,
+                            k_permute,
+                            k_transpose,
+                            k_view2,
+                            v_linear,
+                            v_view1,
+                            v_reshape,
+                            v_permute,
+                            v_view2,
+                            q_matmul,
+                            view1,
+                            softmax,
+                            view2,
+                            matmul_sv,
+                            attn_mask,
+                            scale,
+                        )
+                    )
+
+        return matches
+
+    def replace_pattern(self, matches: List[Tuple[torch.fx.Node, ...]]) -> None:
+        for match in matches:
+            (
+                q_linear,
+                q_view1,
+                q_reshape,
+                q_permute,
+                q_view2,
+                k_linear,
+                k_view1,
+                k_reshape,
+                k_permute,
+                k_transpose,
+                k_view2,
+                v_linear,
+                v_view1,
+                v_reshape,
+                v_permute,
+                v_view2,
+                matmul_qk,
+                view1,
+                softmax,
+                view2,
+                matmul_sv,
+                attn_mask,
+                scale,
+            ) = match
+
+            with self.gm.graph.inserting_after(matmul_sv):
+                kwargs = {}
+                if attn_mask is not None:
+                    kwargs["attn_mask"] = attn_mask
+                    kwargs["is_causal"] = False
+                if scale is not None:
+                    kwargs["scale"] = scale
+
+                # Create the fused attention node with weights and biases
+                fused_node = self.gm.graph.call_function(
+                    ttnn.transformer.scaled_dot_product_attention,
+                    args=(q_linear, k_linear, v_linear),  # Input tensors
+                    kwargs=kwargs,
+                )
+                matmul_sv.replace_all_uses_with(fused_node)
+
+            # Remove old nodes in reverse order
+            nodes_to_remove = [
+                matmul_sv,
+                view2,
+                softmax,
+                view1,
+                matmul_qk,
+                q_view2,
+                q_permute,
+                q_reshape,
+                q_view1,
+                k_view2,
+                k_transpose,
+                k_permute,
+                k_reshape,
+                k_view1,
+                v_view2,
+                v_permute,
+                v_reshape,
+                v_view1,
+            ]
+            self.safe_remove_nodes(nodes_to_remove)
+
+        self.gm.graph.lint()
+        self.gm.recompile()
+        return matches
+
+    def _find_qkv_pattern(self, linear, require_transpose=False, matmul_arg_idx=0):
+        """Common helper method for finding query/key/value patterns.
+
+        Args:
+            linear: The linear node to start from
+            require_transpose: Whether to require a transpose operation
+            matmul_arg_idx: Which argument of matmul should be the view2 node (0 for query, 1 for key/value)
+
+        Returns:
+            Tuple of nodes if pattern matches, None otherwise
+        """
+        view1 = self._find_exclusive_user_of_type(linear, ttnn.experimental.view)
+        if not view1:
+            return None
+
+        reshape = self._find_exclusive_user_of_type(view1, ttnn.reshape)
+        if not reshape:
+            return None
+
+        permute = self._find_exclusive_user_of_type(reshape, ttnn.permute)
+        if not permute:
+            return None
+
+        if require_transpose:
+            transpose = self._find_exclusive_user_of_type(permute, ttnn.transpose)
+            if not transpose:
+                return None
+            view2 = self._find_exclusive_user_of_type(transpose, ttnn.experimental.view)
+        else:
+            view2 = self._find_exclusive_user_of_type(permute, ttnn.experimental.view)
+
+        if not view2:
+            return None
+
+        matmul = self._find_exclusive_user_of_type(view2, ttnn.matmul)
+        if not matmul or matmul.args[matmul_arg_idx] is not view2:
+            return None
+
+        if require_transpose:
+            return (linear, view1, reshape, permute, transpose, view2, matmul)
+        return (linear, view1, reshape, permute, view2, matmul)
+
+    def _find_query_candidates(self):
+        query_candidates = []
+        linear_nodes = self._find_nodes_of_type(ttnn.linear)
+        for linear in linear_nodes:
+            candidate = self._find_qkv_pattern(linear, require_transpose=False, matmul_arg_idx=0)
+            if candidate:
+                query_candidates.append(candidate)
+        return query_candidates
+
+    def _find_key_candidates(self):
+        key_candidates = []
+        linear_nodes = self._find_nodes_of_type(ttnn.linear)
+        for linear in linear_nodes:
+            candidate = self._find_qkv_pattern(linear, require_transpose=True, matmul_arg_idx=1)
+            if candidate:
+                key_candidates.append(candidate)
+        return key_candidates
+
+    def _find_value_candidates(self):
+        value_candidates = []
+        linear_nodes = self._find_nodes_of_type(ttnn.linear)
+        for linear in linear_nodes:
+            candidate = self._find_qkv_pattern(linear, require_transpose=False, matmul_arg_idx=1)
+            if candidate:
+                value_candidates.append(candidate)
+        return value_candidates
