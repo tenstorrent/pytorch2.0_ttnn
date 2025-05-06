@@ -194,17 +194,34 @@ def concat_tensor(tensor, dim, num_devices):
     return torch.concat(sharded_version, dim)
 
 
+# TODO: Support compute kernel config
 @torch.fx.wrap
-def native_layer_norm(input_tensor, norm_dims, weight, bias, epsilon):
-    # based on reference implementation from pytorch
-    # https://github.com/pytorch/pytorch/blob/6c8c5ad/torch/_refs/__init__.py#L2993
+def native_layer_norm(
+    input_tensor: ttnn.Tensor,
+    in_tensor_shape: torch.Size,
+    torch_dtype: torch.dtype,
+    ttnn_dtype: ttnn.DataType,
+    norm_dims: int,
+    gamma: ttnn.Tensor,
+    beta: ttnn.Tensor,
+    epsilon: ttnn.Tensor,
+    device: ttnn.Device,
+):
+    cpu_out = torch.empty(in_tensor_shape, dtype=torch_dtype)
+    output = ttnn.from_torch(cpu_out, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    cpu_out = None
 
-    layer_norm = ttnn.layer_norm(input_tensor, weight=weight, bias=bias, epsilon=epsilon)
+    mean_rstd_shape = in_tensor_shape[:-norm_dims]
+    cpu_mean = torch.full(mean_rstd_shape, float("nan"), dtype=torch_dtype)
+    mean = ttnn.from_torch(cpu_mean, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    cpu_mean = None
 
-    mean = ttnn.mean(input_tensor, norm_dims)
+    cpu_rstd = torch.full(mean_rstd_shape, float("nan"), dtype=torch_dtype)
+    rstd = ttnn.from_torch(cpu_rstd, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    cpu_rstd = None
 
-    var = ttnn.var(input_tensor, norm_dims)
-    add = ttnn.add(var, epsilon)
-    rstd = ttnn.rsqrt(add)
+    output, mean, rstd = ttnn.operations.moreh.layer_norm(
+        input_tensor, norm_dims, epsilon, gamma, beta, output=output, mean=mean, rstd=rstd
+    )
 
-    return (layer_norm, mean, rstd)
+    return (output, mean, rstd)

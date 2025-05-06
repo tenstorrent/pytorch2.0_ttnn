@@ -411,8 +411,6 @@ class GraphWrapper:
             return self._get_val(args[0])
         # When accessing to self.node.meta, we assume the GraphWrapper is created on a pytorch op mapped to that ttnn op,
         # so we can use the output shape from it
-        if node.target == ttnn.layer_norm:
-            return self._get_val(self.node)[0]
         if node.target in [ttnn.max_pool2d, ttnn.avg_pool2d, target_wrappers.conv]:
             output_val = self._get_val(self.node)
             output_tensor = output_val[0] if isinstance(output_val, tuple) else output_val
@@ -530,22 +528,30 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
             if node.target == torch.ops.aten.native_layer_norm.default:
                 input_tensor, normalized_shape, weight, bias, epsilon = args
 
-                input_tensor_ndim = len(input_tensor.meta["val"].size())
-                normalized_ndim = len(normalized_shape)
-                axis = input_tensor_ndim - normalized_ndim
-                reduction_dims = list(range(axis, input_tensor_ndim))
-                norm_dims = torch._prims_common.canonicalize_dims(input_tensor_ndim, reduction_dims)
+                in_tensor_shape = input_tensor.meta["val"].size()
+                torch_dtype = input_tensor.meta["val"].dtype
+                ttnn_dtype = torch_dtype_to_ttnn_dtype(torch_dtype)
+                norm_dims = len(normalized_shape)
 
                 new_node = g.call_function(
                     target_wrappers.native_layer_norm,
-                    (input_tensor, norm_dims, weight, bias, epsilon),
+                    (
+                        input_tensor,
+                        in_tensor_shape,
+                        torch_dtype,
+                        ttnn_dtype,
+                        norm_dims,
+                        weight,
+                        bias,
+                        epsilon,
+                        TtnnDevice(),
+                    ),
                 )
 
-                # update metadata for related getitem nodes
+                # update metadata since original op does not have dtype for mean and rstd outputs
                 node_users = list(node.users.keys())
                 for node_user in node_users:
-                    node_user.meta["val"] = node_user.meta["val"].to(torch.bfloat16)
-                    print(node, node_user, node_user.meta["val"].dtype)
+                    node_user.meta["val"] = node_user.meta["val"].to(torch_dtype)
 
                 return new_node
 
