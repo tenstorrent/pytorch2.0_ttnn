@@ -4,6 +4,7 @@
 import logging
 import torch
 import ttnn
+from torch_ttnn.load_weights import LoadWeightsGraph
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
     GraphCleanup,
@@ -266,8 +267,9 @@ def is_ttnn_to_ttnn(src_node, dst_node):
 
 
 class NodeInputAligner:
-    def __init__(self, graph, device):
+    def __init__(self, graph, load_weights_graph, device):
         self.graph = graph
+        self.load_weights_graph = load_weights_graph
         self.device = device
         self.aligned_node_dict = {}
 
@@ -275,6 +277,9 @@ class NodeInputAligner:
         self.shard_to_mesh = dict()
         self.replicate_to_mesh = None
         self.concat_to_mesh = dict()
+
+        # temp test
+        self.run_once = True
 
     class InputSiteType(Enum):
         ARGS = 1
@@ -432,6 +437,10 @@ class NodeInputAligner:
         return input_node
 
     def _create_aligned_node(self, spec):
+        # if self.run_once:
+        #     self.run_once = False
+        #     once = self.graph.call_function(target_wrappers.run_once, (print,"Hello world!"))
+
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
             args = (spec.input_node,)
@@ -464,7 +473,13 @@ class NodeInputAligner:
                     args = spec.input_node.args
                 kwargs["mesh_mapper"] = mesh_mapper
 
-            return self.graph.call_function(ttnn.from_torch, args, kwargs)
+            if args[0].op == "placeholder" and args[0].meta.get("primal_tag") != PrimalTag.ARGUMENT:
+                self.load_weights_graph.add_input(
+                    args,
+                    kwargs,
+                )
+            else:
+                return self.graph.call_function(ttnn.from_torch, args, kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
             kwargs = {"dtype": spec.dtype}
@@ -566,6 +581,13 @@ class NodeInputAligner:
 
         return 1
 
+    def stitch_inputs(self, output, input_to_user):
+        for input, (user, idx) in input_to_user.items():
+            with self.graph.inserting_before(user):
+                self.graph.call_function(getitem, (output, idx))
+
+        pass
+
 
 class AddDataMovePass(PassBase):
     """Pass that adds instructions to move data between host and device and align tensor dtype and layout.
@@ -582,7 +604,8 @@ class AddDataMovePass(PassBase):
         SiteType = NodeInputAligner.InputSiteType
 
         i = 0
-        node_input_aligner = NodeInputAligner(gm.graph, self.device)
+        load_weights_graph = LoadWeightsGraph()
+        node_input_aligner = NodeInputAligner(gm.graph, load_weights_graph, self.device)
         nodes = list(gm.graph.nodes)
 
         first_node = [node for node in nodes if node.op != "placeholder"][0]
@@ -607,6 +630,12 @@ class AddDataMovePass(PassBase):
                         )
                 else:
                     i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node)
+
+        output, weights_mapping = load_weights_graph.get_outputs()
+        with gm.graph.inserting_before(first_node):
+            # gm.graph.call_function(target_wrappers.run_once)
+            gm.graph.call_module(load_weights_graph)
+            node_input_aligner.stitch_inputs(output, weights_mapping)
 
         modified = i > 0
         GraphCleanup(gm)

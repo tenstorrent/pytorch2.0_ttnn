@@ -6,6 +6,26 @@ import torch
 
 from torch_ttnn.utils import TtnnDevice
 
+run_once_count = 0
+run_once_ans = tuple()
+
+
+class mutable_schema:
+    is_mutable = True
+
+
+@torch.fx.wrap
+def run_once(fun, *args):
+    global run_once_count
+    global run_once_ans
+
+    if run_once_count > 3:
+        return run_once_ans
+    print("running once!")
+    run_once_ans = fun(*args)
+    run_once_count += 1
+    return run_once_ans
+
 
 @torch.fx.wrap
 def clone(t):
