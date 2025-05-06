@@ -2,12 +2,12 @@
 
 #include <ttnn/operations/eltwise/binary/binary.hpp>
 
-#include "core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
-#include "ops/binary.hpp"
-#include "ops/creation.hpp"
+#include "ttnn_cpp_extension/ops/binary.hpp"
+#include "ttnn_cpp_extension/ops/creation.hpp"
 
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 namespace tt_eager::ops::binary {
 at::Tensor& ttnn_add_out(const at::Tensor& input, const at::Tensor& other, const at::Scalar& alpha, at::Tensor& out) {
@@ -20,6 +20,7 @@ at::Tensor& ttnn_add_out(const at::Tensor& input, const at::Tensor& other, const
     at::TtnnTensorImpl* other_tensor_impl = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
     auto ttnn_tensor_other = other_tensor_impl->get_ttnn_tensor();
 
+    std::cout << "[ttnn_cpp_extension] ttnn_add_out" << std::endl;
     auto result = ttnn::add(ttnn_tensor_input, ttnn_tensor_other);
 
     // tensor_impl->set_ttnn_tensor(result);
