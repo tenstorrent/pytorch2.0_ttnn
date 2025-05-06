@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
 
-set(CMAKE_CXX_COMPILER /usr/bin/clang++-17)
 set(CMAKE_CXX_STANDARD 20)
 
 project(ttnn_device_extension CXX)
@@ -14,7 +13,7 @@ check_ubuntu_version_at_least(24 IS_UBUNTU_GE_24)
 message(STATUS "Ubuntu version > 24: ${IS_UBUNTU_GE_24}")
 
 if (IS_UBUNTU_GE_24)
-    include(python_workaround_ubuntu24)
+    include(find_python_workaround_ubuntu24)
 else()
     set(Python_FIND_VIRTUALENV FIRST)
     find_package(Python COMPONENTS Interpreter Development REQUIRED)
@@ -77,17 +76,23 @@ target_include_directories(ttnn_device_extension PRIVATE
     ${TTNN_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
 )
+# Needed for torch_python
 target_link_directories(ttnn_device_extension PRIVATE "${TORCH_INSTALL_PREFIX}/lib")
+
 target_link_libraries(ttnn_device_extension PUBLIC 
     ${TORCH_LIBRARIES} 
     ${PYTHON_LIBRARIES}
     torch_python
-
-    -L${TT_METAL_HOME}/build/lib -Wl,-rpath=${TT_METAL_HOME}/build/lib
-    -ltt_metal
-    -l:_ttnn.so
-    -ldevice
 )
+
+if (ENABLE_LOCAL_TT_METAL_BUILD)
+    target_link_libraries(ttnn_device_extension PUBLIC 
+        -L${TT_METAL_HOME}/build/lib -Wl,-rpath=${TT_METAL_HOME}/build/lib
+        -ltt_metal
+        -l:_ttnn.so
+        -ldevice
+    )
+endif()
 
 if(NOT DEFINED OUTPUT_NAME)
   set(OUTPUT_NAME "ttnn_device_extension")
