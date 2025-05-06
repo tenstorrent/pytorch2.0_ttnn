@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include "utils/vector_utils.hpp"
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/vector_utils.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 namespace {
 // Debug Utils

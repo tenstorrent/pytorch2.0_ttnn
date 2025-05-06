@@ -5,10 +5,10 @@
 #include <tt-metalium/bfloat16.hpp>
 #include <ttnn/tensor/storage.hpp>
 
-#include "core/TtnnGuard.hpp"
-#include "core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/core/TtnnGuard.hpp"
+#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
     LOGGING(self.device().type(), " ==> ", dst.device().type());
@@ -93,6 +93,7 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
 
         auto dtype = ttnn_tensor.dtype();
 
+        // TODO: Add fp32 handling
         if (dtype == ttnn::DataType::BFLOAT16) {
             // TODO: Is this making extra copy?
             auto ttnn_vec = ttnn_tensor.to_vector<bfloat16>();

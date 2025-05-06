@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 import torch_ttnn
-from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module
+from torch_ttnn.cpp_extension import ttnn_module
 import pytest
 
 

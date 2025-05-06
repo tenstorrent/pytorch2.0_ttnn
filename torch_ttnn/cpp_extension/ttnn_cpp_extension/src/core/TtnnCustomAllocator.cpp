@@ -1,6 +1,6 @@
-#include "core/TtnnCustomAllocator.hpp"
+#include "ttnn_cpp_extension/core/TtnnCustomAllocator.hpp"
 
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 at::DataPtr TtnnCustomAllocator::allocate(size_t nbytes) const {
     LOGGING("");

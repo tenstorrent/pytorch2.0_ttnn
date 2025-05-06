@@ -1,9 +1,9 @@
 #include <ttnn/device.hpp>
 #include <ttnn/operations/creation.hpp>
 
-#include "core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 namespace {
 std::vector<int64_t> get_row_major_strides(const std::vector<int64_t>& sizes) {

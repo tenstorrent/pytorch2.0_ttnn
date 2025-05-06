@@ -1,10 +1,10 @@
 #include <ttnn/operations/eltwise/unary/unary.hpp>
 
-#include "ops/unary.hpp"
+#include "ttnn_cpp_extension/ops/unary.hpp"
 
-#include "core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
-#include <utils/extension_utils.hpp>
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 namespace tt_eager::ops::unary {
 at::Tensor& ttnn_abs_out(const at::Tensor& self, at::Tensor& out) {
