@@ -1,9 +1,9 @@
 
-#include "core/TtnnGuard.hpp"
-#include "core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/core/TtnnGuard.hpp"
+#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
-#include "utils/device.hpp"
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/device.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 // This function can be used when the TTNN device is initialized separately,
 // for example, `device = ttnn.open_device(device_index = 0)`. Pass that

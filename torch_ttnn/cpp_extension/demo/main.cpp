@@ -1,9 +1,12 @@
-#include <torch/torch.h>
-// #include <torch/library.h>
 #include <iostream>
+
+#include <torch/torch.h>
+#include <c10/core/ScalarType.h>
+
 #include "tt-metalium/dispatch_core_common.hpp"
-#include "utils/device.hpp"  // Include the header that contains your device utilities
 #include <ttnn/device.hpp>
+
+#include <ttnn_cpp_extension/utils/device.hpp>
 
 int main() {
     auto ttnn_device = ttnn::open_mesh_device(
@@ -12,13 +15,17 @@ int main() {
 
     // Use the correct device type syntax - lowercase and with index
     // auto device = c10::Device(c10::DeviceType::PrivateUse1, 0);
-    auto a = torch::randn({3, 3});
-    auto b = torch::ones_like(a);
+    at::TensorOptions options;
+    options = options.dtype(at::kBFloat16).requires_grad(false);
+    auto a = torch::randn({3, 3}, options);
+    std::cout << "a: \n" << a << std::endl;
+    auto b = torch::ones_like(a, options);
+    std::cout << "b: \n" << b << std::endl;
 
-    a.to(device);
-    b.to(device);
+    a = a.to(device);
+    b = b.to(device);
 
-    auto c = torch::add(a, b, /*alpha=*/1);  // dispatched to our kernel
-    c.to("cpu");
-    std::cout << c << std::endl;
+    auto c = torch::add(a, b);  // dispatched to our kernel
+    c = c.to("cpu");
+    std::cout << "c: \n" << c << std::endl;
 }

@@ -1,12 +1,12 @@
 #include <ttnn/operations/creation.hpp>
 
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
-#include "ops/creation.hpp"
+#include "ttnn_cpp_extension/ops/creation.hpp"
 
-#include "core/TtnnCustomAllocator.hpp"
-#include "core/TtnnTensorImpl.hpp"
-#include "core/TtnnGuard.hpp"
+#include "ttnn_cpp_extension/core/TtnnCustomAllocator.hpp"
+#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/core/TtnnGuard.hpp"
 
 namespace tt_eager::ops::create {
 namespace {

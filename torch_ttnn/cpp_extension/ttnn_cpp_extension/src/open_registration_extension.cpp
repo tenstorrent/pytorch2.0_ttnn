@@ -2,14 +2,14 @@
 #include <torch/csrc/utils/pybind.h>
 #include <torch/extension.h>
 
-#include "utils/device.hpp"
+#include "ttnn_cpp_extension/utils/device.hpp"
 
-#include "core/TtnnCustomAllocator.hpp"
-#include "core/copy.hpp"
+#include "ttnn_cpp_extension/core/TtnnCustomAllocator.hpp"
+#include "ttnn_cpp_extension/core/copy.hpp"
 
-#include "ops/unary.hpp"
-#include "ops/binary.hpp"
-#include "ops/creation.hpp"
+#include "ttnn_cpp_extension/ops/unary.hpp"
+#include "ttnn_cpp_extension/ops/binary.hpp"
+#include "ttnn_cpp_extension/ops/creation.hpp"
 
 // Register custom allocator. Only used to create dummy Torch tensor object.
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &get_ttnn_custom_allocator());

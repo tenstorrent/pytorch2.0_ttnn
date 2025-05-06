@@ -1,5 +1,5 @@
-#include "core/TtnnGuard.hpp"
-#include "utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/core/TtnnGuard.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 TtnnDeviceGuard::TtnnDeviceGuard() { LOGGING(""); }
 

@@ -1,6 +1,6 @@
 import torch
 import ttnn
-from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module
+from torch_ttnn.cpp_extension import ttnn_module
 import pytest
 
 import logging
