@@ -5,6 +5,6 @@ tabulate==0.9.0
 networkx==3.1
 graphviz
 matplotlib==3.7.1
-pysftp==0.2.9
+paramiko==3.5.1
 
 ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.58.0-rc25/ttnn-0.58.0rc25-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
