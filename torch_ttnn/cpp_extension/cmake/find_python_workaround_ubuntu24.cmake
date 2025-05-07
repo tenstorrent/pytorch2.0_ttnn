@@ -33,3 +33,6 @@ execute_process(
 )
 
 set(PYTHON_LIBRARIES "${PYTHON_LIBRARY_DIR}/${PYTHON_LIBRARY_NAME}")
+
+message(STATUS "Python version: ${PYTHON_VERSION}")
+message(STATUS "Python executable: ${PYTHON_EXECUTABLE}")
