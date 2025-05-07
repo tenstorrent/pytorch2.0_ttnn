@@ -26,7 +26,6 @@ class CMakeBuild(build_ext):
         # Configure CMake
         cmake_args = [
             f"-DCMAKE_BUILD_TYPE=Release",
-            # f"-DCMAKE_BUILD_TYPE=Debug",
             f"-DTORCH_INSTALL_PREFIX={sysconfig.get_paths()['purelib']}",
             f"-DCMAKE_PREFIX_PATH={torch.utils.cmake_prefix_path}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
@@ -36,6 +35,13 @@ class CMakeBuild(build_ext):
             f"-G",
             f"Ninja",
         ]
+        extra_cmake_flags = os.environ.get("CMAKE_FLAGS", "")
+        extra_cmake_flags = extra_cmake_flags.split(";")
+        if "-DENABLE_SUBMODULE_TT_METAL_BUILD=ON" in extra_cmake_flags:
+            extra_cmake_flags.append("-DENABLE_LOCAL_TT_METAL_BUILD=OFF")
+        if extra_cmake_flags:
+            cmake_args.extend(extra_cmake_flags)
+
         cmake_args.extend(ext.cmake_args)
 
         # Build the extension
