@@ -1,9 +1,5 @@
 import torch
-import torch.utils.cpp_extension
 from torch.overrides import TorchFunctionMode
-import os
-from pathlib import Path
-import glob
 import logging
 
 import ttnn_device_extension as ttnn_module
