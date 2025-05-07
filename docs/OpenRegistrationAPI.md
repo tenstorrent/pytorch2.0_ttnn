@@ -62,6 +62,28 @@ NOTE: The ttnn packages are intentionally removed for this branch. They will be 
     tt-smi 3.0.12 requires pre-commit==3.5.0, but you have pre-commit 3.0.4 which is incompatible.
     ```
 
+## Building cpp extension
+Please make sure that extension is built while being in venv that was prepared before
+
+1. Build with local tt-metal build
+```bash
+export TT_METAL_HOME=/path/to/tt-metal
+cd torch_ttnn/cpp_extension
+python3 setup.py develop
+```
+
+2. Build fetch tt-metal from git submodule and build directly
+```bash
+git submodule sync
+git submodule update --init --recursive
+CMAKE_FLAGS="-DENABLE_SUBMODULE_TT_METAL_BUILD=ON" python3 setup.py develop
+```
+
+Note: you can pass multiple cmake flags with ';' separator:
+```bash
+CMAKE_FLAGS="-DENABLE_SUBMODULE_TT_METAL_BUILD=ON;-DCMAKE_BUILD_TYPE=Debug" python3 setup.py develop
+```
+
 ## Running tests
 Check to make sure `PYTHONPATH` is unset. Currently, this extension checks for `TT_METAL_HOME`. Have that set to the root of the `tt-metal` repo that you used to build tt-metal in the prior step.
 
