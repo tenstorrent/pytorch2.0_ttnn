@@ -1,9 +1,3 @@
-# Save previous CMake CXX flags
-# set(_PREV_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFMT_HEADER_ONLY") # Required to build with gcc
-# add_compile_definitions(FMT_HEADER_ONLY)
-
 # Some flags for tt-metal -- ccache + unity build + make sure that cpm cache stays in tt-metal dir
 set(CMAKE_DISABLE_PRECOMPILE_HEADERS TRUE)
 set(ENABLE_CCACHE TRUE)
@@ -12,10 +6,6 @@ set(WITH_PYTHON_BINDINGS ON)
 set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/third-party/tt-metal/.cpmcache" CACHE STRING "Path to CPM source cache")
 
 add_subdirectory(tt-metal)
-
-# Restore previous CMake CXX flags
-# set(CMAKE_CXX_FLAGS "${_PREV_CMAKE_CXX_FLAGS}")
-# unset(_PREV_CMAKE_CXX_FLAGS)
 
 set(METALIUM_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/third-party/tt-metal/ttnn
