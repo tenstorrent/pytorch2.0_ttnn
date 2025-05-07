@@ -130,6 +130,41 @@ class AttentionPatterns(PatternMatcherBase):
                 scale,
             ) = match
 
+            # Lets concatenate the qkv tensors for weights and biases
+            concatenated_qkv_weights_node = self.gm.graph.call_function(
+                ttnn.concat,
+                args=([q_linear.args[1], k_linear.args[1], v_linear.args[1]], -1),  # Input tensors
+                kwargs={},
+            )
+
+            # _find_qkv_pattern ensures that the bias is not None
+            # this is not entirely true, because the bias is optional
+            # but since I want to control the replacement, I will make it a requirement
+            # for now.
+            q_bias = q_linear.kwargs["bias"]
+            k_bias = k_linear.kwargs["bias"]
+            v_bias = v_linear.kwargs["bias"]
+
+            # concatenate the biases
+            concatenated_qkv_biases_node = self.gm.graph.call_function(
+                ttnn.concat,
+                args=([q_bias, k_bias, v_bias], -1),  # Input tensors
+                kwargs={},
+            )
+
+            qvk_node = self.gm.graph.call_function(
+                ttnn.linear,
+                args=(q_linear, concatenated_qkv_weights_node),
+                kwargs={"bias": concatenated_qkv_biases_node},
+            )
+
+            # Time to split the qvk into q, k, v
+            split_qkv_node = self.gm.graph.call_function(
+                ttnn.transformer.split_query_key_value_and_split_heads,
+                args=(qvk_node, None, 3),  # Input tensors
+                kwargs={},
+            )
+
             with self.gm.graph.inserting_after(matmul_sv):
                 kwargs = {}
                 if attn_mask is not None:
@@ -141,7 +176,7 @@ class AttentionPatterns(PatternMatcherBase):
                 # Create the fused attention node with weights and biases
                 fused_node = self.gm.graph.call_function(
                     ttnn.transformer.scaled_dot_product_attention,
-                    args=(q_linear, k_linear, v_linear),  # Input tensors
+                    args=(split_qkv_node,),  # Input tensors
                     kwargs=kwargs,
                 )
                 matmul_sv.replace_all_uses_with(fused_node)
@@ -156,16 +191,19 @@ class AttentionPatterns(PatternMatcherBase):
                 q_view2,
                 q_permute,
                 q_reshape,
-                q_view1,
                 k_view2,
                 k_transpose,
                 k_permute,
                 k_reshape,
-                k_view1,
                 v_view2,
                 v_permute,
                 v_reshape,
+                q_view1,
+                k_view1,
                 v_view1,
+                q_linear,
+                k_linear,
+                v_linear,
             ]
             self.safe_remove_nodes(nodes_to_remove)
 
@@ -184,6 +222,11 @@ class AttentionPatterns(PatternMatcherBase):
         Returns:
             Tuple of nodes if pattern matches, None otherwise
         """
+
+        # Even though the bias is optional, I want to restrict the pattern to only include nodes with a bias
+        if linear.kwargs["bias"] is None:
+            return None
+
         view1 = self._find_exclusive_user_of_type(linear, ttnn.experimental.view)
         if not view1:
             return None
