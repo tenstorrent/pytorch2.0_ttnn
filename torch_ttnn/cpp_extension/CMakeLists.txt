@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 project(ttnn_device_extension CXX)
 
 option(ENABLE_LOCAL_TT_METAL_BUILD "Enable local TT_Metal build" OFF)
+option(BUILD_EXAMPLES "Build examples" OFF)
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(utils)
@@ -104,4 +105,7 @@ set_target_properties(ttnn_device_extension PROPERTIES
     OUTPUT_NAME ${OUTPUT_NAME}
 )
 
-add_subdirectory(demo)
+if (BUILD_EXAMPLES)
+    message(STATUS "Building examples")
+    add_subdirectory(ttnn_cpp_extension/examples)
+endif()
