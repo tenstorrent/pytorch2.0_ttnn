@@ -225,6 +225,7 @@ def is_tt_compute(node) -> bool:
             ttnn.fill,
             ttnn.empty,
             ttnn.transformer.scaled_dot_product_attention,
+            ttnn.transformer.attention_softmax_,
         ]
     )
 
