@@ -78,9 +78,7 @@ def test_add_cpp_extension(device, input_shape, dtype):
     logging.info("Get underlying ttnn tensor")
     ttnn_tensor_a = ttnn_module.get_ttnn_tensor(input_a_ttnn)
     ttnn_tensor_b = ttnn_module.get_ttnn_tensor(input_b_ttnn)
-    # ttnn_tensor_scalar = ttnn_module.get_ttnn_tensor(scalar_ttnn)
 
-    # Compare output of abs op for bfloat16 dtype since ttnn.abs does not support int
     torch_out = torch.add(input_a_ttnn, input_b_ttnn)
     logging.info("Running add on ttnn")
     ttnn_tensor = ttnn.add(ttnn_tensor_a, ttnn_tensor_b)
@@ -109,4 +107,5 @@ def test_empty(device):
     logging.info("calling to_torch")
     ttnn_to_torch = ttnn.to_torch(ttnn_tensor)
 
-    # assert torch.allclose(torch_tensor, ttnn_to_torch, rtol=0.1, atol=0.1)
+    assert ttnn_to_torch.shape == torch_tensor.shape
+    assert ttnn_to_torch.dtype == torch_tensor.dtype

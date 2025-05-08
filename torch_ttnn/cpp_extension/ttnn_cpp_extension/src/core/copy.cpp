@@ -42,15 +42,8 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
                 dtype,
                 ttnn::Layout::ROW_MAJOR);
 
-            // Verify the data is created on TTNN tensor correctly
-            // compare_torch_and_ttnn_tensors(self, src_cpu);
-
-            // TODO: Find out why there are problems when passing device directly to `to_layout` function
             ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
             ttnn::Tensor res = ttnn::to_layout(src_dev, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
-
-            // Verify the device data is correct
-            // compare_torch_and_ttnn_tensors(self, src_dev);
 
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(res);
@@ -69,15 +62,8 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
                 dtype,
                 ttnn::Layout::ROW_MAJOR);
 
-            // Verify the data is created on TTNN tensor correctly
-            // compare_torch_and_ttnn_tensors(self, src_cpu);
-
-            // TODO: Find out why there are problems when passing device directly to `to_layout` function
             ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
             ttnn::Tensor res = ttnn::to_layout(src_dev, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
-
-            // Verify the device data is correct
-            // compare_torch_and_ttnn_tensors(self, src_dev);
 
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(res);
@@ -110,8 +96,6 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
             dst.copy_(dst_uint32_t);
         }
 
-        // Verify the data was copied correctly for debugging
-        // compare_torch_and_ttnn_tensors(dst, ttnn_tensor);
     } else {
         TORCH_INTERNAL_ASSERT(false, "Current do not support direction.");
     }

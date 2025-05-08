@@ -28,8 +28,8 @@ endif()
 find_package(Torch REQUIRED)
 
 # Prepare tt-metal build
-# TODO: Maybe we can create iMPORTED targets for tt-metal and ttnn line in submodule variant
-# TODO: Add debian integration with ttnn once reade
+# TODO: Maybe we can create IMPORTED targets for tt-metal and ttnn line in submodule variant
+# TODO: Add debian integration with ttnn once ready
 if (ENABLE_LOCAL_TT_METAL_BUILD)
     if(NOT DEFINED ENV{TT_METAL_HOME})
         message(FATAL_ERROR "TT_METAL_HOME environment variable is not set")
@@ -87,7 +87,7 @@ target_include_directories(ttnn_device_extension PRIVATE
     ${PYTHON_INCLUDE_DIRS}
 )
 
-if (ENABLE_SUBMODULE_TT_METAL_BUILD)
+if (ENABLE_LOCAL_TT_METAL_BUILD)
     target_include_directories(ttnn_device_extension PRIVATE
         ${TTNN_INCLUDE_DIRS}
     )
