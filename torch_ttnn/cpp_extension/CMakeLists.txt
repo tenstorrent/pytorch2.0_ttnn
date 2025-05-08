@@ -22,7 +22,7 @@ if (IS_UBUNTU_GE_24)
     include(find_python_workaround_ubuntu24)
 else()
     set(Python_FIND_VIRTUALENV FIRST)
-    find_package(Python COMPONENTS Interpreter Development REQUIRED)
+    find_package(PythonLibs COMPONENTS Interpreter Development REQUIRED)
 endif()
 
 find_package(Torch REQUIRED)
@@ -51,6 +51,7 @@ if (ENABLE_LOCAL_TT_METAL_BUILD)
         ${TT_METAL_HOME}/.cpmcache/fmt/69912fb6b71fcb1f7e5deca191a2bb4748c4e7b6//include
         ${TT_METAL_HOME}/.cpmcache/magic_enum/4d76fe0a5b27a0e62d6c15976d02b33c54207096/include
         ${TT_METAL_HOME}/.cpmcache/nlohmann_json/798e0374658476027d9723eeb67a262d0f3c8308/include
+        ${TT_METAL_HOME}/.cpmcache/boost/1359e136761ab2d10afa1c4e21086c8d824735cd/libs/core/include
     )
 elseif(ENABLE_SUBMODULE_TT_METAL_BUILD)
     add_subdirectory(third-party)
