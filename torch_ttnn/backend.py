@@ -147,6 +147,7 @@ def aten_backend(
     from torch_ttnn.passes.multi_device_pass import MultiDevicePass
     from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
+    from torch_ttnn.passes.fusion_pass import FusionPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
     from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
@@ -160,6 +161,7 @@ def aten_backend(
         ConstantFoldingPass(),
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
+        FusionPass(),
         AddDataMovePass(option.device),
         EliminateCoreopsPass(),
         CSEPass(),
