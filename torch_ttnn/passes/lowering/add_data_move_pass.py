@@ -4,6 +4,7 @@
 import logging
 import torch
 import ttnn
+from functorch.compile import make_boxed_func
 from torch_ttnn.load_weights import LoadWeightsGraph
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
@@ -272,6 +273,8 @@ class NodeInputAligner:
         self.load_weights_graph = load_weights_graph
         self.device = device
         self.aligned_node_dict = {}
+        self.marshaled_node_dict = {}
+        self.input_idx = 0
 
         # fields for data parallel
         self.shard_to_mesh = dict()
@@ -549,14 +552,47 @@ class NodeInputAligner:
         else:
             self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
 
-    def align(self, node, input_node, input_site, input_site_type: InputSiteType, first_node):
+    def marshal_weights(self, node, input_node, input_site, input_site_type, first_node):
+        if not isinstance(input_node, torch.fx.node.Node):
+            return 0
+
+        is_constant_for_inference = (input_node.op == "placeholder") and (
+            input_node.meta.get("primal_tag") in [PrimalTag.PARAMETER, PrimalTag.BUFFER]
+        )
+        if not is_constant_for_inference:
+            return 0
+
+        data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
+        if not isinstance(data_move_spec, self.AlignSpecFromTorch):
+            # No need to align input_node
+            return 0
+
+        if data_move_spec in self.aligned_node_dict or data_move_spec in self.marshaled_node_dict:
+            # already handled
+            return 0
+
+        with self.graph.inserting_before(first_node):
+            self._create_aligned_node(data_move_spec)
+            self.marshaled_node_dict[data_move_spec] = self.input_idx
+            self.input_idx += 1
+
+        return 1
+
+    def align(self, node, input_node, input_site, input_site_type: InputSiteType, first_node, ttnn_inputs):
         # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
         data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
         if data_move_spec is None:
             # No need to align input_node
             return 0
 
-        if data_move_spec in self.aligned_node_dict:
+        if data_move_spec in self.marshaled_node_dict:
+            # add getitem call
+            # update aligned_node_dict
+            input_idx = self.marshaled_node_dict[data_move_spec]
+            with self.graph.inserting_before(node):
+                aligned_node = self.graph.call_function(getitem, (ttnn_inputs, input_idx))
+            self.aligned_node_dict[data_move_spec] = aligned_node
+        elif data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
         else:
             if (
@@ -610,32 +646,65 @@ class AddDataMovePass(PassBase):
 
         first_node = [node for node in nodes if node.op != "placeholder"][0]
 
+        # first load weights
+        for node in nodes:
+            args = node.args
+            for idx, arg in enumerate(args):
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    for tuple_idx, tuple_arg in enumerate(arg):
+                        i += node_input_aligner.marshal_weights(
+                            node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node
+                        )
+                else:
+                    i += node_input_aligner.marshal_weights(node, arg, idx, SiteType.ARGS, first_node)
+
+            kwargs = node.kwargs
+            for key, arg in kwargs.items():
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    for tuple_idx, tuple_arg in enumerate(arg):
+                        i += node_input_aligner.marshal_weights(
+                            node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node
+                        )
+                else:
+                    i += node_input_aligner.marshal_weights(node, arg, key, SiteType.KWARGS, first_node)
+
+        load_weights_graph.create_output()
+        GraphCleanup(load_weights_graph.load_weights_graph)
+
+        # this code calls the submodule to load weights
+        # gm.add_submodule("load_weights", load_weights_graph.load_weights_graph)
+        # with gm.graph.inserting_before(first_node):
+        #     # gm.graph.call_function(target_wrappers.run_once)
+        #     ttnn_inputs = gm.graph.call_module("load_weights", tuple(load_weights_graph.inputs))
+
+        # try making a boxed function and running it once
+        gm.add_submodule("load_weights", load_weights_graph.load_weights_graph)
+        with gm.graph.inserting_before(first_node):
+            ttnn_inputs = gm.graph.call_function(
+                target_wrappers.run_once, (gm.load_weights, *load_weights_graph.inputs)
+            )
+
+        # then handle rest of the args and kwargs
         for node in nodes:
             args = node.args
             for idx, arg in enumerate(args):
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
                         i += node_input_aligner.align(
-                            node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node
+                            node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node, ttnn_inputs
                         )
                 else:
-                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS, first_node)
+                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS, first_node, ttnn_inputs)
 
             kwargs = node.kwargs
             for key, arg in kwargs.items():
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
                         i += node_input_aligner.align(
-                            node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node
+                            node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node, ttnn_inputs
                         )
                 else:
-                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node)
-
-        output, weights_mapping = load_weights_graph.get_outputs()
-        with gm.graph.inserting_before(first_node):
-            # gm.graph.call_function(target_wrappers.run_once)
-            gm.graph.call_module(load_weights_graph)
-            node_input_aligner.stitch_inputs(output, weights_mapping)
+                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node, ttnn_inputs)
 
         modified = i > 0
         GraphCleanup(gm)

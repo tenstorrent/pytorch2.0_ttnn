@@ -163,9 +163,9 @@ def aten_backend(
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         FusionPass(),
+        CSEPass(),
         AddDataMovePass(option.device),
         EliminateCoreopsPass(),
-        CSEPass(),
         PermuteReshapeTuple(),
         DeallocationPass(),
     ]
@@ -188,6 +188,7 @@ def aten_backend(
     gm, modified = pm(gm)
 
     # GraphCleanup(gm)
+    gm.recompile()
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
@@ -224,6 +225,7 @@ def aten_backend(
             gm, modified = pm(gm)
 
             # GraphCleanup(gm)
+            gm.recompile()
 
             # Get the memory manager object for memory analysis
             option.memory_manager = mem_pass.mm

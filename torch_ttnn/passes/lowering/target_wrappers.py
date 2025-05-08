@@ -19,7 +19,7 @@ def run_once(fun, *args):
     global run_once_count
     global run_once_ans
 
-    if run_once_count > 3:
+    if run_once_count > 0:
         return run_once_ans
     print("running once!")
     run_once_ans = fun(*args)
