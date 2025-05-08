@@ -153,6 +153,7 @@ def aten_backend(
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
     from torch_ttnn.passes.memory_pass import MemoryPass
+    from torch_ttnn.passes.deallocation_pass import DeallocationPass
 
     passes = [
         InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
@@ -165,6 +166,7 @@ def aten_backend(
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
+        DeallocationPass(),
     ]
 
     mem_pass = MemoryPass(option.verbose)
