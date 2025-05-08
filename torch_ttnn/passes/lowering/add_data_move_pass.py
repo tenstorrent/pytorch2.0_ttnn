@@ -4,6 +4,7 @@
 import logging
 import torch
 import ttnn
+from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
     TtnnRowMajorLayout,
     TtnnTileLayout,
@@ -542,7 +543,11 @@ class NodeInputAligner:
         if data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
         else:
-            if isinstance(data_move_spec, self.AlignSpecFromTorch) and input_node.op == "placeholder":
+            if (
+                isinstance(data_move_spec, self.AlignSpecFromTorch)
+                and input_node.op == "placeholder"
+                and input_node.meta.get("primal_tag") != PrimalTag.ARGUMENT
+            ):
                 with self.graph.inserting_before(first_node):
                     aligned_node = self._create_aligned_node(data_move_spec)
             else:
