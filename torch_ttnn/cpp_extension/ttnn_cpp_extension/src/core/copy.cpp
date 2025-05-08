@@ -46,15 +46,14 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
             // compare_torch_and_ttnn_tensors(self, src_cpu);
 
             // TODO: Find out why there are problems when passing device directly to `to_layout` function
-            ttnn::Tensor src_layout =
-                ttnn::to_layout(src_cpu, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, (ttnn::MeshDevice*)nullptr);
-            ttnn::Tensor src_dev = src_layout.to_device(ttnn_device);
+            ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
+            ttnn::Tensor res = ttnn::to_layout(src_dev, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
 
             // Verify the device data is correct
             // compare_torch_and_ttnn_tensors(self, src_dev);
 
             // Finally save ttnn tensor on device to custom TorchImpl
-            tensor_impl->set_ttnn_tensor(src_dev);
+            tensor_impl->set_ttnn_tensor(res);
         }
         if (dtype == ttnn::DataType::UINT32) {
             // torch 2.2.1 does not have uint32_t ScalarType, so we cast it separately
@@ -74,15 +73,14 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
             // compare_torch_and_ttnn_tensors(self, src_cpu);
 
             // TODO: Find out why there are problems when passing device directly to `to_layout` function
-            ttnn::Tensor src_layout =
-                ttnn::to_layout(src_cpu, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, (ttnn::MeshDevice*)nullptr);
-            ttnn::Tensor src_dev = src_layout.to_device(ttnn_device);
+            ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
+            ttnn::Tensor res = ttnn::to_layout(src_dev, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
 
             // Verify the device data is correct
             // compare_torch_and_ttnn_tensors(self, src_dev);
 
             // Finally save ttnn tensor on device to custom TorchImpl
-            tensor_impl->set_ttnn_tensor(src_dev);
+            tensor_impl->set_ttnn_tensor(res);
         }
     } else if (self.device().type() == c10::DeviceType::PrivateUse1 && dst.is_cpu()) {
         // Handle TTNN => CPU copy
