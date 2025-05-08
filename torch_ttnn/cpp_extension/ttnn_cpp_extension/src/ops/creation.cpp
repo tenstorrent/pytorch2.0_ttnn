@@ -32,7 +32,7 @@ at::Tensor create_empty_tensor(
         /*resizeable=*/true);
 
     TtnnGuard device_guard(device);
-    ttnn::MeshDevice* ttnn_device = device_guard.get_ttnn_device();
+    ttnn::MeshDevice* ttnn_device = device_guard.get_open_ttnn_device(device.index());
     auto ttnn_dtype = dtype_torch_to_ttnn(dtype);
     ttnn::SmallVector<uint32_t> small_vector(size.begin(), size.end());
     auto logical_shape = ttnn::Shape(small_vector);

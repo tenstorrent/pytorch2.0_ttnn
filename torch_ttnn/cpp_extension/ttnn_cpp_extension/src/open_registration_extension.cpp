@@ -29,6 +29,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
 // This macro registers helper functions associated with the ttnn_device_mode module that can be used in Python
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("as_torch_device", &as_torch_device, "get torch device from existing ttnn device");
+    m.def("get_ttnn_tensor", &get_ttnn_tensor, "open ttnn device and get torch device");
+    m.def("open_torch_device", &open_torch_device, "get torch device from existing ttnn device");
     m.def("close_torch_device", &close_torch_device, "close torch device and associated ttnn device");
-    m.def("get_ttnn_tensor", &get_ttnn_tensor, "get underlying ttnn tensor");
 }
