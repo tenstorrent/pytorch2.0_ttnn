@@ -105,11 +105,11 @@ at::Device TtnnGuard::original_device() const { return guard_.original_device();
 
 at::Device TtnnGuard::current_device() const { return guard_.current_device(); }
 
-ttnn::MeshDevice* TtnnGuard::get_ttnn_device() {
+ttnn::MeshDevice* TtnnGuard::get_open_ttnn_device(c10::DeviceIndex device_index) {
     LOGGING("");
     if (!ttnn_device) {
-        ttnn_device = [] {
-            auto sp = ttnn::open_mesh_device(0);
+        ttnn_device = [device_index] {
+            auto sp = ttnn::open_mesh_device(device_index);
             // Intentional memory leak to avoid destruction order issues
             // TODO: might be a problem if the device is closed and opened many times
             static auto* keeper = new std::shared_ptr<ttnn::MeshDevice>(std::move(sp));

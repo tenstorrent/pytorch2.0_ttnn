@@ -22,7 +22,8 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
         auto logical_shape = tensor_impl->get_logical_shape();
         LOGGING("TTNN Tensor logical shape: ", logical_shape);
 
-        ttnn::MeshDevice* ttnn_device = device_guard.get_ttnn_device();
+        auto device_idx = dst.device().index();
+        ttnn::MeshDevice* ttnn_device = device_guard.get_open_ttnn_device(device_idx);
         auto logical_volume = logical_shape.volume();
 
         auto dtype = dtype_torch_to_ttnn(dst.scalar_type());
