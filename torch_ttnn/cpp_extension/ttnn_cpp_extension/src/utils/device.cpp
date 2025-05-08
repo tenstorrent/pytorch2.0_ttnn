@@ -13,7 +13,8 @@
 // device object to this function so that the cpp extension can use it.
 c10::Device as_torch_device(ttnn::MeshDevice* ttnn_device) {
     LOGGING("");
-    // TODO: Lacks a proper mesh support
+    // TODO: Lacks a proper mesh support. We need to have mapping (shape, offset) -> index.
+    // It's quiet difficult to do since c10::DeviceIndex is int8
     auto index = ttnn_device->get_device(0, 0)->id();
     auto device = c10::Device(c10::DeviceType::PrivateUse1, static_cast<c10::DeviceIndex>(index));
     if (TtnnGuard::ttnn_device == nullptr) {
