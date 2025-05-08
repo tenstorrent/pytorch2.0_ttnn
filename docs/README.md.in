@@ -1,3 +1,4 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/pytorch2.0_ttnn)
 
 # PyTorch 2.0 TTNN Compiler
 This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com/) hardware.
