@@ -14,5 +14,3 @@ void convert_vector_from_uint32_to_int(std::vector<int>& dst_vector, const std::
 VariantVectorTy tensor_to_vector(const at::Tensor& tensor);
 
 VariantVectorTy tensor_to_vector(const ttnn::Tensor& ttnn_tensor);
-
-void compare_torch_and_ttnn_tensors(const at::Tensor& torch_tensor, const ttnn::Tensor& ttnn_tensor);

@@ -8,6 +8,11 @@ Pytorch Open Registration API allows integrating TTNN implementation into Torch.
 tt-metal has its own script to create a Python venv with all the dependencies. Set this up first:
 
 ## Build tt-metal
+You can skip this step if you're going to use git-submodule path later, since it will be
+automatically compiled as part of cpp-extension.
+
+Note: git submodule doesn't install ttnn python package, you still need to use the one coming from wheel in `requirements.txt`
+
 1. Clone Build tt-metal using the `./build_metal.sh` script.
 
 ```
@@ -103,8 +108,9 @@ python -m pytest tests/cpp_extension/test_cpp_extension_functionality.py -s
 
 You can also run with `DEBUG_CPP_EXT=1` ENV to enable logging messages.
 
+Make sure you set `PYTHONPATH=$TT_METAL_HOME:<location-of-pytorch2.0_ttnn-repo>` if you used local build, or `PYTHONPATH=<location-of-pytorch2.0_ttnn-repo>` otherwise
+
 ## Troubleshooting
-* You may have to set `PYTHONPATH=$TT_METAL_HOME:<location-of-pytorch2.0_ttnn-repo>` after all
 * Ensure `numpy < 2.0`
 
 ## Development

@@ -58,10 +58,7 @@ at::Stream TtnnDeviceGuard::exchangeStream(at::Stream) const noexcept {
     return at::Stream(at::Stream::DEFAULT, at::Device(at::DeviceType::PrivateUse1, CURR_DEVICE));
 }
 
-at::DeviceIndex TtnnDeviceGuard::deviceCount() const noexcept {
-    // Hardcoding the number of "valid" devices here at 2.
-    return 2;
-}
+at::DeviceIndex TtnnDeviceGuard::deviceCount() const noexcept { return tt::tt_metal::GetNumAvailableDevices(); }
 
 // Event-related functions
 void TtnnDeviceGuard::record(

@@ -65,21 +65,3 @@ VariantVectorTy tensor_to_vector(const ttnn::Tensor& ttnn_tensor) {
         TORCH_INTERNAL_ASSERT(false);
     }
 }
-
-void compare_torch_and_ttnn_tensors(const at::Tensor& torch_tensor, const ttnn::Tensor& ttnn_tensor) {
-    const auto DEBUG_CPP_EXT = std::getenv("DEBUG_CPP_EXT") != nullptr;
-    if (DEBUG_CPP_EXT) {
-        auto ttnn_dtype = ttnn_tensor.dtype();
-        if (ttnn_dtype == ttnn::DataType::BFLOAT16) {
-            auto torch_vector = std::get<std::vector<float>>(tensor_to_vector(torch_tensor));
-            auto ttnn_vector = std::get<std::vector<float>>(tensor_to_vector(ttnn_tensor));
-
-            vector_compare(torch_vector, ttnn_vector);
-        } else if (ttnn_dtype == ttnn::DataType::UINT32) {
-            auto torch_vector = std::get<std::vector<int>>(tensor_to_vector(torch_tensor));
-            auto ttnn_vector = std::get<std::vector<int>>(tensor_to_vector(ttnn_tensor));
-
-            vector_compare(torch_vector, ttnn_vector);
-        }
-    }
-}
