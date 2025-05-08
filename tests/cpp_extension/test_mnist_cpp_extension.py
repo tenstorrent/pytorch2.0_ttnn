@@ -45,8 +45,7 @@ def test_mnist_with_cpp_extension(device):
     test_input = test_input.to(torch.bfloat16)
 
     # Copy weights and biases to ttnn
-    torch.utils.rename_privateuse1_backend("ttnn")
-    ttnn_device = ttnn_module.custom_device_from_ttnn(device)
+    ttnn_device = ttnn_module.as_torch_device(device)
 
     option = torch_ttnn.TorchTtnnOption(
         device=device,
