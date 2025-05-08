@@ -46,6 +46,15 @@ pip install -r requirements.txt
 CC=clang-17 CXX=clang++-17  CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
 ```
 
+### torchvision
+Optionally, you can build torchvision, which might be requires for some computer-vision models:
+```bash
+git clone https://github.com/pytorch/vision
+cd vision
+git checkout v0.17.1
+CC=clang-17 CXX=clang++-17  CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
+```
+
 ## Install pytorch2.0_ttnn dependencies
 NOTE: The ttnn packages are intentionally removed for this branch. They will be restored once a ttnn dev package containing all the dependencies is available.
 
