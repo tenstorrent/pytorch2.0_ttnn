@@ -7,4 +7,4 @@ graphviz
 matplotlib==3.7.1
 pysftp==0.2.9
 
-ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.58.0-rc25/ttnn-0.58.0rc25-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
+ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.58.0-rc31/ttnn-0.58.0rc31-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
