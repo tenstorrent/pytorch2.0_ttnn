@@ -1,5 +1,6 @@
 #pragma once
 
+#include <c10/core/Device.h>
 #include <c10/core/DeviceGuard.h>
 
 #include <ttnn/device.hpp>
@@ -76,7 +77,7 @@ struct TtnnGuard {
 
     at::Device current_device() const;
 
-    ttnn::MeshDevice* get_ttnn_device();
+    ttnn::MeshDevice* get_open_ttnn_device(c10::DeviceIndex device_index = 0);
 
     static ttnn::MeshDevice* ttnn_device;
 

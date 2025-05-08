@@ -30,10 +30,10 @@ class TtnnDeviceMode(TorchFunctionMode):
             device_and_idx = kwargs["device"].split(":")
             if len(device_and_idx) == 1:
                 # Case 1: No index specified
-                kwargs["device"] = ttnn_module.custom_device()
+                kwargs["device"] = ttnn_module.open_torch_device()
             else:
                 # Case 2: The user specified a device index.
                 device_idx = int(device_and_idx[1])
-                kwargs["device"] = ttnn_module.custom_device(device_idx)
+                kwargs["device"] = ttnn_module.open_torch_device(device_idx)
         with torch._C.DisableTorchFunction():
             return func(*args, **kwargs)
