@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
 from operator import getitem
+from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -424,7 +425,7 @@ class NodeInputAligner:
 
         return input_node
 
-    def _create_aligned_node(self, spec):
+    def _create_aligned_node(self, spec, node, input_site):
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
             if spec.device is not None and spec.device != "host":
@@ -439,8 +440,18 @@ class NodeInputAligner:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
-            return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
-
+            if (
+                "val" in spec.input_node.meta
+                and hasattr(spec.input_node.meta["val"], "device")
+                and str(spec.input_node.meta["val"].device) == "ttnn:0"
+            ):
+                aligning_nodes = []
+                aligning_nodes.append(self.graph.call_function(ttnn_module.get_ttnn_tensor, (spec.input_node,), {}))
+                if node.target == ttnn.embedding and input_site == 0:
+                    aligning_nodes.append(self.graph.call_function(ttnn.to_layout, (aligning_nodes[-1], spec.layout())))
+                return aligning_nodes[-1]
+            else:
+                return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
         elif isinstance(spec, self.AlignSpecToTorch):
             if spec.input_node.meta.get("is_sharded"):
                 batch_dimension = 0
@@ -512,7 +523,7 @@ class NodeInputAligner:
             aligned_node = self.aligned_node_dict[data_move_spec]
         else:
             with self.graph.inserting_before(node):
-                aligned_node = self._create_aligned_node(data_move_spec)
+                aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
         if node.target == ttnn.layer_norm:
