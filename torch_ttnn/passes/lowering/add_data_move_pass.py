@@ -4,7 +4,9 @@
 import logging
 import torch
 import ttnn
+from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
+    GraphCleanup,
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnDevice,
@@ -269,6 +271,11 @@ class NodeInputAligner:
         self.device = device
         self.aligned_node_dict = {}
 
+        # fields for data parallel
+        self.shard_to_mesh = dict()
+        self.replicate_to_mesh = None
+        self.concat_to_mesh = dict()
+
     class InputSiteType(Enum):
         ARGS = 1
         KWARGS = 2
@@ -427,31 +434,57 @@ class NodeInputAligner:
     def _create_aligned_node(self, spec):
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
+            args = (spec.input_node,)
             if spec.device is not None and spec.device != "host":
                 kwargs["device"] = spec.device()
-                if spec.input_node.meta.get("is_sharded"):
-                    batch_dimension = 0
-                    sharder = self.graph.call_function(
-                        ttnn.ShardTensorToMesh, args=(spec.device(),), kwargs={"dim": batch_dimension}
-                    )
-                    kwargs["mesh_mapper"] = sharder
             if spec.layout is not None:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
-            return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent from_torch call by accessing its arguments. Sharding and replicating are determined by the wrapper name
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.shard_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.shard_to_mesh.get(shard_dim) is None:
+                        self.shard_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    mesh_mapper = self.shard_to_mesh[shard_dim]
+                    args = (actual_inp_node,)
+                else:
+                    if self.replicate_to_mesh is None:
+                        self.replicate_to_mesh = self.graph.call_function(
+                            ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),)
+                        )
+
+                    mesh_mapper = self.replicate_to_mesh
+                    args = spec.input_node.args
+                kwargs["mesh_mapper"] = mesh_mapper
+
+            return self.graph.call_function(ttnn.from_torch, args, kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
-            if spec.input_node.meta.get("is_sharded"):
-                batch_dimension = 0
-                composer = self.graph.call_function(
-                    ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": batch_dimension}
-                )
-                return self.graph.call_function(
-                    ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype, "mesh_composer": composer}
-                )
-            else:
-                return self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
+            kwargs = {"dtype": spec.dtype}
+            args = (spec.input_node,)
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent to_torch call by accessing its arguments
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.concat_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.concat_to_mesh.get(shard_dim) is None:
+                        self.concat_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    composer = self.concat_to_mesh[shard_dim]
+                    kwargs["mesh_composer"] = composer
+                    args = (actual_inp_node,)
+
+            return self.graph.call_function(ttnn.to_torch, args, kwargs)
 
         elif isinstance(spec, self.AlignSpecInTtnn):
             return self._change_layout(spec)
@@ -501,7 +534,7 @@ class NodeInputAligner:
         else:
             self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
 
-    def align(self, node, input_node, input_site, input_site_type: InputSiteType):
+    def align(self, node, input_node, input_site, input_site_type: InputSiteType, first_node):
         # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
         data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
         if data_move_spec is None:
@@ -511,8 +544,19 @@ class NodeInputAligner:
         if data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
         else:
-            with self.graph.inserting_before(node):
-                aligned_node = self._create_aligned_node(data_move_spec)
+            if (
+                isinstance(data_move_spec, self.AlignSpecFromTorch)
+                and input_node.op == "placeholder"
+                and input_node.meta.get("primal_tag") != PrimalTag.ARGUMENT
+            ):
+                # This will push all from_torch calls to the top of the forward function. This shouldn't impact performance, but it may impact memory usage since variables will be
+                # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
+                # is a good place to check
+                with self.graph.inserting_before(first_node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
+            else:
+                with self.graph.inserting_before(node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
         if node.target == ttnn.layer_norm:
@@ -541,22 +585,29 @@ class AddDataMovePass(PassBase):
         node_input_aligner = NodeInputAligner(gm.graph, self.device)
         nodes = list(gm.graph.nodes)
 
+        first_node = [node for node in nodes if node.op != "placeholder"][0]
+
         for node in nodes:
             args = node.args
             for idx, arg in enumerate(args):
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE)
+                        i += node_input_aligner.align(
+                            node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node
+                        )
                 else:
-                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS)
+                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS, first_node)
 
             kwargs = node.kwargs
             for key, arg in kwargs.items():
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE)
+                        i += node_input_aligner.align(
+                            node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node
+                        )
                 else:
-                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS)
+                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node)
 
         modified = i > 0
+        GraphCleanup(gm)
         return PassResult(gm, modified)

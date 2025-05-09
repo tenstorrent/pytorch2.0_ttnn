@@ -77,6 +77,7 @@ class TrackUnusedValues:
 class DeallocationPass(PassBase):
     def __init__(self):
         super().__init__()
+        torch.fx.node.has_side_effect(deallocate)
 
     def call(self, gm: torch.fx.GraphModule):
         graph = gm.graph
