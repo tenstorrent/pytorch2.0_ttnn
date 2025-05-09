@@ -100,7 +100,7 @@ target_link_directories(ttnn_device_extension PRIVATE "${TORCH_INSTALL_PREFIX}/l
 # NOTE: it's important to link tt-metal and ttnn before torch due to fmt conflict
 if (ENABLE_LOCAL_TT_METAL_BUILD)
     target_link_libraries(ttnn_device_extension PUBLIC
-        -L${TT_METAL_HOME}/build/lib -Wl,-rpath=${TT_METAL_HOME}/build/lib
+        -L${TT_METAL_HOME}/build/lib -Wl,-rpath,${TT_METAL_HOME}/build/lib
         -ltt_metal
         -l:_ttnn.so
         -ldevice
