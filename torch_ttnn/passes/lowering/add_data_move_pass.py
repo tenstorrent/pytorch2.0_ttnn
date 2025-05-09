@@ -548,6 +548,9 @@ class NodeInputAligner:
                 and input_node.op == "placeholder"
                 and input_node.meta.get("primal_tag") != PrimalTag.ARGUMENT
             ):
+                # This will push all from_torch calls to the top of the forward function. This shouldn't impact performance, but it may impact memory usage since variables will be
+                # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
+                # is a good place to check
                 with self.graph.inserting_before(first_node):
                     aligned_node = self._create_aligned_node(data_move_spec)
             else:
