@@ -28,6 +28,22 @@ source ./python_env/bin/activate
 popd
 ```
 
+## Install pytorch2.0_ttnn dependencies
+NOTE: The ttnn packages are intentionally removed for this branch. They will be restored once a ttnn dev package containing all the dependencies is available.
+
+0. If you built torch from source, remove `torch` and `torchvision` from `requirements.txt`
+
+1. Install requirements
+    ```
+    pip install -r requirements-dev.txt
+    ```
+
+    You can ignore the following message for now:
+    ```
+    ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+    tt-smi 3.0.12 requires pre-commit==3.5.0, but you have pre-commit 3.0.4 which is incompatible.
+    ```
+
 ## Build pytorch
 Wheel torch doesn't work with cmake cpp extension, probably due to different ABI used for pybind in ttnn and pytorch. One solution is to rebuild torch with clang-17
 ```bash
@@ -59,22 +75,6 @@ cd vision
 git checkout v0.17.1
 CC=clang-17 CXX=clang++-17  CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
 ```
-
-## Install pytorch2.0_ttnn dependencies
-NOTE: The ttnn packages are intentionally removed for this branch. They will be restored once a ttnn dev package containing all the dependencies is available.
-
-0. If you built torch from source, remove `torch` and `torchvision` from `requirements.txt`
-
-1. Install requirements
-    ```
-    pip install -r requirements-dev.txt
-    ```
-
-    You can ignore the following message for now:
-    ```
-    ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-    tt-smi 3.0.12 requires pre-commit==3.5.0, but you have pre-commit 3.0.4 which is incompatible.
-    ```
 
 ## Building cpp extension
 Please make sure that extension is built while being in venv that was prepared before
