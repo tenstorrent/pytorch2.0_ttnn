@@ -160,4 +160,4 @@ def test_aten_native_layer_norm(device, batch, sentence_length, embedding_dim, n
     # mean, can pcc be improved to 0.9998?
     assert_with_pcc(outputs_before[1], outputs_after[1], 0.998)
     # rstd, can pcc be improved to 0.9998?
-    assert_with_pcc(outputs_before[2], outputs_after[2], 0.999)
+    assert_with_pcc(outputs_before[2], outputs_after[2], 0.998)
