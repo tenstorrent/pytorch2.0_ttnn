@@ -192,3 +192,41 @@ def shard_tensor(tensor, dim, num_devices):
 def concat_tensor(tensor, dim, num_devices):
     sharded_version = [tensor] * num_devices
     return torch.concat(sharded_version, dim)
+
+
+# TODO: Support compute kernel config
+@torch.fx.wrap
+def native_layer_norm(
+    input_tensor: ttnn.Tensor,
+    in_tensor_shape: torch.Size,
+    mean_rstd_shape: torch.Size,
+    ttnn_mean_rstd_shape: torch.Size,
+    torch_dtype: torch.dtype,
+    ttnn_dtype: ttnn.DataType,
+    norm_dims: int,
+    gamma: ttnn.Tensor,
+    beta: ttnn.Tensor,
+    epsilon: ttnn.Tensor,
+    device: ttnn.Device,
+):
+    cpu_out = torch.empty(in_tensor_shape, dtype=torch_dtype)
+    output = ttnn.from_torch(cpu_out, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    cpu_out = None
+
+    # BUG? moreh.layer_norm produces NaNs if the initial shape is the torch shape
+    cpu_mean = torch.full(ttnn_mean_rstd_shape, float("nan"), dtype=torch_dtype)
+    mean = ttnn.from_torch(cpu_mean, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    cpu_mean = None
+
+    cpu_rstd = torch.full(ttnn_mean_rstd_shape, float("nan"), dtype=torch_dtype)
+    rstd = ttnn.from_torch(cpu_rstd, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    cpu_rstd = None
+
+    output, mean, rstd = ttnn.operations.moreh.layer_norm(
+        input_tensor, norm_dims, epsilon, gamma, beta, output=output, mean=mean, rstd=rstd
+    )
+
+    mean = ttnn.reshape(mean, mean_rstd_shape)
+    rstd = ttnn.reshape(rstd, mean_rstd_shape)
+
+    return (output, mean, rstd)
