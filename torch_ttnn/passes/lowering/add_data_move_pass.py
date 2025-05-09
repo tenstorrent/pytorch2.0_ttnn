@@ -6,6 +6,7 @@ import torch
 import ttnn
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
+    GraphCleanup,
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnDevice,
@@ -608,4 +609,5 @@ class AddDataMovePass(PassBase):
                     i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node)
 
         modified = i > 0
+        GraphCleanup(gm)
         return PassResult(gm, modified)
