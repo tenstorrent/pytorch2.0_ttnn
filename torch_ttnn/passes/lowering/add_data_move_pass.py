@@ -406,14 +406,14 @@ class NodeInputAligner:
         input_node = spec.input_node
 
         # mesh device tensors need layout on device
+        if need_to_device:
+            input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
+
         if need_to_layout:
             input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
 
         if need_from_device:
             input_node = self.graph.call_function(ttnn.from_device, (input_node,))
-
-        if need_to_device:
-            input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
 
         return input_node
 
