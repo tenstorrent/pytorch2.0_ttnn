@@ -68,9 +68,12 @@ class CMakeBuild(build_ext):
             torch_cxx_flags = get_torch_abi_related_compiler_flags()
             if torch_cxx_flags:
                 flags_str = " ".join(torch_cxx_flags)
-                extra_cmake_flags.append(f'-DCMAKE_CXX_FLAGS="{flags_str}"')
+                extra_cmake_flags.append(f"-DCMAKE_CXX_FLAGS={flags_str}")
             # Torch is built with gcc
+            # extra_cmake_flags.append("-DCMAKE_CXX_COMPILER=/usr/local/gcc-14.1.0/bin/g++-14.1.0")  # TODO: test different g++ versions
             extra_cmake_flags.append("-DCMAKE_CXX_COMPILER=/usr/bin/g++")  # TODO: test different g++ versions
+            extra_cmake_flags.append("-DHAVE_STD_REGEX=1")  # Force using STD_REGEX
+            # extra_cmake_flags.append("-DHAVE_GNU_POSIX_REGEX=1")
 
         else:
             cmake_args.append("-DCMAKE_CXX_COMPILER=clang++-17")
