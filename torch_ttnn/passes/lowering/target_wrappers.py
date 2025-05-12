@@ -209,9 +209,7 @@ def native_layer_norm(
     epsilon: ttnn.Tensor,
     device: ttnn.Device,
 ):
-    cpu_out = torch.empty(in_tensor_shape, dtype=torch_dtype)
-    output = ttnn.from_torch(cpu_out, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
-    cpu_out = None
+    output = ttnn.empty(in_tensor_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
 
     # BUG? moreh.layer_norm produces NaNs if the initial shape is the torch shape
     cpu_mean = torch.full(ttnn_mean_rstd_shape, float("nan"), dtype=torch_dtype)
