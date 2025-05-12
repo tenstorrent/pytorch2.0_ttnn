@@ -466,7 +466,7 @@ class NodeInputAligner:
                 kwargs["mesh_mapper"] = mesh_mapper
 
             # return self.graph.call_function(ttnn.from_torch, args, kwargs)
-        
+
             # TODO: Add mesh support for native integration
             if (
                 "val" in spec.input_node.meta
