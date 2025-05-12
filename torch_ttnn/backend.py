@@ -14,6 +14,7 @@ from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
 import tools.export_code as export_code
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
+from torch_ttnn.utils import GraphCleanup
 import copy
 from torch_ttnn.utils import get_add_custom_object_in_graph
 
@@ -153,6 +154,7 @@ def aten_backend(
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
     from torch_ttnn.passes.memory_pass import MemoryPass
+    from torch_ttnn.passes.deallocation_pass import DeallocationPass
 
     passes = [
         InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
@@ -165,6 +167,7 @@ def aten_backend(
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
+        DeallocationPass(),
     ]
 
     mem_pass = MemoryPass(option.verbose)
@@ -184,8 +187,7 @@ def aten_backend(
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
-    gm.graph.lint()
-    gm.recompile()
+    GraphCleanup(gm)
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
@@ -221,8 +223,7 @@ def aten_backend(
             pm = PassManager(passes=passes)
             gm, modified = pm(gm)
 
-            gm.graph.lint()
-            gm.recompile()
+            GraphCleanup(gm)
 
             # Get the memory manager object for memory analysis
             option.memory_manager = mem_pass.mm

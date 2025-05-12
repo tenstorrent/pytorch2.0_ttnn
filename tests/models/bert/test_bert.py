@@ -1,12 +1,15 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+import json
+import os
 import torch
 import pytest
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 from tests.utils import ModelTester
+from math import ceil
 
 
 class ThisTester(ModelTester):
@@ -19,14 +22,28 @@ class ThisTester(ModelTester):
 
     def _load_inputs(self):
         # Set up sample input
-        self.context = 'Johann Joachim Winckelmann was a German art historian and archaeologist. He was a pioneering Hellenist who first articulated the difference between Greek, Greco-Roman and Roman art. "The prophet and founding hero of modern archaeology", Winckelmann was one of the founders of scientific archaeology and first applied the categories of style on a large, systematic basis to the history of art. '
-        self.question = "What discipline did Winkelmann create?"
-        inputs = self.tokenizer.encode_plus(
-            self.question,
-            self.context,
+        batch_size = 1
+        this_file_path = os.path.dirname(__file__)
+        input_path = os.path.join(this_file_path, "../../inputs/bert/input_data.json")
+        with open(input_path) as f:
+            input_data = json.load(f)
+
+            self.context = [entry["context"] for entry in input_data]
+            self.question = [entry["question"] for entry in input_data]
+
+        # make it same size as batch_size
+        if len(self.question) < batch_size:
+            factor = ceil(batch_size / len(self.question))
+            self.context *= factor
+            self.question *= factor
+
+        self.context = self.context[:batch_size]
+        self.question = self.question[:batch_size]
+        inputs = self.tokenizer.batch_encode_plus(
+            list(zip(self.question, self.context)),
             add_special_tokens=True,
             return_tensors="pt",
-            max_length=256,
+            max_length=384,
             padding="max_length",
             truncation=True,
         )

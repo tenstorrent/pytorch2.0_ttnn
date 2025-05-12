@@ -561,48 +561,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 return new_node
 
-            if node.target == target_wrappers.replicate_tensor:
-                if get_dtype(node.args[0]) in [torch.int32, torch.int64]:
-                    spec_dtype = TtnnUint32()
-                else:
-                    spec_dtype = TtnnBfloat16()
-
-                rep = g.call_function(ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),))
-                return g.call_function(
-                    ttnn.from_torch,
-                    args=node.args,
-                    kwargs={
-                        "mesh_mapper": rep,
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                        "dtype": spec_dtype,
-                    },
-                )
-
-            if node.target == target_wrappers.shard_tensor:
-                inp_node, shard_dim, _ = node.args
-                spec_dtype = TtnnBfloat16()
-                if get_dtype(inp_node) in [torch.int32, torch.int64]:
-                    spec_dtype = TtnnUint32()
-                rep = g.call_function(ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
-                return g.call_function(
-                    ttnn.from_torch,
-                    args=(inp_node,),
-                    kwargs={
-                        "mesh_mapper": rep,
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                        "dtype": spec_dtype,
-                    },
-                )
-
-            if node.target == target_wrappers.concat_tensor:
-                inp_node, shard_dim, _ = node.args
-                rep = g.call_function(ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim})
-                return g.call_function(
-                    ttnn.to_torch, args=(inp_node,), kwargs={"mesh_composer": rep, "device": TtnnDevice()}
-                )
-
             if node.target == torch.ops.aten.zeros.default:
                 return g.call_function(ttnn.zeros, args=args, kwargs={"device": TtnnDevice()})
 
