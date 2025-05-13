@@ -107,7 +107,7 @@ jobs:
         run: |
           checkout_passed="${{ needs.check-docker-images.result == 'success' }}"
           tests_passed="${{needs.run-tests.outputs.tests_passed == 0 }}"
-          if [[ $checkout_passed && $tests_passed ]] ; then
+          if [[ $checkout_passed == "true" && $tests_passed == "true" ]] ; then
             IMAGE_REPO="ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64"
             LATEST_TAG="${IMAGE_REPO}:latest"
             DEV_TAG="${{ needs.check-docker-images.outputs.dev-tag }}"
