@@ -130,42 +130,70 @@ class AttentionPatterns(PatternMatcherBase):
                 scale,
             ) = match
 
-            # Lets concatenate the qkv tensors for weights and biases
-            concatenated_qkv_weights_node = self.gm.graph.call_function(
-                ttnn.concat,
-                args=([q_linear.args[1], k_linear.args[1], v_linear.args[1]], -1),  # Input tensors
-                kwargs={},
-            )
-
-            # _find_qkv_pattern ensures that the bias is not None
-            # this is not entirely true, because the bias is optional
-            # but since I want to control the replacement, I will make it a requirement
-            # for now.
-            q_bias = q_linear.kwargs["bias"]
-            k_bias = k_linear.kwargs["bias"]
-            v_bias = v_linear.kwargs["bias"]
-
-            # concatenate the biases
-            concatenated_qkv_biases_node = self.gm.graph.call_function(
-                ttnn.concat,
-                args=([q_bias, k_bias, v_bias], -1),  # Input tensors
-                kwargs={},
-            )
-
-            qvk_node = self.gm.graph.call_function(
-                ttnn.linear,
-                args=(q_linear, concatenated_qkv_weights_node),
-                kwargs={"bias": concatenated_qkv_biases_node},
-            )
-
-            # Time to split the qvk into q, k, v
-            split_qkv_node = self.gm.graph.call_function(
-                ttnn.transformer.split_query_key_value_and_split_heads,
-                args=(qvk_node, None, 3),  # Input tensors
-                kwargs={},
-            )
-
+            # this is an assumption that might be wrong
+            # if there is a bug, is probably here
+            # num_heads = q_view1.shape[-1] // k_view1.shape[-1]
             with self.gm.graph.inserting_after(matmul_sv):
+                # Lets concatenate the qkv tensors for weights and biases
+                concatenated_qkv_weights_node = self.gm.graph.call_function(
+                    ttnn.concat,
+                    args=([q_linear.args[1], k_linear.args[1], v_linear.args[1]], -1),  # Input tensors
+                    kwargs={},
+                )
+
+            with self.gm.graph.inserting_after(concatenated_qkv_weights_node):
+                # _find_qkv_pattern ensures that the bias is not None
+                # this is not entirely true, because the bias is optional
+                # but since I want to control the replacement, I will make it a requirement
+                # for now.
+                q_bias = q_linear.kwargs["bias"]
+                k_bias = k_linear.kwargs["bias"]
+                v_bias = v_linear.kwargs["bias"]
+
+                # concatenate the biases
+                concatenated_qkv_biases_node = self.gm.graph.call_function(
+                    ttnn.concat,
+                    args=([q_bias, k_bias, v_bias], -1),  # Input tensors
+                    kwargs={},
+                )
+
+            with self.gm.graph.inserting_after(concatenated_qkv_biases_node):
+                qvk_node = self.gm.graph.call_function(
+                    ttnn.linear,
+                    args=(q_linear.args[0], concatenated_qkv_weights_node),
+                    kwargs={"bias": concatenated_qkv_biases_node},
+                )
+
+            with self.gm.graph.inserting_after(qvk_node):
+                # Time to split the qvk into q, k, v
+                split_qkv_node = self.gm.graph.call_function(
+                    ttnn.transformer.split_query_key_value_and_split_heads,
+                    args=(qvk_node),  # Input tensors
+                    kwargs={"num_heads": num_heads},
+                )
+
+            # Hack: TTNN is expecting the mask in a format [b, 1, s, s]
+            # but what we have is [b, 1, 1, s]
+            # so in order to do an operation that is fast and does the trick
+            # we will insert this
+            # ttnn_mask = ttnn_decorators_ttnn_view(ttnn_multiply, [1, 1, 256, 1])
+            # ttnn_mask = ttnn.add(ttnn_mask, ttnn_multiply) # <---- hack
+
+            with self.gm.graph.inserting_after(split_qkv_node):
+                mask_node = self.gm.graph.call_function(
+                    ttnn.experimenta.view,
+                    args=(attn_mask,),  # Input tensors
+                    kwargs=kwargs,
+                )
+
+                with self.gm.graph.inserting_after(mask_node):
+                    mask_hacked_node = self.gm.graph.call_function(
+                        ttnn.add,
+                        args=(mask_node, attn_mask),  # Input tensors
+                        kwargs={},
+                    )
+
+            with self.gm.graph.inserting_after(mask_hacked_node):
                 kwargs = {}
                 if attn_mask is not None:
                     kwargs["attn_mask"] = attn_mask
