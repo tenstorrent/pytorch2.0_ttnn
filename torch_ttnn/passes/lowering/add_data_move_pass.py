@@ -439,6 +439,67 @@ class NodeInputAligner:
 
         return input_node
 
+    def _extract_args_kwargs_from_spec(self, spec):
+        if isinstance(spec, self.AlignSpecFromTorch):
+            kwargs = {}
+            args = (spec.input_node,)
+            if spec.device is not None and spec.device != "host":
+                kwargs["device"] = spec.device()
+            if spec.layout is not None:
+                kwargs["layout"] = spec.layout()
+            if spec.dtype is not None:
+                kwargs["dtype"] = spec.dtype()
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent from_torch call by accessing its arguments. Sharding and replicating are determined by the wrapper name
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.shard_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.shard_to_mesh.get(shard_dim) is None:
+                        self.shard_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    mesh_mapper = self.shard_to_mesh[shard_dim]
+                    args = (actual_inp_node,)
+                else:
+                    if self.replicate_to_mesh is None:
+                        self.replicate_to_mesh = self.graph.call_function(
+                            ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),)
+                        )
+
+                    mesh_mapper = self.replicate_to_mesh
+                    args = spec.input_node.args
+                kwargs["mesh_mapper"] = mesh_mapper
+
+            return args, kwargs
+
+        elif isinstance(spec, self.AlignSpecToTorch):
+            kwargs = {"dtype": spec.dtype}
+            args = (spec.input_node,)
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent to_torch call by accessing its arguments
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.concat_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.concat_to_mesh.get(shard_dim) is None:
+                        self.concat_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    composer = self.concat_to_mesh[shard_dim]
+                    kwargs["mesh_composer"] = composer
+                    args = (actual_inp_node,)
+
+            return args, kwargs
+
+        elif isinstance(spec, self.AlignSpecInTtnn):
+            return (), {}
+
+        else:
+            raise RuntimeError(f"Cannot create aligned node for unknown spec ({spec})")
+
     def _create_aligned_node(self, spec):
         # if self.run_once:
         #     self.run_once = False
@@ -679,10 +740,21 @@ class AddDataMovePass(PassBase):
 
         # try making a boxed function and running it once
         gm.add_submodule("load_weights", load_weights_graph.load_weights_graph)
+        load_weights_graph.load_weights_graph.recompile()
         with gm.graph.inserting_before(first_node):
+            # conditional = gm.graph.call_function(torch.cond, (cond, true, false))
+            # load_function = gm.graph.call_module("load_weights", tuple(load_weights_graph.inputs))
+            # n = torch.fx.Node(gm.graph, "load_weights", "call_module", "load_weights", tuple(load_weights_graph.inputs), {}, None)
             ttnn_inputs = gm.graph.call_function(
-                target_wrappers.run_once, (gm.load_weights, *load_weights_graph.inputs)
+                target_wrappers.run_once,
+                tuple(
+                    [
+                        node_input_aligner._extract_args_kwargs_from_spec(spec)
+                        for spec in node_input_aligner.marshaled_node_dict.keys()
+                    ]
+                ),
             )
+        # gm.graph.erase_node(load_function)
 
         # then handle rest of the args and kwargs
         for node in nodes:
