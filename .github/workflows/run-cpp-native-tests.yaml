@@ -1,0 +1,80 @@
+name: "C++ Extension Tests"
+
+on:
+  push:
+    branches:
+      - main
+      - philei/cpp-extension-cmake-ci
+    paths:
+      - 'torch_ttnn/cpp_extension/**'
+      - 'tests/cpp_extension/**'
+  pull_request:
+    paths:
+      - 'torch_ttnn/cpp_extension/**'
+      - 'tests/cpp_extension/**'
+  workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: 'Docker container tag to use'
+        required: false
+        type: string
+        default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
+
+jobs:
+  cpp-extension-tests:
+    runs-on: ["in-service", "nfs"]
+    container: 
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:      
+      TORCH_HOME: /root/.cache/torch
+      HF_HOME: /root/.cache/huggingface
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          submodules: 'recursive'
+
+      - name: Setup Git LFS for submodules
+        run: |
+          git submodule foreach 'git lfs fetch --all && git lfs pull'
+      
+      - uses: ./.github/actions/common_repo_setup
+      
+      - name: Docker Cleanup
+        run: |
+          docker system prune -a -f
+          df -h  # Debug space
+      
+      - name: Build and Test C++ Extensions
+        run: |
+          cd torch_ttnn/cpp_extension
+          CMAKE_FLAGS="-DENABLE_SUBMODULE_TT_METAL_BUILD=ON" python3 setup.py develop
+          cd ${{ github.workspace }}
+          pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
+          pytest tests/cpp_extension/test_bert_cpp_extension.py -v
+
+  tests-passed:
+    if: ${{ always() }}
+    outputs:
+      didpass: ${{ steps.check.outputs.didpass }}
+    runs-on: ubuntu-latest    
+    needs: [cpp-extension-tests]
+    steps:
+      - id: check
+        run: |
+          cpp_tests_result="${{ needs.cpp-extension-tests.result}}"
+          if [[ $cpp_tests_result == "success" || $cpp_tests_result == "skipped" ]]; then
+            echo "didpass=0" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "didpass=1" >> $GITHUB_OUTPUT
+            exit 1
+          fi
