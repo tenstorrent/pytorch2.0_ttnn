@@ -20,7 +20,6 @@ at::Tensor& ttnn_add_out(const at::Tensor& input, const at::Tensor& other, const
     at::TtnnTensorImpl* other_tensor_impl = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
     auto ttnn_tensor_other = other_tensor_impl->get_ttnn_tensor();
 
-    std::cout << "[ttnn_cpp_extension] ttnn_add_out" << std::endl;
     auto result = ttnn::add(ttnn_tensor_input, ttnn_tensor_other);
 
     // tensor_impl->set_ttnn_tensor(result);
