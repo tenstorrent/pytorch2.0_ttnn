@@ -34,6 +34,10 @@ jobs:
       
           # Append the line for the newest version
           echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
+      - name: Update .gitsubmodules
+        run: |
+          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
+          echo "Updated .gitmodules with the latest version: $latest_version"
           
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
