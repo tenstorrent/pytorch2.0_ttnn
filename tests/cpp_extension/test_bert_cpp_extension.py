@@ -39,7 +39,7 @@ def test_bert_with_cpp_extension(device, batch_size):
             context,
             add_special_tokens=True,
             return_tensors="pt",
-            max_length=384,
+            max_length=256,
             padding="max_length",
             truncation=True,
         )
