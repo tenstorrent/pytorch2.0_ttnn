@@ -166,6 +166,12 @@ class ReplaceMoreTt(torch.fx.Transformer):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
 
+    def transform(self):
+        old_meta = self.module.meta
+        result = super().transform()
+        result.meta = old_meta
+        return result
+
     def get_attr(self, target, args, kwargs):
         # Restore original metadata for get_attr nodes
         proxy = super().get_attr(target, args, kwargs)

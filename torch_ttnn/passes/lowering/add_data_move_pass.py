@@ -644,6 +644,8 @@ class NodeInputAligner:
             input_idx = self.marshaled_node_dict[data_move_spec]
             with self.graph.inserting_before(node):
                 aligned_node = self.graph.call_function(getitem, (ttnn_inputs, input_idx))
+                # mark node cached so it isn't deallocated
+                aligned_node.meta["is_cached"] = True
             self.aligned_node_dict[data_move_spec] = aligned_node
         elif data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
@@ -720,6 +722,8 @@ class AddDataMovePass(PassBase):
         # try making a boxed function and running it once
         gm.add_submodule("load_weights", load_weights_graph.load_weights_graph)
         load_weights_graph.load_weights_graph.recompile()
+        # reset run_once_count so recompilation triggers loading weights
+        target_wrappers.run_once_count = 0
         with gm.graph.inserting_before(first_node):
             ttnn_inputs = gm.graph.call_function(
                 target_wrappers.run_once,

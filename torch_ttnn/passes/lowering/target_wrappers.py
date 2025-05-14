@@ -15,14 +15,15 @@ def run_once(*args):
     global run_once_count
     global run_once_ans
 
-    if run_once_count > 0:
-        return run_once_ans
+    if run_once_count == 0:
 
-    def convert_input(spec):
-        return ttnn.from_torch(*spec[0], **spec[1])
+        def convert_input(spec):
+            return ttnn.from_torch(*spec[0], **spec[1])
 
-    run_once_ans = tuple([convert_input(arg) for arg in args])
-    run_once_count += 1
+        print("running once")
+        run_once_ans = tuple([convert_input(arg) for arg in args])
+        run_once_count += 1
+
     return run_once_ans
 
 

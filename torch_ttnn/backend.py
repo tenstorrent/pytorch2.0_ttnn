@@ -67,6 +67,9 @@ class TorchTtnnOption:
         self._n_buffers = None
         self._n_arguments = None
 
+        # Used to speed up execution
+        self._load_weights_once = False
+
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
@@ -140,6 +143,7 @@ def aten_backend(
 
     # Run analysis passes to help with ttnn ops
     from torch.fx.passes.infra.pass_manager import PassManager
+    from torch_ttnn.passes.analysis.graph_module_analysis_pass import GraphModuleAnalysisPass
     from torch_ttnn.passes.analysis.input_analysis_pass import InputAnalysisPass
     from torch_ttnn.passes.analysis.multi_device_shard_analysis_pass import MultiDeviceShardAnalysisPass
 
@@ -157,15 +161,16 @@ def aten_backend(
     from torch_ttnn.passes.deallocation_pass import DeallocationPass
 
     passes = [
+        GraphModuleAnalysisPass(),
         InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
         MultiDeviceShardAnalysisPass(option.device),
         ConstantFoldingPass(),
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         FusionPass(),
-        CSEPass(),
         AddDataMovePass(option.device),
         EliminateCoreopsPass(),
+        CSEPass(),
         PermuteReshapeTuple(),
         DeallocationPass(),
     ]
@@ -187,7 +192,8 @@ def aten_backend(
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
-    GraphCleanup(gm)
+    # GraphCleanup(gm)
+    gm.recompile()
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
@@ -223,7 +229,8 @@ def aten_backend(
             pm = PassManager(passes=passes)
             gm, modified = pm(gm)
 
-            GraphCleanup(gm)
+            # GraphCleanup(gm)
+            gm.recompile()
 
             # Get the memory manager object for memory analysis
             option.memory_manager = mem_pass.mm
