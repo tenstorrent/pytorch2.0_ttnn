@@ -683,6 +683,8 @@ class AddDataMovePass(PassBase):
         # first load weights
         ttnn_inputs = None
         if gm.meta.get("graph_type") == ModelType.INFERENCE:
+            global run_once_count
+            target_wrappers.run_once_count = 0
             i, ttnn_inputs = insert_load_params_once(gm, first_node, nodes, node_input_aligner)
 
         # then handle rest of the args and kwargs
