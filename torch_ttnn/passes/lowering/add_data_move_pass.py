@@ -298,7 +298,7 @@ class NodeInputAligner:
     @dataclass(unsafe_hash=True)
     class AlignSpecInTtnn:
         input_node: torch.fx.node.Node
-        device: Union[None, Type[TtnnDevice], Literal["host"], Literal["temp_host_layout"]]
+        device: Union[None, Type[TtnnDevice], Literal["host"]]
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
@@ -392,10 +392,6 @@ class NodeInputAligner:
             spec = self.AlignSpecInTtnn(input_node, None, None, None)
             spec = self._reset_to_default_layout(input_node, spec)
             spec = self._align_special_cases(node, spec, input_site, input_site_type)
-            # tilize fails on device for uint32 inputs
-            # TODO: remove this once tilize works in this case
-            if spec.layout == TtnnTileLayout and get_dtype(input_node) in [torch.int32, torch.int64]:
-                spec.device = "temp_host_layout"
 
             if spec.device is None and spec.layout is None and spec.dtype is None:
                 return None
@@ -404,31 +400,21 @@ class NodeInputAligner:
             return None
 
     def _change_layout(self, spec):
-        need_from_device = spec.device in ["host", "temp_host_layout"]
+        need_from_device = spec.device == "host"
         need_to_layout = spec.layout is not None
-        need_to_device = spec.device in [TtnnDevice, "temp_host_layout"]
+        need_to_device = spec.device == TtnnDevice
 
         input_node = spec.input_node
 
-        # TODO: always layout on device once that is supported (once tilize uint32 works on device)
-        layout_on_host = spec.device == "temp_host_layout"
-        if layout_on_host:
-            # temp_host_layout means we must layout on host
-            if need_from_device:
-                input_node = self.graph.call_function(ttnn.from_device, (input_node,))
-
-            if need_to_layout:
-                input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
-        else:
-            # mesh device tensors need layout on device
-            if need_to_layout:
-                input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
-
-            if need_from_device:
-                input_node = self.graph.call_function(ttnn.from_device, (input_node,))
-
+        # mesh device tensors need layout on device
         if need_to_device:
             input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
+
+        if need_to_layout:
+            input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
+
+        if need_from_device:
+            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
 
         return input_node
 
