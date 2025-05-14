@@ -78,22 +78,3 @@ jobs:
           PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
           mkdir -p /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
           cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
-
-
-  tests-passed:
-    if: ${{ always() }}
-    outputs:
-      didpass: ${{ steps.check.outputs.didpass }}
-    runs-on: ubuntu-latest
-    needs: [cpp-extension-tests]
-    steps:
-      - id: check
-        run: |
-          cpp_tests_result="${{ needs.cpp-extension-tests.result}}"
-          if [[ $cpp_tests_result == "success" || $cpp_tests_result == "skipped" ]]; then
-            echo "didpass=0" >> $GITHUB_OUTPUT
-            exit 0
-          else
-            echo "didpass=1" >> $GITHUB_OUTPUT
-            exit 1
-          fi
