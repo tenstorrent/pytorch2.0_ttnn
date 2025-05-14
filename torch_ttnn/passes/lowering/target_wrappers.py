@@ -20,7 +20,6 @@ def run_once(*args):
         def convert_input(spec):
             return ttnn.from_torch(*spec[0], **spec[1])
 
-        print("running once")
         run_once_ans = tuple([convert_input(arg) for arg in args])
         run_once_count += 1
 
