@@ -1,10 +1,10 @@
 name: "C++ Extension Tests"
 
 on:
-  push:
-    branches:
-      - main
-      - philei/cpp-extension-cmake-ci
+  # push:
+  #   branches:
+  #     - main
+  #     - philei/cpp-extension-cmake-ci
     # paths:
     #   - 'torch_ttnn/cpp_extension/**'
     #   - 'tests/cpp_extension/**'
@@ -49,7 +49,7 @@ jobs:
 
       - name: Check cache
         run: |
-          CACHE_DIR=/mnt/tt-metal-pytorch-cache/.cpp-extension-cache
+          CACHE_DIR=/root/.cache/cpp-extension-cache
           if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension*.so" ]; then
             echo "Cache found with all required components. Using cached build."
           else
@@ -89,7 +89,7 @@ jobs:
         run: |
           cd torch_ttnn/cpp_extension
           PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-          CACHE_DIR=/mnt/tt-metal-pytorch-cache/.cpp-extension-cache
+          CACHE_DIR=/root/.cache/cpp-extension-cache
           # Check if cache exists with required components
           CACHE_FOUND=0
           if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX}" ]; then

@@ -1,10 +1,10 @@
 name: "C++ Extension Build Artifacts"
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #     - philei/cpp-extension-cmake-ci
+  push:
+    branches:
+      - main
+      - philei/cpp-extension-cmake-ci
     # paths:
     #   - 'torch_ttnn/cpp_extension/**'
     #   - 'tests/cpp_extension/**'
@@ -77,6 +77,6 @@ jobs:
         run: |
           cd torch_ttnn/cpp_extension
           PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-          CACHE_DIR=/mnt/tt-metal-pytorch-cache/.cpp-extension-cache
+          CACHE_DIR=/root/.cache/cpp-extension-cache
           mkdir -p $CACHE_DIR
           cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR
