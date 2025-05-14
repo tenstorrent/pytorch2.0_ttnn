@@ -180,6 +180,12 @@ TTNN_MAYBE_ROW_OPS = set(
     ]
 )
 
+TTNN_TRANSFORMER_OPS = [
+    ttnn.transformer.scaled_dot_product_attention,
+    ttnn.transformer.attention_softmax_,
+    ttnn.transformer.split_query_key_value_and_split_heads,
+]
+
 TTNN_HOST_ONLY_OPS = set()
 
 
@@ -203,6 +209,7 @@ def is_tt_compute(node) -> bool:
         + TTNN_DATAMOVE_OPS
         + TTNN_NORM_OPS
         + TTNN_POOL_OPS
+        + TTNN_TRANSFORMER_OPS
         + [
             ttnn.embedding,
             ttnn.ones,
@@ -223,8 +230,6 @@ def is_tt_compute(node) -> bool:
             ttnn.argmax,
             ttnn.fill,
             ttnn.empty,
-            ttnn.transformer.scaled_dot_product_attention,
-            ttnn.transformer.attention_softmax_,
         ]
     )
 
