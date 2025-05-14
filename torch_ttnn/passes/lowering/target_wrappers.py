@@ -216,7 +216,8 @@ def native_layer_norm(
 
     output = ttnn.empty(in_tensor_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
 
-    # BUG? moreh.layer_norm produces NaNs if the initial shape is the torch shape
+    # moreh.layer_norm does not generate correct mean or rstd if the shape keeps the normalized dims
+    # https://github.com/tenstorrent/tt-metal/issues/22110
     if use_mean:
         mean = ttnn.empty(ttnn_mean_rstd_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
     else:
