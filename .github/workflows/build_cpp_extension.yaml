@@ -75,6 +75,7 @@ jobs:
 
       - name: Upload Build Artifact
         run: |
+          cd torch_ttnn/cpp_extension
           PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
           mkdir -p /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
           cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
