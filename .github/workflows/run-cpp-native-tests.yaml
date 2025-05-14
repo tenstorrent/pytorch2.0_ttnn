@@ -60,7 +60,7 @@ jobs:
 
           apt upgrade -y && apt update -y
           apt install -y cmake python3 python3-venv python3-pip git-lfs
-          cd ${{ github.workspace }}
+          # cd ${{ github.workspace }}
           git submodule sync
           git submodule update --init --recursive
           git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
