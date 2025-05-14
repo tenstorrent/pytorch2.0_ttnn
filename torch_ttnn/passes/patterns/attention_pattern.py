@@ -4,6 +4,7 @@
 
 import torch
 import ttnn
+import operator
 from torch.fx import Node
 from torch_ttnn.passes.patterns.pattern_matcher_base import PatternMatcherBase
 from typing import List, Tuple
@@ -130,9 +131,9 @@ class AttentionPatterns(PatternMatcherBase):
                 scale,
             ) = match
 
-            # this is an assumption that might be wrong
-            # if there is a bug, is probably here
-            # num_heads = q_view1.shape[-1] // k_view1.shape[-1]
+            #
+            head_size = softmax.kwargs.get("head_size")
+            num_heads = q_view1.meta["val"].shape[-1] // head_size
             with self.gm.graph.inserting_after(matmul_sv):
                 # Lets concatenate the qkv tensors for weights and biases
                 concatenated_qkv_weights_node = self.gm.graph.call_function(
@@ -160,16 +161,29 @@ class AttentionPatterns(PatternMatcherBase):
             with self.gm.graph.inserting_after(concatenated_qkv_biases_node):
                 qvk_node = self.gm.graph.call_function(
                     ttnn.linear,
-                    args=(q_linear.args[0], concatenated_qkv_weights_node),
+                    args=(
+                        q_linear.args[0],
+                        concatenated_qkv_weights_node,
+                    ),
                     kwargs={"bias": concatenated_qkv_biases_node},
                 )
 
             with self.gm.graph.inserting_after(qvk_node):
+                shape = list(q_view1.meta["val"].shape)
+                shape[-1] = shape[-1] * 3
+
+                linear_view_node = self.gm.graph.call_function(
+                    ttnn.experimental.view,
+                    args=(qvk_node, shape),
+                    kwargs={},
+                )
+
+            with self.gm.graph.inserting_after(linear_view_node):
                 # Time to split the qvk into q, k, v
                 split_qkv_node = self.gm.graph.call_function(
                     ttnn.transformer.split_query_key_value_and_split_heads,
-                    args=(qvk_node),  # Input tensors
-                    kwargs={"num_heads": num_heads},
+                    args=(linear_view_node, None),  # Input tensors as tuple
+                    kwargs={"num_heads": num_heads, "transpose_key": False},
                 )
 
             # Hack: TTNN is expecting the mask in a format [b, 1, s, s]
@@ -179,24 +193,46 @@ class AttentionPatterns(PatternMatcherBase):
             # ttnn_mask = ttnn_decorators_ttnn_view(ttnn_multiply, [1, 1, 256, 1])
             # ttnn_mask = ttnn.add(ttnn_mask, ttnn_multiply) # <---- hack
 
+            mask_new_shape = list(attn_mask.meta["val"].shape)
+            mask_new_shape[2], mask_new_shape[3] = mask_new_shape[3], mask_new_shape[2]
             with self.gm.graph.inserting_after(split_qkv_node):
-                mask_node = self.gm.graph.call_function(
-                    ttnn.experimenta.view,
-                    args=(attn_mask,),  # Input tensors
-                    kwargs=kwargs,
+                get_q_node = self.gm.graph.call_function(
+                    operator.getitem,
+                    args=(split_qkv_node, 0),
+                    kwargs={},
+                )
+            with self.gm.graph.inserting_after(get_q_node):
+                get_k_node = self.gm.graph.call_function(
+                    operator.getitem,
+                    args=(split_qkv_node, 1),
+                    kwargs={},
                 )
 
-                with self.gm.graph.inserting_after(mask_node):
-                    mask_hacked_node = self.gm.graph.call_function(
-                        ttnn.add,
-                        args=(mask_node, attn_mask),  # Input tensors
-                        kwargs={},
-                    )
+            with self.gm.graph.inserting_after(get_k_node):
+                get_v_node = self.gm.graph.call_function(
+                    operator.getitem,
+                    args=(split_qkv_node, 2),
+                    kwargs={},
+                )
+
+            with self.gm.graph.inserting_after(get_v_node):
+                mask_node = self.gm.graph.call_function(
+                    ttnn.experimental.view,
+                    args=(attn_mask, mask_new_shape),
+                    kwargs={},
+                )
+
+            with self.gm.graph.inserting_after(mask_node):
+                mask_hacked_node = self.gm.graph.call_function(
+                    ttnn.add,
+                    args=(mask_node, attn_mask),  # Input tensors
+                    kwargs={},
+                )
 
             with self.gm.graph.inserting_after(mask_hacked_node):
                 kwargs = {}
                 if attn_mask is not None:
-                    kwargs["attn_mask"] = attn_mask
+                    kwargs["attn_mask"] = mask_hacked_node
                     kwargs["is_causal"] = False
                 if scale is not None:
                     kwargs["scale"] = scale
@@ -204,7 +240,11 @@ class AttentionPatterns(PatternMatcherBase):
                 # Create the fused attention node with weights and biases
                 fused_node = self.gm.graph.call_function(
                     ttnn.transformer.scaled_dot_product_attention,
-                    args=(split_qkv_node,),  # Input tensors
+                    args=(
+                        get_q_node,
+                        get_k_node,
+                        get_v_node,
+                    ),  # Input tensors
                     kwargs=kwargs,
                 )
                 matmul_sv.replace_all_uses_with(fused_node)
