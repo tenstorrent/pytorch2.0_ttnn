@@ -4,7 +4,6 @@
 import logging
 import torch
 import ttnn
-from torch_ttnn.load_weights import LoadWeightsGraph
 from torch_ttnn.passes.analysis.graph_module_analysis_pass import ModelType
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
