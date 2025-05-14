@@ -1,10 +1,10 @@
 name: "C++ Extension Build Artifacts"
 
 on:
-  push:
-    branches:
-      - main
-      - philei/cpp-extension-cmake-ci
+  # push:
+  #   branches:
+  #     - main
+  #     - philei/cpp-extension-cmake-ci
     # paths:
     #   - 'torch_ttnn/cpp_extension/**'
     #   - 'tests/cpp_extension/**'
