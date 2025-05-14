@@ -1,17 +1,13 @@
-name: "C++ Extension Tests"
+name: "C++ Extension Build Artifacts"
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #     - philei/cpp-extension-cmake-ci
+  push:
+    branches:
+      - main
+      - philei/cpp-extension-cmake-ci
     # paths:
     #   - 'torch_ttnn/cpp_extension/**'
     #   - 'tests/cpp_extension/**'
-  pull_request:
-    paths:
-      - "torch_ttnn/cpp_extension/**"
-      - "tests/cpp_extension/**"
   workflow_dispatch:
     inputs:
       docker_tag:
@@ -21,7 +17,7 @@ on:
         default: "ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest"
 
 jobs:
-  cpp-extension-tests:
+  build-cpp-extension:
     runs-on: ["in-service", "nfs"]
     container:
       image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
@@ -32,9 +28,6 @@ jobs:
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
-    env:
-      TORCH_HOME: /root/.cache/torch
-      HF_HOME: /root/.cache/huggingface
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,32 +68,17 @@ jobs:
           git submodule update --init --recursive
           git submodule foreach 'git lfs fetch --all && git lfs pull'
 
-      - name: Build/Fetch C++ Extensions
+      - name: Build C++ Extensions
         run: |
           cd torch_ttnn/cpp_extension
-          PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-          # Check if cache exists with required components
-          CACHE_FOUND=0
-          if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX}" ]; then
-            CACHE_FOUND=1
-            echo "Cache found with all required components. Using cached build."
-            cp -r $CACHE_DIR/build $CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX} .
-          else
-            echo "Cache not found or incomplete. Building C++ extensions"
-          fi
           CMAKE_FLAGS="-DENABLE_SUBMODULE_TT_METAL_BUILD=ON" python3 setup.py develop
-          
-          # Update cache with new build if not was not present before
-          if [ $CACHE_FOUND -eq 0 ]; then
-            mkdir -p /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
-            cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
-          fi
-          cd ${{ github.workspace }}
 
-      - name: Run C++ Extension Tests
+      - name: Upload Build Artifact
         run: |
-          pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
-          pytest tests/cpp_extension/test_bert_cpp_extension.py -v
+          PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
+          mkdir -p /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
+          cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
+
 
   tests-passed:
     if: ${{ always() }}
