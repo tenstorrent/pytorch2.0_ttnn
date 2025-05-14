@@ -63,6 +63,7 @@ jobs:
           cd ${{ github.workspace }}
           git submodule sync
           git submodule update --init --recursive
+          git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
           git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
           git submodule foreach 'git lfs fetch --all && git lfs pull' 
 
