@@ -28,14 +28,14 @@ class MultiDevicePass(PassBase):
         self.device = device
         self.example_inputs = example_inputs
 
-    def replicate_to_mesh(self, node):
-        with node.graph.inserting_after(node):
+    def replicate_to_mesh(self, node, first_node):
+        with node.graph.inserting_before(first_node):
             new_node = node.graph.call_function(target_wrappers.replicate_tensor, (node,))
             node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node and node.op != "output")
 
-    def shard_to_mesh(self, node):
+    def shard_to_mesh(self, node, first_node):
         batch_dimension = 0
-        with node.graph.inserting_after(node):
+        with node.graph.inserting_before(first_node):
             new_node = node.graph.call_function(
                 target_wrappers.shard_tensor, (node, batch_dimension, self.device.get_num_devices())
             )
@@ -84,15 +84,16 @@ class MultiDevicePass(PassBase):
             return PassResult(graph_module, modified)
 
         node_list = list(graph_module.graph.nodes)
+        first_node = [node for node in node_list if node.op != "placeholder"][0]
         for node in node_list:
             if node.op == "placeholder":
                 try:
                     if (node.meta["primal_tag"] == PrimalTag.PARAMETER) or (
                         node.meta["primal_tag"] == PrimalTag.BUFFER
                     ):
-                        self.replicate_to_mesh(node)
+                        self.replicate_to_mesh(node, first_node)
                     elif node.meta["primal_tag"] == PrimalTag.ARGUMENT:
-                        self.shard_to_mesh(node)
+                        self.shard_to_mesh(node, first_node)
                 except Exception as e:
                     logging.error(f"Could not distribute node {node.name}: {e}")
 

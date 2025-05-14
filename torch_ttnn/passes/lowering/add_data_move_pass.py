@@ -556,8 +556,15 @@ class NodeInputAligner:
         if not isinstance(input_node, torch.fx.node.Node):
             return 0
 
-        is_constant_for_inference = (input_node.op == "placeholder") and (
-            input_node.meta.get("primal_tag") in [PrimalTag.PARAMETER, PrimalTag.BUFFER]
+        # examine first arg for multi device case
+        check_constant = input_node
+        if input_node.op == "call_function" and input_node.target in [
+            target_wrappers.shard_tensor,
+            target_wrappers.replicate_tensor,
+        ]:
+            check_constant = input_node.args[0]
+        is_constant_for_inference = (check_constant.op == "placeholder") and (
+            check_constant.meta.get("primal_tag") in [PrimalTag.PARAMETER, PrimalTag.BUFFER]
         )
         if not is_constant_for_inference:
             return 0
@@ -567,7 +574,7 @@ class NodeInputAligner:
             # No need to align input_node
             return 0
 
-        if data_move_spec in self.aligned_node_dict or data_move_spec in self.marshaled_node_dict:
+        if data_move_spec in self.marshaled_node_dict:
             # already handled
             return 0
 
@@ -596,10 +603,18 @@ class NodeInputAligner:
                 aligned_node.meta["is_cached"] = True
             self.aligned_node_dict[data_move_spec] = aligned_node
         else:
+            # push from_torch calls to top of forward function if they are due to a placeholder
+            maybe_forward_input = input_node
+            # We have to test the first arg of shard_tensor and replicate_tensor calls instead
+            if input_node.op == "call_function" and input_node.target in [
+                target_wrappers.shard_tensor,
+                target_wrappers.replicate_tensor,
+            ]:
+                maybe_forward_input = input_node.args[0]
             if (
                 isinstance(data_move_spec, self.AlignSpecFromTorch)
-                and input_node.op == "placeholder"
-                and input_node.meta.get("primal_tag") != PrimalTag.ARGUMENT
+                and maybe_forward_input.op == "placeholder"
+                and maybe_forward_input.meta.get("primal_tag") != PrimalTag.ARGUMENT
             ):
                 # This will push all from_torch calls to the top of the forward function. This shouldn't impact performance, but it may impact memory usage since variables will be
                 # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
