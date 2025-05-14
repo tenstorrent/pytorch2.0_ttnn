@@ -66,6 +66,7 @@ jobs:
           ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
 
       - name: Install python dependencies
+        run: |
           python3 -m pip install --upgrade pip                    
           python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
           python3 -m pip install -r requirements-dev.txt
