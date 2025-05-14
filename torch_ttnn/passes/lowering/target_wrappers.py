@@ -201,30 +201,39 @@ def native_layer_norm(
     in_tensor_shape: torch.Size,
     mean_rstd_shape: torch.Size,
     ttnn_mean_rstd_shape: torch.Size,
-    torch_dtype: torch.dtype,
     ttnn_dtype: ttnn.DataType,
     norm_dims: int,
     gamma: ttnn.Tensor,
     beta: ttnn.Tensor,
     epsilon: ttnn.Tensor,
+    use_mean: bool,
+    use_rstd: bool,
     device: ttnn.Device,
 ):
+    if not use_mean and not use_rstd:
+        output = ttnn.layer_norm(input_tensor, epsilon=epsilon, weight=gamma, bias=beta)
+        return (output, None, None)
+
     output = ttnn.empty(in_tensor_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
 
     # BUG? moreh.layer_norm produces NaNs if the initial shape is the torch shape
-    cpu_mean = torch.full(ttnn_mean_rstd_shape, float("nan"), dtype=torch_dtype)
-    mean = ttnn.from_torch(cpu_mean, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
-    cpu_mean = None
+    if use_mean:
+        mean = ttnn.empty(ttnn_mean_rstd_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    else:
+        mean = None
 
-    cpu_rstd = torch.full(ttnn_mean_rstd_shape, float("nan"), dtype=torch_dtype)
-    rstd = ttnn.from_torch(cpu_rstd, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
-    cpu_rstd = None
+    if use_rstd:
+        rstd = ttnn.empty(ttnn_mean_rstd_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    else:
+        rstd = None
 
     output, mean, rstd = ttnn.operations.moreh.layer_norm(
         input_tensor, norm_dims, epsilon, gamma, beta, output=output, mean=mean, rstd=rstd
     )
 
-    mean = ttnn.reshape(mean, mean_rstd_shape)
-    rstd = ttnn.reshape(rstd, mean_rstd_shape)
+    if use_mean:
+        mean = ttnn.reshape(mean, mean_rstd_shape)
+    if use_rstd:
+        rstd = ttnn.reshape(rstd, mean_rstd_shape)
 
     return (output, mean, rstd)

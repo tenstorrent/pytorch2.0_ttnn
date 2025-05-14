@@ -122,15 +122,30 @@ class AtenNativeLayerNormModule(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, input_tensor, normalized_shape, weight, bias, epsilon):
-        return torch.ops.aten.native_layer_norm.default(input_tensor, normalized_shape, weight, bias, epsilon)
+    def forward(self, input_tensor, normalized_shape, weight, bias, epsilon, use_mean, use_rstd):
+        out, mean, rstd = torch.ops.aten.native_layer_norm.default(
+            input_tensor, normalized_shape, weight, bias, epsilon
+        )
+        ret = [out]
+        if use_mean:
+            ret.append(mean)
+        if use_rstd:
+            ret.append(rstd)
+        return tuple(ret)
 
 
+@pytest.mark.parametrize("use_mean", [True, False])
+@pytest.mark.parametrize("use_rstd", [True, False])
 @pytest.mark.parametrize(
     "batch, sentence_length, embedding_dim, normalized_dims, eps",
     [(2, 32, 64, 1, 1e-5)],
 )
-def test_aten_native_layer_norm(device, batch, sentence_length, embedding_dim, normalized_dims, eps):
+def test_aten_native_layer_norm(
+    device, batch, sentence_length, embedding_dim, normalized_dims, eps, use_mean, use_rstd
+):
+    if use_mean == False and use_rstd == True:
+        pytest.xfail("Failure due to bug: https://github.com/tenstorrent/tt-metal/issues/22089")
+
     m = AtenNativeLayerNormModule()
 
     input_shapes = [
@@ -142,13 +157,13 @@ def test_aten_native_layer_norm(device, batch, sentence_length, embedding_dim, n
     input_tensor, weight, bias = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
     normalized_shape = input_tensor.shape[-normalized_dims:]
 
-    outputs_before = m.forward(input_tensor, normalized_shape, weight, bias, eps)
+    outputs_before = m.forward(input_tensor, normalized_shape, weight, bias, eps, use_mean, use_rstd)
 
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
     # The compilation is lazy, so we need to run forward once to trigger the compilation
     m = torch.compile(m, backend=torch_ttnn.backend, options=option)
-    outputs_after = m.forward(input_tensor, normalized_shape, weight, bias, eps)
+    outputs_after = m.forward(input_tensor, normalized_shape, weight, bias, eps, use_mean, use_rstd)
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
@@ -157,7 +172,8 @@ def test_aten_native_layer_norm(device, batch, sentence_length, embedding_dim, n
     assert len(outputs_before) == len(outputs_after)
     # output
     assert_with_pcc(outputs_before[0], outputs_after[0], 0.9998)
-    # mean, can pcc be improved to 0.9998?
-    assert_with_pcc(outputs_before[1], outputs_after[1], 0.998)
-    # rstd, can pcc be improved to 0.9998?
-    assert_with_pcc(outputs_before[2], outputs_after[2], 0.998)
+    # mean or rstd, can pcc be improved to 0.9998?
+    if len(outputs_after) > 1:
+        assert_with_pcc(outputs_before[1], outputs_after[1], 0.998)
+    if len(outputs_after) > 2:
+        assert_with_pcc(outputs_before[2], outputs_after[2], 0.998)

@@ -534,8 +534,28 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 ttnn_dtype = torch_dtype_to_ttnn_dtype(torch_dtype)
                 norm_dims = len(normalized_shape)
 
-                # aten.native_layer_norm keeps the normalized dimension for mean and rstd, but ttnn.moreh.layer_norm does not.
+                # aten.native_layer_norm keeps the normalized dimension for mean and rstd,
+                # but ttnn.moreh.layer_norm does not.
                 ttnn_mean_rstd_shape = in_tensor_shape[:-norm_dims]
+
+                # At the time of implementation, ttnn.layer_norm is marginally faster
+                # than moreh.layer_norm if only layer_norm output is needed.
+                # Check if mean and/or rstd is used. The output from the wrapper
+                # can be a tuple of 1, 2, or 3 items. The 1st item will always be layer_norm.
+                # The 2nd can be mean or rstd. The 3rd will always be rstd if it exists.
+                node_users = list(node.users.keys())
+                use_mean = False
+                use_rstd = False
+                # check the 2nd item if it's mean or rstd
+                if len(node_users) > 1:
+                    getitem = node_users[1]
+                    if getitem.args[1] == 1:
+                        use_mean = True
+                    if getitem.args[1] == 2:
+                        use_rstd = True
+                # if the 3rd item exists, it will always be rstd
+                if len(node_users) > 2:
+                    use_rstd = True
 
                 new_node = g.call_function(
                     target_wrappers.native_layer_norm,
@@ -544,18 +564,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         in_tensor_shape,
                         mean_rstd_shape,
                         ttnn_mean_rstd_shape,
-                        torch_dtype,
                         ttnn_dtype,
                         norm_dims,
                         weight,
                         bias,
                         epsilon,
+                        use_mean,
+                        use_rstd,
                         TtnnDevice(),
                     ),
                 )
 
                 # update metadata since original op does not have dtype for mean and rstd outputs
-                node_users = list(node.users.keys())
                 for node_user in node_users:
                     node_user.meta["val"] = node_user.meta["val"].to(torch_dtype)
 
