@@ -159,7 +159,6 @@ TTNN_TARGET_WRAPPERS = [
 
 TTNN_NORM_OPS = [
     ttnn.group_norm,
-    ttnn.layer_norm,
 ]
 
 TTNN_POOL_OPS = [
@@ -501,26 +500,6 @@ class NodeInputAligner:
             new_arg[tuple_idx] = aligned_node
             node.update_kwarg(key, tuple(new_arg))
 
-    def _connect_aligned_node_layer_norm(
-        self, node, input_node, aligned_node, input_site, input_site_type: InputSiteType
-    ):
-        # Workaround to output the same layer_norm output
-        # Before: layer_norm = aten.layer_norm
-        #          getitem = getitem(layer_norm, 0)
-        #          return ((getitem,),)
-        # After: layer_norm = ttnn.layer_norm
-        #        return (layer_norm,)
-        # Need to match the tuple in the original return statement
-        old_args = node.args[0]
-        if isinstance(old_args, tuple):
-            new_args = list(old_args)
-            for idx, old_arg in enumerate(old_args):
-                if old_arg == input_node:
-                    new_args[idx] = aligned_node
-            node.update_arg(0, tuple(new_args))
-        else:
-            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
-
     def align(self, node, input_node, input_site, input_site_type: InputSiteType, first_node):
         # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
         data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
@@ -546,10 +525,7 @@ class NodeInputAligner:
                     aligned_node = self._create_aligned_node(data_move_spec)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
-        if node.target == ttnn.layer_norm:
-            self._connect_aligned_node_layer_norm(node, input_node, aligned_node, input_site, input_site_type)
-        else:
-            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
+        self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
 
         return 1
 
