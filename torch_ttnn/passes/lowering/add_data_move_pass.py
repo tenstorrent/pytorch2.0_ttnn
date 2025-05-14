@@ -4,7 +4,6 @@
 import logging
 import torch
 import ttnn
-from functorch.compile import make_boxed_func
 from torch_ttnn.load_weights import LoadWeightsGraph
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
@@ -281,9 +280,6 @@ class NodeInputAligner:
         self.replicate_to_mesh = None
         self.concat_to_mesh = dict()
 
-        # temp test
-        self.run_once = True
-
     class InputSiteType(Enum):
         ARGS = 1
         KWARGS = 2
@@ -501,10 +497,6 @@ class NodeInputAligner:
             raise RuntimeError(f"Cannot create aligned node for unknown spec ({spec})")
 
     def _create_aligned_node(self, spec):
-        # if self.run_once:
-        #     self.run_once = False
-        #     once = self.graph.call_function(target_wrappers.run_once, (print,"Hello world!"))
-
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
             args = (spec.input_node,)
@@ -678,13 +670,6 @@ class NodeInputAligner:
 
         return 1
 
-    def stitch_inputs(self, output, input_to_user):
-        for input, (user, idx) in input_to_user.items():
-            with self.graph.inserting_before(user):
-                self.graph.call_function(getitem, (output, idx))
-
-        pass
-
 
 class AddDataMovePass(PassBase):
     """Pass that adds instructions to move data between host and device and align tensor dtype and layout.
@@ -732,19 +717,10 @@ class AddDataMovePass(PassBase):
         load_weights_graph.create_output()
         GraphCleanup(load_weights_graph.load_weights_graph)
 
-        # this code calls the submodule to load weights
-        # gm.add_submodule("load_weights", load_weights_graph.load_weights_graph)
-        # with gm.graph.inserting_before(first_node):
-        #     # gm.graph.call_function(target_wrappers.run_once)
-        #     ttnn_inputs = gm.graph.call_module("load_weights", tuple(load_weights_graph.inputs))
-
         # try making a boxed function and running it once
         gm.add_submodule("load_weights", load_weights_graph.load_weights_graph)
         load_weights_graph.load_weights_graph.recompile()
         with gm.graph.inserting_before(first_node):
-            # conditional = gm.graph.call_function(torch.cond, (cond, true, false))
-            # load_function = gm.graph.call_module("load_weights", tuple(load_weights_graph.inputs))
-            # n = torch.fx.Node(gm.graph, "load_weights", "call_module", "load_weights", tuple(load_weights_graph.inputs), {}, None)
             ttnn_inputs = gm.graph.call_function(
                 target_wrappers.run_once,
                 tuple(
@@ -754,7 +730,6 @@ class AddDataMovePass(PassBase):
                     ]
                 ),
             )
-        # gm.graph.erase_node(load_function)
 
         # then handle rest of the args and kwargs
         for node in nodes:

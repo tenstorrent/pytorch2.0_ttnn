@@ -10,10 +10,6 @@ run_once_count = 0
 run_once_ans = tuple()
 
 
-class mutable_schema:
-    is_mutable = True
-
-
 @torch.fx.wrap
 def run_once(*args):
     global run_once_count
@@ -25,9 +21,7 @@ def run_once(*args):
     def convert_input(spec):
         return ttnn.from_torch(*spec[0], **spec[1])
 
-    print("running once!")
     run_once_ans = tuple([convert_input(arg) for arg in args])
-    # load_weights = args[0].graph.call_module("load_weights", tuple(args))
     run_once_count += 1
     return run_once_ans
 
