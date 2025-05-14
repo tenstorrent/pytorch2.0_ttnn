@@ -79,6 +79,7 @@ jobs:
         run: |
           cd torch_ttnn/cpp_extension
           PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
+          CACHE_DIR=/mnt/tt-metal-pytorch-cache/.cpp-extension-cache
           # Check if cache exists with required components
           CACHE_FOUND=0
           if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX}" ]; then
@@ -92,8 +93,8 @@ jobs:
           
           # Update cache with new build if not was not present before
           if [ $CACHE_FOUND -eq 0 ]; then
-            mkdir -p /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
-            cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} /mnt/tt-metal-pytorch-cache/.cpp-extension-cache
+            mkdir -p $CACHE_DIR
+            cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR
           fi
           cd ${{ github.workspace }}
 
