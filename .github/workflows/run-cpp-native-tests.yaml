@@ -47,6 +47,16 @@ jobs:
           docker system prune -a -f
           df -h  # Debug space
 
+      - name: Check cache
+        run: |
+          CACHE_DIR=/mnt/tt-metal-pytorch-cache/.cpp-extension-cache
+          if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension*.so" ]; then
+            echo "Cache found with all required components. Using cached build."
+          else
+            echo "Cache not found or incomplete. Building C++ extensions"
+          fi
+          echo "Cache directory: $CACHE_DIR"
+          ls -l $CACHE_DIR
       - name: Install dependencies
         run: |
           apt upgrade -y && apt update -y
