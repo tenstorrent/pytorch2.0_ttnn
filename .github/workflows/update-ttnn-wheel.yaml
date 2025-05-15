@@ -6,66 +6,94 @@ on:
   workflow_dispatch:  # Manual trigger
 
 jobs:
-  fetch-release-and-create-pr:
-    runs-on: ubuntu-latest
+  # fetch-release-and-create-pr:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: main
+
+  #     - name: Fetch Latest Pre-release from Another Repo
+  #       id: fetch_release
+  #       run: |
+  #         # Fetch the latest pre-release tag from the target repository
+  #         latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
+  #         # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
+  #         latest_version="${latest_pre_release#v}"
+  #         # Set the output using the new environment file
+  #         echo "release=$latest_version" >> $GITHUB_OUTPUT
+
+  #     - name: Update requirements.txt
+  #       id: update-requirements
+  #       run: |
+  #         latest_version=${{ steps.fetch_release.outputs.release }}
+  #         latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
+  #         # Remove any existing ttnn lines (adjust the regex if needed)
+  #         sed -i '/^ttnn @ https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt
+  #         # Append the line for the newest version
+  #         echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
+          
+  #     - name: Create Pull Request
+  #       uses: peter-evans/create-pull-request@v7
+  #       id: create-pr
+  #       with:
+  #         branch: update-dependency
+  #         branch-suffix: timestamp
+  #         committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+  #         author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+  #         base: main
+  #         commit-message: "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
+  #         title: "Update TT-NN to ${{ steps.fetch_release.outputs.release }}"
+  #         body: "This PR updates TT-NN wheel to the latest pre-release version."          
+  #         labels: ttnn-wheel-update
+  #         delete-branch: true
+  #         token: ${{ secrets.GH_TOKEN }}
+          
+  #     - name: Approve Pull Request
+  #       if: ${{ steps.create-pr.outputs.pull-request-number }}
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: |
+  #         echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
+  #         echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"        
+  #         gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --approve      
+          
+  #     - name: Enable Pull Request Automerge
+  #       if: ${{ steps.create-pr.outputs.pull-request-number }}
+  #       run: gh pr merge --merge --auto "${{ steps.create-pr.outputs.pull-request-number }}"
+  #       env:
+  #         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  build_cache_cpp_extension:
+    runs-on: ["in-service", "nfs"]
+    container:
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:
+      CACHE_DIR: /root/.cache/cpp-extension-cache
     steps:
+      # TODO: checkout must be changed to main once branch is merged
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: main
-
-      - name: Fetch Latest Pre-release from Another Repo
-        id: fetch_release
+          lfs: true
+          fetch-depth: 0
+          submodules: "recursive"
+          ref: "philei/cpp-extension-cmake-ci"
+      - name: Update .gitsubmodules
         run: |
           # Fetch the latest pre-release tag from the target repository
           latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
           # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
           latest_version="${latest_pre_release#v}"
-          # Set the output using the new environment file
-          echo "release=$latest_version" >> $GITHUB_OUTPUT
-
-      - name: Update requirements.txt
-        id: update-requirements
-        run: |
-          latest_version=${{ steps.fetch_release.outputs.release }}
-          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
-          # Remove any existing ttnn lines (adjust the regex if needed)
-          sed -i '/^ttnn @ https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt
-      
-          # Append the line for the newest version
-          echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
-      - name: Update .gitsubmodules
-        run: |
           sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
           echo "Updated .gitmodules with the latest version: $latest_version"
-          
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
-        id: create-pr
-        with:
-          branch: update-dependency
-          branch-suffix: timestamp
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
-          base: main
-          commit-message: "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
-          title: "Update TT-NN to ${{ steps.fetch_release.outputs.release }}"
-          body: "This PR updates TT-NN wheel to the latest pre-release version."          
-          labels: ttnn-wheel-update
-          delete-branch: true
-          token: ${{ secrets.GH_TOKEN }}
-          
-      - name: Approve Pull Request
-        if: ${{ steps.create-pr.outputs.pull-request-number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"        
-          gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --approve      
-          
-      - name: Enable Pull Request Automerge
-        if: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: gh pr merge --merge --auto "${{ steps.create-pr.outputs.pull-request-number }}"
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Build C++ Extensions
+        uses: ./.github/actions/build_cpp_extension_artifacts
