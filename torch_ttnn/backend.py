@@ -67,9 +67,6 @@ class TorchTtnnOption:
         self._n_buffers = None
         self._n_arguments = None
 
-        # Used to speed up execution
-        self._load_weights_once = False
-
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
@@ -192,8 +189,7 @@ def aten_backend(
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
-    # GraphCleanup(gm)
-    gm.recompile()
+    GraphCleanup(gm)
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
@@ -229,8 +225,7 @@ def aten_backend(
             pm = PassManager(passes=passes)
             gm, modified = pm(gm)
 
-            # GraphCleanup(gm)
-            gm.recompile()
+            GraphCleanup(gm)
 
             # Get the memory manager object for memory analysis
             option.memory_manager = mem_pass.mm

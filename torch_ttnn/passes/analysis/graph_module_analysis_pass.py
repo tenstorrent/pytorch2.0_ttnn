@@ -56,12 +56,12 @@ class GraphModuleAnalysisPass(PassBase):
         super().__init__()
 
     def call(self, gm: torch.fx.GraphModule):
-        """Marks inputs for the compiled function as parameters, buffers, or arguments.
+        """Marks the GraphModule as either training forward, training backward, or inference (forward).
 
-        This relies on how PyTorch behaves under the hood. Namely, PyTorch will lay out function arguments in the order of parameters, then buffers, then arguments. We can rely on this layout order and the number of parameters, buffers, and arguments passed in from AOTAutograd to our backend function.
+        This relies on commonalities between training forward, backward, and inference graphs. Namely, backward passes call backward versions of the forward functions to calculate gradients. Training forward passes return inputs unchanged. Inference forward functions do neither of these. It would be cleaner if we could just use something like `torch.is_grad_enabled()` or `gm.training` instead, but these appear to be inaccurate by the time the GraphModule is passed to our backend.
 
         :param gm: Graph module for the function being compiled.
-        :return: Pass result with the updated graph module and whether the graph was modified.
+        :return: Pass result with the updated graph module with metadata indicating the type of graph being compiled.
         :rtype: PassResult[torch.fx.GraphModule, bool]
         """
 
