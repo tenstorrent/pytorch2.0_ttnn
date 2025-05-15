@@ -1,13 +1,13 @@
 name: "C++ Extension Tests"
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #     - philei/cpp-extension-cmake-ci
-    # paths:
-    #   - 'torch_ttnn/cpp_extension/**'
-    #   - 'tests/cpp_extension/**'
+  push:
+    branches:
+      - main
+      - philei/cpp-extension-cmake-ci
+    paths:
+      - 'torch_ttnn/cpp_extension/**'
+      - 'tests/cpp_extension/**'
   pull_request:
     paths:
       - "torch_ttnn/cpp_extension/**"
