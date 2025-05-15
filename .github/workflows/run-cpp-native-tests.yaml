@@ -1,10 +1,10 @@
 name: "C++ Extension Tests"
 
 on:
-  push:
-    branches:
-      - main
-      - philei/cpp-extension-cmake-ci
+  # push:
+  #   branches:
+  #     - main
+  #     - philei/cpp-extension-cmake-ci
     # paths:
     #   - 'torch_ttnn/cpp_extension/**'
     #   - 'tests/cpp_extension/**'
@@ -33,8 +33,7 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
-      TORCH_HOME: /root/.cache/torch
-      HF_HOME: /root/.cache/huggingface
+      CACHE_DIR: /root/.cache/cpp-extension-cache
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,16 +46,6 @@ jobs:
           docker system prune -a -f
           df -h  # Debug space
 
-      - name: Check cache
-        run: |
-          CACHE_DIR=/root/.cache/cpp-extension-cache
-          if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension*.so" ]; then
-            echo "Cache found with all required components. Using cached build."
-          else
-            echo "Cache not found or incomplete. Building C++ extensions"
-          fi
-          echo "Cache directory: $CACHE_DIR"
-          ls -l $CACHE_DIR
       - name: Install dependencies
         run: |
           apt upgrade -y && apt update -y
@@ -93,7 +82,6 @@ jobs:
           CCACHE_DIR=$(ccache --get-config cache_dir)
           mkdir -p $CCACHE_DIR
 
-          CACHE_DIR=/root/.cache/cpp-extension-cache
           # Check if cache exists with required components
           CACHE_FOUND=0
           if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX}" ]; then
