@@ -107,7 +107,6 @@ jobs:
 
             # tt-metal cache
             cp -r $CACHE_DIR/tt-metal/build third-party/tt-metal/
-            cp -r $CACHE_DIR/tt-metal/runtime third-party/tt-metal/
             cp -r $CACHE_DIR/tt-metal/.cpmcache third-party/tt-metal/
 
             # ccache
@@ -128,7 +127,6 @@ jobs:
             # tt-metal cache
             mkdir -p $CACHE_DIR/tt-metal
             cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal/
-            cp -r third-party/tt-metal/runtime $CACHE_DIR/tt-metal/
             cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
 
             # ccache
@@ -138,6 +136,7 @@ jobs:
 
       - name: Run C++ Extension Tests
         run: |
+          export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)
           pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
           pytest tests/cpp_extension/test_bert_cpp_extension.py -v
 
