@@ -9,11 +9,6 @@ def get_torch_abi_related_compiler_flags():
     # Extract C++ flags
     cxx_flags = []
 
-    # Look for C++ standard
-    std_match = re.search(r"-std=c\+\+\d+", config_str)
-    if std_match:
-        cxx_flags.append(std_match.group(0))
-
     # Look for ABI flag, critical for compatibility
     abi_match = re.search(r"-D_GLIBCXX_USE_CXX11_ABI=(\d)", config_str)
     if abi_match:

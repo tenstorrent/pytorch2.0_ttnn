@@ -12,6 +12,10 @@ option(BUILD_EXAMPLES "Build examples" OFF)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(utils)
 
+# Prepare tt-metal build
+# TODO: Add debian integration with ttnn once ready
+include(find_prebuilt_ttnn)
+
 check_ubuntu_version_at_least(24 IS_UBUNTU_GE_24)
 message(STATUS "Ubuntu version > 24: ${IS_UBUNTU_GE_24}")
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
@@ -26,10 +30,6 @@ else()
 endif()
 
 find_package(Torch REQUIRED)
-
-# Prepare tt-metal build
-# TODO: Add debian integration with ttnn once ready
-include(find_prebuilt_ttnn)
 
 set(TTNN_CPP_EXTENSION_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/open_registration_extension.cpp
