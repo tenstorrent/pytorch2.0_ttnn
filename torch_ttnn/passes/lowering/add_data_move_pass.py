@@ -14,11 +14,13 @@ from torch_ttnn.utils import (
     TtnnUint32,
     HasValidPageSize,
     get_dtype,
+    get_meta_val_attr,
 )
 from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
 from operator import getitem
+from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -417,7 +419,7 @@ class NodeInputAligner:
 
         return input_node
 
-    def _create_aligned_node(self, spec):
+    def _create_aligned_node(self, spec, node, input_site):
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
             args = (spec.input_node,)
@@ -450,7 +452,15 @@ class NodeInputAligner:
                     args = spec.input_node.args
                 kwargs["mesh_mapper"] = mesh_mapper
 
-            return self.graph.call_function(ttnn.from_torch, args, kwargs)
+            # return self.graph.call_function(ttnn.from_torch, args, kwargs)
+
+            # TODO: Add mesh support for native integration
+            if (native_device := get_meta_val_attr(spec.input_node, "device")) and str(native_device) == "ttnn:0":
+                aligning_nodes = []
+                aligning_nodes.append(self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {}))
+                return aligning_nodes[-1]
+            else:
+                return self.graph.call_function(ttnn.from_torch, args, kwargs)
 
         elif isinstance(spec, self.AlignSpecToTorch):
             kwargs = {"dtype": spec.dtype}
@@ -539,10 +549,10 @@ class NodeInputAligner:
                 # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
                 # is a good place to check
                 with self.graph.inserting_before(first_node):
-                    aligned_node = self._create_aligned_node(data_move_spec)
+                    aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
             else:
                 with self.graph.inserting_before(node):
-                    aligned_node = self._create_aligned_node(data_move_spec)
+                    aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
         if node.target == ttnn.layer_norm:

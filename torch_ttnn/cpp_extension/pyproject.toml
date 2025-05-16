@@ -1,0 +1,8 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "torch"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torch_ttnn_cpp_extension"
+version = "0.1.0"
+requires-python = ">=3.8"
