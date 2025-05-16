@@ -60,9 +60,9 @@ runs:
 
         # tt-metal cache
         mkdir -p $CACHE_DIR/tt-metal
-        cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal-build
-        cp -r third-party/tt-metal/runtime $CACHE_DIR/runtime
-        cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/.cpmcache
+        cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal/
+        cp -r third-party/tt-metal/runtime $CACHE_DIR/tt-metal/
+        cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
 
         # ccache
         cp -r $CCACHE_DIR $CACHE_DIR 
