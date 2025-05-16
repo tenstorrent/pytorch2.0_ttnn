@@ -90,6 +90,10 @@ jobs:
           fetch-depth: 0
           submodules: "recursive"
           ref: main
+      - name: Update systemA
+        run: |
+          apt update -y && apt upgrade -y
+          apt install -y curl
       - name: Update .gitsubmodules
         run: |
           # Fetch the latest pre-release tag from the target repository
