@@ -37,6 +37,16 @@ if (ENABLE_LOCAL_TT_METAL_BUILD)
 
     set(TT_METAL_HOME $ENV{TT_METAL_HOME})
 
+    # TODO: figure out the way to fetch those from ttnn
+    file(GLOB TTNN_INCLUDE_DIRS 
+        "${TT_METAL_HOME}/.cpmcache/reflect/*"
+        "${TT_METAL_HOME}/.cpmcache/fmt/*/include"
+        "${TT_METAL_HOME}/.cpmcache/magic_enum/*/include"
+        "${TT_METAL_HOME}/.cpmcache/nlohmann_json/*/include"
+        "${TT_METAL_HOME}/.cpmcache/boost/*/*/*/include"
+    )
+
+    message(STATUS "TTNN_INCLUDE_DIRS: ${TTNN_INCLUDE_DIRS}")
     set(TTNN_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${TT_METAL_HOME}/ttnn/cpp
@@ -47,12 +57,9 @@ if (ENABLE_LOCAL_TT_METAL_BUILD)
         ${TT_METAL_HOME}/tt_metal/hostdevcommon/api
         ${TT_METAL_HOME}/tt_metal/third_party/tracy/public
         ${TT_METAL_HOME}/tt_stl
-        ${TT_METAL_HOME}/.cpmcache/reflect/e75434c4c5f669e4a74e4d84e0a30d7249c1e66f
-        ${TT_METAL_HOME}/.cpmcache/fmt/69912fb6b71fcb1f7e5deca191a2bb4748c4e7b6//include
-        ${TT_METAL_HOME}/.cpmcache/magic_enum/4d76fe0a5b27a0e62d6c15976d02b33c54207096/include
-        ${TT_METAL_HOME}/.cpmcache/nlohmann_json/798e0374658476027d9723eeb67a262d0f3c8308/include
-        ${TT_METAL_HOME}/.cpmcache/boost/1359e136761ab2d10afa1c4e21086c8d824735cd/libs/core/include
+        ${TTNN_INCLUDE_DIRS}
     )
+    message(STATUS "TTNN_INCLUDE_DIRS: ${TTNN_INCLUDE_DIRS}")
 elseif(ENABLE_SUBMODULE_TT_METAL_BUILD)
     add_subdirectory(third-party)
 else()
