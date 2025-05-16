@@ -44,7 +44,7 @@ runs:
       shell: bash
       run: |
         cd torch_ttnn/cpp_extension
-        CMAKE_FLAGS="-DENABLE_SUBMODULE_TT_METAL_BUILD=ON;-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache" python3 setup.py develop
+        ./build_cpp_extension.sh
 
     - name: Upload Build Artifacts
       shell: bash
@@ -53,4 +53,7 @@ runs:
         PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
         mkdir -p $CACHE_DIR
         CCACHE_DIR=$(ccache --get-config cache_dir)
-        cp -r build ttnn_device_extension${PYTHON_LIB_SUFFIX} $CCACHE_DIR $CACHE_DIR 
+        cp -r build $CACHE_DIR 
+        cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
+        cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal-build
+        cp -r $CCACHE_DIR $CACHE_DIR 

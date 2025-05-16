@@ -31,4 +31,4 @@ ninja -C $CUR_DIR/third-party/tt-metal/build install
 pip3 install -e $CUR_DIR/third-party/tt-metal/
 
 export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
-python3 setup.py develop
+CMAKE_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache" python3 setup.py develop
