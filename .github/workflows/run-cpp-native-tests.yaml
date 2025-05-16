@@ -1,10 +1,10 @@
 name: "C++ Extension Tests"
 
 on:
-  push:
-    branches:
-      - main
-      - philei/cpp-extension-cmake-ci
+  # push:
+  #   branches:
+  #     - main
+  #     - philei/cpp-extension-cmake-ci
     # paths:
     #   - 'torch_ttnn/cpp_extension/**'
     #   - 'tests/cpp_extension/**'
@@ -106,9 +106,9 @@ jobs:
             cp -r $CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX} .
 
             # tt-metal cache
-            cp -r $CACHE_DIR/tt-metal/build third-party/tt-metal/build
-            cp -r $CACHE_DIR/tt-metal/runtime third-party/tt-metal/runtime
-            cp -r $CACHE_DIR/tt-metal/.cpmcache third-party/tt-metal/.cpmcache
+            cp -r $CACHE_DIR/tt-metal/build third-party/tt-metal/
+            cp -r $CACHE_DIR/tt-metal/runtime third-party/tt-metal/
+            cp -r $CACHE_DIR/tt-metal/.cpmcache third-party/tt-metal/
 
             # ccache
             cp -r $CACHE_DIR/ccache/* $CCACHE_DIR
@@ -127,9 +127,9 @@ jobs:
 
             # tt-metal cache
             mkdir -p $CACHE_DIR/tt-metal
-            cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal-build
-            cp -r third-party/tt-metal/runtime $CACHE_DIR/runtime
-            cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/.cpmcache
+            cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal/
+            cp -r third-party/tt-metal/runtime $CACHE_DIR/tt-metal/
+            cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
 
             # ccache
             cp -r $CCACHE_DIR $CACHE_DIR 
