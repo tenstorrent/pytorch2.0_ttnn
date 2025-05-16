@@ -144,10 +144,11 @@ def stack(tensors, dim, output_shape):
     # Reshape each input tensor to add the new dimension
     unsqueezed_tensors = []
     for tensor in tensors:
-        # TODO: remove when reshape supports tiled uint32 inputs
+        # TODO: remove when concat supports tiled uint32
+        tensor = ttnn.reshape(tensor, unsqueezed_shape)
         if tensor.layout == ttnn.TILE_LAYOUT and tensor.dtype == ttnn.uint32:
             tensor = ttnn.to_layout(tensor, ttnn.ROW_MAJOR_LAYOUT)
-        unsqueezed_tensors.append(ttnn.reshape(tensor, unsqueezed_shape))
+        unsqueezed_tensors.append(tensor)
 
     # Concatenate all reshaped tensors along the stack dimension
     return ttnn.concat(unsqueezed_tensors, dim)

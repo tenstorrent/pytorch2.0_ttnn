@@ -43,9 +43,7 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "model_info",
     [
-        pytest.param(
-            ("ssd300_vgg16", "SSD300_VGG16_Weights"), marks=pytest.mark.xfail(reason="OOM with program cache enabled")
-        ),
+        ("ssd300_vgg16", "SSD300_VGG16_Weights"),
         ("ssdlite320_mobilenet_v3_large", "SSDLite320_MobileNet_V3_Large_Weights"),
         pytest.param(
             ("retinanet_resnet50_fpn", "RetinaNet_ResNet50_FPN_Weights"),
