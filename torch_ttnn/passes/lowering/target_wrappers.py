@@ -25,10 +25,8 @@ def pack_to_tuple(*args):
 
 @torch.fx.wrap
 def move_to_host(device_tensor, layout):
-    if len(ttnn.get_device_tensors(device_tensor)) > 1:
-        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
-    host_tensor = ttnn.from_device(device_tensor)
-    return ttnn.to_layout(host_tensor, layout)
+    device_tensor = ttnn.to_layout(device_tensor, layout)
+    return ttnn.from_device(device_tensor)
 
 
 @torch.fx.wrap
