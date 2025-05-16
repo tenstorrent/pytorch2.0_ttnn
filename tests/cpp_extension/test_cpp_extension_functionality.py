@@ -81,6 +81,9 @@ def test_add_cpp_extension(device, input_shape, dtype):
 
     torch_out = torch.add(input_a_ttnn, input_b_ttnn)
     logging.info("Running add on ttnn")
+    # Tensors with integer dtypes are currently initialized with ROW_MAJOR
+    ttnn_tensor_a = ttnn.to_layout(ttnn_tensor_a, ttnn.TILE_LAYOUT)
+    ttnn_tensor_b = ttnn.to_layout(ttnn_tensor_b, ttnn.TILE_LAYOUT)
     ttnn_tensor = ttnn.add(ttnn_tensor_a, ttnn_tensor_b)
 
     logging.info("calling to_torch")
