@@ -89,7 +89,7 @@ jobs:
           lfs: true
           fetch-depth: 0
           submodules: "recursive"
-          ref: main
+          ref: philei/cpp-extension-cmake-ci
       - name: Update systemA
         run: |
           apt update -y && apt upgrade -y
