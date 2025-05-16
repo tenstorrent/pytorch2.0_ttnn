@@ -28,44 +28,8 @@ endif()
 find_package(Torch REQUIRED)
 
 # Prepare tt-metal build
-# TODO: Maybe we can create IMPORTED targets for tt-metal and ttnn line in submodule variant
 # TODO: Add debian integration with ttnn once ready
-if (ENABLE_LOCAL_TT_METAL_BUILD)
-    if(NOT DEFINED ENV{TT_METAL_HOME})
-        message(FATAL_ERROR "TT_METAL_HOME environment variable is not set")
-    endif()
-
-    set(TT_METAL_HOME $ENV{TT_METAL_HOME})
-
-    # TODO: figure out the way to fetch those from ttnn
-    file(GLOB TTNN_INCLUDE_DIRS 
-        "${TT_METAL_HOME}/.cpmcache/reflect/*"
-        "${TT_METAL_HOME}/.cpmcache/fmt/*/include"
-        "${TT_METAL_HOME}/.cpmcache/magic_enum/*/include"
-        "${TT_METAL_HOME}/.cpmcache/nlohmann_json/*/include"
-        "${TT_METAL_HOME}/.cpmcache/boost/*/*/*/include"
-    )
-
-    message(STATUS "TTNN_INCLUDE_DIRS: ${TTNN_INCLUDE_DIRS}")
-    set(TTNN_INCLUDE_DIRS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${TT_METAL_HOME}/ttnn/cpp
-        ${TT_METAL_HOME}/ttnn
-        ${TT_METAL_HOME}/ttnn/cpp/cpp
-        ${TT_METAL_HOME}/tt_metal/api
-        ${TT_METAL_HOME}/tt_metal/third_party/umd/device/api
-        ${TT_METAL_HOME}/tt_metal/hostdevcommon/api
-        ${TT_METAL_HOME}/tt_metal/third_party/tracy/public
-        ${TT_METAL_HOME}/tt_stl
-        ${TTNN_INCLUDE_DIRS}
-    )
-    message(STATUS "TTNN_INCLUDE_DIRS: ${TTNN_INCLUDE_DIRS}")
-elseif(ENABLE_SUBMODULE_TT_METAL_BUILD)
-    add_subdirectory(third-party)
-else()
-    message(FATAL_ERROR "TT_Metal build is not enabled. Please set ENABLE_LOCAL_TT_METAL_BUILD to ON.")
-endif()
-
+include(find_prebuilt_ttnn)
 
 set(TTNN_CPP_EXTENSION_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/open_registration_extension.cpp
@@ -98,29 +62,13 @@ target_include_directories(ttnn_device_extension PRIVATE
     ${PYTHON_INCLUDE_DIRS}
 )
 
-if (ENABLE_LOCAL_TT_METAL_BUILD)
-    target_include_directories(ttnn_device_extension PRIVATE
-        ${TTNN_INCLUDE_DIRS}
-    )
-endif()
-
 # Needed for torch_python
 target_link_directories(ttnn_device_extension PRIVATE "${TORCH_INSTALL_PREFIX}/lib")
 
-# NOTE: it's important to link tt-metal and ttnn before torch due to fmt conflict
-if (ENABLE_LOCAL_TT_METAL_BUILD)
-    target_link_libraries(ttnn_device_extension PUBLIC
-        -L${TT_METAL_HOME}/build/lib -Wl,-rpath,${TT_METAL_HOME}/build/lib
-        -ltt_metal
-        -l:_ttnn.so
-        -ldevice
-    )
-elseif(ENABLE_SUBMODULE_TT_METAL_BUILD)
-    target_link_libraries(ttnn_device_extension PUBLIC
-        Metalium::Metal
-        Metalium::TTNN
-    )
-endif()
+target_link_libraries(ttnn_device_extension PUBLIC
+    Metalium::Metal
+    Metalium::TTNN
+)
 
 target_link_libraries(ttnn_device_extension PUBLIC 
     ${TORCH_LIBRARIES} 
