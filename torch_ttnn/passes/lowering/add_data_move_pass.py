@@ -270,7 +270,10 @@ class NodeInputAligner:
     def __init__(self, graph, device):
         self.graph = graph
         self.device = device
+        # aligned_node_dict maps DataMoveSpec to aligned version of the node to prevent calling the same data movement twice
         self.aligned_node_dict = {}
+        # marshaled_node_dict maps DataMoveSpec to index in the load_weights function that runs once. This is consumed once when adding data movement, and the DataMoveSpec will
+        # then be populated in the aligned_node_dict for further usage
         self.marshaled_node_dict = {}
         self.input_idx = 0
 
@@ -579,14 +582,12 @@ class NodeInputAligner:
 
         if data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
-        elif ttnn_inputs is not None and data_move_spec in self.marshaled_node_dict:
-            # add getitem call
-            # update aligned_node_dict
-            input_idx = self.marshaled_node_dict[data_move_spec]
+        elif ttnn_inputs is not None and (input_idx := self.marshaled_node_dict.get(data_move_spec)) is not None:
             with self.graph.inserting_before(node):
                 aligned_node = self.graph.call_function(getitem, (ttnn_inputs, input_idx))
                 # mark node cached so it isn't deallocated by DeallocationPass
                 aligned_node.meta["is_cached"] = True
+            # update aligned_node_dict
             self.aligned_node_dict[data_move_spec] = aligned_node
         else:
             # push from_torch calls to top of forward function if they are due to a placeholder
