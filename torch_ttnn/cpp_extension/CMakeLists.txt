@@ -83,6 +83,9 @@ target_compile_options(ttnn_device_extension PRIVATE
     -DTORCH_EXTENSION_NAME=ttnn_device_extension
     -DTORCH_API_INCLUDE_EXTENSION_H
 )
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_definitions(ttnn_device_extension PRIVATE DISABLE_NAMESPACE_STATIC_ASSERT)
+endif()
 target_include_directories(ttnn_device_extension PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/include
     ${PYTHON_INCLUDE_DIRS}

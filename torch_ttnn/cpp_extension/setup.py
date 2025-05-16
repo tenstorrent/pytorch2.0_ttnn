@@ -3,8 +3,10 @@ import sys
 import subprocess
 from setuptools import setup, Extension, find_namespace_packages
 from setuptools.command.build_ext import build_ext
+from utils.get_torch_abi_flags import get_torch_abi_related_compiler_flags
 import sysconfig
 import torch
+from pprint import pprint
 
 
 class CMakeExtension(Extension):
@@ -39,10 +41,17 @@ class CMakeBuild(build_ext):
         extra_cmake_flags = extra_cmake_flags.split(";")
         if "-DENABLE_SUBMODULE_TT_METAL_BUILD=ON" in extra_cmake_flags:
             extra_cmake_flags.append("-DENABLE_LOCAL_TT_METAL_BUILD=OFF")
+
+        torch_cxx_flags = get_torch_abi_related_compiler_flags()
+        if torch_cxx_flags:
+            flags_str = " ".join(torch_cxx_flags)
+            extra_cmake_flags.append(f"-DCMAKE_CXX_FLAGS={flags_str}")
+
         if extra_cmake_flags:
             cmake_args.extend(extra_cmake_flags)
 
         cmake_args.extend(ext.cmake_args)
+        pprint(cmake_args)
 
         # Build the extension
         subprocess.check_call(["cmake", ext.source_dir] + cmake_args, cwd=build_dir)
@@ -61,7 +70,7 @@ setup(
         CMakeExtension(
             name="ttnn_device_extension",
             source_dir=".",
-            cmake_args=["-DCMAKE_CXX_COMPILER=clang++-17"],
+            cmake_args=["-DCMAKE_CXX_COMPILER=g++", "-DCMAKE_C_COMPILER=gcc"],
         ),
     ],
     cmdclass={"build_ext": CMakeBuild},
