@@ -53,7 +53,16 @@ runs:
         PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
         mkdir -p $CACHE_DIR
         CCACHE_DIR=$(ccache --get-config cache_dir)
+            
+        # cpp-extension cache
         cp -r build $CACHE_DIR 
         cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
+
+        # tt-metal cache
+        mkdir -p $CACHE_DIR/tt-metal
         cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal-build
+        cp -r third-party/tt-metal/runtime $CACHE_DIR/runtime
+        cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/.cpmcache
+
+        # ccache
         cp -r $CCACHE_DIR $CACHE_DIR 
