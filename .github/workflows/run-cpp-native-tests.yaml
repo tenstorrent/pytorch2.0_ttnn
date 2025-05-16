@@ -1,10 +1,10 @@
 name: "C++ Extension Tests"
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #     - philei/cpp-extension-cmake-ci
+  push:
+    branches:
+      - main
+      - philei/cpp-extension-cmake-ci
     # paths:
     #   - 'torch_ttnn/cpp_extension/**'
     #   - 'tests/cpp_extension/**'
@@ -45,6 +45,19 @@ jobs:
         run: |
           docker system prune -a -f
           df -h  # Debug space
+
+      - name: Update system
+        run: |
+          apt update -y && apt upgrade -y
+          apt install -y curl jq
+      - name: Update .gitsubmodules
+        run: |
+          # Fetch the latest pre-release tag from the target repository
+          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
+          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
+          latest_version="${latest_pre_release#v}"
+          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
+          echo "Updated .gitmodules with the latest version: $latest_version"
 
       - name: Install dependencies
         run: |

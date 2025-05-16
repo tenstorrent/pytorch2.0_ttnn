@@ -3,11 +3,11 @@ name: Create PR with Dependency Update
 on:
   # schedule:
   #   - cron: '0 8 * * *'  # Runs at 08:00 UTC every day
-  # workflow_dispatch:  # Manual trigger
-  push:
-    branches:
-      - main
-      - philei/cpp-extension-cmake-ci
+  workflow_dispatch:  # Manual trigger
+  # push:
+  #   branches:
+  #     - main
+  #     - philei/cpp-extension-cmake-ci
 
 jobs:
   # fetch-release-and-create-pr:
@@ -90,7 +90,7 @@ jobs:
           fetch-depth: 0
           submodules: "recursive"
           ref: philei/cpp-extension-cmake-ci
-      - name: Update systemA
+      - name: Update system
         run: |
           apt update -y && apt upgrade -y
           apt install -y curl jq
