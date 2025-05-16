@@ -20,6 +20,7 @@ from torch_ttnn.utils import (
     get_shape,
     get_dtype,
     get_arg,
+    get_meta_val_attr,
 )
 import numpy as np
 import torch_ttnn.metrics as metrics
@@ -909,7 +910,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(dst_dtype)
-                    return g.call_function(ttnn.typecast, args=(node.args[0], ttnn_dtype))
+                    new_nodes = [node.args[0]]
+                    # For native device, integer tensors are currently initialized as ROW_MAJOR
+                    # ttnn.typecast requires TILE_LAYOUT as an input
+                    if (
+                        (native_device := get_meta_val_attr(node, "device"))
+                        and str(native_device) == "ttnn:0"
+                        and src_dtype in [torch.int32, torch.int64]
+                    ):
+                        new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout())))
+                    typecast = g.call_function(ttnn.typecast, args=(new_nodes[-1], ttnn_dtype))
+                    return typecast
                 except:
                     pass
 

@@ -62,8 +62,11 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
                 dtype,
                 ttnn::Layout::ROW_MAJOR);
 
+            // Initialized as ROW_MAJOR for this dtype because of an issue with ttnn.embedding if this tensor was
+            // converted later: https://github.com/tenstorrent/tt-metal/issues/22257
             ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
-            ttnn::Tensor res = ttnn::to_layout(src_dev, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
+            ttnn::Tensor res =
+                ttnn::to_layout(src_dev, ttnn::ROW_MAJOR_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
 
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(res);

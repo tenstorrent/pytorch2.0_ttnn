@@ -17,8 +17,17 @@ at::Tensor& ttnn_add_out(const at::Tensor& input, const at::Tensor& other, const
 
     at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto ttnn_tensor_input = tensor_impl->get_ttnn_tensor();
+    if (ttnn_tensor_input.layout() == ttnn::ROW_MAJOR_LAYOUT) {
+        ttnn_tensor_input = ttnn::to_layout(
+            ttnn_tensor_input, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor_input.device());
+    }
+
     at::TtnnTensorImpl* other_tensor_impl = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
     auto ttnn_tensor_other = other_tensor_impl->get_ttnn_tensor();
+    if (ttnn_tensor_other.layout() == ttnn::ROW_MAJOR_LAYOUT) {
+        ttnn_tensor_other = ttnn::to_layout(
+            ttnn_tensor_other, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor_other.device());
+    }
 
     auto result = ttnn::add(ttnn_tensor_input, ttnn_tensor_other);
 

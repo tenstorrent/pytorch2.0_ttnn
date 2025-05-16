@@ -29,8 +29,8 @@ def test_bert_with_cpp_extension(device, batch_size):
         "scientific archaeology",
         "german",
         "art historian and archaeologist",
-        '" the prophet and founding hero of modern archaeology "',
-        'hellenist who first articulated the difference between greek, greco - roman and roman art. " the prophet and founding hero of modern archaeology ", winckelmann was one of the founders of scientific archaeology',
+        "the difference between greek, greco - roman and roman art",
+        "scientific archaeology",
     ]
 
     inputs = [
