@@ -6,7 +6,6 @@ from setuptools.command.build_ext import build_ext
 from utils.get_torch_abi_flags import get_torch_abi_related_compiler_flags
 import sysconfig
 import torch
-from pprint import pprint
 
 
 class CMakeExtension(Extension):
@@ -51,7 +50,6 @@ class CMakeBuild(build_ext):
             cmake_args.extend(extra_cmake_flags)
 
         cmake_args.extend(ext.cmake_args)
-        pprint(cmake_args)
 
         # Build the extension
         subprocess.check_call(["cmake", ext.source_dir] + cmake_args, cwd=build_dir)
@@ -70,7 +68,7 @@ setup(
         CMakeExtension(
             name="ttnn_device_extension",
             source_dir=".",
-            cmake_args=["-DCMAKE_CXX_COMPILER=g++", "-DCMAKE_C_COMPILER=gcc"],
+            cmake_args=["-DCMAKE_CXX_COMPILER=g++-12", "-DCMAKE_C_COMPILER=gcc-12"],
         ),
     ],
     cmdclass={"build_ext": CMakeBuild},
