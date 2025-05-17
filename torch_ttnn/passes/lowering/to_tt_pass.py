@@ -543,6 +543,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 # Check if mean and/or rstd is used. The output from the wrapper
                 # can be a tuple of 1, 2, or 3 items. The 1st item will always be layer_norm.
                 # The 2nd can be mean or rstd. The 3rd will always be rstd if it exists.
+                # Since `getitem` always follows layer_norm, the number of direct users of this
+                # node should always be 1, 2, or 3.
                 node_users = list(node.users.keys())
                 use_mean = False
                 use_rstd = False
