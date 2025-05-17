@@ -67,7 +67,7 @@ def input_var_check_ttnn(request):
 @pytest.fixture(scope="session")
 def device(request):
     # TODO(tt-metal#13746): Currently L1 small size needs to be manually determined
-    l1_small_size = 16384
+    l1_small_size = 65536
     dispatch_core_config = get_dispatch_core_config()
 
     if request.config.getoption("--data_parallel"):

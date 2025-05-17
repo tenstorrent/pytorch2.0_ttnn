@@ -5,6 +5,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         sudo \
         libgl1-mesa-glx \
+        libopenmpi-dev \
+        openmpi-bin \
         git-lfs \
         libsndfile1 \
         docker.io && \

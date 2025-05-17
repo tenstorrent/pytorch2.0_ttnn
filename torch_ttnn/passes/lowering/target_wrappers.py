@@ -44,10 +44,8 @@ def pack_to_tuple(*args):
 
 @torch.fx.wrap
 def move_to_host(device_tensor, layout):
-    if len(ttnn.get_device_tensors(device_tensor)) > 1:
-        device_tensor = ttnn.get_device_tensors(device_tensor)[0]
-    host_tensor = ttnn.from_device(device_tensor)
-    return ttnn.to_layout(host_tensor, layout)
+    device_tensor = ttnn.to_layout(device_tensor, layout)
+    return ttnn.from_device(device_tensor)
 
 
 @torch.fx.wrap
@@ -163,10 +161,11 @@ def stack(tensors, dim, output_shape):
     # Reshape each input tensor to add the new dimension
     unsqueezed_tensors = []
     for tensor in tensors:
-        # TODO: remove when reshape supports tiled uint32 inputs
+        # TODO: remove when concat supports tiled uint32
+        tensor = ttnn.reshape(tensor, unsqueezed_shape)
         if tensor.layout == ttnn.TILE_LAYOUT and tensor.dtype == ttnn.uint32:
             tensor = ttnn.to_layout(tensor, ttnn.ROW_MAJOR_LAYOUT)
-        unsqueezed_tensors.append(ttnn.reshape(tensor, unsqueezed_shape))
+        unsqueezed_tensors.append(tensor)
 
     # Concatenate all reshaped tensors along the stack dimension
     return ttnn.concat(unsqueezed_tensors, dim)
