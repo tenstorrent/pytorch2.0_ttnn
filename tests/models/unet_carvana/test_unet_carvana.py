@@ -30,8 +30,8 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "mode",
     [
-        pytest.param("train", marks=pytest.mark.xfail(reason="OOM with program cache enabled")),
-        pytest.param("eval", marks=pytest.mark.xfail(reason="OOM with program cache enabled")),
+        "train",
+        pytest.param("eval", marks=pytest.mark.converted_end_to_end),
     ],
 )
 def test_unet_carvana(record_property, mode):
