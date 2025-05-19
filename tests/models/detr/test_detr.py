@@ -40,10 +40,7 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "mode",
     [
-        pytest.param(
-            "eval",
-            marks=pytest.mark.compilation_xfail,
-        ),
+        "eval",
     ],
 )
 def test_detr(record_property, mode):

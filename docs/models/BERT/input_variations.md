@@ -110,10 +110,10 @@
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1024, 1024]> self = ? | Removed  | Done       |     1 |     -1 |
-|  1 | Tensor<[1024, 4096]> self = ? | Removed  | Done       |     1 |     -1 |
-|  2 | Tensor<[2, 1024]> self = ?    | Removed  | Done       |     1 |     -1 |
-|  3 | Tensor<[4096, 1024]> self = ? | Removed  | Done       |     1 |     -1 |
+|  0 | Tensor<[1024, 1024]> self = ? | Removed  | Done       |     1 |      0 |
+|  1 | Tensor<[1024, 4096]> self = ? | Removed  | Done       |     1 |      0 |
+|  2 | Tensor<[2, 1024]> self = ?    | Removed  | Done       |     1 |      0 |
+|  3 | Tensor<[4096, 1024]> self = ? | Removed  | Done       |     1 |      0 |
 ### aten.transpose.int
 |    | ATen Input Variations                                                 | Status   | Isolated   | PCC   | Host   |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|:------|:-------|
