@@ -186,6 +186,7 @@ TTNN_TRANSFORMER_OPS = [
     ttnn.transformer.scaled_dot_product_attention,
     ttnn.transformer.attention_softmax_,
     ttnn.transformer.split_query_key_value_and_split_heads,
+    ttnn.transformer.concatenate_heads,
 ]
 
 TTNN_HOST_ONLY_OPS = set()
