@@ -397,8 +397,6 @@ class GraphWrapper:
             return self._get_val(args[0])
         # When accessing to self.node.meta, we assume the GraphWrapper is created on a pytorch op mapped to that ttnn op,
         # so we can use the output shape from it
-        if node.target == ttnn.layer_norm:
-            return self._get_val(self.node)[0]
         if node.target in [ttnn.max_pool2d, ttnn.avg_pool2d, target_wrappers.conv]:
             output_val = self._get_val(self.node)
             output_tensor = output_val[0] if isinstance(output_val, tuple) else output_val
@@ -514,16 +512,62 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 return g.call_function(target_wrappers.clone, args=(args[0],))
 
             if node.target == torch.ops.aten.native_layer_norm.default:
+                input_tensor, normalized_shape, weight, bias, epsilon = args
+
+                in_tensor_shape = input_tensor.meta["val"].size()
+                mean_rstd_shape = node.meta["val"][1].size()
+                torch_dtype = input_tensor.meta["val"].dtype
+                ttnn_dtype = torch_dtype_to_ttnn_dtype(torch_dtype)
+                norm_dims = len(normalized_shape)
+
+                # aten.native_layer_norm keeps the normalized dimension for mean and rstd,
+                # but ttnn.moreh.layer_norm does not.
+                ttnn_mean_rstd_shape = in_tensor_shape[:-norm_dims]
+
+                # At the time of implementation, ttnn.layer_norm is marginally faster
+                # than moreh.layer_norm if only layer_norm output is needed.
+                # Check if mean and/or rstd is used. The output from the wrapper
+                # can be a tuple of 1, 2, or 3 items. The 1st item will always be layer_norm.
+                # The 2nd can be mean or rstd. The 3rd will always be rstd if it exists.
+                # Since `getitem` always follows layer_norm, the number of direct users of this
+                # node should always be 1, 2, or 3.
+                node_users = list(node.users.keys())
+                use_mean = False
+                use_rstd = False
+                # check the 2nd item if it's mean or rstd
+                if len(node_users) > 1:
+                    getitem = node_users[1]
+                    if getitem.args[1] == 1:
+                        use_mean = True
+                    if getitem.args[1] == 2:
+                        use_rstd = True
+                # if the 3rd item exists, it will always be rstd
+                if len(node_users) > 2:
+                    use_rstd = True
+
                 new_node = g.call_function(
-                    ttnn.layer_norm,
-                    args=(args[0],),
-                    kwargs={"epsilon": args[4], "weight": args[2], "bias": args[3]},
+                    target_wrappers.native_layer_norm,
+                    (
+                        input_tensor,
+                        in_tensor_shape,
+                        mean_rstd_shape,
+                        ttnn_mean_rstd_shape,
+                        ttnn_dtype,
+                        norm_dims,
+                        weight,
+                        bias,
+                        epsilon,
+                        use_mean,
+                        use_rstd,
+                        TtnnDevice(),
+                    ),
                 )
-                node.replace_all_uses_with(new_node, delete_user_cb=lambda node: node != new_node)
-                node_users = list(new_node.users.keys())
+
+                # update metadata since original op does not have dtype for mean and rstd outputs
                 for node_user in node_users:
-                    node_user.replace_all_uses_with(new_node)
-                return None
+                    node_user.meta["val"] = node_user.meta["val"].to(torch_dtype)
+
+                return new_node
 
             if node.target == torch.ops.aten.zeros.default:
                 return g.call_function(ttnn.zeros, args=args, kwargs={"device": TtnnDevice()})

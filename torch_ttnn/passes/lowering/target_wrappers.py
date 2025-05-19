@@ -191,3 +191,49 @@ def shard_tensor(tensor, dim, num_devices):
 def concat_tensor(tensor, dim, num_devices):
     sharded_version = [tensor] * num_devices
     return torch.concat(sharded_version, dim)
+
+
+# TODO: Support compute kernel config
+@torch.fx.wrap
+def native_layer_norm(
+    input_tensor: ttnn.Tensor,
+    in_tensor_shape: torch.Size,
+    mean_rstd_shape: torch.Size,
+    ttnn_mean_rstd_shape: torch.Size,
+    ttnn_dtype: ttnn.DataType,
+    norm_dims: int,
+    gamma: ttnn.Tensor,
+    beta: ttnn.Tensor,
+    epsilon: ttnn.Tensor,
+    use_mean: bool,
+    use_rstd: bool,
+    device: ttnn.Device,
+):
+    if not use_mean and not use_rstd:
+        output = ttnn.layer_norm(input_tensor, epsilon=epsilon, weight=gamma, bias=beta)
+        return (output, None, None)
+
+    output = ttnn.empty(in_tensor_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+
+    # moreh.layer_norm does not generate correct mean or rstd if the shape keeps the normalized dims
+    # https://github.com/tenstorrent/tt-metal/issues/22110
+    if use_mean:
+        mean = ttnn.empty(ttnn_mean_rstd_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    else:
+        mean = None
+
+    if use_rstd:
+        rstd = ttnn.empty(ttnn_mean_rstd_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    else:
+        rstd = None
+
+    output, mean, rstd = ttnn.operations.moreh.layer_norm(
+        input_tensor, norm_dims, epsilon, gamma, beta, output=output, mean=mean, rstd=rstd
+    )
+
+    if use_mean:
+        mean = ttnn.reshape(mean, mean_rstd_shape)
+    if use_rstd:
+        rstd = ttnn.reshape(rstd, mean_rstd_shape)
+
+    return (output, mean, rstd)
