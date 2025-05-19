@@ -1,9 +1,12 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+import logging
 import torch
 import ttnn
+from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
+    GraphCleanup,
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnDevice,
@@ -121,7 +124,7 @@ TTNN_POINTWISE_TRINARY_OPS = [
     ttnn.where,
 ]
 
-TTNN_MATRIX_MULPIPLICATION_OPS = [
+TTNN_MATRIX_MULTIPLICATION_OPS = [
     ttnn.matmul,
     ttnn.linear,
 ]
@@ -131,11 +134,14 @@ TTNN_DATAMOVE_OPS = [
     ttnn.pad,
     ttnn.permute,
     ttnn.reshape,
+    ttnn.experimental.view,
     ttnn.sharded_to_interleaved,
     ttnn.slice,
     ttnn.split,
+    ttnn.squeeze,
     ttnn.to_layout,
     ttnn.transpose,
+    ttnn.unsqueeze,
 ]
 
 TTNN_TARGET_WRAPPERS = [
@@ -147,6 +153,7 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.roll,
     target_wrappers.stack,
     target_wrappers.all,
+    target_wrappers.concat_tensor,
 ]
 
 TTNN_NORM_OPS = [
@@ -156,15 +163,26 @@ TTNN_NORM_OPS = [
 
 TTNN_POOL_OPS = [
     ttnn.max_pool2d,
+    ttnn.avg_pool2d,
 ]
 
-TTNN_LAYOUT_CHANGE_OPS = set(
+TTNN_ROW_LAYOUT_OPS = set(
     [
-        ttnn.reshape,
         ttnn.slice,
+        target_wrappers.roll,
         ttnn.argmax,
     ]
 )
+
+# Operations that might output row major layouts based on ToTtPass implementation
+TTNN_MAYBE_ROW_OPS = set(
+    [
+        ttnn.pad,
+        ttnn.concat,
+    ]
+)
+
+TTNN_HOST_ONLY_OPS = set()
 
 
 # For operations limitations
@@ -173,7 +191,7 @@ def is_tt_compute(node) -> bool:
     if not is_function_call(node):
         return False
 
-    # if node is the built-in function "getitme", the result of split
+    # if node is the built-in function "getitem", the result of split
     # we have to check the input of split
     if node.op == "call_function" and node.target.__name__ == "getitem":
         return is_tt_compute(node.args[0])
@@ -182,7 +200,7 @@ def is_tt_compute(node) -> bool:
         TTNN_POINTWISE_UNARY_OPS
         + TTNN_POINTWISE_BINARY_OPS
         + TTNN_POINTWISE_TRINARY_OPS
-        + TTNN_MATRIX_MULPIPLICATION_OPS
+        + TTNN_MATRIX_MULTIPLICATION_OPS
         + TTNN_TARGET_WRAPPERS
         + TTNN_DATAMOVE_OPS
         + TTNN_NORM_OPS
@@ -205,6 +223,10 @@ def is_tt_compute(node) -> bool:
             ttnn.sum,
             ttnn.typecast,
             ttnn.argmax,
+            ttnn.fill,
+            ttnn.empty,
+            ttnn.transformer.scaled_dot_product_attention,
+            ttnn.transformer.attention_softmax_,
         ]
     )
 
@@ -227,17 +249,6 @@ def is_tt(node):
     return is_tt_compute(node) or is_tt_data_move(node)
 
 
-def call_to_torch_with_meta(g, src_node, dtype=None):
-    if dtype == "by_node_meta":
-        dtype = get_dtype(src_node)
-    call_func = g.call_function(ttnn.to_torch, (src_node,), {"dtype": dtype})
-    if src_node.meta is not None:
-        call_func.meta = src_node.meta.copy()
-    if "original_input_variations" in call_func.meta:
-        call_func.meta["original_input_variations"] = None
-    return call_func
-
-
 def is_torch_to_ttnn(src_node, dst_node) -> bool:
     if isinstance(src_node, (int, float, list, tuple)) or not isinstance(src_node, torch.fx.node.Node):
         return False
@@ -254,31 +265,16 @@ def is_ttnn_to_ttnn(src_node, dst_node):
     return True
 
 
-def is_target_a_user_of_curr_node(curr_node, target):
-    """
-    Trace the users of the current node to check if a target is found.
-
-    Returns true is so or returns false if the end of the graph is reached.
-    """
-    if curr_node.target == target:
-        return True
-
-    # Only trace certain nodes that support different layouts
-    if curr_node.target not in TTNN_LAYOUT_CHANGE_OPS:
-        return False
-
-    for user in list(curr_node.users.keys()):
-        if is_target_a_user_of_curr_node(user, target):
-            return True
-
-    # Target is not found
-    return False
-
-
 class NodeInputAligner:
-    def __init__(self, graph):
+    def __init__(self, graph, device):
         self.graph = graph
+        self.device = device
         self.aligned_node_dict = {}
+
+        # fields for data parallel
+        self.shard_to_mesh = dict()
+        self.replicate_to_mesh = None
+        self.concat_to_mesh = dict()
 
     class InputSiteType(Enum):
         ARGS = 1
@@ -305,144 +301,182 @@ class NodeInputAligner:
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
-    def _align_for_special_layout(self, node, spec, input_site, input_site_type: InputSiteType):
-        if is_target_a_user_of_curr_node(node, ttnn.embedding) and (
-            input_site_type == self.InputSiteType.ARGS and input_site == 0
-        ):
-            spec.dtype = TtnnUint32
-        # TODO(#372): #322 will enable tile layout for more layout change ops
-        if node.target in TTNN_LAYOUT_CHANGE_OPS and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
-            spec.layout = TtnnRowMajorLayout
-            spec.device = "host"
-        if node.target in [
-            ttnn.split,
-            ttnn.embedding,
-            target_wrappers.repeat,
-            target_wrappers.roll,
-            target_wrappers.stack,
-        ]:
-            # TODO: Only uint32 needs to to_layout on host
-            spec.layout = TtnnRowMajorLayout
-            spec.device = TtnnDevice
-        if (
-            node.target == target_wrappers.stack
-            and isinstance(spec, self.AlignSpecFromTorch)
-            and get_dtype(node) in [torch.int32, torch.int64]
-        ):
-            spec.dtype = TtnnUint32
-
-        if node.target == target_wrappers.conv and input_site == 1:
-            # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
-            spec.layout = TtnnRowMajorLayout
-            spec.device = "host"
-        if (
-            node.target == ttnn.reshape
-            and hasattr(spec.input_node, "meta")
-            and "val" in spec.input_node.meta
-            and hasattr(spec.input_node.meta["val"], "dtype")
-            and spec.input_node.meta["val"].dtype in [torch.int32, torch.int64]
-        ):
-            spec.dtype = TtnnUint32
-        if node.target == ttnn.permute and len(node.meta["val"].size()) > 4:
-            # TODO(tt-metal#16188): to_layout on device fails for > 4D
-            # Otherwise ttnn.permute can do to_layout internally and this special spec can be removed
-            spec.layout = TtnnRowMajorLayout
-            spec.device = TtnnDevice
-        return spec
-
     def _reset_to_default_layout(self, input_node, spec):
         # split(list of tensor with row major layout) => getitem(row major layout)
         # convert back to tile layout
         if input_node.target == getitem and input_node.args[0].target == ttnn.split:
             spec.layout = TtnnTileLayout
+
+        # re-tilize max_pool2d after sharded_to_interleaved call - may be able to remove after #418
+        if input_node.target == ttnn.sharded_to_interleaved and input_node.args[0].target in [
+            ttnn.max_pool2d,
+            ttnn.avg_pool2d,
+        ]:
+            spec.layout = TtnnTileLayout
+
+        # be overly cautious and convert to tile layout. These could already be tilized
+        # TODO: only insert layout if needed
+        if input_node.target in [ttnn.ones, ttnn.ones_like, ttnn.zeros, ttnn.zeros_like]:
+            spec.layout = TtnnTileLayout
+
         # legalize to the default layout and device
-        if input_node.target in TTNN_LAYOUT_CHANGE_OPS.union(
-            set(
-                [
-                    target_wrappers.repeat,
-                    target_wrappers.roll,
-                    target_wrappers.stack,
-                    ttnn.concat,
-                ]
-            )
+        if input_node.target in TTNN_ROW_LAYOUT_OPS:
+            spec.layout = TtnnTileLayout
+        if input_node.target in TTNN_MAYBE_ROW_OPS:
+            # for now, convert to tile (might be nop)
+            # TODO: only insert to_layout call if needed
+            spec.layout = TtnnTileLayout
+        if input_node.target in TTNN_HOST_ONLY_OPS:
+            spec.device = TtnnDevice
+
+        return spec
+
+    def _align_special_cases(self, node, spec, input_site, input_site_type: InputSiteType):
+        if node.target == ttnn.embedding:
+            # Embedding is not as accurate with TileLayout (allclose with torch.embedding fails)
+            if input_site == 0:
+                # First input must be uint32
+                spec.dtype = TtnnUint32
+                spec.layout = TtnnRowMajorLayout
+        if node.target in [ttnn.slice, target_wrappers.roll] and (
+            input_site_type == self.InputSiteType.ARGS and input_site == 0
         ):
-            spec.layout = TtnnTileLayout
-            spec.device = TtnnDevice
-        if input_node.target == ttnn.permute and len(input_node.meta["val"].size()) > 4:
-            # TODO(tt-metal#16188): to_layout on device fails for > 4D
-            # Otherwise ttnn.permute can do to_layout internally and this special spec can be removed
-            spec.layout = TtnnTileLayout
-            spec.device = TtnnDevice
+            # Slice can only unpad tilized tensors with full tiles. Make input row major to be safe for now
+            # Roll is included because it calls slice under the hood
+            spec.layout = TtnnRowMajorLayout
+        if node.target == ttnn.split and input_site == 0:
+            # Runtime error for tilized inputs to split
+            spec.layout = TtnnRowMajorLayout
+        if node.target == ttnn.argmax and (input_site_type == self.InputSiteType.ARGS and input_site == 0):
+            # According to documentation, argmax input must be BFLOAT16 and ROW_MAJOR
+            spec.dtype = TtnnBfloat16
+            spec.layout = TtnnRowMajorLayout
+        if (
+            node.target == target_wrappers.stack
+            and isinstance(spec, self.AlignSpecFromTorch)
+            and get_dtype(node) in [torch.int32, torch.int64]
+        ):
+            # This allows ViLT to work by coercing stack inputs to be uint32
+            # TODO: remove this and handle stack inputs more generally
+            spec.dtype = TtnnUint32
+        if node.target == target_wrappers.conv and input_site == 1:
+            # TODO(#417, tt-metal#15893): weight currently needs to be on host and can't be moved to device first
+            spec.layout = TtnnRowMajorLayout
+            spec.device = "host"
+        if (
+            node.target == ttnn.subtract
+            and isinstance(spec, self.AlignSpecFromTorch)
+            and get_dtype(node) in [torch.int32, torch.int64]
+        ):
+            # Needed to have GPT2 pass: from_torch -> subtract -> remainder -> indexing but subtract may go below 0
+            # TODO: remove when we have signed int support for required ops
+            spec.dtype = TtnnBfloat16
+
         return spec
 
     def _get_align_spec(self, node, input_node, input_site, input_site_type: InputSiteType):
         if is_torch_to_ttnn(input_node, node):
             # default set these layout for torch to ttnn
-            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, TtnnBfloat16)
-            spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
+            spec_dtype = TtnnBfloat16
+            if get_dtype(input_node) in [torch.int32, torch.int64]:
+                spec_dtype = TtnnUint32
+            spec = self.AlignSpecFromTorch(input_node, TtnnDevice, TtnnTileLayout, spec_dtype)
+            spec = self._align_special_cases(node, spec, input_site, input_site_type)
             return spec
         elif is_ttnn_to_torch(input_node, node):
-            spec = self.AlignSpecToTorch(input_node, "by_node_meta")
+            spec = self.AlignSpecToTorch(input_node, get_dtype(input_node))
             return spec
         elif is_ttnn_to_ttnn(input_node, node):
             # default do nothing between ttnn to ttnn
             spec = self.AlignSpecInTtnn(input_node, None, None, None)
             spec = self._reset_to_default_layout(input_node, spec)
-            spec = self._align_for_special_layout(node, spec, input_site, input_site_type)
+            spec = self._align_special_cases(node, spec, input_site, input_site_type)
+
             if spec.device is None and spec.layout is None and spec.dtype is None:
                 return None
             return spec
-        return None
+        else:
+            return None
 
-    def _change_layout(self, spec, aligning_nodes):
-        g = self.graph
-        need_from_device = False
-        need_to_layout = False
-        need_to_device = False
-        if spec.device == "host":
-            need_from_device = True
-        elif spec.device is not None:
-            need_from_device = True
-            need_to_device = True
-        if spec.layout is not None:
-            need_to_layout = True
+    def _change_layout(self, spec):
+        need_from_device = spec.device == "host"
+        need_to_layout = spec.layout is not None
+        need_to_device = spec.device == TtnnDevice
+
+        input_node = spec.input_node
+
+        # mesh device tensors need layout on device
+        if need_to_device:
+            input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
+
+        if need_to_layout:
+            input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
 
         if need_from_device:
-            aligning_nodes.append(
-                g.call_function(ttnn.from_device, (aligning_nodes[-1] if aligning_nodes else spec.input_node,))
-            )
-        if need_to_layout:
-            aligning_nodes.append(
-                g.call_function(
-                    ttnn.to_layout, (aligning_nodes[-1] if aligning_nodes else spec.input_node, spec.layout())
-                )
-            )
-        if need_to_device:
-            aligning_nodes.append(
-                g.call_function(
-                    ttnn.to_device,
-                    (aligning_nodes[-1] if aligning_nodes else spec.input_node,),
-                    {"device": spec.device()},
-                )
-            )
+            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
+
+        return input_node
 
     def _create_aligned_node(self, spec):
-        aligning_nodes = []
-        g = self.graph
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
+            args = (spec.input_node,)
             if spec.device is not None and spec.device != "host":
                 kwargs["device"] = spec.device()
             if spec.layout is not None:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
-            aligning_nodes.append(g.call_function(ttnn.from_torch, (spec.input_node,), kwargs))
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent from_torch call by accessing its arguments. Sharding and replicating are determined by the wrapper name
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.shard_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.shard_to_mesh.get(shard_dim) is None:
+                        self.shard_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    mesh_mapper = self.shard_to_mesh[shard_dim]
+                    args = (actual_inp_node,)
+                else:
+                    if self.replicate_to_mesh is None:
+                        self.replicate_to_mesh = self.graph.call_function(
+                            ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),)
+                        )
+
+                    mesh_mapper = self.replicate_to_mesh
+                    args = spec.input_node.args
+                kwargs["mesh_mapper"] = mesh_mapper
+
+            return self.graph.call_function(ttnn.from_torch, args, kwargs)
+
         elif isinstance(spec, self.AlignSpecToTorch):
-            aligning_nodes.append(call_to_torch_with_meta(g, spec.input_node, spec.dtype))
+            kwargs = {"dtype": spec.dtype}
+            args = (spec.input_node,)
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent to_torch call by accessing its arguments
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.concat_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.concat_to_mesh.get(shard_dim) is None:
+                        self.concat_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    composer = self.concat_to_mesh[shard_dim]
+                    kwargs["mesh_composer"] = composer
+                    args = (actual_inp_node,)
+
+            return self.graph.call_function(ttnn.to_torch, args, kwargs)
+
         elif isinstance(spec, self.AlignSpecInTtnn):
-            self._change_layout(spec, aligning_nodes)
-        return aligning_nodes[-1]
+            return self._change_layout(spec)
+
+        else:
+            raise RuntimeError(f"Cannot create aligned node for unknown spec ({spec})")
 
     def _connect_aligned_node(self, node, aligned_node, input_site, input_site_type: InputSiteType):
         if input_site_type == self.InputSiteType.ARGS:
@@ -486,47 +520,80 @@ class NodeInputAligner:
         else:
             self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
 
-    def align(self, node, input_node, input_site, input_site_type: InputSiteType):
+    def align(self, node, input_node, input_site, input_site_type: InputSiteType, first_node):
         # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
-        align_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
-        if align_spec is None:
+        data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
+        if data_move_spec is None:
             # No need to align input_node
             return 0
-        if align_spec in self.aligned_node_dict:
-            aligned_node = self.aligned_node_dict[align_spec]
+
+        if data_move_spec in self.aligned_node_dict:
+            aligned_node = self.aligned_node_dict[data_move_spec]
         else:
-            with self.graph.inserting_before(node):
-                aligned_node = self._create_aligned_node(align_spec)
-            self.aligned_node_dict[align_spec] = aligned_node
-        if node.target != ttnn.layer_norm:
-            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
-        else:
+            if (
+                isinstance(data_move_spec, self.AlignSpecFromTorch)
+                and input_node.op == "placeholder"
+                and input_node.meta.get("primal_tag") != PrimalTag.ARGUMENT
+            ):
+                # This will push all from_torch calls to the top of the forward function. This shouldn't impact performance, but it may impact memory usage since variables will be
+                # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
+                # is a good place to check
+                with self.graph.inserting_before(first_node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
+            else:
+                with self.graph.inserting_before(node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
+            self.aligned_node_dict[data_move_spec] = aligned_node
+
+        if node.target == ttnn.layer_norm:
             self._connect_aligned_node_layer_norm(node, input_node, aligned_node, input_site, input_site_type)
+        else:
+            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
+
         return 1
 
 
 class AddDataMovePass(PassBase):
+    """Pass that adds instructions to move data between host and device and align tensor dtype and layout.
+
+    This pass is multi-device aware, since it must marshal tensors differently in the multi-device case. This pass attempts to introduce the minimum amount of operations while maintaining correctness and performance.
+
+    :param device: The device on which a workload will run (either a MeshDevice or Device).
+    """
+
+    def __init__(self, device):
+        self.device = device
+
     def call(self, gm: torch.fx.GraphModule):
-        modified = False
-        i = 0
-        node_input_aligner = NodeInputAligner(gm.graph)
-        nodes = list(gm.graph.nodes)
         SiteType = NodeInputAligner.InputSiteType
+
+        i = 0
+        node_input_aligner = NodeInputAligner(gm.graph, self.device)
+        nodes = list(gm.graph.nodes)
+
+        first_node = [node for node in nodes if node.op != "placeholder"][0]
+
         for node in nodes:
             args = node.args
-            kwargs = node.kwargs
             for idx, arg in enumerate(args):
-                if not isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
-                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS)
-                else:
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE)
+                        i += node_input_aligner.align(
+                            node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node
+                        )
+                else:
+                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS, first_node)
+
+            kwargs = node.kwargs
             for key, arg in kwargs.items():
-                if not isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
-                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS)
-                else:
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE)
+                        i += node_input_aligner.align(
+                            node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node
+                        )
+                else:
+                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node)
 
         modified = i > 0
+        GraphCleanup(gm)
         return PassResult(gm, modified)

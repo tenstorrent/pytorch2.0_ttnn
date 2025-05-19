@@ -1,0 +1,32 @@
+name: Create PR with README and Docs update
+
+on:
+  schedule:
+    - cron: '0 8 * * 0'  # Runs at 08:00 UTC every Sunday
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  create-pr:
+    name: "Create Pull Request"
+    uses: ./.github/workflows/run-tests.yaml
+    secrets: inherit
+    with:
+      commit_report: 'Docs'
+
+  approve-pr:
+    name: "Approve and Merge PR"
+    runs-on: ubuntu-latest
+    needs: create-pr
+    if: ${{ needs.create-pr.outputs.pull_request_number }}
+    steps:
+      - name: Approve Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Pull Request Number - ${{ needs.create-pr.outputs.pull_request_number }}"
+          gh pr review ${{ needs.create-pr.outputs.pull_request_number }} --approve
+
+      - name: Enable Pull Request Automerge
+        run: gh pr merge --merge --auto "${{ needs.create-pr.outputs.pull_request_number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

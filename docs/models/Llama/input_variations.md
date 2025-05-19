@@ -20,19 +20,19 @@
 ### aten.bmm.default
 |    | ATen Input Variations                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 64, 1]> self = ?,<br>Tensor<[1, 1, 32]> mat2 = ? | Done     | Done       | 0.999993 |      0 |
+|  0 | Tensor<[1, 64, 1]> self = ?,<br>Tensor<[1, 1, 32]> mat2 = ? | Done     | Done       | 0.999992 |     -1 |
 ### aten.cat.default
 |    | ATen Input Variations                                                  | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | List[Tensor] tensors = [<[1, 32, 64]>, <[1, 32, 64]>],<br>int dim = -1 | Done     | Done       |     1 |      0 |
+|  0 | List[Tensor] tensors = [<[1, 32, 64]>, <[1, 32, 64]>],<br>int dim = -1 | Done     | Done       |     1 |     -1 |
 ### aten.cos.default
 |    | ATen Input Variations         | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 32, 128]> self = ? | Done     | Done       | 0.999992 |      0 |
+|  0 | Tensor<[1, 32, 128]> self = ? | Done     | Done       | 0.999993 |     -1 |
 ### aten.embedding.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[32000, 4096]> weight = ?,<br>Tensor<[1, 32]> indices = ?,<br>int padding_idx = 0 | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[32000, 4096]> weight = ?,<br>Tensor<[1, 32]> indices = ?,<br>int padding_idx = 0 | Done     | Done       |     1 |     -1 |
 ### aten.expand.default
 |    | ATen Input Variations                                       | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -54,7 +54,7 @@
 ### aten.transpose.int
 |    | ATen Input Variations                                          | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 64, 32]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2 | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[1, 64, 32]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2 | Done     | Done       |     1 |     -1 |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                            | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------|:---------|:-----------|------:|-------:|

@@ -9,11 +9,14 @@ from torch._subclasses.fake_tensor import unset_fake_temporarily
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
+    TtnnUint32,
     TtnnInt32,
+    TtnnUint32,
     TtnnDevice,
     TtnnL1MemoryConfig,
     TtnnRowMajorLayout,
     TtnnTileLayout,
+    get_emplace_custom_object_in_graph,
     get_shape,
     get_dtype,
     get_arg,
@@ -25,6 +28,7 @@ from torch.fx.passes.infra.pass_base import PassBase, PassResult
 import torch.fx.traceback as fx_traceback
 from . import target_wrappers
 from .to_tt_guard import can_lowering_to_ttnn
+import operator
 
 relational_scalar_ops = {
     torch.ops.aten.eq.Scalar: ttnn.eq,
@@ -297,30 +301,13 @@ class ReplaceMoreTt(torch.fx.Transformer):
             return self.call_function_prop_meta(ttnn.addcmul, args + (value,), kwargs)
 
         if target == torch.ops.aten.where.self:
-            if get_shape(None, args[2]) == torch.Size():
-                # ttnn.from_torch not yet support scalar tensor, see issue 442
-                return self.call_function_prop_meta(target, args, kwargs)
             return self.call_function_prop_meta(ttnn.where, args, kwargs)
 
         ############################################################
         # Reduction
         ############################################################
         if target == torch.ops.aten.mean.dim:
-            new_args = []
-            new_args.append(args[0])
-            # change dim parameter to tuple
-            new_args.append(tuple(args[1]) if len(args[1]) > 1 else args[1][0])
-            keep_dim = False
-            if len(args) > 2:
-                keep_dim = args[2]
-            elif "keepdim" in kwargs:
-                keep_dim = kwargs["keepdim"]
-            if keep_dim:
-                return self.call_function_prop_meta(ttnn.mean, tuple(new_args), {})
-            # ttnn.mean does not support keep_dim==False, need reshape to remove dim
-            mean_shape = list(fx_traceback.get_current_meta()["val"].shape)
-            mean = self.call_function_prop_meta(ttnn.mean, tuple(new_args), {})
-            return self.call_function_prop_meta(ttnn.reshape, (mean, mean_shape))
+            return self.call_function_prop_meta(ttnn.mean, args, kwargs)
 
         if target == torch.ops.aten.min.default:
             return self.call_function_prop_meta(ttnn.min, args, kwargs)
@@ -370,7 +357,7 @@ class ReplaceMoreTt(torch.fx.Transformer):
 def torch_dtype_to_ttnn_dtype(dtype: torch.dtype):
     # Add newly supported dtypes here:
     dtype_map = {
-        torch.float32: TtnnBfloat16(),
+        torch.float32: TtnnBfloat16(),  # Should this be changed to TtnnFloat32?
         torch.bfloat16: TtnnBfloat16(),
     }
     if dtype in dtype_map:
@@ -412,7 +399,7 @@ class GraphWrapper:
         # so we can use the output shape from it
         if node.target == ttnn.layer_norm:
             return self._get_val(self.node)[0]
-        if node.target in [ttnn.max_pool2d, target_wrappers.conv]:
+        if node.target in [ttnn.max_pool2d, ttnn.avg_pool2d, target_wrappers.conv]:
             output_val = self._get_val(self.node)
             output_tensor = output_val[0] if isinstance(output_val, tuple) else output_val
             output_shape = list(output_tensor.size())
@@ -435,7 +422,7 @@ class GraphWrapper:
         return obj.meta["val"]
 
 
-def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
+def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
     for node in nodes:
         if not can_lowering_to_ttnn(node):
@@ -471,12 +458,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             def lower_binary_eltwise(fn, args):
                 shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
 
-                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
-                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
-                ):
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
-
                 if any(s is None for s in shapes):
                     return None
 
@@ -505,27 +486,25 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
             if node.target == torch.ops.aten.sub.Tensor:
                 return lower_binary_eltwise(ttnn.sub, args)
 
-            if node.target in TTNN_POINTWISE_UNARY_OPS:
-                code = TTNN_POINTWISE_UNARY_OPS[node.target]
-
-            # NOTE(jdh8): Workaround for tenstorrent/tt-metal#12671
-            # Passing a tensor shaped `(N,)` to the kernel results in `(1, N)`.
-            # Reshape the tensor back to get the correct shape.
-            def reshape_1d(code, args=args, kwargs=kwargs):
-                shape = get_shape(gm, node)
-                if shape == torch.Size():
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
-                result = g.call_function(code, args, kwargs)
-                return result if len(shape) > 1 else g.call_function(ttnn.reshape, (result, shape))
+            if node.target == torch.ops.aten.tanh.default:
+                # TODO: Remove once tanh accuracy implementation is realized as a device operation in tt-metal
+                new_kwargs = kwargs.copy()
+                new_kwargs["accuracy"] = True
+                kwargs = new_kwargs
 
             if node.target in TTNN_POINTWISE_UNARY_OPS:
-                return reshape_1d(TTNN_POINTWISE_UNARY_OPS[node.target])
+                return g.call_function(TTNN_POINTWISE_UNARY_OPS[node.target], args, kwargs)
 
             if node.target == torch.ops.aten.round.default:
-                return reshape_1d(ttnn.round, (args[0],), {"decimals": 0})
+                return g.call_function(ttnn.round, (args[0],), {"decimals": 0})
 
             if node.target == torch.ops.aten.clone.default:
+                # Only convert if the input is from graph arguments and node is also returned as an output
+                # Otherwise, optimize node out and return input
+                node_users = list(node.users.keys())
+                if not (args[0].op == "placeholder" and len(node_users) == 1 and node_users[0].op == "output"):
+                    return args[0]
+
                 arg_metadata = node.meta["val"]
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(arg_metadata.dtype)
@@ -591,21 +570,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.full.default:
-                # args[0] can be empty for aten.full which simply creates a scalar. Ignore conversion in this case.
-                if args[0]:
-                    new_kwargs = {
-                        "fill_value": args[1],
-                        "device": TtnnDevice(),
-                        "layout": TtnnTileLayout(),
-                    }
-                    return g.call_function(ttnn.full, args=(tuple(args[0]),), kwargs=new_kwargs)
-                # Replace op with scalar for eltwise ops
-                # TODO: Generalize this to support all eltwise ops
-                node_users = list(node.users.keys())
-                for node_user in node_users:
-                    if node_user.target == torch.ops.aten.div.Tensor:
-                        node_user.update_arg(1, args[1])
-                return None
+                new_kwargs = {
+                    "fill_value": args[1],
+                    "device": TtnnDevice(),
+                    "layout": TtnnTileLayout(),
+                }
+                return g.call_function(ttnn.full, args=(args[0],), kwargs=new_kwargs)
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
@@ -634,12 +604,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten.div.Tensor:
-                shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
-                if (isinstance(args[0], torch.fx.node.Node) and shapes[0] == torch.Size()) or (
-                    isinstance(args[1], torch.fx.node.Node) and shapes[1] == torch.Size()
-                ):
-                    # ttnn.from_torch not yet support scalar tensor, see issue 442
-                    return None
                 if isinstance(args[1], (float, int)):
                     return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
 
@@ -732,16 +696,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 return None
 
             if node.target == torch.ops.aten.squeeze.dim or node.target == torch.ops.aten.squeeze.default:
-                if get_shape(gm, args[0]) in [torch.Size([1]), torch.Size([])]:
-                    # see #442
-                    return None
-                if use_less_ttnn_op_types or node.target == torch.ops.aten.squeeze.default:
-                    # ttnn.squeeze does not support calling the OP without provided dim (torch.ops.aten.squeeze.default)
-                    # squeezing is the same as reshaping to shape of output tensor of squeeze
-                    output_size = list(node.meta["val"].size())
-                    return g.call_function(ttnn.reshape, args=(args[0], output_size))
-                else:
-                    return g.call_function(ttnn.squeeze, args=(args[0], args[1]))
+                return g.call_function(ttnn.squeeze, args=args, kwargs=kwargs)
 
             if node.target == torch.ops.aten.unsqueeze.default:
                 output_shape_num_element = node.meta["val"].numel()
@@ -841,7 +796,30 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 output_shape_num_element = node.meta["val"].numel()
                 if input_tensor_num_element == 0 or output_shape_num_element == 0:
                     return None
-                return g.call_function(ttnn.reshape, (args[0], args[1]), {})
+
+                input_shape = args[0].meta["val"].shape
+                output_shape = args[1]
+
+                # To lower as ttnn.experimental.view:
+                # * the last dimension must not change
+                # * In Layout::TILE the second last two dimensions must not change OR there is no padding on the second last dimension
+                # Be cautious and assume Layout::TILE for now
+
+                last_dimension_constant = input_shape[-1] == output_shape[-1]
+                second_last_dimension_constant = (
+                    len(input_shape) > 1 and len(output_shape) > 1 and input_shape[-2] == output_shape[-2]
+                )
+                second_last_dimension_unpadded = (
+                    len(input_shape) > 1
+                    and len(output_shape) > 1
+                    and input_shape[-2] % ttnn.TILE_SIZE == 0
+                    and output_shape[-2] % ttnn.TILE_SIZE == 0
+                )
+
+                if last_dimension_constant and (second_last_dimension_constant or second_last_dimension_unpadded):
+                    return g.call_function(ttnn.experimental.view, (args[0], args[1]), {})
+                else:
+                    return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
             if node.target == torch.ops.aten.split.Tensor:
                 if len(args[0].meta["val"].size()) == 1:
@@ -859,12 +837,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 # convert from PyTorch size of chunk to ttnn number of chunks
                 if isinstance(args[1], int):
-                    num_chunks = math.floor(args[0].meta["val"].size()[split_dim] / args[1])
+                    chunk_size = args[1]
                 else:
                     # ttnn.split only supports chunks of same size.
                     return None
 
-                new_args = (args[0], num_chunks, split_dim)
+                new_args = (args[0], chunk_size, split_dim)
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
@@ -899,6 +877,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 # Essentially remove this op
                 return node.args[0]
+
+            if node.target == torch.ops.aten.fill.Scalar:
+                return g.call_function(ttnn.fill, args=args)
 
             if node.target in [torch.ops.aten.masked_fill.Scalar, torch.ops.aten.masked_fill.Tensor]:
                 # aten.masked_fill is equivalent to the following:
@@ -1026,10 +1007,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 dilation = params.get("dilation", (1, 1))
                 ceil_mode = params.get("ceil_mode", False)
                 if (
-                    # TODO(tt-metal#14976): ceil mode isn't supported yet
-                    ceil_mode
-                    # TODO(tt-metal#13901): Wide input channels can only be multiple of 8 tiles
-                    or (in_c > (ttnn.TILE_SIZE * 8) and in_c % (ttnn.TILE_SIZE * 8) != 0)
+                    # # TODO: in_c must be 16 or a multiple of 32
+                    (in_c != 16 and in_c % 32 != 0)
                     # TODO(#419): Currently fails with in_c < 16
                     or in_c < 16
                     # TODO(tt-metal#12099): Currently it doesn't return indices. Convert if only the value is used
@@ -1055,10 +1034,69 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                         padding,
                         dilation,
                     ),
+                    {"ceil_mode": ceil_mode},
                 )
                 output_tensor = insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"][0].size())
                 # TODO(tt-metal#12099): Currently it doesn't return indices. Pack into tuple to maintain the type
                 return g.call_function(target_wrappers.pack_to_tuple, (output_tensor,))
+
+            if node.target == torch.ops.aten.avg_pool2d.default:
+                params = map_args_to_kwargs(
+                    args,
+                    (
+                        (0, "input_tensor"),
+                        (1, "kernel_size"),
+                        (2, "stride"),
+                        (3, "padding"),
+                        (4, "ceil_mode"),
+                        (5, "count_include_pad"),
+                        (6, "divisor_override"),
+                    ),
+                )
+                input_tensor = params["input_tensor"]
+                input_shape = input_tensor.meta["val"].size()
+                batch_size, in_c, in_h, in_w = input_shape
+                kernel_size = params["kernel_size"]
+                stride = params.get("stride", kernel_size)
+                padding = params.get("padding", (0, 0))
+                ceil_mode = params.get("ceil_mode", False)
+                count_include_pad = params.get("count_include_pad", True)
+                divisor_override = params.get("divisor_override", None)
+
+                dilation = [1, 1]
+
+                if (
+                    # # TODO: in_c must be 16 or a multiple of 32
+                    (in_c != 16 and in_c % 32 != 0)
+                    # TODO(#419): Currently fails with in_c < 16
+                    or in_c < 16
+                ):
+                    return None
+                if ceil_mode or not count_include_pad or divisor_override is not None:
+                    return None
+                input_tensor = insert_ncx_to_nxc(g, input_tensor)
+                input_tensor = g.call_function(ttnn.reshape, (input_tensor, (1, 1, batch_size * in_h * in_w, in_c)))
+                input_tensor = g.call_function(ttnn.to_layout, (input_tensor, TtnnRowMajorLayout()))
+                output_tensor = g.call_function(
+                    ttnn.avg_pool2d,
+                    (
+                        input_tensor,
+                        batch_size,
+                        in_h,
+                        in_w,
+                        in_c,
+                        kernel_size,
+                        stride,
+                        padding,
+                        dilation,
+                    ),
+                    (
+                        {
+                            "ceil_mode": ceil_mode,
+                        }
+                    ),
+                )
+                return insert_sharded_nxc_to_ncx(g, output_tensor, node.meta["val"].size())
 
             if node.target == torch.ops.aten._native_batch_norm_legit_no_training.default:
                 return batch_norm_inference(*args)
@@ -1144,6 +1182,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 if tensor_shape == src_tensor_shape:
                     return src_tensor
 
+                # Convert both inputs to bfloat16 because ttnn.concat does not work with certain
+                # shapes if they are of uint32 dtype.
+                # https://github.com/tenstorrent/tt-metal/issues/20376
+                if tensor.meta["val"].dtype not in [torch.bfloat16, torch.float]:
+                    tensor = g.call_function(ttnn.typecast, (tensor, TtnnBfloat16()))
+
+                if src_tensor.meta["val"].dtype not in [torch.bfloat16, torch.float]:
+                    src_tensor = g.call_function(ttnn.typecast, (src_tensor, TtnnBfloat16()))
+
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
                 [step] = step or [1]
@@ -1154,6 +1201,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
 
                 dim = (dim + rank) % rank
                 start = start if start is not None else 0
+                start = start if start >= 0 else (start + tensor_shape[dim])
                 end = end if end is not None else tensor_shape[dim]
                 end = end if end >= 0 else (end + tensor_shape[dim])
                 end = 0 if end < 0 else min(tensor_shape[dim], end)
@@ -1180,6 +1228,16 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 tensors_to_concat = []
                 for tensor in tensors_list:
                     tensors_to_concat.append(g.call_function(ttnn.to_layout, (tensor,), {"layout": TtnnTileLayout()}))
+
+                # Bug: https://github.com/tenstorrent/tt-metal/issues/20205
+                # If rank is 1D, unsqueeze to 2D, then squeeze back to 1D
+                # Delete this block once the bug is fixed.
+                if rank == 1:
+                    for idx, ten in enumerate(tensors_to_concat):
+                        tensors_to_concat[idx] = g.call_function(ttnn.unsqueeze, (ten, 0))
+
+                    concat = g.call_function(ttnn.concat, (tensors_to_concat, dim + 1))
+                    return g.call_function(ttnn.squeeze, (concat, 0))
 
                 return g.call_function(ttnn.concat, (tensors_to_concat, dim))
 
@@ -1217,6 +1275,138 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, use_less_ttnn_op_types: bool
                 input_shape = get_shape(gm, args[0])
                 ttnn_all = g.call_function(target_wrappers.all, args=(args[0], input_shape.numel()))
                 return g.call_function(torch.ops.aten.squeeze.default, args=(ttnn_all,))
+
+            if node.target == torch.ops.aten.copy.default:
+                # Equivalent to in-place torch.copy_.
+                return args[1]
+
+            if node.target == torch.ops.aten.empty.memory_format:
+                # raise RuntimeError(f"{str(kwargs)}, {str(args)}, {str(type(args[0]))}")
+                dtype_mapping = {
+                    torch.float32: TtnnBfloat16(),
+                    torch.float16: TtnnBfloat16(),
+                    torch.int32: TtnnInt32(),
+                }
+                dtype = dtype_mapping.get(kwargs["dtype"], TtnnUint32())
+                new_kwargs = {
+                    "dtype": dtype,
+                    "layout": TtnnTileLayout(),
+                    "device": TtnnDevice(),
+                }
+                return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
+            if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
+
+                def pad_qkv_ttnn(q, k, v, scale=None, align_by=ttnn.TILE_SIZE):
+                    """
+                    Pads the last dimension of Q, K, V tensors to `tile_size`
+                    and rescales Q so that the scaled-dot-product attention
+                    is numerically identical to the unpadded case.
+                    """
+                    # Extract shape from metadata
+                    q_shape = list(q.meta["val"].shape)
+                    d = q_shape[-1]
+                    pad = (-d) % align_by  # 0 – 31
+
+                    padded_shape = q_shape.copy()
+                    padded_shape[-1] = d + pad
+
+                    if pad:
+                        ttnn_pad = [(0, pad)]
+
+                        # metadata is broken because torch fx expects sdpa to return a tuple
+                        torch_pad = tuple(x for pair in ttnn_pad for x in pair)
+                        meta_val = torch.nn.functional.pad(g._get_val(q), torch_pad, value=0)
+
+                        # 1) zero‑pad along head_dim
+                        q = g.call_function(ttnn.pad, args=(q, ttnn_pad, 0))
+                        k = g.call_function(ttnn.pad, args=(k, ttnn_pad, 0))
+                        v = g.call_function(ttnn.pad, args=(v, ttnn_pad, 0))
+
+                        q.meta["val"] = meta_val
+                        k.meta["val"] = meta_val
+                        v.meta["val"] = meta_val
+
+                        # 2) rescale Q so that Q*K^T / sqrt(d') == Q_p*K_p^T / sqrt(d)
+                        if scale is None:
+                            calc_scale = math.sqrt((d + pad) / d)
+                            q = g.call_function(ttnn.multiply, args=(q, calc_scale))
+
+                    return q, k, v, d
+
+                def select(dropout_p=0.0, is_causal=False):
+                    # TODO(jdh8): Add support for training mode
+                    if dropout_p > 0.0 or not is_getitem_0_only_user(node):
+                        return None
+
+                    # Pad last dimension of Q, K, V to tile size
+                    q, k, v = args[:3]
+                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None))
+
+                    # TODO: Those configs can be further optimized based on input shape to get
+                    # best performance/accuracy tradeoff
+                    default_q_chunk_size = 32  # <- The bigger the better accuracy but slower
+                    default_k_chunk_size = 32
+
+                    compute_config_params = {
+                        "math_fidelity": ttnn.MathFidelity.HiFi2,
+                        "math_approx_mode": True,
+                        "fp32_dest_acc_en": False,
+                        "packer_l1_acc": False,
+                    }
+                    if ttnn.device.is_wormhole_b0(device):
+                        compute_kernel_config = get_emplace_custom_object_in_graph(
+                            ttnn.WormholeComputeKernelConfig, **compute_config_params
+                        )
+                    elif ttnn.device.is_blackhole(device):
+                        compute_kernel_config = get_emplace_custom_object_in_graph(
+                            ttnn.BlackholeComputeKernelConfig, **compute_config_params
+                        )
+                    else:
+                        raise RuntimeError(f"Unsupported device for {device.arch()} compute kernel config")
+                    program_config = get_emplace_custom_object_in_graph(
+                        ttnn.SDPAProgramConfig,
+                        compute_with_storage_grid_size=device.compute_with_storage_grid_size(),
+                        q_chunk_size=default_q_chunk_size,
+                        k_chunk_size=default_k_chunk_size,
+                        exp_approx_mode=False,
+                    )
+                    res_node = g.call_function(
+                        ttnn.transformer.scaled_dot_product_attention,
+                        args=(q_padded, k_padded, v_padded),
+                        kwargs={
+                            "is_causal": is_causal,
+                            "scale": kwargs.get("scale", None),
+                            "compute_kernel_config": compute_kernel_config,
+                            "program_config": program_config,
+                        },
+                    )
+
+                    # If padding was applied, slice the result back to original dimension
+                    pad = (-d) % 32
+                    if pad:
+                        output_shape = list(res_node.meta["val"][0].shape)
+                        slice_start = [0] * len(output_shape)
+                        slice_end = output_shape.copy()
+                        slice_end[-1] = d  # Set last dimension back to original size
+                        res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
+
+                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a
+                    # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
+                    if (val := res_node.meta.get("val", None)) is not None:
+                        res_node.meta["val"] = val[0]
+
+                    return res_node
+
+                return select(*args[3:])
+
+            # Removes getitem after ttnn.transformer.scaled_dot_product_attention
+            # Related to https://github.com/tenstorrent/tt-metal/issues/16021
+            if node.target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
+                if args[0].target == ttnn.transformer.scaled_dot_product_attention or (
+                    args[0].target == ttnn.slice
+                    and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
+                ):
+                    return args[0]
 
             # PEP 8 suggests this explicit statement
             return None
@@ -1322,6 +1512,14 @@ def rewrite_graph(gm: torch.fx.GraphModule, rewrite_node_fn) -> torch.fx.GraphMo
 
 
 class ToTtPass(PassBase):
+    """Pass to convert aten ops to ttnn ops.
+
+    This pass is currently multi-device aware since it rewrites the shard / replicate / concat operations inserted by the MultiDevicePass. Some aten to ttnn conversions are performed with the torch.fx.Transformer, while others are manually rewritten.
+
+    :param device: The device on which the workflow will execute. Can be a MeshDevice or Device.
+    :param use_less_ttnn_op_types: Whether to use less ttnn op types (maybe unused).
+    """
+
     def __init__(self, device, use_less_ttnn_op_types):
         self.device = device
         self.use_less_ttnn_op_types = use_less_ttnn_op_types
@@ -1346,7 +1544,7 @@ class ToTtPass(PassBase):
         cnt = 0
         while True:
             cnt += 1
-            gm, modified = ReplaceMoreTtManually(gm, self.use_less_ttnn_op_types)
+            gm, modified = ReplaceMoreTtManually(gm, self.device, self.use_less_ttnn_op_types)
             if not modified:
                 break
             if cnt == max_try:

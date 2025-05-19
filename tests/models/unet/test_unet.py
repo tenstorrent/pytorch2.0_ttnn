@@ -5,11 +5,12 @@
 
 import numpy as np
 from PIL import Image
+from os import path
 from torchvision import transforms
 import requests
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, get_cached_image_or_reload
 
 
 class ThisTester(ModelTester):
@@ -21,13 +22,17 @@ class ThisTester(ModelTester):
             out_channels=1,
             init_features=32,
             pretrained=True,
+            skip_validation=True,
         )
         model = model.to(torch.bfloat16)
         return model
 
     def _load_inputs(self):
-        url = "https://github.com/mateuszbuda/brain-segmentation-pytorch/raw/master/assets/TCGA_CS_4944.png"
-        input_image = Image.open(requests.get(url, stream=True).raw)
+        image_file = get_cached_image_or_reload(
+            relative_cache_path="inputs/TCGA_CS_4944.png",
+            url="https://github.com/mateuszbuda/brain-segmentation-pytorch/raw/master/assets/TCGA_CS_4944.png",
+        )
+        input_image = Image.open(image_file)
         m, s = np.mean(input_image, axis=(0, 1)), np.std(input_image, axis=(0, 1))
         preprocess = transforms.Compose(
             [

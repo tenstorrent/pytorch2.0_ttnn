@@ -4,6 +4,8 @@
 import torch
 import numpy as np
 import re
+import requests
+from os import path, makedirs
 from collections.abc import Mapping, Sequence
 from typing import List, Dict, Tuple
 
@@ -147,6 +149,33 @@ class ModelTester:
             raise ValueError(f"Current mode is not supported: {self.mode}")
 
 
+def get_absolute_cache_path(path_relative_to_cache):
+    # convenience method to use NFS if available
+    nfs_cache_base = "/mnt/tt-metal-pytorch-cache/.cache"
+    if path.exists(nfs_cache_base):
+        return path.join(nfs_cache_base, path_relative_to_cache)
+    else:
+        absolute_cache_base = path.expanduser("~/.cache")
+        return path.join(absolute_cache_base, path_relative_to_cache)
+
+
+def get_cached_image_or_reload(relative_cache_path, url):
+    absolute_cache_path = get_absolute_cache_path(relative_cache_path)
+
+    if path.exists(absolute_cache_path):
+        return absolute_cache_path
+
+    dir, _ = path.split(absolute_cache_path)
+    makedirs(dir, exist_ok=True)
+
+    image_file = requests.get(url, stream=True)
+    with open(absolute_cache_path, "wb") as file:
+        for chunk in image_file.iter_content(chunk_size=8192):
+            file.write(chunk)
+
+    return absolute_cache_path
+
+
 # Testing utils copied from tt-metal/tests/ttnn/utils_for_testing.py
 def comp_pcc(golden, calculated, pcc=0.99):
     golden = torch.Tensor(golden)
@@ -233,53 +262,43 @@ def check_with_pcc(expected_pytorch_result, actual_pytorch_result, pcc=0.999):
     return pcc_passed, construct_pcc_assert_message(pcc_message, expected_pytorch_result, actual_pytorch_result)
 
 
-def calculate_accuracy(original_outputs, compiled_outputs):
-    if (
-        isinstance(original_outputs, list) and len(original_outputs) == 1 and isinstance(original_outputs[0], dict)
-    ) and (isinstance(compiled_outputs, list) and len(compiled_outputs) == 1 and isinstance(compiled_outputs[0], dict)):
-        original_outputs = original_outputs[0]
-        compiled_outputs = compiled_outputs[0]
-    if isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
-        # Handle case where outputs can be converted to dictionaries
-        original_outputs = dict(original_outputs)
-        compiled_outputs = dict(compiled_outputs)
-        output_pccs = []
-        assert original_outputs.keys() == compiled_outputs.keys(), (
-            f"Original and compiled output do not have the same set of keys."
-            f"original keys:\n{original_outputs.keys()}\ncompiled keys:\n{compiled_outputs.keys()}"
-        )
-        for original_outputs, compiled_outputs in zip(original_outputs.values(), compiled_outputs.values()):
-            # TODO: Support other sequence types
-            if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
-                _, pcc = comp_pcc(original_outputs, compiled_outputs)
-                output_pccs.append(pcc)
-        assert (
-            output_pccs
-        ), f"No comparable outputs:\noriginal_outputs:\n{original_outputs}\ncompiled_outputs:\n{compiled_outputs}"
-        accuracy = torch.mean(torch.tensor(output_pccs)).item()
+# Outputs can be a mix of nested Lists/Dicts of Torch Tensors.
+# This function will recursively process them.
+def calculate_accuracy(original_outputs, compiled_outputs) -> float:
+    if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
+        # Base case: Outputs are Torch tensors
+        _, accuracy = comp_pcc(original_outputs, compiled_outputs)
+        return accuracy
     elif (isinstance(original_outputs, list) and isinstance(compiled_outputs, list)) or (
         isinstance(original_outputs, tuple) and isinstance(compiled_outputs, tuple)
     ):
-        # Handle case where outputs are lists
-        output_pccs = []
+        # Outputs are lists or tuples
         assert len(original_outputs) == len(compiled_outputs), (
             f"Original and compiled output do not have the same length."
             f"original length: {len(original_outputs)}\ncompiled length: {len(compiled_outputs)}"
         )
-        for original_outputs, compiled_outputs in zip(original_outputs, compiled_outputs):
-            if isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
-                _, pcc = comp_pcc(original_outputs, compiled_outputs)
-                output_pccs.append(pcc)
-        assert (
-            output_pccs
-        ), f"No comparable outputs:\noriginal_outputs:\n{original_outputs}\ncompiled_outputs:\n{compiled_outputs}"
-        accuracy = torch.mean(torch.tensor(output_pccs)).item()
-    elif isinstance(original_outputs, torch.Tensor) and isinstance(compiled_outputs, torch.Tensor):
-        # Handle case where outputs are Pytorch Tensors
-        _, accuracy = comp_pcc(original_outputs, compiled_outputs)
+        accuracies = []
+        for original_output, compiled_output in zip(original_outputs, compiled_outputs):
+            accuracies.append(calculate_accuracy(original_output, compiled_output))
+        return np.mean(accuracies)
+    elif isinstance(original_outputs, dict) and isinstance(compiled_outputs, dict):
+        # Outputs are dicts
+        original_outputs = dict(original_outputs)
+        compiled_outputs = dict(compiled_outputs)
+        accuracies = []
+        assert original_outputs.keys() == compiled_outputs.keys(), (
+            f"Original and compiled output do not have the same set of keys."
+            f"original keys:\n{original_outputs.keys()}\ncompiled keys:\n{compiled_outputs.keys()}"
+        )
+        for key in original_outputs.keys():
+            original_output = original_outputs[key]
+            compiled_output = compiled_outputs[key]
+            accuracies.append(calculate_accuracy(original_output, compiled_output))
+        return np.mean(accuracies)
     else:
-        accuracy = None
-    return accuracy
+        raise ValueError(
+            f"Output types are not comparable:\noriginal_outputs:\n{type(original_outputs)}\ncompiled_outputs:\n{type(compiled_outputs)}"
+        )
 
 
 class MetricStrRenderer:

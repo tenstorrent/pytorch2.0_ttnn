@@ -16,7 +16,9 @@ class ThisTester(ModelTester):
         The model is from https://github.com/facebookresearch/detr
         """
         # Model
-        model = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True).to(torch.bfloat16)
+        model = torch.hub.load("facebookresearch/detr:main", "detr_resnet50", pretrained=True, skip_validation=True).to(
+            torch.bfloat16
+        )
         return model
 
     def _load_inputs(self):
