@@ -35,4 +35,4 @@ pip3 install -e $CUR_DIR/third-party/tt-metal/
 export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
 echo "> TT_METAL_HOME: $TT_METAL_HOME"
 echo "> Building cpp extension"
-CMAKE_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache" python3 setup.py develop
+CMAKE_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER=g++-12;-DCMAKE_C_COMPILER=gcc-12" python3 setup.py develop

@@ -116,3 +116,6 @@ If you use VSCode, setup `launch.json` in a similar manner
 
 Now you can set a breakpoint in c++ file and it will be hit when you run a python script.
 You can also use bt to see more information from python execution.
+
+## Native cpp integration
+- **Externa tt-metal and Pytorch build** is a way to develop with meatal sources with native cpp extension

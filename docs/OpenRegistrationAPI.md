@@ -47,6 +47,7 @@ There are currently two verified paths to build extra dependencies. Choose one:
     ```
 
 ## External tt-metal and Pytorch build
+Please note that ttnn c++ interface is constantly changing, so cpp extension might not work for newer ttnn versions "out-of-the-box"
 
 ###  Build tt-metal and set up venv
 1. Change to your preferred starting directory.
@@ -143,7 +144,7 @@ Please make sure that extension is built while being in venv that was prepared b
     ```bash
     pushd pytorch2.0_ttnn
     pushd torch_ttnn/cpp_extension
-    python3 setup.py develop # Make sure TT_METAL_HOME is pointing to cloned tt-metal repo
+    CMAKE_FLAGS="-DCMAKE_CXX_COMPILER=clang++-17;-DCMAKE_C_COMPILER=clang-17" python3 setup.py develop # Make sure TT_METAL_HOME is pointing to cloned tt-metal repo
     ```
 
 
