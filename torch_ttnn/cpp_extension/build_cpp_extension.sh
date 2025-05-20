@@ -10,6 +10,7 @@ echo "> TORCH_ABI_FLAGS: $TORCH_ABI_FLAGS"
 
 # Configure ttnn
 # TODO: check if c++17 is enough
+echo "> Configuring ttnn"
 cmake -B $CUR_DIR/third-party/tt-metal/build \
     -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
@@ -26,9 +27,12 @@ cmake -B $CUR_DIR/third-party/tt-metal/build \
 
 
 # Build ttnn
+echo "> Building ttnn"
 ninja -C $CUR_DIR/third-party/tt-metal/build install
 
 pip3 install -e $CUR_DIR/third-party/tt-metal/
 
 export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
+echo "> TT_METAL_HOME: $TT_METAL_HOME"
+echo "> Building cpp extension"
 CMAKE_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache" python3 setup.py develop

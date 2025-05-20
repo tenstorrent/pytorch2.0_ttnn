@@ -2,7 +2,7 @@
 
 Pytorch Open Registration API allows integrating TTNN implementation into Torch. We can access TTNN ops from higher-level Torch calls.
 
-# Build Notes
+# Build Nodes
 There are currently two verified paths to build extra dependencies. Choose one:
 
 * [Submodule build](#submodule-build) (Most simple)
@@ -10,36 +10,44 @@ There are currently two verified paths to build extra dependencies. Choose one:
 
 ## Submodule build
 
-1. Change to your preferred starting directory.
+## Prepare environment
 1. Clone pytorch2.0_ttnn
-    ```
+    ```bash
     git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
+    cd pytorch2.0_ttnn
     ```
-1. Create a new venv and install requirements
+
+2. Install dependencies
+    ```bash
+    apt upgrade -y && apt update -y
+    apt install -y cmake python3 python3-venv python3-pip git-lfs ccache
     ```
-    pushd pytorch2.0_ttnn
+
+3. Create a new venv and install python requirements
+    ```bash
     python3 -m venv venv
     source venv/bin/activate
+    python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
     pip install -r requirements-dev.txt
+    pip install --force-reinstall pip==21.2.4
+    python3 -m pip install numpy setuptools wheel
+    python3 -m pip install -e .
     ```
-1. Fetch submodules, build tt-metal, and build cpp_extension.  
+4. Fetch submodules, build tt-metal, and build cpp_extension.  
     Note: The ttnn python package from tt-metal will not be installed.
-    ```
+    ```bash
     pushd torch_ttnn/cpp_extension
     git submodule sync
     git submodule update --init --recursive
-    CMAKE_FLAGS="-DENABLE_SUBMODULE_TT_METAL_BUILD=ON" python3 setup.py develop
-
+    git submodule foreach 'git lfs fetch --all && git lfs pull'
+    ./third-party/tt-metal/install_dependencies.sh
+    ./build_cpp_extension.sh
+    export TT_METAL_HOME=./third-party/tt-metal
     popd
-    popd
-    ```
-
-    Note: you can pass multiple cmake flags with ';' separator:
-    ```bash
-    CMAKE_FLAGS="-DENABLE_SUBMODULE_TT_METAL_BUILD=ON;-DCMAKE_BUILD_TYPE=Debug" python3 setup.py develop
     ```
 
 ## External tt-metal and Pytorch build
+
 ###  Build tt-metal and set up venv
 1. Change to your preferred starting directory.
 1. Clone tt-metal
@@ -49,11 +57,12 @@ There are currently two verified paths to build extra dependencies. Choose one:
     ```
 1. Set `TT_METAL_HOME`
     ```
-    export TT_METAL_HOME="$(PWD)"
+    export TT_METAL_HOME="$(pwd)"
     ```
 1. Build tt-metal
 
     ```
+    ./install_dependencies.sh
     ./build_metal.sh --enable-ccache
     ```
 1. Create new virtual environment
@@ -69,7 +78,7 @@ There are currently two verified paths to build extra dependencies. Choose one:
 1. Clone pytorch2.0_ttnn
     ```
     git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
-    pushd
+    pushd pytorch2.0_ttnn
     ```
 1. Edit `requirements.txt` and remove the line starting with `ttnn`. This part is important.
 1. Install requirements
@@ -86,16 +95,16 @@ There are currently two verified paths to build extra dependencies. Choose one:
     ```
 
 ### Build pytorch
-Wheel torch doesn't work with cmake cpp extension, probably due to different ABI used for pybind in ttnn and pytorch. One solution is to rebuild torch with clang-17
+Wheel torch might not work with cmake cpp extension, due to different ABI used for pybind in ttnn and pytorch. One solution is to rebuild torch with clang-17
 1. Remove existing torch
     ```
     pip uninstall -y torch torchvision torchmetrics torch-fidelity
     ```
-1. Other dependencies
+2. Other dependencies
     ```
-    sudo apt install libomp-17-dev
+    apt install libomp-17-dev
     ```
-1. Clone torch and checkout compatible version with tt-metal
+3. Clone torch and checkout compatible version with tt-metal
     ```
     git clone https://github.com/pytorch/pytorch.git
     pushd pytorch
@@ -109,22 +118,22 @@ Wheel torch doesn't work with cmake cpp extension, probably due to different ABI
     pip install -U numpy==1.26.4
     pip install -r requirements.txt
     ```
-1. Build torch
+2. Build torch
     ```
     CC=clang-17 CXX=clang++-17 CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
 
     popd
     ```
 
-### Build torchvision
-Optionally, you can build torchvision, which might be requires for some computer-vision models:
-```bash
-git clone https://github.com/pytorch/vision
-pushd vision
-git checkout v0.17.1
-CC=clang-17 CXX=clang++-17 CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
-popd
-```
+### Build torchvision (Optional)
+Optionally, you can build torchvision, which might be required for some computer-vision models:
+    ```bash
+    git clone https://github.com/pytorch/vision
+    pushd vision
+    git checkout v0.17.1
+    CC=clang-17 CXX=clang++-17 CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
+    popd
+    ```
 
 
 ### Building cpp extension
@@ -134,15 +143,15 @@ Please make sure that extension is built while being in venv that was prepared b
     ```bash
     pushd pytorch2.0_ttnn
     pushd torch_ttnn/cpp_extension
-    python3 setup.py develop
+    python3 setup.py develop # Make sure TT_METAL_HOME is pointing to cloned tt-metal repo
     ```
 
 
 ## Running tests
 Check to make sure `PYTHONPATH` is unset.
 
-* If [Submodule build](#submodule-build) path was followed, make sure `TT_METAL_HOME` is still unset.
-* If [External tt-metal and Pytorch build](#external-tt-metal-and-pytorch-build) path was followed, make sure `TT_METAL_HOME` is still set.
+* If [Submodule build](#submodule-build) path was followed, make sure `TT_METAL_HOME` is set to tt-metal submodule
+* If [External tt-metal and Pytorch build](#external-tt-metal-and-pytorch-build) path was followed, make sure `TT_METAL_HOME` is set to your local tt-metal clone
 
 Run in the root of `pytorch2.0_ttnn` repo:
 ```
@@ -153,14 +162,6 @@ You can also run with `DEBUG_CPP_EXT=1` ENV to enable logging messages.
 
 ## Troubleshooting
 * Ensure `numpy < 2.0`
-
-## Development
-When developing cpp extension, it might be convenient to have `compile_commands.json` to enable syntax highlighting and indexing of code. bear utility can help generate them:
-```bash
-sudo apt install bear
-rm -rf ${HOME}/.cache/torch_extensions
-bear -- pytest tests/cpp_extension/test_cpp_extension_functionality.py -s
-```
 
 # References
 https://github.com/bdhirsh/pytorch_open_registration_example
