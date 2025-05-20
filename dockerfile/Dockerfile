@@ -30,3 +30,6 @@ RUN python3 -m pip install --no-cache-dir -r /tmp/requirements-dev.txt && \
 
 # Clean up the temporary requirements files
 RUN rm /tmp/requirements-dev.txt /tmp/requirements.txt
+
+# Associate package to repo
+LABEL org.opencontainers.image.source=https://github.com/tenstorrent/pytorch2.0_ttnn
