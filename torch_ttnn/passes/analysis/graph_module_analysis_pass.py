@@ -7,13 +7,11 @@ from enum import Enum
 
 
 class ModelType(Enum):
-    """Enumeration of compiled model inputs.
+    """Enumeration of model types differentiating between inference and training, forward and backward.
 
-    It is expected that PARAMETER and BUFFER tensors do not change between inference runs, but ARGUMENT tensors may change.
-
-    :param PARAMETER: Tensor tracked by optimizer during training. Represents weights and biases.
-    :param BUFFER: Tensor not updated during training but still part of model state. Normally used for non-trainable data like fixed weights or running statistics in batch norm.
-    :param ARGUMENT: Tensors not tracked by model and not persistent between calls. Can be input data or configuration options to module's methods.
+    :param INFERENCE: Model with this tag is for the forward pass of inference.
+    :param TRAIN_FORWARD: Model wih this tag is for the forward pass of a training run.
+    :param TRAIN_BACKWARD: Model with this tag is for the backward pass of a training run.
     """
 
     INFERENCE = 1
@@ -21,6 +19,8 @@ class ModelType(Enum):
     TRAIN_BACKWARD = 3
 
 
+# this list seems small, but is based off all the backward calls from the Core Aten IR:
+# https://docs.pytorch.org/docs/stable/torch.compiler_ir.html
 aten_backward_ops = {
     torch.ops.aten._adaptive_avg_pool2d_backward.default,
     torch.ops.aten.avg_pool2d_backward.default,
@@ -42,6 +42,8 @@ def is_train_backward(gm):
 
 
 def is_train_forward(gm):
+    # Assume training forward calls are differentiated by directly returning one of the inputs to be used for calculating gradients
+    # If this assumption fails in the future, we will need to update this function
     outputs = [node for node in gm.graph.nodes if node.op == "output"]
     for node in outputs:
         placeholder_args = [arg for arg in node.args[0] if arg.op == "placeholder"]

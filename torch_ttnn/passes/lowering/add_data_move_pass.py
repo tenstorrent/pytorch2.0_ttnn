@@ -567,9 +567,8 @@ class NodeInputAligner:
             # already handled
             return 0
 
-        with self.graph.inserting_before(first_node):
-            self.marshaled_node_dict[data_move_spec] = self.input_idx
-            self.input_idx += 1
+        self.marshaled_node_dict[data_move_spec] = self.input_idx
+        self.input_idx += 1
 
         return 1
 
@@ -623,28 +622,28 @@ class NodeInputAligner:
 
 def insert_load_params_once(gm, first_node, nodes, node_input_aligner):
     SiteType = NodeInputAligner.InputSiteType
-    i = 0
+    modifications_count = 0
 
     for node in nodes:
         args = node.args
         for idx, arg in enumerate(args):
             if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                 for tuple_idx, tuple_arg in enumerate(arg):
-                    i += node_input_aligner.marshal_params(
+                    modifications_count += node_input_aligner.marshal_params(
                         node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node
                     )
             else:
-                i += node_input_aligner.marshal_params(node, arg, idx, SiteType.ARGS, first_node)
+                modifications_count += node_input_aligner.marshal_params(node, arg, idx, SiteType.ARGS, first_node)
 
         kwargs = node.kwargs
         for key, arg in kwargs.items():
             if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                 for tuple_idx, tuple_arg in enumerate(arg):
-                    i += node_input_aligner.marshal_params(
+                    modifications_count += node_input_aligner.marshal_params(
                         node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node
                     )
             else:
-                i += node_input_aligner.marshal_params(node, arg, key, SiteType.KWARGS, first_node)
+                modifications_count += node_input_aligner.marshal_params(node, arg, key, SiteType.KWARGS, first_node)
 
     # reset run_once_count so recompilation triggers loading weights
     with gm.graph.inserting_before(first_node):
@@ -658,7 +657,7 @@ def insert_load_params_once(gm, first_node, nodes, node_input_aligner):
             ),
         )
 
-    return i, ttnn_inputs
+    return modifications_count, ttnn_inputs
 
 
 class AddDataMovePass(PassBase):
@@ -675,7 +674,7 @@ class AddDataMovePass(PassBase):
     def call(self, gm: torch.fx.GraphModule):
         SiteType = NodeInputAligner.InputSiteType
 
-        i = 0
+        modifications_count = 0
         node_input_aligner = NodeInputAligner(gm.graph, self.device)
         nodes = list(gm.graph.nodes)
 
@@ -686,7 +685,7 @@ class AddDataMovePass(PassBase):
         if gm.meta.get("graph_type") == ModelType.INFERENCE:
             global run_once_count
             target_wrappers.run_once_count = 0
-            i, ttnn_inputs = insert_load_params_once(gm, first_node, nodes, node_input_aligner)
+            modifications_count, ttnn_inputs = insert_load_params_once(gm, first_node, nodes, node_input_aligner)
 
         # then handle rest of the args and kwargs
         for node in nodes:
@@ -694,22 +693,26 @@ class AddDataMovePass(PassBase):
             for idx, arg in enumerate(args):
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(
+                        modifications_count += node_input_aligner.align(
                             node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node, ttnn_inputs
                         )
                 else:
-                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS, first_node, ttnn_inputs)
+                    modifications_count += node_input_aligner.align(
+                        node, arg, idx, SiteType.ARGS, first_node, ttnn_inputs
+                    )
 
             kwargs = node.kwargs
             for key, arg in kwargs.items():
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(
+                        modifications_count += node_input_aligner.align(
                             node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node, ttnn_inputs
                         )
                 else:
-                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS, first_node, ttnn_inputs)
+                    modifications_count += node_input_aligner.align(
+                        node, arg, key, SiteType.KWARGS, first_node, ttnn_inputs
+                    )
 
-        modified = i > 0
+        modified = modifications_count > 0
         GraphCleanup(gm)
         return PassResult(gm, modified)
