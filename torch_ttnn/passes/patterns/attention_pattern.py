@@ -57,6 +57,12 @@ class AttentionPatterns(PatternMatcherBase):
                 attn_mask = softmax.kwargs.get("attention_mask")
                 # Get scale if it exists in kwargs
                 head_size = softmax.kwargs.get("head_size")
+
+                # If head_size is not provided, we cannot proceed
+                # at least for now...
+                if not head_size:
+                    continue
+
                 scale = 1.0 / (head_size**0.5) if head_size is not None else None
 
                 # Check if softmax output goes to a view
@@ -128,7 +134,7 @@ class AttentionPatterns(PatternMatcherBase):
     # Hack! TTNN does not support concat with tensors of 1D
     # https://github.com/tenstorrent/tt-metal/issues/20205
     # bias is 1D tensor, so we need to make it 2D
-    def _hack_1D_bias(self, bias_node, node_before_bias):
+    def _hack_1D_bias(self, bias_node):
         """Reshape bias node to 2D Shape
 
         Args:
@@ -137,13 +143,11 @@ class AttentionPatterns(PatternMatcherBase):
         Returns:
             The reshaped node
         """
-
-        with self.gm.graph.inserting_after(node_before_bias):
-            new_bias_node = self.gm.graph.call_function(
-                ttnn.experimental.view,
-                args=(bias_node, (1, -1)),
-                kwargs={},
-            )
+        new_bias_node = self.gm.graph.call_function(
+            ttnn.experimental.view,
+            args=(bias_node, (1, -1)),
+            kwargs={},
+        )
 
         return new_bias_node
 
@@ -182,48 +186,48 @@ class AttentionPatterns(PatternMatcherBase):
             head_size = softmax.kwargs.get("head_size")
             num_heads = q_view1.meta["val"].shape[-1] // head_size
 
-            with self.gm.graph.inserting_after(matmul_sv):
-                transposed_q_weights_node = self.gm.graph.call_function(
-                    ttnn.transpose,
-                    args=(q_linear.args[1], -2, -1),
-                )
+            with self.gm.graph.inserting_before(view5):
+                with self.gm.graph.inserting_after(matmul_sv):
+                    transposed_q_weights_node = self.gm.graph.call_function(
+                        ttnn.transpose,
+                        args=(q_linear.args[1], -2, -1),
+                    )
 
-            with self.gm.graph.inserting_after(transposed_q_weights_node):
-                transposed_k_weights_node = self.gm.graph.call_function(
-                    ttnn.transpose,
-                    args=(k_linear.args[1], -2, -1),
-                    kwargs={},
-                )
+                with self.gm.graph.inserting_after(transposed_q_weights_node):
+                    transposed_k_weights_node = self.gm.graph.call_function(
+                        ttnn.transpose,
+                        args=(k_linear.args[1], -2, -1),
+                        kwargs={},
+                    )
 
-            with self.gm.graph.inserting_after(transposed_k_weights_node):
-                transposed_v_weights_node = self.gm.graph.call_function(
-                    ttnn.transpose,
-                    args=(v_linear.args[1], -2, -1),
-                    kwargs={},
-                )
+                with self.gm.graph.inserting_after(transposed_k_weights_node):
+                    transposed_v_weights_node = self.gm.graph.call_function(
+                        ttnn.transpose,
+                        args=(v_linear.args[1], -2, -1),
+                        kwargs={},
+                    )
 
-            with self.gm.graph.inserting_after(transposed_v_weights_node):
-                # Lets concatenate the qkv tensors for weights and biases
-                concatenated_qkv_weights_node = self.gm.graph.call_function(
-                    ttnn.concat,
-                    args=([transposed_q_weights_node, transposed_k_weights_node, transposed_v_weights_node], -1),
-                    kwargs={},
-                )
+                with self.gm.graph.inserting_after(transposed_v_weights_node):
+                    # Lets concatenate the qkv tensors for weights and biases
+                    concatenated_qkv_weights_node = self.gm.graph.call_function(
+                        ttnn.concat,
+                        args=([transposed_q_weights_node, transposed_k_weights_node, transposed_v_weights_node], -1),
+                        kwargs={},
+                    )
 
-            # _find_qkv_pattern ensures that the bias is not None
-            # this is not entirely true, because the bias is optional
-            # but since I want to control the replacement, I will make it a requirement
-            # for now.
-            q_bias = q_linear.kwargs["bias"]
-            k_bias = k_linear.kwargs["bias"]
-            v_bias = v_linear.kwargs["bias"]
+                # _find_qkv_pattern ensures that the bias is not None
+                # this is not entirely true, because the bias is optional
+                # but since I want to control the replacement, I will make it a requirement
+                # for now.
+                q_bias = q_linear.kwargs["bias"]
+                k_bias = k_linear.kwargs["bias"]
+                v_bias = v_linear.kwargs["bias"]
 
-            # Reshape biases if needed
-            q_bias_node = self._hack_1D_bias(q_bias, concatenated_qkv_weights_node)
-            k_bias_node = self._hack_1D_bias(k_bias, q_bias_node)
-            v_bias_node = self._hack_1D_bias(v_bias, k_bias_node)
+                # Reshape biases if needed
+                q_bias_node = self._hack_1D_bias(q_bias)
+                k_bias_node = self._hack_1D_bias(k_bias)
+                v_bias_node = self._hack_1D_bias(v_bias)
 
-            with self.gm.graph.inserting_after(v_bias_node):
                 # concatenate the biases
                 concatenated_qkv_biases_node = self.gm.graph.call_function(
                     ttnn.concat,
@@ -231,7 +235,6 @@ class AttentionPatterns(PatternMatcherBase):
                     kwargs={},
                 )
 
-            with self.gm.graph.inserting_after(concatenated_qkv_biases_node):
                 qvk_node = self.gm.graph.call_function(
                     ttnn.linear,
                     args=(
@@ -241,7 +244,6 @@ class AttentionPatterns(PatternMatcherBase):
                     kwargs={"bias": concatenated_qkv_biases_node},
                 )
 
-            with self.gm.graph.inserting_after(qvk_node):
                 shape = list(q_view1.meta["val"].shape)
                 shape[-1] = shape[-1] * 3
 
@@ -251,7 +253,6 @@ class AttentionPatterns(PatternMatcherBase):
                     kwargs={},
                 )
 
-            with self.gm.graph.inserting_after(linear_view_node):
                 # Time to split the qvk into q, k, v
                 split_qkv_node = self.gm.graph.call_function(
                     ttnn.transformer.split_query_key_value_and_split_heads,
@@ -259,35 +260,29 @@ class AttentionPatterns(PatternMatcherBase):
                     kwargs={"num_heads": num_heads, "transpose_key": True},
                 )
 
-            mask_new_shape = list(attn_mask.meta["val"].shape)
-            mask_new_shape[2], mask_new_shape[3] = mask_new_shape[3], mask_new_shape[2]
-            with self.gm.graph.inserting_after(split_qkv_node):
                 get_q_node = self.gm.graph.call_function(
                     operator.getitem,
                     args=(split_qkv_node, 0),
                     kwargs={},
                 )
-            with self.gm.graph.inserting_after(get_q_node):
+
                 get_k_node = self.gm.graph.call_function(
                     operator.getitem,
                     args=(split_qkv_node, 1),
                     kwargs={},
                 )
 
-            with self.gm.graph.inserting_after(get_k_node):
                 get_v_node = self.gm.graph.call_function(
                     operator.getitem,
                     args=(split_qkv_node, 2),
                     kwargs={},
                 )
 
-            with self.gm.graph.inserting_after(get_v_node):
                 attention_scores_node = self.gm.graph.call_function(
                     ttnn.matmul,
                     args=(get_q_node, get_k_node),
                 )
 
-            with self.gm.graph.inserting_after(attention_scores_node):
                 attention_probabilities_node = self.gm.graph.call_function(
                     ttnn.transformer.attention_softmax_,
                     args=(attention_scores_node,),
@@ -297,21 +292,19 @@ class AttentionPatterns(PatternMatcherBase):
                     },
                 )
 
-            with self.gm.graph.inserting_after(attention_probabilities_node):
                 matmul_sv_node = self.gm.graph.call_function(
                     ttnn.matmul,
                     args=(attention_probabilities_node, get_v_node),
                     kwargs={},
                 )
 
-            with self.gm.graph.inserting_after(matmul_sv_node):
-                concate_head_node = self.gm.graph.call_function(
+                concatenated_head_node = self.gm.graph.call_function(
                     ttnn.transformer.concatenate_heads,
                     args=(matmul_sv_node,),
                     kwargs={},
                 )
 
-            view5.replace_all_uses_with(concate_head_node)
+            view5.replace_all_uses_with(concatenated_head_node)
 
             # Remove old nodes in reverse order
             nodes_to_remove = [
@@ -343,8 +336,6 @@ class AttentionPatterns(PatternMatcherBase):
             ]
             self.safe_remove_nodes(nodes_to_remove)
 
-        self.gm.graph.lint()
-        self.gm.recompile()
         return matches
 
     def _find_qkv_pattern(self, linear, require_transpose=False, matmul_arg_idx=0):
