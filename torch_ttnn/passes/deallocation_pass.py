@@ -97,6 +97,9 @@ class DeallocationPass(PassBase):
                     # We don't want to delete these too early
                     if node.target in [target_wrappers.pack_to_tuple, operator.getitem]:
                         continue
+                    # Skip nodes that are cached between runs
+                    elif n.meta.get("is_cached", False):
+                        continue
                     with graph.inserting_after(node):
                         new_node = graph.call_function(deallocate, args=(n,))
                         modified = True
