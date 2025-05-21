@@ -19,16 +19,27 @@ class ModelType(Enum):
     TRAIN_BACKWARD = 3
 
 
-# this list seems small, but is based off all the backward calls from the Core Aten IR:
+# This list seems small, but is based off all the backward calls from the Core Aten IR:
 # https://docs.pytorch.org/docs/stable/torch.compiler_ir.html
+# The list is augmented by any ops we track in docs/operations, which helps capture more in practice
 aten_backward_ops = {
-    torch.ops.aten._adaptive_avg_pool2d_backward.default,
-    torch.ops.aten.avg_pool2d_backward.default,
     torch.ops.aten.convolution_backward.default,
+    torch.ops.aten.hardsigmoid_backward.default,
+    torch.ops.aten.native_batch_norm_backward.default,
+    torch.ops.aten.avg_pool2d_backward.default,
+    torch.ops.aten._softmax_backward_data.default,
+    torch.ops.aten.elu_backward.default,
     torch.ops.aten.embedding_dense_backward.default,
-    torch.ops.aten.max_pool2d_with_indices_backward.default,
-    torch.ops.aten.native_group_norm_backward.default,
+    torch.ops.aten.threshold_backward.default,
+    torch.ops.aten.sigmoid_backward.default,
     torch.ops.aten.native_layer_norm_backward.default,
+    torch.ops.aten.select_backward.default,
+    torch.ops.aten._log_softmax_backward_data.default,
+    torch.ops.aten.hardtanh_backward.default,
+    torch.ops.aten.gelu_backward.default,
+    torch.ops.aten.native_dropout_backward.default,
+    torch.ops.aten.max_pool2d_with_indices_backward.default,
+    torch.ops.aten.slice_backward.default,
 }
 
 
