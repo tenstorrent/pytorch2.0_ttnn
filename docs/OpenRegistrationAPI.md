@@ -95,13 +95,14 @@ Please note that ttnn c++ interface is constantly changing, so cpp extension mig
     tt-smi 3.0.12 requires pre-commit==3.5.0, but you have pre-commit 3.0.4 which is incompatible.
     ```
 
-### Build pytorch
-Wheel torch might not work with cmake cpp extension, due to different ABI used for pybind in ttnn and pytorch. One solution is to rebuild torch with clang-17
+### Build PyTorch
+Wheel torch might not work with cmake cpp extension, due to different ABI used for pybind in ttnn and pytorch. One solution is to rebuild torch with clang-17:
+
 1. Remove existing torch
     ```
     pip uninstall -y torch torchvision torchmetrics torch-fidelity
     ```
-2. Other dependencies
+2. Install other dependencies
     ```
     apt install libomp-17-dev
     ```
@@ -113,13 +114,13 @@ Wheel torch might not work with cmake cpp extension, due to different ABI used f
     git submodule sync
     git submodule update --init --recursive
     ```
-1. Install dependencies and requirements for torch
+4. Install dependencies and requirements for torch
     ```
     pip install mkl-static mkl-include
     pip install -U numpy==1.26.4
     pip install -r requirements.txt
     ```
-2. Build torch
+5. Build torch
     ```
     CC=clang-17 CXX=clang++-17 CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
 
