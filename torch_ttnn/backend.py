@@ -67,6 +67,9 @@ class TorchTtnnOption:
         self._n_buffers = None
         self._n_arguments = None
 
+        # Used for pre-loading model params
+        self._is_end_to_end = False
+
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
@@ -165,7 +168,7 @@ def aten_backend(
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         FusionPass(),
-        AddDataMovePass(option.device),
+        AddDataMovePass(option.device, option._is_end_to_end),
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
@@ -278,6 +281,9 @@ def ttnn_backend(
     options._n_parameters = len(list(gm.parameters()))
     options._n_buffers = len(list(gm.buffers()))
     options._n_arguments = len(example_inputs)
+
+    # Currently, we only support preprocessing weights for end-to-end converted models
+    options._is_end_to_end = gm.compile_subgraph_reason.graph_break == False
 
     tracer_option = options.tracer_option
     if tracer_option is not None:

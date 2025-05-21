@@ -26,7 +26,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="Before Merge fails, Run Tests passes"))],
+    ["eval"],
 )
 def test_falcon(record_property, mode):
     model_name = "Falcon"
