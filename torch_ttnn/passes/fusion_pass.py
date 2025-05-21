@@ -6,6 +6,7 @@ import torch
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from torch_ttnn.passes.patterns.linear_pattern import LinearPatterns
 from torch_ttnn.passes.patterns.soft_max_pattern import SoftMaxPatterns
+from torch_ttnn.passes.patterns.attention_pattern import AttentionPatterns
 from pathlib import Path
 
 
@@ -18,6 +19,8 @@ class FusionPass(PassBase):
 
         # List of pattern classes to apply
         pattern_classes = [LinearPatterns, SoftMaxPatterns]
+        # AttentionPatterns must be applied last
+        pattern_classes.append(AttentionPatterns)
 
         for pattern_cls in pattern_classes:
             pattern = pattern_cls(gm)
