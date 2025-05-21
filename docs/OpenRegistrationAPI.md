@@ -128,13 +128,13 @@ Wheel torch might not work with cmake cpp extension, due to different ABI used f
 
 ### Build torchvision (Optional)
 Optionally, you can build torchvision, which might be required for some computer-vision models:
-    ```bash
-    git clone https://github.com/pytorch/vision
-    pushd vision
-    git checkout v0.17.1
-    CC=clang-17 CXX=clang++-17 CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
-    popd
-    ```
+```bash
+git clone https://github.com/pytorch/vision
+pushd vision
+git checkout v0.17.1
+CC=clang-17 CXX=clang++-17 CMAKE_POLICY_VERSION_MINIMUM=3.5 python setup.py develop
+popd
+```
 
 
 ### Building cpp extension
