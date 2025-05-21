@@ -27,9 +27,9 @@ class AttentionPatterns(PatternMatcherBase):
         matches = []
 
         # Find all potential QKV candidates
-        query_candidates = self._find_query_candidates()
-        key_candidates = self._find_key_candidates()
-        value_candidates = self._find_value_candidates()
+        query_candidates = self._find_qkv_candidates(False, 0)
+        key_candidates = self._find_qkv_candidates(True, 1)
+        value_candidates = self._find_qkv_candidates(False, 1)
 
         # For each query candidate, try to find matching key and value candidates
         for q_candidate in query_candidates:
@@ -187,33 +187,29 @@ class AttentionPatterns(PatternMatcherBase):
             num_heads = q_view1.meta["val"].shape[-1] // head_size
 
             with self.gm.graph.inserting_before(view5):
-                with self.gm.graph.inserting_after(matmul_sv):
-                    transposed_q_weights_node = self.gm.graph.call_function(
-                        ttnn.transpose,
-                        args=(q_linear.args[1], -2, -1),
-                    )
+                transposed_q_weights_node = self.gm.graph.call_function(
+                    ttnn.transpose,
+                    args=(q_linear.args[1], -2, -1),
+                )
 
-                with self.gm.graph.inserting_after(transposed_q_weights_node):
-                    transposed_k_weights_node = self.gm.graph.call_function(
-                        ttnn.transpose,
-                        args=(k_linear.args[1], -2, -1),
-                        kwargs={},
-                    )
+                transposed_k_weights_node = self.gm.graph.call_function(
+                    ttnn.transpose,
+                    args=(k_linear.args[1], -2, -1),
+                    kwargs={},
+                )
 
-                with self.gm.graph.inserting_after(transposed_k_weights_node):
-                    transposed_v_weights_node = self.gm.graph.call_function(
-                        ttnn.transpose,
-                        args=(v_linear.args[1], -2, -1),
-                        kwargs={},
-                    )
+                transposed_v_weights_node = self.gm.graph.call_function(
+                    ttnn.transpose,
+                    args=(v_linear.args[1], -2, -1),
+                    kwargs={},
+                )
 
-                with self.gm.graph.inserting_after(transposed_v_weights_node):
-                    # Lets concatenate the qkv tensors for weights and biases
-                    concatenated_qkv_weights_node = self.gm.graph.call_function(
-                        ttnn.concat,
-                        args=([transposed_q_weights_node, transposed_k_weights_node, transposed_v_weights_node], -1),
-                        kwargs={},
-                    )
+                # Lets concatenate the qkv tensors for weights and biases
+                concatenated_qkv_weights_node = self.gm.graph.call_function(
+                    ttnn.concat,
+                    args=([transposed_q_weights_node, transposed_k_weights_node, transposed_v_weights_node], -1),
+                    kwargs={},
+                )
 
                 # _find_qkv_pattern ensures that the bias is not None
                 # this is not entirely true, because the bias is optional
@@ -385,29 +381,13 @@ class AttentionPatterns(PatternMatcherBase):
             return (linear, view1, reshape, permute, transpose, view2, matmul)
         return (linear, view1, reshape, permute, view2, matmul)
 
-    def _find_query_candidates(self):
-        query_candidates = []
-        linear_nodes = self._find_nodes_of_type(ttnn.linear)
-        for linear in linear_nodes:
-            candidate = self._find_qkv_pattern(linear, require_transpose=False, matmul_arg_idx=0)
-            if candidate:
-                query_candidates.append(candidate)
-        return query_candidates
-
-    def _find_key_candidates(self):
+    def _find_qkv_candidates(self, require_transpose, matmul_arg_idx):
         key_candidates = []
         linear_nodes = self._find_nodes_of_type(ttnn.linear)
         for linear in linear_nodes:
-            candidate = self._find_qkv_pattern(linear, require_transpose=True, matmul_arg_idx=1)
+            candidate = self._find_qkv_pattern(
+                linear, require_transpose=require_transpose, matmul_arg_idx=matmul_arg_idx
+            )
             if candidate:
                 key_candidates.append(candidate)
         return key_candidates
-
-    def _find_value_candidates(self):
-        value_candidates = []
-        linear_nodes = self._find_nodes_of_type(ttnn.linear)
-        for linear in linear_nodes:
-            candidate = self._find_qkv_pattern(linear, require_transpose=False, matmul_arg_idx=1)
-            if candidate:
-                value_candidates.append(candidate)
-        return value_candidates
