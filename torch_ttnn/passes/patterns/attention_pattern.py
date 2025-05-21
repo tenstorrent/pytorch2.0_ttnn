@@ -39,6 +39,10 @@ class AttentionPatterns(PatternMatcherBase):
             for k_candidate in key_candidates:
                 k_linear, k_view1, k_reshape, k_permute, k_transpose, k_view2, k_matmul = k_candidate
 
+                # check that the weights have the same shape
+                if q_linear.args[1].meta["val"].shape != k_linear.args[1].meta["val"].shape:
+                    continue
+
                 # Check if this is the QK matmul
                 if k_matmul is not q_matmul:
                     continue
@@ -73,6 +77,10 @@ class AttentionPatterns(PatternMatcherBase):
                 # Find matching value candidate
                 for v_candidate in value_candidates:
                     v_linear, v_view1, v_reshape, v_permute, v_view2, v_matmul = v_candidate
+
+                    # check that the weights have the same shape
+                    if q_linear.args[1].meta["val"].shape != v_linear.args[1].meta["val"].shape:
+                        continue
 
                     # Check if view output goes to matmul with value
                     matmul_sv = self._find_exclusive_user_of_type(view2, ttnn.matmul)
@@ -388,6 +396,7 @@ class AttentionPatterns(PatternMatcherBase):
             candidate = self._find_qkv_pattern(
                 linear, require_transpose=require_transpose, matmul_arg_idx=matmul_arg_idx
             )
+
             if candidate:
                 key_candidates.append(candidate)
         return key_candidates
