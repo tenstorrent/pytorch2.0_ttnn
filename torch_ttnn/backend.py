@@ -17,6 +17,7 @@ from torch_ttnn import mem_utils
 from torch_ttnn.utils import GraphCleanup
 import copy
 from torch_ttnn.utils import get_add_custom_object_in_graph
+import logging
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -154,6 +155,7 @@ def aten_backend(
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
     from torch_ttnn.passes.fusion_pass import FusionPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
+    from torch_ttnn.passes.lowering.load_once_pass import LoadOncePass
     from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
@@ -168,7 +170,8 @@ def aten_backend(
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         FusionPass(),
-        AddDataMovePass(option.device, option._is_end_to_end),
+        AddDataMovePass(option.device),
+        LoadOncePass(option._is_end_to_end),
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
@@ -190,7 +193,11 @@ def aten_backend(
         passes = passes_with_graphviz
 
     pm = PassManager(passes=passes)
-    gm, modified = pm(gm)
+    try:
+        gm, modified = pm(gm)
+    except Exception as e:
+        logging.error(e.__context__)
+        raise e
 
     GraphCleanup(gm)
 

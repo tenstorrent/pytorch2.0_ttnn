@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+from dataclasses import dataclass
 import ttnn
 import torch
+import pickle
 
 from torch_ttnn.utils import TtnnDevice
 
@@ -11,16 +13,72 @@ run_once_ans = tuple()
 
 
 @torch.fx.wrap
+@dataclass(frozen=True)
+class RunOnceIdx:
+    idx: int
+
+
+@torch.fx.wrap
 def run_once(*args):
     global run_once_count
     global run_once_ans
 
     if run_once_count == 0:
+        temp_results = []
+        return_results = []
+        to_deallocate = []
+
+        def lookup_function(str_name):
+            # assume function is of form `ttnn.from_torch`, look up in globals()
+            parts = str_name.split(".")
+            base = globals()[parts[0]]
+            for part in parts[1:]:
+                base = getattr(base, part)
+            return base
+
+        def lookup_prev_result(maybe_pickled_run_once_idx):
+            try:
+                run_once_idx = pickle.loads(maybe_pickled_run_once_idx)
+                return temp_results[run_once_idx.idx]
+            except pickle.UnpicklingError:
+                pass
+            return None
+
+        def rewrite_args(arg_tuple):
+            args = list(arg_tuple)
+            for i, arg in enumerate(args):
+                if isinstance(arg, bytes):
+                    if prev_result := lookup_prev_result(arg):
+                        args[i] = prev_result
+            return tuple(args)
+
+        def rewrite_kwargs(kwargs_dict):
+            for k, v in kwargs_dict.items():
+                if isinstance(v, bytes):
+                    if prev_result := lookup_prev_result(v):
+                        kwargs_dict[k] = prev_result
+            return kwargs_dict
 
         def convert_input(spec):
-            return ttnn.from_torch(*spec[0], **spec[1])
+            should_return, func_name, args, kwargs = spec
+            found_func = lookup_function(func_name)
+            # convert any args that reference previous results
+            args = rewrite_args(args)
+            kwargs = rewrite_kwargs(kwargs)
+            temp_results.append(found_func(*args, **kwargs))
+            if should_return:
+                return_results.append(temp_results[-1])
+            else:
+                to_deallocate.append(len(temp_results) - 1)
 
-        run_once_ans = tuple([convert_input(arg) for arg in args])
+        for function_call in args:
+            convert_input(function_call)
+
+        # deallocate temporaries
+        for idx in to_deallocate:
+            ttnn.deallocate(temp_results[idx])
+
+        run_once_ans = tuple(return_results)
         run_once_count += 1
 
     return run_once_ans
