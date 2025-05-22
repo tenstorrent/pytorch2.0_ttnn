@@ -30,7 +30,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?    | Done     | Done       | 0.999959 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1280]> mat1 = ?,<br>Tensor<[1280, 1000]> mat2 = ?    | Done     | Done       | 0.99996  |      0 |
 |  1 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 1280]> mat2 = ? | Done     | Done       | 0.999945 |      0 |
 |  2 | Tensor<[1280]> self = ?,<br>Tensor<[1370, 5120]> mat1 = ?,<br>Tensor<[5120, 1280]> mat2 = ? | Removed  | Done       | 0.999801 |      0 |
 |  3 | Tensor<[3840]> self = ?,<br>Tensor<[1370, 1280]> mat1 = ?,<br>Tensor<[1280, 3840]> mat2 = ? | Done     | Done       | 0.999946 |      0 |
@@ -58,9 +58,9 @@
 |---:|:---------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 1370, 5120]> self = ? | Removed  | Done       | 0.999991 |      0 |
 ### aten.native_layer_norm.default
-|    | ATen Input Variations                                                                                                                                                         | Status   | Isolated   | PCC   |   Host |
-|---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|-------:|
-|  0 | Tensor<[1, 1370, 1280]> input = ?,<br>List[int] normalized_shape = [1280],<br>Optional[Tensor]<[1280]> weight = ?,<br>Optional[Tensor]<[1280]> bias = ?,<br>float eps = 1e-06 | Done     | Done       | N/A   |      1 |
+|    | ATen Input Variations                                                                                                                                                         | Status   | Isolated   |      PCC |   Host |
+|---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
+|  0 | Tensor<[1, 1370, 1280]> input = ?,<br>List[int] normalized_shape = [1280],<br>Optional[Tensor]<[1280]> weight = ?,<br>Optional[Tensor]<[1280]> bias = ?,<br>float eps = 1e-06 | Done     | Done       | 0.995471 |      3 |
 ### aten.permute.default
 |    | ATen Input Variations                                                | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|------:|-------:|
