@@ -28,7 +28,7 @@
 ### aten.cos.default
 |    | ATen Input Variations         | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 32, 128]> self = ? | Done     | Done       | 0.999992 |      0 |
+|  0 | Tensor<[1, 32, 128]> self = ? | Done     | Done       | 0.999993 |      0 |
 ### aten.embedding.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
