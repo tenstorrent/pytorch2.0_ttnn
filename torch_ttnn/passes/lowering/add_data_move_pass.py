@@ -21,7 +21,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Union, Type, Literal
 from operator import getitem
-from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
 from . import target_wrappers
@@ -498,6 +497,8 @@ class NodeInputAligner:
         if isinstance(spec, self.AlignSpecFromTorch):
             # TODO: Add mesh support for native integration
             if (native_device := get_meta_val_attr(spec.input_node, "device")) and str(native_device) == "ttnn:0":
+                from torch_ttnn.cpp_extension import ttnn_module
+
                 aligning_nodes = []
                 aligning_nodes.append(self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {}))
                 return aligning_nodes[-1]
