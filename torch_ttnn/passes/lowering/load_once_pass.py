@@ -99,6 +99,9 @@ class NodeMover:
         if len(self.run_once_inputs) == 0:
             return
 
+        global run_once_count
+        target_wrappers.run_once_count = 0
+
         with self.graph.inserting_before(self.first_node):
             ttnn_inputs = self.graph.call_function(
                 target_wrappers.run_once,
