@@ -19,7 +19,7 @@ class SiluModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4)]],
+    [[(4, 4)], [(4,)]],
 )
 def test_silu(device, input_shapes):
     m = SiluModule()

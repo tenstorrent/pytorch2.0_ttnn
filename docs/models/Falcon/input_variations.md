@@ -1,20 +1,21 @@
 # High Level Operations Status
 |    | Operations              |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten._to_copy.default   |                  3 |           3 |         0 |          0 | ✅          |       1 |
-|  1 | aten.all.default        |                  1 |           0 |         0 |          1 | ✘           |       0 |
-|  2 | aten.argmax.default     |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  3 | aten.embedding.default  |                  2 |           2 |         0 |          0 | ✅          |       1 |
-|  4 | aten.eq.Scalar          |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  5 | aten.expand.default     |                  2 |           1 |         1 |          0 | ✅          |       1 |
-|  6 | aten.full.default       |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  7 | aten.gt.Scalar          |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  8 | aten.index.Tensor       |                  1 |           0 |         1 |          0 | ✅          |       1 |
-|  9 | aten.masked_fill.Scalar |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 10 | aten.mul.Tensor         |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 11 | aten.rsub.Scalar        |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 12 | aten.slice.Tensor       |                  5 |           1 |         4 |          0 | ✅          |       1 |
-| 13 | aten.unsqueeze.default  |                  5 |           5 |         0 |          0 | ✅          |       1 |
+|  0 | aten._to_copy.default   |                  3 |           3 |         0 |          0 | ✅          |     1   |
+|  1 | aten.all.default        |                  1 |           0 |         0 |          1 | ✘           |     0   |
+|  2 | aten.argmax.default     |                  1 |           0 |         0 |          0 | ✘           |     0   |
+|  3 | aten.embedding.default  |                  2 |           2 |         0 |          0 | ✅          |     1   |
+|  4 | aten.eq.Scalar          |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  5 | aten.expand.default     |                  2 |           1 |         1 |          0 | ✅          |     1   |
+|  6 | aten.full.default       |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  7 | aten.gt.Scalar          |                  1 |           0 |         0 |          0 | ✘           |     0   |
+|  8 | aten.index.Tensor       |                  1 |           0 |         1 |          0 | ✅          |     1   |
+|  9 | aten.lt.Tensor          |                  1 |           0 |         0 |          0 | ✘           |     0   |
+| 10 | aten.masked_fill.Scalar |                  2 |           1 |         0 |          0 | 🚧          |     0.5 |
+| 11 | aten.mul.Tensor         |                  1 |           1 |         0 |          0 | ✅          |     1   |
+| 12 | aten.rsub.Scalar        |                  1 |           1 |         0 |          0 | ✅          |     1   |
+| 13 | aten.slice.Tensor       |                  5 |           1 |         4 |          0 | ✅          |     1   |
+| 14 | aten.unsqueeze.default  |                  5 |           5 |         0 |          0 | ✅          |     1   |
 ***
 ### aten._to_copy.default
 |    | ATen Input Variations                                                  | Status   | Isolated   | PCC   | Host   |
@@ -56,10 +57,15 @@
 |    | ATen Input Variations                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
 |  0 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 7]>] | Removed  | Done       |     1 |      0 |
+### aten.lt.Tensor
+|    | ATen Input Variations                | Status   | Isolated   | PCC   | Host   |
+|---:|:-------------------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor self = ?,<br>Tensor other = ? | None     | Unknown    | N/A   | N/A    |
 ### aten.masked_fill.Scalar
 |    | ATen Input Variations                                                                                      | Status   | Isolated   | PCC   | Host   |
 |---:|:-----------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
 |  0 | Tensor<[1, 1, 7, 7]> self = ?,<br>Tensor<[1, 1, 7, 7]> mask = ?,<br>number value = -3.3895313892515355e+38 | Done     | Unknown    | N/A   | N/A    |
+|  1 | Tensor<[7, 7]> self = ?,<br>Tensor<[7, 7]> mask = ?,<br>number value = 0                                   | None     | Unknown    | N/A   | N/A    |
 ### aten.mul.Tensor
 |    | ATen Input Variations                        | Status   | Isolated   | PCC   | Host   |
 |---:|:---------------------------------------------|:---------|:-----------|:------|:-------|

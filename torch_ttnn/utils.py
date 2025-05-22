@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 import torch
+import re
 
 
 def GraphCleanup(gm: torch.fx.GraphModule) -> torch.fx.GraphModule:
@@ -131,3 +132,91 @@ class TtnnDramMemoryConfig:
 class TtnnL1MemoryConfig:
     def __repr__(self):
         return f"ttnn_L1_MEMORY_CONFIG"
+
+
+# repr_str -> (object_wrapper, object)
+__custom_objects_registry = {}
+
+
+# Note: key MUST be unique!
+def get_add_custom_object_in_graph(key: str, obj):
+    """
+    Register a custom object in the FX graph with a unique string representation.
+
+    This function creates a wrapper object that represents the given object in the FX graph.
+    The wrapper's __repr__ returns the provided key, ensuring the object can be properly
+    serialized and deserialized within the graph.
+
+    Args:
+        key (str): A unique string identifier for the object in the graph.
+        obj: The actual object to be wrapped and registered.
+
+    Returns:
+        WrapperObj: A wrapper object that represents the original object in the FX graph.
+
+    Side effects:
+        - Registers the key as a custom builtin in torch.fx.graph
+        - Adds the wrapper and original object to __custom_objects_registry
+    """
+    if key in __custom_objects_registry:
+        return __custom_objects_registry[key][0]
+
+    class WrapperObj:
+        def __repr__(self):
+            return key
+
+    torch.fx.graph._register_custom_builtin(key, "", obj)
+    __custom_objects_registry[key] = (WrapperObj(), obj)
+    return __custom_objects_registry[key][0]
+
+
+def get_emplace_custom_object_in_graph(object_type, *args, **kwargs):
+    """
+    Create an instance of object_type and register it in the FX graph with a unique name.
+
+    This function creates a unique string identifier based on the object's class name and parameters (args, kwargs),
+    then instantiates the object and registers it in the graph using get_add_custom_object_in_graph.
+
+    Args:
+        object_type: The class to instantiate
+        *args: Positional arguments to pass to the object's constructor
+        **kwargs: Keyword arguments to pass to the object's constructor
+
+    Returns:
+        WrapperObj: A wrapper object that represents the instantiated object in the FX graph.
+        You should use this object when passing to ttnn ops.
+
+    Example:
+        >>> program_config = get_emplace_custom_object_in_graph(
+        >>>     ttnn.SDPAProgramConfig,
+        >>>     compute_with_storage_grid_size=device.compute_with_storage_grid_size(),
+        >>>     q_chunk_size=default_q_chunk_size,
+        >>>     k_chunk_size=default_k_chunk_size,
+        >>>     exp_approx_mode=False,
+        >>> )
+        >>> res_node = g.call_function(ttnn.transformer.scaled_dot_product_attention, args, kwargs={"program_config": program_config})
+
+    Side effects:
+        - Registers the key as a custom builtin in torch.fx.graph
+        - Adds the wrapper and original object to __custom_objects_registry
+    """
+
+    def sanitize(s):
+        # Replace non-alphanumeric characters with underscores
+        s = re.sub(r"[^0-9a-zA-Z_]", "_", str(s))
+        # Remove consecutive underscores
+        s = re.sub(r"_+", "_", s)
+        return s.strip("_")
+
+    # This representation of an object MUST be unique
+    def build_repr():
+        repr_str = f"{object_type.__name__}"
+        for arg in args:
+            repr_str += f"_{sanitize(arg)}"
+        for k, v in kwargs.items():
+            repr_str += f"_{sanitize(k)}_{sanitize(v)}"
+        return repr_str
+
+    key = build_repr()
+
+    return get_add_custom_object_in_graph(key, object_type(*args, **kwargs))

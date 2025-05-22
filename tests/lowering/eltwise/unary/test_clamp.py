@@ -19,7 +19,7 @@ class ClampModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(4, 4)]],
+    [[(4, 4)], [(4,)]],
 )
 def test_clamp(device, input_shapes):
     m = ClampModule()

@@ -4,6 +4,27 @@
 import ttnn
 import torch
 
+from torch_ttnn.utils import TtnnDevice
+
+run_once_count = 0
+run_once_ans = tuple()
+
+
+@torch.fx.wrap
+def run_once(*args):
+    global run_once_count
+    global run_once_ans
+
+    if run_once_count == 0:
+
+        def convert_input(spec):
+            return ttnn.from_torch(*spec[0], **spec[1])
+
+        run_once_ans = tuple([convert_input(arg) for arg in args])
+        run_once_count += 1
+
+    return run_once_ans
+
 
 @torch.fx.wrap
 def clone(t):
@@ -23,8 +44,8 @@ def pack_to_tuple(*args):
 
 @torch.fx.wrap
 def move_to_host(device_tensor, layout):
-    host_tensor = ttnn.from_device(device_tensor)
-    return ttnn.to_layout(host_tensor, layout)
+    device_tensor = ttnn.to_layout(device_tensor, layout)
+    return ttnn.from_device(device_tensor)
 
 
 @torch.fx.wrap
@@ -48,7 +69,7 @@ def conv(
     if len(in_spatial_shape) == 1:
         # TODO(tt-metal#16258): conv1d API doesn't support transposed yet
         assert not transposed, "conv1d doesn't support transposed yet"
-        return ttnn.Conv1d(
+        return ttnn.conv1d(
             input_tensor=input_tensor,
             weight_tensor=weight_tensor,
             bias_tensor=bias_tensor,
@@ -140,10 +161,11 @@ def stack(tensors, dim, output_shape):
     # Reshape each input tensor to add the new dimension
     unsqueezed_tensors = []
     for tensor in tensors:
-        # TODO: remove when reshape supports tiled uint32 inputs
+        # TODO: remove when concat supports tiled uint32
+        tensor = ttnn.reshape(tensor, unsqueezed_shape)
         if tensor.layout == ttnn.TILE_LAYOUT and tensor.dtype == ttnn.uint32:
             tensor = ttnn.to_layout(tensor, ttnn.ROW_MAJOR_LAYOUT)
-        unsqueezed_tensors.append(ttnn.reshape(tensor, unsqueezed_shape))
+        unsqueezed_tensors.append(tensor)
 
     # Concatenate all reshaped tensors along the stack dimension
     return ttnn.concat(unsqueezed_tensors, dim)
@@ -166,3 +188,71 @@ def all(tensor, num_elements):
     neq_zero = ttnn.ne(tensor, 0)
     total_none_zero = ttnn.sum(neq_zero)
     return ttnn.eq(total_none_zero, num_elements)
+
+
+"""
+replicate_tensor, shard_tensor, and concat_tensor are needed to propagate shape data throughout the computation graph. These wrappers just replicate the shape change that occurs from the actual ttnn ops without requiring access to a TtnnDevice. It is expected that they are substituted back out during the ToTtPass.
+TODO: Find a better way to propagate shapes
+"""
+
+
+@torch.fx.wrap
+def replicate_tensor(tensor):
+    return tensor
+
+
+@torch.fx.wrap
+def shard_tensor(tensor, dim, num_devices):
+    return torch.chunk(tensor, num_devices, dim)[0]
+
+
+@torch.fx.wrap
+def concat_tensor(tensor, dim, num_devices):
+    sharded_version = [tensor] * num_devices
+    return torch.concat(sharded_version, dim)
+
+
+# TODO: Support compute kernel config
+@torch.fx.wrap
+def native_layer_norm(
+    input_tensor: ttnn.Tensor,
+    in_tensor_shape: torch.Size,
+    mean_rstd_shape: torch.Size,
+    ttnn_mean_rstd_shape: torch.Size,
+    ttnn_dtype: ttnn.DataType,
+    norm_dims: int,
+    gamma: ttnn.Tensor,
+    beta: ttnn.Tensor,
+    epsilon: ttnn.Tensor,
+    use_mean: bool,
+    use_rstd: bool,
+    device: ttnn.Device,
+):
+    if not use_mean and not use_rstd:
+        output = ttnn.layer_norm(input_tensor, epsilon=epsilon, weight=gamma, bias=beta)
+        return (output, None, None)
+
+    output = ttnn.empty(in_tensor_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+
+    # moreh.layer_norm does not generate correct mean or rstd if the shape keeps the normalized dims
+    # https://github.com/tenstorrent/tt-metal/issues/22110
+    if use_mean:
+        mean = ttnn.empty(ttnn_mean_rstd_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    else:
+        mean = None
+
+    if use_rstd:
+        rstd = ttnn.empty(ttnn_mean_rstd_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
+    else:
+        rstd = None
+
+    output, mean, rstd = ttnn.operations.moreh.layer_norm(
+        input_tensor, norm_dims, epsilon, gamma, beta, output=output, mean=mean, rstd=rstd
+    )
+
+    if use_mean:
+        mean = ttnn.reshape(mean, mean_rstd_shape)
+    if use_rstd:
+        rstd = ttnn.reshape(rstd, mean_rstd_shape)
+
+    return (output, mean, rstd)

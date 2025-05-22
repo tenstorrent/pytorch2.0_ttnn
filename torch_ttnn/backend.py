@@ -11,9 +11,12 @@ import pickle
 from pathlib import Path
 import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
+import tools.export_code as export_code
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
+from torch_ttnn.utils import GraphCleanup
 import copy
+from torch_ttnn.utils import get_add_custom_object_in_graph
 
 torch._dynamo.config.suppress_errors = False
 torch._dynamo.config.verbose = True
@@ -32,7 +35,9 @@ class TorchTtnnOption:
         tracer_option=None,
         bypass_compile=False,
         use_less_ttnn_op_types=True,
-        gen_op_accuracy_tests=False,
+        export_code=None,
+        total_num_iterations=1,
+        data_parallel=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -42,6 +47,8 @@ class TorchTtnnOption:
         self.run_eviction_opt = run_eviction_opt
         self.verbose = verbose
         self.tracer_option = tracer_option
+        self.total_num_iterations = total_num_iterations
+        self.data_parallel = data_parallel
 
         self.metrics_path = metrics_path
         self.bypass_compile = bypass_compile
@@ -50,13 +57,23 @@ class TorchTtnnOption:
         self.compiled_schema_list = list()
 
         # Used for generate standalone python script
-        self.gen_op_accuracy_tests = gen_op_accuracy_tests
+        self.export_code = export_code
         self._aten_fx_graphs = list()
-        self._all_inputs = None
+        self._all_inputs = list()
+        self._ttnn_fx_graphs = list()
+
+        # Used for multi-device
+        self._n_parameters = None
+        self._n_buffers = None
+        self._n_arguments = None
+
+        # Used for pre-loading model params
+        self._is_end_to_end = False
 
     def reset_containers(self):
         self._out_fx_graphs = list()
         self.original_schema_list = list()
+        self._ttnn_fx_graphs = list()
 
 
 def register_ttnn_objects(option: TorchTtnnOption):
@@ -65,25 +82,17 @@ def register_ttnn_objects(option: TorchTtnnOption):
     calls builtin exec() with a dictionary of globals that contains the strings (keys)
     that will be replaced by the ttnn objects (values) during evaluation.
     """
-    torch.fx.graph._register_custom_builtin("ttnn_Specified_Device", "", option.device)
+    get_add_custom_object_in_graph("ttnn_Specified_Device", option.device)
 
-    torch.fx.graph._register_custom_builtin("ttnn_ROW_MAJOR_LAYOUT", "", ttnn.ROW_MAJOR_LAYOUT)
-    torch.fx.graph._register_custom_builtin("ttnn_TILE_LAYOUT", "", ttnn.TILE_LAYOUT)
+    get_add_custom_object_in_graph("ttnn_ROW_MAJOR_LAYOUT", ttnn.ROW_MAJOR_LAYOUT)
+    get_add_custom_object_in_graph("ttnn_TILE_LAYOUT", ttnn.TILE_LAYOUT)
 
-    torch.fx.graph._register_custom_builtin("ttnn_uint32", "", ttnn.uint32)
-    torch.fx.graph._register_custom_builtin("ttnn_int32", "", ttnn.int32)
-    torch.fx.graph._register_custom_builtin("ttnn_bfloat16", "", ttnn.bfloat16)
+    get_add_custom_object_in_graph("ttnn_uint32", ttnn.uint32)
+    get_add_custom_object_in_graph("ttnn_int32", ttnn.int32)
+    get_add_custom_object_in_graph("ttnn_bfloat16", ttnn.bfloat16)
 
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_DRAM_MEMORY_CONFIG",
-        "",
-        ttnn.DRAM_MEMORY_CONFIG,
-    )
-    torch.fx.graph._register_custom_builtin(
-        "ttnn_L1_MEMORY_CONFIG",
-        "",
-        ttnn.L1_MEMORY_CONFIG,
-    )
+    get_add_custom_object_in_graph("ttnn_DRAM_MEMORY_CONFIG", ttnn.DRAM_MEMORY_CONFIG)
+    get_add_custom_object_in_graph("ttnn_L1_MEMORY_CONFIG", ttnn.L1_MEMORY_CONFIG)
 
 
 # The backend for torch.compile that converts a graph to use ttnn.
@@ -108,11 +117,11 @@ def aten_backend(
     gm = remove_clones_for_input_aliasing(gm)
 
     # Save aten graph if requested
-    if options.gen_op_accuracy_tests:
+    if options.export_code:
         # Will this hamper memory usage?
         graph_copy = copy.deepcopy(gm.graph)
         graph_copy.owning_module = gm
-        option._aten_fx_graphs.append(graph_copy)
+        option._aten_fx_graphs[-1].append(graph_copy)
 
     # Save the number of aten ops before compilation
     if option.metrics_path:
@@ -132,24 +141,38 @@ def aten_backend(
     # Register ttnn objects as graph globals
     register_ttnn_objects(option)
 
-    # Rewrite with ttnn ops, will insert redundant data movement
+    # Run analysis passes to help with ttnn ops
     from torch.fx.passes.infra.pass_manager import PassManager
+    from torch_ttnn.passes.analysis.graph_module_analysis_pass import GraphModuleAnalysisPass
+    from torch_ttnn.passes.analysis.input_analysis_pass import InputAnalysisPass
+    from torch_ttnn.passes.analysis.multi_device_shard_analysis_pass import MultiDeviceShardAnalysisPass
+
+    # Rewrite with ttnn ops, will insert redundant data movement
     from torch.fx.passes.dialect.common.cse_pass import CSEPass
+    from torch_ttnn.passes.multi_device_pass import MultiDevicePass
     from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
     from torch_ttnn.passes.lowering.to_tt_pass import ToTtPass
+    from torch_ttnn.passes.fusion_pass import FusionPass
     from torch_ttnn.passes.lowering.add_data_move_pass import AddDataMovePass
     from torch_ttnn.passes.lowering.eliminate_coreops_pass import EliminateCoreopsPass
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
     from torch_ttnn.passes.memory_pass import MemoryPass
+    from torch_ttnn.passes.deallocation_pass import DeallocationPass
 
     passes = [
+        GraphModuleAnalysisPass(),
+        InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
+        MultiDeviceShardAnalysisPass(option.device),
         ConstantFoldingPass(),
+        MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
-        AddDataMovePass(option.device),
+        FusionPass(),
+        AddDataMovePass(option.device, option._is_end_to_end),
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
+        DeallocationPass(),
     ]
 
     mem_pass = MemoryPass(option.verbose)
@@ -169,8 +192,7 @@ def aten_backend(
     pm = PassManager(passes=passes)
     gm, modified = pm(gm)
 
-    gm.graph.lint()
-    gm.recompile()
+    GraphCleanup(gm)
 
     # Get the memory manager object for memory analysis
     if option.run_mem_analysis:
@@ -206,8 +228,7 @@ def aten_backend(
             pm = PassManager(passes=passes)
             gm, modified = pm(gm)
 
-            gm.graph.lint()
-            gm.recompile()
+            GraphCleanup(gm)
 
             # Get the memory manager object for memory analysis
             option.memory_manager = mem_pass.mm
@@ -217,6 +238,8 @@ def aten_backend(
         option.compiled_schema_list.extend(metrics.collect_input_variations_from_list_nodes(gm.graph.nodes))
 
     option._out_fx_graphs.append(gm.graph)
+    if options.export_code:
+        option._ttnn_fx_graphs[-1].append(gm.graph)
 
     for node in gm.graph.nodes:
         if node.op == "placeholder":
@@ -242,11 +265,25 @@ def ttnn_backend(
     example_inputs: List[torch.Tensor],
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
-    # Save all parameters and inputs if requested
-    if options.gen_op_accuracy_tests and options._all_inputs is None:
-        import tools.generate_op_accuracy_tests as generate_op_accuracy_tests
+    if options.export_code:
+        import tools.export_code as export_code
 
-        options._all_inputs = generate_op_accuracy_tests.generate_flat_args(gm, example_inputs)
+        # Some models have multiple forward functions with separate inputs for each.
+        # Within these forward functions, there can be graph breakages which are
+        # also represented by separate forward functions, but these do not have their
+        # own separate inputs. Therefore, we organize the list of aten/ttnn graphs
+        # with sublists where the top level list corresponds to the respective list of inputs.
+        options._aten_fx_graphs.append(list())
+        options._ttnn_fx_graphs.append(list())
+        options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
+
+    # Analysis of params, buffers, and args
+    options._n_parameters = len(list(gm.parameters()))
+    options._n_buffers = len(list(gm.buffers()))
+    options._n_arguments = len(example_inputs)
+
+    # Currently, we only support preprocessing weights for end-to-end converted models
+    options._is_end_to_end = gm.compile_subgraph_reason.graph_break == False
 
     tracer_option = options.tracer_option
     if tracer_option is not None:

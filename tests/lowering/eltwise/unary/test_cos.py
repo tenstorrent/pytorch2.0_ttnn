@@ -19,7 +19,7 @@ class CosModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shape",
-    ((4, 4), (1, 1066)),
+    ((4, 4), (1, 1066), (1066,)),
 )
 def test_cos(device, input_shape):
     m = CosModule()

@@ -4,7 +4,10 @@
 import logging
 import torch
 import ttnn
+from torch_ttnn.passes.analysis.graph_module_analysis_pass import ModelType
+from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 from torch_ttnn.utils import (
+    GraphCleanup,
     TtnnRowMajorLayout,
     TtnnTileLayout,
     TtnnDevice,
@@ -132,6 +135,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.pad,
     ttnn.permute,
     ttnn.reshape,
+    ttnn.experimental.view,
     ttnn.sharded_to_interleaved,
     ttnn.slice,
     ttnn.split,
@@ -150,15 +154,17 @@ TTNN_TARGET_WRAPPERS = [
     target_wrappers.roll,
     target_wrappers.stack,
     target_wrappers.all,
+    target_wrappers.concat_tensor,
+    target_wrappers.native_layer_norm,
 ]
 
 TTNN_NORM_OPS = [
     ttnn.group_norm,
-    ttnn.layer_norm,
 ]
 
 TTNN_POOL_OPS = [
     ttnn.max_pool2d,
+    ttnn.avg_pool2d,
 ]
 
 TTNN_ROW_LAYOUT_OPS = set(
@@ -176,6 +182,13 @@ TTNN_MAYBE_ROW_OPS = set(
         ttnn.concat,
     ]
 )
+
+TTNN_TRANSFORMER_OPS = [
+    ttnn.transformer.scaled_dot_product_attention,
+    ttnn.transformer.attention_softmax_,
+    ttnn.transformer.split_query_key_value_and_split_heads,
+    ttnn.transformer.concatenate_heads,
+]
 
 TTNN_HOST_ONLY_OPS = set()
 
@@ -200,6 +213,7 @@ def is_tt_compute(node) -> bool:
         + TTNN_DATAMOVE_OPS
         + TTNN_NORM_OPS
         + TTNN_POOL_OPS
+        + TTNN_TRANSFORMER_OPS
         + [
             ttnn.embedding,
             ttnn.ones,
@@ -262,7 +276,17 @@ class NodeInputAligner:
     def __init__(self, graph, device):
         self.graph = graph
         self.device = device
+        # aligned_node_dict maps DataMoveSpec to aligned version of the node to prevent calling the same data movement twice
         self.aligned_node_dict = {}
+        # marshaled_node_dict maps DataMoveSpec to index in the load_weights function that runs once. This is consumed once when adding data movement, and the DataMoveSpec will
+        # then be populated in the aligned_node_dict for further usage
+        self.marshaled_node_dict = {}
+        self.input_idx = 0
+
+        # fields for data parallel
+        self.shard_to_mesh = dict()
+        self.replicate_to_mesh = None
+        self.concat_to_mesh = dict()
 
     class InputSiteType(Enum):
         ARGS = 1
@@ -285,7 +309,7 @@ class NodeInputAligner:
     @dataclass(unsafe_hash=True)
     class AlignSpecInTtnn:
         input_node: torch.fx.node.Node
-        device: Union[None, Type[TtnnDevice], Literal["host"], Literal["temp_host_layout"]]
+        device: Union[None, Type[TtnnDevice], Literal["host"]]
         layout: Union[None, Type[TtnnTileLayout], Type[TtnnRowMajorLayout]]
         dtype: Union[None, Type[TtnnBfloat16], Type[TtnnUint32]]
 
@@ -296,7 +320,10 @@ class NodeInputAligner:
             spec.layout = TtnnTileLayout
 
         # re-tilize max_pool2d after sharded_to_interleaved call - may be able to remove after #418
-        if input_node.target == ttnn.sharded_to_interleaved and input_node.args[0].target == ttnn.max_pool2d:
+        if input_node.target == ttnn.sharded_to_interleaved and input_node.args[0].target in [
+            ttnn.max_pool2d,
+            ttnn.avg_pool2d,
+        ]:
             spec.layout = TtnnTileLayout
 
         # be overly cautious and convert to tile layout. These could already be tilized
@@ -376,10 +403,6 @@ class NodeInputAligner:
             spec = self.AlignSpecInTtnn(input_node, None, None, None)
             spec = self._reset_to_default_layout(input_node, spec)
             spec = self._align_special_cases(node, spec, input_site, input_site_type)
-            # tilize fails on device for uint32 inputs
-            # TODO: remove this once tilize works in this case
-            if spec.layout == TtnnTileLayout and get_dtype(input_node) in [torch.int32, torch.int64]:
-                spec.device = "temp_host_layout"
 
             if spec.device is None and spec.layout is None and spec.dtype is None:
                 return None
@@ -388,36 +411,93 @@ class NodeInputAligner:
             return None
 
     def _change_layout(self, spec):
-        need_from_device = spec.device in ["host", "temp_host_layout"]
+        need_from_device = spec.device == "host"
         need_to_layout = spec.layout is not None
-        need_to_device = spec.device in [TtnnDevice, "temp_host_layout"]
+        need_to_device = spec.device == TtnnDevice
 
         input_node = spec.input_node
 
-        if need_from_device:
-            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
+        # mesh device tensors need layout on device
+        if need_to_device:
+            input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
 
         if need_to_layout:
             input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
 
-        if need_to_device:
-            input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
+        if need_from_device:
+            input_node = self.graph.call_function(ttnn.from_device, (input_node,))
 
         return input_node
 
-    def _create_aligned_node(self, spec):
+    def _extract_args_kwargs_from_spec(self, spec):
         if isinstance(spec, self.AlignSpecFromTorch):
             kwargs = {}
+            args = (spec.input_node,)
             if spec.device is not None and spec.device != "host":
                 kwargs["device"] = spec.device()
             if spec.layout is not None:
                 kwargs["layout"] = spec.layout()
             if spec.dtype is not None:
                 kwargs["dtype"] = spec.dtype()
-            return self.graph.call_function(ttnn.from_torch, (spec.input_node,), kwargs)
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent from_torch call by accessing its arguments. Sharding and replicating are determined by the wrapper name
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.shard_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.shard_to_mesh.get(shard_dim) is None:
+                        self.shard_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ShardTensorToMesh, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    mesh_mapper = self.shard_to_mesh[shard_dim]
+                    args = (actual_inp_node,)
+                else:
+                    if self.replicate_to_mesh is None:
+                        self.replicate_to_mesh = self.graph.call_function(
+                            ttnn.ReplicateTensorToMesh, args=(TtnnDevice(),)
+                        )
+
+                    mesh_mapper = self.replicate_to_mesh
+                    args = spec.input_node.args
+                kwargs["mesh_mapper"] = mesh_mapper
+
+            return args, kwargs
 
         elif isinstance(spec, self.AlignSpecToTorch):
-            return self.graph.call_function(ttnn.to_torch, (spec.input_node,), {"dtype": spec.dtype})
+            kwargs = {"dtype": spec.dtype}
+            args = (spec.input_node,)
+
+            # A bit tricky: here we actually end up replacing the input_node with its equivalent to_torch call by accessing its arguments
+            if self.device.get_num_devices() > 1:
+                if spec.input_node.target == target_wrappers.concat_tensor:
+                    actual_inp_node, shard_dim, _ = spec.input_node.args
+
+                    if self.concat_to_mesh.get(shard_dim) is None:
+                        self.concat_to_mesh[shard_dim] = self.graph.call_function(
+                            ttnn.ConcatMeshToTensor, args=(TtnnDevice(),), kwargs={"dim": shard_dim}
+                        )
+
+                    composer = self.concat_to_mesh[shard_dim]
+                    kwargs["mesh_composer"] = composer
+                    args = (actual_inp_node,)
+
+            return args, kwargs
+
+        elif isinstance(spec, self.AlignSpecInTtnn):
+            return (), {}
+
+        else:
+            raise RuntimeError(f"Cannot create aligned node for unknown spec ({spec})")
+
+    def _create_aligned_node(self, spec):
+        args, kwargs = self._extract_args_kwargs_from_spec(spec)
+
+        if isinstance(spec, self.AlignSpecFromTorch):
+            return self.graph.call_function(ttnn.from_torch, args, kwargs)
+
+        elif isinstance(spec, self.AlignSpecToTorch):
+            return self.graph.call_function(ttnn.to_torch, args, kwargs)
 
         elif isinstance(spec, self.AlignSpecInTtnn):
             return self._change_layout(spec)
@@ -447,27 +527,38 @@ class NodeInputAligner:
             new_arg[tuple_idx] = aligned_node
             node.update_kwarg(key, tuple(new_arg))
 
-    def _connect_aligned_node_layer_norm(
-        self, node, input_node, aligned_node, input_site, input_site_type: InputSiteType
-    ):
-        # Workaround to output the same layer_norm output
-        # Before: layer_norm = aten.layer_norm
-        #          getitem = getitem(layer_norm, 0)
-        #          return ((getitem,),)
-        # After: layer_norm = ttnn.layer_norm
-        #        return (layer_norm,)
-        # Need to match the tuple in the original return statement
-        old_args = node.args[0]
-        if isinstance(old_args, tuple):
-            new_args = list(old_args)
-            for idx, old_arg in enumerate(old_args):
-                if old_arg == input_node:
-                    new_args[idx] = aligned_node
-            node.update_arg(0, tuple(new_args))
-        else:
-            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
+    def marshal_params(self, node, input_node, input_site, input_site_type, first_node):
+        if not isinstance(input_node, torch.fx.node.Node):
+            return 0
 
-    def align(self, node, input_node, input_site, input_site_type: InputSiteType):
+        # examine first arg for multi device case
+        check_constant = input_node
+        if input_node.op == "call_function" and input_node.target in [
+            target_wrappers.shard_tensor,
+            target_wrappers.replicate_tensor,
+        ]:
+            check_constant = input_node.args[0]
+        is_constant_for_inference = (check_constant.op == "placeholder") and (
+            check_constant.meta.get("primal_tag") in [PrimalTag.PARAMETER, PrimalTag.BUFFER]
+        )
+        if not is_constant_for_inference:
+            return 0
+
+        data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
+        if not isinstance(data_move_spec, self.AlignSpecFromTorch):
+            # No need to align input_node
+            return 0
+
+        if data_move_spec in self.marshaled_node_dict:
+            # already handled
+            return 0
+
+        self.marshaled_node_dict[data_move_spec] = self.input_idx
+        self.input_idx += 1
+
+        return 1
+
+    def align(self, node, input_node, input_site, input_site_type: InputSiteType, first_node, ttnn_inputs):
         # assert input_site_type in ["args", "kwargs", "args_tuple", "kwargs_tuple"]
         data_move_spec = self._get_align_spec(node, input_node, input_site, input_site_type)
         if data_move_spec is None:
@@ -476,46 +567,136 @@ class NodeInputAligner:
 
         if data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
-        else:
+        elif ttnn_inputs is not None and (input_idx := self.marshaled_node_dict.get(data_move_spec)) is not None:
             with self.graph.inserting_before(node):
-                aligned_node = self._create_aligned_node(data_move_spec)
+                aligned_node = self.graph.call_function(getitem, (ttnn_inputs, input_idx))
+                # mark node cached so it isn't deallocated by DeallocationPass
+                aligned_node.meta["is_cached"] = True
+            # update aligned_node_dict
+            self.aligned_node_dict[data_move_spec] = aligned_node
+        else:
+            # push from_torch calls to top of forward function if they are due to a placeholder
+            maybe_forward_input = input_node
+            # We have to test the first arg of shard_tensor and replicate_tensor calls instead
+            if input_node.op == "call_function" and input_node.target in [
+                target_wrappers.shard_tensor,
+                target_wrappers.replicate_tensor,
+            ]:
+                maybe_forward_input = input_node.args[0]
+            if (
+                isinstance(data_move_spec, self.AlignSpecFromTorch)
+                and maybe_forward_input.op == "placeholder"
+                and maybe_forward_input.meta.get("primal_tag") != PrimalTag.ARGUMENT
+            ):
+                # This will push all from_torch calls to the top of the forward function. This shouldn't impact performance, but it may impact memory usage since variables will be
+                # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
+                # is a good place to check
+                with self.graph.inserting_before(first_node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
+            else:
+                with self.graph.inserting_before(node):
+                    aligned_node = self._create_aligned_node(data_move_spec)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
-        if node.target == ttnn.layer_norm:
-            self._connect_aligned_node_layer_norm(node, input_node, aligned_node, input_site, input_site_type)
-        else:
-            self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
+        self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
 
         return 1
 
 
+def insert_load_params_once(gm, first_node, nodes, node_input_aligner):
+    SiteType = NodeInputAligner.InputSiteType
+    modifications_count = 0
+
+    for node in nodes:
+        args = node.args
+        for idx, arg in enumerate(args):
+            if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                for tuple_idx, tuple_arg in enumerate(arg):
+                    modifications_count += node_input_aligner.marshal_params(
+                        node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node
+                    )
+            else:
+                modifications_count += node_input_aligner.marshal_params(node, arg, idx, SiteType.ARGS, first_node)
+
+        kwargs = node.kwargs
+        for key, arg in kwargs.items():
+            if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                for tuple_idx, tuple_arg in enumerate(arg):
+                    modifications_count += node_input_aligner.marshal_params(
+                        node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node
+                    )
+            else:
+                modifications_count += node_input_aligner.marshal_params(node, arg, key, SiteType.KWARGS, first_node)
+
+    # reset run_once_count so recompilation triggers loading weights
+    with gm.graph.inserting_before(first_node):
+        ttnn_inputs = gm.graph.call_function(
+            target_wrappers.run_once,
+            tuple(
+                [
+                    node_input_aligner._extract_args_kwargs_from_spec(spec)
+                    for spec in node_input_aligner.marshaled_node_dict.keys()
+                ]
+            ),
+        )
+
+    return modifications_count, ttnn_inputs
+
+
 class AddDataMovePass(PassBase):
-    def __init__(self, device):
+    """Pass that adds instructions to move data between host and device and align tensor dtype and layout.
+
+    This pass is multi-device aware, since it must marshal tensors differently in the multi-device case. This pass attempts to introduce the minimum amount of operations while maintaining correctness and performance.
+
+    :param device: The device on which a workload will run (either a MeshDevice or Device).
+    """
+
+    def __init__(self, device, is_end_to_end):
         self.device = device
+        self.is_end_to_end = is_end_to_end
 
     def call(self, gm: torch.fx.GraphModule):
         SiteType = NodeInputAligner.InputSiteType
 
-        i = 0
+        modifications_count = 0
         node_input_aligner = NodeInputAligner(gm.graph, self.device)
         nodes = list(gm.graph.nodes)
 
+        first_node = [node for node in nodes if node.op != "placeholder"][0]
+
+        # first load weights
+        ttnn_inputs = None
+        if gm.meta.get("graph_type") == ModelType.INFERENCE and self.is_end_to_end:
+            global run_once_count
+            target_wrappers.run_once_count = 0
+            modifications_count, ttnn_inputs = insert_load_params_once(gm, first_node, nodes, node_input_aligner)
+
+        # then handle rest of the args and kwargs
         for node in nodes:
             args = node.args
             for idx, arg in enumerate(args):
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE)
+                        modifications_count += node_input_aligner.align(
+                            node, tuple_arg, [idx, tuple_idx], SiteType.ARGS_TUPLE, first_node, ttnn_inputs
+                        )
                 else:
-                    i += node_input_aligner.align(node, arg, idx, SiteType.ARGS)
+                    modifications_count += node_input_aligner.align(
+                        node, arg, idx, SiteType.ARGS, first_node, ttnn_inputs
+                    )
 
             kwargs = node.kwargs
             for key, arg in kwargs.items():
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     for tuple_idx, tuple_arg in enumerate(arg):
-                        i += node_input_aligner.align(node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE)
+                        modifications_count += node_input_aligner.align(
+                            node, tuple_arg, [key, tuple_idx], SiteType.KWARGS_TUPLE, first_node, ttnn_inputs
+                        )
                 else:
-                    i += node_input_aligner.align(node, arg, key, SiteType.KWARGS)
+                    modifications_count += node_input_aligner.align(
+                        node, arg, key, SiteType.KWARGS, first_node, ttnn_inputs
+                    )
 
-        modified = i > 0
+        modified = modifications_count > 0
+        GraphCleanup(gm)
         return PassResult(gm, modified)

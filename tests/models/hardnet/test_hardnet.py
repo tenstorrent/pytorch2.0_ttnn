@@ -39,7 +39,10 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["train", pytest.param("eval", marks=pytest.mark.converted_end_to_end)],
+    [
+        "train",
+        pytest.param("eval", marks=pytest.mark.converted_end_to_end),
+    ],
 )
 def test_hardnet(record_property, mode):
     model_name = "HardNet"

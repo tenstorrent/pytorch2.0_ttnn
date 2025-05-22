@@ -10,25 +10,6 @@ from functools import partial
 
 
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
-aten__scaled_dot_product_flash_attention_default_blocklist = [
-    ["Tensor<[1, 16, 197, 64]> query = ?", "Tensor<[1, 16, 197, 64]> key = ?", "Tensor<[1, 16, 197, 64]> value = ?"],
-    ["Tensor<[1, 12, 197, 64]> query = ?", "Tensor<[1, 12, 197, 64]> key = ?", "Tensor<[1, 12, 197, 64]> value = ?"],
-    ["Tensor<[1, 16, 50, 64]> query = ?", "Tensor<[1, 16, 50, 64]> key = ?", "Tensor<[1, 16, 50, 64]> value = ?"],
-    ["Tensor<[1, 8, 4096, 40]> query = ?", "Tensor<[1, 8, 4096, 40]> key = ?", "Tensor<[1, 8, 4096, 40]> value = ?"],
-    ["Tensor<[1, 8, 1024, 80]> query = ?", "Tensor<[1, 8, 9, 80]> key = ?", "Tensor<[1, 8, 9, 80]> value = ?"],
-    ["Tensor<[1, 8, 256, 160]> query = ?", "Tensor<[1, 8, 256, 160]> key = ?", "Tensor<[1, 8, 256, 160]> value = ?"],
-    ["Tensor<[1, 8, 64, 160]> query = ?", "Tensor<[1, 8, 64, 160]> key = ?", "Tensor<[1, 8, 64, 160]> value = ?"],
-    ["Tensor<[1, 12, 50, 64]> query = ?", "Tensor<[1, 12, 50, 64]> key = ?", "Tensor<[1, 12, 50, 64]> value = ?"],
-    ["Tensor<[1, 16, 1370, 80]> query = ?", "Tensor<[1, 16, 1370, 80]> key = ?", "Tensor<[1, 16, 1370, 80]> value = ?"],
-    ["Tensor<[1, 12, 1, 64]> query = ?", "Tensor<[1, 12, 1, 64]> key = ?", "Tensor<[1, 12, 1, 64]> value = ?"],
-    [
-        "Tensor<[1, 12, 4, 64]> query = ?",
-        "Tensor<[1, 12, 4, 64]> key = ?",
-        "Tensor<[1, 12, 4, 64]> value = ?",
-        "float dropout_p = 0.0",
-        "bool is_causal = True",
-    ],
-]
 aten_native_layer_norm_default_blocklist = [
     [
         "Tensor<[1, 9, 4096]> input = ?",
@@ -340,9 +321,6 @@ def guard_aten(blocklist, node):
 
 GUARD = {
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
-    torch.ops.aten._scaled_dot_product_flash_attention.default: partial(
-        guard_aten, aten__scaled_dot_product_flash_attention_default_blocklist
-    ),
     torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
     torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),

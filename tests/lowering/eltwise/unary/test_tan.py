@@ -22,6 +22,7 @@ class TanModule(torch.nn.Module):
     (
         ((4, 4), 1),
         ((1, 1066), 1),
+        ((1066,), 1),
         ((1, 1066), 1.5),
         pytest.param((1, 1066), 1.6, marks=pytest.mark.xfail(reason="tt-metal#14414: inaccurate reciprocal")),
     ),
