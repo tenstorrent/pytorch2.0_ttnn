@@ -41,7 +41,7 @@ There are currently two verified paths to build extra dependencies. Choose one:
     git submodule update --init --recursive
     git submodule foreach 'git lfs fetch --all && git lfs pull'
     ./third-party/tt-metal/install_dependencies.sh
-    ./build_cpp_extension.sh
+    ./build_cpp_extension.sh Release
     export TT_METAL_HOME="$(pwd)/third-party/tt-metal"
     popd
     ```

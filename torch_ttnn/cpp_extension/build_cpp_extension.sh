@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# parse build type
+BUILD_TYPE=${1:-Release}
+echo "> Build type: $BUILD_TYPE"
+
 # Current directory
 CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "> Current directory: $CUR_DIR"
@@ -13,7 +17,7 @@ echo "> TORCH_ABI_FLAGS: $TORCH_ABI_FLAGS"
 echo "> Configuring ttnn"
 cmake -B $CUR_DIR/third-party/tt-metal/build \
     -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DCMAKE_INSTALL_PREFIX=$CUR_DIR/third-party/tt-metal/build \
     -DCMAKE_DISABLE_PRECOMPILE_HEADERS=TRUE \
     -DENABLE_CCACHE=TRUE \
@@ -35,4 +39,4 @@ pip3 install -e $CUR_DIR/third-party/tt-metal/
 export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
 echo "> TT_METAL_HOME: $TT_METAL_HOME"
 echo "> Building cpp extension"
-CMAKE_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER=g++-12;-DCMAKE_C_COMPILER=gcc-12" python3 setup.py develop
+CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=${BUILD_TYPE};-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER=g++-12;-DCMAKE_C_COMPILER=gcc-12" python3 setup.py develop
