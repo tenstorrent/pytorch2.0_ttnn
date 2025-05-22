@@ -713,9 +713,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 if dim >= rank:
                     return None
 
-                if step != 1:
-                    print(f"step: {step}")
-
                 # Check if no-op, just return the input tensor
                 if start == 0 and end >= input_size[dim] and step == 1:
                     return tensor
