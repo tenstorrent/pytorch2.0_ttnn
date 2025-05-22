@@ -217,7 +217,7 @@
 | 213 | Tensor<[1, 512, 1, 1]> self = ?                                                                   | Removed  | Done       | 1.0   | 0      |
 | 214 | Tensor<[1, 512, 15, 20]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format       | Removed  | Done       | 1.0   | 0      |
 | 215 | Tensor<[1, 56, 56, 128]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
-| 216 | Tensor<[1, 56, 56, 384]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
+| 216 | Tensor<[1, 56, 56, 384]> self = ?                                                                 | Removed  | Unknown    | N/A   | N/A    |
 | 217 | Tensor<[1, 56, 56, 512]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 218 | Tensor<[1, 56, 56, 96]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 219 | Tensor<[1, 59, 1024]> self = ?                                                                    | Unknown  | Done       | 1.0   | 0      |
@@ -260,7 +260,7 @@
 | 256 | Tensor<[1, 8, 256, 256]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 257 | Tensor<[1, 8, 300, 300]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 258 | Tensor<[1, 8, 7, 8, 7, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
-| 259 | Tensor<[1, 8, 7, 8, 7, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format    | Removed  | Done       | 1.0   | 0      |
+| 259 | Tensor<[1, 8, 7, 8, 7, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format    | Removed  | Unknown    | N/A   | N/A    |
 | 260 | Tensor<[1, 8, 768]> self = ?                                                                      | Removed  | Done       | 1.0   | 0      |
 | 261 | Tensor<[1, 8, 8, 1024]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 262 | Tensor<[1, 8, 8, 3072]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
@@ -377,9 +377,9 @@
 | 373 | Tensor<[64, 4, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
 | 374 | Tensor<[64, 4, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 375 | Tensor<[64, 49, 128]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
-| 376 | Tensor<[64, 49, 3, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
+| 376 | Tensor<[64, 49, 3, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
 | 377 | Tensor<[64, 49, 4, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 378 | Tensor<[64, 49, 96]> self = ?                                                                     | Removed  | Done       | 1.0   | 0      |
+| 378 | Tensor<[64, 49, 96]> self = ?                                                                     | Removed  | Unknown    | N/A   | N/A    |
 | 379 | Tensor<[64, 64, 128]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
 | 380 | Tensor<[64, 64, 3, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 381 | Tensor<[64, 64, 4, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |

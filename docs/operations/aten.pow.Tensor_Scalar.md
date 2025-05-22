@@ -17,7 +17,7 @@
 | 13 | Tensor<[1, 45, 3072]> self = ?,<br>number exponent = 3.0 | Unknown  | Done       | 0.999996 |      0 |
 | 14 | Tensor<[1, 5, 4096]> self = ?,<br>number exponent = 3.0  | Unknown  | Done       | 0.999996 |      0 |
 | 15 | Tensor<[1, 7, 3072]> self = ?,<br>number exponent = 3.0  | Done     | Done       | 0.999996 |      0 |
-| 16 | Tensor<[1, 9, 128]> self = ?,<br>number exponent = 3.0   | Done     | Done       | 0.999996 |      0 |
+| 16 | Tensor<[1, 9, 128]> self = ?,<br>number exponent = 3.0   | Done     | Done       | 0.999997 |      0 |
 | 17 | Tensor<[1, 9, 16384]> self = ?,<br>number exponent = 3.0 | Done     | Done       | 0.999996 |      0 |
 | 18 | Tensor<[1, 9, 3072]> self = ?,<br>number exponent = 3.0  | Done     | Done       | 0.999996 |      0 |
 | 19 | Tensor<[1, 9, 4096]> self = ?,<br>number exponent = 3.0  | Done     | Done       | 0.999996 |      0 |

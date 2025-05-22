@@ -44,12 +44,12 @@
 ### aten.exp.default
 |    | ATen Input Variations   | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999964 |      0 |
+|  0 | Tensor<[160]> self = ?  | Done     | Done       | 0.999966 |      0 |
 ### aten.mul.Tensor
 |    | ATen Input Variations                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 160]> self = ?,<br>Tensor other = 1         | Done     | Done       | 1        |      0 |
-|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       | 0.999996 |      0 |
+|  1 | Tensor<[1, 1]> self = ?,<br>Tensor<[1, 160]> other = ? | Done     | Done       | 0.999995 |      0 |
 ### aten.native_group_norm.default
 |    | ATen Input Variations                                                                                                                                                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
