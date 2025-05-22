@@ -39,6 +39,7 @@ class TorchTtnnOption:
         total_num_iterations=1,
         data_parallel=False,
         load_params_once=True,
+        native_integration=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -72,6 +73,8 @@ class TorchTtnnOption:
         self._is_end_to_end = False
 
         self.load_params_once = load_params_once
+
+        self.native_integration = native_integration
 
     def reset_containers(self):
         self._out_fx_graphs = list()
