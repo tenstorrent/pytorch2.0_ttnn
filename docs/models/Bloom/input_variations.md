@@ -32,7 +32,7 @@
 ### aten._softmax.default
 |    | ATen Input Variations                                                            | Status   | Isolated   |      PCC |   Host |
 |---:|:---------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 16, 32, 32]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999613 |      0 |
+|  0 | Tensor<[1, 16, 32, 32]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999612 |      0 |
 ### aten._to_copy.default
 |    | ATen Input Variations                                                                                                                               | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -76,7 +76,7 @@
 ### aten.cumsum.default
 |    | ATen Input Variations                     | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 32]> self = ?,<br>int dim = -1 | Done     | Done       | 0.999991 |      0 |
+|  0 | Tensor<[1, 32]> self = ?,<br>int dim = -1 | Done     | Done       | 0.999958 |      0 |
 ### aten.embedding.default
 |    | ATen Input Variations                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -108,15 +108,15 @@
 |    | ATen Input Variations                                              | Status   | Isolated   | PCC                | Host   |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
 |  0 | Tensor self = ?,<br>Tensor<[1, 1, 32]> other = ?                   | Done     | Unknown    | N/A                | N/A    |
-|  1 | Tensor<[1, 32, 6144]> self = ?,<br>Tensor other = 0.044715         | Done     | Done       | 0.9999952874842661 | 0      |
+|  1 | Tensor<[1, 32, 6144]> self = ?,<br>Tensor other = 0.044715         | Done     | Done       | 0.9999953893018785 | 0      |
 |  2 | Tensor<[1, 32, 6144]> self = ?,<br>Tensor other = 0.5              | Done     | Done       | 1.0                | 0      |
-|  3 | Tensor<[1, 32, 6144]> self = ?,<br>Tensor other = 0.79788456       | Done     | Done       | 0.9999972381414451 | 0      |
-|  4 | Tensor<[1, 32, 6144]> self = ?,<br>Tensor<[1, 32, 6144]> other = ? | Done     | Done       | 0.9999959901646078 | 0      |
-|  5 | Tensor<[1, 32]> self = ?,<br>Tensor<[1, 32]> other = ?             | Done     | Done       | 0.9999930221281103 | 0      |
+|  3 | Tensor<[1, 32, 6144]> self = ?,<br>Tensor other = 0.79788456       | Done     | Done       | 0.9999972660597521 | 0      |
+|  4 | Tensor<[1, 32, 6144]> self = ?,<br>Tensor<[1, 32, 6144]> other = ? | Done     | Done       | 0.9999959860819037 | 0      |
+|  5 | Tensor<[1, 32]> self = ?,<br>Tensor<[1, 32]> other = ?             | Done     | Done       | 0.9999955659301367 | 0      |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 32, 1536]> input = ?,<br>List[int] normalized_shape = [1536],<br>Optional[Tensor]<[1536]> weight = ?,<br>Optional[Tensor]<[1536]> bias = ?,<br>float eps = 1e-05 | Done     | Done       | 0.996075 |      3 |
+|  0 | Tensor<[1, 32, 1536]> input = ?,<br>List[int] normalized_shape = [1536],<br>Optional[Tensor]<[1536]> weight = ?,<br>Optional[Tensor]<[1536]> bias = ?,<br>float eps = 1e-05 | Done     | Done       | 0.996734 |      3 |
 ### aten.permute.default
 |    | ATen Input Variations                                              | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -125,7 +125,7 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999995 |      0 |
+|  0 | Tensor<[1, 1, 32, 32]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999994 |      0 |
 ### aten.select.int
 |    | ATen Input Variations                                                 | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|------:|-------:|
