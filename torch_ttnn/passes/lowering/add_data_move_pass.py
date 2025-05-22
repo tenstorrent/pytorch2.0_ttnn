@@ -659,9 +659,10 @@ class AddDataMovePass(PassBase):
     :param device: The device on which a workload will run (either a MeshDevice or Device).
     """
 
-    def __init__(self, device, is_end_to_end):
+    def __init__(self, device, is_end_to_end, load_params_once):
         self.device = device
         self.is_end_to_end = is_end_to_end
+        self.load_params_once = load_params_once
 
     def call(self, gm: torch.fx.GraphModule):
         SiteType = NodeInputAligner.InputSiteType
@@ -674,7 +675,7 @@ class AddDataMovePass(PassBase):
 
         # first load weights
         ttnn_inputs = None
-        if gm.meta.get("graph_type") == ModelType.INFERENCE and self.is_end_to_end:
+        if gm.meta.get("graph_type") == ModelType.INFERENCE and self.is_end_to_end and self.load_params_once:
             global run_once_count
             target_wrappers.run_once_count = 0
             modifications_count, ttnn_inputs = insert_load_params_once(gm, first_node, nodes, node_input_aligner)

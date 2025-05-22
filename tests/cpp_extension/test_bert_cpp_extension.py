@@ -53,6 +53,7 @@ def test_bert_with_cpp_extension(device, batch_size):
         run_mem_analysis=False,
         metrics_path=model_name,
         verbose=True,
+        load_params_once=False,
     )
 
     # custom device

@@ -38,6 +38,7 @@ class TorchTtnnOption:
         export_code=None,
         total_num_iterations=1,
         data_parallel=False,
+        load_params_once=True,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -69,6 +70,8 @@ class TorchTtnnOption:
 
         # Used for pre-loading model params
         self._is_end_to_end = False
+
+        self.load_params_once = load_params_once
 
     def reset_containers(self):
         self._out_fx_graphs = list()
@@ -168,7 +171,7 @@ def aten_backend(
         MultiDevicePass(option.device, example_inputs),
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         FusionPass(),
-        AddDataMovePass(option.device, option._is_end_to_end),
+        AddDataMovePass(option.device, option._is_end_to_end, option.load_params_once),
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
