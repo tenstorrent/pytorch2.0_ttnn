@@ -8,7 +8,8 @@ from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
 
 @pytest.mark.parametrize(
-    "batch_size", (1, pytest.param(8, marks=pytest.mark.skip(reason="Bug in ttnn.reshape tt-metal/issues/19223")))
+    "batch_size",
+    (1, 8, 16),
 )
 def test_bert_with_cpp_extension(device, batch_size):
     model_name = "phiyodr/bert-large-finetuned-squad2"
