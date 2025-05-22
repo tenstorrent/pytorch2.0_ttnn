@@ -30,7 +30,7 @@
 ### aten.addmm.default
 |    | ATen Input Variations                                                                      | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?   | Done     | Done       | 0.999966 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ?   | Done     | Done       | 0.999965 |      0 |
 |  1 | Tensor<[1024]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 1024]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
 |  2 | Tensor<[1024]> self = ?,<br>Tensor<[197, 4096]> mat1 = ?,<br>Tensor<[4096, 1024]> mat2 = ? | Removed  | Done       | 0.999932 |      0 |
 |  3 | Tensor<[3072]> self = ?,<br>Tensor<[197, 1024]> mat1 = ?,<br>Tensor<[1024, 3072]> mat2 = ? | Done     | Done       | 0.999964 |      0 |
@@ -60,7 +60,7 @@
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                        | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 197, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float eps = 1e-06 | Done     | Done       | 0.996887 |      3 |
+|  0 | Tensor<[1, 197, 1024]> input = ?,<br>List[int] normalized_shape = [1024],<br>Optional[Tensor]<[1024]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>float eps = 1e-06 | Done     | Done       | 0.997242 |      3 |
 ### aten.permute.default
 |    | ATen Input Variations                                               | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|------:|-------:|
