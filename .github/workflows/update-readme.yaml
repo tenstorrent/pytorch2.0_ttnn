@@ -19,6 +19,11 @@ jobs:
     needs: create-pr
     if: ${{ needs.create-pr.outputs.pull_request_number }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
       - name: Approve Pull Request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
