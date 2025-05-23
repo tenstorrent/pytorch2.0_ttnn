@@ -47,6 +47,11 @@ def pytest_addoption(parser):
         help=f"Export standalone Python code. Supported options: {export_code.export_code_options}",
     )
     parser.addoption("--data_parallel", action="store_true")
+    parser.addoption(
+        "--native_integration",
+        action="store_true",
+        help="Use native device integration for ttnn. Note: this is not supported with data parallel.",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -237,6 +242,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 assert export_code_opt in export_code.export_code_options
 
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
+            native_integration = request.config.getoption("--native_integration")
 
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
@@ -247,7 +253,24 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 export_code=export_code_opt,
                 total_num_iterations=total_num_iterations,
                 data_parallel=request.config.getoption("--data_parallel"),
+                load_params_once=not native_integration,  # load_params_once conflicts with native integration
+                native_integration=native_integration,
             )
+
+            if option.native_integration and option.data_parallel:
+                logging.error("Native integration is not supported with data parallel.")
+                raise ValueError("Native integration is not supported with data parallel.")
+
+            # Move model and inputs to ttnn device
+            if option.native_integration:
+                from torch_ttnn.cpp_extension import ttnn_module
+
+                torch_device = ttnn_module.as_torch_device(option.device)
+                start = time.perf_counter() * 1000
+                model_tester.model = model_tester.model.to(torch_device)
+                model_tester.inputs = model_tester.inputs.to(torch_device)
+                end = time.perf_counter() * 1000
+                logging.info(f"Model and inputs moved to ttnn device in {end - start} ms.")
 
             for idx in range(total_num_iterations):
                 start = time.perf_counter() * 1000
@@ -257,6 +280,12 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_time = end - start
                 if idx == 0:
                     first_iter_runtime = run_time
+                logging.info(f"Iteration {idx}: {run_time} ms")
+
+            # Move model and inputs back to CPU
+            if option.native_integration:
+                model_tester.model = model_tester.model.to("cpu")
+                model_tester.inputs = model_tester.inputs.to("cpu")
 
             comp_runtime_metrics["success"] = True
             comp_runtime_metrics["run_time"] = round(run_time, 2)

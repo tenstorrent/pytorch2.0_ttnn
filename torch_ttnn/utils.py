@@ -84,6 +84,19 @@ def is_operation(node):
     return node.op not in ["placeholder", "output"]
 
 
+def get_meta_val_attr(node, attr: str):
+    """
+    Example usage in condition statement:
+    # Important to wrap var assignment in parenthesis because of order of operations
+    if (var := get_meta_val_attr(node, "attr")) and str(attr) == "some_val":
+        ...
+    """
+    if "val" in node.meta:
+        return getattr(node.meta["val"], attr, False)
+    else:
+        return False
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size

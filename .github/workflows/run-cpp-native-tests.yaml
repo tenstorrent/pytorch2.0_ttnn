@@ -1,0 +1,158 @@
+name: "C++ Extension Tests"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'torch_ttnn/cpp_extension/**'
+      - 'tests/cpp_extension/**'
+  pull_request:
+    paths:
+      - "torch_ttnn/cpp_extension/**"
+      - "tests/cpp_extension/**"
+  workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: "Docker container tag to use"
+        required: false
+        type: string
+        default: "ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest"
+
+jobs:
+  cpp-extension-tests:
+    runs-on: ["in-service", "nfs"]
+    container:
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:
+      CACHE_DIR: /root/.cache/cpp-extension-cache
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          submodules: "recursive"
+
+      - name: Docker Cleanup
+        run: |
+          docker system prune -a -f
+          df -h  # Debug space
+
+      - name: Update system
+        run: |
+          apt update -y && apt upgrade -y
+          apt install -y curl jq
+      - name: Update .gitsubmodules
+        run: |
+          # Fetch the latest pre-release tag from the target repository
+          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
+          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
+          latest_version="${latest_pre_release#v}"
+          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
+          echo "Updated .gitmodules with the latest version: $latest_version"
+
+      - name: Install dependencies
+        run: |
+          apt upgrade -y && apt update -y
+          apt install -y cmake python3 python3-venv python3-pip git-lfs ccache
+          git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
+          git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
+
+          # Remove hugepages setup from install_dependencies.sh
+          sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
+          ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
+
+      - name: Install python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install -r requirements-dev.txt
+          python3 -m pip install pytest-github-report
+
+          pip install --force-reinstall pip==21.2.4
+          python3 -m pip install numpy setuptools wheel
+          python3 -m pip install -e .
+
+      - name: Setup submodules
+        run: |
+          git submodule sync
+          git submodule update --init --recursive
+          git submodule foreach 'git lfs fetch --all && git lfs pull'
+
+      - name: Build/Fetch C++ Extensions
+        run: |
+          cd torch_ttnn/cpp_extension
+          PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
+
+          CCACHE_DIR=$(ccache --get-config cache_dir)
+          mkdir -p $CCACHE_DIR
+
+          # Check if cache exists with required components
+          CACHE_FOUND=0
+          if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX}" ]; then
+            CACHE_FOUND=1
+            echo "Cache found with all required components. Using cached build."
+
+            # cpp-extension cache
+            cp -r $CACHE_DIR/build .
+            cp -r $CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX} .
+
+            # tt-metal cache
+            cp -r $CACHE_DIR/tt-metal/build third-party/tt-metal/
+            cp -r $CACHE_DIR/tt-metal/.cpmcache third-party/tt-metal/
+
+            # ccache
+            cp -r $CACHE_DIR/ccache/* $CCACHE_DIR
+          else
+            echo "Cache not found or incomplete. Building C++ extensions"
+          fi
+          ./build_cpp_extension.sh
+          
+          # Update cache with new build if not was not present before
+          if [ $CACHE_FOUND -eq 0 ]; then
+            mkdir -p $CACHE_DIR
+            
+            # cpp-extension cache
+            cp -r build $CACHE_DIR 
+            cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
+
+            # tt-metal cache
+            mkdir -p $CACHE_DIR/tt-metal
+            cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal/
+            cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
+
+            # ccache
+            cp -r $CCACHE_DIR $CACHE_DIR 
+          fi
+          cd ${{ github.workspace }}
+
+      - name: Run C++ Extension Tests
+        run: |
+          export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)
+          pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
+          pytest tests/cpp_extension/test_bert_cpp_extension.py -v
+
+  tests-passed:
+    if: ${{ always() }}
+    outputs:
+      didpass: ${{ steps.check.outputs.didpass }}
+    runs-on: ubuntu-latest
+    needs: [cpp-extension-tests]
+    steps:
+      - id: check
+        run: |
+          cpp_tests_result="${{ needs.cpp-extension-tests.result}}"
+          if [[ $cpp_tests_result == "success" || $cpp_tests_result == "skipped" ]]; then
+            echo "didpass=0" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "didpass=1" >> $GITHUB_OUTPUT
+            exit 1
+          fi

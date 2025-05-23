@@ -4,7 +4,6 @@ on:
   schedule:
     - cron: '0 8 * * *'  # Runs at 08:00 UTC every day
   workflow_dispatch:  # Manual trigger
-
 jobs:
   fetch-release-and-create-pr:
     runs-on: ubuntu-latest
@@ -31,7 +30,6 @@ jobs:
           latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
           # Remove any existing ttnn lines (adjust the regex if needed)
           sed -i '/^ttnn @ https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt
-      
           # Append the line for the newest version
           echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
           
@@ -65,3 +63,40 @@ jobs:
         run: gh pr merge --merge --auto "${{ steps.create-pr.outputs.pull-request-number }}"
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  build_cache_cpp_extension:
+    runs-on: ["in-service", "nfs"]
+    container:
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:
+      CACHE_DIR: /root/.cache/cpp-extension-cache
+    steps:
+      # TODO: checkout must be changed to main once branch is merged
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          submodules: "recursive"
+          ref: main
+      - name: Update system
+        run: |
+          apt update -y && apt upgrade -y
+          apt install -y curl jq
+      - name: Update .gitsubmodules
+        run: |
+          # Fetch the latest pre-release tag from the target repository
+          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
+          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
+          latest_version="${latest_pre_release#v}"
+          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
+          echo "Updated .gitmodules with the latest version: $latest_version"
+
+      - name: Build C++ Extensions
+        uses: ./.github/actions/build_cpp_extension_artifacts
