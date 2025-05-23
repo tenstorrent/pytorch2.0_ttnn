@@ -47,7 +47,7 @@ class NodeMover:
 
     def move(self, node):
         assert node.meta.get("iteration_invariant") == True
-        if node.op == "placeholder":
+        if node.op in ["placeholder", "get_attr", "output", "root"]:
             return 0
 
         self.node_to_run_once_idx[node] = len(self.node_to_run_once_idx)
@@ -102,13 +102,14 @@ class NodeMover:
         global run_once_count
         target_wrappers.run_once_count = 0
 
-        with self.graph.inserting_before(self.first_node):
-            ttnn_inputs = self.graph.call_function(
-                target_wrappers.run_once,
-                tuple(self.run_once_inputs),
-            )
+        if len(self.run_once_inputs) > 0:
+            with self.graph.inserting_before(self.first_node):
+                ttnn_inputs = self.graph.call_function(
+                    target_wrappers.run_once,
+                    tuple(self.run_once_inputs),
+                )
 
-        self.rewrite_users(ttnn_inputs)
+            self.rewrite_users(ttnn_inputs)
 
 
 class LoadOncePass(PassBase):

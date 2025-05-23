@@ -74,8 +74,17 @@ def run_once(*args):
         for function_call in args:
             convert_input(function_call)
 
-        # deallocate temporaries
+        # deallocate temporaries unless they alias a return value
+        # this can happen when a returned value is calculated from a temp, but the operation doesn't actually do anything (e.g. to_layout(temp, ttnn.TILE_LAYOUT) but temp is already TILE_LAYOUT)
+        # we only need to worry about device tensors here
+        returned_addresses = [r.buffer_address() for r in return_results if r.storage_type() == ttnn.StorageType.DEVICE]
         for idx in to_deallocate:
+            maybe_deallocate = temp_results[idx]
+            if (
+                maybe_deallocate.storage_type() == ttnn.StorageType.DEVICE
+                and maybe_deallocate.buffer_address() in returned_addresses
+            ):
+                continue
             ttnn.deallocate(temp_results[idx])
 
         run_once_ans = tuple(return_results)
