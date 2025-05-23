@@ -8,6 +8,8 @@ import ttnn
 
 from tests.utils import assert_with_pcc
 
+torch.manual_seed(1337)
+
 
 class PowTensorScalarModule(torch.nn.Module):
     def __init__(self):
