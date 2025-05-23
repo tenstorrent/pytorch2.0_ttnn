@@ -496,11 +496,21 @@ class NodeInputAligner:
 
         if isinstance(spec, self.AlignSpecFromTorch):
             # TODO: Add mesh support for native integration
-            if (native_device := get_meta_val_attr(spec.input_node, "device")) and str(native_device) == "ttnn:0":
+            if (
+                spec.input_node.op == "placeholder"
+                and (native_device := get_meta_val_attr(spec.input_node, "device"))
+                and str(native_device) == "ttnn:0"
+            ):
                 from torch_ttnn.cpp_extension import ttnn_module
 
                 aligning_nodes = []
                 aligning_nodes.append(self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {}))
+                if node.target == target_wrappers.conv and input_site == 1:
+                    aligning_nodes.append(
+                        self.graph.call_function(
+                            target_wrappers.move_to_host, (aligning_nodes[-1], TtnnRowMajorLayout())
+                        )
+                    )
                 return aligning_nodes[-1]
             else:
                 return self.graph.call_function(ttnn.from_torch, args, kwargs)
