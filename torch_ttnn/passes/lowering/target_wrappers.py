@@ -47,7 +47,17 @@ def run_once(*args):
         def rewrite_args(arg_tuple):
             args = list(arg_tuple)
             for i, arg in enumerate(args):
-                if isinstance(arg, bytes):
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    original_version = list(arg)
+                    decoded_version = [
+                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                    ]
+                    new_arg = [
+                        decoded if decoded is not None else original
+                        for decoded, original in zip(decoded_version, original_version)
+                    ]
+                    args[i] = new_arg
+                elif isinstance(arg, bytes):
                     maybe_prev_result = lookup_prev_result(arg)
                     if maybe_prev_result is not None:
                         args[i] = maybe_prev_result
@@ -55,7 +65,17 @@ def run_once(*args):
 
         def rewrite_kwargs(kwargs_dict):
             for k, v in kwargs_dict.items():
-                if isinstance(v, bytes):
+                if isinstance(v, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    original_version = list(v)
+                    decoded_version = [
+                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                    ]
+                    new_value = [
+                        decoded if decoded is not None else original
+                        for decoded, original in zip(decoded_version, original_version)
+                    ]
+                    kwargs_dict[k] = new_value
+                elif isinstance(v, bytes):
                     maybe_prev_result = lookup_prev_result(v)
                     if maybe_prev_result is not None:
                         kwargs_dict[k] = maybe_prev_result

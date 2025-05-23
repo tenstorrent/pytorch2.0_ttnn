@@ -59,21 +59,9 @@ class NodeMover:
 
         run_once_idx = target_wrappers.RunOnceIdx(self.node_to_run_once_idx[node])
         run_once_idx = pickle.dumps(run_once_idx)
-        users = node.users.copy()
-        for user in users:
-            if user.meta.get("iteration_invariant") != True:
-                continue
-            if node in user.args:
-                user_idx = user.args.index(node)
-                new_args = list(user.args)
-                new_args[user_idx] = run_once_idx
-                user.args = tuple(new_args)
-
-            new_kwargs = user.kwargs.copy()
-            for k, v in user.kwargs.items():
-                if v == node:
-                    new_kwargs[k] = run_once_idx
-            user.kwargs = new_kwargs
+        node.replace_all_uses_with(
+            run_once_idx, delete_user_cb=lambda node: node.meta.get("iteration_invariant") == True
+        )
 
         if hasattr(node.target, "python_fully_qualified_name"):
             fn_call = node.target.python_fully_qualified_name
