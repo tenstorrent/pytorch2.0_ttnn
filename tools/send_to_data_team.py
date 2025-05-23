@@ -1,12 +1,10 @@
 import argparse
 import pickle
-import tempfile
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+import paramiko
 from typing import List, Dict
-
-import pysftp
 
 from tools.data_collection.pydantic_models import TensorDesc, OpTest
 
@@ -17,13 +15,13 @@ class SendToDataTeam:
         github_workflow_id: int,
         sftp_host: str,
         sftp_user: str,
-        sftp_private_key: str,
+        sftp_private_key_path: str,
         metrics_directory_name: str = "metrics",
     ):
         self.github_workflow_id = github_workflow_id
         self.sftp_host = sftp_host
         self.sftp_user = sftp_user
-        self.sftp_private_key = sftp_private_key
+        self.sftp_private_key_path = sftp_private_key_path
         self.metrics_dir = Path(metrics_directory_name)
 
     def run(self):
@@ -34,10 +32,12 @@ class SendToDataTeam:
 
         start_str = str(start).replace(" ", "_").replace(":", "")
         file_name = f"pytorch_{start_str}.json"
-        with tempfile.TemporaryDirectory() as d:
-            file_path = Path(d) / file_name
-            self.write_file(pydantic_objects, file_path)
-            self.send_file(file_path)
+        folder_path = Path("~/data_team")
+        folder_path.mkdir(parents=True, exist_ok=True)
+        file_path = folder_path / file_name
+
+        self.write_file(pydantic_objects, file_path)
+        self.send_file(file_path)
 
     def send_file(self, file_path: Path):
         """
@@ -45,13 +45,19 @@ class SendToDataTeam:
         Args:
             file_path: Path to the file to send.
         """
-        with tempfile.NamedTemporaryFile() as private_key_file:
-            private_key_file.write(bytes(self.sftp_private_key, "utf-8"))
-            private_key_file.flush()
-            with pysftp.Connection(
-                host=self.sftp_host, username=self.sftp_user, private_key=private_key_file.name
-            ) as sftp:
-                sftp.put(str(file_path))
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        ssh.connect(hostname=self.sftp_host, username=self.sftp_user, key_filename=self.sftp_private_key_path)
+
+        sftp = ssh.open_sftp()
+
+        file_path_str = str(file_path)
+        sftp.put(file_path_str, file_path_str.split("/")[-1])
+
+        sftp.close()
+        ssh.close()
+
+        print(f"Data sent to the Data Team SFTP successfully.")
 
     @staticmethod
     def write_file(pydantic_objects: List[OpTest], file_path: Path):
@@ -168,7 +174,7 @@ if __name__ == "__main__":
     parser.add_argument("--github_workflow_id", type=int, help="Github workflow id associated with the run.")
     parser.add_argument("--sftp_host", type=str, help="Sftp host.")
     parser.add_argument("--sftp_user", type=str, help="Sftp user.")
-    parser.add_argument("--sftp_private_key", type=str, help="Path to private key.")
+    parser.add_argument("--sftp_private_key_path", type=str, help="Path to private key.")
 
     args = parser.parse_args()
 
@@ -176,7 +182,7 @@ if __name__ == "__main__":
         github_workflow_id=args.github_workflow_id,
         sftp_host=args.sftp_host,
         sftp_user=args.sftp_user,
-        sftp_private_key=args.sftp_private_key,
+        sftp_private_key_path=args.sftp_private_key_path,
     )
 
     sender.run()
