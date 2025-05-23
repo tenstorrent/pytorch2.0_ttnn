@@ -48,15 +48,17 @@ def run_once(*args):
             args = list(arg_tuple)
             for i, arg in enumerate(args):
                 if isinstance(arg, bytes):
-                    if prev_result := lookup_prev_result(arg):
-                        args[i] = prev_result
+                    maybe_prev_result = lookup_prev_result(arg)
+                    if maybe_prev_result is not None:
+                        args[i] = maybe_prev_result
             return tuple(args)
 
         def rewrite_kwargs(kwargs_dict):
             for k, v in kwargs_dict.items():
                 if isinstance(v, bytes):
-                    if prev_result := lookup_prev_result(v):
-                        kwargs_dict[k] = prev_result
+                    maybe_prev_result = lookup_prev_result(v)
+                    if maybe_prev_result is not None:
+                        kwargs_dict[k] = maybe_prev_result
             return kwargs_dict
 
         def convert_input(spec):
@@ -80,6 +82,8 @@ def run_once(*args):
         returned_addresses = [r.buffer_address() for r in return_results if r.storage_type() == ttnn.StorageType.DEVICE]
         for idx in to_deallocate:
             maybe_deallocate = temp_results[idx]
+            if not isinstance(maybe_deallocate, ttnn.Tensor):
+                continue
             if (
                 maybe_deallocate.storage_type() == ttnn.StorageType.DEVICE
                 and maybe_deallocate.buffer_address() in returned_addresses
