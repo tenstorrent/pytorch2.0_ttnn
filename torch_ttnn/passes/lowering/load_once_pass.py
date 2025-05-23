@@ -81,6 +81,8 @@ class NodeMover:
             fn_call = node.target.__qualname__
         elif node.target.__module__ == "torch._ops.aten":
             fn_call = f"torch.ops.aten.{node.target.__name__}"
+        elif node.target.__module__ == "ttnn.distributed.distributed":
+            fn_call = f"ttnn.{node.target.__name__}"
         else:
             fn_call = f"{node.target.__module__}.{node.target.__qualname__}"
 

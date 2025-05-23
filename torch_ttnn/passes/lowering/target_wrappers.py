@@ -79,17 +79,21 @@ def run_once(*args):
         # deallocate temporaries unless they alias a return value
         # this can happen when a returned value is calculated from a temp, but the operation doesn't actually do anything (e.g. to_layout(temp, ttnn.TILE_LAYOUT) but temp is already TILE_LAYOUT)
         # we only need to worry about device tensors here
-        returned_addresses = [r.buffer_address() for r in return_results if r.storage_type() == ttnn.StorageType.DEVICE]
-        for idx in to_deallocate:
-            maybe_deallocate = temp_results[idx]
-            if not isinstance(maybe_deallocate, ttnn.Tensor):
-                continue
-            if (
-                maybe_deallocate.storage_type() == ttnn.StorageType.DEVICE
-                and maybe_deallocate.buffer_address() in returned_addresses
-            ):
-                continue
-            ttnn.deallocate(temp_results[idx])
+        returned_addresses = [
+            r.buffer_address()
+            for r in return_results
+            if isinstance(r, ttnn.Tensor) and r.storage_type() == ttnn.StorageType.DEVICE
+        ]
+        # only deallocate ttnn tensors
+        to_deallocate = [temp_results[idx] for idx in to_deallocate if isinstance(temp_results[idx], ttnn.Tensor)]
+        # only deallocate device tensors that do not alias a returned tensor
+        to_deallocate = filter(
+            lambda tens: tens.storage_type == ttnn.StorageType.DEVICE
+            and tens.buffer_address() not in returned_addresses,
+            to_deallocate,
+        )
+        for temp_tensor in to_deallocate:
+            ttnn.deallocate(temp_tensor)
 
         run_once_ans = tuple(return_results)
         run_once_count += 1
