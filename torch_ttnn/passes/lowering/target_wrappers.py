@@ -103,11 +103,14 @@ def run_once(*args):
                     return_idx = temp_idx_to_return_idx[weight_idx]
                     return_results[return_idx] = new_weights
                     to_deallocate.append(weight_idx)
-                if bias_info := lookup_prev_result(args[2]):
-                    bias_idx, _ = bias_info
-                    return_idx = temp_idx_to_return_idx[bias_idx]
-                    return_results[return_idx] = new_bias
-                    to_deallocate.append(bias_idx)
+
+                bias_arg = args[2]
+                if bias_arg is not None:
+                    if bias_info := lookup_prev_result(bias_arg):
+                        bias_idx, _ = bias_info
+                        return_idx = temp_idx_to_return_idx[bias_idx]
+                        return_results[return_idx] = new_bias
+                        to_deallocate.append(bias_idx)
             else:
                 to_deallocate.append(len(temp_results) - 1)
 
