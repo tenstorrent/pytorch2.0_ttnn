@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+import inspect
 import pickle
 import torch
 from torch_ttnn.passes.analysis.graph_module_analysis_pass import ModelType
@@ -30,9 +31,9 @@ def mark_nodes_invariant(nodes):
     for node in filter(lambda n: n.op == "placeholder" and n.meta.get("primal_tag") == PrimalTag.ARGUMENT, nodes):
         # mark all descendents as not iteration_invariant
         mark_descendants_varied(node)
-    for node in filter(lambda n: n.op == "output", nodes):
-        # make sure all output nodes are marked as variable
-        node.meta["iteration_invariant"] = False
+    for node in filter(lambda n: n.op in ["output", "get_attr", "root"], nodes):
+        # make sure all outputs, roots, and get_attr nodes are marked as variable
+        mark_descendants_varied(node)
 
 
 class NodeMover:
@@ -71,6 +72,8 @@ class NodeMover:
             fn_call = f"torch.ops.aten.{node.target.__name__}"
         elif node.target.__module__ == "ttnn.distributed.distributed":
             fn_call = f"ttnn.{node.target.__name__}"
+        elif inspect.isbuiltin(node.target):
+            fn_call = node.target.__name__
         else:
             fn_call = f"{node.target.__module__}.{node.target.__qualname__}"
 
