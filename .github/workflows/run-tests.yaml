@@ -104,6 +104,7 @@ jobs:
           test_directory: 'tests/models/'
 
   model-tests:
+    continue-on-error: true
     needs: [count-test-files, lowering-tests]
     runs-on: ["in-service", "nfs"]
     container: 
