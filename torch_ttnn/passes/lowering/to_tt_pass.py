@@ -923,7 +923,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     # For native device, integer tensors are currently initialized as ROW_MAJOR
                     # ttnn.typecast requires TILE_LAYOUT as an input
                     if (
-                        (native_device := get_meta_val_attr(node, "device"))
+                        node.op == "placeholder"
+                        and (native_device := get_meta_val_attr(node, "device"))
                         and str(native_device) == "ttnn:0"
                         and src_dtype in [torch.int32, torch.int64]
                     ):
