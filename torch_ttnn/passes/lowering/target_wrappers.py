@@ -38,10 +38,10 @@ def run_once(*args):
                 base = getattr(base, part)
             return base
 
-        def lookup_prev_result(maybe_pickled_run_once_idx):
+        def lookup_prev_result_idx(maybe_pickled_run_once_idx):
             try:
                 run_once_idx = pickle.loads(maybe_pickled_run_once_idx)
-                return run_once_idx.idx, temp_results[run_once_idx.idx]
+                return run_once_idx.idx
             except pickle.UnpicklingError:
                 pass
             return None
@@ -52,17 +52,19 @@ def run_once(*args):
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     original_version = list(arg)
                     decoded_version = [
-                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                        lookup_prev_result_idx(entry) if isinstance(entry, bytes) else None
+                        for entry in original_version
                     ]
+                    decoded_version = [temp_results[idx] if idx is not None else None for idx in decoded_version]
                     new_arg = [
                         decoded if decoded is not None else original
                         for decoded, original in zip(decoded_version, original_version)
                     ]
                     args[i] = new_arg
                 elif isinstance(arg, bytes):
-                    maybe_prev_result = lookup_prev_result(arg)
-                    if maybe_prev_result is not None:
-                        _, prev_val = maybe_prev_result
+                    maybe_prev_result_idx = lookup_prev_result_idx(arg)
+                    if maybe_prev_result_idx is not None:
+                        prev_val = temp_results[maybe_prev_result_idx]
                         args[i] = prev_val
             return tuple(args)
 
@@ -71,17 +73,19 @@ def run_once(*args):
                 if isinstance(v, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     original_version = list(v)
                     decoded_version = [
-                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                        lookup_prev_result_idx(entry) if isinstance(entry, bytes) else None
+                        for entry in original_version
                     ]
+                    decoded_version = [temp_results[idx] if idx is not None else None for idx in decoded_version]
                     new_value = [
                         decoded if decoded is not None else original
                         for decoded, original in zip(decoded_version, original_version)
                     ]
                     kwargs_dict[k] = new_value
                 elif isinstance(v, bytes):
-                    maybe_prev_result = lookup_prev_result(v)
-                    if maybe_prev_result is not None:
-                        _, prev_val = maybe_prev_result
+                    maybe_prev_result_idx = lookup_prev_result_idx(v)
+                    if maybe_prev_result_idx is not None:
+                        prev_val = temp_results[maybe_prev_result_idx]
                         kwargs_dict[k] = prev_val
             return kwargs_dict
 
@@ -98,16 +102,14 @@ def run_once(*args):
             elif found_func == conv:
                 # special case conv to preprocess weights and optional bias
                 (_, (new_weights, new_bias)) = temp_results[-1]
-                if weight_info := lookup_prev_result(args[1]):
-                    weight_idx, _ = weight_info
+                if weight_idx := lookup_prev_result_idx(args[1]):
                     return_idx = temp_idx_to_return_idx[weight_idx]
                     return_results[return_idx] = new_weights
                     to_deallocate.append(weight_idx)
 
                 bias_arg = args[2]
                 if bias_arg is not None:
-                    if bias_info := lookup_prev_result(bias_arg):
-                        bias_idx, _ = bias_info
+                    if bias_idx := lookup_prev_result_idx(bias_arg):
                         return_idx = temp_idx_to_return_idx[bias_idx]
                         return_results[return_idx] = new_bias
                         to_deallocate.append(bias_idx)
