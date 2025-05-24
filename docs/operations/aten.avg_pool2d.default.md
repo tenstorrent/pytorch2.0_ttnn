@@ -14,7 +14,5 @@
 | 10 | Tensor<[1, 384, 35, 35]> self = ?,<br>List[int] kernel_size = [3, 3],<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>bool ceil_mode = False,<br>bool count_include_pad = False  | None     | Fallback   | 1        |     -1 |
 | 11 | Tensor<[1, 40, 28, 28]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                                | None     | Fallback   | 1        |     -1 |
 | 12 | Tensor<[1, 512, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                               | Done     | Done       | 0.999997 |      0 |
-| 13 | Tensor<[1, 640, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                               | Done     | Done       | 0.999997 |      0 |
-| 14 | Tensor<[1, 80, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                                | None     | Fallback   | 1        |     -1 |
-| 15 | Tensor<[1, 896, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                               | Done     | Done       | 0.999997 |      0 |
+| 13 | Tensor<[1, 80, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                                | None     | Fallback   | 1        |     -1 |
 

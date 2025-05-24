@@ -8,14 +8,14 @@
 |  4 | aten.bmm.default               |                  2 |           0 |         2 |          0 | ✅          |       1 |
 |  5 | aten.clone.default             |                  4 |           0 |         4 |          0 | ✅          |       1 |
 |  6 | aten.div.Tensor                |                  1 |           0 |         1 |          0 | ✅          |       1 |
-|  7 | aten.embedding.default         |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  7 | aten.embedding.default         |                  3 |           2 |         1 |          0 | ✅          |       1 |
 |  8 | aten.expand.default            |                  3 |           0 |         3 |          0 | ✅          |       1 |
 |  9 | aten.gelu.default              |                  1 |           0 |         1 |          0 | ✅          |       1 |
 | 10 | aten.mul.Tensor                |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 11 | aten.native_layer_norm.default |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 12 | aten.permute.default           |                  2 |           0 |         2 |          0 | ✅          |       1 |
 | 13 | aten.rsub.Scalar               |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 14 | aten.slice.Tensor              |                  4 |           1 |         3 |          0 | ✅          |       1 |
+| 14 | aten.slice.Tensor              |                  4 |           0 |         4 |          0 | ✅          |       1 |
 | 15 | aten.split.Tensor              |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 16 | aten.squeeze.dim               |                  1 |           1 |         0 |          0 | ✅          |       1 |
 | 17 | aten.t.default                 |                  4 |           0 |         4 |          0 | ✅          |       1 |
@@ -64,7 +64,7 @@
 |---:|:------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
 |  0 | Tensor<[2, 1024]> weight = ?,<br>Tensor<[1, 384]> indices = ?                             | Done     | Unknown    | N/A   | N/A    |
 |  1 | Tensor<[30522, 1024]> weight = ?,<br>Tensor<[1, 384]> indices = ?,<br>int padding_idx = 0 | Done     | Unknown    | N/A   | N/A    |
-|  2 | Tensor<[512, 1024]> weight = ?,<br>Tensor<[1, 384]> indices = ?                           | Done     | Unknown    | N/A   | N/A    |
+|  2 | Tensor<[512, 1024]> weight = ?,<br>Tensor<[1, 384]> indices = ?                           | Removed  | Unknown    | N/A   | N/A    |
 ### aten.expand.default
 |    | ATen Input Variations                                                     | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
@@ -98,7 +98,7 @@
 |  0 | Tensor<[1, 1, 1, 384]> self = ?,<br>int dim = 3,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807 | Removed  | Unknown    | N/A   | N/A    |
 |  1 | Tensor<[1, 384]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Unknown    | N/A   | N/A    |
 |  2 | Tensor<[1, 512]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807       | Removed  | Done       | 1.0   | -1     |
-|  3 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 384                       | Done     | Unknown    | N/A   | N/A    |
+|  3 | Tensor<[1, 512]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 384                       | Removed  | Unknown    | N/A   | N/A    |
 ### aten.split.Tensor
 |    | ATen Input Variations                                                | Status   | Isolated   | PCC   | Host   |
 |---:|:---------------------------------------------------------------------|:---------|:-----------|:------|:-------|
