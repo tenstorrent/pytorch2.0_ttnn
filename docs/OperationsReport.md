@@ -110,7 +110,7 @@
 | 106 | [aten.sigmoid_backward.default](operations/aten.sigmoid_backward.default.md)                                         |                 11 |           0 |         0 |          0 | ✘           |    0    |
 | 107 | [aten.silu.default](operations/aten.silu.default.md)                                                                 |                  2 |           2 |         0 |          0 | ✅          |    1    |
 | 108 | [aten.sin.default](operations/aten.sin.default.md)                                                                   |                  2 |           2 |         0 |          0 | ✅          |    1    |
-| 109 | [aten.slice.Tensor](operations/aten.slice.Tensor.md)                                                                 |                707 |         327 |       171 |          0 | 🚧          |    0.7  |
+| 109 | [aten.slice.Tensor](operations/aten.slice.Tensor.md)                                                                 |                707 |         377 |       171 |          0 | 🚧          |    0.78 |
 | 110 | [aten.slice_backward.default](operations/aten.slice_backward.default.md)                                             |                 36 |           0 |         0 |          0 | ✘           |    0    |
 | 111 | [aten.slice_scatter.default](operations/aten.slice_scatter.default.md)                                               |                 91 |          71 |        18 |          0 | 🚧          |    0.98 |
 | 112 | [aten.split.Tensor](operations/aten.split.Tensor.md)                                                                 |                 10 |           5 |         0 |          0 | 🚧          |    0.5  |
