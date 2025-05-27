@@ -6,6 +6,7 @@ import ttnn
 import math
 from torch._guards import detect_fake_mode
 from torch._subclasses.fake_tensor import unset_fake_temporarily
+
 from torch_ttnn.utils import (
     GraphCleanup,
     TtnnBfloat16,
@@ -20,6 +21,7 @@ from torch_ttnn.utils import (
     get_shape,
     get_dtype,
     get_arg,
+    get_meta_val_attr,
 )
 import numpy as np
 import torch_ttnn.metrics as metrics
@@ -709,11 +711,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 [step] = step or [1]
                 rank = len(input_size)
 
-                if step != 1 or dim >= rank:
+                if dim >= rank:
                     return None
 
                 # Check if no-op, just return the input tensor
-                if start == 0 and end >= input_size[dim]:
+                if start == 0 and end >= input_size[dim] and step == 1:
                     return tensor
 
                 slice_start = np.zeros(rank, dtype=int)
@@ -728,7 +730,15 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 slice_start[dim] = start
                 slice_end[dim] = end
 
-                return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]))
+                if step != 1:
+                    array_step = [1] * len(input_size)
+                    array_step[dim] = step
+
+                kwargs = {
+                    "slice_step": array_step if step != 1 else None,
+                }
+
+                return g.call_function(ttnn.slice, (tensor, [*slice_start], [*slice_end]), kwargs)
 
             if node.target == torch.ops.aten.repeat.default:
                 tensor, sizes = args
@@ -909,7 +919,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(dst_dtype)
-                    return g.call_function(ttnn.typecast, args=(node.args[0], ttnn_dtype))
+                    new_nodes = [node.args[0]]
+                    # For native device, integer tensors are currently initialized as ROW_MAJOR
+                    # ttnn.typecast requires TILE_LAYOUT as an input
+                    if (
+                        (native_device := get_meta_val_attr(node, "device"))
+                        and str(native_device) == "ttnn:0"
+                        and src_dtype in [torch.int32, torch.int64]
+                    ):
+                        new_nodes.append(g.call_function(ttnn.to_layout, (new_nodes[-1], TtnnTileLayout())))
+                    typecast = g.call_function(ttnn.typecast, args=(new_nodes[-1], ttnn_dtype))
+                    return typecast
                 except:
                     pass
 
@@ -1244,6 +1264,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 # slice_scatter could be concat([pre_slice_tensor, src_tensor, post_slice_tensor])
                 rank = len(tensor_shape)
                 [step] = step or [1]
+
                 if step != 1:
                     return None
 

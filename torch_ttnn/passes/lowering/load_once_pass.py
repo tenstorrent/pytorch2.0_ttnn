@@ -115,11 +115,12 @@ class LoadOncePass(PassBase):
     :param is_end_to_end: Whether the input GraphModule is converted end to end.
     """
 
-    def __init__(self, is_end_to_end):
+    def __init__(self, is_end_to_end, load_params_once):
         self.is_end_to_end = is_end_to_end
+        self.load_params_once = load_params_once
 
     def call(self, gm: torch.fx.GraphModule):
-        if (not self.is_end_to_end) or gm.meta.get("graph_type") != ModelType.INFERENCE:
+        if (not self.is_end_to_end) or (not self.load_params_once) or gm.meta.get("graph_type") != ModelType.INFERENCE:
             modified = False
             return PassResult(gm, modified)
 

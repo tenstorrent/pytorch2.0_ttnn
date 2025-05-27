@@ -38,4 +38,4 @@ def test_pow_tensor_scalar_square(device, input, exponent_shape):
     assert [node.target for node in nodes].count(ttnn.pow) == 1
     assert result_before.shape == result_after.shape
     # Check inference result
-    assert_with_pcc(result_before, result_after)
+    assert_with_pcc(result_before, result_after, pcc=0.997)

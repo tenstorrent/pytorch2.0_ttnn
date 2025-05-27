@@ -5,6 +5,12 @@ on:
 
 jobs:
   run-tests:
+    permissions:
+      actions: read
+      contents: write
+      pages: write
+      pull-requests: write
+      id-token: write
     uses: ./.github/workflows/run-tests.yaml
     secrets: inherit
     with:

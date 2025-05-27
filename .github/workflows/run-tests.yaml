@@ -92,7 +92,7 @@ jobs:
       matrix: ${{ steps.count-files.outputs.matrix }}
       num_files: ${{ steps.count-files.outputs.num_files }}
     env:
-      MOCK_RUN: ${{ github.event.inputs.mock_run }}
+      MOCK_RUN: ${{ inputs.mock_run }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -137,7 +137,7 @@ jobs:
         with:
           splits: ${{ needs.count-test-files.outputs.num_files }}
           matrix_group: ${{ matrix.group }}
-          commit_report: ${{ github.event.inputs.commit_report }}
+          commit_report: ${{ inputs.commit_report }}
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
@@ -181,7 +181,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_multi_device_tests
         with:
-          commit_report: ${{ github.event.inputs.commit_report }}
+          commit_report: ${{ inputs.commit_report }}
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
@@ -412,11 +412,19 @@ jobs:
 
       - name: Send To Data Team
         run: |
+          # Add to known hosts and create id_rsa file
+          mkdir -p ~/.ssh && touch ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.SFTP_OPTEST_HOST }} >> ~/.ssh/known_hosts
+          
+          rm -rf ~/.ssh/id_rsa
+          echo "${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}" >> ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+          
           python3 tools/send_to_data_team.py \
               --github_workflow_id ${{ github.run_id }} \
               --sftp_host ${{ secrets.SFTP_OPTEST_HOST }} \
               --sftp_user ${{ secrets.SFTP_OPTEST_USER }} \
-              --sftp_private_key ${{ secrets.SFTP_OPTEST_PRIVATE_KEY }}
+              --sftp_private_key_path ~/.ssh/id_rsa
 
   tests-passed:
     if: ${{ always() }}
