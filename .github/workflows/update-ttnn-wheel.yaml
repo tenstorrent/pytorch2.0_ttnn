@@ -7,6 +7,10 @@ on:
 jobs:
   fetch-release-and-create-pr:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+      
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
