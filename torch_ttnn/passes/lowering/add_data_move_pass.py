@@ -511,6 +511,10 @@ class NodeInputAligner:
                             target_wrappers.move_to_host, (aligning_nodes[-1], TtnnRowMajorLayout())
                         )
                     )
+                elif "layout" in kwargs:
+                    aligning_nodes.append(
+                        self.graph.call_function(ttnn.to_layout, (aligning_nodes[-1], kwargs["layout"]))
+                    )
                 return aligning_nodes[-1]
             else:
                 return self.graph.call_function(ttnn.from_torch, args, kwargs)
