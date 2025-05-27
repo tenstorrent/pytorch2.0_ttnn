@@ -7,6 +7,10 @@ on:
 jobs:
   fetch-release-and-create-pr:
     runs-on: ubuntu-latest
+    permissions:
+      pull-request: write
+      contents: read
+      
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -53,9 +57,6 @@ jobs:
         if: ${{ steps.create-pr.outputs.pull-request-number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        permissions:
-          pull-request: write
-          contents: read
         run: |
           echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"        
