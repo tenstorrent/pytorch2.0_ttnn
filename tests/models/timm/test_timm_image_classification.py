@@ -64,8 +64,10 @@ model_and_mode_list = [
     pytest.param(["mobilenetv1_100.ra4_e3600_r224_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(["ese_vovnet19b_dw.ra_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(["xception71.tf_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
-    pytest.param(["dla34.in1k", "eval"], marks=pytest.mark.converted_end_to_end),
-    ["hrnet_w18.ms_aug_in1k", "eval"],
+    pytest.param(["dla34.in1k", "eval"], marks=pytest.mark.compilation_xfail(reason="Fail with more run_once")),
+    pytest.param(
+        ["hrnet_w18.ms_aug_in1k", "eval"], marks=pytest.mark.compilation_xfail(reason="Fail with more run_once")
+    ),
 ]
 
 

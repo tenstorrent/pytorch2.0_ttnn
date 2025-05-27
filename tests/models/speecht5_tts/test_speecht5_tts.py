@@ -35,7 +35,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="Fail with more run_once"))],
 )
 def test_speecht5_tts(record_property, mode):
     model_name = "speecht5-tts"

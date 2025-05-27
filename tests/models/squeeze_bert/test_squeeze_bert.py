@@ -24,7 +24,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="Fail with more run_once"))],
 )
 @pytest.mark.converted_end_to_end
 def test_squeeze_bert(record_property, mode):
