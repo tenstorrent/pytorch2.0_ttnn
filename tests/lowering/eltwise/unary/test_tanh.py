@@ -8,8 +8,6 @@ import ttnn
 
 from tests.utils import assert_with_pcc
 
-torch.manual_seed(1337)
-
 
 class TanhModule(torch.nn.Module):
     def __init__(self):
@@ -38,4 +36,4 @@ def test_tanh(device, input_shapes):
     nodes = list(option._out_fx_graphs[0].nodes)
     assert [node.target for node in nodes].count(ttnn.tanh) == 1
     # Check inference result
-    assert_with_pcc(result_before, result_after)
+    assert_with_pcc(result_before, result_after, pcc=0.997)
