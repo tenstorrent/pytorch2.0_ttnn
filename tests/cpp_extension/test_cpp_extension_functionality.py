@@ -12,7 +12,11 @@ import logging
 )
 @pytest.mark.parametrize(
     "dtype",
-    (torch.bfloat16, torch.int, torch.long),
+    (
+        torch.bfloat16,
+        pytest.param(torch.int, marks=pytest.mark.xfail(reason="ttnn.abs does not support ints")),
+        pytest.param(torch.long, marks=pytest.mark.xfail(reason="ttnn.abs does not support ints")),
+    ),
 )
 def test_cpp_extension(device, input_shape, dtype):
     # in pytest the device has already been initialized before this call
@@ -34,13 +38,12 @@ def test_cpp_extension(device, input_shape, dtype):
     logging.info("Get underlying ttnn tensor")
     ttnn_tensor = ttnn_module.get_ttnn_tensor(torch_ttnn_tensor)
 
-    # Compare output of abs op for bfloat16 dtype since ttnn.abs does not support int
+    logging.info("Convert to tile layout")
+    ttnn_tensor = ttnn.to_layout(ttnn_tensor, ttnn.TILE_LAYOUT)
     if dtype == torch.bfloat16:
         torch_out = torch.abs(torch_tensor)
         logging.info("Running abs on ttnn")
         ttnn_tensor = ttnn.abs(ttnn_tensor)
-    elif dtype == torch.int or dtype == torch.long:
-        torch_out = torch_tensor
     else:
         raise Exception(f"{dtype} not being tested at this time")
 
@@ -81,7 +84,6 @@ def test_add_cpp_extension(device, input_shape, dtype):
 
     torch_out = torch.add(input_a_ttnn, input_b_ttnn)
     logging.info("Running add on ttnn")
-    # Tensors with integer dtypes are currently initialized with ROW_MAJOR
     ttnn_tensor_a = ttnn.to_layout(ttnn_tensor_a, ttnn.TILE_LAYOUT)
     ttnn_tensor_b = ttnn.to_layout(ttnn_tensor_b, ttnn.TILE_LAYOUT)
     ttnn_tensor = ttnn.add(ttnn_tensor_a, ttnn_tensor_b)
