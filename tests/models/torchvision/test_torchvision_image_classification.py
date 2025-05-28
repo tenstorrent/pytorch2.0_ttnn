@@ -41,7 +41,7 @@ model_info_and_mode_list = [
     pytest.param([("densenet161", "DenseNet161_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(
         [("densenet169", "DenseNet169_Weights"), "eval"],
-        marks=pytest.mark.compilation_xfail(reason="Fail with more run_once"),
+        marks=pytest.mark.converted_end_to_end,
     ),
     pytest.param(
         [("densenet201", "DenseNet201_Weights"), "eval"],
