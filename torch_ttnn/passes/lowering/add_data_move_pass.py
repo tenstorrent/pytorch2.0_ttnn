@@ -505,16 +505,14 @@ class NodeInputAligner:
 
                 aligning_nodes = []
                 aligning_nodes.append(self.graph.call_function(ttnn_module.get_ttnn_tensor, args, {}))
-                if node.target == target_wrappers.conv and input_site == 1:
+                # Native device tensors are currently initialized in row-major layout and on device
+                # Convert them if necessary
+                if (layout := kwargs.get("layout", None)) is not None and layout == TtnnTileLayout():
                     aligning_nodes.append(
-                        self.graph.call_function(
-                            target_wrappers.move_to_host, (aligning_nodes[-1], TtnnRowMajorLayout())
-                        )
+                        self.graph.call_function(ttnn.to_layout, (aligning_nodes[-1], layout))
                     )
-                elif "layout" in kwargs:
-                    aligning_nodes.append(
-                        self.graph.call_function(ttnn.to_layout, (aligning_nodes[-1], kwargs["layout"]))
-                    )
+                if "device" not in kwargs:
+                    aligning_nodes.append(self.graph.call_function(ttnn.from_device, (aligning_nodes[-1],)))
                 return aligning_nodes[-1]
             else:
                 return self.graph.call_function(ttnn.from_torch, args, kwargs)
