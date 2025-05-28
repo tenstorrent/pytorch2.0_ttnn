@@ -89,6 +89,7 @@ class NodeMover:
 
     def move_conv(self, node):
         new_args = list(node.args)
+        modified_count = 0
 
         # rewrite input because otherwise it is not defined when run_once is called
         input_node = node.args[0]
@@ -116,14 +117,14 @@ class NodeMover:
             should_preprocess = True
             weight_node_idx = target_wrappers.RunOnceIdx(self.node_to_run_once_idx[weight_node])
             new_args[1] = pickle.dumps(weight_node_idx)
-            modified_count = 1
+            modified_count += 1
 
         bias_node = node.args[2]
         if bias_node is not None and bias_node.meta.get("iteration_invariant", False):
             should_preprocess = True
             bias_node_idx = target_wrappers.RunOnceIdx(self.node_to_run_once_idx[bias_node])
             new_args[2] = pickle.dumps(bias_node_idx)
-            modified_count = 2
+            modified_count += 1
 
         if not should_preprocess:
             # only preprocess if weight or optional bias are iteration invariant

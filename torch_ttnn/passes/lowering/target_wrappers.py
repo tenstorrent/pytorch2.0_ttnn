@@ -102,14 +102,14 @@ def run_once(*args):
             elif found_func == conv:
                 # special case conv to preprocess weights and optional bias
                 (_, (new_weights, new_bias)) = temp_results[-1]
-                if weight_idx := lookup_prev_result_idx(args[1]):
+                if (weight_idx := lookup_prev_result_idx(args[1])) is not None:
                     return_idx = temp_idx_to_return_idx[weight_idx]
                     return_results[return_idx] = new_weights
                     to_deallocate.append(weight_idx)
 
                 bias_arg = args[2]
                 if bias_arg is not None:
-                    if bias_idx := lookup_prev_result_idx(bias_arg):
+                    if (bias_idx := lookup_prev_result_idx(bias_arg)) is not None:
                         return_idx = temp_idx_to_return_idx[bias_idx]
                         return_results[return_idx] = new_bias
                         to_deallocate.append(bias_idx)
