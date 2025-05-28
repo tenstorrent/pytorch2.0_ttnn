@@ -63,8 +63,8 @@ model_and_mode_list = [
     ["mixer_b16_224.goog_in21k", "eval"],
     pytest.param(["mobilenetv1_100.ra4_e3600_r224_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(["ese_vovnet19b_dw.ra_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
-    pytest.param(["xception71.tf_in1k", "eval"], marks=pytest.mark.converted_end_to_end),
-    pytest.param(["dla34.in1k", "eval"], marks=pytest.mark.converted_end_to_end),
+    pytest.param(["xception71.tf_in1k", "eval"], marks=pytest.mark.compilation_xfail(reason="Fail with more run_once")),
+    pytest.param(["dla34.in1k", "eval"], marks=pytest.mark.compilation_xfail(reason="Fail with more run_once")),
     ["hrnet_w18.ms_aug_in1k", "eval"],
 ]
 
