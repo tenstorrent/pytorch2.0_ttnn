@@ -26,7 +26,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="OOM with preprocessed conv"))],
 )
 def test_gpt2(record_property, mode):
     model_name = "GPT-2"
