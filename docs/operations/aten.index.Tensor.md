@@ -1,7 +1,7 @@
 ### aten.index.Tensor
 |    | ATen Input Variations                                                                       | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [_folded_arange_1, <[1]>]   | None     | Unknown    | N/A   | N/A    |
+|  0 | Tensor<[1, 7, 2]> self = ?,<br>List[Optional[Tensor]] indices = [_folded_arange_1, <[1]>]   | Unknown  | Unknown    | N/A   | N/A    |
 |  1 | Tensor<[169, 12]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]                  | Removed  | Done       | 1.0   | 0      |
 |  2 | Tensor<[169, 16]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]                  | Removed  | Done       | 1.0   | 0      |
 |  3 | Tensor<[169, 24]> self = ?,<br>List[Optional[Tensor]] indices = [<[2401]>]                  | Removed  | Done       | 1.0   | 0      |

@@ -1,7 +1,7 @@
 ### aten.hardswish.default
 |    | ATen Input Variations              | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1024]> self = ?         | Done     | Done       | 0.999994 |      0 |
+|  0 | Tensor<[1, 1024]> self = ?         | Done     | Done       | 0.999995 |      0 |
 |  1 | Tensor<[1, 120, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
 |  2 | Tensor<[1, 1280]> self = ?         | Done     | Done       | 0.999993 |      0 |
 |  3 | Tensor<[1, 144, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
@@ -24,7 +24,7 @@
 | 20 | Tensor<[1, 672, 10, 10]> self = ?  | Done     | Done       | 0.999994 |      0 |
 | 21 | Tensor<[1, 672, 14, 14]> self = ?  | Done     | Done       | 0.999993 |      0 |
 | 22 | Tensor<[1, 672, 20, 20]> self = ?  | Done     | Done       | 0.999993 |      0 |
-| 23 | Tensor<[1, 672, 7, 7]> self = ?    | Done     | Done       | 0.999993 |      0 |
+| 23 | Tensor<[1, 672, 7, 7]> self = ?    | Done     | Done       | 0.999994 |      0 |
 | 24 | Tensor<[1, 96, 14, 14]> self = ?   | Done     | Done       | 0.999993 |      0 |
 | 25 | Tensor<[1, 96, 28, 28]> self = ?   | Done     | Done       | 0.999993 |      0 |
 | 26 | Tensor<[1, 960, 7, 7]> self = ?    | Done     | Done       | 0.999993 |      0 |

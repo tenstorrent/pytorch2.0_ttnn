@@ -1,7 +1,7 @@
 ### aten.fill.Tensor
 |    | ATen Input Variations                          | Status   | Isolated   | PCC   | Host   |
 |---:|:-----------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor self = ?,<br>Tensor value = ?           | None     | Unknown    | N/A   | N/A    |
+|  0 | Tensor self = ?,<br>Tensor value = ?           | Unknown  | Unknown    | N/A   | N/A    |
 |  1 | Tensor<[21, 21]> self = ?,<br>Tensor value = ? | None     | Unknown    | N/A   | N/A    |
 |  2 | Tensor<[21, 3]> self = ?,<br>Tensor value = ?  | None     | Unknown    | N/A   | N/A    |
 |  3 | Tensor<[21, 4]> self = ?,<br>Tensor value = ?  | None     | Unknown    | N/A   | N/A    |
