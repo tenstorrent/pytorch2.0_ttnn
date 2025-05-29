@@ -34,6 +34,10 @@ csv_header_mappings = {
         "To/From Device Ops",
         "The number of `to/from_device` operations (data transfer to/from the device).",
     ),
+    "batch_size": (
+        "Batch",
+        "Batch size used for inference",
+    ),
     "original_throughput": (
         "Original Throughput (Inferences Per Second)",
         "Execution throughput (in inferences per second) of the model before conversion.",
