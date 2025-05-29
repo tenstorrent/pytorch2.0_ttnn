@@ -34,13 +34,17 @@ csv_header_mappings = {
         "To/From Device Ops",
         "The number of `to/from_device` operations (data transfer to/from the device).",
     ),
-    "original_run_time": (
-        "Original Run Time (ms)",
-        "Execution time (in seconds) of the model before conversion.",
+    "original_throughput": (
+        "Original Throughput (Inferences Per Second)",
+        "Execution throughput (in inferences per second) of the model before conversion.",
     ),
-    "compiled_run_time": (
-        "Compiled Run Time for 5th Iteration (ms)",
-        "Execution time (in seconds) of the model after conversion for the 5th iteration.",
+    "compiled_first_run": (
+        "Compiled First Run",
+        "Time until the first compiled run finishes (ms), including compilation time and warming caches.",
+    ),
+    "compiled_throughput": (
+        "Compiled Throughput (Inferences Per Second)",
+        "Execution throughput (in inferences per second) of the model after conversion once caches are warm.",
     ),
     "accuracy": (
         "Accuracy (%)",
@@ -482,14 +486,17 @@ if __name__ == "__main__":
         pydantic_model = pydantic_models.ModelRun(name=model)
 
         # Rename run_time keys to distinguish between original or compiled
+        batch_size = original_runtime_metrics["batch_size"]
+        pydantic_model.batch_size = batch_size
         if "run_time" in original_runtime_metrics:
             run_time = original_runtime_metrics.pop("run_time")
-            original_runtime_metrics["original_run_time"] = run_time
+            original_runtime_metrics["original_throughput"] = batch_size / run_time
             pydantic_model.original_run_time = float(run_time)
         if "run_time" in compiled_runtime_metrics:
             run_time = compiled_runtime_metrics.pop("run_time")
-            compiled_runtime_metrics["compiled_run_time"] = run_time
+            compiled_runtime_metrics["compiled_throughput"] = batch_size / run_time
             pydantic_model.compiled_run_time = float(run_time)
+        compiled_runtime_metrics["compiled_first_run"] = compiled_runtime_metrics["run_time_first_iter"]
 
         # Replace compiled runtime with average if available
         if "avg_run_time" in compiled_runtime_metrics:
