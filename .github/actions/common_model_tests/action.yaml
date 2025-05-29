@@ -18,7 +18,7 @@ runs:
       shell: bash
       run: |
         set +e
-        if [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
+        if [ "${{ inputs.commit_report }}" == "None" ]; then
           num_iterations=1
         else
           num_iterations=5
