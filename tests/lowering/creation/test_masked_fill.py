@@ -23,10 +23,8 @@ def _test_masked_fill_common(device, module, input_shape, mask_shape, fill_value
     nodes = list(option._out_fx_graphs[0].nodes)
     target = [node.target for node in nodes]
     assert target.count(torch.ops.aten.masked_fill.Scalar) == 0
-    assert target.count(ttnn.ones) == 1
     assert target.count(ttnn.subtract) == 1
     assert target.count(ttnn.multiply) == 2
-    assert target.count(ttnn.full) == 1
     assert target.count(ttnn.add) == 1
 
     # Check inference result

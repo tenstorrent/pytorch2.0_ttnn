@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
+from dataclasses import dataclass
+from operator import getitem
 import ttnn
 import torch
+import pickle
 
 from torch_ttnn.utils import TtnnDevice
 
@@ -11,16 +14,109 @@ run_once_ans = tuple()
 
 
 @torch.fx.wrap
+@dataclass(frozen=True)
+class RunOnceIdx:
+    idx: int
+
+
+@torch.fx.wrap
 def run_once(*args):
     global run_once_count
     global run_once_ans
 
     if run_once_count == 0:
+        temp_results = []
+        return_results = []
+        to_deallocate = []
+
+        def lookup_function(str_name):
+            # assume function is of form `ttnn.from_torch`, look up in globals()
+            parts = str_name.split(".")
+            base = globals()[parts[0]]
+            for part in parts[1:]:
+                base = getattr(base, part)
+            return base
+
+        def lookup_prev_result(maybe_pickled_run_once_idx):
+            try:
+                run_once_idx = pickle.loads(maybe_pickled_run_once_idx)
+                return temp_results[run_once_idx.idx]
+            except pickle.UnpicklingError:
+                pass
+            return None
+
+        def rewrite_args(arg_tuple):
+            args = list(arg_tuple)
+            for i, arg in enumerate(args):
+                if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    original_version = list(arg)
+                    decoded_version = [
+                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                    ]
+                    new_arg = [
+                        decoded if decoded is not None else original
+                        for decoded, original in zip(decoded_version, original_version)
+                    ]
+                    args[i] = new_arg
+                elif isinstance(arg, bytes):
+                    maybe_prev_result = lookup_prev_result(arg)
+                    if maybe_prev_result is not None:
+                        args[i] = maybe_prev_result
+            return tuple(args)
+
+        def rewrite_kwargs(kwargs_dict):
+            for k, v in kwargs_dict.items():
+                if isinstance(v, (tuple, list, torch.fx.immutable_collections.immutable_list)):
+                    original_version = list(v)
+                    decoded_version = [
+                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                    ]
+                    new_value = [
+                        decoded if decoded is not None else original
+                        for decoded, original in zip(decoded_version, original_version)
+                    ]
+                    kwargs_dict[k] = new_value
+                elif isinstance(v, bytes):
+                    maybe_prev_result = lookup_prev_result(v)
+                    if maybe_prev_result is not None:
+                        kwargs_dict[k] = maybe_prev_result
+            return kwargs_dict
 
         def convert_input(spec):
-            return ttnn.from_torch(*spec[0], **spec[1])
+            should_return, func_name, args, kwargs = spec
+            found_func = lookup_function(func_name)
+            # convert any args that reference previous results
+            args = rewrite_args(args)
+            kwargs = rewrite_kwargs(kwargs)
+            temp_results.append(found_func(*args, **kwargs))
+            if should_return:
+                return_results.append(temp_results[-1])
+            else:
+                to_deallocate.append(len(temp_results) - 1)
 
-        run_once_ans = tuple([convert_input(arg) for arg in args])
+        for function_call in args:
+            convert_input(function_call)
+
+        # deallocate temporaries unless they alias a return value
+        # this can happen when a returned value is calculated from a temp, but the operation doesn't actually do anything (e.g. to_layout(temp, ttnn.TILE_LAYOUT) but temp is already TILE_LAYOUT)
+        # we only need to worry about device tensors here
+        returned_addresses = [
+            r.buffer_address()
+            for r in return_results
+            if isinstance(r, ttnn.Tensor) and r.storage_type() == ttnn.StorageType.DEVICE
+        ]
+        # only deallocate ttnn tensors
+        to_deallocate = [temp_results[idx] for idx in to_deallocate if isinstance(temp_results[idx], ttnn.Tensor)]
+        # only deallocate device tensors that do not alias a returned tensor
+        to_deallocate = filter(
+            lambda tens: tens.storage_type == ttnn.StorageType.DEVICE
+            and tens.buffer_address() not in returned_addresses,
+            to_deallocate,
+        )
+        for temp_tensor in to_deallocate:
+            ttnn.deallocate(temp_tensor)
+
+        run_once_ans = tuple(return_results)
         run_once_count += 1
 
     return run_once_ans
