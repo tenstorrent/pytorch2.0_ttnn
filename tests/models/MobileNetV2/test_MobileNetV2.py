@@ -8,7 +8,7 @@ from torchvision import transforms
 from PIL import Image
 
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -29,9 +29,7 @@ class ThisTester(ModelTester):
         batch_t = torch.unsqueeze(img_t, 0)
 
         # TODO: get unique data instead of just repeating
-        repeat_size = [1] * batch_t.dim()
-        repeat_size[0] = batch_size
-        batch_t = batch_t.repeat(*repeat_size)
+        batch_t = repeat_inputs(batch_t, batch_size)
 
         return batch_t.to(torch.bfloat16)
 

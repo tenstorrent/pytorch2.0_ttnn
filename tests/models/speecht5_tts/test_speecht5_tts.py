@@ -7,7 +7,7 @@ from transformers import SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5Hif
 from datasets import load_dataset
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -17,7 +17,7 @@ class ThisTester(ModelTester):
         self.vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan", torch_dtype=torch.bfloat16)
         return model.generate_speech
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         inputs = self.processor(text="Hello, my dog is cute.", return_tensors="pt")
         # load xvector containing speaker's voice characteristics from a dataset
         embeddings_dataset = load_dataset("Matthijs/cmu-arctic-xvectors", split="validation")
@@ -27,6 +27,7 @@ class ThisTester(ModelTester):
             "speaker_embeddings": speaker_embeddings,
             "vocoder": self.vocoder,
         }
+        arguments = repeat_inputs(arguments, batch_size)
         return arguments
 
     def set_model_eval(self, model):

@@ -4,7 +4,7 @@
 import torch
 from diffusers import DiffusionPipeline, AutoencoderTiny
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -36,9 +36,10 @@ AutoencoderTiny(
         """
         return pipe
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         prompt = "slice of delicious New York-style berry cheesecake"
         arguments = {"prompt": prompt, "num_inference_steps": 25}
+        arguments = repeat_inputs(arguments, batch_size)
         return arguments
 
 

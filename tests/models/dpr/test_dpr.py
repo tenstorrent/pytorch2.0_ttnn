@@ -5,7 +5,7 @@
 
 from transformers import DPRReader, DPRReaderTokenizer
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -15,13 +15,14 @@ class ThisTester(ModelTester):
         model = DPRReader.from_pretrained("facebook/dpr-reader-single-nq-base", torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         encoded_inputs = self.tokenizer(
             questions=["What is love ?"],
             titles=["Haddaway"],
             texts=["'What Is Love' is a song recorded by the artist Haddaway"],
             return_tensors="pt",
         )
+        encoded_inputs = repeat_inputs(encoded_inputs, batch_size)
         return encoded_inputs
 
 

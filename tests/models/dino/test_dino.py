@@ -6,7 +6,7 @@ import requests
 
 from PIL import Image
 from transformers import AutoImageProcessor, AutoModel
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -19,13 +19,14 @@ class ThisTester(ModelTester):
         model = AutoModel.from_pretrained(model_name, torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Set up sample input
         self.test_input = "http://images.cocodataset.org/val2017/000000039769.jpg"
         self.image = Image.open(requests.get(self.test_input, stream=True).raw)
 
         inputs = self.image_processor(images=self.image, return_tensors="pt")
         inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 

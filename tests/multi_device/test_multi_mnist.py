@@ -44,10 +44,13 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
+        # temp fixup batch_size
+        if batch_size == 1:
+            batch_size = 2
         transform = transforms.Compose([transforms.ToTensor()])
         test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
-        dataloader = DataLoader(test_dataset, batch_size=2)
+        dataloader = DataLoader(test_dataset, batch_size=batch_size)
         test_input, _ = next(iter(dataloader))
         test_input = test_input.to(torch.bfloat16)
         return test_input
