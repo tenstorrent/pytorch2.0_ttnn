@@ -19,6 +19,8 @@ import torch_ttnn.metrics as metrics
 import subprocess
 import sys
 import logging
+from tracy import Profiler
+from tracy import signpost
 
 import tools.export_code as export_code
 
@@ -51,6 +53,11 @@ def pytest_addoption(parser):
         "--native_integration",
         action="store_true",
         help="Use native device integration for ttnn. Note: this is not supported with data parallel.",
+    )
+    parser.addoption(
+        "--tracy",
+        action="store_true",
+        help="Generate tracy profiling data for all iterations. ",
     )
 
 
@@ -273,6 +280,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 logging.info(f"Model and inputs moved to ttnn device in {end - start} ms.")
 
             for idx in range(total_num_iterations):
+                if idx > 0:
+                    profiler = Profiler()
+                    profiler.enable()
+                    signpost(header=f"Run number {idx}")
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
@@ -280,6 +291,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_time = end - start
                 if idx == 0:
                     first_iter_runtime = run_time
+                if idx > 0:
+                    signpost(header="Run result post proc")
+                    profiler.disable()
                 logging.info(f"Iteration {idx}: {run_time} ms")
 
             # Move model and inputs back to CPU
