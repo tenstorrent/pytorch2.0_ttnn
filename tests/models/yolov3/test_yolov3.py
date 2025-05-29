@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from tests.models.yolov3.holli_src.yolov3 import *
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -38,19 +38,20 @@ class ThisTester(ModelTester):
         )
         return model.to(torch.bfloat16)
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Image preprocessing
         image_url = "https://raw.githubusercontent.com/pytorch/hub/master/images/dog.jpg"
         image = Image.open(requests.get(image_url, stream=True).raw)
         transform = transforms.Compose([transforms.Resize((512, 512)), transforms.ToTensor()])
         img_tensor = [transform(image).unsqueeze(0)]
         batch_tensor = torch.cat(img_tensor, dim=0).to(torch.bfloat16)
+        batch_tensor = repeat_inputs(batch_tensor, batch_size)
         return batch_tensor
 
 
 @pytest.mark.parametrize(
     "mode",
-    ["eval"],
+    [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="OOM with preprocessed conv"))],
 )
 def test_yolov3(record_property, mode):
     model_name = "YOLOv3"

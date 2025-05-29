@@ -20,9 +20,10 @@ class ThisTester(ModelTester):
         m = AutoModelForQuestionAnswering.from_pretrained(model_name, torch_dtype=torch.bfloat16)
         return m
 
-    def _load_inputs(self):
-        # Set up sample input
-        batch_size = 2
+    def _load_inputs(self, batch_size):
+        # temp fixup batch_size
+        if batch_size == 1:
+            batch_size = 2
         this_file_path = os.path.dirname(__file__)
         input_path = os.path.join(this_file_path, "../inputs/bert/input_data.json")
         with open(input_path) as f:
