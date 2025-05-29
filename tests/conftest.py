@@ -272,6 +272,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 end = time.perf_counter() * 1000
                 logging.info(f"Model and inputs moved to ttnn device in {end - start} ms.")
 
+            warm_run_times = []
             for idx in range(total_num_iterations):
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
@@ -280,7 +281,15 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_time = end - start
                 if idx == 0:
                     first_iter_runtime = run_time
+                if idx > 1:
+                    warm_run_times.append(run_time)
                 logging.info(f"Iteration {idx}: {run_time} ms")
+
+            # set avg_run_time to average, or last run_time if we only ran once or twice
+            if len(warm_run_times) > 0:
+                avg_run_time = sum(warm_run_times) / len(warm_run_times)
+            else:
+                avg_run_time = run_time
 
             # Move model and inputs back to CPU
             if option.native_integration:
@@ -288,6 +297,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 model_tester.inputs = model_tester.inputs.to("cpu")
 
             comp_runtime_metrics["success"] = True
+            comp_runtime_metrics["avg_run_time"] = round(avg_run_time, 2)
             comp_runtime_metrics["run_time"] = round(run_time, 2)
             comp_runtime_metrics["run_time_first_iter"] = round(first_iter_runtime, 2)
             comp_runtime_metrics["has_aten"] = None
