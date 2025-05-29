@@ -11,18 +11,19 @@ from typing import List, Dict, Tuple
 
 
 class ModelTester:
-    def __init__(self, model_name, mode):
+    def __init__(self, model_name, mode, batch_size=1):
         if mode not in ["train", "eval"]:
             raise ValueError(f"Current mode is not supported: {mode}")
         self.model_name = model_name
         self.mode = mode
         self.model = self._load_model()
-        self.inputs = self._load_inputs()
+        self.batch_size = batch_size
+        self.inputs = self._load_inputs(self.batch_size)
 
     def _load_model(self):
         raise NotImplementedError("This method should be implemented in the derived class")
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         raise NotImplementedError("This method should be implemented in the derived class")
 
     def set_model_train(self, model):
