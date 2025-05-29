@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from transformers import XGLMTokenizer, XGLMForCausalLM
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -17,11 +17,12 @@ class ThisTester(ModelTester):
         model = XGLMForCausalLM.from_pretrained("facebook/xglm-564M", torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         inputs = self.tokenizer(
             "I wanted to conserve energy.\nI swept the floor in the unoccupied room.", return_tensors="pt"
         )
         inputs["labels"] = inputs["input_ids"]
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 

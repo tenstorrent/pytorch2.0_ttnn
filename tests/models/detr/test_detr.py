@@ -7,7 +7,7 @@ import torch
 import numpy as np
 from torchvision import transforms
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -21,7 +21,7 @@ class ThisTester(ModelTester):
         )
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Images
         img_url = "https://ultralytics.com/images/zidane.jpg"  # batch of images
         input_image = Image.open(requests.get(img_url, stream=True).raw)
@@ -34,6 +34,7 @@ class ThisTester(ModelTester):
         )
         input_tensor = preprocess(input_image)
         input_batch = input_tensor.unsqueeze(0).to(torch.bfloat16)
+        input_batch = repeat_inputs(input_batch, batch_size)
         return input_batch
 
 

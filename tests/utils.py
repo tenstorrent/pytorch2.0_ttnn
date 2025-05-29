@@ -150,6 +150,21 @@ class ModelTester:
             raise ValueError(f"Current mode is not supported: {self.mode}")
 
 
+def repeat_inputs(inputs, batch_size):
+    if batch_size is None:
+        return
+    if hasattr(inputs, "keys"):
+        for key in inputs.keys():
+            if isinstance(inputs[key], torch.Tensor):
+                inputs[key] = inputs[key].repeat(batch_size, 1)
+    elif isinstance(inputs, torch.Tensor):
+        repeat_size = [batch_size] + ([1] * (inputs.dim() - 1))
+        inputs = inputs.repeat(*repeat_size)
+        return inputs
+    else:
+        raise TypeError(f"Inputs type not supported for batching: {type(inputs)}")
+
+
 def get_absolute_cache_path(path_relative_to_cache):
     # convenience method to use NFS if available
     nfs_cache_base = "/mnt/tt-metal-pytorch-cache/.cache"

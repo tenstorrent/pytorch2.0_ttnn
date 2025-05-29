@@ -5,7 +5,7 @@ import torch
 from diffusers import StableDiffusionPipeline, UNet2DConditionModel, LMSDiscreteScheduler
 from transformers import CLIPTextModel, CLIPTokenizer
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -19,7 +19,7 @@ class ThisTester(ModelTester):
         self.scheduler = LMSDiscreteScheduler.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="scheduler")
         return unet
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Prepare the text prompt
         prompt = "A fantasy landscape with mountains and rivers"
         text_input = self.tokenizer(prompt, return_tensors="pt")
@@ -44,6 +44,7 @@ class ThisTester(ModelTester):
             "timestep": 0,
             "encoder_hidden_states": text_embeddings.to(torch.bfloat16),
         }
+        arguments = repeat_inputs(arguments, batch_size)
         return arguments
 
 

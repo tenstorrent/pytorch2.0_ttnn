@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 dependencies = ["mediapipe"]
 
@@ -24,11 +24,12 @@ class ThisTester(ModelTester):
         detector = vision.HandLandmarker.create_from_options(options)
         return detector.detect
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         import mediapipe as mp
 
         image_path = Path(__file__).parent / "woman_hands.jpg"
         image = mp.Image.create_from_file(str(image_path))
+        image = repeat_inputs(image, batch_size)
         return image
 
     def set_model_eval(self, model):

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -13,9 +13,10 @@ class ThisTester(ModelTester):
         model = T5ForConditionalGeneration.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         return model.generate
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         self.input_text = "translate English to French: How are you?"
         input_ids = self.tokenizer.encode(self.input_text, return_tensors="pt")
+        input_ids = repeat_inputs(input_ids, batch_size)
         return input_ids
 
     def set_model_eval(self, model):

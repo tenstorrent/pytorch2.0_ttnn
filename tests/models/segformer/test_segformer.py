@@ -7,7 +7,7 @@ from transformers import SegformerImageProcessor, SegformerForSemanticSegmentati
 from PIL import Image
 import requests
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -18,11 +18,12 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         image = Image.open(requests.get(url, stream=True).raw)
         inputs = self.processor(images=image, return_tensors="pt")
         inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
     def set_inputs_train(self, inputs):

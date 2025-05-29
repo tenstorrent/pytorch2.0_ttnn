@@ -7,7 +7,7 @@ from PIL import Image
 import requests
 from transformers import GLPNImageProcessor, GLPNForDepthEstimation
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -16,12 +16,13 @@ class ThisTester(ModelTester):
         model = GLPNForDepthEstimation.from_pretrained("vinvino02/glpn-kitti", torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         self.image = Image.open(requests.get(url, stream=True).raw)
         # prepare image for the model
         inputs = self.processor(images=self.image, return_tensors="pt")
         inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 
