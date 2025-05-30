@@ -21,8 +21,8 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
-        input_batch = torch.rand((1, 3, 224, 224))
+    def _load_inputs(self, batch_size):
+        input_batch = torch.rand((batch_size, 3, 224, 224))
         input_batch = input_batch.to(torch.bfloat16)
         return input_batch
 

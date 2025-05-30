@@ -4,7 +4,7 @@
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 from datasets import load_dataset
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -16,13 +16,14 @@ class ThisTester(ModelTester):
         model.config.forced_decoder_ids = None
         return model.generate
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # load dummy dataset and read audio files
         ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
         sample = ds[0]["audio"]
         input_features = self.processor(
             sample["array"], sampling_rate=sample["sampling_rate"], return_tensors="pt"
         ).input_features
+        input_features = repeat_inputs(input_features, batch_size)
         return input_features.to(torch.bfloat16)
 
     def run_model(self, model, input_features):

@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 from torchvision import transforms
 import pytest
-from tests.utils import ModelTester, get_cached_image_or_reload
+from tests.utils import ModelTester, get_cached_image_or_reload, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -28,7 +28,7 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         filename = get_cached_image_or_reload(
             relative_cache_path="inputs/TCGA_CS_4944.png",
             url="https://github.com/mateuszbuda/brain-segmentation-pytorch/raw/master/assets/TCGA_CS_4944.png",
@@ -45,6 +45,7 @@ class ThisTester(ModelTester):
         input_tensor = preprocess(input_image)
         input_batch = input_tensor.unsqueeze(0)
         input_batch = input_batch.to(torch.bfloat16)
+        input_batch = repeat_inputs(input_batch, batch_size)
         return input_batch
 
 

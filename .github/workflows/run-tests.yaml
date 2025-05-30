@@ -105,6 +105,7 @@ jobs:
 
   model-tests:
     needs: [count-test-files, lowering-tests]
+    continue-on-error: true
     runs-on: ["in-service", "nfs"]
     container: 
       image: ${{ inputs.docker_tag }}

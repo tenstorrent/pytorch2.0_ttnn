@@ -5,7 +5,7 @@
 
 from transformers import PerceiverTokenizer, PerceiverForMaskedLM
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -15,7 +15,7 @@ class ThisTester(ModelTester):
         model = PerceiverForMaskedLM.from_pretrained("deepmind/language-perceiver", torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         text = "This is an incomplete sentence where some words are missing."
         # prepare input
         encoding = self.tokenizer(text, padding="max_length", return_tensors="pt")
@@ -24,6 +24,7 @@ class ThisTester(ModelTester):
         ######inputs, input_mask = encoding.input_ids.to(device), encoding.attention_mask.to(device)
 
         arguments = {"inputs": encoding.input_ids, "attention_mask": encoding.attention_mask}
+        arguments = repeat_inputs(arguments, batch_size)
         return arguments
 
 

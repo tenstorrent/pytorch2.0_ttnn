@@ -6,7 +6,7 @@ import requests
 import torch
 from transformers import CLIPProcessor, CLIPModel
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -15,7 +15,7 @@ class ThisTester(ModelTester):
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         image = Image.open(requests.get(url, stream=True).raw)
 
@@ -26,6 +26,7 @@ class ThisTester(ModelTester):
             padding=True,
         )
         inputs["pixel_values"] = inputs["pixel_values"].to(torch.bfloat16)
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
     def set_inputs_train(self, inputs):

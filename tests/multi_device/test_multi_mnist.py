@@ -44,10 +44,10 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         transform = transforms.Compose([transforms.ToTensor()])
         test_dataset = datasets.MNIST(root="./data", train=False, transform=transform, download=True)
-        dataloader = DataLoader(test_dataset, batch_size=2)
+        dataloader = DataLoader(test_dataset, batch_size=batch_size)
         test_input, _ = next(iter(dataloader))
         test_input = test_input.to(torch.bfloat16)
         return test_input
@@ -57,12 +57,13 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-def test_mnist_train(record_property, mode):
+@pytest.mark.parametrize("batch_size", [2])
+def test_mnist_train(record_property, mode, batch_size):
     model_name = "Mnist"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     record_property("torch_ttnn", (tester, results))
