@@ -16,5 +16,5 @@
 | 12 | Tensor<[1, 512, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                               | Done     | Done       | 0.999997 |      0 |
 | 13 | Tensor<[1, 640, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                               | Done     | Done       | 0.999997 |      0 |
 | 14 | Tensor<[1, 80, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                                | None     | Fallback   | 1        |     -1 |
-| 15 | Tensor<[1, 896, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                               | Done     | Done       | 0.999997 |      0 |
+| 15 | Tensor<[1, 896, 14, 14]> self = ?,<br>List[int] kernel_size = [2, 2],<br>List[int] stride = [2, 2]                                                                                               | Unknown  | Done       | 0.999997 |      0 |
 
