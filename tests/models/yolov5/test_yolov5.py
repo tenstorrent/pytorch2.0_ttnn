@@ -99,7 +99,7 @@ def teardown_module(module):
 
 @pytest.mark.parametrize(
     "mode",
-    [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="OOM with preprocessed conv"))],
+    ["eval"],
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.usefixtures("manage_dependencies")

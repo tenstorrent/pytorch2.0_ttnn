@@ -101,7 +101,9 @@ def run_once(*args):
                 temp_idx_to_return_idx[len(temp_results) - 1] = len(return_results) - 1
             elif found_func == conv:
                 # special case conv to preprocess weights and optional bias
-                (_, (new_weights, new_bias)) = temp_results[-1]
+                (dummy_output, (new_weights, new_bias)) = temp_results[-1]
+                ttnn.deallocate(dummy_output)
+
                 if (weight_idx := lookup_prev_result_idx(args[1])) is not None:
                     return_idx = temp_idx_to_return_idx[weight_idx]
                     return_results[return_idx] = new_weights

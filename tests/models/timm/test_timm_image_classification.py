@@ -56,9 +56,7 @@ model_and_mode_list = [
     pytest.param(["tf_efficientnet_lite1.in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param(["tf_efficientnet_lite2.in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     ["tf_efficientnet_lite3.in1k", "eval"],
-    pytest.param(
-        ["tf_efficientnet_lite4.in1k", "eval"], marks=pytest.mark.compilation_xfail(reason="OOM with preprocessed conv")
-    ),
+    ["tf_efficientnet_lite4.in1k", "eval"],
     pytest.param(["ghostnet_100.in1k", "eval"], marks=pytest.mark.converted_end_to_end),
     ["ghostnetv2_100.in1k", "eval"],
     ["inception_v4.tf_in1k", "eval"],

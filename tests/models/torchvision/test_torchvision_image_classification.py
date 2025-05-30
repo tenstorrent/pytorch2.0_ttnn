@@ -84,10 +84,7 @@ model_info_and_mode_list = [
     pytest.param([("regnet_y_8gf", "RegNet_Y_8GF_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param([("regnet_y_16gf", "RegNet_Y_16GF_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param([("regnet_y_32gf", "RegNet_Y_32GF_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
-    pytest.param(
-        [("regnet_y_128gf", "RegNet_Y_128GF_Weights"), "eval"],
-        marks=pytest.mark.compilation_xfail(reason="OOM with preprocessed conv"),
-    ),
+    [("regnet_y_128gf", "RegNet_Y_128GF_Weights"), "eval"],
     pytest.param([("regnet_x_400mf", "RegNet_X_400MF_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param([("regnet_x_800mf", "RegNet_X_800MF_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
     pytest.param([("regnet_x_1_6gf", "RegNet_X_1_6GF_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
