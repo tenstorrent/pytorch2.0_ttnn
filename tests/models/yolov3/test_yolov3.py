@@ -51,7 +51,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="OOM with preprocessed conv"))],
+    ["eval"],
 )
 def test_yolov3(record_property, mode):
     model_name = "YOLOv3"

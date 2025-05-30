@@ -48,7 +48,7 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "mode",
     [
-        # "train",
+        "train",
         "eval",
     ],
 )
