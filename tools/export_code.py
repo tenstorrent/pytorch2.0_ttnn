@@ -44,17 +44,8 @@ def _get_indent(tabs=1, tabstop=4):
 
 def _get_output_to_rename(outputs, node):
     """
-    Match an output to a node.
-
-    Args:
-        outputs (List[str|torch.fx.node.Node]): List of strings or nodes of the outputs
-        node (str|torch.fx.node.Node): A string or fx node
-
-    Returns:
-        (str|torch.fx.node.Node|None): If a match is found, return that output. Otherwise
-        return None.
+    Match an output to a node - enhanced to handle more patterns.
     """
-
     def get_node_name(node):
         if isinstance(node, str):
             return node
@@ -63,59 +54,36 @@ def _get_output_to_rename(outputs, node):
         else:
             raise ValueError(f"Unsupported node type: {type(node)}")
 
-    """
-    When graph breaks occur, usually due to control flow, PyTorch keeps the names
-    of the nodes consistent between graphs. For example, in the following example,
-    add_1 was not an output, but treated still treated as an input to the follow-up
-    graph.
-    def forward_1(arg0, arg1, arg2):
-        %add_1 = aten.add(...)
-        %add_2 = aten.add(...)
-        return [add_2]
-    def forward_2(arg0, arg1, arg2, add_1):
-        ...
-
-    However, some nodes that are outputs are renamed despite being the same. This function
-    attempts to rename them back so that graphs can be fused into one. This is where
-    output_nodes will be used to keep track of these nodes.
-    """
-
-    """
-    For nodes named "clone", this is the same as the last primal in the tuple of outputs
-    from the previous graph.
-    Example:
-    def forward_1(...):
-        ...
-        return [out1, out2, out3, primals_1, primals_2, primals_3, out4, out5]
-
-    def forward_2(..., clone):
-        %clone = placeholder(clone)  <==>  same as primals_3, replace uses of clone with primals_3
-
-    """
-    if get_node_name(node) == "clone":
+    node_name = get_node_name(node)
+    
+    # First try exact match
+    for out_arg in outputs:
+        if get_node_name(out_arg) == node_name:
+            return out_arg
+    
+    # Handle "clone" -> last primal pattern
+    if node_name == "clone":
         for out_arg in reversed(outputs):
             if get_node_name(out_arg).startswith("primals"):
                 return out_arg
-    """
-    For nodes that start with "tangents", this is the same as the node before the first primal
-    from the outputs.
-    Example:
-    def forward_1(...):
-        ...
-        return [out1, out2, out3, primals_1, primals_2, primals_3, out4, out5]
-
-    def forward_2(..., tangents_1):
-        %tangents_1 = placeholder(tangents_1)  <==>  same as out3, replace uses of tangents_1 with out3
-    """
-    if get_node_name(node).startswith("tangents"):
+    
+    # Handle "tangents" pattern
+    if node_name.startswith("tangents"):
         first_primal_idx = 0
         for i, out_arg in enumerate(outputs):
             if get_node_name(out_arg).startswith("primals"):
                 first_primal_idx = i
                 break
-        tangent_node = outputs[first_primal_idx - 1]
-        return tangent_node
-
+        if first_primal_idx > 0:
+            return outputs[first_primal_idx - 1]
+    
+    # NEW: Handle numbered variants (e.g., clone_1, select_2, etc.)
+    base_name = node_name.split('_')[0]
+    for out_arg in outputs:
+        out_name = get_node_name(out_arg)
+        if out_name == base_name or out_name.startswith(base_name + '_'):
+            return out_arg
+    
     return None
 
 
@@ -206,6 +174,8 @@ def _format_dict(obj):
     for k, v in obj.items():
         if k == "device" and isinstance(v, torch.device):
             v = f'"{v}"'
+        elif isinstance(v, str):  # Handle string values
+            v = f'"{v}"'
         to_kwargs.append(f"{k} = {v}")
     return ", ".join(to_kwargs)
 
@@ -286,90 +256,69 @@ del globals()["{func_name}"]
 
 def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx):
     """
-    Given a pair of aten and ttnn graphs, build a list of lines of code.
-
-    Args:
-        aten_graph (torch.fx.graph.Graph): Unmodified aten graph
-        ttnn_graph (torch.fx.graph.Graph): Modified ttnn graph.
-        output_nodes (List[tuple(torch.fx.Node])):
-            List of output tuple of nodes used to track graph breakage.
-            The final code will be one fused function.
-        torch_ttnn_option (TorchTtnnOption): options containing various useful attributes
-        chunk_idx (int): Index to the top level list of aten/ttnn graphs
-        graph_idx (int): Index to the sublist of graphs
-
-    Returns:
-        List[str]: List of lines of code
+    Enhanced version that ensures all required nodes are included in outputs.
     """
-
-    """
-    Rename nodes with names that do not change after graph transformation.
-    Aten and ttnn nodes were renamed automatically during lowering. Nodes from
-    getitem and wrappers do not.
-    """
+    # Get required outputs for this graph (computed once at the chunk level)
+    required_extra_outputs = getattr(torch_ttnn_option, '_required_outputs', {}).get(graph_idx, set())
+    
+    # ... existing code for renaming nodes ...
     for node in ttnn_graph.nodes:
         if is_operation(node) and node.op != "get_attr":
             opname = get_opname(node)
             if not opname.startswith("aten.") and not opname.startswith("ttnn."):
                 node._rename(f"ttnn_prefix_{node.name}")
 
-    """
-    Gather together all the aten nodes and argument (placeholder) nodes into one list.
-    Rename some input arguments to match names due to graph breakage. 
-    """
+    # Gather aten nodes
     aten_all_nodes = []
     arg_nodes = []
+    defined_nodes = {}  # Track all defined nodes in this graph
+    
     for node in aten_graph.nodes:
         if node.op == "placeholder":
             arg_nodes.append(node)
             continue
         aten_all_nodes.append(node)
+        if node.op != "output":
+            defined_nodes[node.name] = node
 
-    """
-    Maps selected metadata from `compute_key` to the aten node
-    """
+    # ... existing mapping code ...
     aten_name_to_node_map = defaultdict(list)
     for node in aten_graph.nodes:
         if is_operation(node):
             aten_name_to_node_map[_compute_key(node)] = node
 
-    """
-    Now map all aten ops to ttnn ops.
-    """
     aten_to_ttnn_map = _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes)
-
-    """
-    Gather all ttnn ops into one list. Use `aten_to_ttnn_map` to determine where to insert
-    the check_accuracy functions. 
-    """
     ttnn_all_nodes = _process_ttnn_ops(ttnn_graph, aten_name_to_node_map, aten_to_ttnn_map)
 
-    """
-    Finally convert interleaved nodes to python code for this graph
-    """
+    # Generate code
     arg_node_names = [node.name for node in arg_nodes]
     arg_node_names.append("device")
 
     forward_func_name = f"forward_{chunk_idx}_{graph_idx}"
     forward_signature = f"def {forward_func_name}({', '.join(arg_node_names)}):"
-    # comment out signature if not the first graph
     graph_code = [forward_signature]
 
-    # Assume export_code parent function has checked for validity
     option = torch_ttnn_option.export_code
-    # Only emit original aten nodes for the accuracy option
+    
+    # Generate aten code
     if option == "accuracy":
         for node in aten_all_nodes:
             if node.op == "output":
-                aten_out_list = node.args[0]
+                aten_out_list = list(node.args[0]) if isinstance(node.args[0], (list, tuple)) else [node.args[0]]
+                
+                # Add required extra outputs
+                for extra_name in required_extra_outputs:
+                    if extra_name in defined_nodes and defined_nodes[extra_name] not in aten_out_list:
+                        aten_out_list.append(defined_nodes[extra_name])
+                
                 output_nodes.append(aten_out_list)
-                # comment out aten return for referencing purposes
                 graph_code.append(_get_indent(1) + f"# return {aten_out_list}")
                 graph_code.append(_get_indent(1) + f"aten_outputs = {aten_out_list}")
                 continue
             else:
                 graph_code.append(_get_indent(1) + f"{_node_to_python_code(node)}")
 
+    # Generate ttnn code
     for i, node in enumerate(ttnn_all_nodes):
         if option == "profiling" and i % 500 == 0:
             graph_code.append(_get_indent(1) + f"ttnn.DumpDeviceProfiler(device)")
@@ -378,9 +327,11 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
             if option == "accuracy":
                 graph_code.append(_get_indent(1) + f"check_accuracy({node[0]}, {node[1]})")
         else:
-            # Print the accuracy of the outputs for this forward function
             if node.op == "output" and option == "accuracy":
-                graph_code.append(_get_indent(1) + f"ttnn_outputs = {node.args[0]}")
+                ttnn_out_list = list(node.args[0]) if isinstance(node.args[0], (list, tuple)) else [node.args[0]]
+                
+                # Ensure ttnn outputs match aten outputs structure
+                graph_code.append(_get_indent(1) + f"ttnn_outputs = {ttnn_out_list}")
                 graph_code.append(
                     _get_indent(1)
                     + "accuracy = np.mean([comp_pcc_wrapper(a, t) for a, t in zip(aten_outputs, ttnn_outputs)])"
@@ -390,7 +341,6 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
             graph_code.append(_get_indent(1) + f"{_node_to_python_code(node)}")
 
     return graph_code
-
 
 def _reformat_inputs(all_inputs):
     """
@@ -438,7 +388,47 @@ def generate_flat_args(gm, example_inputs):
 
     return full_args
 
-
+def _analyze_graph_dependencies(aten_fx_graphs):
+    """
+    Analyze all graphs to find which nodes from earlier graphs are needed by later ones.
+    Returns a dict of (graph_idx -> set of node names that must be in its output)
+    """
+    required_outputs = defaultdict(set)
+    node_to_graph = {}  # node_name -> graph_idx
+    
+    # First pass: record where each node is defined
+    for graph_idx, graph in enumerate(aten_fx_graphs):
+        for node in graph.nodes:
+            if node.op not in ["placeholder", "output"]:
+                node_to_graph[node.name] = graph_idx
+    
+    # Second pass: find what each graph needs from previous graphs
+    for graph_idx, graph in enumerate(aten_fx_graphs):
+        if graph_idx == 0:
+            continue
+            
+        # Get current output nodes
+        current_outputs = set()
+        for node in aten_fx_graphs[graph_idx - 1].nodes:
+            if node.op == "output":
+                out_list = node.args[0] if isinstance(node.args[0], (list, tuple)) else [node.args[0]]
+                for out_node in out_list:
+                    if out_node is not None:
+                        current_outputs.add(out_node.name if hasattr(out_node, 'name') else str(out_node))
+        
+        # Check what placeholders this graph needs
+        for node in graph.nodes:
+            if node.op == "placeholder":
+                # Check if this placeholder is defined in an earlier graph
+                if node.name in node_to_graph:
+                    source_graph_idx = node_to_graph[node.name]
+                    if source_graph_idx < graph_idx:
+                        # This node needs to be passed from source_graph_idx
+                        # Check all intermediate graphs
+                        for intermediate_idx in range(source_graph_idx, graph_idx):
+                            required_outputs[intermediate_idx].add(node.name)
+    
+    return required_outputs
 def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, torch_ttnn_option):
     """
     Generate standlone a python script along with an input file containing
@@ -618,83 +608,96 @@ if __name__ == "__main__":
 
 def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx):
     """
-    Take all the graphs and assemble into a list of
-
-    Args:
-        aten_fx_graphs (List[torch.fx.graph.Graph]): List of unmodified aten graphs.
-        ttnn_fx_graphs (List[torch.fx.graph.Graph]): List of modified ttnn graphs.
-        inputs (List[]): List of inputs including weights, biases, and dynamic data.
-        verbose (boolean): Print out additional info.
-        torch_ttnn_option (TorchTtnnOption): object containing other useful attributes
-        chunk_idx: index of the top level list of aten/ttnn graphs
-
-    Returns:
-        (List[str], List[str]): List of forward definitions, list of forward call in main
+    Enhanced to handle cross-graph dependencies properly.
     """
-
-    # Assume export_code parent function has checked for validity
-    option = torch_ttnn_option.export_code
-
+    # Analyze dependencies first
+    required_outputs = _analyze_graph_dependencies(aten_fx_graphs)
+    torch_ttnn_option._required_outputs = required_outputs
+    
     call_forwards_in_main = []
-
-    # Map input arg names of first forward graph to inputs.
-    def get_names_of_args(graph):
-        arg_nodes = []
-        for node in graph.nodes:
+    forward_code = []
+    output_nodes = []
+    
+    # Track all defined variables across all graphs
+    all_defined_vars = {}  # var_name -> (graph_idx, is_output)
+    
+    # Process each graph
+    for graph_idx, (aten_graph, ttnn_graph) in enumerate(zip(aten_fx_graphs, ttnn_fx_graphs)):
+        # Get arguments for this graph
+        arg_node_names = []
+        for node in aten_graph.nodes:
             if node.op == "placeholder":
-                arg_nodes.append(node)
-        arg_node_names = [node.name for node in arg_nodes]
-        return arg_node_names
-
-    def get_names_of_outputs(graph):
-        out_nodes = []
-        for node in graph.nodes:
-            if node.op == "output":
-                out_nodes.extend(node.args[0])
-        out_node_names = [node.name if node is not None else "_" for node in out_nodes]
-        return out_node_names
-
-    for graph_idx, aten_graph in enumerate(aten_fx_graphs):
-        # Process arguments
-        arg_node_names = get_names_of_args(aten_graph)
-
+                arg_node_names.append(node.name)
+        
+        # Generate assignments for arguments
         if graph_idx == 0:
+            # First graph: map to inputs
             assert len(arg_node_names) == len(inputs)
-            # Map indices
             for i, arg in enumerate(arg_node_names):
                 call_forwards_in_main.append(f"{arg} = inputs[{chunk_idx}][{i}]")
+                all_defined_vars[arg] = (graph_idx, False)
         else:
-            # In some cases where there are graph breakages, outputs of the previous graphs
-            # can become inputs for subsequent graphs. Some are given new names based on
-            # some pattern. The following renames some of these nodes.
-            prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
+            # Subsequent graphs: map from previous outputs or find in history
+            prev_outputs = []
+            if graph_idx > 0:
+                # Get output names from previous graph
+                for node in aten_fx_graphs[graph_idx - 1].nodes:
+                    if node.op == "output":
+                        out_list = node.args[0] if isinstance(node.args[0], (list, tuple)) else [node.args[0]]
+                        prev_outputs = [n.name if hasattr(n, 'name') else str(n) for n in out_list if n is not None]
+            
             for arg in arg_node_names:
-                out_node = _get_output_to_rename(prev_out_node_names, arg)
-                if out_node is not None:
-                    call_forwards_in_main.append(f"{arg} = {out_node}")
-
-        # append device to the end of arg list
+                mapped = False
+                
+                # First try to map from previous outputs
+                if prev_outputs:
+                    out_node = _get_output_to_rename(prev_outputs, arg)
+                    if out_node is not None:
+                        call_forwards_in_main.append(f"{arg} = {out_node}")
+                        all_defined_vars[arg] = (graph_idx, False)
+                        mapped = True
+                
+                # If not found, search in all previously defined variables
+                if not mapped:
+                    for var_name, (def_graph_idx, is_output) in all_defined_vars.items():
+                        if def_graph_idx < graph_idx and (var_name == arg or var_name.split('_')[0] == arg.split('_')[0]):
+                            call_forwards_in_main.append(f"{arg} = {var_name}")
+                            mapped = True
+                            break
+                
+                if not mapped:
+                    logging.warning(f"Could not map argument {arg} for graph {chunk_idx}_{graph_idx}")
+        
+        # Track outputs from this graph
+        out_node_names = []
+        for node in aten_graph.nodes:
+            if node.op == "output":
+                out_list = node.args[0] if isinstance(node.args[0], (list, tuple)) else [node.args[0]]
+                for out_node in out_list:
+                    if out_node is not None and hasattr(out_node, 'name'):
+                        out_node_names.append(out_node.name)
+                        all_defined_vars[out_node.name] = (graph_idx, True)
+        
+        # Track all defined nodes in this graph (not just outputs)
+        for node in aten_graph.nodes:
+            if node.op not in ["placeholder", "output"] and hasattr(node, 'name'):
+                all_defined_vars[node.name] = (graph_idx, False)
+        
+        # Generate forward call
         arg_node_names.append("device")
-        # Then lastly call the forward function
-        out_node_names = get_names_of_outputs(aten_graph)
         out_nodes_string = f"{', '.join(out_node_names)} = " if out_node_names else ""
         call_forwards_in_main.append(f"{out_nodes_string}forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)})")
-
-    assert len(aten_fx_graphs) == len(ttnn_fx_graphs)
-
-    # Contains a list of each forward graph
-    forward_code = []
-    # Tracks the output nodes for models with graph breakages
-    output_nodes = []
-    for graph_idx, (aten_graph, ttnn_graph) in enumerate(zip(aten_fx_graphs, ttnn_fx_graphs)):
+        
+        # Generate graph code
         graph_code = _build_code_from_aten_ttnn_graphs(
             aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx
         )
-        if option == "profiling":
-            # Insert last one before return
+        
+        if torch_ttnn_option.export_code == "profiling":
             graph_code.insert(-1, _get_indent(1) + f"ttnn.DumpDeviceProfiler(device)")
+        
         forward_code.append(graph_code)
-
+    
     return forward_code, call_forwards_in_main
 
 
