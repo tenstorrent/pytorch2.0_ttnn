@@ -152,11 +152,12 @@ class ModelTester:
 
 def repeat_inputs(inputs, batch_size):
     if batch_size is None:
-        return
+        return None
     if hasattr(inputs, "keys"):
         for key in inputs.keys():
             if isinstance(inputs[key], torch.Tensor):
                 inputs[key] = inputs[key].repeat(batch_size, 1)
+        return inputs
     elif isinstance(inputs, torch.Tensor):
         repeat_size = [batch_size] + ([1] * (inputs.dim() - 1))
         inputs = inputs.repeat(*repeat_size)
