@@ -156,7 +156,8 @@ def repeat_inputs(inputs, batch_size):
     if hasattr(inputs, "keys"):
         for key in inputs.keys():
             if isinstance(inputs[key], torch.Tensor):
-                inputs[key] = inputs[key].repeat(batch_size, 1)
+                repeat_size = [batch_size] + ([1] * (inputs[key].dim() - 1))
+                inputs[key] = inputs[key].repeat(*repeat_size)
         return inputs
     elif isinstance(inputs, torch.Tensor):
         repeat_size = [batch_size] + ([1] * (inputs.dim() - 1))
