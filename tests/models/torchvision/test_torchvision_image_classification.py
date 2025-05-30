@@ -11,13 +11,13 @@ from tests.utils import ModelTester, repeat_inputs
 
 class ThisTester(ModelTester):
     # pass model_info instead of model_name
-    def __init__(self, model_info, mode):
+    def __init__(self, model_info, mode, batch_size=1):
         if mode not in ["train", "eval"]:
             raise ValueError(f"Current mode is not supported: {mode}")
         self.model_info = model_info
         self.mode = mode
         self.model = self._load_model()
-        self.inputs = self._load_inputs()
+        self.inputs = self._load_inputs(batch_size)
 
     def _load_model(self):
         model_name, weights_name = self.model_info
