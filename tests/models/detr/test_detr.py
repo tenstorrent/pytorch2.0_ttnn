@@ -39,9 +39,7 @@ class ThisTester(ModelTester):
 
 @pytest.mark.parametrize(
     "mode",
-    [
-        "eval",
-    ],
+    ["eval"],
 )
 def test_detr(record_property, mode):
     model_name = "DETR"
