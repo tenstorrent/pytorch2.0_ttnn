@@ -13,7 +13,9 @@ class ThisTester(ModelTester):
     def _load_model(self):
         # Download model from cloud
         model_name = "mistralai/Mistral-7B-v0.1"
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name, padding_side="left", torch_dtype=torch.bfloat16
+        )
         m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
         return m
 
@@ -60,4 +62,4 @@ def test_mistral(record_property, mode):
         """
         )
 
-    record_property("torch_ttnn", (tester, results)) 
+    record_property("torch_ttnn", (tester, results))
