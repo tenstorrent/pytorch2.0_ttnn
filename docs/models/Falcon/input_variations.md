@@ -7,7 +7,7 @@
 |  3 | aten.embedding.default  |                  2 |           2 |         0 |          0 | ✅          |     1   |
 |  4 | aten.eq.Scalar          |                  1 |           1 |         0 |          0 | ✅          |     1   |
 |  5 | aten.expand.default     |                  2 |           1 |         1 |          0 | ✅          |     1   |
-|  6 | aten.full.default       |                  1 |           1 |         0 |          0 | ✅          |     1   |
+|  6 | aten.full.default       |                  1 |           0 |         1 |          0 | ✅          |     1   |
 |  7 | aten.gt.Scalar          |                  1 |           0 |         0 |          0 | ✘           |     0   |
 |  8 | aten.index.Tensor       |                  1 |           0 |         1 |          0 | ✅          |     1   |
 |  9 | aten.lt.Tensor          |                  1 |           0 |         0 |          0 | ✘           |     0   |
@@ -48,7 +48,7 @@
 ### aten.full.default
 |    | ATen Input Variations                                                                                                                           | Status   | Isolated   | PCC   | Host   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | List[int] size = [7, 7],<br>number fill_value = -3.3895313892515355e+38,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False | Done     | Unknown    | N/A   | N/A    |
+|  0 | List[int] size = [7, 7],<br>number fill_value = -3.3895313892515355e+38,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False | Removed  | Unknown    | N/A   | N/A    |
 ### aten.gt.Scalar
 |    | ATen Input Variations                        | Status   | Isolated   | PCC   | Host   |
 |---:|:---------------------------------------------|:---------|:-----------|:------|:-------|

@@ -2,7 +2,7 @@
 |    | Operations                     |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._softmax.default          |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  1 | aten._to_copy.default          |                  4 |           2 |         2 |          0 | ✅          |       1 |
+|  1 | aten._to_copy.default          |                  4 |           1 |         3 |          0 | ✅          |       1 |
 |  2 | aten._unsafe_index.Tensor      |                  1 |           0 |         0 |          0 | ✘           |       0 |
 |  3 | aten.add.Tensor                |                 10 |          10 |         0 |          0 | ✅          |       1 |
 |  4 | aten.addmm.default             |                  6 |           0 |         6 |          0 | ✅          |       1 |
@@ -20,26 +20,26 @@
 | 16 | aten.permute.default           |                  2 |           2 |         0 |          0 | ✅          |       1 |
 | 17 | aten.relu.default              |                  1 |           0 |         1 |          0 | ✅          |       1 |
 | 18 | aten.rsub.Scalar               |                  4 |           4 |         0 |          0 | ✅          |       1 |
-| 19 | aten.select.int                |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 19 | aten.select.int                |                  1 |           0 |         1 |          0 | ✅          |       1 |
 | 20 | aten.sigmoid.default           |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 21 | aten.slice.Tensor              |                  9 |           3 |         6 |          0 | ✅          |       1 |
+| 21 | aten.slice.Tensor              |                  9 |           1 |         8 |          0 | ✅          |       1 |
 | 22 | aten.sub.Tensor                |                 10 |          10 |         0 |          0 | ✅          |       1 |
 | 23 | aten.t.default                 |                  5 |           0 |         5 |          0 | ✅          |       1 |
-| 24 | aten.transpose.int             |                  3 |           3 |         0 |          0 | ✅          |       1 |
-| 25 | aten.unsqueeze.default         |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 26 | aten.view.default              |                 17 |          15 |         2 |          0 | ✅          |       1 |
+| 24 | aten.transpose.int             |                  3 |           2 |         1 |          0 | ✅          |       1 |
+| 25 | aten.unsqueeze.default         |                  1 |           0 |         1 |          0 | ✅          |       1 |
+| 26 | aten.view.default              |                 17 |          14 |         3 |          0 | ✅          |       1 |
 ***
 ### aten._softmax.default
 |    | ATen Input Variations                                                               | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 3, 1445, 1445]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999565 |      0 |
+|  0 | Tensor<[1, 3, 1445, 1445]> self = ?,<br>int dim = -1,<br>bool half_to_float = False | Done     | Done       | 0.999566 |      0 |
 ### aten._to_copy.default
 |    | ATen Input Variations                                                      | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
 |  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>Optional[int] dtype = torch.int64       | Removed  | Fallback   |     1 |     -1 |
 |  1 | Tensor<[1, 1, 32, 1]> self = ?,<br>Optional[int] dtype = torch.int64       | Removed  | Fallback   |     1 |     -1 |
 |  2 | Tensor<[1, 192, 32, 42]> self = ?,<br>Optional[int] dtype = torch.bfloat16 | Done     | Fallback   |     1 |     -1 |
-|  3 | Tensor<[1, 192, 50, 83]> self = ?,<br>Optional[int] dtype = torch.float32  | Done     | Fallback   |     1 |     -1 |
+|  3 | Tensor<[1, 192, 50, 83]> self = ?,<br>Optional[int] dtype = torch.float32  | Removed  | Fallback   |     1 |     -1 |
 ### aten._unsafe_index.Tensor
 |    | ATen Input Variations                                                                                                                     | Status   | Isolated   | PCC   | Host   |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
@@ -47,14 +47,14 @@
 ### aten.add.Tensor
 |    | ATen Input Variations                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -6.0                   | Done     | Done       | 1        |      0 |
-|  1 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 1                      | Done     | Done       | 0.999998 |      0 |
-|  2 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 1.0                    | Done     | Done       | 0.999995 |      0 |
-|  3 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 2                      | Done     | Done       | 0.999983 |      0 |
-|  4 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -6.0                   | Done     | Done       | 0.999931 |      0 |
-|  5 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1                      | Done     | Done       | 0.999998 |      0 |
-|  6 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1.0                    | Done     | Done       | 0.999992 |      0 |
-|  7 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 2                      | Done     | Done       | 0.999988 |      0 |
+|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -6.0                   | Done     | Done       | 0.999959 |      0 |
+|  1 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 1                      | Done     | Done       | 0.999999 |      0 |
+|  2 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 1.0                    | Done     | Done       | 0.999993 |      0 |
+|  3 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 2                      | Done     | Done       | 0.999992 |      0 |
+|  4 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -6.0                   | Done     | Done       | 1        |      0 |
+|  5 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1                      | Done     | Done       | 0.999996 |      0 |
+|  6 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1.0                    | Done     | Done       | 0.999996 |      0 |
+|  7 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 2                      | Done     | Done       | 0.999992 |      0 |
 |  8 | Tensor<[1, 1445, 192]> self = ?,<br>Tensor<[1, 1445, 192]> other = ?     | Done     | Done       | 0.999998 |      0 |
 |  9 | Tensor<[1, 192, 32, 42]> self = ?,<br>Tensor<[1, 192, 32, 42]> other = ? | Done     | Done       | 0.999998 |      0 |
 ### aten.addmm.default
@@ -63,9 +63,9 @@
 |  0 | Tensor<[192]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ?  | Removed  | Done       | 0.99998  |      0 |
 |  1 | Tensor<[192]> self = ?,<br>Tensor<[1445, 192]> mat1 = ?,<br>Tensor<[192, 192]> mat2 = ? | Removed  | Done       | 0.999976 |      0 |
 |  2 | Tensor<[192]> self = ?,<br>Tensor<[1445, 768]> mat1 = ?,<br>Tensor<[768, 192]> mat2 = ? | Removed  | Done       | 0.999967 |      0 |
-|  3 | Tensor<[4]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 4]> mat2 = ?      | Removed  | Done       | 0.999976 |      0 |
+|  3 | Tensor<[4]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 4]> mat2 = ?      | Removed  | Done       | 0.999978 |      0 |
 |  4 | Tensor<[768]> self = ?,<br>Tensor<[1445, 192]> mat1 = ?,<br>Tensor<[192, 768]> mat2 = ? | Removed  | Done       | 0.99998  |      0 |
-|  5 | Tensor<[92]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 92]> mat2 = ?    | Removed  | Done       | 0.99998  |      0 |
+|  5 | Tensor<[92]> self = ?,<br>Tensor<[100, 192]> mat1 = ?,<br>Tensor<[192, 92]> mat2 = ?    | Removed  | Done       | 0.999979 |      0 |
 ### aten.bmm.default
 |    | ATen Input Variations                                               | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
@@ -114,18 +114,18 @@
 ### aten.mul.Tensor
 |    | ATen Input Variations                                                 | Status   | Isolated   |      PCC |   Host |
 |---:|:----------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -0.75               | Done     | Done       | 0.999998 |      0 |
+|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -0.75               | Done     | Done       | 0.999997 |      0 |
 |  1 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 1.25                | Done     | Done       | 0.999999 |      0 |
-|  2 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor<[1, 1, 1, 42]> other = ?    | Done     | Done       | 0.999997 |      0 |
-|  3 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -0.75               | Done     | Done       | 0.999998 |      0 |
-|  4 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1.25                | Done     | Done       | 0.999999 |      0 |
-|  5 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor<[1, 1, 32, 1]> other = ?    | Done     | Done       | 0.999998 |      0 |
-|  6 | Tensor<[1, 192, 32, 42]> self = ?,<br>Tensor<[1, 1, 1, 42]> other = ? | Done     | Done       | 0.999997 |      0 |
-|  7 | Tensor<[1, 192, 32, 42]> self = ?,<br>Tensor<[1, 1, 32, 1]> other = ? | Done     | Done       | 0.999996 |      0 |
+|  2 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor<[1, 1, 1, 42]> other = ?    | Done     | Done       | 0.999999 |      0 |
+|  3 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -0.75               | Done     | Done       | 0.999999 |      0 |
+|  4 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1.25                | Done     | Done       | 1        |      0 |
+|  5 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor<[1, 1, 32, 1]> other = ?    | Done     | Done       | 0.999994 |      0 |
+|  6 | Tensor<[1, 192, 32, 42]> self = ?,<br>Tensor<[1, 1, 1, 42]> other = ? | Done     | Done       | 0.999996 |      0 |
+|  7 | Tensor<[1, 192, 32, 42]> self = ?,<br>Tensor<[1, 1, 32, 1]> other = ? | Done     | Done       | 0.999995 |      0 |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                     | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1445, 192]> input = ?,<br>List[int] normalized_shape = [192],<br>Optional[Tensor]<[192]> weight = ?,<br>Optional[Tensor]<[192]> bias = ?,<br>float eps = 1e-12 | Done     | Done       | 0.999251 |      3 |
+|  0 | Tensor<[1, 1445, 192]> input = ?,<br>List[int] normalized_shape = [192],<br>Optional[Tensor]<[192]> weight = ?,<br>Optional[Tensor]<[192]> bias = ?,<br>float eps = 1e-12 | Done     | Done       | 0.999241 |      3 |
 ### aten.permute.default
 |    | ATen Input Variations                                               | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -138,18 +138,18 @@
 ### aten.rsub.Scalar
 |    | ATen Input Variations                                 | Status   | Isolated   |      PCC |   Host |
 |---:|:------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999995 |      0 |
-|  1 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 2.0 | Done     | Done       | 0.999986 |      0 |
-|  2 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999988 |      0 |
-|  3 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 2.0 | Done     | Done       | 0.999983 |      0 |
+|  0 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999996 |      0 |
+|  1 | Tensor<[1, 1, 1, 42]> self = ?,<br>number other = 2.0 | Done     | Done       | 0.999985 |      0 |
+|  2 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 1.0 | Done     | Done       | 0.999994 |      0 |
+|  3 | Tensor<[1, 1, 32, 1]> self = ?,<br>number other = 2.0 | Done     | Done       | 0.999972 |      0 |
 ### aten.select.int
 |    | ATen Input Variations                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 4251, 192]> self = ?,<br>int dim = 1,<br>int index = 0 | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[1, 4251, 192]> self = ?,<br>int dim = 1,<br>int index = 0 | Removed  | Done       |     1 |      0 |
 ### aten.sigmoid.default
 |    | ATen Input Variations        | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 100, 4]> self = ? | Done     | Done       | 0.999753 |      0 |
+|  0 | Tensor<[1, 100, 4]> self = ? | Done     | Done       | 0.999773 |      0 |
 ### aten.slice.Tensor
 |    | ATen Input Variations                                                                                                      | Status   | Isolated   |   PCC |   Host |
 |---:|:---------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -160,21 +160,21 @@
 |  4 | Tensor<[1, 192]> self = ?,<br>int dim = 1,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807          | Removed  | Done       |     1 |     -1 |
 |  5 | Tensor<[1, 4150, 192]> self = ?,<br>int dim = 2,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807    | Removed  | Done       |     1 |     -1 |
 |  6 | Tensor<[1, 4251, 192]> self = ?,<br>int dim = 0,<br>Optional[int] start = 0,<br>Optional[int] end = 9223372036854775807    | Removed  | Done       |     1 |     -1 |
-|  7 | Tensor<[1, 4251, 192]> self = ?,<br>int dim = 1,<br>Optional[int] start = -100,<br>Optional[int] end = 9223372036854775807 | Done     | Done       |     1 |      0 |
-|  8 | Tensor<[1, 4251, 192]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = -100                   | Done     | Done       |     1 |      0 |
+|  7 | Tensor<[1, 4251, 192]> self = ?,<br>int dim = 1,<br>Optional[int] start = -100,<br>Optional[int] end = 9223372036854775807 | Removed  | Done       |     1 |      0 |
+|  8 | Tensor<[1, 4251, 192]> self = ?,<br>int dim = 1,<br>Optional[int] start = 1,<br>Optional[int] end = -100                   | Removed  | Done       |     1 |      0 |
 ### aten.sub.Tensor
 |    | ATen Input Variations                                   | Status   | Isolated   | PCC                | Host   |
 |---:|:--------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
 |  0 | Tensor self = ?,<br>Tensor<[1, 1, 1, 42]> other = ?     | Done     | Unknown    | N/A                | N/A    |
 |  1 | Tensor self = ?,<br>Tensor<[1, 1, 32, 1]> other = ?     | Done     | Unknown    | N/A                | N/A    |
-|  2 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -3.0  | Done     | Done       | 0.9999802114459498 | 0      |
-|  3 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -3.75 | Done     | Done       | 0.9999741721084356 | 0      |
-|  4 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 1     | Done     | Done       | 0.9999972860701685 | 0      |
-|  5 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 2.25  | Done     | Done       | 0.9999897291706092 | 0      |
-|  6 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -3.0  | Done     | Done       | 0.99997702555097   | 0      |
-|  7 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -3.75 | Done     | Done       | 0.9999695104145708 | 0      |
-|  8 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1     | Done     | Done       | 0.9999981633157663 | 0      |
-|  9 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 2.25  | Done     | Done       | 0.9999768721440376 | 0      |
+|  2 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -3.0  | Done     | Done       | 0.9999961707086462 | 0      |
+|  3 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = -3.75 | Done     | Done       | 0.9999655834833167 | 0      |
+|  4 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 1     | Done     | Done       | 0.999994344715934  | 0      |
+|  5 | Tensor<[1, 1, 1, 42]> self = ?,<br>Tensor other = 2.25  | Done     | Done       | 0.9999690989661231 | 0      |
+|  6 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -3.0  | Done     | Done       | 0.9999773145519655 | 0      |
+|  7 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = -3.75 | Done     | Done       | 0.9999661338036441 | 0      |
+|  8 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 1     | Done     | Done       | 0.9999948051633638 | 0      |
+|  9 | Tensor<[1, 1, 32, 1]> self = ?,<br>Tensor other = 2.25  | Done     | Done       | 0.9999951797461327 | 0      |
 ### aten.t.default
 |    | ATen Input Variations       | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------|:---------|:-----------|------:|-------:|
@@ -188,11 +188,11 @@
 |---:|:----------------------------------------------------------------------|:---------|:-----------|------:|-------:|
 |  0 | Tensor<[1, 192, 1344]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Done     | Done       |     1 |      0 |
 |  1 | Tensor<[1, 3, 1445, 64]> self = ?,<br>int dim0 = -1,<br>int dim1 = -2 | Done     | Done       |     1 |      0 |
-|  2 | Tensor<[1, 4150, 192]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Done     | Done       |     1 |      0 |
+|  2 | Tensor<[1, 4150, 192]> self = ?,<br>int dim0 = 1,<br>int dim1 = 2     | Removed  | Done       |     1 |      0 |
 ### aten.unsqueeze.default
 |    | ATen Input Variations                     | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 192]> self = ?,<br>int dim = 1 | Done     | Done       |     1 |      0 |
+|  0 | Tensor<[1, 192]> self = ?,<br>int dim = 1 | Removed  | Done       |     1 |      0 |
 ### aten.view.default
 |    | ATen Input Variations                                                    | Status   | Isolated   |   PCC |   Host |
 |---:|:-------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -202,7 +202,7 @@
 |  3 | Tensor<[1, 1445, 3, 64]> self = ?,<br>List[int] size = [1, 1445, 192]    | Done     | Done       |     1 |      0 |
 |  4 | Tensor<[1, 1445, 768]> self = ?,<br>List[int] size = [1445, 768]         | Done     | Done       |     1 |      0 |
 |  5 | Tensor<[1, 192, 32, 42]> self = ?,<br>List[int] size = [1, 192, 1344]    | Done     | Done       |     1 |      0 |
-|  6 | Tensor<[1, 192, 4150]> self = ?,<br>List[int] size = [1, 192, 50, 83]    | Done     | Done       |     1 |      0 |
+|  6 | Tensor<[1, 192, 4150]> self = ?,<br>List[int] size = [1, 192, 50, 83]    | Removed  | Done       |     1 |      0 |
 |  7 | Tensor<[1, 3, 1445, 1445]> self = ?,<br>List[int] size = [3, 1445, 1445] | Done     | Done       |     1 |      0 |
 |  8 | Tensor<[1, 3, 1445, 64]> self = ?,<br>List[int] size = [3, 1445, 64]     | Done     | Done       |     1 |      0 |
 |  9 | Tensor<[1, 3, 64, 1445]> self = ?,<br>List[int] size = [3, 64, 1445]     | Done     | Done       |     1 |      0 |
