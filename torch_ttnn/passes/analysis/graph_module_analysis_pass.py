@@ -33,7 +33,7 @@ def is_train_forward(gm):
     # If this assumption fails in the future, we will need to update this function
     outputs = [node for node in gm.graph.nodes if node.op == "output"]
     for node in outputs:
-        placeholder_args = [arg for arg in node.args[0] if arg.op == "placeholder"]
+        placeholder_args = [arg for arg in node.args[0] if arg is not None and arg.op == "placeholder"]
         if len(placeholder_args) > 0:
             return True
 

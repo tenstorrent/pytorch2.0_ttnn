@@ -1,12 +1,10 @@
-FROM ghcr.io/tenstorrent/tt-metal/tt-metalium-ubuntu-22.04-release-amd64:latest-rc AS release
+FROM ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-dev-amd64:latest AS release
 
 # Install system-level dependencies (using apt-get)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         sudo \
         libgl1-mesa-glx \
-        libopenmpi-dev \
-        openmpi-bin \
         git-lfs \
         libsndfile1 \
         docker.io && \
