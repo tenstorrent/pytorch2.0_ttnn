@@ -17,7 +17,8 @@ class ThisTester(ModelTester):
         self.model_info = model_info
         self.mode = mode
         self.model = self._load_model()
-        self.inputs = self._load_inputs(batch_size)
+        self.batch_size = batch_size
+        self.inputs = self._load_inputs(self.batch_size)
 
     def _load_model(self):
         model_name, weights_name = self.model_info
