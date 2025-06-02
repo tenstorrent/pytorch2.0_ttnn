@@ -8,7 +8,7 @@
 |  4 | aten.max_pool2d_with_indices.default              |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  5 | aten.mean.dim                                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
 |  6 | aten.relu.default                                 |                 12 |          12 |         0 |          0 | ✅          |       1 |
-|  7 | aten.t.default                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  7 | aten.t.default                                    |                  1 |           0 |         1 |          0 | ✅          |       1 |
 |  8 | aten.view.default                                 |                  1 |           1 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_no_training.default
@@ -89,7 +89,7 @@
 ### aten.t.default
 |    | ATen Input Variations         | Status   | Isolated   | PCC   | Host   |
 |---:|:------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[1000, 2048]> self = ? | Done     | Unknown    | N/A   | N/A    |
+|  0 | Tensor<[1000, 2048]> self = ? | Removed  | Unknown    | N/A   | N/A    |
 ### aten.view.default
 |    | ATen Input Variations                                           | Status   | Isolated   | PCC   | Host   |
 |---:|:----------------------------------------------------------------|:---------|:-----------|:------|:-------|

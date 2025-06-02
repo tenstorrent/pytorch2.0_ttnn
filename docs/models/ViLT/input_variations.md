@@ -57,7 +57,7 @@
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                  | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12 | Done     | Done       | 0.997428 |      3 |
+|  0 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12 | Done     | Done       | 0.998368 |      3 |
 ### aten.select.int
 |    | ATen Input Variations                                             | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------------|:---------|:-----------|------:|-------:|
