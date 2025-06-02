@@ -410,12 +410,17 @@ class NodeInputAligner:
         need_from_device = spec.device == "host"
         need_to_layout = spec.layout is not None
         need_to_device = spec.device == TtnnDevice
+        need_typecast = spec.dtype is not None
 
         input_node = spec.input_node
 
         # mesh device tensors need layout on device
         if need_to_device:
             input_node = self.graph.call_function(ttnn.to_device, (input_node,), {"device": TtnnDevice()})
+
+        if need_typecast:
+            input_node = self.graph.call_function(ttnn.to_layout, (input_node, TtnnTileLayout()))
+            input_node = self.graph.call_function(ttnn.typecast, (input_node, spec.dtype()))
 
         if need_to_layout:
             input_node = self.graph.call_function(ttnn.to_layout, (input_node, spec.layout()))
