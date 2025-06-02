@@ -149,7 +149,7 @@ def skip_by_platform(request, device):
             )
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=False)
 def check_native_integration_flag(request):
     # This acts as an allowlist where if `--native_integration` is passed, only run the model
     # if `e2e_with_native_integration` marker is also present. Otherwise skip.
