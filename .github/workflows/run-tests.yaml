@@ -122,7 +122,7 @@ jobs:
       HF_HOME: /root/.cache/huggingface
     strategy:
       matrix: 
-        group: 1
+        group: [1]
     steps:
       - uses: actions/checkout@v4
         with:
