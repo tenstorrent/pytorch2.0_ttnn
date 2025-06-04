@@ -21,5 +21,5 @@
 | 17 | Tensor<[225, 4]> self = ?,<br>List[Optional[Tensor]] indices = [<[4096]>]                   | Removed  | Done       | 1.0   | 0      |
 | 18 | Tensor<[225, 6]> self = ?,<br>List[Optional[Tensor]] indices = [<[4096]>]                   | Removed  | Done       | 1.0   | 0      |
 | 19 | Tensor<[225, 8]> self = ?,<br>List[Optional[Tensor]] indices = [<[4096]>]                   | Removed  | Done       | 1.0   | 0      |
-| 20 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 7]>]                    | Removed  | Done       | 1.0   | 0      |
+| 20 | Tensor<[7, 64]> self = ?,<br>List[Optional[Tensor]] indices = [<[1, 7]>]                    | Removed  | Unknown    | N/A   | N/A    |
 
