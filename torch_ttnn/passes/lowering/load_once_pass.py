@@ -4,9 +4,10 @@
 import inspect
 import pickle
 import torch
+import ttnn
 from torch_ttnn.passes.analysis.graph_module_analysis_pass import ModelType
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
-from torch_ttnn.utils import GraphCleanup
+from torch_ttnn.utils import GraphCleanup, TtnnDevice, TtnnBfloat16, TtnnUint32, TtnnTileLayout, get_dtype
 from operator import getitem
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
@@ -44,7 +45,13 @@ class NodeMover:
         self.run_once_inputs = []
 
         nodes = self.graph.nodes
-        self.first_node = [node for node in nodes if node.op != "placeholder"][0]
+        self.first_node = next(
+            filter(
+                lambda node: node.op != "placeholder"
+                and (node.op != "call_function" or node.target != ttnn.from_torch),
+                nodes,
+            )
+        )
 
     def move(self, node):
         assert node.meta.get("iteration_invariant") == True
@@ -79,6 +86,61 @@ class NodeMover:
 
         self.run_once_inputs.append((should_return, fn_call, node.args, node.kwargs))
         return 1
+
+    def move_conv(self, node):
+        new_args = list(node.args)
+        modified_count = 0
+
+        # rewrite input because otherwise it is not defined when run_once is called
+        input_node = node.args[0]
+        tensor_shape = list(input_node.meta["val"].shape)
+        spec_dtype = TtnnBfloat16
+        if get_dtype(input_node) in [torch.int32, torch.int64]:
+            spec_dtype = TtnnUint32
+        # currently, all conv inputs are tiled and on device. If this changes, may need further analysis here
+        mocked_input_node = (
+            False,
+            "ttnn.ones",
+            (),
+            {"shape": tensor_shape, "device": TtnnDevice(), "dtype": spec_dtype(), "layout": TtnnTileLayout()},
+        )
+        mocked_input_node_idx = len(self.run_once_inputs)
+        self.run_once_inputs.append(mocked_input_node)
+        input_node_idx = target_wrappers.RunOnceIdx(mocked_input_node_idx)
+        new_args[0] = pickle.dumps(input_node_idx)
+
+        should_preprocess = False
+
+        # rewrite weight and optional bias as RunOnceIdx values
+        weight_node = node.args[1]
+        if weight_node.meta.get("iteration_invariant", False):
+            should_preprocess = True
+            weight_node_idx = target_wrappers.RunOnceIdx(self.node_to_run_once_idx[weight_node])
+            new_args[1] = pickle.dumps(weight_node_idx)
+            modified_count += 1
+
+        bias_node = node.args[2]
+        if bias_node is not None and bias_node.meta.get("iteration_invariant", False):
+            should_preprocess = True
+            bias_node_idx = target_wrappers.RunOnceIdx(self.node_to_run_once_idx[bias_node])
+            new_args[2] = pickle.dumps(bias_node_idx)
+            modified_count += 1
+
+        if not should_preprocess:
+            # only preprocess if weight or optional bias are iteration invariant
+            return 0
+
+        new_args = tuple(new_args)
+
+        # update kwargs to return weights and bias
+        new_kwargs = node.kwargs.copy()
+        new_kwargs["return_weights_and_bias"] = True
+
+        should_return = False
+        fn_call = "conv"
+
+        self.run_once_inputs.append((should_return, fn_call, new_args, new_kwargs))
+        return modified_count
 
     def rewrite_users(self, ttnn_inputs):
         with self.graph.inserting_before(self.first_node):
@@ -134,6 +196,11 @@ class LoadOncePass(PassBase):
         node_mover = NodeMover(gm.graph)
         for constant_node in filter(lambda n: n.meta.get("iteration_invariant", False), nodes):
             modifications_count += node_mover.move(constant_node)
+
+        # add convolutions to preprocess weights and biases
+        for conv_node in filter(lambda n: n.op == "call_function" and n.target == target_wrappers.conv, nodes):
+            modifications_count += node_mover.move_conv(conv_node)
+
         node_mover.create_load_once()
 
         modified = modifications_count > 0

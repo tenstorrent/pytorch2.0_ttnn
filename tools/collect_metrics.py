@@ -491,6 +491,12 @@ if __name__ == "__main__":
             compiled_runtime_metrics["compiled_run_time"] = run_time
             pydantic_model.compiled_run_time = float(run_time)
 
+        # Replace compiled runtime with average if available
+        if "avg_run_time" in compiled_runtime_metrics:
+            avg_run_time = compiled_runtime_metrics.pop("avg_run_time")
+            compiled_runtime_metrics["compiled_run_time"] = avg_run_time
+            pydantic_model.compiled_run_time = float(avg_run_time)
+
         # Load op schema metrics
         original_schema_metrics_path = model_path / "original-schema_list.pickle"
         original_schema_metrics = load_pickle(original_schema_metrics_path) or {}

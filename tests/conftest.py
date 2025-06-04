@@ -283,6 +283,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             if tracy_profiling:
                 profiler = tracy.Profiler()
 
+            warm_run_times = []
             for idx in range(total_num_iterations):
                 if tracy_profiling:
                     profiler.enable()
@@ -301,7 +302,15 @@ def compile_and_run(device, reset_torch_dynamo, request):
                         header=f"model: {model_name}, iter: {idx}", message=f"model: {model_name}, iter: {idx}"
                     )
                     profiler.disable()
+                if idx > 1:
+                    warm_run_times.append(run_time)
                 logging.info(f"Iteration {idx}: {run_time} ms")
+
+            # set avg_run_time to average, or last run_time if we only ran once or twice
+            if len(warm_run_times) > 0:
+                avg_run_time = sum(warm_run_times) / len(warm_run_times)
+            else:
+                avg_run_time = run_time
 
             # Move model and inputs back to CPU
             if option.native_integration:
@@ -309,6 +318,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 model_tester.inputs = model_tester.inputs.to("cpu")
 
             comp_runtime_metrics["success"] = True
+            comp_runtime_metrics["avg_run_time"] = round(avg_run_time, 2)
             comp_runtime_metrics["run_time"] = round(run_time, 2)
             comp_runtime_metrics["run_time_first_iter"] = round(first_iter_runtime, 2)
             comp_runtime_metrics["has_aten"] = None

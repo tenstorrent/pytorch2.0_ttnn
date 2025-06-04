@@ -28,6 +28,7 @@ def run_once(*args):
         temp_results = []
         return_results = []
         to_deallocate = []
+        temp_idx_to_return_idx = dict()
 
         def lookup_function(str_name):
             # assume function is of form `ttnn.from_torch`, look up in globals()
@@ -37,10 +38,10 @@ def run_once(*args):
                 base = getattr(base, part)
             return base
 
-        def lookup_prev_result(maybe_pickled_run_once_idx):
+        def lookup_prev_result_idx(maybe_pickled_run_once_idx):
             try:
                 run_once_idx = pickle.loads(maybe_pickled_run_once_idx)
-                return temp_results[run_once_idx.idx]
+                return run_once_idx.idx
             except pickle.UnpicklingError:
                 pass
             return None
@@ -51,17 +52,20 @@ def run_once(*args):
                 if isinstance(arg, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     original_version = list(arg)
                     decoded_version = [
-                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                        lookup_prev_result_idx(entry) if isinstance(entry, bytes) else None
+                        for entry in original_version
                     ]
+                    decoded_version = [temp_results[idx] if idx is not None else None for idx in decoded_version]
                     new_arg = [
                         decoded if decoded is not None else original
                         for decoded, original in zip(decoded_version, original_version)
                     ]
                     args[i] = new_arg
                 elif isinstance(arg, bytes):
-                    maybe_prev_result = lookup_prev_result(arg)
-                    if maybe_prev_result is not None:
-                        args[i] = maybe_prev_result
+                    maybe_prev_result_idx = lookup_prev_result_idx(arg)
+                    if maybe_prev_result_idx is not None:
+                        prev_val = temp_results[maybe_prev_result_idx]
+                        args[i] = prev_val
             return tuple(args)
 
         def rewrite_kwargs(kwargs_dict):
@@ -69,28 +73,48 @@ def run_once(*args):
                 if isinstance(v, (tuple, list, torch.fx.immutable_collections.immutable_list)):
                     original_version = list(v)
                     decoded_version = [
-                        lookup_prev_result(entry) if isinstance(entry, bytes) else None for entry in original_version
+                        lookup_prev_result_idx(entry) if isinstance(entry, bytes) else None
+                        for entry in original_version
                     ]
+                    decoded_version = [temp_results[idx] if idx is not None else None for idx in decoded_version]
                     new_value = [
                         decoded if decoded is not None else original
                         for decoded, original in zip(decoded_version, original_version)
                     ]
                     kwargs_dict[k] = new_value
                 elif isinstance(v, bytes):
-                    maybe_prev_result = lookup_prev_result(v)
-                    if maybe_prev_result is not None:
-                        kwargs_dict[k] = maybe_prev_result
+                    maybe_prev_result_idx = lookup_prev_result_idx(v)
+                    if maybe_prev_result_idx is not None:
+                        prev_val = temp_results[maybe_prev_result_idx]
+                        kwargs_dict[k] = prev_val
             return kwargs_dict
 
         def convert_input(spec):
             should_return, func_name, args, kwargs = spec
             found_func = lookup_function(func_name)
             # convert any args that reference previous results
-            args = rewrite_args(args)
+            new_args = rewrite_args(args)
             kwargs = rewrite_kwargs(kwargs)
-            temp_results.append(found_func(*args, **kwargs))
+            temp_results.append(found_func(*new_args, **kwargs))
             if should_return:
                 return_results.append(temp_results[-1])
+                temp_idx_to_return_idx[len(temp_results) - 1] = len(return_results) - 1
+            elif found_func == conv:
+                # special case conv to preprocess weights and optional bias
+                (dummy_output, (new_weights, new_bias)) = temp_results[-1]
+                ttnn.deallocate(dummy_output)
+
+                if (weight_idx := lookup_prev_result_idx(args[1])) is not None:
+                    return_idx = temp_idx_to_return_idx[weight_idx]
+                    return_results[return_idx] = new_weights
+                    to_deallocate.append(weight_idx)
+
+                bias_arg = args[2]
+                if bias_arg is not None:
+                    if (bias_idx := lookup_prev_result_idx(bias_arg)) is not None:
+                        return_idx = temp_idx_to_return_idx[bias_idx]
+                        return_results[return_idx] = new_bias
+                        to_deallocate.append(bias_idx)
             else:
                 to_deallocate.append(len(temp_results) - 1)
 
@@ -161,6 +185,7 @@ def conv(
     device,
     transposed,
     output_padding=None,
+    return_weights_and_bias=False,
 ):
     if len(in_spatial_shape) == 1:
         # TODO(tt-metal#16258): conv1d API doesn't support transposed yet
@@ -179,6 +204,7 @@ def conv(
             dilation=dilation[0],
             groups=groups,
             device=device,
+            return_weights_and_bias=return_weights_and_bias,
         )
     if len(in_spatial_shape) == 2:
         in_h, in_w = in_spatial_shape
@@ -199,6 +225,7 @@ def conv(
                 dilation=dilation,
                 groups=groups,
                 device=device,
+                return_weights_and_bias=return_weights_and_bias,
             )
         else:
             assert output_padding is None, "conv2d has no output padding"
@@ -217,6 +244,7 @@ def conv(
                 dilation=dilation,
                 groups=groups,
                 device=device,
+                return_weights_and_bias=return_weights_and_bias,
             )
     assert False, "unsupported conv shape"
 
