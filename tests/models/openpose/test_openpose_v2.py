@@ -9,7 +9,7 @@ from PIL import Image
 from pytorchcv.model_provider import get_model as ptcv_get_model
 from torchvision import transforms
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 def get_image_tensor():
@@ -36,10 +36,11 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         input_batch = [get_image_tensor()]
         batch_input = torch.cat(input_batch, dim=0)
         batch_input = batch_input.to(torch.bfloat16)
+        batch_input = repeat_inputs(batch_input, batch_size)
         return batch_input
 
 

@@ -6,19 +6,20 @@ from PIL import Image
 import torch
 import requests
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 # TODO: RuntimeError: "nms_kernel" not implemented for 'BFloat16'
 class ThisTester(ModelTester):
     # pass model_info instead of model_name
-    def __init__(self, model_info, mode):
+    def __init__(self, model_info, mode, batch_size=1):
         if mode not in ["train", "eval"]:
             raise ValueError(f"Current mode is not supported: {mode}")
         self.model_info = model_info
         self.mode = mode
         self.model = self._load_model()
-        self.inputs = self._load_inputs()
+        self.batch_size = batch_size
+        self.inputs = self._load_inputs(self.batch_size)
 
     def _load_model(self):
         model_name, weights_name = self.model_info
@@ -26,13 +27,14 @@ class ThisTester(ModelTester):
         model = getattr(models.detection, model_name)(weights=self.weights)  # .to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         preprocess = self.weights.transforms()
         # Load and preprocess the image
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         image = Image.open(requests.get(url, stream=True).raw)
         img_t = preprocess(image)
         batch_t = torch.unsqueeze(img_t, 0)  # .to(torch.bfloat16)
+        batch_t = repeat_inputs(batch_t, batch_size)
         return batch_t
 
 

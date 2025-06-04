@@ -11,18 +11,19 @@ from typing import List, Dict, Tuple
 
 
 class ModelTester:
-    def __init__(self, model_name, mode):
+    def __init__(self, model_name, mode, batch_size=1):
         if mode not in ["train", "eval"]:
             raise ValueError(f"Current mode is not supported: {mode}")
         self.model_name = model_name
         self.mode = mode
         self.model = self._load_model()
-        self.inputs = self._load_inputs()
+        self.batch_size = batch_size
+        self.inputs = self._load_inputs(self.batch_size)
 
     def _load_model(self):
         raise NotImplementedError("This method should be implemented in the derived class")
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         raise NotImplementedError("This method should be implemented in the derived class")
 
     def set_model_train(self, model):
@@ -147,6 +148,23 @@ class ModelTester:
             return self.test_model_eval(as_ttnn, option)
         else:
             raise ValueError(f"Current mode is not supported: {self.mode}")
+
+
+def repeat_inputs(inputs, batch_size):
+    if batch_size is None:
+        return None
+    if hasattr(inputs, "keys"):
+        for key in inputs.keys():
+            if isinstance(inputs[key], torch.Tensor):
+                repeat_size = [batch_size] + ([1] * (inputs[key].dim() - 1))
+                inputs[key] = inputs[key].repeat(*repeat_size)
+        return inputs
+    elif isinstance(inputs, torch.Tensor):
+        repeat_size = [batch_size] + ([1] * (inputs.dim() - 1))
+        inputs = inputs.repeat(*repeat_size)
+        return inputs
+    else:
+        raise TypeError(f"Inputs type not supported for batching: {type(inputs)}")
 
 
 def get_absolute_cache_path(path_relative_to_cache):

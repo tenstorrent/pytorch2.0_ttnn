@@ -8,7 +8,7 @@ from torchvision import transforms
 from PIL import Image
 
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -18,7 +18,7 @@ class ThisTester(ModelTester):
         model = models.mobilenet_v2(weights=self.weights)
         return model.to(torch.bfloat16)
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Define a transformation to preprocess the input image using the weights transforms
         preprocess = self.weights.transforms()
 
@@ -27,6 +27,10 @@ class ThisTester(ModelTester):
         image = Image.open(requests.get(url, stream=True).raw)
         img_t = preprocess(image)
         batch_t = torch.unsqueeze(img_t, 0)
+
+        # TODO: get unique data instead of just repeating
+        batch_t = repeat_inputs(batch_t, batch_size)
+
         return batch_t.to(torch.bfloat16)
 
 

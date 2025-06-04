@@ -6,7 +6,7 @@ import pytest
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -17,10 +17,11 @@ class ThisTester(ModelTester):
         m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
         return m
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Set up sample input
         self.test_input = "This is a sample text from "
         inputs = self.tokenizer(self.test_input, return_tensors="pt")
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 
@@ -28,12 +29,17 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-def test_falcon(record_property, mode):
-    model_name = "Falcon"
+@pytest.mark.parametrize(
+    "batch_size",
+    # TODO: tt-metal uses batch_size=32 for Falcon-7B. Change when it runs successfully
+    [1],
+)
+def test_falcon(record_property, mode, batch_size):
+    model_name = "Falcon-7B"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     if mode == "eval":

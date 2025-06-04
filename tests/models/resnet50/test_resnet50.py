@@ -8,7 +8,7 @@ from torchvision import transforms
 from PIL import Image
 
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -19,7 +19,7 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Define a transformation to preprocess the input image using the weights transforms
         preprocess = self.weights.transforms()
 
@@ -29,22 +29,24 @@ class ThisTester(ModelTester):
         img_t = preprocess(image)
         batch_t = torch.unsqueeze(img_t, 0)
         batch_t = batch_t.to(torch.bfloat16)
+        batch_t = repeat_inputs(batch_t, batch_size)
         return batch_t
 
 
 @pytest.mark.parametrize(
-    "mode",
+    "mode, batch_size",
     [
-        "train",
-        pytest.param("eval", marks=pytest.mark.converted_end_to_end),
+        ("train", 1),
+        # TODO: tt-metal uses batch_size=16, but we OOM. Change to 16 when we don't
+        pytest.param("eval", 4, marks=pytest.mark.converted_end_to_end),
     ],
 )
-def test_resnet(record_property, mode):
+def test_resnet(record_property, mode, batch_size):
     model_name = "ResNet50"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
     if mode == "eval":
         # Print the top 5 predictions
