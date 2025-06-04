@@ -14,32 +14,66 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Build C++ Extensions
+      if: ${{ github.event.inputs.commit_report != 'None' }}
+      uses: ./.github/actions/build_tt_metal_tracy
+
     - name: Run Model Tests
       shell: bash
       run: |
         set +e
         if [ "${{ github.event.inputs.commit_report }}" == "None" ]; then
           num_iterations=1
+          run_tracy=false
         else
           num_iterations=5
+          run_tracy=true
         fi
-        python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
-        exit_code=$?  # Capture the exit code
-        if [ $exit_code -eq 5 ]; then
-          if [ ${{ matrix.group }} -eq 0 ]; then
-            echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
-            exit 1;  # Fail the workflow
-          else
-            echo "Success: pytest returned exit code 5 (No tests to run). This is acceptable for groups greater than 0.";
-            exit 0;  # Success
+
+        check_exit_code() {
+          exit_code=$?
+          if [ $exit_code -eq 5 ]; then
+            if [ ${{ matrix.group }} -eq 0 ]; then
+              echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
+              exit 1;  # Fail the workflow
+            else
+              echo "Success: pytest returned exit code 5 (No tests to run). This is acceptable for groups greater than 0.";
+              exit 0;  # Success
+            fi
+          elif [ $exit_code -ne 0 ]; then
+            echo "Failure: Tests failed with exit code $exit_code.";
+            exit 1;  # Fail the workflow for other errors
           fi
-        elif [ $exit_code -ne 0 ]; then
-          echo "Failure: Tests failed with exit code $exit_code.";
-          exit 1;  # Fail the workflow for other errors
+        }
+
+        if [ "$run_tracy" = true ];
+        then
+          collect_tests=$(python -m pytest tests/models/ --collect-only --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
+          check_exit_code
+          echo "$collect_tests"
+
+          IFS=$'\n' read -r -a tests_full_path <<< "$collect_tests"
+          IFS=$'\n' read -r -a tests_name_only <<< $(echo "$collect_tests" | sed -n "s/.*:://p")
+
+          for i in "${!tests_full_path[@]}"; do
+            python3 -m tracy -r -v -p -m -o "tracy_out/${tests_name_only[i]}" \
+              pytest --github-report "${tests_full_path[i]}" -s \
+              --report_nth_iteration=$num_iterations \
+              --export_code=accuracy \
+              --tracy_profiling
+
+            check_exit_code
+        else
+          python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
+          check_exit_code
         fi
+
         echo "Success: Tests passed!";
         ls -l
         cd metrics
         ls -l
         cd ..
+        if test -d tracy_out;
+          then ls tracy_out/
+        fi
         exit 0;

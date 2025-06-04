@@ -144,6 +144,12 @@ jobs:
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
+      - name: Upload Tracy Artifact
+        if: ${{ inputs.commit_report != 'None' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-tests-tracy-group-${{ matrix.group }}
+          path: tracy_out/
 
   get-pr-branch:
     if: ${{ inputs.commit_report != 'None' }}
@@ -188,6 +194,12 @@ jobs:
         with:
           name: multi-device-tests-metrics
           path: metrics/
+      - name: Upload Tracy Artifact
+        if: ${{ inputs.commit_report != 'None' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: multi-device-tests-tracy
+          path: tracy_out/
 
   push-autogen-op-tests:
     needs: [model-tests, get-pr-branch]
@@ -331,6 +343,29 @@ jobs:
         with:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
+
+  collect-model-tracy-artifacts-from-matrix-jobs:
+    needs: model-tests
+    runs-on: ubuntu-latest
+    env:
+      pytest_verbosity: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+      - name: Download All Tracy Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-tracy-group-*
+          merge-multiple: true
+          path: tracy_out/
+
+      - name: Upload Tracy Artifact
+        if: ${{ inputs.commit_report != 'None' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-tests-tracy
+          path: tracy_out/
+
 
   collect-metrics:
     needs: [model-autogen-op-tests, push-autogen-op-tests, get-pr-branch]

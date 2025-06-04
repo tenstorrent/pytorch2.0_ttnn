@@ -7,21 +7,24 @@ import ttnn
 from torch_ttnn.utils import GraphCleanup
 from torch_ttnn.utils import TtnnDevice
 
+
 class TracyProfilingPass(PassBase):
-    def __init__(self):
+    def __init__(self, enable_tracy_profiling):
         super().__init__()
         torch.fx.node.has_side_effect(ttnn.DumpDeviceProfiler)
+        self.enable_tracy_profiling = enable_tracy_profiling
 
     def call(self, gm: torch.fx.GraphModule):
-        graph = gm.graph
+        if self.enable_tracy_profiling:
+            graph = gm.graph
 
-        num_nodes = len(graph.nodes)
-        for i, node in enumerate(graph.nodes):
-            # Insert ttnn.DumpDeviceProfiler every 500 nodes and before the last
-            if i % 500 == 0 or i == (num_nodes - 1):
-                with graph.inserting_before(node):
-                    graph.call_function(ttnn.DumpDeviceProfiler, (TtnnDevice(),))
-                    
-        GraphCleanup(gm)
+            num_nodes = len(graph.nodes)
+            for i, node in enumerate(graph.nodes):
+                # Insert ttnn.DumpDeviceProfiler every 500 nodes and before the last
+                if i % 500 == 0 or i == (num_nodes - 1):
+                    with graph.inserting_before(node):
+                        graph.call_function(ttnn.DumpDeviceProfiler, (TtnnDevice(),))
+
+            GraphCleanup(gm)
 
         return PassResult(gm, True)
