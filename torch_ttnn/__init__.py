@@ -1,7 +1,15 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
-# The inferface of this backend
+# The interface of this backend
+
+import sys
+import platform
+
+try:
+    from ._version import version as __version__
+except ImportError:
+    __version__ = "unknown"
 
 from .backend import ttnn_backend as backend
 from .backend import TorchTtnnOption
@@ -12,10 +20,39 @@ _torch._dynamo.backends.registry.register_backend(name="ttnn", compiler_fn=backe
 # To wrap the ttnn ops
 from .passes.lowering import target_wrappers
 
+def _check_ttnn_requirements():
+    """Check if the environment meets ttnn requirements."""
+    if sys.platform != "linux":
+        raise ImportError(
+            "ttnn is only supported on Linux. "
+            "Current platform: {}".format(platform.platform())
+        )
+    
+    python_version = sys.version_info
+    if python_version.major != 3 or python_version.minor != 10:
+        raise ImportError(
+            "ttnn requires Python 3.10. "
+            "Current Python version: {}.{}".format(
+                python_version.major, python_version.minor
+            )
+        )
+
 try:
+    _check_ttnn_requirements()
     import ttnn
 except ImportError as e:
+    if "ttnn" not in str(e):
+        raise
     print(
-        "ttnn is not installed. Run `python3 -m pip install -r requirements.txt` or `python3 -m pip install -r requirements-dev.txt` if you are developing the compiler"
+        "\nError: ttnn is not installed or not compatible with your system.\n"
+        "To install ttnn, run:\n"
+        "  pip install torch-ttnn[ttnn]\n\n"
+        "Note: ttnn is only supported on Linux with Python 3.10.\n"
+        "Current system: {}\n"
+        "Current Python: {}.{}\n".format(
+            platform.platform(),
+            sys.version_info.major,
+            sys.version_info.minor
+        )
     )
-    raise e
+    raise
