@@ -5,6 +5,26 @@
 # PyTorch 2.0 TTNN Compiler
 This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com/) hardware.
 
+## Installation
+
+### Requirements
+- Python 3.10
+- Ubuntu operating system
+- PyTorch 2.0 or later
+
+### Basic Installation
+```bash
+pip install torch-ttnn
+```
+
+### Installation with TTNN Support
+To use the TTNN backend, you need to install the additional `ttnn` package:
+```bash
+pip install torch-ttnn[ttnn]
+```
+
+Note: The `ttnn` package is only supported on Ubuntu with Python 3.10. If you're using a different platform or Python version, you can still install `torch-ttnn` without the TTNN backend.
+
 ## Supported Models
 
 The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.

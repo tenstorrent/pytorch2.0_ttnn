@@ -1,0 +1,18 @@
+include LICENSE
+include README.md
+include requirements.txt
+include requirements-dev.txt
+include VERSION
+
+# Exclude test files from the distribution
+prune tests
+prune tests/autogen_op
+prune tests/tools
+prune tests/pattern
+prune tests/optimization
+prune tests/multi_device
+prune tests/models
+prune tests/memory
+prune tests/lowering
+prune tests/inputs
+prune tests/cpp_extension 
