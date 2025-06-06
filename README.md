@@ -9,9 +9,8 @@ This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com
 
 ### Requirements
 - Python 3.10
-- Linux operating system
+- Ubuntu operating system
 - PyTorch 2.0 or later
-- CUDA toolkit (for GPU support)
 
 ### Basic Installation
 ```bash
@@ -24,7 +23,7 @@ To use the TTNN backend, you need to install the additional `ttnn` package:
 pip install torch-ttnn[ttnn]
 ```
 
-Note: The `ttnn` package is only supported on Linux with Python 3.10. If you're using a different platform or Python version, you can still install `torch-ttnn` without the TTNN backend.
+Note: The `ttnn` package is only supported on Ubuntu with Python 3.10. If you're using a different platform or Python version, you can still install `torch-ttnn` without the TTNN backend.
 
 ## Supported Models
 
