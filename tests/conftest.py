@@ -19,7 +19,6 @@ import torch_ttnn.metrics as metrics
 import subprocess
 import sys
 import logging
-import tracy
 
 import tools.export_code as export_code
 
@@ -281,6 +280,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 logging.info(f"Model and inputs moved to ttnn device in {end - start} ms.")
 
             if tracy_profiling:
+                import tracy
                 profiler = tracy.Profiler()
 
             warm_run_times = []
