@@ -138,6 +138,7 @@ jobs:
           export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)
           pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
           pytest tests/cpp_extension/test_bert_cpp_extension.py -v
+          pytest tests/models/ --native_integration -v
 
   tests-passed:
     if: ${{ always() }}
