@@ -87,9 +87,9 @@
 |  83 | Tensor<[1, 16, 12, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 |  84 | Tensor<[1, 16, 16, 1536]> self = ?                                                                | Removed  | Done       | 1.0   | 0      |
 |  85 | Tensor<[1, 16, 16, 16, 16, 3]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format | Removed  | Done       | 1.0   | 0      |
-|  86 | Tensor<[1, 16, 16, 2048]> self = ?                                                                | Removed  | Unknown    | N/A   | N/A    |
+|  86 | Tensor<[1, 16, 16, 2048]> self = ?                                                                | Removed  | Done       | 1.0   | 0      |
 |  87 | Tensor<[1, 16, 16, 384]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
-|  88 | Tensor<[1, 16, 16, 512]> self = ?                                                                 | Removed  | Unknown    | N/A   | N/A    |
+|  88 | Tensor<[1, 16, 16, 512]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 |  89 | Tensor<[1, 16, 32, 32]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 |  90 | Tensor<[1, 16, 384, 384]> self = ?                                                                | Removed  | Unknown    | N/A   | N/A    |
 |  91 | Tensor<[1, 16, 5, 5]> self = ?                                                                    | Unknown  | Done       | 1.0   | 0      |
@@ -117,13 +117,13 @@
 | 113 | Tensor<[1, 2, 2, 7, 7, 384]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 114 | Tensor<[1, 2, 2, 7, 7, 512]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 115 | Tensor<[1, 2, 2, 8, 8, 384]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
-| 116 | Tensor<[1, 2, 2, 8, 8, 512]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Unknown    | N/A   | N/A    |
+| 116 | Tensor<[1, 2, 2, 8, 8, 512]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 117 | Tensor<[1, 2, 4096, 256]> self = ?                                                                | Removed  | Done       | 1.0   | 0      |
 | 118 | Tensor<[1, 2, 4800, 300]> self = ?                                                                | Removed  | Done       | 1.0   | 0      |
 | 119 | Tensor<[1, 2, 7, 2, 7, 384]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 120 | Tensor<[1, 2, 7, 2, 7, 512]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 121 | Tensor<[1, 2, 8, 2, 8, 384]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
-| 122 | Tensor<[1, 2, 8, 2, 8, 512]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Unknown    | N/A   | N/A    |
+| 122 | Tensor<[1, 2, 8, 2, 8, 512]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 123 | Tensor<[1, 20, 20, 6, 4]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format      | Removed  | Done       | 1.0   | 0      |
 | 124 | Tensor<[1, 20, 20, 6, 91]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format     | Removed  | Done       | 1.0   | 0      |
 | 125 | Tensor<[1, 2048, 8, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format       | Removed  | Done       | 1.0   | 0      |
@@ -166,12 +166,12 @@
 | 162 | Tensor<[1, 32, 128, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format      | Removed  | Done       | 1.0   | 0      |
 | 163 | Tensor<[1, 32, 1536]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
 | 164 | Tensor<[1, 32, 16, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 165 | Tensor<[1, 32, 32, 1024]> self = ?                                                                | Removed  | Unknown    | N/A   | N/A    |
+| 165 | Tensor<[1, 32, 32, 1024]> self = ?                                                                | Removed  | Done       | 1.0   | 0      |
 | 166 | Tensor<[1, 32, 32, 192]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
-| 167 | Tensor<[1, 32, 32, 256]> self = ?                                                                 | Removed  | Unknown    | N/A   | N/A    |
+| 167 | Tensor<[1, 32, 32, 256]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 168 | Tensor<[1, 32, 32, 768]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 169 | Tensor<[1, 32, 49, 49]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
-| 170 | Tensor<[1, 32, 64, 64]> self = ?                                                                  | Removed  | Unknown    | N/A   | N/A    |
+| 170 | Tensor<[1, 32, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 171 | Tensor<[1, 320, 30, 40]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format       | Removed  | Done       | 1.0   | 0      |
 | 172 | Tensor<[1, 38, 38, 4, 4]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format      | Removed  | Done       | 1.0   | 0      |
 | 173 | Tensor<[1, 38, 38, 4, 91]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format     | Removed  | Done       | 1.0   | 0      |
@@ -182,12 +182,12 @@
 | 178 | Tensor<[1, 4, 4, 7, 7, 192]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 179 | Tensor<[1, 4, 4, 7, 7, 256]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 180 | Tensor<[1, 4, 4, 8, 8, 192]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
-| 181 | Tensor<[1, 4, 4, 8, 8, 256]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Unknown    | N/A   | N/A    |
+| 181 | Tensor<[1, 4, 4, 8, 8, 256]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 182 | Tensor<[1, 4, 7, 4, 7, 192]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 183 | Tensor<[1, 4, 7, 4, 7, 256]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 184 | Tensor<[1, 4, 768]> self = ?                                                                      | Unknown  | Done       | 1.0   | 0      |
 | 185 | Tensor<[1, 4, 8, 4, 8, 192]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
-| 186 | Tensor<[1, 4, 8, 4, 8, 256]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Unknown    | N/A   | N/A    |
+| 186 | Tensor<[1, 4, 8, 4, 8, 256]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 187 | Tensor<[1, 40, 28, 28]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 188 | Tensor<[1, 4096, 2, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format       | Removed  | Done       | 1.0   | 0      |
 | 189 | Tensor<[1, 4096, 256]> self = ?                                                                   | Removed  | Done       | 1.0   | 0      |
@@ -218,7 +218,7 @@
 | 214 | Tensor<[1, 512, 1, 1]> self = ?                                                                   | Removed  | Done       | 1.0   | 0      |
 | 215 | Tensor<[1, 512, 15, 20]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format       | Removed  | Done       | 1.0   | 0      |
 | 216 | Tensor<[1, 56, 56, 128]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
-| 217 | Tensor<[1, 56, 56, 384]> self = ?                                                                 | Removed  | Unknown    | N/A   | N/A    |
+| 217 | Tensor<[1, 56, 56, 384]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 218 | Tensor<[1, 56, 56, 512]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 219 | Tensor<[1, 56, 56, 96]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 220 | Tensor<[1, 59, 1024]> self = ?                                                                    | Unknown  | Done       | 1.0   | 0      |
@@ -229,14 +229,14 @@
 | 225 | Tensor<[1, 6, 1, 2]> self = ?                                                                     | Unknown  | Done       | 1.0   | 0      |
 | 226 | Tensor<[1, 6, 1, s0 + 1]> self = ?                                                                | Unknown  | Unknown    | N/A   | N/A    |
 | 227 | Tensor<[1, 6, 15, 15]> self = ?                                                                   | Unknown  | Done       | 1.0   | 0      |
-| 228 | Tensor<[1, 64, 1024]> self = ?                                                                    | Removed  | Unknown    | N/A   | N/A    |
+| 228 | Tensor<[1, 64, 1024]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
 | 229 | Tensor<[1, 64, 12, 12]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 230 | Tensor<[1, 64, 120, 160]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format      | Removed  | Done       | 1.0   | 0      |
 | 231 | Tensor<[1, 64, 24, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 232 | Tensor<[1, 64, 32, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
-| 233 | Tensor<[1, 64, 64, 128]> self = ?                                                                 | Removed  | Unknown    | N/A   | N/A    |
+| 232 | Tensor<[1, 64, 32, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
+| 233 | Tensor<[1, 64, 64, 128]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 234 | Tensor<[1, 64, 64, 384]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
-| 235 | Tensor<[1, 64, 64, 512]> self = ?                                                                 | Removed  | Unknown    | N/A   | N/A    |
+| 235 | Tensor<[1, 64, 64, 512]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 236 | Tensor<[1, 64, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 237 | Tensor<[1, 64, 64, 96]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 238 | Tensor<[1, 64, 768]> self = ?                                                                     | Removed  | Done       | 1.0   | 0      |
@@ -261,15 +261,15 @@
 | 257 | Tensor<[1, 8, 256, 256]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 258 | Tensor<[1, 8, 300, 300]> self = ?                                                                 | Removed  | Done       | 1.0   | 0      |
 | 259 | Tensor<[1, 8, 7, 8, 7, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
-| 260 | Tensor<[1, 8, 7, 8, 7, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format    | Removed  | Unknown    | N/A   | N/A    |
+| 260 | Tensor<[1, 8, 7, 8, 7, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format    | Removed  | Done       | 1.0   | 0      |
 | 261 | Tensor<[1, 8, 768]> self = ?                                                                      | Removed  | Done       | 1.0   | 0      |
-| 262 | Tensor<[1, 8, 8, 1024]> self = ?                                                                  | Removed  | Unknown    | N/A   | N/A    |
+| 262 | Tensor<[1, 8, 8, 1024]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 263 | Tensor<[1, 8, 8, 3072]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
-| 264 | Tensor<[1, 8, 8, 4096]> self = ?                                                                  | Removed  | Unknown    | N/A   | N/A    |
+| 264 | Tensor<[1, 8, 8, 4096]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 265 | Tensor<[1, 8, 8, 7, 7, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
 | 266 | Tensor<[1, 8, 8, 7, 7, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format    | Removed  | Done       | 1.0   | 0      |
 | 267 | Tensor<[1, 8, 8, 768]> self = ?                                                                   | Removed  | Done       | 1.0   | 0      |
-| 268 | Tensor<[1, 8, 8, 8, 8, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Done       | 1.0   | 0      |
+| 268 | Tensor<[1, 8, 8, 8, 8, 128]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format   | Removed  | Unknown    | N/A   | N/A    |
 | 269 | Tensor<[1, 8, 8, 8, 8, 96]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format    | Removed  | Done       | 1.0   | 0      |
 | 270 | Tensor<[1, 80, 14, 14]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 271 | Tensor<[1, 80, 96]> self = ?                                                                      | Unknown  | Unknown    | N/A   | N/A    |
@@ -316,17 +316,17 @@
 | 312 | Tensor<[16, 6, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 313 | Tensor<[16, 6, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 314 | Tensor<[16, 64, 192]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
-| 315 | Tensor<[16, 64, 256]> self = ?                                                                    | Removed  | Unknown    | N/A   | N/A    |
+| 315 | Tensor<[16, 64, 256]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
 | 316 | Tensor<[16, 64, 6, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 317 | Tensor<[16, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Unknown    | N/A   | N/A    |
-| 318 | Tensor<[16, 64, 8, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
+| 317 | Tensor<[16, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
+| 318 | Tensor<[16, 64, 8, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 319 | Tensor<[16, 7, 7]> self = ?                                                                       | Removed  | Done       | 1.0   | 0      |
 | 320 | Tensor<[16, 8, 32, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 321 | Tensor<[16, 8, 32, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
+| 321 | Tensor<[16, 8, 32, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 322 | Tensor<[16, 8, 49, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 323 | Tensor<[16, 8, 49, 49]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
-| 324 | Tensor<[16, 8, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
-| 325 | Tensor<[16, 8, 64, 64]> self = ?                                                                  | Removed  | Unknown    | N/A   | N/A    |
+| 324 | Tensor<[16, 8, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
+| 325 | Tensor<[16, 8, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 326 | Tensor<[19, 19]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format               | Removed  | Done       | 1.0   | 0      |
 | 327 | Tensor<[2, 2, 7, 7]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
 | 328 | Tensor<[2, 2, 8, 8]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
@@ -346,7 +346,7 @@
 | 342 | Tensor<[3, 50, 1, 768]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 343 | Tensor<[3, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Done       | 1.0   | 0      |
 | 344 | Tensor<[32, 49, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
-| 345 | Tensor<[32, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Unknown    | N/A   | N/A    |
+| 345 | Tensor<[32, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
 | 346 | Tensor<[38, 38]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format               | Removed  | Done       | 1.0   | 0      |
 | 347 | Tensor<[4, 12, 32, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 348 | Tensor<[4, 12, 32, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
@@ -355,11 +355,11 @@
 | 351 | Tensor<[4, 12, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 352 | Tensor<[4, 12, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 353 | Tensor<[4, 16, 32, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 354 | Tensor<[4, 16, 32, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
+| 354 | Tensor<[4, 16, 32, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 355 | Tensor<[4, 16, 49, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 356 | Tensor<[4, 16, 49, 49]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
-| 357 | Tensor<[4, 16, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
-| 358 | Tensor<[4, 16, 64, 64]> self = ?                                                                  | Removed  | Unknown    | N/A   | N/A    |
+| 357 | Tensor<[4, 16, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
+| 358 | Tensor<[4, 16, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 359 | Tensor<[4, 4, 7, 7]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
 | 360 | Tensor<[4, 4, 8, 8]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
 | 361 | Tensor<[4, 49, 12, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
@@ -368,10 +368,10 @@
 | 364 | Tensor<[4, 49, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Unknown    | N/A   | N/A    |
 | 365 | Tensor<[4, 49, 512]> self = ?                                                                     | Removed  | Done       | 1.0   | 0      |
 | 366 | Tensor<[4, 64, 12, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 367 | Tensor<[4, 64, 16, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
+| 367 | Tensor<[4, 64, 16, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 368 | Tensor<[4, 64, 384]> self = ?                                                                     | Removed  | Done       | 1.0   | 0      |
-| 369 | Tensor<[4, 64, 512]> self = ?                                                                     | Removed  | Unknown    | N/A   | N/A    |
-| 370 | Tensor<[4, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Done       | 1.0   | 0      |
+| 369 | Tensor<[4, 64, 512]> self = ?                                                                     | Removed  | Done       | 1.0   | 0      |
+| 370 | Tensor<[4, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Unknown    | N/A   | N/A    |
 | 371 | Tensor<[5, 5]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format                 | Removed  | Done       | 1.0   | 0      |
 | 372 | Tensor<[59, 1024]> self = ?                                                                       | Unknown  | Done       | 1.0   | 0      |
 | 373 | Tensor<[6, 49, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Done       | 1.0   | 0      |
@@ -383,21 +383,21 @@
 | 379 | Tensor<[64, 3, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 380 | Tensor<[64, 3, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 381 | Tensor<[64, 4, 32, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 382 | Tensor<[64, 4, 32, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
+| 382 | Tensor<[64, 4, 32, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
 | 383 | Tensor<[64, 4, 49, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 384 | Tensor<[64, 4, 49, 49]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
-| 385 | Tensor<[64, 4, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 386 | Tensor<[64, 4, 64, 64]> self = ?                                                                  | Removed  | Unknown    | N/A   | N/A    |
+| 385 | Tensor<[64, 4, 64, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
+| 386 | Tensor<[64, 4, 64, 64]> self = ?                                                                  | Removed  | Done       | 1.0   | 0      |
 | 387 | Tensor<[64, 49, 128]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
-| 388 | Tensor<[64, 49, 3, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
+| 388 | Tensor<[64, 49, 3, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 389 | Tensor<[64, 49, 4, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 390 | Tensor<[64, 49, 96]> self = ?                                                                     | Removed  | Unknown    | N/A   | N/A    |
-| 391 | Tensor<[64, 64, 128]> self = ?                                                                    | Removed  | Unknown    | N/A   | N/A    |
+| 390 | Tensor<[64, 49, 96]> self = ?                                                                     | Removed  | Done       | 1.0   | 0      |
+| 391 | Tensor<[64, 64, 128]> self = ?                                                                    | Removed  | Done       | 1.0   | 0      |
 | 392 | Tensor<[64, 64, 3, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
-| 393 | Tensor<[64, 64, 4, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Unknown    | N/A   | N/A    |
+| 393 | Tensor<[64, 64, 4, 32]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format        | Removed  | Done       | 1.0   | 0      |
 | 394 | Tensor<[64, 64, 96]> self = ?                                                                     | Removed  | Done       | 1.0   | 0      |
 | 395 | Tensor<[8, 49, 49]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Done       | 1.0   | 0      |
-| 396 | Tensor<[8, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Unknown    | N/A   | N/A    |
+| 396 | Tensor<[8, 64, 64]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format            | Removed  | Done       | 1.0   | 0      |
 | 397 | Tensor<[8, 8, 7, 7]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
 | 398 | Tensor<[8, 8, 8, 8]> self = ?,<br>Optional[int] memory_format = torch.contiguous_format           | Removed  | Done       | 1.0   | 0      |
 | 399 | Tensor<[920, 1, 2048]> self = ?                                                                   | Removed  | Done       | 1.0   | 0      |
