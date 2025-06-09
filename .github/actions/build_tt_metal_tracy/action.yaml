@@ -18,6 +18,11 @@ runs:
         git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
         git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
 
+        git submodule init
+        git submodule sync
+        git submodule update --init --recursive
+        git submodule foreach 'git lfs fetch --all && git lfs pull'
+
         # Remove hugepages setup from install_dependencies.sh
         sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
         ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
@@ -33,13 +38,6 @@ runs:
         pip install --force-reinstall pip==21.2.4
         python3 -m pip install numpy setuptools wheel
         python3 -m pip install -e .
-
-    - name: Setup submodules
-      shell: bash
-      run: |
-        git submodule sync
-        git submodule update --init --recursive
-        git submodule foreach 'git lfs fetch --all && git lfs pull'
 
     - name: Build C++ Extensions
       shell: bash
