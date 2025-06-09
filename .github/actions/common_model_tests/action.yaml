@@ -63,6 +63,7 @@ runs:
               --tracy_profiling
 
             check_exit_code
+          done
         else
           python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
           check_exit_code
