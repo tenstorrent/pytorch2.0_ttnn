@@ -5,7 +5,7 @@
 
 from transformers import AutoProcessor, MusicgenForConditionalGeneration
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -14,7 +14,7 @@ class ThisTester(ModelTester):
         model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small")
         return model.generate
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         inputs = self.processor(
             text=["80s pop track with bassy drums and synth", "90s rock song with loud guitars and heavy drums"],
             padding=True,
@@ -22,6 +22,7 @@ class ThisTester(ModelTester):
         )
 
         inputs["max_new_tokens"] = 256
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
     def set_model_eval(self, model):

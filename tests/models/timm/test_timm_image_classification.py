@@ -8,7 +8,7 @@ from urllib.request import urlopen
 from PIL import Image
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 dependencies = ["timm==1.0.9"]
 
@@ -21,7 +21,7 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         import timm
 
         img = Image.open(
@@ -34,6 +34,7 @@ class ThisTester(ModelTester):
         transforms = timm.data.create_transform(**data_config, is_training=False)
         input_batch = transforms(img).unsqueeze(0)  # unsqueeze single image into batch of 1
         input_batch = input_batch.to(torch.bfloat16)
+        input_batch = repeat_inputs(input_batch, batch_size)
         return input_batch
 
 

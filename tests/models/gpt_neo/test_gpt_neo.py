@@ -5,7 +5,7 @@
 
 from transformers import GPTNeoForCausalLM, GPT2Tokenizer
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -15,7 +15,7 @@ class ThisTester(ModelTester):
         self.tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
         return model.generate
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         prompt = (
             "In a shocking finding, scientists discovered a herd of unicorns living in a remote, "
             "previously unexplored valley, in the Andes Mountains. Even more surprising to the "
@@ -24,6 +24,7 @@ class ThisTester(ModelTester):
 
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids
         arguments = {"input_ids": input_ids, "do_sample": True, "temperature": 0.9, "max_length": 100}
+        arguments = repeat_inputs(arguments, batch_size)
         return arguments
 
     def set_model_eval(self, model):

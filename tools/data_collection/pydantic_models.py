@@ -48,6 +48,7 @@ class ModelRun(BaseModel):
         None,
         description="What is the peak SRAM usage (in MB) for a model during its execution phase.",
     )
+    batch_size: int = Field(1, description="Batch size of model inputs.")
 
 
 class TensorDesc(BaseModel):
