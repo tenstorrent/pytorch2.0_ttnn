@@ -14,7 +14,7 @@ from typing import Dict, List
 @torch.fx.wrap
 def deallocate(tensor):
     if isinstance(tensor, ttnn.Tensor):
-        tensor.deallocate()
+        ttnn.deallocate(tensor)
     return None
 
 
@@ -95,7 +95,11 @@ class DeallocationPass(PassBase):
                 for n in to_delete_nodes:
                     # Skip nodes that are references to other nodes
                     # We don't want to delete these too early
-                    if node.target in [target_wrappers.pack_to_tuple, operator.getitem]:
+                    if node.target in [
+                        target_wrappers.pack_to_tuple,
+                        operator.getitem,
+                        ttnn.transformer.attention_softmax_,
+                    ]:
                         continue
                     # Skip nodes that are cached between runs
                     elif n.meta.get("is_cached", False):
