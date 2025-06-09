@@ -14,8 +14,21 @@ from typing import Dict, List
 @torch.fx.wrap
 def deallocate(tensor):
     if isinstance(tensor, ttnn.Tensor):
-        ttnn.deallocate(tensor)
+        tensor.deallocate()
     return None
+
+
+@torch.fx.wrap
+def force_deallocate(tensor):
+    # only needed for tensors with circular reference counts
+    if isinstance(tensor, ttnn.Tensor):
+        ttnn.deallocate(tensor, force=True)
+    return None
+
+
+ops_with_circular_references = [
+    ttnn.transformer.attention_softmax_,
+]
 
 
 class TrackUnusedValues:
@@ -95,17 +108,16 @@ class DeallocationPass(PassBase):
                 for n in to_delete_nodes:
                     # Skip nodes that are references to other nodes
                     # We don't want to delete these too early
-                    if node.target in [
-                        target_wrappers.pack_to_tuple,
-                        operator.getitem,
-                        ttnn.transformer.attention_softmax_,
-                    ]:
+                    if node.target in [target_wrappers.pack_to_tuple, operator.getitem]:
                         continue
                     # Skip nodes that are cached between runs
                     elif n.meta.get("is_cached", False):
                         continue
                     with graph.inserting_after(node):
-                        new_node = graph.call_function(deallocate, args=(n,))
+                        if n.op == "call_function" and n.target in ops_with_circular_references:
+                            graph.call_function(force_deallocate, args=(n,))
+                        else:
+                            graph.call_function(deallocate, args=(n,))
                         modified = True
 
         if modified:
