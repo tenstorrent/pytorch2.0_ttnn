@@ -91,6 +91,7 @@ class DeallocationPass(PassBase):
     def __init__(self):
         super().__init__()
         torch.fx.node.has_side_effect(deallocate)
+        torch.fx.node.has_side_effect(force_deallocate)
 
     def call(self, gm: torch.fx.GraphModule):
         graph = gm.graph
@@ -120,9 +121,4 @@ class DeallocationPass(PassBase):
                             graph.call_function(deallocate, args=(n,))
                         modified = True
 
-        if modified:
-            # Becareful about dead code elimination at this point
-            gm.graph.lint()
-            gm.recompile()
-
-        return PassResult(gm, True)
+        return PassResult(gm, modified)
