@@ -281,6 +281,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             if tracy_profiling:
                 import tracy
+
                 profiler = tracy.Profiler()
 
             warm_run_times = []
