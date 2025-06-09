@@ -8,7 +8,7 @@ import torch
 import requests
 from PIL import Image
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -21,8 +21,9 @@ class ThisTester(ModelTester):
         predictor.set_image(image)
         return predictor
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         prompt = "Beautiful thing"
+        prompt = repeat_inputs(prompt, batch_size)
         return prompt
 
     def run_model(self, model, inputs):

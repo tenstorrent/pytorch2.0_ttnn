@@ -10,7 +10,7 @@ from PIL import Image
 from torchvision import transforms
 import requests
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 # TODO: RuntimeError: "nms_kernel" not implemented for 'BFloat16'
@@ -21,13 +21,14 @@ class ThisTester(ModelTester):
         )
         return model  # .to(torch.bfloat16)
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Image preprocessing
         image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         image = Image.open(requests.get(image_url, stream=True).raw)
         transform = transforms.Compose([transforms.Resize((320, 320)), transforms.ToTensor()])
         img_tensor = [transform(image).unsqueeze(0)]
         batch_tensor = torch.cat(img_tensor, dim=0)
+        batch_tensor = repeat_inputs(batch_tensor, batch_size)
         return batch_tensor  # .to(torch.bfloat16)
 
 

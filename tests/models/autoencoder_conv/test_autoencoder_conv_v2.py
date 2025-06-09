@@ -7,7 +7,7 @@ import torch
 import torchvision.transforms as transforms
 from datasets import load_dataset
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ConvAE(torch.nn.Module):
@@ -52,7 +52,7 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Define transform to normalize data
         transform = transforms.Compose(
             [
@@ -67,6 +67,7 @@ class ThisTester(ModelTester):
         n_sample_tensor = [transform(sample).unsqueeze(0)]
         batch_tensor = torch.cat(n_sample_tensor, dim=0)
         batch_tensor = batch_tensor.to(torch.bfloat16)
+        batch_tensor = repeat_inputs(batch_tensor, batch_size)
         return batch_tensor
 
 

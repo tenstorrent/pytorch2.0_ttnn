@@ -6,7 +6,7 @@
 from transformers import AutoTokenizer, AlbertForQuestionAnswering
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -14,10 +14,11 @@ class ThisTester(ModelTester):
         model = AlbertForQuestionAnswering.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         self.question, self.text = "Who was Jim Henson?", "Jim Henson was a nice puppet"
         inputs = self.tokenizer(self.question, self.text, return_tensors="pt")
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 

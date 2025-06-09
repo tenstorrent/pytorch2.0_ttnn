@@ -16,8 +16,8 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
-        img = torch.randn(1, 3, 256, 256)
+    def _load_inputs(self, batch_size):
+        img = torch.randn(batch_size, 3, 256, 256)
         img = img.to(torch.bfloat16)
         return img
 

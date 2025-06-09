@@ -7,7 +7,7 @@ import torch
 from pathlib import Path
 from diffusers.utils import load_image
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 dependencies = ["controlnet_aux==0.0.9"]
 
@@ -20,9 +20,10 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         image = load_image("https://huggingface.co/lllyasviel/control_v11p_sd15_openpose/resolve/main/images/input.png")
         arguments = {"input_image": image, "hand_and_face": True}
+        arguments = repeat_inputs(arguments, batch_size)
         return arguments
 
 

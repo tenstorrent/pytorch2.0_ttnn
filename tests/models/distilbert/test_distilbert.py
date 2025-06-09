@@ -4,7 +4,7 @@
 from transformers import DistilBertTokenizer, DistilBertModel
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -13,9 +13,10 @@ class ThisTester(ModelTester):
         model = DistilBertModel.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         self.text = "Transformers provide state-of-the-art results in NLP."
         inputs = self.tokenizer(self.text, return_tensors="pt")
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 

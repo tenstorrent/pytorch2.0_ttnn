@@ -6,7 +6,7 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -17,8 +17,9 @@ class ThisTester(ModelTester):
         )
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         inputs = self.tokenizer("Hello, my dog is cute", return_tensors="pt")
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 
