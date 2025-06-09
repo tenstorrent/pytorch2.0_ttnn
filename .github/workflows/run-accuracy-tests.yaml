@@ -64,6 +64,7 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0    
+      - uses: ./.github/actions/common_repo_setup
       - name: docker-cleanup
         run: |
           docker system prune -a -f
@@ -72,7 +73,6 @@ jobs:
         with:
           splits: ${{ needs.count-test-files.outputs.num_files }}
           matrix_group: ${{ matrix.group }}
-          commit_report: ${{ github.event.inputs.commit_report }}
       - name: Upload Accuracy Tests Artifact
         uses: actions/upload-artifact@v4
         with:

@@ -8,5 +8,8 @@ on:
 
 jobs:
   call-central-workflow:
+    permissions:
+      issues: write
+      pull-requests: write
     uses: tenstorrent/tt-github-actions/.github/workflows/on-community-issue.yml@main
 
