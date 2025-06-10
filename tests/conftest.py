@@ -155,6 +155,16 @@ def skip_by_platform(request, device):
 
 
 @pytest.fixture(autouse=True)
+def check_native_integration_flag(request):
+    # This acts as an allowlist where if `--native_integration` is passed, only run the model
+    # if `e2e_with_native_integration` marker is also present. Otherwise skip.
+    native_integration = request.config.getoption("--native_integration")
+    if native_integration and not request.node.get_closest_marker("e2e_with_native_integration"):
+        pytest.skip(f"Test not compatible with native integration. Skipping...")
+    # else continue with test
+
+
+@pytest.fixture(autouse=True)
 def reset_program_cache(device):
     # TODO: delete this fixture when program cache can be left on between tests
     device.disable_and_clear_program_cache()
