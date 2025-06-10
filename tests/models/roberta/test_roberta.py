@@ -6,7 +6,7 @@
 from transformers import AutoTokenizer, XLMRobertaForMaskedLM
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -15,8 +15,9 @@ class ThisTester(ModelTester):
         model = XLMRobertaForMaskedLM.from_pretrained("FacebookAI/xlm-roberta-base", torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         inputs = self.tokenizer("The capital of France is <mask>.", return_tensors="pt")
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 

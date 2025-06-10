@@ -9,7 +9,7 @@ from torchvision import transforms
 import requests
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -20,7 +20,7 @@ class ThisTester(ModelTester):
         model = model.to(torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         url = "https://github.com/mateuszbuda/brain-segmentation-pytorch/raw/master/assets/TCGA_CS_4944.png"
         input_image = Image.open(requests.get(url, stream=True).raw)
         preprocess = transforms.Compose(
@@ -34,6 +34,7 @@ class ThisTester(ModelTester):
         input_tensor = preprocess(input_image)
         input_batch = input_tensor.unsqueeze(0)  # create a mini-batch as expected by the model
         input_batch = input_batch.to(torch.bfloat16)
+        input_batch = repeat_inputs(input_batch, batch_size)
         return input_batch
 
 

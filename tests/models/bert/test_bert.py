@@ -20,9 +20,8 @@ class ThisTester(ModelTester):
         m = AutoModelForQuestionAnswering.from_pretrained(model_name, torch_dtype=torch.bfloat16)
         return m
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Set up sample input
-        batch_size = 1
         this_file_path = os.path.dirname(__file__)
         input_path = os.path.join(this_file_path, "../../inputs/bert/input_data.json")
         with open(input_path) as f:
@@ -54,13 +53,18 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
+@pytest.mark.parametrize(
+    "batch_size",
+    [8],
+)
 @pytest.mark.converted_end_to_end
-def test_bert(record_property, mode):
+@pytest.mark.e2e_with_native_integration
+def test_bert(record_property, mode, batch_size):
     model_name = "BERT"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, batch_size)
     results = tester.test_model()
 
     if mode == "eval":

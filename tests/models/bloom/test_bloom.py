@@ -6,7 +6,7 @@ import pytest
 
 # Load model directly
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -17,7 +17,7 @@ class ThisTester(ModelTester):
         m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
         return m
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # Set up sample input
         self.test_input = "This is a sample text from "
         inputs = self.tokenizer.encode_plus(
@@ -28,6 +28,7 @@ class ThisTester(ModelTester):
             add_special_tokens=True,
             truncation=True,
         )
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
 

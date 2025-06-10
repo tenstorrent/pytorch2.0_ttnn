@@ -5,7 +5,7 @@
 from diffusers import StableDiffusionPipeline
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -14,8 +14,9 @@ class ThisTester(ModelTester):
         pipe = StableDiffusionPipeline.from_pretrained(model_id)
         return pipe
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         prompt = "a photo of an astronaut riding a horse on mars"
+        prompt = repeat_inputs(prompt, batch_size)
         return prompt
 
 
