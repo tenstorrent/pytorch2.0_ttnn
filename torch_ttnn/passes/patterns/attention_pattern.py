@@ -53,7 +53,7 @@ class AttentionPatterns(PatternMatcherBase):
                     continue
 
                 # Check if view output goes to softmax and get the mask if it exists
-                softmax = self._find_exclusive_user_of_type(view1, ttnn.transformer.attention_softmax_)
+                softmax = self._find_exclusive_user_of_type(view1, ttnn.transformer.attention_softmax)
                 if not softmax:
                     continue
 
@@ -288,7 +288,7 @@ class AttentionPatterns(PatternMatcherBase):
                 )
 
                 attention_probabilities_node = self.gm.graph.call_function(
-                    ttnn.transformer.attention_softmax_,
+                    ttnn.transformer.attention_softmax,
                     args=(attention_scores_node,),
                     kwargs={
                         "attention_mask": attn_mask,

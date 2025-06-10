@@ -21,6 +21,9 @@ jobs:
 
   approve-pr:
     name: "Approve and Merge PR"
+    permissions:
+      pull-requests: write
+      contents: read
     runs-on: ubuntu-latest
     needs: create-pr
     if: ${{ needs.create-pr.outputs.pull_request_number }}
