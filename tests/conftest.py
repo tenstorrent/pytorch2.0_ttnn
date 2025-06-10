@@ -311,6 +311,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             comp_runtime_metrics["run_time"] = round(run_time, 2)
             comp_runtime_metrics["run_time_first_iter"] = round(first_iter_runtime, 2)
             comp_runtime_metrics["has_aten"] = None
+            comp_runtime_metrics["batch_size"] = model_tester.batch_size
 
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 

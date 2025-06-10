@@ -5,7 +5,7 @@
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -16,9 +16,10 @@ class ThisTester(ModelTester):
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
         return model.generate
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         text = "def hello_world():"
         inputs = self.tokenizer(text, return_tensors="pt")
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
     def set_model_eval(self, model):

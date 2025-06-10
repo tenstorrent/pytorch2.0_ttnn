@@ -7,7 +7,7 @@ from transformers import ViltProcessor, ViltForQuestionAnswering
 import requests
 from PIL import Image
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -17,7 +17,7 @@ class ThisTester(ModelTester):
         model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa", torch_dtype=torch.bfloat16)
         return model
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         # prepare image + question
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
         image = Image.open(requests.get(url, stream=True).raw)
@@ -25,6 +25,7 @@ class ThisTester(ModelTester):
         # prepare inputs
         encoding = self.processor(image, text, return_tensors="pt")
         encoding["pixel_values"] = encoding["pixel_values"].to(torch.bfloat16)
+        encoding = repeat_inputs(encoding, batch_size)
         return encoding
 
 
