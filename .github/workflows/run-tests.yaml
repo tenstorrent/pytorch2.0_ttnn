@@ -46,7 +46,6 @@ permissions:
 
 jobs:
   build-tt-metal-tracy:
-    if: ${{ github.event.inputs.commit_report != 'None' }}
     runs-on: ["in-service", "nfs"]
     container:
       image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
@@ -67,7 +66,7 @@ jobs:
           lfs: true
           fetch-depth: 0
           submodules: "recursive"
-          ref: main
+          ref: kw/tracy-profiing
       - name: Update system
         run: |
           apt update -y && apt upgrade -y
@@ -80,8 +79,7 @@ jobs:
           latest_version="${latest_pre_release#v}"
           sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
           echo "Updated .gitmodules with the latest version: $latest_version"
-
-      - name: Build C++ Extensions
+      - name: Build tt-metal with tracy
         uses: ./.github/actions/build_tt_metal_tracy
 
 
