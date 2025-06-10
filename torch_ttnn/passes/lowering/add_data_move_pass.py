@@ -185,7 +185,7 @@ TTNN_MAYBE_ROW_OPS = set(
 
 TTNN_TRANSFORMER_OPS = [
     ttnn.transformer.scaled_dot_product_attention,
-    ttnn.transformer.attention_softmax_,
+    ttnn.transformer.attention_softmax,
     ttnn.transformer.split_query_key_value_and_split_heads,
     ttnn.transformer.concatenate_heads,
 ]
