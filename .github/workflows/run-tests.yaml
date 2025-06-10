@@ -45,46 +45,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  build-tt-metal-tracy:
-    if: ${{ github.event.inputs.commit_report != 'None' }}
-    runs-on: ["in-service", "nfs"]
-    container:
-      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
-    env:
-      CACHE_DIR: /root/.cache/cpp-extension--tracycache
-    steps:
-      # TODO: checkout must be changed to main once branch is merged
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-          fetch-depth: 0
-          submodules: "recursive"
-          ref: main
-      - name: Update system
-        run: |
-          apt update -y && apt upgrade -y
-          apt install -y curl jq
-      - name: Update .gitsubmodules
-        run: |
-          # Fetch the latest pre-release tag from the target repository
-          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
-          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
-          latest_version="${latest_pre_release#v}"
-          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
-          echo "Updated .gitmodules with the latest version: $latest_version"
-
-      - name: Build C++ Extensions
-        uses: ./.github/actions/build_tt_metal_tracy
-
-
   tools-tests:
     env:
       pytest_verbosity: 2    
@@ -126,6 +86,39 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_lowering_tests
 
+  build-tt-metal-tracy:
+    needs: [lowering-tests]
+    if: ${{ inputs.commit_report != 'None' }}
+    runs-on: ["in-service", "nfs"]
+    container:
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:
+      CACHE_DIR: /root/.cache/cpp-extension-tracycache
+    steps:
+      # TODO: checkout must be changed to main once branch is merged
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          submodules: "recursive"
+          ref: kw/tracy-profiing
+      - name: Update system
+        run: |
+          apt update -y && apt upgrade -y
+          apt install -y curl jq
+      - name: Build tt-metal with tracy
+        uses: ./.github/actions/build_tt_metal
+        with:
+          build_tt_metal_args: "-p"
+
   count-test-files:
     runs-on: ubuntu-latest
     outputs:
@@ -144,7 +137,7 @@ jobs:
           test_directory: 'tests/models/'
 
   model-tests:
-    needs: [count-test-files, lowering-tests]
+    needs: [count-test-files, lowering-tests, build-tt-metal-tracy]
     runs-on: ["in-service", "nfs"]
     container: 
       image: ${{ inputs.docker_tag }}
@@ -160,6 +153,7 @@ jobs:
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
+      CACHE_DIR: /root/.cache/cpp-extension-tracycache
     strategy:
       matrix: 
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}

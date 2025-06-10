@@ -14,10 +14,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Build C++ Extensions
-      if: ${{ github.event.inputs.commit_report != 'None' }}
-      uses: ./.github/actions/build_tt_metal_tracy
-
     - name: Run Model Tests
       shell: bash
       run: |
@@ -48,33 +44,45 @@ runs:
 
         if [ "$run_tracy" = true ];
         then
+          echo "Copying tt-metal build from NFS cache ($CACHE_DIR)."
+
+          # tt-metal cache
+          cp -rf $CACHE_DIR/tt-metal/ tools/third-party/tt-metal/
+
+          export TT_METAL_HOME=$(realpath ./tools/third-party/tt-metal)
+          export PYTHONPATH="${TT_METAL_HOME}"
+          echo "TT_METAL_HOME: $TT_METAL_HOME"
+
+          pip install -e "$TT_METAL_HOME"
+          pip list
+
           collect_tests=$(python -m pytest tests/models/ --collect-only --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
           check_exit_code
-          echo "$collect_tests"
 
-          IFS=$'\n' read -r -a tests_full_path <<< "$collect_tests"
-          IFS=$'\n' read -r -a tests_name_only <<< $(echo "$collect_tests" | sed -n "s/.*:://p")
+          test_names=$(echo "$collect_tests" | sed -n "s/.*:://p")
+
+          # Turn string lists into arrays
+          set -o noglob
+          IFS=$'\n' tests_full_path=($collect_tests)
+          IFS=$'\n' tests_name_only=($test_names)
+          set +o noglob
+
+          echo "Collected tests: $tests_name_only"
 
           for i in "${!tests_full_path[@]}"; do
             python3 -m tracy -r -v -p -m -o "tracy_out/${tests_name_only[i]}" \
-              pytest --github-report "${tests_full_path[i]}" -s \
+              pytest --github-report "tests/${tests_full_path[i]}" -s \
               --report_nth_iteration=$num_iterations \
               --export_code=accuracy \
-              --tracy_profiling
+              --tracy_profiling=e2e
 
             check_exit_code
           done
+
         else
           python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
           check_exit_code
         fi
 
         echo "Success: Tests passed!";
-        ls -l
-        cd metrics
-        ls -l
-        cd ..
-        if test -d tracy_out;
-          then ls tracy_out/
-        fi
         exit 0;

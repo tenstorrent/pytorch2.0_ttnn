@@ -1,5 +1,10 @@
-name: "C++ Extension Build Artifacts"
-description: "Builds C++ library for cpp extension"
+name: "Building tt-metal"
+description: "Builds tt-metal and overwrite existing ttnn install"
+inputs:
+  build_tt_metal_args:
+    description: 'Flags to pass to build_tt_metal.sh'
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -37,6 +42,9 @@ runs:
     - name: Setup submodules
       shell: bash
       run: |
+        git rev-parse HEAD
+        cat .gitmodules
+
         git submodule sync
         git submodule update --init --recursive
         git submodule foreach 'git lfs fetch --all && git lfs pull'
@@ -44,25 +52,16 @@ runs:
     - name: Build C++ Extensions
       shell: bash
       run: |
-        ./tools/built_tt_metal.sh -t
+        echo "CURRENT_DIR: $(pwd)"
+        echo "build_tt_metal_args: ${{ inputs.build_tt_metal_args }}"
 
-    - name: Upload Build Artifacts
-      shell: bash
-      run: |
-        pushd torch_ttnn/cpp_extension
-        PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-        mkdir -p $CACHE_DIR
-        CCACHE_DIR=$(ccache --get-config cache_dir)
-            
-        # cpp-extension cache
-        cp -r build $CACHE_DIR 
-        cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
-        popd
+        ./tools/build_tt_metal.sh ${{ inputs.build_tt_metal_args }}
+
+        # Copy to NFS cache directory
+        rm -rf $CACHE_DIR/tt-metal
 
         # tt-metal cache
-        mkdir -p $CACHE_DIR/tt-metal
-        cp -r tools/third-party/tt-metal/build $CACHE_DIR/tt-metal/
-        cp -r tools/third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
+        cp -r tools/third-party/tt-metal $CACHE_DIR/
+        ls -la $CACHE_DIR/tt-metal
 
-        # ccache
-        cp -r $CCACHE_DIR $CACHE_DIR 
+        cd ${{ github.workspace }}

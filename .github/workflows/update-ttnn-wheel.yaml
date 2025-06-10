@@ -99,7 +99,7 @@ jobs:
           latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
           # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
           latest_version="${latest_pre_release#v}"
-          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
+          sed -i "/\[submodule \"tools\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
           echo "Updated .gitmodules with the latest version: $latest_version"
 
       - name: Build C++ Extensions
