@@ -43,10 +43,9 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
                 ttnn::Layout::ROW_MAJOR);
 
             ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
-            ttnn::Tensor res = ttnn::to_layout(src_dev, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
 
             // Finally save ttnn tensor on device to custom TorchImpl
-            tensor_impl->set_ttnn_tensor(res);
+            tensor_impl->set_ttnn_tensor(src_dev);
         }
         if (dtype == ttnn::DataType::UINT32) {
             // torch 2.2.1 does not have uint32_t ScalarType, so we cast it separately
@@ -65,11 +64,9 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
             // Initialized as ROW_MAJOR for this dtype because of an issue with ttnn.embedding if this tensor was
             // converted later: https://github.com/tenstorrent/tt-metal/issues/22257
             ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
-            ttnn::Tensor res =
-                ttnn::to_layout(src_dev, ttnn::ROW_MAJOR_LAYOUT, std::nullopt, std::nullopt, ttnn_device);
 
             // Finally save ttnn tensor on device to custom TorchImpl
-            tensor_impl->set_ttnn_tensor(res);
+            tensor_impl->set_ttnn_tensor(src_dev);
         }
     } else if (self.device().type() == c10::DeviceType::PrivateUse1 && dst.is_cpu()) {
         // Handle TTNN => CPU copy
