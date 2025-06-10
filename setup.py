@@ -12,7 +12,7 @@ def read_readme():
 
 def read_requirements(filename):
     with open(filename) as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith('#') and not line.startswith('-r')]
+        return [line.strip() for line in f if line.strip() and not line.startswith("#") and not line.startswith("-r")]
 
 
 setup(
@@ -44,5 +44,5 @@ setup(
         "dev": read_requirements("requirements-dev.txt"),
     },
     use_scm_version=True,
-    setup_requires=['setuptools_scm'],
+    setup_requires=["setuptools_scm"],
 )

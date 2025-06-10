@@ -20,22 +20,19 @@ _torch._dynamo.backends.registry.register_backend(name="ttnn", compiler_fn=backe
 # To wrap the ttnn ops
 from .passes.lowering import target_wrappers
 
+
 def _check_ttnn_requirements():
     """Check if the environment meets ttnn requirements."""
     if sys.platform != "linux":
-        raise ImportError(
-            "ttnn is only supported on Linux. "
-            "Current platform: {}".format(platform.platform())
-        )
-    
+        raise ImportError("ttnn is only supported on Linux. " "Current platform: {}".format(platform.platform()))
+
     python_version = sys.version_info
     if python_version.major != 3 or python_version.minor != 10:
         raise ImportError(
             "ttnn requires Python 3.10. "
-            "Current Python version: {}.{}".format(
-                python_version.major, python_version.minor
-            )
+            "Current Python version: {}.{}".format(python_version.major, python_version.minor)
         )
+
 
 try:
     _check_ttnn_requirements()
@@ -49,10 +46,6 @@ except ImportError as e:
         "  pip install torch-ttnn[ttnn]\n\n"
         "Note: ttnn is only supported on Linux with Python 3.10.\n"
         "Current system: {}\n"
-        "Current Python: {}.{}\n".format(
-            platform.platform(),
-            sys.version_info.major,
-            sys.version_info.minor
-        )
+        "Current Python: {}.{}\n".format(platform.platform(), sys.version_info.major, sys.version_info.minor)
     )
     raise
