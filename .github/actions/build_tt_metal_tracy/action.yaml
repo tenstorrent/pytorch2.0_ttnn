@@ -47,22 +47,22 @@ runs:
         cd torch_ttnn/cpp_extension
         ./build_tt_metal_tracy.sh
 
-    - name: Upload Build Artifacts
-      shell: bash
-      run: |
-        cd torch_ttnn/cpp_extension
-        PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-        mkdir -p $CACHE_DIR
-        CCACHE_DIR=$(ccache --get-config cache_dir)
+    # - name: Upload Build Artifacts
+    #   shell: bash
+    #   run: |
+    #     cd torch_ttnn/cpp_extension
+    #     PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
+    #     mkdir -p $CACHE_DIR
+    #     CCACHE_DIR=$(ccache --get-config cache_dir)
             
-        # cpp-extension cache
-        cp -r build $CACHE_DIR 
-        cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
+    #     # cpp-extension cache
+    #     cp -r build $CACHE_DIR 
+    #     cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
 
-        # tt-metal cache
-        mkdir -p $CACHE_DIR/tt-metal
-        cp -r third-party/tt-metal/build_tracy $CACHE_DIR/tt-metal/
-        cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
+    #     # tt-metal cache
+    #     mkdir -p $CACHE_DIR/tt-metal
+    #     cp -r third-party/tt-metal/build_tracy $CACHE_DIR/tt-metal/
+    #     cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
 
-        # ccache
-        cp -r $CCACHE_DIR $CACHE_DIR 
+    #     # ccache
+    #     cp -r $CCACHE_DIR $CACHE_DIR 

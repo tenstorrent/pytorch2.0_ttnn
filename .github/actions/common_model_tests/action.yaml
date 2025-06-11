@@ -18,6 +18,11 @@ runs:
       shell: bash
       run: |
         set +e
+        export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)
+        export PYTHONPATH="${TT_METAL_HOME}"
+        echo $TT_METAL_HOME
+        ls $TT_METAL_HOME
+
         if [ "${{ inputs.commit_report }}" == "None" ]; then
           num_iterations=1
           run_tracy=false
