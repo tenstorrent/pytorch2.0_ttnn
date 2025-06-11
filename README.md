@@ -8,16 +8,23 @@ By leveraging the TT-NN backend, you can achieve significant performance improve
 
 ### Installation
 
-Install from repo:
+### Requirements
+- Python 3.10
+- Ubuntu operating system
+- PyTorch 2.0 or later
+
+### Basic Installation
 ```bash
-pip install git+https://bitbucket.org/tenstorrent/pytorch2.0_ttnn
+pip install torch-ttnn
 ```
-or as editable package from source:
+
+### Installation with TTNN Support
+To use the TTNN backend, you need to install the additional `ttnn` package:
 ```bash
-git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
-cd pytorch2.0_ttnn
-pip install -e .
+pip install torch-ttnn[ttnn]
 ```
+
+Note: The `ttnn` package is only supported on Ubuntu with Python 3.10. If you're using a different platform or Python version, you can still install `torch-ttnn` without the TTNN backend.
 
 ### ✨ Basic Usage
 
@@ -51,7 +58,6 @@ output = model(input_data)
 ## 📊 Model Support
 
 We've extensively tested the compiler across a diverse range of model architectures. Here's a summary of our validation results:
-
 
 | Model                                                                                                | Status   | Torch Ops Before (Unique Ops)   | Torch Ops Remain (Unique Ops)   | To/From Device Ops   |   Original Run Time (ms) | Compiled Run Time for 5th Iteration (ms)   | Accuracy (%)   |
 |:-----------------------------------------------------------------------------------------------------|:---------|:--------------------------------|:--------------------------------|:---------------------|-------------------------:|:-------------------------------------------|:---------------|
