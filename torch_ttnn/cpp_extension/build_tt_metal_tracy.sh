@@ -28,8 +28,12 @@ cmake -B $CUR_DIR/third-party/tt-metal/build_tracy \
 # Build ttnn
 echo "> Building ttnn"
 ninja -C $CUR_DIR/third-party/tt-metal/build_tracy install
+ln -s $CUR_DIR/third-party/tt-metal/build_tracy $CUR_DIR/third-party/tt-metal/build
 
 pip3 install -e $CUR_DIR/third-party/tt-metal/
 
 export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
+export PYTHONPATH="${TT_METAL_HOME}"
 echo "> TT_METAL_HOME: $TT_METAL_HOME"
+ls "$TT_METAL_HOME"
+python3 -c "import tracy"
