@@ -45,24 +45,42 @@ runs:
       shell: bash
       run: |
         cd torch_ttnn/cpp_extension
+        PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
+
+        CCACHE_DIR=$(ccache --get-config cache_dir)
+        mkdir -p $CCACHE_DIR
+
+        # Check if cache exists with required components
+        CACHE_FOUND=0
+        # if [ -d "$CACHE_DIR/tt-metal/build" ]; then
+        #   CACHE_FOUND=1
+        #   echo "Cache found with all required components. Using cached build."
+
+        #   # tt-metal cache
+        #   cp -r $CACHE_DIR/tt-metal/build third-party/tt-metal/
+        #   cp -r $CACHE_DIR/tt-metal/.cpmcache third-party/tt-metal/
+
+        #   # ccache
+        #   cp -r $CACHE_DIR/ccache/* $CCACHE_DIR
+        # else
+        #   echo "Cache not found or incomplete. Building C++ extensions"
+        # fi
+
         ./build_tt_metal_tracy.sh
 
-    # - name: Upload Build Artifacts
-    #   shell: bash
-    #   run: |
-    #     cd torch_ttnn/cpp_extension
-    #     PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-    #     mkdir -p $CACHE_DIR
-    #     CCACHE_DIR=$(ccache --get-config cache_dir)
-            
-    #     # cpp-extension cache
-    #     cp -r build $CACHE_DIR 
-    #     cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
+        if [ -n "$CACHE_DIR" ]; then
+          rm -rf "$CACHE_DIR/*"
+        fi
 
-    #     # tt-metal cache
-    #     mkdir -p $CACHE_DIR/tt-metal
-    #     cp -r third-party/tt-metal/build_tracy $CACHE_DIR/tt-metal/
-    #     cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
+        # Update cache with new build if not was not present before
+        if [ $CACHE_FOUND -eq 0 ]; then
+          mkdir -p $CACHE_DIR
+          
+          # tt-metal cache
+          rm -rf $CACHE_DIR/tt-metal
+          cp -r third-party/tt-metal $CACHE_DIR/
 
-    #     # ccache
-    #     cp -r $CCACHE_DIR $CACHE_DIR 
+          # ccache
+          cp -r $CCACHE_DIR $CACHE_DIR 
+        fi
+        cd ${{ github.workspace }}

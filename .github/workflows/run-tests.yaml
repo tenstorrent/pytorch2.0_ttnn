@@ -45,6 +45,19 @@ permissions:
   pull-requests: write
 
 jobs:
+  prelim-check:
+    runs-on: ["in-service", "nfs"]
+    steps:
+      - name: System Check
+        run: |
+          df -h
+          sudo du -h -d 1 -x /
+          du -h -d 2 -x /home/ubuntu/.cache
+          sudo rm -rf /home/ubuntu/.cache/huggingface
+          sudo rm -rf /home/ubuntu/.cache/torch
+          du -h -d 2 -x /home/ubuntu/.cache
+          df -h
+          
   build-tt-metal-tracy:
     if: ${{ inputs.commit_report != 'None' }}
     runs-on: ["in-service", "nfs"]
@@ -162,6 +175,7 @@ jobs:
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
+      CACHE_DIR: /root/.cache/cpp-extension-tracycache
     strategy:
       matrix: 
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}

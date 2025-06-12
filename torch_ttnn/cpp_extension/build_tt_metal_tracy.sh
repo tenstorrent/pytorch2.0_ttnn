@@ -10,10 +10,10 @@ echo "> Current directory: $CUR_DIR"
 
 # Configure ttnn
 echo "> Configuring ttnn"
-cmake -B $CUR_DIR/third-party/tt-metal/build_tracy \
+cmake -B $CUR_DIR/third-party/tt-metal/build \
     -G Ninja \
     -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-    -DCMAKE_INSTALL_PREFIX=$CUR_DIR/third-party/tt-metal/build_tracy \
+    -DCMAKE_INSTALL_PREFIX=$CUR_DIR/third-party/tt-metal/build \
     -DCMAKE_DISABLE_PRECOMPILE_HEADERS=TRUE \
     -DENABLE_CCACHE=TRUE \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF \
@@ -27,13 +27,13 @@ cmake -B $CUR_DIR/third-party/tt-metal/build_tracy \
 
 # Build ttnn
 echo "> Building ttnn"
-ninja -C $CUR_DIR/third-party/tt-metal/build_tracy install
-ln -s $CUR_DIR/third-party/tt-metal/build_tracy $CUR_DIR/third-party/tt-metal/build
+ninja -C $CUR_DIR/third-party/tt-metal/build install
 
+pip3 install -r $CUR_DIR/third-party/tt-metal/python_env/requirements-dev.txt
 pip3 install -e $CUR_DIR/third-party/tt-metal/
 
 export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
 export PYTHONPATH="${TT_METAL_HOME}"
 echo "> TT_METAL_HOME: $TT_METAL_HOME"
-ls "$TT_METAL_HOME"
+ls "$TT_METAL_HOME/build/include"
 python3 -c "import tracy"
