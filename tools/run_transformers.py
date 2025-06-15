@@ -188,7 +188,7 @@ if __name__ == "__main__":
         TestModel("state-spaces/mamba-130m-hf", AutoModelForCausalLM, "Hey how are you doing?"),
         TestModel("huggyllama/llama-7b", AutoModelForCausalLM, "Spring is a good time to"),
         TestModel(
-            "mnoukhov/gpt2-imdb-sentiment-classifier",
+            "mnoukhov/gpt2-imdb-sentiment-  ",
             AutoModelForSequenceClassification,
             "This is the kind of movie you put in the background while working on other things.",
         ),

@@ -42,6 +42,11 @@ set(TTNN_CPP_EXTENSION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/binary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/creation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/unary.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/softmax.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/to_copy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/embedding.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/view.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/norm.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/device.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/vector_utils.cpp
