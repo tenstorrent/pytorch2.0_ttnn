@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 from torch_ttnn.passes.lowering.add_data_move_pass import is_tt_data_move, is_tt_compute
+from torch_ttnn.passes.deallocation_pass import deallocate
 from torch_ttnn.utils import TtnnDevice
 import ttnn
 import torch
@@ -85,9 +86,16 @@ class OpRegistry:
         if is_tt_data_move(node):
             assert len(node.all_input_nodes) == 1, "Data movement operators can't have more than one input!"
             return self.get_tensor_shape_and_dtype(node.all_input_nodes[0])
+        elif node.op == "call_function" and node.target == deallocate:
+            total_deallocated = sum(
+                map(lambda x: get_tensor_size(*self.get_tensor_shape_and_dtype(x)), node.all_input_nodes)
+            )
+            return ((total_deallocated // 2,), torch.bfloat16)
         else:
-            # TODO: What if meta of nth output of the node is requested?
-            if isinstance(node.meta["val"], tuple):
+            if "val" not in node.meta:
+                return (node.meta["tensor_meta"].shape, node.meta["tensor_meta"].dtype)
+            elif isinstance(node.meta["val"], tuple) or isinstance(node.meta["val"], list):
+                # TODO: What if meta of nth output of the node is requested?
                 return (node.meta["val"][0].size(), node.meta["val"][0].dtype)
             else:
                 return (node.meta["val"].size(), node.meta["val"].dtype)
@@ -162,6 +170,8 @@ def get_dtype_size(dtype):
         return 8
     elif dtype in [torch.float16, torch.half, torch.bfloat16, torch.int16, torch.short]:
         return 2
+    elif hasattr(dtype, "itemsize"):
+        return dtype.itemsize
     else:
         assert False, "Invalid datatype! This is not supported yet."
 
@@ -171,3 +181,12 @@ def get_tensor_size(shape, dtype):
     for val in list(shape):
         size = val * size
     return size
+
+
+def get_dram_size(device):
+    if ttnn.device.is_wormhole_b0(device):
+        return 12 * (2**30)  # 12 x 1 GB banks
+    elif ttnn.device.is_blackhole(device):
+        return 8 * 4 * (2**30)  # 8 x 4 GB banks
+    else:
+        assert False, "Unsupported device"

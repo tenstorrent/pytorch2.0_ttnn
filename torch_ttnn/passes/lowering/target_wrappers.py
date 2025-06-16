@@ -8,6 +8,7 @@ import torch
 import pickle
 
 from torch_ttnn.utils import TtnnDevice
+from torch_ttnn.passes.deallocation_pass import deallocate
 
 run_once_count = 0
 run_once_ans = tuple()
@@ -29,6 +30,7 @@ def run_once(*args):
         return_results = []
         to_deallocate = []
         temp_idx_to_return_idx = dict()
+        last_user_idx_map = dict()
 
         def lookup_function(str_name):
             # assume function is of form `ttnn.from_torch`, look up in globals()
@@ -118,6 +120,14 @@ def run_once(*args):
             else:
                 to_deallocate.append(len(temp_results) - 1)
 
+            # deallocate if needed
+            for dead_tensor_idx in last_user_idx_map.get(len(temp_results) - 1, []):
+                if dead_tensor_idx not in to_deallocate:
+                    continue
+                dead_tensor = temp_results[dead_tensor_idx]
+                if isinstance(dead_tensor, ttnn.Tensor):
+                    dead_tensor.deallocate()
+
         for function_call in args:
             convert_input(function_call)
 
@@ -134,6 +144,7 @@ def run_once(*args):
         # only deallocate device tensors that do not alias a returned tensor
         to_deallocate = filter(
             lambda tens: tens.storage_type == ttnn.StorageType.DEVICE
+            and tens.is_allocated() == True
             and tens.buffer_address() not in returned_addresses,
             to_deallocate,
         )

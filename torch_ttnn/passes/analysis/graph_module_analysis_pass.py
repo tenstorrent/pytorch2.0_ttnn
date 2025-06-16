@@ -41,8 +41,9 @@ def is_train_forward(gm):
 
 
 class GraphModuleAnalysisPass(PassBase):
-    def __init__(self):
+    def __init__(self, option):
         super().__init__()
+        self.option = option
 
     def call(self, gm: torch.fx.GraphModule):
         """Marks the GraphModule as either training forward, training backward, or inference (forward).
@@ -63,5 +64,7 @@ class GraphModuleAnalysisPass(PassBase):
             gm.meta["graph_type"] = ModelType.TRAIN_FORWARD
         else:
             gm.meta["graph_type"] = ModelType.INFERENCE
+
+        self.option.graph_type = gm.meta["graph_type"]
 
         return PassResult(gm, modified)
