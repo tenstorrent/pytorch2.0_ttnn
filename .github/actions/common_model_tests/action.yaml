@@ -87,11 +87,8 @@ runs:
         fi
 
         echo "Success: Tests passed!";
-        ls -l
-        cd metrics
-        ls -l
-        cd ..
+        ls -l metrics/
         if test -d tracy_out;
-          then ls tracy_out/
+          then du -h -d 2 -x tracy_out/
         fi
         exit 0;

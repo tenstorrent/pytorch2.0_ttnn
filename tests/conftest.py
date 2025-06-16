@@ -259,7 +259,9 @@ def compile_and_run(device, reset_torch_dynamo, request):
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
             # Only enable profiling if flag is present and model is marked end-to-end
-            tracy_profiling = request.config.getoption("--tracy_profiling") and request.node.get_closest_marker("converted_end_to_end")
+            tracy_profiling = request.config.getoption("--tracy_profiling") and request.node.get_closest_marker(
+                "converted_end_to_end"
+            )
 
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
