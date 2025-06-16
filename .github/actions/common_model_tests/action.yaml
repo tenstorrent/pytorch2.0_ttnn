@@ -65,7 +65,7 @@ runs:
 
         if [ "$run_tracy" = true ];
         then
-          collect_tests=$(python -m pytest tests/models/ --collect-only --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
+          collect_tests=$(python -m pytest tests/models/ --collect-only -m converted_end_to_end --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
           check_exit_code
           echo "$collect_tests"
 
