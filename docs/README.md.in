@@ -98,7 +98,7 @@ python -m build
 ## Project Structure
 
 - `torch_ttnn/`: Main package directory containing the core implementation
-- `tests/`: Test files for the project including models suites. We use `pytest` as our testing framework.
+- `tests/`: Test files for the project including model suites. We use `pytest` as our testing framework.
 - `tools/`: Development and utility scripts
 - `docs/`: Project documentation and reports
 - `demo/`: Example code and usage demonstrations
