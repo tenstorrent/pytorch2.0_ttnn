@@ -4,7 +4,7 @@ on:
   release:
     types: [published]
   workflow_dispatch:  # Manual trigger
-  pull-request:
+  push:
 
 jobs:
   build-and-publish:
