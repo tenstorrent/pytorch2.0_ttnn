@@ -8,6 +8,7 @@ on:
         description: 'Set wheel type: pre-release or release'
         required: true
         default: 'pre-release'
+  push:  # Temporary trigger for testing (will be removed before merge)
   # merge_group:
 
 jobs:
@@ -15,10 +16,10 @@ jobs:
     runs-on: ["in-service"]
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python 3.8
+      - name: Setup Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - name: Build Python package distribution
         run: |
           python3 -m pip install build
@@ -65,24 +66,23 @@ jobs:
       - uses: ./.github/actions/common_wheel_install
       - uses: ./.github/actions/common_model_tests
 
-  # TODO: https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-  # publish-to-pypi:
-  #   name: >-
-  #     Publish pytorch-ttnn to PyPI
-  #   needs: [build-wheel, test-wheel-lowering, test-wheel-model]
-  #   if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/<package-name>  # Replace <package-name> with your PyPI project name
-  #   permissions:
-  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
+  publish-to-pypi:
+    name: >-
+      Publish pytorch-ttnn to PyPI
+    needs: [build-wheel, test-wheel-lowering, test-wheel-model]
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/torch-ttnn
+    permissions:
+      id-token: write
 
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       name: torch_ttnn-distributions
-  #       path: dist/
-  #   - name: Publish distribution 📦 to PyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: torch_ttnn-distributions
+        path: dist/
+    - name: Publish distribution 📦 to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
