@@ -29,11 +29,11 @@ cmake -B $CUR_DIR/third-party/tt-metal/build \
 echo "> Building ttnn"
 ninja -C $CUR_DIR/third-party/tt-metal/build install
 
-pip3 install -r $CUR_DIR/third-party/tt-metal/python_env/requirements-dev.txt
-pip3 install -e $CUR_DIR/third-party/tt-metal/
+#pip3 install -r $CUR_DIR/third-party/tt-metal/tt_metal/python_env/requirements-dev.txt
+# pip3 install -e $CUR_DIR/third-party/tt-metal/
 
-export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
-export PYTHONPATH="${TT_METAL_HOME}"
-echo "> TT_METAL_HOME: $TT_METAL_HOME"
-ls "$TT_METAL_HOME/build/include"
-python3 -c "import tracy"
+# export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
+# export PYTHONPATH="${TT_METAL_HOME}"
+# echo "> TT_METAL_HOME: $TT_METAL_HOME"
+# ls "$TT_METAL_HOME/build/include"
+# python3 -c "import tracy"

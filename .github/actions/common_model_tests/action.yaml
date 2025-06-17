@@ -25,8 +25,8 @@ runs:
         ls -l $CACHE_DIR/tt-metal/build/include/
 
         # tt-metal cache
-        rm -rf torch_ttnn/cpp_extension/third-party/tt-metal
-        ln -s $CACHE_DIR/tt-metal torch_ttnn/cpp_extension/third-party/
+        # rm -rf torch_ttnn/cpp_extension/third-party/tt-metal
+        cp -rf $CACHE_DIR/tt-metal torch_ttnn/cpp_extension/third-party/
 
         ls -l torch_ttnn/cpp_extension/third-party/tt-metal/build/include/
 

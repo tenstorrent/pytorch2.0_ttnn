@@ -49,37 +49,35 @@ runs:
 
         CCACHE_DIR=$(ccache --get-config cache_dir)
         mkdir -p $CCACHE_DIR
+        echo "CCACHE_DIR: $CCACHE_DIR"
 
         # Check if cache exists with required components
         CACHE_FOUND=0
-        if [ -d "$CACHE_DIR/tt-metal/build" ]; then
-          CACHE_FOUND=1
-          echo "Cache found with all required components. Using cached build."
+        # if [ -d "$CACHE_DIR/tt-metal/build" ]; then
+        #   CACHE_FOUND=1
+        #   echo "Cache found with all required components. Using cached build."
 
-          # tt-metal cache
-          cp -rf $CACHE_DIR/tt-metal/* third-party/tt-metal/
+        #   # tt-metal cache
+        #   cp -rf $CACHE_DIR/tt-metal/* third-party/tt-metal/
 
-          # ccache
-          cp -rf $CACHE_DIR/ccache/* $CCACHE_DIR
-        else
-          echo "Cache not found or incomplete. Building C++ extensions"
-        fi
+        #   # ccache
+        #   cp -rf $CACHE_DIR/ccache/* $CCACHE_DIR
+        # else
+        #   echo "Cache not found or incomplete. Building C++ extensions"
+        # fi
 
         ./build_tt_metal_tracy.sh
-
-        # if [ -n "$CACHE_DIR" ]; then
-        #   rm -rf "$CACHE_DIR/*"
-        # fi
 
         # Update cache with new build if not was not present before
         if [ $CACHE_FOUND -eq 0 ]; then
           mkdir -p $CACHE_DIR
           
+          rm -rf $CACHE_DIR/
+
           # tt-metal cache
-          rm -rf $CACHE_DIR/tt-metal
           cp -rf third-party/tt-metal $CACHE_DIR/
 
           # ccache
-          cp -rf $CCACHE_DIR/* $CACHE_DIR/ccache/
+          cp -rf $CCACHE_DIR/* $CACHE_DIR/
         fi
         cd ${{ github.workspace }}
