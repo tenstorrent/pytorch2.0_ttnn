@@ -8,11 +8,11 @@ By leveraging the TT-NN backend, you can achieve significant performance improve
 
 ### Installation
 
-Install from repo:
+Install from the repo:
 ```bash
 pip install git+https://bitbucket.org/tenstorrent/pytorch2.0_ttnn
 ```
-or as editable package from source:
+or as an editable package from source:
 ```bash
 git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
 cd pytorch2.0_ttnn
@@ -21,7 +21,7 @@ pip install -e .
 
 ### ✨ Basic Usage
 
-**Option 1: Eager Mode:** get your model running by switching to TT device
+**Option 1: Eager Mode:** get your model running by switching to a TT device
 ```python
 import torch
 import torch_ttnn
@@ -34,7 +34,7 @@ model.to(torch_ttnn.ttnn_device_as_torch_device(device))
 output = model(input_data)
 ```
 
-**Option 2: Compilation Mode (Recommended):** get more perf with JIT compiler
+**Option 2: Compilation Mode (Recommended):** get more perf with a JIT compiler
 ```python
 import torch
 import torch_ttnn
@@ -71,8 +71,8 @@ You can find more information here:
 * [Discussions](https://github.com/tenstorrent/pytorch2.0_ttnn/discussions)
 * [Operations Report](docs/OperationsReport.md)
 * [Lowering TT-NN Operation to PyTorch](docs/AddNewOperationLowering.md)
-* [Native Device Integration Extesion](docs/OpenRegistrationAPI.md)
-* [Build with Metal from Sources](docs/DevelopWithMetalFromSources.md)
+* [Native Device Integration Extension](docs/OpenRegistrationAPI.md)
+* [Build with Metal from Source](docs/DevelopWithMetalFromSources.md)
 * [Known Issues](docs/KnownIssues.md)
 * [Problem Solving](docs/ProblemSolving.md)
 
@@ -80,8 +80,8 @@ We encourage contributions and offer [🤑 Bounties](https://github.com/tenstorr
 
 ## Development Environment
 
-To get started with development, you'll need Wormhole or Blackhole Tenstorrent accelerator card
-* can be ordered on [Tenstorrent website](https://tenstorrent.com/) 
+To get started with development, you'll need a Wormhole or Blackhole Tenstorrent accelerator card, which:
+* can be ordered on the [Tenstorrent website](https://tenstorrent.com/) 
 * can be requested on [Koyeb](https://www.koyeb.com/blog/tenstorrent-cloud-instances-unveiling-next-gen-ai-accelerators)
 
 Install the development dependencies:
@@ -98,7 +98,7 @@ python -m build
 ## Project Structure
 
 - `torch_ttnn/`: Main package directory containing the core implementation
-- `tests/`: Test files for the project including models suits. We use `pytest` as our testing framework.
+- `tests/`: Test files for the project including models suites. We use `pytest` as our testing framework.
 - `tools/`: Development and utility scripts
 - `docs/`: Project documentation and reports
 - `demo/`: Example code and usage demonstrations
