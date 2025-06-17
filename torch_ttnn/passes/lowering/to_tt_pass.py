@@ -1123,8 +1123,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 count_include_pad = params.get("count_include_pad", True)
                 divisor_override = params.get("divisor_override", None)
 
-                dilation = [1, 1]
-
                 if (
                     # # TODO: in_c must be 16 or a multiple of 32
                     (in_c != 16 and in_c % 32 != 0)
@@ -1148,7 +1146,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         kernel_size,
                         stride,
                         padding,
-                        dilation,
                     ),
                     (
                         {
