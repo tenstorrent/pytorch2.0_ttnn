@@ -106,8 +106,6 @@ class LinearPatterns(PatternMatcherBase):
                         "activation": potential_activation,
                     },
                 )
-                fused_node.meta["val"] = last_node.meta.get("val")
-                fused_node.meta["tensor_meta"] = last_node.meta.get("tensor_meta")
 
                 # Connect output to the next node
                 (last_node).replace_all_uses_with(fused_node)

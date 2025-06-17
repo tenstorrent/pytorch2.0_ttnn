@@ -76,8 +76,6 @@ class SoftMaxPatterns(PatternMatcherBase):
                     args=(input_tensor,),
                     kwargs={"head_size": head_size, "attention_mask": attention_mask},
                 )
-                fused_node.meta["val"] = softmax.meta.get("val")
-                fused_node.meta["tensor_meta"] = softmax.meta.get("tensor_meta")
 
                 # Connect output to the next node
                 softmax.replace_all_uses_with(fused_node)

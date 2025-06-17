@@ -72,7 +72,6 @@ class TorchTtnnOption:
 
         # Used for pre-loading model params
         self._is_end_to_end = False
-        self.graph_type = None
 
         self.load_params_once = load_params_once
 
@@ -170,7 +169,7 @@ def aten_backend(
     from torch_ttnn.passes.deallocation_pass import DeallocationPass
 
     passes = [
-        GraphModuleAnalysisPass(option),
+        GraphModuleAnalysisPass(),
         InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
         MultiDeviceShardAnalysisPass(option.device),
         ConstantFoldingPass(),
@@ -178,11 +177,11 @@ def aten_backend(
         ToTtPass(option.device, option.use_less_ttnn_op_types),
         FusionPass(),
         AddDataMovePass(option.device),
+        LoadOncePass(option._is_end_to_end, option.load_params_once),
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
         DeallocationPass(),
-        LoadOncePass(option),
     ]
 
     mem_pass = MemoryPass(option.verbose)

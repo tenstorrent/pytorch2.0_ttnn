@@ -7,9 +7,7 @@ import torch
 import ttnn
 from torch_ttnn.passes.analysis.graph_module_analysis_pass import ModelType
 from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
-from torch_ttnn.passes.deallocation_pass import deallocate
 from torch_ttnn.utils import GraphCleanup, TtnnDevice, TtnnBfloat16, TtnnUint32, TtnnTileLayout, get_dtype
-from torch_ttnn import mem_utils
 from operator import getitem
 
 from torch.fx.passes.infra.pass_base import PassBase, PassResult
@@ -19,74 +17,24 @@ from . import target_wrappers
 def mark_nodes_invariant(nodes):
     seen_nodes = set()
 
-    def mark_descendants_varied(node_list):
-        while len(node_list) > 0:
-            node = node_list[-1]
-            node_list = node_list[:-1]
-            if node in seen_nodes:
-                continue
+    def mark_descendants_varied(node):
+        if node in seen_nodes:
+            return
 
-            node.meta["iteration_invariant"] = False
-            seen_nodes.add(node)
+        node.meta["iteration_invariant"] = False
+        seen_nodes.add(node)
 
-            node_list += node.users
+        for user in node.users:
+            mark_descendants_varied(user)
 
     for node in nodes:
         node.meta["iteration_invariant"] = True
     for node in filter(lambda n: n.op == "placeholder" and n.meta.get("primal_tag") == PrimalTag.ARGUMENT, nodes):
         # mark all descendents as not iteration_invariant
-        mark_descendants_varied([node])
+        mark_descendants_varied(node)
     for node in filter(lambda n: n.op in ["output", "get_attr", "root"], nodes):
         # make sure all outputs, roots, and get_attr nodes are marked as variable
-        mark_descendants_varied([node])
-
-    # mark deallocations variable if we will return a given node so they aren't moved into run_once
-    for node in filter(lambda n: n.meta.get("iteration_invariant") == True, nodes):
-        will_return = any([n.meta.get("iteration_invariant", False) == False for n in node.users])
-        if will_return:
-            dealloc_nodes = filter(lambda n: n.op == "call_function" and n.target == deallocate, node.users)
-            for dealloc_node in dealloc_nodes:
-                dealloc_node.meta["iteration_invariant"] = False
-
-
-def check_dram_overflow(nodes, device):
-    # TODO: this implementation is very naive (doesn't model memory fragmentation for example). It should be a better proxy for memory usage, should model DRAM and SRAM, should model memory padding, and should maybe be made into its own reusable pass in the future
-
-    used_dram = 0
-    dram_size = mem_utils.get_dram_size(device)
-    max_dram_usage = 0
-
-    op_registry = mem_utils.OpRegistry()
-
-    def update_dram_usage(node, used_dram, max_dram_usage):
-        if node.op == "get_attr":
-            return (used_dram, max_dram_usage)
-
-        tensor_shape, tensor_dtype = op_registry.get_tensor_shape_and_dtype(node)
-        tensor_size = mem_utils.get_tensor_size(tensor_shape, tensor_dtype)
-        if node.op == "call_function" and node.target == deallocate:
-            used_dram -= tensor_size
-        else:
-            used_dram += tensor_size
-        max_dram_usage = max(max_dram_usage, used_dram)
-        return (used_dram, max_dram_usage)
-
-    # first, mark all nodes that will return as live
-    for node in filter(lambda n: n.meta.get("iteration_invariant") == True, nodes):
-        used_dram, max_dram_usage = update_dram_usage(node, used_dram, max_dram_usage)
-
-    # early check to skip further liveness analysis
-    if max_dram_usage > dram_size:
-        return True
-
-    # next, model liveness of nodes that are not iteration_invariant (alloc and dealloc)
-    for node in filter(lambda n: n.meta.get("iteration_invariant", False) == False, nodes):
-        if node.op in ["output", "root", "get_attr"]:
-            # assume these do not contribute to usage
-            continue
-        used_dram, max_dram_usage = update_dram_usage(node, used_dram, max_dram_usage)
-
-    return max_dram_usage > dram_size
+        mark_descendants_varied(node)
 
 
 class NodeMover:
@@ -125,10 +73,7 @@ class NodeMover:
 
         if hasattr(node.target, "python_fully_qualified_name"):
             fn_call = node.target.python_fully_qualified_name
-        elif node.target.__module__ in [
-            "torch_ttnn.passes.lowering.target_wrappers",
-            "torch_ttnn.passes.deallocation_pass",
-        ]:
+        elif node.target.__module__ == "torch_ttnn.passes.lowering.target_wrappers":
             fn_call = node.target.__qualname__
         elif node.target.__module__ == "torch._ops.aten":
             fn_call = f"torch.ops.aten.{node.target.__name__}"
@@ -232,15 +177,12 @@ class LoadOncePass(PassBase):
     :param is_end_to_end: Whether the input GraphModule is converted end to end.
     """
 
-    def __init__(self, option):
-        self.option = option
+    def __init__(self, is_end_to_end, load_params_once):
+        self.is_end_to_end = is_end_to_end
+        self.load_params_once = load_params_once
 
     def call(self, gm: torch.fx.GraphModule):
-        if (
-            (not self.option._is_end_to_end)
-            or (not self.option.load_params_once)
-            or self.option.graph_type != ModelType.INFERENCE
-        ):
+        if (not self.is_end_to_end) or (not self.load_params_once) or gm.meta.get("graph_type") != ModelType.INFERENCE:
             modified = False
             return PassResult(gm, modified)
 
@@ -249,10 +191,6 @@ class LoadOncePass(PassBase):
         # first make sure all nodes are marked as constant or variable (infected by arguments)
         nodes = list(gm.graph.nodes)
         mark_nodes_invariant(nodes)
-
-        # guard against DRAM overflow - return if we would
-        if check_dram_overflow(nodes, self.option.device):
-            return PassResult(gm, modified=False)
 
         # move all constant nodes into run_once and rewrite users
         node_mover = NodeMover(gm.graph)

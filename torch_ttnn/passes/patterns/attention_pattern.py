@@ -5,7 +5,7 @@
 import torch
 import ttnn
 import operator
-from torch._guards import detect_fake_mode
+from torch.fx import Node
 from torch_ttnn.passes.patterns.pattern_matcher_base import PatternMatcherBase
 from typing import List, Tuple
 
@@ -139,77 +139,6 @@ class AttentionPatterns(PatternMatcherBase):
 
         return matches
 
-    def python_split_qkv(self, input_tensor, kv_input_tensor, num_heads, num_kv_heads=None, transpose_key=True):
-        if kv_input_tensor is not None:
-            input_tensor = torch.cat([input_tensor, kv_input_tensor], dim=-1)
-
-        if num_kv_heads is None:
-            num_kv_heads = num_heads
-
-        batch_size, sequence_size, hidden_size = input_tensor.shape
-        # Subtract head sizes for key and value
-        head_size = (hidden_size) // (num_heads + num_kv_heads * 2)
-        tensor = torch.reshape(input_tensor, (batch_size, sequence_size, num_heads + num_kv_heads * 2, head_size))
-        query, key, value = (
-            tensor[..., :num_heads, :],
-            tensor[..., num_heads : num_heads + num_kv_heads, :],
-            tensor[..., num_heads + num_kv_heads :, :],
-        )
-
-        query = torch.reshape(query, (batch_size, sequence_size, num_heads, head_size))
-        key = torch.reshape(key, (batch_size, sequence_size, num_kv_heads, head_size))
-        value = torch.reshape(value, (batch_size, sequence_size, num_kv_heads, head_size))
-
-        query = torch.permute(query, (0, 2, 1, 3)).contiguous().clone()
-        key = torch.permute(key, (0, 2, 1, 3)).contiguous().clone()
-        value = torch.permute(value, (0, 2, 1, 3)).contiguous().clone()
-        if transpose_key:
-            key = torch.permute(key, (0, 1, 3, 2)).contiguous().clone()
-
-        return (query, key, value)
-
-    def call_function_update_meta(self, target, args=(), kwargs={}):
-        new_node = self.gm.graph.call_function(target, args, kwargs)
-
-        if target == ttnn.transpose:
-            new_val = torch.transpose(self._get_val(args[0]), args[1], args[2])
-        elif target == ttnn.concat:
-            vals = list(map(self._get_val, args[0]))
-            new_val = torch.concat(vals, args[1])
-        elif target == ttnn.linear:  # TODO
-            new_val = torch.matmul(self._get_val(args[0]), self._get_val(args[1]))
-        elif target == ttnn.transformer.split_query_key_value_and_split_heads:  # TODO
-            new_val = self.python_split_qkv(*map(self._get_val, args), **kwargs)
-        elif target == ttnn.matmul:
-            new_val = torch.matmul(self._get_val(args[0]), self._get_val(args[1]))
-        elif target == ttnn.transformer.attention_softmax:
-            new_val = self._get_val(args[0])
-        elif target == ttnn.transformer.concatenate_heads:
-            old_shape = self._get_val(args[0]).shape
-            new_val = torch.reshape(self._get_val(args[0]), (old_shape[0], old_shape[2], old_shape[1] * old_shape[3]))
-        elif target == ttnn.experimental.view:
-            new_val = torch.reshape(self._get_val(args[0]), args[1])
-        elif target == operator.getitem:
-            new_val = self._get_val(args[0])[args[1]]
-        else:
-            new_val = self._get_val(new_node)
-
-        new_node.meta["val"] = new_val
-        new_node.meta["tensor_meta"] = new_val
-
-        return new_node
-
-    def _get_val(self, obj):
-        if not isinstance(obj, torch.fx.node.Node):
-            return obj
-        if obj.op == "get_attr":
-            val = getattr(self.gm, obj.target)
-            fake_mode = detect_fake_mode()
-            if isinstance(val, torch.Tensor) and fake_mode is not None:
-                val = fake_mode.fake_tensor_converter.from_real_tensor(fake_mode, val)
-            return val
-        return obj.meta["val"]
-
     # Hack! TTNN does not support concat with tensors of 1D
     # https://github.com/tenstorrent/tt-metal/issues/20205
     # bias is 1D tensor, so we need to make it 2D
@@ -222,7 +151,7 @@ class AttentionPatterns(PatternMatcherBase):
         Returns:
             The reshaped node
         """
-        new_bias_node = self.call_function_update_meta(
+        new_bias_node = self.gm.graph.call_function(
             ttnn.experimental.view,
             args=(bias_node, (1, -1)),
             kwargs={},
@@ -266,25 +195,25 @@ class AttentionPatterns(PatternMatcherBase):
             num_heads = q_view1.meta["val"].shape[-1] // head_size
 
             with self.gm.graph.inserting_before(view5):
-                transposed_q_weights_node = self.call_function_update_meta(
+                transposed_q_weights_node = self.gm.graph.call_function(
                     ttnn.transpose,
                     args=(q_linear.args[1], -2, -1),
                 )
 
-                transposed_k_weights_node = self.call_function_update_meta(
+                transposed_k_weights_node = self.gm.graph.call_function(
                     ttnn.transpose,
                     args=(k_linear.args[1], -2, -1),
                     kwargs={},
                 )
 
-                transposed_v_weights_node = self.call_function_update_meta(
+                transposed_v_weights_node = self.gm.graph.call_function(
                     ttnn.transpose,
                     args=(v_linear.args[1], -2, -1),
                     kwargs={},
                 )
 
                 # Lets concatenate the qkv tensors for weights and biases
-                concatenated_qkv_weights_node = self.call_function_update_meta(
+                concatenated_qkv_weights_node = self.gm.graph.call_function(
                     ttnn.concat,
                     args=([transposed_q_weights_node, transposed_k_weights_node, transposed_v_weights_node], -1),
                     kwargs={},
@@ -304,13 +233,13 @@ class AttentionPatterns(PatternMatcherBase):
                 v_bias_node = self._hack_1D_bias(v_bias)
 
                 # concatenate the biases
-                concatenated_qkv_biases_node = self.call_function_update_meta(
+                concatenated_qkv_biases_node = self.gm.graph.call_function(
                     ttnn.concat,
                     args=([q_bias_node, k_bias_node, v_bias_node], -1),
                     kwargs={},
                 )
 
-                qvk_node = self.call_function_update_meta(
+                qvk_node = self.gm.graph.call_function(
                     ttnn.linear,
                     args=(
                         q_linear.args[0],
@@ -322,43 +251,43 @@ class AttentionPatterns(PatternMatcherBase):
                 shape = list(q_view1.meta["val"].shape)
                 shape[-1] = shape[-1] * 3
 
-                linear_view_node = self.call_function_update_meta(
+                linear_view_node = self.gm.graph.call_function(
                     ttnn.experimental.view,
                     args=(qvk_node, shape),
                     kwargs={},
                 )
 
                 # Time to split the qvk into q, k, v
-                split_qkv_node = self.call_function_update_meta(
+                split_qkv_node = self.gm.graph.call_function(
                     ttnn.transformer.split_query_key_value_and_split_heads,
                     args=(linear_view_node, None),
                     kwargs={"num_heads": num_heads, "transpose_key": True},
                 )
 
-                get_q_node = self.call_function_update_meta(
+                get_q_node = self.gm.graph.call_function(
                     operator.getitem,
                     args=(split_qkv_node, 0),
                     kwargs={},
                 )
 
-                get_k_node = self.call_function_update_meta(
+                get_k_node = self.gm.graph.call_function(
                     operator.getitem,
                     args=(split_qkv_node, 1),
                     kwargs={},
                 )
 
-                get_v_node = self.call_function_update_meta(
+                get_v_node = self.gm.graph.call_function(
                     operator.getitem,
                     args=(split_qkv_node, 2),
                     kwargs={},
                 )
 
-                attention_scores_node = self.call_function_update_meta(
+                attention_scores_node = self.gm.graph.call_function(
                     ttnn.matmul,
                     args=(get_q_node, get_k_node),
                 )
 
-                attention_probabilities_node = self.call_function_update_meta(
+                attention_probabilities_node = self.gm.graph.call_function(
                     ttnn.transformer.attention_softmax,
                     args=(attention_scores_node,),
                     kwargs={
@@ -367,13 +296,13 @@ class AttentionPatterns(PatternMatcherBase):
                     },
                 )
 
-                matmul_sv_node = self.call_function_update_meta(
+                matmul_sv_node = self.gm.graph.call_function(
                     ttnn.matmul,
                     args=(attention_probabilities_node, get_v_node),
                     kwargs={},
                 )
 
-                concatenated_head_node = self.call_function_update_meta(
+                concatenated_head_node = self.gm.graph.call_function(
                     ttnn.transformer.concatenate_heads,
                     args=(matmul_sv_node,),
                     kwargs={},
