@@ -1,11 +1,56 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/pytorch2.0_ttnn)
 
 # PyTorch 2.0 TTNN Compiler
-This project allows to run PyTorch code on [Tenstorrent](https://tenstorrent.com/) hardware.
+The PyTorch 2.0 TT-NN Compiler enables seamless execution of PyTorch models on [Tenstorrent](https://tenstorrent.com/) AI accelerators. 
+By leveraging the TT-NN backend, you can achieve significant performance improvements while maintaining PyTorch's familiar API.
 
-## Supported Models
+## 🚀 Quick Start
 
-The table below summarizes the results of running various ML models through our TTNN compiler. For each model, we track whether the run was successful, the number of operations before and after conversion, the number of `to_device` and `from_device` operations, performance metrics, and accuracy.
+### Installation
+
+Install from the repo:
+```bash
+pip install git+https://bitbucket.org/tenstorrent/pytorch2.0_ttnn
+```
+or as an editable package from source:
+```bash
+git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
+cd pytorch2.0_ttnn
+pip install -e .
+```
+
+### ✨ Basic Usage
+
+**Option 1: Eager Mode:** get your model running by switching to a TT device
+```python
+import torch
+import torch_ttnn
+
+model = YourModel()
+
+device = ttnn.open_device(device_id=0)
+model.to(torch_ttnn.ttnn_device_as_torch_device(device))
+
+output = model(input_data)
+```
+
+**Option 2: Compilation Mode (Recommended):** get more perf with a JIT compiler
+```python
+import torch
+import torch_ttnn
+
+model = YourModel()
+
+device = ttnn.open_mesh_device(ttnn.MeshShape(1, 2))  # 1x2 device grid
+option = torch_ttnn.TorchTtnnOption(device=device, data_parallel=2)
+
+model = torch.compile(model, backend=torch_ttnn.backend, options=option)
+output = model(input_data)
+```
+
+## 📊 Model Support
+
+We've extensively tested the compiler across a diverse range of model architectures. Here's a summary of our validation results:
 
 {metrics_md}
 
@@ -15,91 +60,53 @@ The table below summarizes the results of running various ML models through our 
 
 ***
 
-## Quickstart
+# Contributing
 
-The `torch_ttnn` module has a `backend` function, which can be used with the `torch.compile()`.
+Whether you are new to Tenstorrent hardware or an experienced developer, there are many ways to contribute.
 
-```python
-import torch
-import torch_ttnn
+## Getting Started
 
-# A torch Module
-class FooModule(torch.nn.Module):
-    ...
-# Create a module
-module = FooModule()
+Start with our high level [Contribution guide](docs/Contributing.md).
+You can find more information here:
+* [Discussions](https://github.com/tenstorrent/pytorch2.0_ttnn/discussions)
+* [Operations Report](docs/OperationsReport.md)
+* [Lowering TT-NN Operation to PyTorch](docs/AddNewOperationLowering.md)
+* [Native Device Integration Extension](docs/OpenRegistrationAPI.md)
+* [Build with Metal from Source](docs/DevelopWithMetalFromSources.md)
+* [Known Issues](docs/KnownIssues.md)
+* [Problem Solving](docs/ProblemSolving.md)
 
-# Compile the module, with ttnn backend
-device = ttnn.open_device(device_id=0)
-option = torch_ttnn.TorchTtnnOption(device=self.device)
-ttnn_module = torch.compile(module, backend=torch_ttnn.backend, options=option)
+We encourage contributions and offer [🤑 Bounties](https://github.com/tenstorrent/pytorch2.0_ttnn/issues?q=is%3Aissue%20state%3Aopen%20label%3Abounty) for some issues.
 
-# Running inference / training
-ttnn_module(input_data)
-```
+## Development Environment
 
-## Tracer
-The tracer dump the information of fx graph such as node's op_name and shape.
+To get started with development, you'll need a Wormhole or Blackhole Tenstorrent accelerator card, which:
+* can be ordered on the [Tenstorrent website](https://tenstorrent.com/) 
+* can be requested on [Koyeb](https://www.koyeb.com/blog/tenstorrent-cloud-instances-unveiling-next-gen-ai-accelerators)
 
-For example, you can run this script to parse the information
-```
-PYTHONPATH=$(pwd) python3 tools/stat_models.py --trace_orig --backward --profile
-ls stat/raw
-```
-
-By default, the raw result will be stored at `stat/raw`, and you can run this script to generate the report
-```
-python3 tools/generate_report.py
-ls stat/
-```
-Now the `stat/` folder have these report
- - `fw_node_count.csv`
- - `bw_node_count.csv`
- - `fw_total_input_size_dist/`
- - `bw_total_input_size_dist/`
- - `fw_total_output_size_dist/`
- - `bw_total_output_size_dist/`
- - `profile/`
-
-The `node_count.csv` show the node with `op_type` appear in the fx graph. This report can help analyze the frequency of op type appear in the graph.
-
-The `*_total_*_size_dist/` statistics the `op_type`'s input/output_size distribution from all fx graph recored in `stat/raw`. This report can help analyze the memory footprint durning the calculation of `op_type`.
-
- - Notice: the default `input_shapes` in `tools/stat_torchvision.py` is `[1,3,224,224]`, which has dependency with `*_total_*_size_dist/` report.
-
- - Notice: the [aten ir interface is in there](https://pytorch.org/docs/stable/torch.compiler_ir.html)
-
-[The `profile/` is the tools provided by pytorch](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html), you can open it by the url: chrome://tracing
-
-
-# For developers
-
-## Install torch-ttnn with editable mode
-
-During development, you may want to use the torch-ttnn package for testing.
-In order to do that, you can install the torch-ttnn package in "editable"
-mode with
-
+Install the development dependencies:
 ```shell
+pip install -r requirements-dev.txt
 pip install -e .
 ```
 
-Now, you can utilize `torch_ttnn` in your Python code. Any modifications you make to the `torch_ttnn` package will take effect immediately, eliminating the need for constant reinstallation via pip.
-
-## Build wheel file
-
-For developers want to deploy the wheel, you can build the wheel file with
-
+You can build the wheel file with
 ```shell
 python -m build
 ```
 
-Then you can upload the `.whl` file to the PyPI (Python Package Index).
+## Project Structure
 
-## Run transformer models
-To run transformer model with ttnn backend, run:
-```
-PYTHONPATH="$TT_METAL_HOME:$(pwd)" python3 tools/run_transformers.py --model "phiyodr/bert-large-finetuned-squad2" --backend torch_ttnn
-```
+- `torch_ttnn/`: Main package directory containing the core implementation
+- `tests/`: Test files for the project including model suites. We use `pytest` as our testing framework.
+- `tools/`: Development and utility scripts
+- `docs/`: Project documentation and reports
+- `demo/`: Example code and usage demonstrations
 
-You can also substitute the backend with `torch_stat` to run a reference comparison.
+## Questions and Support
+
+If you have questions or need help getting started, please:
+1. Review the existing documentation
+2. Ask [PyTorch TT-NN DeepWiki](https://deepwiki.com/tenstorrent/pytorch2.0_ttnn) or [TT-Metal DeepWiki](https://deepwiki.com/tenstorrent/tt_metal)
+3. Ask on [Discord](https://discord.gg/tenstorrent)
+4. Open an issue on GitHub

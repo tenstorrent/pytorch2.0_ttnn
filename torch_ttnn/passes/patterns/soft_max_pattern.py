@@ -23,7 +23,7 @@ class SoftMaxPatterns(PatternMatcherBase):
         3. Numerically stable softmax computation
 
         The expected output will be:
-        ttnn.transformer.attention_softmax_(input_tensor, head_size, attention_mask)
+        ttnn.transformer.attention_softmax(input_tensor, head_size, attention_mask)
 
         Please note that we are doing this in place
         """
@@ -72,7 +72,7 @@ class SoftMaxPatterns(PatternMatcherBase):
                 head_size = None if scale is None else (int(1 / (scale * scale)) if scale < 1 else int(scale))
                 attention_mask = add.args[1]
                 fused_node = self.gm.graph.call_function(
-                    ttnn.transformer.attention_softmax_,
+                    ttnn.transformer.attention_softmax,
                     args=(input_tensor,),
                     kwargs={"head_size": head_size, "attention_mask": attention_mask},
                 )

@@ -6,7 +6,7 @@
 import torch
 from transformers import OPTForCausalLM, GPT2Tokenizer
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
@@ -15,7 +15,7 @@ class ThisTester(ModelTester):
         self.tokenizer = GPT2Tokenizer.from_pretrained("facebook/opt-350m")
         return model.generate
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         prompt = (
             "A chat between a curious human and the Statue of Liberty.\n\nHuman: What is your name?\nStatue: I am the "
             "Statue of Liberty.\nHuman: Where do you live?\nStatue: New York City.\nHuman: How long have you lived "
@@ -26,6 +26,7 @@ class ThisTester(ModelTester):
 
         model_inputs["max_new_tokens"] = 30
         model_inputs["do_sample"] = False
+        model_inputs = repeat_inputs(model_inputs, batch_size)
         return model_inputs
 
     def set_model_eval(self, model):

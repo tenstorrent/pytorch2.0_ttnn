@@ -20,31 +20,42 @@ csv_header_mappings = {
     "model": ("Model", "Name of the model."),
     "success": (
         "Status",
-        "Indicates whether the model is ❌ traced / 🚧 compiled / ✅ E2E on device.",
+        """Indicates whether the model is:
+- ✅ End-to-end on device: All PyTorch operations have been converted to TT-NN operations.
+- 🚧 Compiled: The converted model runs but some operations still fallback to PyTorch. This may be due to an unsupported operation or configuration.
+- ❌ Traced: The model does not run but its PyTorch operations are traced for future development. This may indicate a temporary incompatibility with a compiler pass.""",
     ),
-    "torch_ops_total_unique_before": (
-        "Torch Ops Before (Unique Ops)",
-        "The total number of operations used by the model in the original Torch implementation. The number in parenthesis represents the total unique ops.",
+    "batch_size": (
+        "Batch",
+        "Batch size used for inference",
     ),
-    "torch_ops_total_unique_remain": (
-        "Torch Ops Remain (Unique Ops)",
-        "The total number of operations used after conversion to TTNN. The number in parenthesis represents the total unique ops.",
+    "compiled_first_run": (
+        "Compiled First Run (ms)",
+        "Time until the first compiled run finishes (ms), including compilation time and warming caches.",
     ),
-    "to_from_device_ops": (
-        "To/From Device Ops",
-        "The number of `to/from_device` operations (data transfer to/from the device).",
+    "original_throughput": (
+        "Original Throughput (Inferences Per Second)",
+        "Execution throughput (in inferences per second) of the model before conversion.",
     ),
-    "original_run_time": (
-        "Original Run Time (ms)",
-        "Execution time (in seconds) of the model before conversion.",
-    ),
-    "compiled_run_time": (
-        "Compiled Run Time for 5th Iteration (ms)",
-        "Execution time (in seconds) of the model after conversion for the 5th iteration.",
+    "compiled_throughput": (
+        "Compiled Throughput (Inferences Per Second)",
+        "Execution throughput (in inferences per second) of the model after conversion, once caches are warm.",
     ),
     "accuracy": (
         "Accuracy (%)",
         "Model accuracy on a predefined test dataset after conversion.",
+    ),
+    "torch_ops_total_unique_before": (
+        "Torch Ops Before (Unique Ops)",
+        "The total number of operations used by the model in the original Torch implementation. The number in parentheses represents the total unique ops.",
+    ),
+    "torch_ops_total_unique_remain": (
+        "Torch Ops Remain (Unique Ops)",
+        "The total number of operations used after conversion to TT-NN. The number in parentheses represents the total unique ops.",
+    ),
+    "to_from_device_ops": (
+        "To/From Device Ops",
+        "The number of `to/from_device` operations (data transfer to/from the device).",
     ),
 }
 
@@ -481,15 +492,19 @@ if __name__ == "__main__":
         # Initialize the Pydantic model
         pydantic_model = pydantic_models.ModelRun(name=model)
 
+        batch_size = compiled_runtime_metrics.get("batch_size", 1)
+
         # Rename run_time keys to distinguish between original or compiled
+        pydantic_model.batch_size = batch_size
         if "run_time" in original_runtime_metrics:
             run_time = original_runtime_metrics.pop("run_time")
-            original_runtime_metrics["original_run_time"] = run_time
+            original_runtime_metrics["original_throughput"] = batch_size / run_time * 1000
             pydantic_model.original_run_time = float(run_time)
         if "run_time" in compiled_runtime_metrics:
             run_time = compiled_runtime_metrics.pop("run_time")
-            compiled_runtime_metrics["compiled_run_time"] = run_time
+            compiled_runtime_metrics["compiled_throughput"] = batch_size / run_time * 1000
             pydantic_model.compiled_run_time = float(run_time)
+            compiled_runtime_metrics["compiled_first_run"] = compiled_runtime_metrics["run_time_first_iter"]
 
         # Replace compiled runtime with average if available
         if "avg_run_time" in compiled_runtime_metrics:

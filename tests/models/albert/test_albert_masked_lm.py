@@ -6,17 +6,18 @@
 from transformers import AutoTokenizer, AlbertForMaskedLM
 import torch
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 
 
 class ThisTester(ModelTester):
     def _load_model(self):
         return AlbertForMaskedLM.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
         self.text = "The capital of [MASK] is Paris."
         self.inputs = self.tokenizer(self.text, return_tensors="pt")
+        self.inputs = repeat_inputs(self.inputs, batch_size)
         return self.inputs
 
     def set_inputs_train(self, inputs):

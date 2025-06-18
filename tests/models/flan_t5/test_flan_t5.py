@@ -5,7 +5,7 @@
 
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import pytest
-from tests.utils import ModelTester
+from tests.utils import ModelTester, repeat_inputs
 import torch
 
 
@@ -15,8 +15,9 @@ class ThisTester(ModelTester):
         model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small", torch_dtype=torch.bfloat16)
         return model.generate
 
-    def _load_inputs(self):
+    def _load_inputs(self, batch_size):
         inputs = self.tokenizer("A step by step recipe to make bolognese pasta:", return_tensors="pt")
+        inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
     def set_model_eval(self, model):

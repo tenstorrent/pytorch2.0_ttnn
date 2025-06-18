@@ -150,6 +150,16 @@ def skip_by_platform(request, device):
 
 
 @pytest.fixture(autouse=True)
+def check_native_integration_flag(request):
+    # This acts as an allowlist where if `--native_integration` is passed, only run the model
+    # if `e2e_with_native_integration` marker is also present. Otherwise skip.
+    native_integration = request.config.getoption("--native_integration")
+    if native_integration and not request.node.get_closest_marker("e2e_with_native_integration"):
+        pytest.skip(f"Test not compatible with native integration. Skipping...")
+    # else continue with test
+
+
+@pytest.fixture(autouse=True)
 def reset_program_cache(device):
     # TODO: delete this fixture when program cache can be left on between tests
     device.disable_and_clear_program_cache()
@@ -301,6 +311,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             comp_runtime_metrics["run_time"] = round(run_time, 2)
             comp_runtime_metrics["run_time_first_iter"] = round(first_iter_runtime, 2)
             comp_runtime_metrics["has_aten"] = None
+            comp_runtime_metrics["batch_size"] = model_tester.batch_size
 
             logging.info(f"Compilation and run successful in {comp_runtime_metrics['run_time']} ms.")
 
