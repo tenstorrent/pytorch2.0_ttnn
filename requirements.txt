@@ -7,4 +7,4 @@ graphviz
 matplotlib==3.7.1
 paramiko==3.5.1
 
-ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.59.0-rc31/ttnn-0.59.0rc31-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
+ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v0.59.0-rc57/ttnn-0.59.0rc57-cp310-cp310-linux_x86_64.whl ; python_version=="3.10"
