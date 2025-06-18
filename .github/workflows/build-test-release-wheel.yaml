@@ -8,7 +8,7 @@ on:
         description: 'Set wheel type: pre-release or release'
         required: true
         default: 'pre-release'
-  push:  # Temporary trigger for testing (will be removed before merge)
+  # push:  # Temporary trigger for testing (will be removed before merge)
   # merge_group:
 
 jobs:
