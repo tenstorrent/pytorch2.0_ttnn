@@ -37,6 +37,19 @@ jobs:
           # Append the line for the newest version
           echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
           
+      - name: Update setup.py and pyproject.toml
+        run: |
+          latest_version=${{ steps.fetch_release.outputs.release }}
+          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
+          ttnn_url="ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl"
+          platform_constraint=" ; python_version=='3.10' and platform_system=='Linux' and platform_machine=='x86_64'"
+          
+          # Update setup.py - using the get_ttnn_url() function
+          sed -i "s|ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v[0-9.]*-rc[0-9]*/ttnn-[0-9.]*rc[0-9]*-cp310-cp310-linux_x86_64.whl.*|$ttnn_url$platform_constraint|g" setup.py
+          
+          # Update pyproject.toml - using the same format as setup.py
+          sed -i "s|ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v[0-9.]*-rc[0-9]*/ttnn-[0-9.]*rc[0-9]*-cp310-cp310-linux_x86_64.whl.*|$ttnn_url$platform_constraint|g" pyproject.toml
+          
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         id: create-pr
