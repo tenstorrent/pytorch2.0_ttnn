@@ -4,9 +4,18 @@
 BUILD_TYPE=${1:-Release}
 echo "> Build type: $BUILD_TYPE"
 
+echo "> Pytorch2.0_ttnn commit:"
+git rev-parse HEAD
+cat .gitmodules
+
 # Current directory
 CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "> Current directory: $CUR_DIR"
+
+pushd "$CUR_DIR/third-party/tt-metal"
+CURR_COMMIT=$(git rev-parse HEAD)
+echo "> Current commit: $CURR_COMMIT"
+popd
 
 # Configure ttnn
 echo "> Configuring ttnn"

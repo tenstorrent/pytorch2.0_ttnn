@@ -18,16 +18,13 @@ runs:
       shell: bash
       run: |
         set +e
-        echo "$CACHE_DIR"
+        echo "CACHE_DIR: $CACHE_DIR"
         ls "$CACHE_DIR"
-        ls "$CACHE_DIR/tt-metal"
         echo "Cache found with all required components. Using cached build."
-        ls -l $CACHE_DIR/tt-metal/build/include/
 
         # tt-metal cache
         # rm -rf torch_ttnn/cpp_extension/third-party/tt-metal
         cp -rf $CACHE_DIR/tt-metal torch_ttnn/cpp_extension/third-party/
-
         ls -l torch_ttnn/cpp_extension/third-party/tt-metal/build/include/
 
         export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)

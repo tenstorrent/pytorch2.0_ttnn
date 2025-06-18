@@ -37,6 +37,9 @@ runs:
     - name: Setup submodules
       shell: bash
       run: |
+        git rev-parse HEAD
+        cat .gitmodules
+
         git submodule sync
         git submodule update --init --recursive
         git submodule foreach 'git lfs fetch --all && git lfs pull'
@@ -50,6 +53,8 @@ runs:
         CCACHE_DIR=$(ccache --get-config cache_dir)
         mkdir -p $CCACHE_DIR
         echo "CCACHE_DIR: $CCACHE_DIR"
+
+        echo "CACHE_DIR: $CACHE_DIR"
 
         # Check if cache exists with required components
         CACHE_FOUND=0
@@ -70,14 +75,15 @@ runs:
 
         # Update cache with new build if not was not present before
         if [ $CACHE_FOUND -eq 0 ]; then
-          mkdir -p $CACHE_DIR
+          rm -rf $CACHE_DIR/*
+          mkdir -p $CACHE_DIR/ccache
           
-          rm -rf $CACHE_DIR/
-
           # tt-metal cache
           cp -rf third-party/tt-metal $CACHE_DIR/
 
           # ccache
-          cp -rf $CCACHE_DIR/* $CACHE_DIR/
+          cp -rf $CCACHE_DIR/* $CACHE_DIR/ccache/
+
+          ls -l $CACHE_DIR
         fi
         cd ${{ github.workspace }}
