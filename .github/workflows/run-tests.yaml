@@ -81,33 +81,10 @@ jobs:
           fetch-depth: 0
           submodules: "recursive"
           ref: kw/tracy-profiing
-      - name: Setup submodules
-        shell: bash
-        run: |
-          git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
-          git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-
-          git submodule sync
-          git submodule update --init --recursive
-          git submodule foreach 'git lfs fetch --all && git lfs pull'
-
-          echo "submodule commit:"
-          cd torch_ttnn/cpp_extension/third-party/tt-metal
-          git rev-parse HEAD
-          cd -
       - name: Update system
         run: |
           apt update -y && apt upgrade -y
           apt install -y curl jq
-
-          echo "main commit:"
-          git rev-parse HEAD
-
-          echo "submodule commit:"
-          cd torch_ttnn/cpp_extension/third-party/tt-metal
-          git rev-parse HEAD
-          cd -
-
 
       # - name: Update .gitsubmodules
       #   run: |
