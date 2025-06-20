@@ -85,18 +85,10 @@ jobs:
         run: |
           apt update -y && apt upgrade -y
           apt install -y curl jq
-
-      # - name: Update .gitsubmodules
-      #   run: |
-      #     # Fetch the latest pre-release tag from the target repository
-      #     latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
-      #     # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
-      #     latest_version="${latest_pre_release#v}"
-      #     sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
-      #     echo "Updated .gitmodules with the latest version: $latest_version"
       - name: Build tt-metal with tracy
-        uses: ./.github/actions/build_tt_metal_tracy
-
+        uses: ./.github/actions/build_tt_metal
+        with:
+          build_tt_metal_args: "-p"
 
   # tools-tests:
   #   needs: [build-tt-metal-tracy]

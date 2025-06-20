@@ -23,11 +23,10 @@ runs:
         echo "Cache found with all required components. Using cached build."
 
         # tt-metal cache
-        # rm -rf torch_ttnn/cpp_extension/third-party/tt-metal
-        cp -rf $CACHE_DIR/tt-metal torch_ttnn/cpp_extension/third-party/
-        ls -l torch_ttnn/cpp_extension/third-party/tt-metal/build/include/
+        cp -rf $CACHE_DIR/tt-metal tools/third-party/
+        ls -l tools/third-party/tt-metal/build/include/
 
-        export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)
+        export TT_METAL_HOME=$(realpath ./tools/third-party/tt-metal)
         export PYTHONPATH="${TT_METAL_HOME}"
         echo $TT_METAL_HOME
         ls $TT_METAL_HOME
@@ -62,9 +61,15 @@ runs:
 
         if [ "$run_tracy" = true ];
         then
-          collect_tests=$(python -m pytest tests/models/ --collect-only -m converted_end_to_end --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
+          collect_all_tests=$(python -m pytest tests/models/ --collect-only --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2)
           check_exit_code
-          echo "$collect_tests"
+          collect_marked_tests=$(python -m pytest tests/models/ --collect-only -m converted_end_to_end --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2)
+          check_exit_code
+          other_tests=$(comm -23 <(echo "$collect_all_tests" | sort) <(echo "$collect_marked_tests" | sort))
+
+          echo "> All tests: $collect_all_tests"
+          echo "> End to end tests: $collect_marked_tests"
+          echo "> Remaining tests: $other_tests"
 
           IFS=$'\n' read -r -a tests_full_path <<< "$collect_tests"
           IFS=$'\n' read -r -a tests_name_only <<< $(echo "$collect_tests" | sed -n "s/.*:://p")
@@ -78,6 +83,16 @@ runs:
 
             check_exit_code
           done
+
+          IFS=$'\n' read -r -a tests_full_path <<< "$other_tests"
+          for i in "${!tests_full_path[@]}"; do
+            python3 -m pytest --github-report "tests/${tests_full_path[i]}" -s \
+              --report_nth_iteration=$num_iterations \
+              --export_code=accuracy
+
+            check_exit_code
+          done
+
         else
           python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
           check_exit_code

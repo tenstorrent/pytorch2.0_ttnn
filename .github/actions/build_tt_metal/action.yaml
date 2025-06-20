@@ -1,5 +1,10 @@
-name: "Tracy build artifacts"
-description: "Builds tt-metal with tracy profiling"
+name: "Building tt-metal"
+description: "Builds tt-metal and overwrite existing ttnn install"
+inputs:
+  build_tt_metal_args:
+    description: 'Flags to pass to build_tt_metal.sh'
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -19,8 +24,8 @@ runs:
         git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
 
         # Remove hugepages setup from install_dependencies.sh
-        sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
-        ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
+        sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./tools/third-party/tt-metal/install_dependencies.sh
+        ./tools/third-party/tt-metal/install_dependencies.sh
 
     - name: Install python dependencies
       shell: bash
@@ -47,7 +52,6 @@ runs:
     - name: Build C++ Extensions
       shell: bash
       run: |
-        cd torch_ttnn/cpp_extension
         PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
 
         CCACHE_DIR=$(ccache --get-config cache_dir)
@@ -71,7 +75,9 @@ runs:
         #   echo "Cache not found or incomplete. Building C++ extensions"
         # fi
 
-        ./build_tt_metal_tracy.sh
+        echo "build_tt_metal_args: ${{ inputs.build_tt_metal_args}}"
+
+        ./tools/build_tt_metal.sh ${{ inputs.build_tt_metal_args}}
 
         # Update cache with new build if not was not present before
         if [ $CACHE_FOUND -eq 0 ]; then
@@ -79,7 +85,7 @@ runs:
           mkdir -p $CACHE_DIR/ccache
           
           # tt-metal cache
-          cp -rf third-party/tt-metal $CACHE_DIR/
+          cp -rf tools/third-party/tt-metal $CACHE_DIR/
 
           # ccache
           cp -rf $CCACHE_DIR/* $CACHE_DIR/ccache/

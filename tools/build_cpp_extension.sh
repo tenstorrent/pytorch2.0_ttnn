@@ -4,20 +4,18 @@
 BUILD_TYPE=${1:-Release}
 echo "> Build type: $BUILD_TYPE"
 
-echo "> Pytorch2.0_ttnn commit:"
-git rev-parse HEAD
-cat .gitmodules
-
 # Current directory
 CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "> Current directory: $CUR_DIR"
 
-pushd "$CUR_DIR/third-party/tt-metal"
-CURR_COMMIT=$(git rev-parse HEAD)
-echo "> Current commit: $CURR_COMMIT"
-popd
+# ABI flags used when compiling torch
+TORCH_ABI_FLAGS=$(python3 $CUR_DIR/get_torch_abi_flags.py)
+echo "> TORCH_ABI_FLAGS: $TORCH_ABI_FLAGS"
+
+CPP_EXT_DIR="$CUR_DIR/../torch_ttnn/cpp_extension"
 
 # Configure ttnn
+# TODO: check if c++17 is enough
 echo "> Configuring ttnn"
 cmake -B $CUR_DIR/third-party/tt-metal/build \
     -G Ninja \
@@ -29,8 +27,8 @@ cmake -B $CUR_DIR/third-party/tt-metal/build \
     -DTT_UNITY_BUILDS=ON \
     -DTT_ENABLE_LIGHT_METAL_TRACE=ON \
     -DWITH_PYTHON_BINDINGS=ON \
-    -DCMAKE_TOOLCHAIN_FILE=$CUR_DIR/cmake/x86_64-linux-torch-toolchain.cmake \
-    -DENABLE_TRACY=ON \
+    -DCMAKE_TOOLCHAIN_FILE=$CPP_EXT_DIR/cmake/x86_64-linux-torch-toolchain.cmake \
+    -DCMAKE_CXX_FLAGS="${TORCH_ABI_FLAGS} -std=c++20" \
     -S $CUR_DIR/third-party/tt-metal
 
 
@@ -38,11 +36,11 @@ cmake -B $CUR_DIR/third-party/tt-metal/build \
 echo "> Building ttnn"
 ninja -C $CUR_DIR/third-party/tt-metal/build install
 
-#pip3 install -r $CUR_DIR/third-party/tt-metal/tt_metal/python_env/requirements-dev.txt
-# pip3 install -e $CUR_DIR/third-party/tt-metal/
+pip3 install -e $CUR_DIR/third-party/tt-metal/
 
-# export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
-# export PYTHONPATH="${TT_METAL_HOME}"
-# echo "> TT_METAL_HOME: $TT_METAL_HOME"
-# ls "$TT_METAL_HOME/build/include"
-# python3 -c "import tracy"
+export TT_METAL_HOME=$CUR_DIR/third-party/tt-metal
+echo "> TT_METAL_HOME: $TT_METAL_HOME"
+
+echo "> Building cpp extension"
+cd "$CPP_EXT_DIR"
+CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=${BUILD_TYPE};-DCMAKE_C_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER_LAUNCHER=ccache;-DCMAKE_CXX_COMPILER=g++-12;-DCMAKE_C_COMPILER=gcc-12" python3 setup.py develop
