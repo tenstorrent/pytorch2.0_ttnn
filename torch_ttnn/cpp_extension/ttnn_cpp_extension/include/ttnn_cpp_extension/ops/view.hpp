@@ -13,4 +13,5 @@ at::Tensor ttnn_slice_tensor(const at::Tensor& self, int64_t dim, int64_t start,
 at::Tensor ttnn_t_default(const at::Tensor& self);
 at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim1);
 at::Tensor ttnn_unsqueeze(const at::Tensor& self, int64_t dim);
+
 }

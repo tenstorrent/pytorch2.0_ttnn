@@ -8,9 +8,30 @@
 #include <ttnn/operations/data_movement/slice/slice.hpp>
 #include <ttnn/operations/data_movement/transpose/transpose.hpp>
 #include <ttnn/operations/data_movement/unsqueeze/unsqueeze.hpp>
-#include <ttnn/operations/view/reshape.hpp>
+#include <ttnn/operations/data_movement/reshape_view/reshape.hpp>
 
 namespace tt_eager::ops::view {
+
+    TtnnTensor select(const TtnnTensor& input, int dim, int index) {
+    TORCH_CHECK(dim >= 0 && dim < input.shape().rank(), "Invalid dim for select");
+    TORCH_CHECK(index >= 0 && index < input.shape()[dim], "Index out of bounds");
+
+    auto new_shape = input.shape().to_vector();
+    new_shape.erase(new_shape.begin() + dim);
+
+    auto new_strides = input.strides().to_vector();
+    auto offset = index * new_strides[dim];
+    new_strides.erase(new_strides.begin() + dim);
+
+    return TtnnTensor(
+        input.buffer(),
+        ttnn::Shape(new_shape),
+        ttnn::Strides(new_strides),
+        input.layout(),
+        input.device(),
+        input.offset() + offset
+    );
+}
 
 TtnnTensor broadcast(const TtnnTensor& input, const Shape& target_shape) {
     // 1️⃣ Перевірка: чи можливий broadcast
