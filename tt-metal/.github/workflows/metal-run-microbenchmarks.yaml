@@ -1,0 +1,25 @@
+name: "metal - Run microbenchmarks"
+
+on:
+  schedule:
+    - cron: "0 1,15 * * *"
+  workflow_dispatch:
+
+jobs:
+  build-artifact:
+    uses: ./.github/workflows/build-artifact.yaml
+    permissions:
+      packages: write
+    secrets: inherit
+    with:
+      build-wheel: true
+      version: "22.04"
+      tracy: true
+  run-microbenchmarks:
+    needs: build-artifact
+    uses: ./.github/workflows/metal-run-microbenchmarks-impl.yaml
+    secrets: inherit
+    with:
+      docker-image: ${{ needs.build-artifact.outputs.dev-docker-image }}
+      build-artifact-name: ${{ needs.build-artifact.outputs.build-artifact-name }}
+      wheel-artifact-name: ${{ needs.build-artifact.outputs.wheel-artifact-name }}

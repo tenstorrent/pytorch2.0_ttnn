@@ -1,0 +1,25 @@
+name: "(Single-card) Model perf tests"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2,7,10,14,17,20,23 * * *"
+  workflow_call:
+
+jobs:
+  build-artifact:
+    uses: ./.github/workflows/build-artifact.yaml
+    permissions:
+      packages: write
+    secrets: inherit
+    with:
+      build-wheel: true
+      version: 22.04
+  models-perf:
+    needs: build-artifact
+    uses: ./.github/workflows/perf-models-impl.yaml
+    secrets: inherit
+    with:
+      docker-image: ${{ needs.build-artifact.outputs.dev-docker-image }}
+      build-artifact-name: ${{ needs.build-artifact.outputs.build-artifact-name }}
+      wheel-artifact-name: ${{ needs.build-artifact.outputs.wheel-artifact-name }}

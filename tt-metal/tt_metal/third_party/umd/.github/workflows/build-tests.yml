@@ -1,0 +1,81 @@
+# Builds umd_tests.
+# Build is performed on the specified architecture and on all supported OS versions.
+name: Build Target
+
+on:
+  workflow_call:
+    inputs:
+      ubuntu-docker-version:
+        required: true
+        type: string
+      timeout:
+        required: true
+        type: number
+      build-type:
+        required: false
+        type: string
+        default: Release
+  workflow_dispatch:
+    inputs:
+      ubuntu-docker-version:
+        required: true
+        description: 'The version of Ubuntu to build on'
+        type: choice
+        options:
+          - ubuntu-22.04
+          - ubuntu-20.04
+      timeout:
+        required: true
+        description: 'The timeout for the build job in minutes'
+        type: number
+
+
+env:
+  BUILD_TARGETS: "umd_tests ubench"
+  BUILD_OUTPUT_DIR: ./build
+  LIB_OUTPUT_DIR: ./build/lib
+  DEPS_OUTPUT_DIR: ./build/_deps
+  TEST_OUTPUT_DIR: ./build/test
+  CLUSTER_DESCRIPTORS_DIR: ./tests/api/cluster_descriptor_examples
+  SOC_DESCRIPTORS_DIR: ./tests/soc_descs
+
+jobs:
+  build:
+    # Due to parsing bug, fromJSON is used to convert string to number
+    timeout-minutes: ${{ fromJSON(inputs.timeout) }}
+
+    name: Build umd_tests on ${{ inputs.ubuntu-docker-version }}
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/${{ github.repository }}/tt-umd-ci-${{ inputs.ubuntu-docker-version }}:latest
+      options: --user root
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build ${{ env.BUILD_TARGETS }}
+        run: |
+          echo "Compiling the code..."
+          cmake -B ${{ env.BUILD_OUTPUT_DIR }} -G Ninja -DTT_UMD_BUILD_TESTS=ON -DTT_UMD_BUILD_SIMULATION=ON \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build-type || 'Release' }}
+          cmake --build ${{ env.BUILD_OUTPUT_DIR }} --target ${{ env.BUILD_TARGETS }}
+          echo "Compile complete."
+
+      # This is needed to preserve file permissions
+      # https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
+      - name: Tar build, test and run artifacts
+        shell: bash
+        run: |
+          tar cvf artifact.tar ${{ env.TEST_OUTPUT_DIR }} \
+          ${{ env.LIB_OUTPUT_DIR }} \
+          ${{ env.DEPS_OUTPUT_DIR }} \
+          ${{ env.CLUSTER_DESCRIPTORS_DIR }} \
+          ${{ env.SOC_DESCRIPTORS_DIR }}
+
+      - name: Upload build artifacts archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ inputs.ubuntu-docker-version }}
+          path: artifact.tar

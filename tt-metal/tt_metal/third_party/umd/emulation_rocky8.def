@@ -1,0 +1,110 @@
+# emulation_rocky8.def
+# build container: apptainer build emulation_rocky8.sif emulation_rocky8.def
+# run container:
+#    compile sw on  aus-rv-l-7: apptainer shell -s /usr/bin/bash -B /tools_soc/,/tools_vendor/,/site/lsf/,/site/zebu/,/proj_soc/ emulation_rocky8.sif
+#    run emu on aus-rv-zebu-03: apptainer shell -s /usr/bin/bash -B /tools_soc/,/tools_vendor/,/site/lsf/,/site/zebu/,/proj_soc/,/zebu/ emulation_rocky8.sif
+
+
+Bootstrap: docker
+From: rockylinux/rockylinux:8
+
+%post
+    echo "This runs inside the container upon building."
+    yum update -y
+
+    # enable devel and epel repos, neede for hwloc-devel, yaml-cpp-devel
+    dnf install 'dnf-command(config-manager)' -y
+    dnf install epel-release -y
+    dnf config-manager --set-enabled devel -y
+    dnf update -y
+
+    # needed for manual installs
+    yum install wget -y
+
+    # neede to connect to the zebu board
+    yum install pciutils -y
+
+    # these are needed by open_umd/runtime
+    yum install hwloc-devel yaml-cpp-devel boost-devel zeromq-devel gcc-toolset-10 cmake -y 
+
+    # this is basic development staff, needed at least for make
+    yum groupinstall 'Development Tools' -y
+
+    # these are needed for .bashrc sourcing and module load project
+    # git lfs is needed for riscv g++ compiler
+    # need to do `git lfs pull src/ckernels/sfpi/compiler/bin/` after git clone
+    yum install tcl git git-lfs -y
+    
+    #these are needed for vcs running
+    yum install time bc libnsl numactl -y
+
+    # these are needed for brisc compile
+    yum install mpfr-devel -y
+
+    # needed by debuda
+    yum install cppzmq-devel -y
+    # need cppzmq 4.7.0 to match BBE version
+    wget https://github.com/zeromq/cppzmq/archive/refs/tags/v4.7.0.tar.gz
+    tar -xvzf v4.7.0.tar.gz
+    cd cppzmq-4.7.0/
+    mkdir build
+    cd build
+    cmake -DCPPZMQ_BUILD_TESTS=OFF  ..
+    make -j4 install  
+    cd ../..
+    rm -rf v4.7.0.tar.gz cppzmq-4.7.0
+
+    yum install vim -y
+    yum install vim-common -y
+
+    # BBE is using this version of boost library
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.tar.gz
+    tar -xzvf boost_1_71_0.tar.gz
+    cd boost_1_71_0
+    ./bootstrap.sh --prefix=/usr/local
+    ./b2 install --with=all
+    cd ..
+    rm -rf boost_1_71_0.tar.gz boost_1_71_0
+
+    # need newer version of mpfr than what is provided, install manually
+    wget https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.gz
+    tar -xvzf mpfr-4.2.1.tar.gz
+    cd mpfr-4.2.1/
+    ./configure
+    make
+    make install
+    cd ..
+    rm -rf mpfr-4.2.1.tar.gz mpfr-4.2.1
+
+    # need newer version of googletest
+    git clone https://github.com/google/googletest.git -b v1.14.0
+    cd googletest        # Main directory of the cloned repository.
+    mkdir build          # Create a directory to hold the build output.
+    cd build
+    cmake ..
+    make
+    make install
+    cd ../..
+    rm -rf googletest
+
+    # needed by Runtime for running blob command
+    yum install ruby -y
+
+    # PyBuda environment requires python 3.8
+    yum install python38 python38-devel -y
+    ln -s $(which python3.8-config) /usr/bin/python3-config
+    rm /usr/bin/python3
+    ln -s $(which python3.8) /usr/bin/python3
+    ln -s $(which pip3.8) /usr/bin/pip3
+
+    # PyYaml is required for sucesfull PyBuda build
+    pip3 install PyYAML
+
+    yum install ncurses-libs
+    ln -s /usr/lib64/libtinfo.so.6 /usr/lib64/libtinfo.so
+
+%environment
+    # export VCS_HOME=/container/synopsys/vcs/T-2022.06-SP2-4
+    # export VERDI_HOME=/container/synopsys/verdi/T-2022.06-SP2-4
+
+

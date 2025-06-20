@@ -1,0 +1,86 @@
+name: Build clients on newest UMD
+
+on:
+  workflow_dispatch:
+    inputs:
+      timeout:
+        required: true
+        description: 'The timeout for the job in minutes'
+        type: number
+        default: 90
+  pull_request:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-tt-metal:
+    # Due to parsing bug, fromJSON is used to convert string to number.
+    # In pull_request or push events, the input context is not available, stating the default again here.
+    timeout-minutes: ${{ fromJSON(inputs.timeout || '90') }}
+
+    name: Build tt-metal with newest UMD
+    runs-on: tt-beta-ubuntu-2204-large
+    container:
+      image: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-dev-amd64:latest
+      env:
+        # TODO: Revisit the addition of these env vars https://github.com/tenstorrent/tt-metal/issues/20161
+        TRACY_NO_INVARIANT_CHECK: 1
+        TRACY_NO_ISA_EXTENSIONS: 1
+      options: --user root
+
+    steps:
+      - name: Checkout tt-metal repo
+        uses: actions/checkout@v4
+        with:
+          # Clone under tt-metal directory
+          path: tt-metal
+          repository: tenstorrent/tt-metal
+          submodules: recursive
+          fetch-depth: 500 # Need enough history for `git describe`
+          fetch-tags: true # Need tags for `git describe`
+
+      - name: Checkout UMD
+        uses: actions/checkout@v4
+        with:
+          # Clone directly into tt-metal directory for umd
+          path: tt-metal/tt_metal/third_party/umd
+          submodules: recursive
+
+      - name: Build tt-metal
+        run: |
+          cd tt-metal
+          export TT_METAL_HOME=$(pwd)
+          export PYTHONPATH=$(pwd)
+          ./build_metal.sh --build-all --enable-ccache --enable-profiler
+          cd ../
+
+  build-tt-exalens:
+    timeout-minutes: ${{ fromJSON(inputs.timeout || '90') }}
+
+    name: Build tt-exalens with newest UMD
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/tenstorrent/tt-exalens/tt-exalens-ci-ubuntu-22-04:latest
+      options: --user root
+
+    steps:
+      - name: Checkout tt-exalens repo
+        uses: actions/checkout@v4
+        with:
+          # Clone under tt-exalens directory
+          path: tt-exalens
+          repository: tenstorrent/tt-exalens
+          submodules: recursive
+
+      - name: Checkout UMD
+        uses: actions/checkout@v4
+        with:
+          # Clone directly into tt-exalens directory for umd
+          path: tt-exalens/third_party/umd
+          submodules: recursive
+
+      - name: Build tt-exalens
+        run: |
+          cd tt-exalens
+          make build
+          cd ../

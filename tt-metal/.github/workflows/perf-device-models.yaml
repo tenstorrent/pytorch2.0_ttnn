@@ -1,0 +1,26 @@
+name: "(Single-card) Device perf regressions"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2,7,10,14,17,20,23 * * *"
+  workflow_call:
+
+jobs:
+  build-artifact-profiler:
+    uses: ./.github/workflows/build-artifact.yaml
+    permissions:
+      packages: write
+    secrets: inherit
+    with:
+      tracy: true
+      build-wheel: true
+      version: 22.04
+  device-perf:
+    needs: build-artifact-profiler
+    secrets: inherit
+    uses: ./.github/workflows/perf-device-models-impl.yaml
+    with:
+      docker-image: ${{ needs.build-artifact-profiler.outputs.dev-docker-image }}
+      build-artifact-name: ${{ needs.build-artifact-profiler.outputs.build-artifact-name }}
+      wheel-artifact-name: ${{ needs.build-artifact-profiler.outputs.wheel-artifact-name }}

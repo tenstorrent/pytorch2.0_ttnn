@@ -1,0 +1,5 @@
+build/
+wandb/
+.vscode/
+tmp/
+Taskfile.yml

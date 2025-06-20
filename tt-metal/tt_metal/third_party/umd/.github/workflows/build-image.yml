@@ -1,0 +1,60 @@
+# This workflow is intended to be called manually when a new Docker image is needed.
+name: Build and Publish Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      timeout:
+        required: true
+        description: 'The timeout for the job in minutes'
+        type: number
+        default: 15
+
+jobs:
+  build:
+    # Due to parsing bug, fromJSON is used to convert string to number
+    timeout-minutes: ${{ fromJSON(inputs.timeout) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [
+          {name: ubuntu-22.04},
+          {name: ubuntu-24.04},
+        ]
+
+    name: Building docker image ${{ matrix.build.name }}
+    runs-on: ${{ matrix.build.name }}
+
+    steps:
+      - name: Set environment variable
+        run: echo "CI_IMAGE_NAME=ghcr.io/${{ github.repository }}/tt-umd-ci-${{ matrix.build.name }}" >> $GITHUB_ENV
+
+      - name: Fix permissions
+        run: sudo chmod 777 -R $GITHUB_WORKSPACE
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and export base Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .github
+          file: .github/${{ matrix.build.name }}.Dockerfile
+          push: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+          tags: |
+            ${{ env.CI_IMAGE_NAME}}:${{ github.sha }}
+            ${{ env.CI_IMAGE_NAME}}:latest
