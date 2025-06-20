@@ -56,5 +56,5 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.def("get_ttnn_tensor", &get_ttnn_tensor, "open ttnn device and get torch device");
     m.def("open_torch_device", &open_torch_device, "get torch device from existing ttnn device");
     m.def("close_torch_device", &close_torch_device, "close torch device and associated ttnn device");
-    m.impl("div.Tensor", tt_eager::ops::binary::ttnn_div_tensor);
+    m.def("div.Tensor", tt_eager::ops::binary::ttnn_div_tensor);
 }

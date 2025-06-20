@@ -1,63 +1,32 @@
-// ttnn_cpp_extension/ops/to_copy.cpp
+#include "ttnn_cpp_extension/core/copy.hpp"  // для функцій копіювання
+#include <ttnn/operations/copy.hpp>          // правильний заголовок замість convert.hpp
+#include <torch/extension.h>
 
-#include "ttnn_cpp_extension/ops/to_copy.hpp"
+namespace ttnn_extension {
 
-#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
-#include "ttnn_cpp_extension/utils/extension_utils.hpp"
-#include "ttnn_cpp_extension/ops/creation.hpp"
+// Функція для реалізації aten::_to_copy на TTNN
+at::Tensor to_copy(const at::Tensor& self, c10::optional<at::Device> device_opt, bool non_blocking, c10::optional<at::ScalarType> dtype_opt) {
+    // Перевірити цільовий пристрій
+    TORCH_CHECK(device_opt.has_value(), "Device must be specified for to_copy.");
+    auto device = device_opt.value();
 
-#include <ttnn/operations/creation.hpp>
-#include <ttnn/operations/transform/convert.hpp>
+    // Якщо dtype не заданий — використовуємо dtype вихідного тензора
+    auto dtype = dtype_opt.value_or(self.scalar_type());
 
-namespace tt_eager::ops::to_copy {
+    // Створити порожній тензор на цільовому пристрої
+    auto options = self.options().dtype(dtype).device(device);
+    auto out = at::empty_like(self, options, c10::nullopt);
 
-at::Tensor ttnn_to_copy(
-    const at::Tensor& self,
-    c10::optional<at::ScalarType> dtype,
-    c10::optional<at::Layout> layout,
-    c10::optional<at::Device> device,
-    c10::optional<bool> pin_memory,
-    bool non_blocking,
-    bool copy,
-    c10::optional<at::MemoryFormat> memory_format) {
+    // Виконати копіювання
+    ttnn_copy_from(out, self, non_blocking);
 
-    LOGGING("ttnn_to_copy called with device: {}", device.has_value() ? device->str() : "None");
-
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1,
-        "ttnn_to_copy: only supports TTNN input tensor");
-
-    // Get TTNN tensor from input
-    at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    auto input_tensor = tensor_impl->get_ttnn_tensor();
-
-    auto new_device = device.value_or(self.device());
-    TORCH_CHECK(new_device.type() == c10::DeviceType::PrivateUse1,
-        "ttnn_to_copy: destination device must be TTNN");
-
-    at::ScalarType dtype_value = dtype.value_or(self.scalar_type());
-    auto ttnn_dtype = dtype_torch_to_ttnn(dtype_value);
-
-    // If dtype is different, convert tensor
-    if (ttnn_dtype != input_tensor.dtype()) {
-        input_tensor = ttnn::transform::convert(input_tensor, ttnn_dtype);
-    }
-
-    // If device index is different, move tensor
-    if (new_device.index() != self.device().index()) {
-        TtnnGuard guard(new_device);
-        ttnn::MeshDevice* ttnn_device = guard.get_open_ttnn_device(new_device.index());
-        input_tensor = ttnn::to_device(input_tensor, ttnn_device);
-    }
-
-    // Create new torch::Tensor wrapper with same size, dtype, device
-    auto output = tt_eager::ops::create::custom_empty_memory_format(
-        self.sizes(), dtype_value, layout, new_device, pin_memory, memory_format);
-
-    at::TtnnTensorImpl* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-    out_impl->set_ttnn_tensor(input_tensor);
-    out_impl->set_sizes_and_strides_as(self);
-
-    return output;
+    return out;
 }
 
-}  // namespace tt_eager::ops::to_copy
+} // namespace ttnn_extension
+
+// Реєстрація операції в PyTorch Dispatcher
+TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
+    m.def("div.Tensor", tt_eager::ops::binary::ttnn_div_tensor);
+
+}

@@ -3,15 +3,46 @@
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
-#include <ttnn/operations/broadcast/broadcast.hpp>
-#include <ttnn/operations/view/permute.hpp>
+#include <ttnn/operations/data_movement/permute/permute.hpp>
 #include <ttnn/operations/view/select.hpp>
-#include <ttnn/operations/view/slice.hpp>
-#include <ttnn/operations/view/transpose.hpp>
-#include <ttnn/operations/view/unsqueeze.hpp>
+#include <ttnn/operations/data_movement/slice/slice.hpp>
+#include <ttnn/operations/data_movement/transpose/transpose.hpp>
+#include <ttnn/operations/data_movement/unsqueeze/unsqueeze.hpp>
 #include <ttnn/operations/view/reshape.hpp>
 
 namespace tt_eager::ops::view {
+
+TtnnTensor broadcast(const TtnnTensor& input, const Shape& target_shape) {
+    // 1️⃣ Перевірка: чи можливий broadcast
+    TORCH_CHECK(input.shape().rank() <= target_shape.rank(), "Incompatible ranks for broadcast");
+    
+    // Додати leading 1s якщо треба
+    auto input_shape = input.shape().with_leading_ones(target_shape.rank());
+
+    for (size_t i = 0; i < target_shape.rank(); ++i) {
+        TORCH_CHECK(
+            input_shape[i] == target_shape[i] || input_shape[i] == 1,
+            "Cannot broadcast dim ", i, " from ", input_shape[i], " to ", target_shape[i]
+        );
+    }
+
+    // 2️⃣ Обчислити strides
+    SmallVector<uint32_t> new_strides(target_shape.rank());
+    auto input_strides = input.strides().with_leading_zeros(target_shape.rank());
+
+    for (size_t i = 0; i < target_shape.rank(); ++i) {
+        new_strides[i] = (input_shape[i] == 1) ? 0 : input_strides[i];
+    }
+
+    // 3️⃣ Створити новий тензор (view)
+    return TtnnTensor(
+        input.buffer(),
+        target_shape,
+        new_strides,
+        input.layout(),
+        input.device()
+    );
+}
 
 at::Tensor ttnn_view(const at::Tensor& self, at::IntArrayRef size) {
     LOGGING("Running aten::view.default");
