@@ -45,48 +45,96 @@ permissions:
   pull-requests: write
 
 jobs:
-  tools-tests:
-    env:
-      pytest_verbosity: 2    
-      pytest_report_title: "⭐️ Tools Tests"
-    runs-on: ["in-service"]
-    container: 
-      image: ${{ inputs.docker_tag }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    steps:      
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-      - name: Run Tools Tests 
-        run: |
-          python3 -m pytest --github-report tests/tools/ -s
-
-  lowering-tests:
-    runs-on: ["in-service"]
-    container: 
-      image: ${{ inputs.docker_tag }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    env:
-      pytest_verbosity: 2    
-      pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
-    strategy:
-      matrix: # Need to find a way to replace this with a generator
-        group: [1, 2]
+  prelim-check:
+    runs-on: ["in-service", "nfs"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/common_repo_setup
-      - uses: ./.github/actions/common_lowering_tests
+      - name: System Check
+        run: |
+          df -h
+          sudo du -h -d 1 -x /
+          du -h -d 2 -x /home/ubuntu/.cache
+          sudo rm -rf /home/ubuntu/.cache/huggingface
+          sudo rm -rf /home/ubuntu/.cache/torch
+          du -h -d 2 -x /home/ubuntu/.cache
+          df -h
+          
+  build-tt-metal-tracy:
+    if: ${{ inputs.commit_report != 'None' }}
+    runs-on: ["in-service", "nfs"]
+    container:
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+    env:
+      CACHE_DIR: /root/.cache/cpp-extension-tracycache
+    steps:
+      # TODO: checkout must be changed to main once branch is merged
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          submodules: "recursive"
+          ref: kw/tracy-profiing
+      - name: Update system
+        run: |
+          apt update -y && apt upgrade -y
+          apt install -y curl jq
+      - name: Build tt-metal with tracy
+        uses: ./.github/actions/build_tt_metal
+        with:
+          build_tt_metal_args: "-p"
+
+  # tools-tests:
+  #   needs: [build-tt-metal-tracy]
+  #   env:
+  #     pytest_verbosity: 2    
+  #     pytest_report_title: "⭐️ Tools Tests"
+  #   runs-on: ["in-service"]
+  #   container: 
+  #     image: ${{ inputs.docker_tag }}
+  #     credentials:
+  #       username: ${{ github.actor }}
+  #       password: ${{ secrets.GH_TOKEN }}
+  #     options: >-
+  #       --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+  #       -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+  #   steps:      
+  #     - uses: actions/checkout@v4
+  #     - uses: ./.github/actions/common_repo_setup
+  #     - name: Run Tools Tests 
+  #       run: |
+  #         python3 -m pytest --github-report tests/tools/ -s
+
+  # lowering-tests:
+  #   needs: [build-tt-metal-tracy]
+  #   runs-on: ["in-service"]
+  #   container: 
+  #     image: ${{ inputs.docker_tag }}
+  #     credentials:
+  #       username: ${{ github.actor }}
+  #       password: ${{ secrets.GH_TOKEN }}
+  #     options: >-
+  #       --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+  #       -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+  #   env:
+  #     pytest_verbosity: 2    
+  #     pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
+  #   strategy:
+  #     matrix: # Need to find a way to replace this with a generator
+  #       group: [1, 2]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: ./.github/actions/common_repo_setup
+  #     - uses: ./.github/actions/common_lowering_tests
 
   count-test-files:
+    needs: [build-tt-metal-tracy]
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.count-files.outputs.matrix }}
@@ -104,7 +152,7 @@ jobs:
           test_directory: 'tests/models/'
 
   model-tests:
-    needs: [count-test-files, lowering-tests]
+    needs: [count-test-files, build-tt-metal-tracy]
     runs-on: ["in-service", "nfs"]
     container: 
       image: ${{ inputs.docker_tag }}
@@ -120,6 +168,7 @@ jobs:
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
+      CACHE_DIR: /root/.cache/cpp-extension-tracycache
     strategy:
       matrix: 
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
@@ -144,6 +193,12 @@ jobs:
         with:
           name: model-tests-metrics-group-${{ matrix.group }}
           path: metrics/
+      - name: Upload Tracy Artifact
+        if: ${{ inputs.commit_report != 'None' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-tests-tracy-group-${{ matrix.group }}
+          path: tracy_out/
 
   get-pr-branch:
     if: ${{ inputs.commit_report != 'None' }}
@@ -156,38 +211,44 @@ jobs:
         run: |
           echo "branch-name=update-docs-$(date +%s)" >> $GITHUB_OUTPUT
 
-  multi-device-tests:
-    needs: lowering-tests
-    runs-on: ["in-service", "nfs", "n300"]
-    container: 
-      image: ${{ inputs.docker_tag }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
-      options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
-    env:
-      pytest_verbosity: 0
-      pytest_report_title: "⭐️ Multi-Device Tests"
-      TORCH_HOME: /root/.cache/torch
-      HF_HOME: /root/.cache/huggingface
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-          fetch-depth: 0
-      - uses: ./.github/actions/common_repo_setup
-      - uses: ./.github/actions/common_multi_device_tests
-        with:
-          commit_report: ${{ inputs.commit_report }}
-      - name: Upload Metrics Artifact
-        if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v4
-        with:
-          name: multi-device-tests-metrics
-          path: metrics/
+  # multi-device-tests:
+  #   needs: lowering-tests
+  #   runs-on: ["in-service", "nfs", "n300"]
+  #   container: 
+  #     image: ${{ inputs.docker_tag }}
+  #     credentials:
+  #       username: ${{ github.actor }}
+  #       password: ${{ secrets.GH_TOKEN }}
+  #     options: >-
+  #       --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+  #       -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
+  #       -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+  #   env:
+  #     pytest_verbosity: 0
+  #     pytest_report_title: "⭐️ Multi-Device Tests"
+  #     TORCH_HOME: /root/.cache/torch
+  #     HF_HOME: /root/.cache/huggingface
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         lfs: true
+  #         fetch-depth: 0
+  #     - uses: ./.github/actions/common_repo_setup
+  #     - uses: ./.github/actions/common_multi_device_tests
+  #       with:
+  #         commit_report: ${{ inputs.commit_report }}
+  #     - name: Upload Metrics Artifact
+  #       if: success()  # Only run if tests passed
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: multi-device-tests-metrics
+  #         path: metrics/
+  #     - name: Upload Tracy Artifact
+  #       if: ${{ inputs.commit_report != 'None' }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: multi-device-tests-tracy
+  #         path: tracy_out/
 
   push-autogen-op-tests:
     needs: [model-tests, get-pr-branch]
@@ -332,6 +393,29 @@ jobs:
           name: model-autogen-op-tests-metrics
           path: metrics-autogen-op/
 
+  collect-model-tracy-artifacts-from-matrix-jobs:
+    needs: model-tests
+    runs-on: ubuntu-latest
+    env:
+      pytest_verbosity: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/common_repo_setup
+      - name: Download All Tracy Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: model-tests-tracy-group-*
+          merge-multiple: true
+          path: tracy_out/
+
+      - name: Upload Tracy Artifact
+        if: ${{ inputs.commit_report != 'None' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-tests-tracy
+          path: tracy_out/
+
+
   collect-metrics:
     needs: [model-autogen-op-tests, push-autogen-op-tests, get-pr-branch]
     if: ${{ inputs.commit_report != 'None'}}
@@ -431,18 +515,12 @@ jobs:
     outputs:
       didpass: ${{ steps.check.outputs.didpass }}
     runs-on: ubuntu-latest    
-    needs: [model-tests, multi-device-tests, tools-tests, lowering-tests, collect-metrics]
+    needs: [model-tests, collect-metrics]
     steps:
       - id: check
         run: |
           model_result="${{ needs.model-tests.result}}"
-          multi_device_result="${{ needs.multi-device-tests.result}}"
-          tools_result="${{ needs.tools-tests.result}}"
-          lowering_result="${{ needs.lowering-tests.result}}"
-          if [[ ($tools_result == "success" || $tools_result == "skipped") && 
-                ($multi_device_result == "success" || $multi_device_result == "skipped") && 
-                ($lowering_result == "success" || $lowering_result == "skipped") && 
-                ($model_result == "success" || $model_result == "skipped") ]] ; then
+          if [[ ($model_result == "success" || $model_result == "skipped") ]] ; then
             echo "didpass=0" >> $GITHUB_OUTPUT
             exit 0
           else

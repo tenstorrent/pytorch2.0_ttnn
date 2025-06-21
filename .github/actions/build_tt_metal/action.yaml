@@ -1,5 +1,10 @@
-name: "C++ Extension Build Artifacts"
-description: "Builds C++ library for cpp extension"
+name: "Building tt-metal"
+description: "Builds tt-metal and overwrite existing ttnn install"
+inputs:
+  build_tt_metal_args:
+    description: 'Flags to pass to build_tt_metal.sh'
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -37,6 +42,9 @@ runs:
     - name: Setup submodules
       shell: bash
       run: |
+        git rev-parse HEAD
+        cat .gitmodules
+
         git submodule sync
         git submodule update --init --recursive
         git submodule foreach 'git lfs fetch --all && git lfs pull'
@@ -44,25 +52,44 @@ runs:
     - name: Build C++ Extensions
       shell: bash
       run: |
-        ./tools/build_cpp_extension.sh
-
-    - name: Upload Build Artifacts
-      shell: bash
-      run: |
-        pushd torch_ttnn/cpp_extension
         PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-        mkdir -p $CACHE_DIR
+
         CCACHE_DIR=$(ccache --get-config cache_dir)
-            
-        # cpp-extension cache
-        cp -r build $CACHE_DIR 
-        cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
-        popd
+        mkdir -p $CCACHE_DIR
+        echo "CCACHE_DIR: $CCACHE_DIR"
 
-        # tt-metal cache
-        mkdir -p $CACHE_DIR/tt-metal
-        cp -r tools/third-party/tt-metal/build $CACHE_DIR/tt-metal/
-        cp -r tools/third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
+        echo "CACHE_DIR: $CACHE_DIR"
 
-        # ccache
-        cp -r $CCACHE_DIR $CACHE_DIR 
+        # Check if cache exists with required components
+        CACHE_FOUND=0
+        # if [ -d "$CACHE_DIR/tt-metal/build" ]; then
+        #   CACHE_FOUND=1
+        #   echo "Cache found with all required components. Using cached build."
+
+        #   # tt-metal cache
+        #   cp -rf $CACHE_DIR/tt-metal/* third-party/tt-metal/
+
+        #   # ccache
+        #   cp -rf $CACHE_DIR/ccache/* $CCACHE_DIR
+        # else
+        #   echo "Cache not found or incomplete. Building C++ extensions"
+        # fi
+
+        echo "build_tt_metal_args: ${{ inputs.build_tt_metal_args}}"
+
+        ./tools/build_tt_metal.sh ${{ inputs.build_tt_metal_args}}
+
+        # Update cache with new build if not was not present before
+        if [ $CACHE_FOUND -eq 0 ]; then
+          rm -rf $CACHE_DIR/*
+          mkdir -p $CACHE_DIR/ccache
+          
+          # tt-metal cache
+          cp -rf tools/third-party/tt-metal $CACHE_DIR/
+
+          # ccache
+          cp -rf $CCACHE_DIR/* $CACHE_DIR/ccache/
+
+          ls -l $CACHE_DIR
+        fi
+        cd ${{ github.workspace }}
