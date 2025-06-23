@@ -38,8 +38,9 @@ dev = [
     "pre-commit>=3.3.3",
 ]
 
-[tool.setuptools]
-packages = ["torch_ttnn"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["torch_ttnn*"]
 
 [tool.setuptools_scm]
 version_scheme = "python-simplified-semver"
