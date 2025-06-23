@@ -64,7 +64,7 @@ jobs:
           body: "This PR updates TT-NN wheel to the latest pre-release version."          
           labels: ttnn-wheel-update
           delete-branch: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PUSH_TOKEN }}
           
       - name: Approve Pull Request
         if: ${{ steps.create-pr.outputs.pull-request-number }}
