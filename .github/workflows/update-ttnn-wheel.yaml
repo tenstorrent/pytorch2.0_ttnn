@@ -64,7 +64,7 @@ jobs:
           body: "This PR updates TT-NN wheel to the latest pre-release version."          
           labels: ttnn-wheel-update
           delete-branch: true
-          token: ${{ secrets.GH_PUSH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           
       - name: Approve Pull Request
         if: ${{ steps.create-pr.outputs.pull-request-number }}
@@ -79,14 +79,14 @@ jobs:
         if: ${{ steps.create-pr.outputs.pull-request-number }}
         run: gh pr merge --merge --auto "${{ steps.create-pr.outputs.pull-request-number }}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
   build_cache_cpp_extension:
     runs-on: ["in-service", "nfs"]
     container:
       image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
