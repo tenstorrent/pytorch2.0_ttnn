@@ -24,4 +24,4 @@ runs:
         python3 -m pip install pytest-github-report
         df -h
 
-    - uses: ./.github/actions/common_cleanup
+    # - uses: ./.github/actions/common_cleanup
