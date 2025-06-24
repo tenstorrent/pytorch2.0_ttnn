@@ -20,7 +20,10 @@ csv_header_mappings = {
     "model": ("Model", "Name of the model."),
     "success": (
         "Status",
-        "Indicates whether the model is ❌ traced / 🚧 compiled / ✅ E2E on device.",
+        """Indicates whether the model is:
+- ✅ End-to-end on device: All PyTorch operations have been converted to TT-NN operations.
+- 🚧 Compiled: The converted model runs but some operations still fallback to PyTorch. This may be due to an unsupported operation or configuration.
+- ❌ Traced: The model does not run but its PyTorch operations are traced for future development. This may indicate a temporary incompatibility with a compiler pass.""",
     ),
     "batch_size": (
         "Batch",
@@ -36,7 +39,7 @@ csv_header_mappings = {
     ),
     "compiled_throughput": (
         "Compiled Throughput (Inferences Per Second)",
-        "Execution throughput (in inferences per second) of the model after conversion once caches are warm.",
+        "Execution throughput (in inferences per second) of the model after conversion, once caches are warm.",
     ),
     "accuracy": (
         "Accuracy (%)",
@@ -44,11 +47,11 @@ csv_header_mappings = {
     ),
     "torch_ops_total_unique_before": (
         "Torch Ops Before (Unique Ops)",
-        "The total number of operations used by the model in the original Torch implementation. The number in parenthesis represents the total unique ops.",
+        "The total number of operations used by the model in the original Torch implementation. The number in parentheses represents the total unique ops.",
     ),
     "torch_ops_total_unique_remain": (
         "Torch Ops Remain (Unique Ops)",
-        "The total number of operations used after conversion to TTNN. The number in parenthesis represents the total unique ops.",
+        "The total number of operations used after conversion to TT-NN. The number in parentheses represents the total unique ops.",
     ),
     "to_from_device_ops": (
         "To/From Device Ops",
