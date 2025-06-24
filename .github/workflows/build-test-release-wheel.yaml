@@ -11,6 +11,12 @@ on:
   # push:  # Temporary trigger for testing (will be removed before merge)
   # merge_group:
 
+permissions:
+  actions: read
+  content: write
+  pages: write
+  id-token: write
+
 jobs:
   build-wheel:
     runs-on: ["in-service"]
