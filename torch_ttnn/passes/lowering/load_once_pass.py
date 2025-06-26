@@ -28,7 +28,6 @@ def mark_nodes_invariant(nodes):
 
             node_list += node.users
 
-
     for node in nodes:
         node.meta["iteration_invariant"] = True
     for node in filter(lambda n: n.op == "placeholder" and n.meta.get("primal_tag") == PrimalTag.ARGUMENT, nodes):
