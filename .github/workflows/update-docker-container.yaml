@@ -55,12 +55,6 @@ jobs:
     needs: check-docker-images
     if: needs.check-docker-images.outputs.dev-exists != 'true'
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: write
-      pages: write
-      packages: write
-      id-token: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
