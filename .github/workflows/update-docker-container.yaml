@@ -38,7 +38,7 @@ jobs:
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Query images exist
         id: images
@@ -65,7 +65,7 @@ jobs:
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -106,7 +106,7 @@ jobs:
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag and push latest
         id: tag
