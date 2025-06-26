@@ -97,6 +97,12 @@ jobs:
           lfs: true
       - uses: ./.github/actions/common_wheel_install
       - uses: ./.github/actions/common_model_tests
+      - name: Upload Metrics Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-model-tests-metrics-group-${{ matrix.group }}
+          path: metrics/
 
   publish-to-pypi:
     name: >-
