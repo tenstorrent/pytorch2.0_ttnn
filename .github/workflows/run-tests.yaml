@@ -174,7 +174,6 @@ jobs:
         -v /etc/shadow:/etc/shadow:ro
         -v /etc/bashrc:/etc/bashrc:ro
         -v /dev/hugepages-1G:/dev/hugepages-1G 
-        -v ${{ github.workspace }}:${{ github.workspace }}
         --device /dev/tenstorrent
         -w ${{ github.workspace }}
         -e HOME=${{ github.workspace }}
