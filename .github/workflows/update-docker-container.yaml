@@ -53,8 +53,7 @@ jobs:
 
   create-new-container-and-upload:
     needs: check-docker-images
-    # if: needs.check-docker-images.outputs.dev-exists != 'true'
-    if: ${{ always() }}
+    if: needs.check-docker-images.outputs.dev-exists != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
