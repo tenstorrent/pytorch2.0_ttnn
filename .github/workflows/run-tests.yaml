@@ -166,8 +166,8 @@ jobs:
         id: run
         shell: bash
         run: |
-          echo "runner-uid=$(id -u)" >> $GITHUB_ENV
-          echo "runner-gid=$(id -g)" >> $GITHUB_ENV
+          echo "runner-uid=$(id -u)" >> $GITHUB_OUTPUT
+          echo "runner-gid=$(id -g)" >> $GITHUB_OUTPUT
 
 
   multi-device-tests:
