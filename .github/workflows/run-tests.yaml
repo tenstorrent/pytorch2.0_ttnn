@@ -169,9 +169,12 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
       options: >-
-        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
-        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -e HOME ${{ github.workspace }}
+        --rm 
+        -v /dev/hugepages-1G:/dev/hugepages-1G 
+        -v ${{ github.workspace }}:${{ github.workspace }}
+        --device /dev/tenstorrent
+        -w ${{ github.workspace }}
+        -e HOME=${{ github.workspace }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Multi-Device Tests"
