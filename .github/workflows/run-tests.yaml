@@ -205,6 +205,16 @@ jobs:
       #     registry: https://ghcr.io
       #     username: ${{ github.actor }}
       #     password: ${{ secrets.GH_TOKEN }}
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+      - name: Pull docker image
+        shell: bash
+        run: |
+          docker pull ${{ inputs.docker_tag }}
       - uses: tenstorrent/docker-run-action@v5
         with:
           shell: bash
