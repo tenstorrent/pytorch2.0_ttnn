@@ -1,0 +1,8 @@
+include LICENSE
+include README.md
+include requirements.txt
+include requirements-dev.txt
+include VERSION
+
+# Exclude test files from the distribution
+exclude tests/* 
