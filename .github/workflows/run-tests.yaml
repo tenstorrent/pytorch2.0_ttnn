@@ -170,18 +170,18 @@ jobs:
         password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm 
-        -v /etc/passwd:/etc/passwd:ro
-        -v /etc/shadow:/etc/shadow:ro
-        -v /etc/bashrc:/etc/bashrc:ro
         -v /dev/hugepages-1G:/dev/hugepages-1G 
+        -v ${{ github.workspace }}/docker-job:/work
         --device /dev/tenstorrent
-        -w ${{ github.workspace }}
-        -e HOME=${{ github.workspace }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Multi-Device Tests"
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
+    defaults:
+      run:
+        shell: bash
+        working-directory: /work
     steps:
       - uses: actions/checkout@v4
         with:
