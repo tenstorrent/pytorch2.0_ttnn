@@ -171,7 +171,7 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
+        -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache -e HOME {{ github.workspace }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Multi-Device Tests"
