@@ -157,7 +157,7 @@ jobs:
           echo "branch-name=update-docs-$(date +%s)" >> $GITHUB_OUTPUT
 
   multi-device-tests:
-    needs: lowering-tests
+    # needs: lowering-tests
     runs-on: >-
       ${{
         ('tt-beta-ubuntu-2204-n300-large-stable')
