@@ -156,44 +156,29 @@ jobs:
         run: |
           echo "branch-name=update-docs-$(date +%s)" >> $GITHUB_OUTPUT
 
-  set:
-    runs-on: ubuntu-latest
-    outputs:
-      runner-uid: ${{ steps.run.outputs.runner-uid }}
-      runner-gid: ${{ steps.run.outputs.runner-gid }}
-    steps:
-      - name: run
-        id: run
-        shell: bash
-        run: |
-          echo "runner-uid=$(id -u)" >> $GITHUB_OUTPUT
-          echo "runner-gid=$(id -g)" >> $GITHUB_OUTPUT
-
-
   multi-device-tests:
     # needs: lowering-tests
-    needs: set
     runs-on: >-
       ${{
         ('tt-beta-ubuntu-2204-n300-large-stable')
         || fromJSON('["n300", "in-service", "nfs"]')
       }}
-    container: 
-      image: ${{ inputs.docker_tag }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
-      options: >-
-        --rm 
-        -u ${{ needs.set.outputs.runner-uid }}:${{ needs.set.outputs.runner-gid }}
-        -v /etc/passwd:/etc/passwd:ro
-        -v /etc/shadow:/etc/shadow:ro
-        -v /etc/bashrc:/etc/bashrc:ro
-        -v /dev/hugepages-1G:/dev/hugepages-1G 
-        -v ${{ github.workspace }}:${{ github.workspace }}
-        --device /dev/tenstorrent
-        -w ${{ github.workspace }}
-        -e HOME=${{ github.workspace }}
+    # container: 
+    #   image: ${{ inputs.docker_tag }}
+    #   credentials:
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GH_TOKEN }}
+    #   options: >-
+    #     --rm 
+    #     -u ${{ needs.set.outputs.runner-uid }}:${{ needs.set.outputs.runner-gid }}
+    #     -v /etc/passwd:/etc/passwd:ro
+    #     -v /etc/shadow:/etc/shadow:ro
+    #     -v /etc/bashrc:/etc/bashrc:ro
+    #     -v /dev/hugepages-1G:/dev/hugepages-1G 
+    #     -v ${{ github.workspace }}:${{ github.workspace }}
+    #     --device /dev/tenstorrent
+    #     -w ${{ github.workspace }}
+    #     -e HOME=${{ github.workspace }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Multi-Device Tests"
@@ -204,10 +189,99 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
-      - uses: ./.github/actions/common_repo_setup
-      - uses: ./.github/actions/common_multi_device_tests
+      # copied from common_repo_setup
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
-          commit_report: ${{ inputs.commit_report }}
+          python-version: '3.10'
+      - name: Set
+        shell: bash
+        run: |
+          echo "RUNNER_UID=$(id -u)" >> $GITHUB_ENV
+          echo "RUNNER_GID=$(id -g)" >> $GITHUB_ENV
+      # - name: Docker login
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: https://ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GH_TOKEN }}
+      - uses: tenstorrent/docker-run-action@v5
+        with:
+          shell: bash
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_TOKEN }}
+          registry: ghcr.io
+          image: ${{ inputs.docker_tag }}
+          # The most important option below is `--rm`. Otherwise, the machines will fill up with undeleted containers.
+          # The mounting of /etc/passwd, /etc/shadow, and /etc/bashrc is required in order for the correct file permissions
+          # for newly created files.
+          # Passing HOME variable is necessary to avoid Python lib installation into /home/ubuntu/.local folder which
+          # may not be writable by the RUNNER_UID user.
+          # --log-driver none: Do not save logs to disk by default as we're printing them to GitHub Actions UI already
+          # and it takes up space on the runner. What can happen is that we can eat up all the space of a runner while it's
+          # spitting our endless logs, causing the runner being unable to call home, resulting in job failures / runner
+          # offline status on GitHub. Issue tt-metal/#12626
+          options: |
+            -u ${{ env.RUNNER_UID }}:${{ env.RUNNER_GID }}
+            --rm
+            -v /etc/passwd:/etc/passwd:ro
+            -v /etc/shadow:/etc/shadow:ro
+            -v /etc/bashrc:/etc/bashrc:ro
+            -v ${{ github.workspace }}:${{ github.workspace }}
+            --net=host
+            --log-driver local
+            --log-opt max-size=50m
+            ${{ inputs.docker_opts }}
+            -e PYTHONPATH=${{ github.workspace }}
+            -e HOME=${{ github.workspace }}
+            -e GITHUB_ACTIONS=true
+            -e CI=true
+            -e GITHUB_REPOSITORY=${{ github.repository }}
+            -e GITHUB_SHA=${{ github.sha }}
+            -e GITHUB_REF_NAME=${{ github.ref_name }}
+            -e GITHUB_RUN_ID=${{ github.run_id }}
+            -e GITHUB_TRIGGERING_ACTOR=${{ github.github_triggering_actor }}
+            -e RUNNER_NAME=${{ runner.name }}
+            --device /dev/tenstorrent
+            -w ${{ github.workspace }}
+          run: |
+            set -eu
+
+            # from common repo setup
+            df -h
+            python3 -m pip install --upgrade pip                    
+            python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
+            python3 -m pip install -r requirements-dev.txt
+            python3 -m pip install pytest-github-report
+            df -h
+
+            # from common multi device tests
+            if [ "${{ inputs.commit_report }}" == "None" ]; then
+              num_iterations=1
+            else
+              num_iterations=5
+            fi
+            python3 -m pytest --github-report tests/multi_device/ --data_parallel --report_nth_iteration=$num_iterations --export_code=accuracy -s
+            exit_code=$?  # Capture the exit code
+            if [ $exit_code -eq 5 ]; then
+              echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
+              exit 1;  # Fail the workflow
+            elif [ $exit_code -ne 0 ]; then
+              echo "Failure: Tests failed with exit code $exit_code.";
+              exit 1;  # Fail the workflow for other errors
+            fi
+            echo "Success: Tests passed!";
+            ls -l
+            cd metrics
+            ls -l
+            cd ..
+            exit 0;
+
+      # - uses: ./.github/actions/common_repo_setup
+      - uses: ./.github/actions/common_cleanup
+      # - uses: ./.github/actions/common_multi_device_tests
+      #   with:
+      #     commit_report: ${{ inputs.commit_report }}
       - name: Upload Metrics Artifact
         if: success()  # Only run if tests passed
         uses: actions/upload-artifact@v4
