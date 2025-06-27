@@ -161,7 +161,7 @@ jobs:
     runs-on: >-
       ${{
         ('tt-beta-ubuntu-2204-n300-large-stable')
-        || ["in-service", "nfs", "n300"]
+        || fromJSON('["n300", "in-service", "nfs"]')
       }}
     container: 
       image: ${{ inputs.docker_tag }}
