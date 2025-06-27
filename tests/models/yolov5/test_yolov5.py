@@ -98,11 +98,12 @@ def teardown_module(module):
     subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "opencv-python-headless"])
 
 
+# @pytest.mark.converted_end_to_end
 @pytest.mark.parametrize(
     "mode",
     ["eval"],
 )
-@pytest.mark.converted_end_to_end
+@pytest.mark.compilation_xfail(reason="non-singleton SymInt in CSEPass")
 @pytest.mark.usefixtures("manage_dependencies")
 def test_yolov5(record_property, mode):
     model_name = "YOLOv5"

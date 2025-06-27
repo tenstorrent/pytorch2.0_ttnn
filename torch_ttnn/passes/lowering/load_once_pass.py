@@ -17,24 +17,25 @@ from . import target_wrappers
 def mark_nodes_invariant(nodes):
     seen_nodes = set()
 
-    def mark_descendants_varied(node):
-        if node in seen_nodes:
-            return
+    def mark_descendants_varied(node_list):
+        while len(node_list) > 0:
+            node = node_list.pop(-1)
+            if node in seen_nodes:
+                continue
 
-        node.meta["iteration_invariant"] = False
-        seen_nodes.add(node)
+            node.meta["iteration_invariant"] = False
+            seen_nodes.add(node)
 
-        for user in node.users:
-            mark_descendants_varied(user)
+            node_list += node.users
 
     for node in nodes:
         node.meta["iteration_invariant"] = True
     for node in filter(lambda n: n.op == "placeholder" and n.meta.get("primal_tag") == PrimalTag.ARGUMENT, nodes):
         # mark all descendents as not iteration_invariant
-        mark_descendants_varied(node)
+        mark_descendants_varied([node])
     for node in filter(lambda n: n.op in ["output", "get_attr", "root"], nodes):
         # make sure all outputs, roots, and get_attr nodes are marked as variable
-        mark_descendants_varied(node)
+        mark_descendants_varied([node])
 
 
 class NodeMover:
