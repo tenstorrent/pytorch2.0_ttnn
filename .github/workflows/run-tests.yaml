@@ -162,12 +162,12 @@ jobs:
       runner-uid: ${{ steps.run.outputs.runner-uid }}
       runner-gid: ${{ steps.run.outputs.runner-gid }}
     steps:
-      -name: run
-      id: run
-      shell: bash
-      run: |
-        echo "runner-uid=$(id -u)" >> $GITHUB_ENV
-        echo "runner-gid=$(id -g)" >> $GITHUB_ENV
+      - name: run
+        id: run
+        shell: bash
+        run: |
+          echo "runner-uid=$(id -u)" >> $GITHUB_ENV
+          echo "runner-gid=$(id -g)" >> $GITHUB_ENV
 
 
   multi-device-tests:
