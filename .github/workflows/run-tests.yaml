@@ -156,8 +156,23 @@ jobs:
         run: |
           echo "branch-name=update-docs-$(date +%s)" >> $GITHUB_OUTPUT
 
+  set:
+    runs-on: ubuntu-latest
+    outputs:
+      runner-uid: ${{ steps.run.outputs.runner-uid }}
+      runner-gid: ${{ steps.run.outputs.runner-gid }}
+    steps:
+      -name: run
+      id: run
+      shell: bash
+      run: |
+        echo "runner-uid=$(id -u)" >> $GITHUB_ENV
+        echo "runner-gid=$(id -g)" >> $GITHUB_ENV
+
+
   multi-device-tests:
     # needs: lowering-tests
+    needs: set
     runs-on: >-
       ${{
         ('tt-beta-ubuntu-2204-n300-large-stable')
@@ -170,6 +185,7 @@ jobs:
         password: ${{ secrets.GH_TOKEN }}
       options: >-
         --rm 
+      -u ${{ needs.set.outputs.runner-uid }}:${{ needs.set.outputs.runner-gid }}
         -v /etc/passwd:/etc/passwd:ro
         -v /etc/shadow:/etc/shadow:ro
         -v /etc/bashrc:/etc/bashrc:ro
