@@ -44,15 +44,15 @@
 |    | ATen Input Variations           | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 1024, 512]> self = ? | Done     | Done       | 0.999991 |      0 |
-|  1 | Tensor<[1, 256, 256]> self = ?  | Removed  | Done       | 0.999992 |      0 |
+|  1 | Tensor<[1, 256, 256]> self = ?  | Removed  | Done       | 0.999991 |      0 |
 ### aten.mean.dim
-|    | ATen Input Variations                                            | Status   | Isolated   |   PCC |   Host |
-|---:|:-----------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 512, 256]> self = ?,<br>Optional[List[int]] dim = [2] | Done     | Done       |     1 |      0 |
+|    | ATen Input Variations                                            | Status   | Isolated   |      PCC |   Host |
+|---:|:-----------------------------------------------------------------|:---------|:-----------|---------:|-------:|
+|  0 | Tensor<[1, 512, 256]> self = ?,<br>Optional[List[int]] dim = [2] | Done     | Done       | 0.999999 |      0 |
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 256, 512]> input = ?,<br>List[int] normalized_shape = [512],<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>float eps = 1e-05 | Done     | Done       | 0.998452 |      3 |
+|  0 | Tensor<[1, 256, 512]> input = ?,<br>List[int] normalized_shape = [512],<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>float eps = 1e-05 | Done     | Done       | 0.998692 |      3 |
 ### aten.permute.default
 |    | ATen Input Variations                                                           | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|

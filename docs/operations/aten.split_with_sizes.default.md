@@ -1,7 +1,7 @@
 ### aten.split_with_sizes.default
-|    | ATen Input Variations                                                                                         | Status   | Isolated   |   PCC |   Host |
-|---:|:--------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1, 163206, 4]> self = ?,<br>List[int] split_sizes = [122400, 30600, 7650, 1989, 567],<br>int dim = 1  | None     | Fallback   |     1 |     -5 |
-|  1 | Tensor<[1, 163206, 91]> self = ?,<br>List[int] split_sizes = [122400, 30600, 7650, 1989, 567],<br>int dim = 1 | None     | Fallback   |     1 |     -5 |
-|  2 | Tensor<[163206, 4]> self = ?,<br>List[int] split_sizes = [122400, 30600, 7650, 1989, 567]                     | None     | Fallback   |     1 |     -5 |
+|    | ATen Input Variations                                                                      | Status   | Isolated   | PCC   | Host   |
+|---:|:-------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor<[1, 3, 16, 16, 85]> self = ?,<br>List[int] split_sizes = [2, 2, 81],<br>int dim = 4 | Unknown  | Unknown    | N/A   | N/A    |
+|  1 | Tensor<[1, 3, 32, 32, 85]> self = ?,<br>List[int] split_sizes = [2, 2, 81],<br>int dim = 4 | Unknown  | Unknown    | N/A   | N/A    |
+|  2 | Tensor<[1, 3, 64, 64, 85]> self = ?,<br>List[int] split_sizes = [2, 2, 81],<br>int dim = 4 | Unknown  | Unknown    | N/A   | N/A    |
 

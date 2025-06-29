@@ -1,5 +1,5 @@
 ### aten.tril.default
-|    | ATen Input Variations   | Status   | Isolated   | PCC   |
-|---:|:------------------------|:---------|:-----------|:------|
-|  0 | Tensor<[7, 7]> self = ? | Fallback | Done       | True  |
+|    | ATen Input Variations   | Status   | Isolated   | PCC   | Host   |
+|---:|:------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor self = ?         | Unknown  | Unknown    | N/A   | N/A    |
 
