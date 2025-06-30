@@ -8,8 +8,6 @@ on:
         description: 'Set wheel type: pre-release or release'
         required: true
         default: 'pre-release'
-  # push:  # Temporary trigger for testing (will be removed before merge)
-  # merge_group:
 
 jobs:
   build-wheel:
@@ -51,6 +49,7 @@ jobs:
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/common_wheel_install
       - uses: ./.github/actions/common_smoke_tests
 
@@ -97,6 +96,9 @@ jobs:
           lfs: true
       - uses: ./.github/actions/common_wheel_install
       - uses: ./.github/actions/common_model_tests
+        with:
+          splits: 40
+          matrix_group: ${{ matrix.group }}
       - name: Upload Metrics Artifact
         if: success()
         uses: actions/upload-artifact@v4
