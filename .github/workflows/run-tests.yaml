@@ -187,6 +187,7 @@ jobs:
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
       PIP_CACHE_DIR: ${{ github.workspace }}/.pip_cache
+      AGENT_TOOLSDIRECTORY: ${{ github.workspace }}/tools
     # defaults:
     #   run:
     #     shell: bash
