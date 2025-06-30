@@ -294,7 +294,7 @@ jobs:
         shell: bash
         run: |
           ls -la /github/home
-          ls -l /github/home/.cache
+          whoami
           id -u
           id -g
 
