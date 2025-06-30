@@ -551,27 +551,8 @@ class NodeInputAligner:
         if data_move_spec in self.aligned_node_dict:
             aligned_node = self.aligned_node_dict[data_move_spec]
         else:
-            # push from_torch calls to top of forward function if they are due to a placeholder
-            maybe_forward_input = input_node
-            # We have to test the first arg of shard_tensor and replicate_tensor calls instead
-            if input_node.op == "call_function" and input_node.target in [
-                target_wrappers.shard_tensor,
-                target_wrappers.replicate_tensor,
-            ]:
-                maybe_forward_input = input_node.args[0]
-            if (
-                isinstance(data_move_spec, self.AlignSpecFromTorch)
-                and maybe_forward_input.op == "placeholder"
-                and maybe_forward_input.meta.get("primal_tag") != PrimalTag.ARGUMENT
-            ):
-                # This will push all from_torch calls to the top of the forward function. This shouldn't impact performance, but it may impact memory usage since variables will be
-                # live longer than they would if from_torch calls occurred right before usage. If we start running out of DRAM or need to be more careful about memory usage, this
-                # is a good place to check
-                with self.graph.inserting_before(first_node):
-                    aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
-            else:
-                with self.graph.inserting_before(node):
-                    aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
+            with self.graph.inserting_before(node):
+                aligned_node = self._create_aligned_node(data_move_spec, node, input_site)
             self.aligned_node_dict[data_move_spec] = aligned_node
 
         self._connect_aligned_node(node, aligned_node, input_site, input_site_type)
