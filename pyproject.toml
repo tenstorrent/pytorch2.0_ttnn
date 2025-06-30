@@ -38,6 +38,9 @@ dev = [
     "pre-commit>=3.3.3",
 ]
 
+[project.urls]
+Repository = "https://github.com/tenstorrent/pytorch2.0_ttnn"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["torch_ttnn*"]
