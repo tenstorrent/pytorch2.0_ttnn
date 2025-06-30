@@ -3,9 +3,7 @@
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
-#include <ttnn/operations/gather/gather.hpp>
-
-
+#include <ttnn/operations/embedding/embedding.hpp>
 
 namespace tt_eager::ops::embedding {
 
@@ -18,11 +16,9 @@ at::Tensor ttnn_embedding(
 
     LOGGING("Running aten::embedding.default");
 
-    // Device/type checks
     TORCH_CHECK(weight.device().type() == c10::DeviceType::PrivateUse1);
     TORCH_CHECK(indices.device().type() == c10::DeviceType::PrivateUse1);
 
-    // Warn for unsupported options
     TORCH_CHECK(!scale_grad_by_freq, "scale_grad_by_freq is not supported on TTNN backend");
     TORCH_CHECK(!sparse, "sparse embedding is not supported on TTNN backend");
 
@@ -32,17 +28,24 @@ at::Tensor ttnn_embedding(
     auto ttnn_weight = weight_impl->get_ttnn_tensor();
     auto ttnn_indices = indices_impl->get_ttnn_tensor();
 
-    // Ensure TILE layout
-    if (ttnn_weight.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        ttnn_weight = ttnn::to_layout(ttnn_weight, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_weight.device());
-    }
+    auto ttnn_result = ttnn::operations::embedding::EmbeddingOperation::invoke(
+        ttnn_indices,
+        ttnn_weight,
+        /*pad_token=*/(padding_idx >= 0 ? std::optional<int>(padding_idx) : std::nullopt),
+        /*layout=*/std::optional<ttnn::Layout>(ttnn_weight.layout()),
+        /*embeddings_type=*/ttnn::operations::embedding::EmbeddingsType::GENERIC,
+        /*dtype=*/std::nullopt,
+        /*memory_config=*/std::nullopt,
+        /*optional_output_tensor=*/std::nullopt
+    );
 
-    // Gather along dimension 0
-    auto ttnn_result = ttnn::gather(ttnn_weight, ttnn_indices, /*dim=*/0, padding_idx);
+    std::vector<int64_t> shape(
+        ttnn_result.logical_shape().cbegin(),
+        ttnn_result.logical_shape().cend()
+    );
 
-    // Create output tensor
     auto output = tt_eager::ops::create::custom_empty_memory_format(
-        ttnn_result.shape().to_sizes(),
+        c10::IntArrayRef(shape),
         c10::optional<at::ScalarType>(weight.scalar_type()),
         c10::nullopt,
         c10::optional<at::Device>(weight.device()),

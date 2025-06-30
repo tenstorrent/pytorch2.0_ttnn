@@ -5,6 +5,10 @@
 #include <fmt/format.h>
 #include <ttnn/operations/core/core.hpp>
 
+namespace tt_eager {
+  using TtnnTensor = ttnn::Tensor;
+}
+
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {
     os << "[";

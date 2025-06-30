@@ -29,8 +29,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("add.out", &tt_eager::ops::binary::ttnn_add_out);
     
     m.impl("_softmax.default", &tt_eager::ops::normalization::ttnn_softmax);
+    m.impl("_to_copy.default", &tt_eager::ops::to_copy::ttnn_to_copy);
     m.impl("add.Tensor", &tt_eager::ops::binary::ttnn_add_tensor);
-    m.impl("_to_copy", &tt_eager::ops::to_copy::ttnn_to_copy);
     m.impl("addmm.default", tt_eager::ops::binary::ttnn_addmm);
     m.impl("clone.default", tt_eager::ops::unary::ttnn_clone);
     m.impl("div.Tensor", tt_eager::ops::binary::ttnn_div_tensor);
@@ -41,8 +41,9 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("native_layer_norm.default", tt_eager::ops::norm::ttnn_native_layer_norm);
     m.impl("permute.default", tt_eager::ops::view::ttnn_permute);
     m.impl("rsub.Scalar", tt_eager::ops::binary::ttnn_rsub_scalar);
-    m.impl("select.int", tt_eager::ops::view::ttnn_select_int);
     m.impl("slice.Tensor", tt_eager::ops::view::ttnn_slice_tensor);
+    m.impl("split.Tensor", tt_eager::ops::view::ttnn_split_tensor_fixed);
+    m.impl("split.Tensor", tt_eager::ops::view::ttnn_split_tensor_sections);
     m.impl("t.default", tt_eager::ops::view::ttnn_t_default);    
     m.impl("tanh.default", tt_eager::ops::unary::ttnn_tanh);
     m.impl("transpose.int", tt_eager::ops::view::ttnn_transpose_int);

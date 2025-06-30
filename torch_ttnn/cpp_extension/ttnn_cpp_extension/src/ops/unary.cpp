@@ -6,61 +6,34 @@
 #include "ttnn_cpp_extension/ops/creation.hpp"
 
 #include <ttnn/operations/data_movement/clone/clone.hpp>
-#include <ttnn/typedefs.hpp>       // ttnn::DType, ttnn::MemFormat
-#include <ttnn/kernel_config.hpp>  // ttnn::KernelConfig
+#include <ttnn/tensor/types.hpp>   // for DataType (replacement for DType)
+#include <ttnn/operations/core/compute_kernel/compute_kernel_config.hpp>
+#include <tt-metalium/base_types.hpp>
 
 #include <ttnn/operations/eltwise/unary/unary.hpp>
-
-namespace {
-
-/// Convert ATen scalar type to your TTNN data‐type enum
-ttnn::DType to_ttnn_dtype(at::ScalarType st) {
-  switch (st) {
-    case at::kFloat:  return ttnn::DType::Float32;
-    case at::kDouble: return ttnn::DType::Float64;
-    case at::kInt:    return ttnn::DType::Int32;
-    case at::kLong:   return ttnn::DType::Int64;
-    default:
-      TORCH_CHECK(false, "ttnn_clone: unsupported dtype ", st);
-  }
-}
-
-/// Convert ATen MemoryFormat into your TTNN memory‐format enum
-ttnn::MemFormat to_ttnn_memformat(at::MemoryFormat mf) {
-  if (mf == at::MemoryFormat::Contiguous)    return ttnn::MemFormat::Contiguous;
-  if (mf == at::MemoryFormat::ChannelsLast)  return ttnn::MemFormat::ChannelsLast;
-  TORCH_WARN("ttnn_clone: unknown MemoryFormat, defaulting to Contiguous");
-  return ttnn::MemFormat::Contiguous;
-}
-
-/// A sensible default KernelConfig for your TTNN backend
-ttnn::KernelConfig default_ttnn_kernel_config() {
-  ttnn::KernelConfig cfg;
-  cfg.queue_id = 0;
-  // …set any other fields your backend requires…
-  return cfg;
-}
-
-} // anonymous
 
 namespace tt_eager::ops::unary {
 
 at::Tensor& ttnn_abs_out(const at::Tensor& self, at::Tensor& out) {
     LOGGING("");
     TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
-    TORCH_CHECK(out.device().type()  == c10::DeviceType::PrivateUse1);
+    TORCH_CHECK(out.device().type() == c10::DeviceType::PrivateUse1);
 
-    // grab the TTNN tensor handle
-    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    auto  ttnn_tensor = self_impl->get_ttnn_tensor();
+    // Get underlying TTNN tensor object from input
+    at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    auto ttnn_tensor = tensor_impl->get_ttnn_tensor();
 
-    // TTNN abs
+    // Call TTNN operation
     auto result = ttnn::abs(ttnn_tensor);
 
-    // set up the output
-    auto* out_impl = static_cast<at::TtnnTensorImpl*>(out.unsafeGetTensorImpl());
-    out_impl->set_sizes_and_strides_as(self);
-    out_impl->set_ttnn_tensor(result);
+    // Get underlying TTNN tensor object from output
+    at::TtnnTensorImpl* out_tensor_impl = static_cast<at::TtnnTensorImpl*>(out.unsafeGetTensorImpl());
+    out_tensor_impl->set_sizes_and_strides_as(self);
+
+    // Set output TTNN tensor to result
+    auto out_ttnn_tensor = out_tensor_impl->get_ttnn_tensor();
+    out_tensor_impl->set_ttnn_tensor(result);
+
     return out;
 }
 
@@ -71,25 +44,16 @@ at::Tensor ttnn_clone(
     LOGGING("Running aten::clone.default");
     TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
 
-    // 1) extract TTNN tensor
     auto* self_impl   = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto  ttnn_tensor = self_impl->get_ttnn_tensor();
 
-    // 2) build TTNN options
-    ttnn::DType     dtype      = to_ttnn_dtype(self.scalar_type());
-    at::MemoryFormat mf = memory_format_opt.value_or(at::MemoryFormat::Contiguous);
-    ttnn::MemFormat mem_fmt    = to_ttnn_memformat(mf);
-    ttnn::KernelConfig kernel_cfg = default_ttnn_kernel_config();
-
-    // 3) invoke the TTNN clone
     auto cloned = ttnn::operations::data_movement::clone::Clone::invoke(
       ttnn_tensor,
-      dtype,
-      mem_fmt,
-      kernel_cfg
+      std::nullopt,
+      std::nullopt,
+      std::nullopt
     );
 
-    // 4) wrap result back into an at::Tensor
     auto output = tt_eager::ops::create::custom_empty_memory_format(
       self.sizes(),
       self.scalar_type(),
@@ -130,6 +94,7 @@ at::Tensor ttnn_gelu(const at::Tensor& self) {
       self.device(),
       /*pin_memory=*/c10::nullopt
     );
+    
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
     out_impl->set_sizes_and_strides_as(self);
     out_impl->set_ttnn_tensor(result);
@@ -151,6 +116,7 @@ at::Tensor ttnn_tanh(const at::Tensor& self) {
           ttnn_tensor.device()
         );
     }
+
     auto result = ttnn::tanh(ttnn_tensor);
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
@@ -160,10 +126,11 @@ at::Tensor ttnn_tanh(const at::Tensor& self) {
       self.device(),
       /*pin_memory=*/c10::nullopt
     );
+
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
     out_impl->set_sizes_and_strides_as(self);
     out_impl->set_ttnn_tensor(result);
     return output;
 }
 
-}  // namespace tt_eager::ops::unary
+}  
