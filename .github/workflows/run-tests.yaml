@@ -302,6 +302,7 @@ jobs:
           whoami
           id -u
           id -g
+          ls -la ${{ env.PIP_CACHE_DIR }}/..
 
       - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_multi_device_tests
