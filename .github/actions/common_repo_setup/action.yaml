@@ -17,16 +17,11 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: |
-        whoami
-        id -u
-        id -g
         df -h
-        ls -l ${{ env.PIP_CACHE_DIR }}
         python3 -m pip install --upgrade pip                    
         python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
         python3 -m pip install -r requirements-dev.txt
         python3 -m pip install pytest-github-report
-        pip cache dir
         df -h
 
     - uses: ./.github/actions/common_cleanup
