@@ -191,6 +191,8 @@ jobs:
         working-directory: /work
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: docker-job
       # copied from common_repo_setup
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
