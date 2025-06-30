@@ -128,22 +128,22 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0    
-      - uses: ./.github/actions/common_repo_setup
-      - name: docker-cleanup
-        run: |
-          docker system prune -a -f
-          df -h  # Debug space
-      - uses: ./.github/actions/common_model_tests
-        with:
-          splits: ${{ needs.count-test-files.outputs.num_files }}
-          matrix_group: ${{ matrix.group }}
-          commit_report: ${{ inputs.commit_report }}
-      - name: Upload Metrics Artifact
-        if: success()  # Only run if tests passed
-        uses: actions/upload-artifact@v4
-        with:
-          name: model-tests-metrics-group-${{ matrix.group }}
-          path: metrics/
+      # - uses: ./.github/actions/common_repo_setup
+      # - name: docker-cleanup
+      #   run: |
+      #     docker system prune -a -f
+      #     df -h  # Debug space
+      # - uses: ./.github/actions/common_model_tests
+      #   with:
+      #     splits: ${{ needs.count-test-files.outputs.num_files }}
+      #     matrix_group: ${{ matrix.group }}
+      #     commit_report: ${{ inputs.commit_report }}
+      # - name: Upload Metrics Artifact
+      #   if: success()  # Only run if tests passed
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: model-tests-metrics-group-${{ matrix.group }}
+      #     path: metrics/
 
   get-pr-branch:
     if: ${{ inputs.commit_report != 'None' }}
@@ -168,16 +168,23 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GH_TOKEN }}
+      env:
+        PYTHONPATH: /work
+        GITHUB_ACTIONS: true
+        TORCH_HOME: /work/.cache/torch
+        HF_HOME: /work/.cache/huggingface
+      volumes:
+        - ${{ github.workspace }}/docker-job:/work # Subdir to workaround https://github.com/actions/runner/issues/691
+        - /dev/hugepages-1G:/dev/hugepages-1G
+        - /mnt/tt-metal-pytorch-cache/.cache:/work/.cache
       options: >-
         --rm 
-        -v /dev/hugepages-1G:/dev/hugepages-1G 
-        -v ${{ github.workspace }}/docker-job:/work
         --device /dev/tenstorrent
-    env:
-      pytest_verbosity: 0
-      pytest_report_title: "⭐️ Multi-Device Tests"
-      TORCH_HOME: /root/.cache/torch
-      HF_HOME: /root/.cache/huggingface
+    # env:
+    #   pytest_verbosity: 0
+    #   pytest_report_title: "⭐️ Multi-Device Tests"
+    #   TORCH_HOME: /root/.cache/torch
+    #   HF_HOME: /root/.cache/huggingface
     defaults:
       run:
         shell: bash
