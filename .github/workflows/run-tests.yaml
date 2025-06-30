@@ -171,33 +171,32 @@ jobs:
       env:
         PYTHONPATH: /work
         GITHUB_ACTIONS: true
-        TORCH_HOME: /work/.cache/torch
-        HF_HOME: /work/.cache/huggingface
+        # TORCH_HOME: /work/.cache/torch
+        # HF_HOME: /work/.cache/huggingface
       volumes:
-        - ${{ github.workspace }}/docker-job:/work # Subdir to workaround https://github.com/actions/runner/issues/691
+        # - ${{ github.workspace }}/docker-job:/work # Subdir to workaround https://github.com/actions/runner/issues/691
+        - ${{ github.workspace }}:/work # Subdir to workaround https://github.com/actions/runner/issues/691
         - /dev/hugepages-1G:/dev/hugepages-1G
-        - /mnt/tt-metal-pytorch-cache/.cache:/work/.cache
+        - /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
       options: >-
         --rm 
         --device /dev/tenstorrent
-    # env:
-    #   pytest_verbosity: 0
-    #   pytest_report_title: "⭐️ Multi-Device Tests"
-    #   TORCH_HOME: /root/.cache/torch
-    #   HF_HOME: /root/.cache/huggingface
-    defaults:
-      run:
-        shell: bash
-        working-directory: /work
+    env:
+      pytest_verbosity: 0
+      pytest_report_title: "⭐️ Multi-Device Tests"
+      TORCH_HOME: /root/.cache/torch
+      HF_HOME: /root/.cache/huggingface
+    # defaults:
+    #   run:
+    #     shell: bash
+    #     working-directory: /work
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: docker-job
       # copied from common_repo_setup
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+      # - name: Setup Python 3.10
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: '3.10'
       # - name: Set
       #   shell: bash
       #   run: |
