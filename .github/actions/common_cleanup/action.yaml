@@ -6,6 +6,7 @@ runs:
     - name: Cleanup model cache
       shell: bash
       run: |
+        pip cache dir
         df -h
         python3 -m pip cache purge
         # python3 tools/huggingface_delete_cache.py
