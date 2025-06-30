@@ -21,7 +21,7 @@ runs:
         id -u
         id -g
         df -h
-        ls -l /__w/pytorch2.0_ttnn/pytorch2.0_ttnn/.pip_cache
+        ls -l /opt/runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn/.pip_cache
         python3 -m pip install --upgrade pip                    
         python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
         python3 -m pip install -r requirements-dev.txt
