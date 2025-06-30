@@ -290,6 +290,14 @@ jobs:
       #       cd ..
       #       exit 0;
 
+      - name: Print info
+        shell: bash
+        run: |
+          ls -la /github/home
+          ls -l /github/home/.cache
+          id -u
+          id -g
+
       - uses: ./.github/actions/common_repo_setup
       - uses: ./.github/actions/common_multi_device_tests
         with:
