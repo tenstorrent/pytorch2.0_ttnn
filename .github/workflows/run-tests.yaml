@@ -191,9 +191,6 @@ jobs:
         working-directory: /work
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
-          fetch-depth: 0
       # copied from common_repo_setup
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
