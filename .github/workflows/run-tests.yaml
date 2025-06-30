@@ -186,11 +186,15 @@ jobs:
       pytest_report_title: "⭐️ Multi-Device Tests"
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
+      PIP_CACHE_DIR: /work/.pip_cache
     # defaults:
     #   run:
     #     shell: bash
     #     working-directory: /work
     steps:
+      - name: Create pip cache
+        shell: bash
+        run: mkdir -p ${{ env.PIP_CACHE_DIR }}
       - uses: actions/checkout@v4
       # copied from common_repo_setup
       # - name: Setup Python 3.10
