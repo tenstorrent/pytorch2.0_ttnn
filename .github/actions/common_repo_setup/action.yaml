@@ -5,6 +5,12 @@ runs:
   steps:
     - name: Setup Telemetry
       uses: catchpoint/workflow-telemetry-action@v2
+    - name: Create pip cache
+      shell: bash
+      run: |
+        if [ -n "${{ env.PIP_CACHE_DIR }}" ]; then
+          mkdir -p ${{ env.PIP_CACHE_DIR }}
+        fi
 
     - name: Setup Python 3.10
       uses: actions/setup-python@v5
