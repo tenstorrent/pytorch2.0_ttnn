@@ -47,5 +47,5 @@ include = ["torch_ttnn*"]
 
 [tool.setuptools_scm]
 version_scheme = "python-simplified-semver"
-local_scheme = "node-and-date"
+local_scheme = "no-local-version"
 write_to = "torch_ttnn/_version.py"
