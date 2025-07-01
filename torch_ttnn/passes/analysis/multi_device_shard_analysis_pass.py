@@ -8,24 +8,32 @@ from torch_ttnn.passes.analysis.input_analysis_pass import PrimalTag
 import ttnn
 
 
-def propagate_sharding_to_users(node, shard_dim, concat_size, seen_set):
-    if node.op == "output" or node in seen_set:
-        return
+def propagate_sharding_to_users(node, shard_dim, concat_size):
+    seen_set = set()
 
-    seen_set.add(node)
+    node_list = [(node, shard_dim, concat_size)]
 
-    node.meta["is_sharded"] = True
+    while len(node_list) > 0:
+        (node, shard_dim, concat_size) = node_list.pop(-1)
 
-    # permute changes which dimension is sharded
-    if node.target == torch.ops.aten.permute.default:
-        shard_dim = node.args[1].index(shard_dim)
-    node.meta["shard_dim"] = shard_dim
+        if node.op == "output" or node in seen_set:
+            continue
 
-    # if any ops change the size after concatenating all shards, adjust here
-    node.meta["concat_size"] = concat_size
+        seen_set.add(node)
 
-    for user in node.users:
-        propagate_sharding_to_users(user, shard_dim, concat_size, seen_set)
+        node.meta["is_sharded"] = True
+
+        # permute changes which dimension is sharded
+        if node.target == torch.ops.aten.permute.default:
+            shard_dim = node.args[1].index(shard_dim)
+        node.meta["shard_dim"] = shard_dim
+
+        # if any ops change the size after concatenating all shards, adjust here
+        node.meta["concat_size"] = concat_size
+
+        for user in node.users:
+            if user not in seen_set:
+                node_list.append((user, shard_dim, concat_size))
 
 
 class MultiDeviceShardAnalysisPass(PassBase):
@@ -51,7 +59,7 @@ class MultiDeviceShardAnalysisPass(PassBase):
                         "Data Parallel runs currently only support sharding dimensions that are multiples of the number of devices"
                     )
 
-                propagate_sharding_to_users(node, shard_dim=shard_dim, concat_size=concat_size, seen_set=set())
+                propagate_sharding_to_users(node, shard_dim=shard_dim, concat_size=concat_size)
 
         modified = False
         return PassResult(gm, modified)
