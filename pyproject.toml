@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Operating System :: POSIX :: Linux",
-    "Operating System :: POSIX :: Ubuntu",
 ]
 keywords = ["pytorch", "ttnn", "tenstorrent", "compiler", "machine-learning", "deep-learning"]
 
