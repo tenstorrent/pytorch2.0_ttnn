@@ -49,6 +49,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("transpose.int", tt_eager::ops::view::ttnn_transpose_int);
     m.impl("unsqueeze.default", tt_eager::ops::view::ttnn_unsqueeze);
     m.impl("view.default", tt_eager::ops::view::ttnn_view);
+
+    m.impl("as_strided", &tt_eager::ops::view::ttnn_as_strided);
 }
 
 // This macro registers helper functions associated with the ttnn_device_mode module that can be used in Python

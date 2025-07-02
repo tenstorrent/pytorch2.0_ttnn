@@ -1,23 +1,38 @@
 from transformers import BertModel, BertTokenizer
 import torch
+import torch_ttnn
+import ttnn
+from torch_ttnn.cpp_extension import ttnn_module
 
 model = BertModel.from_pretrained("bert-large-uncased")
 tokenizer = BertTokenizer.from_pretrained("bert-large-uncased")
 model.eval()
 
-sentence = "Tenstorrent powers the future of AI."
-inputs = tokenizer(sentence, return_tensors="pt", padding="max_length", max_length=16)
+text = "Hello, this is a test sentence for BERT."
+inputs = tokenizer(text, return_tensors="pt")
 
-# Test on CPU
+device = ttnn.open_device(
+    device_id=0,
+    l1_small_size=0,
+    trace_region_size=0,
+    dispatch_core_config=ttnn.DispatchCoreConfig(ttnn.DispatchCoreType.ETH),
+    worker_l1_size=0
+)
+torch_device = ttnn_module.as_torch_device(device)
+model.to(torch_device)
+
+option = torch_ttnn.TorchTtnnOption(
+    device=device,
+    gen_graphviz=False,
+    run_mem_analysis=False,
+    metrics_path="bert-large-uncased",
+    verbose=True,
+    load_params_once=False,
+)
+
+inputs = {k: v.to(torch_device) for k, v in inputs.items()}
+
 with torch.no_grad():
-    out_cpu = model(**inputs).last_hidden_state
+    output = model(**inputs)
 
-# Move to TTNN
-model.to("ttnn:0")
-inputs = {k: v.to("ttnn:0") for k, v in inputs.items()}
-with torch.no_grad():
-    out_tt = model(**inputs).last_hidden_state
-
-# Compare outputs
-diff = (out_tt[0, 0].cpu() - out_cpu[0, 0]).abs().max()
-print(f"Max abs difference at first token: {diff}")
+print(output)

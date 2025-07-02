@@ -47,8 +47,8 @@ at::Tensor ttnn_slice_tensor(const at::Tensor& self, int64_t dim, int64_t start,
 /**
  * Implementation of aten::split.Tensor
  */
-at::TensorList ttnn_split_tensor_fixed(const at::Tensor& self, int64_t split_size, int64_t dim);
-at::TensorList ttnn_split_tensor_sections(const at::Tensor& self, at::IntArrayRef sections, int64_t dim);
+std::vector<at::Tensor> ttnn_split_tensor_fixed(const at::Tensor& self, int64_t split_size, int64_t dim);
+std::vector<at::Tensor> ttnn_split_tensor_sections(const at::Tensor& self, at::IntArrayRef sections, int64_t dim);
 
 /**
  * Implementation of aten::t.default
@@ -64,5 +64,12 @@ at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim
  * Implementation of aten::unsqueeze.default
  */
 at::Tensor ttnn_unsqueeze(const at::Tensor& self, int64_t dim);
+
+at::Tensor ttnn_as_strided(
+        const at::Tensor& self,
+        at::IntArrayRef size,
+        at::IntArrayRef stride,
+        c10::optional<int64_t> storage_offset
+    );  
 
 }  // namespace tt_eager::ops::view

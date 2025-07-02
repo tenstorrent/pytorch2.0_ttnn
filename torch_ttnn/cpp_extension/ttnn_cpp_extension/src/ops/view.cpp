@@ -10,7 +10,8 @@
 #include <ttnn/operations/data_movement/reshape_view/reshape.hpp>
 #include "ttnn/operations/data_movement/split/split.hpp"
 
-namespace tt_eager::ops::view_ops {
+namespace tt_eager::ops::view {
+
     TtnnTensor select(const TtnnTensor& input, int dim, int index) {
         TORCH_CHECK(dim >= 0 && dim < input.logical_shape().rank(), "Invalid dim for select");
         TORCH_CHECK(index >= 0 && index < input.logical_shape()[dim], "Index out of bounds");
@@ -201,7 +202,6 @@ namespace tt_eager::ops::view_ops {
             steps
         );
 
-
         int64_t len = (end - start + step - 1) / step;
         std::vector<int64_t> out_sizes(input.dim(), 1);
         out_sizes[dim] = len;
@@ -277,8 +277,6 @@ namespace tt_eager::ops::view_ops {
         return outputs;
     }
 
-
-    
     at::Tensor ttnn_t_default(const at::Tensor& self) {
         LOGGING("Running aten::t.default");
 
@@ -378,6 +376,48 @@ namespace tt_eager::ops::view_ops {
 
         auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
         out_impl->set_ttnn_tensor(ttnn_result);
+
+        return output;
+    }
+
+    at::Tensor ttnn_as_strided(
+        const at::Tensor& self,
+        at::IntArrayRef size,
+        at::IntArrayRef stride,
+        c10::optional<int64_t> storage_offset
+    ) {
+        LOGGING("Running aten::as_strided");
+
+        TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, "Tensor must be on TTNN device");
+
+        auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+        auto ttnn_tensor = self_impl->get_ttnn_tensor();
+
+        // 1. Reject unsafe or unsupported cases
+        TORCH_CHECK(!storage_offset.has_value() || storage_offset.value() == 0, "TTNN backend does not support storage_offset != 0");
+        
+        int64_t expected_stride = 1;
+        for (int64_t i = size.size() - 1; i >= 0; --i) {
+            if (stride[i] != expected_stride) {
+                TORCH_CHECK(false, "TTNN as_strided only supports contiguous views for now");
+            }
+            expected_stride *= size[i];
+        }
+
+        // 2. Use reshape if compatible
+        tt::stl::SmallVector<int32_t> new_shape(size.begin(), size.end());
+        auto reshaped = ttnn::reshape(ttnn_tensor, new_shape);
+
+        auto output = tt_eager::ops::create::custom_empty_memory_format(
+            size,
+            self.scalar_type(),
+            c10::nullopt,
+            self.device(),
+            c10::nullopt
+        );
+
+        auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+        out_impl->set_ttnn_tensor(reshaped);
 
         return output;
     }
