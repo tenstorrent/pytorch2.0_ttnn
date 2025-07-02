@@ -46,9 +46,6 @@ setup(
     python_requires=">=3.10",
     install_requires=read_requirements("requirements.txt"),
     extras_require={
-        "ttnn": [
-            get_ttnn_url(),
-        ],
         "dev": read_requirements("requirements-dev.txt"),
     },
     use_scm_version=True,
