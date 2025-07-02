@@ -41,7 +41,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Operating System :: POSIX :: Linux",
-        "Operating System :: POSIX :: Ubuntu",
     ],
     packages=find_packages(exclude=["tests", "tests.*"]),
     python_requires=">=3.10",
