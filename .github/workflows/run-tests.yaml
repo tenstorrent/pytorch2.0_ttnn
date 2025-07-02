@@ -127,6 +127,11 @@ jobs:
       matrix: 
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
     steps:
+      - name: print debug
+        shell: bash
+        run: |
+          ls ${{ env.HF_HOME }}
+          ls ${{ env.HF_HOME }}/hub
       - uses: actions/checkout@v4
         with:
           lfs: true
