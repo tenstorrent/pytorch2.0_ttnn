@@ -6,8 +6,8 @@
 |  2 | Tensor<[1, 1024, 256]> self = ?,<br>Optional[List[int]] dim = [0, 1],<br>bool keepdim = True   | None     | Fallback   |     1 |     -1 |
 |  3 | Tensor<[1, 1024, 7, 7]> self = ?,<br>Optional[List[int]] dim = [2, 3],<br>bool keepdim = True  | None     | Fallback   |     1 |     -1 |
 |  4 | Tensor<[1, 10]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True             | None     | Fallback   |     1 |     -1 |
-|  5 | Tensor<[1, 12, 16]> self = ?,<br>Optional[List[int]] dim = [1]                                 | None     | Fallback   |     1 |     -1 |
-|  6 | Tensor<[1, 12, 16]> self = ?,<br>Optional[List[int]] dim = [2]                                 | None     | Fallback   |     1 |     -1 |
+|  5 | Tensor<[1, 12, 16]> self = ?,<br>Optional[List[int]] dim = [1]                                 | Unknown  | Fallback   |     1 |     -1 |
+|  6 | Tensor<[1, 12, 16]> self = ?,<br>Optional[List[int]] dim = [2]                                 | Unknown  | Fallback   |     1 |     -1 |
 |  7 | Tensor<[1, 120, 28, 28]> self = ?,<br>Optional[List[int]] dim = [2, 3],<br>bool keepdim = True | None     | Fallback   |     1 |     -1 |
 |  8 | Tensor<[1, 128]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True            | None     | Fallback   |     1 |     -1 |
 |  9 | Tensor<[1, 12]> self = ?,<br>Optional[List[int]] dim = [0],<br>bool keepdim = True             | None     | Fallback   |     1 |     -1 |
