@@ -25,6 +25,9 @@ jobs:
           latest_pre_release=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href="\([^"]*\).*/\1/p' | tail -n 1)
           echo "release=$latest_pre_release" >> $GITHUB_OUTPUT
 
+          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | tail -n 1)
+          echo "release_short=$latest_release_name_short" >> $GITHUB_OUTPUT
+
       - name: Update requirements.txt
         id: update-requirements
         run: |
@@ -43,7 +46,7 @@ jobs:
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           base: main
           commit-message: "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
-          title: "Update TT-NN to ${{ steps.fetch_release.outputs.release }}"
+          title: "Update TT-NN to ${{ steps.fetch_release.outputs.release_short }}"
           body: "This PR updates TT-NN wheel to the latest pre-release version."          
           labels: ttnn-wheel-update
           delete-branch: true
