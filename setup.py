@@ -10,20 +10,6 @@ def read_readme():
         return f.read()
 
 
-def read_requirements(filename):
-    with open(filename) as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#") and not line.startswith("-r")]
-
-
-def get_ttnn_url():
-    """Extract TTNN URL from requirements.txt."""
-    with open("requirements.txt") as f:
-        for line in f:
-            if line.strip().startswith("ttnn @"):
-                return line.strip()
-    return None
-
-
 setup(
     name="torch-ttnn",
     description="PyTorch 2.0 TTNN Compiler",
@@ -44,9 +30,26 @@ setup(
     ],
     packages=find_packages(exclude=["tests", "tests.*"]),
     python_requires=">=3.10",
-    install_requires=read_requirements("requirements.txt"),
+    install_requires=[
+        "torch==2.2.1+cpu",
+        "torchvision==0.17.1+cpu",
+        "tabulate==0.9.0",
+        "networkx==3.1",
+        "graphviz",
+        "matplotlib==3.7.1",
+        "paramiko==3.5.1",
+    ],
     extras_require={
-        "dev": read_requirements("requirements-dev.txt"),
+        "ttnn": ["ttnn==0.59.0"],
+        "dev": [
+            "pytest>=7.4.0",
+            "pytest-cov>=4.1.0",
+            "black>=23.7.0",
+            "isort>=5.12.0",
+            "flake8>=6.1.0",
+            "mypy>=1.5.0",
+            "pre-commit>=3.3.3",
+        ],
     },
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
