@@ -1,20 +1,48 @@
 [build-system]
-requires = [
-  "setuptools==69.5.1",
-  "setuptools-scm==7.1.0",
-  "wheel",
-]
+requires = ["setuptools>=61.0", "setuptools-scm>=7.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "torch-ttnn"
-authors = [{ name = "Tenstorrent", email = "info@tenstorrent.com" }]
-
-description = "PyTorch dynamo backend for Tenstorrent TT-NN framework"
+dynamic = ["version", "dependencies"]
+description = "PyTorch 2.0 TTNN Compiler"
 readme = "README.md"
-keywords = ["torch", "ttnn"]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Tenstorrent", email = "info@tenstorrent.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Operating System :: POSIX :: Linux",
+]
+keywords = ["pytorch", "ttnn", "tenstorrent", "compiler", "machine-learning", "deep-learning"]
 
-dynamic = ["dependencies", "version"]
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
+[project.optional-dependencies]
+ttnn = ["ttnn==0.59.0"]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.7.0",
+    "isort>=5.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.3",
+]
+
+[project.urls]
+Repository = "https://github.com/tenstorrent/pytorch2.0_ttnn"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["torch_ttnn*"]
+
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+local_scheme = "no-local-version"
+write_to = "torch_ttnn/_version.py"
