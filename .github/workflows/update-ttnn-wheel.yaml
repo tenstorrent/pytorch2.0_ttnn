@@ -25,16 +25,13 @@ jobs:
           latest_pre_release=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href="\([^"]*\).*/\1/p' | tail -n 1)
           echo "release=$latest_pre_release" >> $GITHUB_OUTPUT
 
-          latest_release_name_short=$(curl -s https://pypi.eng.aws.tenstorrent.com/ttnn/ | sed -n 's/.*href=".*>\(.*\)-cp310-c.*/\1/p' | tail -n 1)
-          echo "release_name_short=$latest_release_name_short" >> $GITHUB_OUTPUT
-
       - name: Update requirements.txt
         id: update-requirements
         run: |
           # Remove any existing ttnn lines (adjust the regex if needed)
           sed -i '/^ttnn @ /d' requirements.txt
           # Append the line for the newest version
-          echo "ttnn @ ${{ repo_url }}${{steps.fetch_release.outputs.release}} ; python_version==\"3.10\"" >> requirements.txt
+          echo "ttnn @ ${{ env.repo_url }}${{steps.fetch_release.outputs.release}} ; python_version==\"3.10\"" >> requirements.txt
           
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
@@ -79,6 +76,7 @@ jobs:
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
       CACHE_DIR: /root/.cache/cpp-extension-cache
+      repo_url: "https://pypi.eng.aws.tenstorrent.com/ttnn/"
     steps:
       # TODO: checkout must be changed to main once branch is merged
       - name: Checkout Repository
@@ -95,7 +93,7 @@ jobs:
       - name: Update .gitsubmodules
         run: |
           # The name of the link nearly matches the spec from git describe. Modify and use that
-          latest_release_name_short=$(curl -s https://pypi.eng.aws.tenstorrent.com/ttnn/ | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | tail -n 1)
+          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | tail -n 1)
 
           # prepend v, change dev to -, and change +g to -g
           latest_version = echo $latest_release_name_short | sed -e 's/.dev/-/' -e 's/+g/-g/' -e 's/^/v/'
