@@ -99,7 +99,7 @@ jobs:
           latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | tail -n 1)
 
           # prepend v, change dev to -, and change +g to -g
-          latest_version = echo $latest_release_name_short | sed -e 's/.dev/-/' -e 's/+g/-g/' -e 's/^/v/'
+          latest_version=$(echo $latest_release_name_short | sed -e 's/.dev/-/' -e 's/+g/-g/' -e 's/^/v/')
 
           sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
           echo "Updated .gitmodules with the latest version: $latest_version"
