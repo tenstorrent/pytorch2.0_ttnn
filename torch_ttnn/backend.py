@@ -13,6 +13,7 @@ import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
 import tools.export_code as export_code
 import torch_ttnn.metrics as metrics
+from tools.aten_ops_analysis import analyze_remaining_aten_ops, log_aten_ops_summary
 from torch_ttnn import mem_utils
 from torch_ttnn.utils import GraphCleanup
 import copy
@@ -260,6 +261,33 @@ def aten_backend(
 
     for number, line in enumerate(gm.code.splitlines()):
         print(f"{number + 1}: {line}")
+
+    # Analyze remaining aten operations after compilation
+    try:
+        # Count original aten ops from the original schema list
+        original_aten_count = None
+        if option.original_schema_list:
+            original_aten_count = sum(
+                1
+                for schema in option.original_schema_list
+                if hasattr(schema, "opname") and str(schema.opname).startswith("aten.")
+            )
+
+        # Analyze remaining aten ops in the final compiled graph
+        aten_analysis = analyze_remaining_aten_ops(list(gm.graph.nodes), original_ops_count=original_aten_count)
+
+        # Always log summary if there are remaining aten ops
+        if aten_analysis.total_remaining_ops > 0:
+            log_aten_ops_summary(aten_analysis, logging.getLogger(__name__))
+
+        # Save detailed analysis to metrics directory only if metrics collection is enabled
+        if option.metrics_path:
+            metrics.save_pickle(aten_analysis.dict(), option.metrics_path, "remaining-aten-ops")
+            logging.info(f"Aten ops analysis saved to metrics/{option.metrics_path}/remaining-aten-ops.pickle")
+
+    except Exception as e:
+        # Don't let aten ops analysis failure impact compilation
+        logging.warning(f"Failed to analyze remaining aten ops: {e}")
 
     return make_boxed_func(gm)
 

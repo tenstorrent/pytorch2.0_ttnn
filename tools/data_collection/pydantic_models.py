@@ -4,7 +4,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 """
 Definition of the pydantic models used to descibe the run of a model.
@@ -98,4 +98,34 @@ class OpTest(BaseModel):
         default=None,
         description="Parametrization criteria for the operation, based on its kind, "
         "as key/value pairs, e.g. stride, padding, etc.",
+    )
+
+
+class AtenOpInfo(BaseModel):
+    """
+    Contains information about a single remaining aten operation after compilation.
+    """
+
+    op_name: str = Field(description="Name of the aten operation, e.g. 'aten.add.Tensor'")
+    node_name: str = Field(description="Name of the node in the graph")
+    args_str: str = Field(description="String representation of the operation arguments")
+    kwargs_str: str = Field(description="String representation of the operation keyword arguments")
+    input_shapes: List[str] = Field(default_factory=list, description="Input tensor shapes if available from metadata")
+    output_shape: Optional[str] = Field(None, description="Output tensor shape if available from metadata")
+
+
+class AtenOpsSummary(BaseModel):
+    """
+    Contains summary information about remaining aten operations after compilation.
+    """
+
+    total_remaining_ops: int = Field(description="Total number of remaining aten operations")
+    unique_op_types: int = Field(description="Number of unique aten operation types")
+    op_frequency: Dict[str, int] = Field(description="Frequency count of each aten operation type")
+    most_frequent_ops: List[str] = Field(description="List of most frequently occurring aten ops")
+    remaining_ops_details: List[AtenOpInfo] = Field(description="Detailed information about each remaining aten op")
+    original_ops_count: Optional[int] = Field(None, description="Original number of aten ops before compilation")
+    conversion_percentage: Optional[float] = Field(None, description="Percentage of ops successfully converted")
+    compilation_timestamp: datetime = Field(
+        default_factory=datetime.now, description="When the compilation analysis was performed"
     )
