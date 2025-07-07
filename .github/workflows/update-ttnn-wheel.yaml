@@ -22,10 +22,11 @@ jobs:
       - name: Fetch Latest Pre-release from Another Repo
         id: fetch_release
         run: |
-          latest_pre_release=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href="\([^"]*\).*/\1/p' | tail -n 1)
+          # Pull links from internal pypi, sort by version, take the last one (newest)
+          latest_pre_release=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href="\([^"]*\).*/\1/p' | sort -V | tail -n 1)
           echo "release=$latest_pre_release" >> $GITHUB_OUTPUT
 
-          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | tail -n 1)
+          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | sort -V | tail -n 1)
           echo "release_short=$latest_release_name_short" >> $GITHUB_OUTPUT
 
       - name: Update requirements.txt
@@ -96,7 +97,7 @@ jobs:
       - name: Update .gitsubmodules
         run: |
           # The name of the link nearly matches the spec from git describe. Modify and use that
-          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | tail -n 1)
+          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | sort -V | tail -n 1)
 
           # prepend v, change dev to -, and change +g to -g
           latest_version=$(echo $latest_release_name_short | sed -e 's/.dev/-/' -e 's/+g/-g/' -e 's/^/v/')
