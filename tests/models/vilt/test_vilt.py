@@ -33,6 +33,7 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
+@pytest.mark.compilation_xfail(reason="cannot sample n_sample <= 0")
 def test_vilt(record_property, mode):
     model_name = "ViLT"
     record_property("model_name", model_name)
