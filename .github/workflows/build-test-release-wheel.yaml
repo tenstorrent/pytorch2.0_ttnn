@@ -8,17 +8,24 @@ on:
         description: 'Set wheel type: pre-release or release'
         required: true
         default: 'pre-release'
-  # merge_group:
 
 jobs:
   build-wheel:
     runs-on: ["in-service"]
+    container:
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python 3.8
+      - name: Setup Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - name: Build Python package distribution
         run: |
           python3 -m pip install build
@@ -33,13 +40,30 @@ jobs:
   test-wheel-smoke:
     needs: [build-wheel]
     runs-on: ["in-service"]
+    container:
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/common_wheel_install
       - uses: ./.github/actions/common_smoke_tests
 
   test-wheel-lowering:
     needs: [build-wheel]
     runs-on: ["in-service"]
+    container:
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2]
@@ -52,6 +76,14 @@ jobs:
     needs: [build-wheel, test-wheel-lowering]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
     runs-on: ["in-service"]
+    container:
+      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GH_TOKEN }}
+      options: >-
+        --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
+        -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
     env:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"
@@ -64,25 +96,33 @@ jobs:
           lfs: true
       - uses: ./.github/actions/common_wheel_install
       - uses: ./.github/actions/common_model_tests
+        with:
+          splits: 40
+          matrix_group: ${{ matrix.group }}
+      - name: Upload Metrics Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-model-tests-metrics-group-${{ matrix.group }}
+          path: metrics/
 
-  # TODO: https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-  # publish-to-pypi:
-  #   name: >-
-  #     Publish pytorch-ttnn to PyPI
-  #   needs: [build-wheel, test-wheel-lowering, test-wheel-model]
-  #   if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/<package-name>  # Replace <package-name> with your PyPI project name
-  #   permissions:
-  #     id-token: write  # IMPORTANT: mandatory for trusted publishing
+  publish-to-pypi:
+    name: >-
+      Publish pytorch-ttnn to PyPI
+    needs: [build-wheel, test-wheel-lowering, test-wheel-model]
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/torch-ttnn
+    permissions:
+      id-token: write
 
-  #   steps:
-  #   - name: Download all the dists
-  #     uses: actions/download-artifact@v4
-  #     with:
-  #       name: torch_ttnn-distributions
-  #       path: dist/
-  #   - name: Publish distribution 📦 to PyPI
-  #     uses: pypa/gh-action-pypi-publish@release/v1
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: torch_ttnn-distributions
+        path: dist/
+    - name: Publish distribution 📦 to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
