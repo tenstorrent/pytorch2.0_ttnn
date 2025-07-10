@@ -166,7 +166,7 @@ def reset_program_cache(device):
     device.enable_program_cache()
 
 def get_cache_for_model_test(request):
-    cache_path = get_absolute_cache_path("pytorch_eager_results/" + request.node.name)
+    cache_path = get_absolute_cache_path(f"pytorch_eager_results/{request.node.name}.pkl")
 
     if not os.path.exists(cache_path):
         return None

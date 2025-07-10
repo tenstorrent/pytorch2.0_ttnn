@@ -59,13 +59,15 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.e2e_with_native_integration
-def test_bert(record_property, mode, batch_size):
+def test_bert(record_property, mode, batch_size, cached_results):
     model_name = "BERT"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode, batch_size)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         # Helper function to decode output to human-readable text
