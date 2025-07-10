@@ -27,12 +27,14 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.parametrize("model_name", ["textattack/albert-base-v2-imdb"])
-def test_albert_sequence_classification(record_property, model_name, mode):
+def test_albert_sequence_classification(record_property, model_name, mode, cached_results):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         logits = results.logits

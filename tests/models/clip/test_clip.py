@@ -52,13 +52,15 @@ class ThisTester(ModelTester):
         "eval",
     ],
 )
-def test_clip(record_property, mode):
+def test_clip(record_property, mode, cached_results):
     model_name = "CLIP"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         logits_per_image = results.logits_per_image  # this is the image-text similarity score

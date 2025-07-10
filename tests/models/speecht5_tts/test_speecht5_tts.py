@@ -38,13 +38,15 @@ class ThisTester(ModelTester):
     "mode",
     [pytest.param("eval", marks=pytest.mark.compilation_xfail(reason="Fail with more run_once"))],
 )
-def test_speecht5_tts(record_property, mode):
+def test_speecht5_tts(record_property, mode, cached_results):
     model_name = "speecht5-tts"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     # if mode == "eval":
     #     # Uncomment below if you really want to hear the result.
     #     # import soundfile as sf

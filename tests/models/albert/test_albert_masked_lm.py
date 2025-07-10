@@ -44,12 +44,14 @@ class ThisTester(ModelTester):
         "albert/albert-xxlarge-v2",
     ],
 )
-def test_albert_masked_lm(record_property, model_name, mode):
+def test_albert_masked_lm(record_property, model_name, mode, cached_results):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         # retrieve index of [MASK]

@@ -35,13 +35,15 @@ class ThisTester(ModelTester):
     [1],
 )
 @pytest.mark.compilation_xfail(reason="OOM for DRAM")
-def test_falcon(record_property, mode, batch_size):
+def test_falcon(record_property, mode, batch_size, cached_results):
     model_name = "Falcon-7B"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode, batch_size)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         # Helper function to decode output to human-readable text

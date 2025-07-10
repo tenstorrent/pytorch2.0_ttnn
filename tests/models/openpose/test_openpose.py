@@ -33,12 +33,14 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.skip(reason="failing during torch run with bypass compilation")
-def test_openpose(record_property, mode):
+def test_openpose(record_property, mode, cached_results):
     model_name = "OpenPose"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     record_property("torch_ttnn", (tester, results))

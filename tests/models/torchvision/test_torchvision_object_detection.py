@@ -57,13 +57,15 @@ class ThisTester(ModelTester):
         ),
     ],
 )
-def test_torchvision_object_detection(record_property, model_info, mode):
+def test_torchvision_object_detection(record_property, model_info, mode, cached_results):
     model_name, _ = model_info
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_info, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         print(f"Model: {model_name} | Output: {results}")
 

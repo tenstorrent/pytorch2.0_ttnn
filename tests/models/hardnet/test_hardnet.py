@@ -45,13 +45,15 @@ class ThisTester(ModelTester):
         pytest.param("eval", marks=pytest.mark.converted_end_to_end),
     ],
 )
-def test_hardnet(record_property, mode):
+def test_hardnet(record_property, mode, cached_results):
     model_name = "HardNet"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         # Tensor of shape 1000, with confidence scores over ImageNet's 1000 classes
         print(results[0])

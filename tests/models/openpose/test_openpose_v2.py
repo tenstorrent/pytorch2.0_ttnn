@@ -51,13 +51,15 @@ class ThisTester(ModelTester):
         pytest.param("eval", marks=pytest.mark.converted_end_to_end),
     ],
 )
-def test_openpose_v2(record_property, mode):
+def test_openpose_v2(record_property, mode, cached_results):
     model_name = "OpenPose V2"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         print(f"Output: {results}")
 

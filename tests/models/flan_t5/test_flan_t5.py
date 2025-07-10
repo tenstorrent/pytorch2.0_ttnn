@@ -29,13 +29,15 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.compilation_xfail
-def test_flan_t5(record_property, mode):
+def test_flan_t5(record_property, mode, cached_results):
     model_name = "FLAN-T5"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         results = tester.tokenizer.batch_decode(results, skip_special_tokens=True)
 

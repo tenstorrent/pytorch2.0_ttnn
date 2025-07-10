@@ -75,13 +75,15 @@ class ThisTester(ModelTester):
     "mode",
     ["train", "eval"],
 )
-def test_autoencoder_conv_v2(record_property, mode):
+def test_autoencoder_conv_v2(record_property, mode, cached_results):
     model_name = f"Autoencoder (conv)"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         print("Output: ", results)

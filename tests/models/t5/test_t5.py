@@ -29,12 +29,14 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.parametrize("model_name", ["t5-small", "t5-base", "t5-large"])
 @pytest.mark.compilation_xfail
-def test_t5(record_property, model_name, mode):
+def test_t5(record_property, model_name, mode, cached_results):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         output_text = tester.tokenizer.decode(results[0], skip_special_tokens=True)
         print(f"Model: {model_name} | Input: {tester.input_text} | Output: {output_text}")
