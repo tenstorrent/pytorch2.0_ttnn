@@ -8,7 +8,7 @@ import ttnn
 import torch
 import torch_ttnn
 import collections
-from tests.utils import calculate_accuracy
+from tests.utils import calculate_accuracy, get_absolute_cache_path
 import time
 from pathlib import Path
 import os
@@ -165,6 +165,53 @@ def reset_program_cache(device):
     device.disable_and_clear_program_cache()
     device.enable_program_cache()
 
+def get_cache_for_model_test(request):
+    cache_path = get_absolute_cache_path("pytorch_eager_results/" + request.node.name)
+
+    if not os.path.exists(cache_path):
+        return None
+
+    try:
+        full_results = pickle.load(open(cache_path, 'rb'))
+        return full_results
+    except:
+        return None
+
+def cache_model_test(request, results, runtime_metrics):
+    parent_cache_path = get_absolute_cache_path("pytorch_eager_results/")
+
+    os.makedirs(parent_cache_path, exist_ok=True)
+
+    cache_path = parent_cache_path + f"{request.node.name}.pkl"
+
+    cache_dict = {
+        "results": results,
+        "runtime_metrics": runtime_metrics
+    }
+    pickle.dump(cache_dict, open(cache_path, 'wb'))
+
+
+    
+@pytest.fixture
+def cached_results(request):
+    """Get previously cached results and path where results are stored.
+
+    returns: Tuple[results, cache_path]
+    """
+    full_results = get_cache_for_model_test(request)
+
+    if full_results is None:
+        return None
+
+    return full_results.get("results")
+
+def cached_runtime_metrics(request):
+    full_results = get_cache_for_model_test(request)
+
+    if full_results is None:
+        return None
+
+    return full_results.get("runtime_metrics")
 
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
@@ -232,6 +279,11 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 runtime_metrics["success"] = False
                 runtime_metrics["error_message"] = error_message
 
+            # use cached_value if exists
+            cached_metrics = cached_runtime_metrics(request)
+            if cached_metrics is not None:
+                runtime_metrics = cached_metrics
+
             with open(original_metrics_path, "wb") as f:
                 pickle.dump(runtime_metrics, f)
             logging.info(f"Runtime metrics saved to {original_metrics_path}.")
@@ -239,6 +291,8 @@ def compile_and_run(device, reset_torch_dynamo, request):
     if "torch_ttnn" in record:
         model_tester, outputs = record["torch_ttnn"]
         from tests.utils import ModelTester
+
+        cache_model_test(request, outputs, runtime_metrics)
 
         if not isinstance(model_tester, ModelTester):
             logging.error("model_tester must be an instance of ModelTester.")
