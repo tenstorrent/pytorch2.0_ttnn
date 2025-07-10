@@ -1,4 +1,5 @@
 #pragma once
+
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 #include <ATen/core/Tensor.h>                    // at::Tensor, at::TensorList
@@ -7,6 +8,9 @@
 #include <ATen/core/ScalarType.h>                // scalar types
 #include <c10/util/Optional.h>                   // c10::optional
 #include <vector>
+#include <c10/core/SymInt.h>  // for c10::SymInt
+
+
 
 
 namespace tt_eager::ops::view {
@@ -42,12 +46,20 @@ at::Tensor ttnn_permute(const at::Tensor& input, at::IntArrayRef dims);
 /**
  * Implementation of aten::slice.Tensor
  */
-at::Tensor ttnn_slice_tensor(const at::Tensor& self, int64_t dim, int64_t start, int64_t end, int64_t step);
+at::Tensor ttnn_slice_tensor(const at::Tensor& input,
+                             int64_t dim,
+                             c10::optional<c10::SymInt> start,
+                             c10::optional<c10::SymInt> end,
+                             c10::SymInt step);
 
 /**
  * Implementation of aten::split.Tensor
  */
-std::vector<at::Tensor> ttnn_split_tensor_fixed(const at::Tensor& self, int64_t split_size, int64_t dim);
+std::vector<at::Tensor> ttnn_split_tensor_fixed(
+    const at::Tensor& self,
+    c10::SymInt split_size,
+    int64_t dim
+    );
 std::vector<at::Tensor> ttnn_split_tensor_sections(const at::Tensor& self, at::IntArrayRef sections, int64_t dim);
 
 /**

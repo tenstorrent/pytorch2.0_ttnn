@@ -36,6 +36,11 @@ at::Tensor ttnn_mul_tensor(
     const at::Tensor& input,
     const at::Tensor& other);
 
+at::Tensor ttnn_mul_scalar(
+    const at::Tensor& self,
+    const at::Scalar& other);
+
+
 // Element-wise division
 at::Tensor ttnn_div_tensor(
     const at::Tensor& input,
@@ -46,5 +51,22 @@ at::Tensor ttnn_rsub_scalar(
     const at::Tensor& self,
     const at::Scalar& other,
     const at::Scalar& alpha);
+
+at::Tensor ttnn_rsub_tensor(
+    const at::Tensor& self,
+    const at::Tensor& other,
+    const at::Scalar& alpha
+);
+
+at::Tensor ttnn_sub_tensor(
+    const at::Tensor& input,
+    const at::Tensor& other,
+    const at::Scalar& alpha = 1.0);
+
+// Element-wise subtraction by scalar: out = self – alpha * other
+at::Tensor ttnn_sub_scalar(
+    const at::Tensor& self,
+    const at::Scalar& other,
+    const at::Scalar& alpha = 1.0);
 
 }  // namespace tt_eager::ops::binary

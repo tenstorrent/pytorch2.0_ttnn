@@ -177,6 +177,34 @@ at::Tensor ttnn_mul_tensor(
     return output;
 }
 
+at::Tensor ttnn_mul_scalar(
+    const at::Tensor& self,
+    const at::Scalar& other
+) {
+    LOGGING("Running aten::mul.Scalar");
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
+
+    // отримуємо внутрішній ttnn::Tensor
+    auto* impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    ttnn::Tensor t0 = ensure_tile(impl->get_ttnn_tensor());
+
+    // множимо на скаляр
+    ttnn::Tensor result = ttnn::multiply(t0, static_cast<float>(other.toDouble()));
+
+    // створюємо вихідний at::Tensor такого ж розміру/типу/девайсу
+    at::Tensor output = tt_eager::ops::create::custom_empty_memory_format(
+        self.sizes(),
+        self.scalar_type(),
+        /*strides=*/c10::nullopt,
+        /*device=*/self.device(),
+        /*pin_memory=*/c10::nullopt
+    );
+    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+    out_impl->set_sizes_and_strides_as(self);
+    out_impl->set_ttnn_tensor(result);
+    return output;
+}
+
 at::Tensor ttnn_div_tensor(
     const at::Tensor& input,
     const at::Tensor& other
@@ -238,4 +266,111 @@ at::Tensor ttnn_rsub_scalar(
     return output;
 }
 
+at::Tensor ttnn_rsub_tensor(
+    const at::Tensor& self,
+    const at::Tensor& other,
+    const at::Scalar& alpha
+) {
+    LOGGING("Running aten::rsub.Tensor");
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
+    TORCH_CHECK(other.device().type() == c10::DeviceType::PrivateUse1);
+
+    // unwrap TT-NN tensors
+    auto* impl0 = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    auto* impl1 = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
+    ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
+    ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
+
+    // compute self * alpha
+    if (alpha.toDouble() != 1.0) {
+        t0 = ttnn::multiply(t0, static_cast<float>(alpha.toDouble()));
+    }
+    // negate that
+    auto neg_t0 = ttnn::multiply(t0, -1.f);
+    // other + neg(self*alpha)
+    auto result = ttnn::add(neg_t0, t1);
+
+    // wrap back into an at::Tensor
+    at::Tensor output = tt_eager::ops::create::custom_empty_memory_format(
+        self.sizes(),
+        self.scalar_type(),
+        /*strides=*/c10::nullopt,
+        /*device=*/self.device(),
+        /*pin_memory=*/c10::nullopt
+    );
+    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+    out_impl->set_sizes_and_strides_as(self);
+    out_impl->set_ttnn_tensor(result);
+    return output;
+}
+
+at::Tensor ttnn_sub_tensor(
+    const at::Tensor& input,
+    const at::Tensor& other,
+    const at::Scalar& alpha
+) {
+  LOGGING("Running aten::sub.Tensor");
+  TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1);
+  TORCH_CHECK(other.device().type() == c10::DeviceType::PrivateUse1);
+
+  // unwrap tensors
+  auto* impl0 = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
+  auto* impl1 = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
+  ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
+  ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
+
+  // scale `other` by alpha
+  float a = static_cast<float>(alpha.toDouble());
+  if (a != 1.0f) {
+    t1 = ttnn::multiply(t1, a);
+  }
+
+  // result = t0 + (-1) * t1
+  auto neg_t1 = ttnn::multiply(t1, -1.0f);
+  auto result = ttnn::add(t0, neg_t1);
+
+  // wrap back into at::Tensor
+  auto output = tt_eager::ops::create::custom_empty_memory_format(
+      input.sizes(),
+      input.scalar_type(),
+      /*strides=*/c10::nullopt,
+      /*device=*/input.device(),
+      /*pin_memory=*/c10::nullopt);
+  auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+  out_impl->set_sizes_and_strides_as(input);
+  out_impl->set_ttnn_tensor(result);
+  return output;
+}
+
+at::Tensor ttnn_sub_scalar(
+    const at::Tensor& self,
+    const at::Scalar& other,
+    const at::Scalar& alpha
+) {
+  LOGGING("Running aten::sub.Scalar");
+  TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
+
+  auto* impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+  ttnn::Tensor t0 = ensure_tile(impl->get_ttnn_tensor());
+
+  // compute scalar value to subtract: other * alpha
+  float o = static_cast<float>(other.toDouble());
+  float a = static_cast<float>(alpha.toDouble());
+  float sub_val = o * a;
+
+  // result = t0 + (–sub_val)
+  auto result = ttnn::add(t0, -sub_val);
+
+  // wrap back into at::Tensor
+  auto output = tt_eager::ops::create::custom_empty_memory_format(
+      self.sizes(),
+      self.scalar_type(),
+      /*strides=*/c10::nullopt,
+      /*device=*/self.device(),
+      /*pin_memory=*/c10::nullopt);
+  auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+  out_impl->set_sizes_and_strides_as(self);
+  out_impl->set_ttnn_tensor(result);
+  return output;
+}
 }  // namespace tt_eager::ops::binary
