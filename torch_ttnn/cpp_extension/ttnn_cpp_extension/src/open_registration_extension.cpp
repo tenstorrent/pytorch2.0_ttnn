@@ -38,43 +38,19 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("expand", &tt_eager::ops::view::ttnn_expand);
     m.impl("gelu", &tt_eager::ops::unary::ttnn_gelu);
     m.impl("mul.Tensor", &tt_eager::ops::binary::ttnn_mul_tensor);
-    m.impl("mul.Scalar", &tt_eager::ops::binary::ttnn_mul_scalar); 
+    m.impl("mul.Scalar", &tt_eager::ops::binary::ttnn_mul_scalar);
     m.impl("native_layer_norm", &tt_eager::ops::norm::ttnn_native_layer_norm);
     m.impl("permute", &tt_eager::ops::view::ttnn_permute);
     m.impl("rsub.Scalar", &tt_eager::ops::binary::ttnn_rsub_scalar);
-    // m.impl("rsub.Tensor", &tt_eager::ops::binary::ttnn_rsub_tensor);
     m.impl("slice.Tensor", &tt_eager::ops::view::ttnn_slice_tensor);
     m.impl("split.Tensor", &tt_eager::ops::view::ttnn_split_tensor_fixed);
-    m.impl("t", &tt_eager::ops::view::ttnn_t_default);    
+    m.impl("t", &tt_eager::ops::view::ttnn_t_default);
     m.impl("tanh", &tt_eager::ops::unary::ttnn_tanh);
     m.impl("transpose.int", &tt_eager::ops::view::ttnn_transpose_int);
     m.impl("unsqueeze", &tt_eager::ops::view::ttnn_unsqueeze);
+    m.impl("squeeze.dim", &tt_eager::ops::view::ttnn_squeeze_dim);
     m.impl("view", &tt_eager::ops::view::ttnn_view);
-    // m.impl("view.Tensor", &tt_eager::ops::view::ttnn_view);
-    
-
-    // m.impl("sub.Tensor", &tt_eager::ops::binary::ttnn_sub_tensor);
-    // m.impl("sub.Scalar", &tt_eager::ops::binary::ttnn_sub_scalar);
-
-    // m.impl("as_strided", &tt_eager::ops::view::ttnn_as_strided);
-    // m.impl("linear", &tt_eager::ops::linear::ttnn_linear);
-
-    // m.impl("aten::to.dtype", &ttnn_to_dtype);
 }
-
-// TORCH_LIBRARY_IMPL(aten, AutogradPrivateUse1, m) {
-//     m.impl("mul.Scalar", tt_eager::ops::binary::ttnn_mul_scalar); 
-//     m.impl("aten::to.dtype", &ttnn_to_dtype);
-//     m.impl("rsub.Scalar", tt_eager::ops::binary::ttnn_rsub_scalar);
-//     m.impl("rsub.Tensor", tt_eager::ops::binary::ttnn_rsub_tensor);
-//     m.impl("sub.Tensor", tt_eager::ops::binary::ttnn_sub_tensor);
-//     m.impl("sub.Scalar", tt_eager::ops::binary::ttnn_sub_scalar);
-//     m.impl("view.Tensor", &tt_eager::ops::view::ttnn_view);
-//     m.impl("view", &tt_eager::ops::view::ttnn_view);
-//     m.impl("reshape", &tt_eager::ops::view::ttnn_view);
-//     m.impl("reshape.Tensor", &tt_eager::ops::view::ttnn_view);
-//     m.impl("linear", &tt_eager::ops::linear::ttnn_linear);
-// }
 
 // This macro registers helper functions associated with the ttnn_device_mode module that can be used in Python
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {

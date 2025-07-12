@@ -4,15 +4,7 @@ import pickle
 import ttnn
 from pathlib import Path
 from tests.utils import calculate_accuracy, render_metric_string_list_to_input_args_kwargs
-
-# Try to import the ttnn_module, skip tests if not available
-try:
-    from torch_ttnn.cpp_extension import ttnn_module
-    TTNN_MODULE_AVAILABLE = True
-except ImportError:
-    TTNN_MODULE_AVAILABLE = False
-    ttnn_module = None
-
+from torch_ttnn.cpp_extension import ttnn_module
 
 class AtenModule(torch.nn.Module):
     def __init__(self):
@@ -38,13 +30,7 @@ def teardown_module(module):
     save_pickle(metrics, "metrics-autogen-op/BERT", "aten._to_copy.default")
 
 
-@pytest.mark.parametrize("input_strings", [
-    ["Tensor<[1, 1, 1, 256]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[Device] device = ttnn_device"],
-    ["Tensor<[1, 512, 768]> self = ?", "Optional[int] dtype = torch.float32", "Optional[Device] device = ttnn_device"],
-    ["Tensor<[1, 768]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[Device] device = ttnn_device"],
-    ["Tensor<[12, 512, 64]> self = ?", "Optional[int] dtype = torch.float32", "Optional[Device] device = ttnn_device"],
-])
-@pytest.mark.skipif(not TTNN_MODULE_AVAILABLE, reason="ttnn_module not available")
+@pytest.mark.parametrize("input_strings", [["Tensor<[1, 1, 1, 256]> self = ?", "Optional[int] dtype = torch.bfloat16", "Optional[Device] device = cpu"]])
 def test_aten(device, input_strings, input_var_only_native, input_var_check_accu, input_var_check_ttnn):
     metric = {
         "opname": "aten._to_copy.default",

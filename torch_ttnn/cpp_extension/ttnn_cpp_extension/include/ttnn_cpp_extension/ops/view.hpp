@@ -2,16 +2,13 @@
 
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
-#include <ATen/core/Tensor.h>                    // at::Tensor, at::TensorList
-#include <ATen/core/Scalar.h>                    // at::Scalar
-#include <ATen/core/Dimname.h>                   // at::IntArrayRef
-#include <ATen/core/ScalarType.h>                // scalar types
-#include <c10/util/Optional.h>                   // c10::optional
+#include <ATen/core/Tensor.h>      // at::Tensor, at::TensorList
+#include <ATen/core/Scalar.h>      // at::Scalar
+#include <ATen/core/Dimname.h>     // at::IntArrayRef
+#include <ATen/core/ScalarType.h>  // scalar types
+#include <c10/util/Optional.h>     // c10::optional
 #include <vector>
 #include <c10/core/SymInt.h>  // for c10::SymInt
-
-
-
 
 namespace tt_eager::ops::view {
 
@@ -46,20 +43,17 @@ at::Tensor ttnn_permute(const at::Tensor& input, at::IntArrayRef dims);
 /**
  * Implementation of aten::slice.Tensor
  */
-at::Tensor ttnn_slice_tensor(const at::Tensor& input,
-                             int64_t dim,
-                             c10::optional<c10::SymInt> start,
-                             c10::optional<c10::SymInt> end,
-                             c10::SymInt step);
+at::Tensor ttnn_slice_tensor(
+    const at::Tensor& input,
+    int64_t dim,
+    c10::optional<c10::SymInt> start,
+    c10::optional<c10::SymInt> end,
+    c10::SymInt step);
 
 /**
  * Implementation of aten::split.Tensor
  */
-std::vector<at::Tensor> ttnn_split_tensor_fixed(
-    const at::Tensor& self,
-    c10::SymInt split_size,
-    int64_t dim
-    );
+std::vector<at::Tensor> ttnn_split_tensor_fixed(const at::Tensor& self, c10::SymInt split_size, int64_t dim);
 std::vector<at::Tensor> ttnn_split_tensor_sections(const at::Tensor& self, at::IntArrayRef sections, int64_t dim);
 
 /**
@@ -77,11 +71,6 @@ at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim
  */
 at::Tensor ttnn_unsqueeze(const at::Tensor& self, int64_t dim);
 
-at::Tensor ttnn_as_strided(
-        const at::Tensor& self,
-        at::IntArrayRef size,
-        at::IntArrayRef stride,
-        c10::optional<int64_t> storage_offset
-    );  
+at::Tensor ttnn_squeeze_dim(const at::Tensor& self, int64_t dim);
 
 }  // namespace tt_eager::ops::view
