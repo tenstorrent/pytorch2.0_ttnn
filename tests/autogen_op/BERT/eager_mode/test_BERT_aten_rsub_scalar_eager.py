@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
-#
-# SPDX-License-Identifier: Apache-2.0
 import torch
 import pytest
 import pickle
@@ -8,7 +5,6 @@ import ttnn
 from pathlib import Path
 from tests.utils import calculate_accuracy, render_metric_string_list_to_input_args_kwargs
 
-# Try to import the ttnn_module, skip tests if not available
 try:
     from torch_ttnn.cpp_extension import ttnn_module
     TTNN_MODULE_AVAILABLE = True
@@ -93,12 +89,10 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
 
     if metric["run"] == True:
         try:
-            # Check inference result
             metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
 
-        # In eager mode, we do not check graph rewriting
         metric["convert_to_ttnn"] = "N/A"
         metric["ttnn_fallbacks_to_host_count"] = "N/A"
 

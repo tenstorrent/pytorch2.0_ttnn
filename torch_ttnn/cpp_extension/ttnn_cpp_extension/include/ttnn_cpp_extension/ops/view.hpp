@@ -33,7 +33,6 @@ at::Tensor ttnn_slice_tensor(
     c10::SymInt step);
 
 std::vector<at::Tensor> ttnn_split_tensor_fixed(const at::Tensor& self, c10::SymInt split_size, int64_t dim);
-std::vector<at::Tensor> ttnn_split_tensor_sections(const at::Tensor& self, at::IntArrayRef sections, int64_t dim);
 
 at::Tensor ttnn_t_default(const at::Tensor& self);
 

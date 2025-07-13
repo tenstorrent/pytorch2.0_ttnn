@@ -232,35 +232,6 @@ std::vector<at::Tensor> ttnn_split_tensor_fixed(const at::Tensor& self, c10::Sym
     return outputs;
 }
 
-std::vector<at::Tensor> ttnn_split_tensor_sections(const at::Tensor& self, at::IntArrayRef sections, int64_t dim) {
-    LOGGING("Running aten::split.Tensor (section sizes)");
-
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
-    TORCH_CHECK(!sections.empty(), "Split sections cannot be empty");
-
-    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    auto ttnn_tensor = self_impl->get_ttnn_tensor();
-
-    if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
-    }
-
-    ttnn::SmallVector<int64_t> split_sizes(sections.begin(), sections.end());
-    auto ttnn_outputs = ttnn::split(ttnn_tensor, split_sizes, dim, std::nullopt);
-
-    std::vector<at::Tensor> outputs;
-    for (const auto& t : ttnn_outputs) {
-        std::vector<int64_t> shape_vec(t.logical_shape().cbegin(), t.logical_shape().cend());
-        auto output = tt_eager::ops::create::custom_empty_memory_format(
-            shape_vec, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
-        auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-        out_impl->set_ttnn_tensor(t);
-        outputs.push_back(std::move(output));
-    }
-
-    return outputs;
-}
-
 at::Tensor ttnn_t_default(const at::Tensor& self) {
     LOGGING("Running aten::t.default");
 

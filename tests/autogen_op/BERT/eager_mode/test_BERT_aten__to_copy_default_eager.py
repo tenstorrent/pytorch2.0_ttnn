@@ -56,7 +56,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
 
     if metric["native_run"] == True:
         result_after = None
-        # Move module and input to TTNN device using cpp extension
         ttnn_torch_device = ttnn_module.as_torch_device(device)
         m = m.to(ttnn_torch_device)
         input_args = [a.to(ttnn_torch_device) if isinstance(a, torch.Tensor) else a for a in input_args]
@@ -71,11 +70,9 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
 
     if metric["run"] == True:
         try:
-            # Check inference result
             metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
-        # In eager mode, we do not check graph rewriting
         metric["convert_to_ttnn"] = "N/A"
         metric["ttnn_fallbacks_to_host_count"] = "N/A"
 

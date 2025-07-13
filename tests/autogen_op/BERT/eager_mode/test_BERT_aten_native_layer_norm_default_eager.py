@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
-#
-# SPDX-License-Identifier: Apache-2.0
 import torch
 import pytest
 import pickle
@@ -8,7 +5,6 @@ import ttnn
 from pathlib import Path
 from tests.utils import calculate_accuracy, render_metric_string_list_to_input_args_kwargs
 
-# Try to import the ttnn_module, skip tests if not available
 try:
     from torch_ttnn.cpp_extension import ttnn_module
     TTNN_MODULE_AVAILABLE = True
@@ -106,7 +102,6 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
 
     if metric["native_run"] == True:
         result_after = None
-        # Move module and input to TTNN device using cpp extension
         ttnn_torch_device = ttnn_module.as_torch_device(device)
         m = m.to(ttnn_torch_device)
         input_args = [a.to(ttnn_torch_device) if isinstance(a, torch.Tensor) else a for a in input_args]
@@ -121,16 +116,12 @@ def test_aten(device, input_strings, input_var_only_native, input_var_check_accu
 
     if metric["run"] == True:
         try:
-            # Check inference result - layer norm returns a tuple (output, mean, rstd)
             if isinstance(result_before, tuple) and isinstance(result_after, tuple):
-                # Compare only the main output (first element of the tuple)
                 metric["accuracy"] = calculate_accuracy(result_before[0], result_after[0])
             else:
                 metric["accuracy"] = calculate_accuracy(result_before, result_after)
         except Exception as e:
             print(f"Failed to check inference result. Raised exception: {e}")
-
-        # In eager mode, we do not check graph rewriting
         metric["convert_to_ttnn"] = "N/A"
         metric["ttnn_fallbacks_to_host_count"] = "N/A"
 

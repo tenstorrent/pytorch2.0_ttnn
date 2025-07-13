@@ -20,8 +20,6 @@ at::Tensor ttnn_bmm(const at::Tensor& batch1, const at::Tensor& batch2);
 
 at::Tensor ttnn_mul_tensor(const at::Tensor& input, const at::Tensor& other);
 
-at::Tensor ttnn_mul_scalar(const at::Tensor& self, const at::Scalar& other);
-
 at::Tensor ttnn_div_tensor(const at::Tensor& input, const at::Tensor& other);
 
 at::Tensor ttnn_rsub_scalar(const at::Tensor& self, const at::Scalar& other, const at::Scalar& alpha);

@@ -166,27 +166,6 @@ at::Tensor ttnn_mul_tensor(const at::Tensor& input, const at::Tensor& other) {
     return output;
 }
 
-at::Tensor ttnn_mul_scalar(const at::Tensor& self, const at::Scalar& other) {
-    LOGGING("Running aten::mul.Scalar");
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
-
-    auto* impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl->get_ttnn_tensor());
-
-    ttnn::Tensor result = ttnn::multiply(t0, static_cast<float>(other.toDouble()));
-
-    at::Tensor output = tt_eager::ops::create::custom_empty_memory_format(
-        self.sizes(),
-        self.scalar_type(),
-        /*strides=*/c10::nullopt,
-        /*device=*/self.device(),
-        /*pin_memory=*/c10::nullopt);
-    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-    out_impl->set_sizes_and_strides_as(self);
-    out_impl->set_ttnn_tensor(result);
-    return output;
-}
-
 at::Tensor ttnn_div_tensor(const at::Tensor& self, const at::Tensor& other) {
     if (other.dim() == 0) {
         TORCH_CHECK(
