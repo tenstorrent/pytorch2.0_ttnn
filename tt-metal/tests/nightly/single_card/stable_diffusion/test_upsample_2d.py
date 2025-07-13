@@ -1,1 +1,0 @@
-../../../../models/demos/wormhole/stable_diffusion/tests/test_upsample_2d.py

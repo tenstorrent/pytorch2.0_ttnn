@@ -1,1 +1,0 @@
-../../../ttnn/integration_tests/swin_s/test_ttnn_swin_transformer.py

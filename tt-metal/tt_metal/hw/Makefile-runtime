@@ -1,5 +1,0 @@
-include $(TT_METAL_HOME)/tt_metal/hw/toolchain/module.mk
-
-prepare: hw/toolchain
-
-clean: hw/toolchain/clean

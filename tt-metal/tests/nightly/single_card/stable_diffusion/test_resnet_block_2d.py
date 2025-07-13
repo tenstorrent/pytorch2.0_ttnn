@@ -1,1 +1,0 @@
-../../../../models/demos/wormhole/stable_diffusion/tests/test_resnet_block_2d.py
