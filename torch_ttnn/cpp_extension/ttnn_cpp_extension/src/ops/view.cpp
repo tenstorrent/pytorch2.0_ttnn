@@ -48,6 +48,24 @@ at::Tensor ttnn_expand(const at::Tensor& self, at::IntArrayRef size, bool implic
 }
 
 at::Tensor ttnn_view(const at::Tensor& self, at::IntArrayRef size) {
+    std::cout << "[DEBUG] ttnn_view called with shape: [";
+    for (int i = 0; i < size.size(); i++) {
+        std::cout << size[i];
+        if (i < size.size() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
+
+    std::cout << "[DEBUG] Input tensor shape: [";
+    for (int i = 0; i < self.dim(); i++) {
+        std::cout << self.size(i);
+        if (i < self.dim() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "], numel=" << self.numel() << std::endl;
+
     LOGGING("Running aten::view.default");
 
     TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, "Tensor must be on TTNN device");
@@ -60,30 +78,82 @@ at::Tensor ttnn_view(const at::Tensor& self, at::IntArrayRef size) {
         ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
     }
 
-    // Validate that the total number of elements is preserved
+    // Debug TTNN tensor shape
+    auto ttnn_input_shape = ttnn_tensor.logical_shape();
+    std::cout << "[DEBUG] TTNN input shape: [";
+    for (int i = 0; i < ttnn_input_shape.rank(); i++) {
+        std::cout << ttnn_input_shape[i];
+        if (i < ttnn_input_shape.rank() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
+
+    // Calculate numel from PyTorch tensor shape (numel() is broken for TTNN tensors)
     int64_t original_numel = 1;
     for (int i = 0; i < self.dim(); ++i) {
         original_numel *= self.size(i);
     }
 
+    // Handle -1 dimensions and validate
+    std::vector<int64_t> new_size(size.begin(), size.end());
+    int unknown_idx = -1;
+    int64_t known_product = 1;
+
+    for (int i = 0; i < new_size.size(); i++) {
+        if (new_size[i] == -1) {
+            TORCH_CHECK(unknown_idx == -1, "only one dimension can be inferred");
+            unknown_idx = i;
+        } else {
+            TORCH_CHECK(new_size[i] >= 0, "Negative size dimensions are not supported");
+            known_product *= new_size[i];
+        }
+    }
+
+    if (unknown_idx >= 0) {
+        TORCH_CHECK(known_product != 0 && original_numel % known_product == 0, "cannot infer dimension size");
+        new_size[unknown_idx] = original_numel / known_product;
+    }
+
     int64_t new_numel = 1;
-    for (int64_t s : size) {
-        TORCH_CHECK(s >= 0, "Negative size dimensions are not supported");
+    for (int64_t s : new_size) {
         new_numel *= s;
     }
 
     TORCH_CHECK(
         original_numel == new_numel,
-        "view size is not compatible with input tensor's size and stride (at least one dimension spans across two "
-        "contiguous subspaces)");
+        "view size is not compatible with input tensor's size: old=",
+        original_numel,
+        ", new=",
+        new_numel);
+
+    std::cout << "[DEBUG] Final output shape will be: [";
+    for (int i = 0; i < new_size.size(); i++) {
+        std::cout << new_size[i];
+        if (i < new_size.size() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
 
     // Create new shape for reshape
-    tt::stl::SmallVector<int32_t> new_shape(size.begin(), size.end());
+    tt::stl::SmallVector<int32_t> new_shape(new_size.begin(), new_size.end());
     auto reshaped_tensor = ttnn::reshape(ttnn_tensor, new_shape);
+
+    // Debug reshaped tensor shape
+    auto reshaped_shape = reshaped_tensor.logical_shape();
+    std::cout << "[DEBUG] TTNN reshaped shape: [";
+    for (int i = 0; i < reshaped_shape.rank(); i++) {
+        std::cout << reshaped_shape[i];
+        if (i < reshaped_shape.rank() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
 
     // Create output tensor with the new shape
     auto output = tt_eager::ops::create::custom_empty_memory_format(
-        size, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
+        new_size, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
 
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
     out_impl->set_ttnn_tensor(reshaped_tensor);
@@ -170,6 +240,7 @@ at::Tensor ttnn_slice_tensor(
 
     auto ttnn_output = ttnn::slice(ttnn_input, begins, ends, steps);
 
+    // Calculate the output shape
     std::vector<int64_t> out_sizes = input.sizes().vec();
     out_sizes[dim] = end_val - start_val;
 
@@ -181,7 +252,8 @@ at::Tensor ttnn_slice_tensor(
         /*pin_memory=*/c10::nullopt);
 
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-    out_impl->set_sizes_and_strides_as(input);  // copy strides
+
+    // Set the TTNN tensor first, then the tensor metadata will be automatically set
     out_impl->set_ttnn_tensor(ttnn_output);
 
     return output;
@@ -297,10 +369,21 @@ at::Tensor ttnn_t_default(const at::Tensor& self) {
 }
 
 at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim1) {
+    std::cout << "[DEBUG] ttnn_transpose_int called with dim0=" << dim0 << ", dim1=" << dim1 << std::endl;
+
     LOGGING("Running aten::transpose.int");
 
     TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1);
-    TORCH_CHECK(input.dim() >= 2, "transpose requires tensor with 2 or more dimensions");
+
+    // Print input tensor info
+    std::cout << "[DEBUG] Input tensor shape: [";
+    for (int i = 0; i < input.dim(); i++) {
+        std::cout << input.size(i);
+        if (i < input.dim() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "], numel=" << input.numel() << std::endl;
 
     auto* input_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto ttnn_input = input_impl->get_ttnn_tensor();
@@ -309,12 +392,60 @@ at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim
         ttnn_input = ttnn::to_layout(ttnn_input, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_input.device());
     }
 
+    // Debug TTNN tensor shape
+    auto ttnn_input_shape = ttnn_input.logical_shape();
+    std::cout << "[DEBUG] TTNN input shape: [";
+    for (int i = 0; i < ttnn_input_shape.rank(); i++) {
+        std::cout << ttnn_input_shape[i];
+        if (i < ttnn_input_shape.rank() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
+
+    // Handle negative dimensions
+    int64_t ndim = input.dim();
+    if (dim0 < 0) {
+        dim0 += ndim;
+    }
+    if (dim1 < 0) {
+        dim1 += ndim;
+    }
+
+    std::cout << "[DEBUG] Normalized dimensions: dim0=" << dim0 << ", dim1=" << dim1 << std::endl;
+
+    TORCH_CHECK(dim0 >= 0 && dim0 < ndim, "dim0 out of range");
+    TORCH_CHECK(dim1 >= 0 && dim1 < ndim, "dim1 out of range");
+
+    // Perform transpose
     auto ttnn_output = ttnn::transpose(ttnn_input, static_cast<int>(dim0), static_cast<int>(dim1));
-    const auto& logical_shape = ttnn_output.logical_shape();
-    std::vector<int64_t> shape_vec(logical_shape.cbegin(), logical_shape.cend());
+
+    // Debug output shape
+    auto ttnn_output_shape = ttnn_output.logical_shape();
+    std::cout << "[DEBUG] TTNN output shape: [";
+    for (int i = 0; i < ttnn_output_shape.rank(); i++) {
+        std::cout << ttnn_output_shape[i];
+        if (i < ttnn_output_shape.rank() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
+
+    // Create output tensor with transposed shape
+    std::vector<int64_t> output_shape(input.sizes().begin(), input.sizes().end());
+    std::swap(output_shape[dim0], output_shape[dim1]);
+
+    std::cout << "[DEBUG] PyTorch output shape: [";
+    for (int i = 0; i < output_shape.size(); i++) {
+        std::cout << output_shape[i];
+        if (i < output_shape.size() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
-        shape_vec, input.scalar_type(), c10::nullopt, input.device(), c10::nullopt);
+        output_shape, input.scalar_type(), c10::nullopt, input.device(), c10::nullopt);
 
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
     out_impl->set_ttnn_tensor(ttnn_output);

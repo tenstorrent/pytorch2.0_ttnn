@@ -49,6 +49,8 @@ set(TTNN_CPP_EXTENSION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/view.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/ttnn_to_dtype.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/linear_iml.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/matmul.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/slice.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/device.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/vector_utils.cpp

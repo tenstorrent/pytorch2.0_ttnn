@@ -15,6 +15,9 @@
 #include "ttnn_cpp_extension/ops/embedding.hpp"
 #include "ttnn_cpp_extension/ops/view.hpp"
 #include "ttnn_cpp_extension/ops/norm.hpp"
+#include "ttnn_cpp_extension/ops/linear_iml.hpp"
+#include "ttnn_cpp_extension/ops/matmul.hpp"
+#include "ttnn_cpp_extension/ops/slice.hpp"
 
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &get_ttnn_custom_allocator());
 
@@ -37,6 +40,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("embedding", &tt_eager::ops::embedding::ttnn_embedding);
     m.impl("expand", &tt_eager::ops::view::ttnn_expand);
     m.impl("gelu", &tt_eager::ops::unary::ttnn_gelu);
+    m.impl("linear", &tt_eager::ops::linear::ttnn_linear);
+    m.impl("matmul", &tt_eager::ops::matmul::ttnn_matmul);
     m.impl("mul.Tensor", &tt_eager::ops::binary::ttnn_mul_tensor);
     m.impl("mul.Scalar", &tt_eager::ops::binary::ttnn_mul_scalar);
     m.impl("native_layer_norm", &tt_eager::ops::norm::ttnn_native_layer_norm);
@@ -50,6 +55,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("unsqueeze", &tt_eager::ops::view::ttnn_unsqueeze);
     m.impl("squeeze.dim", &tt_eager::ops::view::ttnn_squeeze_dim);
     m.impl("view", &tt_eager::ops::view::ttnn_view);
+    m.impl("as_strided", &tt_eager::ops::slice::ttnn_as_strided);
 }
 
 // This macro registers helper functions associated with the ttnn_device_mode module that can be used in Python

@@ -12,20 +12,6 @@ model = BertModel.from_pretrained("bert-large-uncased")
 tokenizer = BertTokenizer.from_pretrained("bert-large-uncased")
 model.eval()
 
-def patched_get_extended_attention_mask(self, attention_mask: torch.Tensor, input_shape: tuple):
-    ext = attention_mask.unsqueeze(1).unsqueeze(2).to(dtype=self.dtype)
-
-    # Create TTNN scalars:
-    one     = ext.new_tensor(1.0)                             # shape=(), TTNN backend
-    min_val = ext.new_tensor(torch.finfo(self.dtype).min)    # shape=(), TTNN backend
-
-    # (1 – ext) * min_val, all in TTNN
-    return (one - ext) * min_val
-
-model.get_extended_attention_mask = types.MethodType(
-    patched_get_extended_attention_mask, model
-)
-
 text = "Hello, this is a test sentence for BERT."
 inputs = tokenizer(text, return_tensors="pt")
 
@@ -38,7 +24,7 @@ device = ttnn.open_device(
 )
 torch_device = ttnn_module.as_torch_device(device)
 
-model = model.to(dtype=torch.bfloat16).to(torch_device)
+model = model.to(torch_device)
 
 option = torch_ttnn.TorchTtnnOption(
     device=device,

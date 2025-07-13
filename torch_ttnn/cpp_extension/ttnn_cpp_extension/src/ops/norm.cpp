@@ -4,8 +4,13 @@
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 #include <ttnn/operations/normalization/layernorm/layernorm.hpp>
+#include <ttnn/operations/data_movement/reshape_view/reshape.hpp>
+
+#include <sstream>
 
 namespace tt_eager::ops::norm {
+
+constexpr int TILE_WIDTH = 32;
 
 std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
     const at::Tensor& input,
@@ -13,75 +18,68 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
     const c10::optional<at::Tensor>& weight,
     const c10::optional<at::Tensor>& bias,
     double eps) {
-
     LOGGING("Running aten::native_layer_norm.default");
+    TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1, "Expected TTNN tensor");
 
-    TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1);
-    if (weight.has_value()) TORCH_CHECK(weight->device().type() == c10::DeviceType::PrivateUse1);
-    if (bias.has_value()) TORCH_CHECK(bias->device().type() == c10::DeviceType::PrivateUse1);
+    const auto orig_sizes = input.sizes();
+    TORCH_CHECK(orig_sizes.size() == 3, "Expected input with shape [B, N, D]");
+    TORCH_CHECK(orig_sizes.back() == 1024, "Expected input.shape[-1] == 1024");
+    TORCH_CHECK(normalized_shape.back() == 1024, "Expected normalized_shape[-1] == 1024");
 
-    auto* input_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
+    const int64_t batch = orig_sizes[0];
+    const int64_t blocks = orig_sizes[1];
+    const int64_t dim = orig_sizes[2];
+    TORCH_CHECK(dim % TILE_WIDTH == 0, "Last dim must be divisible by TILE_WIDTH");
+
+    // Reshape input: [B, N, 1024] → [B, N * 32, 32]
+    const int64_t reshaped_blocks = blocks * (dim / TILE_WIDTH);
+    at::Tensor reshaped_input = input.view({batch, reshaped_blocks, TILE_WIDTH});
+
+    auto* input_impl = static_cast<at::TtnnTensorImpl*>(reshaped_input.unsafeGetTensorImpl());
     auto ttnn_input = input_impl->get_ttnn_tensor();
-
     if (ttnn_input.layout() == ttnn::ROW_MAJOR_LAYOUT) {
         ttnn_input = ttnn::to_layout(ttnn_input, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_input.device());
     }
 
-    std::optional<ttnn::Tensor> ttnn_weight = std::nullopt;
-    std::optional<ttnn::Tensor> ttnn_bias = std::nullopt;
-
-    if (weight.has_value()) {
-        auto* w_impl = static_cast<at::TtnnTensorImpl*>(weight->unsafeGetTensorImpl());
-        ttnn_weight = w_impl->get_ttnn_tensor();
-    }
-    if (bias.has_value()) {
-        auto* b_impl = static_cast<at::TtnnTensorImpl*>(bias->unsafeGetTensorImpl());
-        ttnn_bias = b_impl->get_ttnn_tensor();
-    }
-
-    auto ttnn_output = ttnn::operations::normalization::ExecuteLayerNorm::invoke(
-        ttnn_input,
-        static_cast<float>(eps),
-        ttnn_weight,
-        ttnn_bias,
-        std::nullopt,   // residual_input_tensor
-        std::nullopt,   // memory_config
-        std::nullopt,   // program_config
-        std::nullopt    // compute_kernel_config
-    );
-
-
-    auto wrap = [&](const ttnn::Tensor& t, const at::Tensor& ref) {
-        // Convert TTNN tensor's shape (likely uint32_t) to int64_t for ATen compatibility
-        std::vector<int64_t> shape_vec;
-        for (auto it = t.logical_shape().cbegin(); it != t.logical_shape().cend(); ++it) {
-            shape_vec.push_back(static_cast<int64_t>(*it));
-        }
-
-        // Create an empty ATen tensor with the correct shape, dtype, and device
-        auto out = tt_eager::ops::create::custom_empty_memory_format(
-            shape_vec,
-            ref.scalar_type(),
-            c10::nullopt,        // layout
-            ref.device(),
-            c10::nullopt         // memory_format
-        );
-
-        // Attach TTNN tensor to ATen wrapper
-        auto* impl = static_cast<at::TtnnTensorImpl*>(out.unsafeGetTensorImpl());
-        impl->set_ttnn_tensor(t);
-
-        return out;
+    // Lambda to reshape weight/bias from [1024] to [32, 32]
+    auto convert_tensor = [](const at::Tensor& tensor) -> ttnn::Tensor {
+        TORCH_CHECK(tensor.numel() == 1024, "Expected 1024-element weight or bias tensor");
+        at::Tensor reshaped = tensor.view({TILE_WIDTH, TILE_WIDTH});
+        auto* impl = static_cast<at::TtnnTensorImpl*>(reshaped.unsafeGetTensorImpl());
+        return impl->get_ttnn_tensor();
     };
 
-    auto out_tensor = wrap(ttnn_output, input);
+    std::optional<ttnn::Tensor> ttnn_weight =
+        weight.has_value() ? std::make_optional(convert_tensor(weight.value())) : std::nullopt;
+    std::optional<ttnn::Tensor> ttnn_bias =
+        bias.has_value() ? std::make_optional(convert_tensor(bias.value())) : std::nullopt;
 
-    // Return empty mean/rstd tensors (dummy)
-    auto dummy_shape = std::vector<int64_t>{1};
-    auto mean_tensor = at::empty(dummy_shape, input.options());
-    auto rstd_tensor = at::empty(dummy_shape, input.options());
+    // Execute TTNN layer norm
+    auto result = ttnn::layer_norm(ttnn_input, static_cast<float>(eps), ttnn_weight, ttnn_bias);
 
-    return std::make_tuple(out_tensor, mean_tensor, rstd_tensor);
+    // Reshape the result back to original shape
+    std::vector<uint32_t> shape_vec(orig_sizes.begin(), orig_sizes.end());
+    auto reshaped_result = ttnn::reshape(result, ttnn::Shape{shape_vec});
+
+    // Create output tensor and set the reshaped result
+    auto output = tt_eager::ops::create::custom_empty_memory_format(
+        orig_sizes, input.scalar_type(), std::nullopt, input.device(), std::nullopt);
+
+    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+    out_impl->set_sizes_and_strides_as(input);
+    out_impl->set_ttnn_tensor(reshaped_result);
+
+    // Create empty mean and rstd tensors (placeholders for now)
+    auto mean_rstd_shape = orig_sizes.vec();
+    std::fill(mean_rstd_shape.end() - normalized_shape.size(), mean_rstd_shape.end(), 1);
+
+    auto mean_tensor = tt_eager::ops::create::custom_empty_memory_format(
+        mean_rstd_shape, input.scalar_type(), std::nullopt, input.device(), std::nullopt);
+
+    auto rstd_tensor = tt_eager::ops::create::custom_empty_memory_format(
+        mean_rstd_shape, input.scalar_type(), std::nullopt, input.device(), std::nullopt);
+
+    return std::make_tuple(output, mean_tensor, rstd_tensor);
 }
 
-}
+}  // namespace tt_eager::ops::norm
