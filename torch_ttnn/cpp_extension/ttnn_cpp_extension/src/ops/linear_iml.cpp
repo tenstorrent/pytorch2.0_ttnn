@@ -15,7 +15,6 @@
 
 namespace tt_eager::ops::linear {
 
-// Ensure we're in TILE_LAYOUT before doing TT-NN ops:
 static ttnn::Tensor ensure_tile(ttnn::Tensor t) {
     if (t.layout() == ttnn::ROW_MAJOR_LAYOUT) {
         t = ttnn::to_layout(t, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, t.device());
@@ -38,7 +37,6 @@ at::Tensor ttnn_view_infer(const at::Tensor& self, at::IntArrayRef shape) {
 
     int64_t old_numel = self.numel();
 
-    // Debug: print the TTNN tensor shape
     auto ttnn_shape = ttnn_tensor.logical_shape();
     std::cout << "[DEBUG] ttnn_view_infer: PyTorch tensor numel=" << old_numel;
     std::cout << ", TTNN tensor shape=[";
@@ -50,7 +48,6 @@ at::Tensor ttnn_view_infer(const at::Tensor& self, at::IntArrayRef shape) {
     }
     std::cout << "]" << std::endl;
 
-    // If old_numel is 0, calculate from PyTorch tensor shape (TTNN tensor numel() is broken)
     if (old_numel == 0) {
         std::cout << "[DEBUG] PyTorch tensor numel() returned 0, calculating from shape" << std::endl;
         old_numel = 1;
@@ -90,7 +87,6 @@ at::Tensor ttnn_view_infer(const at::Tensor& self, at::IntArrayRef shape) {
         ", new = ",
         new_numel);
 
-    // Debug output
     std::cout << "[DEBUG] ttnn_view_infer: old_numel=" << old_numel << ", new_numel=" << new_numel << std::endl;
     std::cout << "[DEBUG] ttnn_view_infer: original shape = [";
     for (int i = 0; i < self.dim(); i++) {
@@ -123,7 +119,6 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1);
     TORCH_CHECK(weight.device().type() == c10::DeviceType::PrivateUse1);
 
-    // Debug output - get actual tensor information
     std::cout << "[DEBUG] ttnn_linear: input.shape = [";
     for (int i = 0; i < input.dim(); i++) {
         std::cout << input.size(i);
@@ -140,20 +135,17 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     }
     std::cout << "], input.numel()=" << input.numel() << std::endl;
 
-    // Check if input tensor has valid shape (bypass numel() check as it's broken for TTNN tensors)
     if (input.dim() == 0 || input.size(0) == 0) {
         std::cout << "[ERROR] Input tensor has invalid dimensions!" << std::endl;
         throw std::runtime_error("Input tensor has invalid dimensions");
     }
 
-    // Get tensor implementations
     auto* input_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto* weight_impl = static_cast<at::TtnnTensorImpl*>(weight.unsafeGetTensorImpl());
 
     auto ttnn_input = ensure_tile(input_impl->get_ttnn_tensor());
     auto ttnn_weight = ensure_tile(weight_impl->get_ttnn_tensor());
 
-    // Debug TTNN tensor shapes
     auto ttnn_input_shape = ttnn_input.logical_shape();
     auto ttnn_weight_shape = ttnn_weight.logical_shape();
     std::cout << "[DEBUG] ttnn_input.shape = [";
@@ -172,49 +164,36 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     }
     std::cout << "]" << std::endl;
 
-    // For PyTorch linear: input @ weight.T + bias
-    // Input shape can be [batch, seq_len, in_features] = [1, 12, 1024] 
-    // or [batch, in_features] = [1, 1024] (after as_strided)
-    // Weight shape: [out_features, in_features] = [1024, 1024]
-
     auto input_shape = input.sizes();
     auto weight_shape = weight.sizes();
 
-    // Calculate dimensions based on input tensor dimensions
     int64_t batch_size, seq_len, in_features, out_features;
-    
+
     if (input.dim() == 3) {
-        // 3D input: [batch, seq_len, in_features]
         batch_size = input_shape[0];
         seq_len = input_shape[1];
         in_features = input_shape[2];
     } else if (input.dim() == 2) {
-        // 2D input: [batch, in_features] (e.g., from as_strided)
         batch_size = input_shape[0];
-        seq_len = 1;  // Treat as single sequence element
+        seq_len = 1;
         in_features = input_shape[1];
     } else {
         TORCH_CHECK(false, "ttnn_linear: Unsupported input dimensions: ", input.dim());
     }
-    
+
     out_features = weight_shape[0];
 
     std::cout << "[DEBUG] Calculated dims: batch=" << batch_size << ", seq=" << seq_len << ", in_feat=" << in_features
               << ", out_feat=" << out_features << std::endl;
 
-    // For both 2D and 3D inputs, reshape to [batch*seq_len, in_features] for matrix multiplication
-    // For 2D input [1, 1024], this becomes [1, 1024] (no change needed)
-    // For 3D input [1, 12, 1024], this becomes [12, 1024]
     tt::stl::SmallVector<int32_t> reshaped_input_shape = {(int32_t)(batch_size * seq_len), (int32_t)in_features};
-    
+
     ttnn::Tensor ttnn_reshaped_input;
-    if (input.dim() == 2 && batch_size * seq_len == ttnn_input.logical_shape()[0] && 
+    if (input.dim() == 2 && batch_size * seq_len == ttnn_input.logical_shape()[0] &&
         in_features == ttnn_input.logical_shape()[1]) {
-        // Already the right shape for 2D input
         ttnn_reshaped_input = ttnn_input;
         std::cout << "[DEBUG] Using input tensor as-is (already correct shape)" << std::endl;
     } else {
-        // Need to reshape
         ttnn_reshaped_input = ttnn::reshape(ttnn_input, reshaped_input_shape);
         std::cout << "[DEBUG] Reshaped input tensor" << std::endl;
     }
@@ -229,7 +208,6 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     }
     std::cout << "]" << std::endl;
 
-    // Transpose weight from [out_features, in_features] to [in_features, out_features]
     auto ttnn_weight_t = ttnn::transpose(ttnn_weight, -2, -1);
 
     std::cout << "[DEBUG] After transpose: ttnn_weight_t.shape = [";
@@ -242,8 +220,6 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     }
     std::cout << "]" << std::endl;
 
-    // Perform matrix multiplication: [batch*seq_len, in_features] @ [in_features, out_features]
-    // Result: [batch*seq_len, out_features]
     auto ttnn_result = ttnn::matmul(ttnn_reshaped_input, ttnn_weight_t);
 
     std::cout << "[DEBUG] After matmul: ttnn_result.shape = [";
@@ -256,7 +232,6 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     }
     std::cout << "]" << std::endl;
 
-    // Add bias if provided
     if (bias.has_value()) {
         TORCH_CHECK(bias.value().device().type() == c10::DeviceType::PrivateUse1);
         auto* bias_impl = static_cast<at::TtnnTensorImpl*>(bias.value().unsafeGetTensorImpl());
@@ -264,14 +239,11 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
         ttnn_result = ttnn::add(ttnn_result, ttnn_bias);
     }
 
-    // Reshape back to original dimensions
     ttnn::Tensor ttnn_final;
     if (input.dim() == 3) {
-        // 3D input -> 3D output: [batch, seq_len, out_features]
         tt::stl::SmallVector<int32_t> final_shape = {(int32_t)batch_size, (int32_t)seq_len, (int32_t)out_features};
         ttnn_final = ttnn::reshape(ttnn_result, final_shape);
     } else if (input.dim() == 2) {
-        // 2D input -> 2D output: [batch, out_features] (no reshape needed)
         ttnn_final = ttnn_result;
     }
 
@@ -285,16 +257,13 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     }
     std::cout << "]" << std::endl;
 
-    // Create output tensor with correct shape based on input dimensions
     std::vector<int64_t> output_shape;
     if (input.dim() == 3) {
-        // 3D input -> 3D output: [batch, seq_len, out_features]
         output_shape = {batch_size, seq_len, out_features};
     } else if (input.dim() == 2) {
-        // 2D input -> 2D output: [batch, out_features]
         output_shape = {batch_size, out_features};
     }
-    
+
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         output_shape, input.scalar_type(), c10::nullopt, input.device(), c10::nullopt);
     auto* output_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());

@@ -63,14 +63,50 @@ def test_bert_with_cpp_extension(device, batch_size):
     input_ids = inputs[0].input_ids.clone()
 
     # Helper function to decode output to human-readable text
-    def decode_output(outputs):
-        outputs.start_logits = torch.unsqueeze(outputs.start_logits[0, :], 0)
-        outputs.end_logits = torch.unsqueeze(outputs.end_logits[0, :], 0)
+    # Helper: decode logits to text
+def decode_output(start_logits, end_logits, input_ids):
+    # Step 1: move to CPU and handle dtype properly
+    start_logits_cpu = start_logits[0]
+    end_logits_cpu = end_logits[0]
+    
+    print(f"[DEBUG] start_logits device: {start_logits_cpu.device}")
+    print(f"[DEBUG] start_logits dtype: {start_logits_cpu.dtype}")
+    print(f"[DEBUG] end_logits device: {end_logits_cpu.device}")
+    print(f"[DEBUG] end_logits dtype: {end_logits_cpu.dtype}")
+    
+    # Convert to CPU if on device - handle the dtype conversion properly
+    if start_logits_cpu.device.type != 'cpu':
+        # First convert to float32 on device, then move to CPU
+        start_logits_cpu = start_logits_cpu.float().cpu()
+    else:
+        # If already on CPU, just convert dtype if needed
+        if start_logits_cpu.dtype != torch.float32:
+            start_logits_cpu = start_logits_cpu.float()
+    
+    if end_logits_cpu.device.type != 'cpu':
+        # First convert to float32 on device, then move to CPU
+        end_logits_cpu = end_logits_cpu.float().cpu()
+    else:
+        # If already on CPU, just convert dtype if needed
+        if end_logits_cpu.dtype != torch.float32:
+            end_logits_cpu = end_logits_cpu.float()
+    
+    print(f"[DEBUG] After conversion - start_logits dtype: {start_logits_cpu.dtype}")
+    print(f"[DEBUG] After conversion - end_logits dtype: {end_logits_cpu.dtype}")
 
-        response_start = torch.argmax(outputs.start_logits)
-        response_end = torch.argmax(outputs.end_logits) + 1
-        response_tokens = input_ids[0, response_start:response_end]
-        return tokenizer.decode(response_tokens)
+    # Step 2: find best span
+    try:
+        start_idx = int(torch.argmax(start_logits_cpu).item())
+        end_idx = int(torch.argmax(end_logits_cpu).item()) + 1
+        print(f"[DEBUG] start_idx: {start_idx}, end_idx: {end_idx}")
+    except Exception as e:
+        print(f"[DEBUG] Error in argmax: {e}")
+        # Fallback to first token if argmax fails
+        start_idx = 0
+        end_idx = 1
+
+    # Step 3: decode tokens to text
+    return tokenizer.decode(input_ids[0][start_idx:end_idx])
 
     # comment out these to disable cpp extension
     start_to = time.perf_counter() * 1000

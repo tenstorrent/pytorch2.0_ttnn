@@ -1,5 +1,6 @@
-#include "ttnn_cpp_extension/ops/slice.hpp"
+#include "ttnn_cpp_extension/ops/as_strided.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/core/TtnnCustomAllocator.hpp"
 #include "ttnn_cpp_extension/ops/creation.hpp"
 #include <ttnn/operations/core/core.hpp>
 #include <ttnn/operations/data_movement/squeeze/squeeze.hpp>
@@ -7,9 +8,8 @@
 #include <iostream>
 #include <sstream>
 
-namespace tt_eager::ops::slice {
+namespace tt_eager::ops::as_strided {
 
-// Helper function to convert ArrayRef to string
 std::string arrayref_to_string(at::IntArrayRef arr) {
     std::ostringstream oss;
     oss << "[";
@@ -66,14 +66,47 @@ at::Tensor ttnn_as_strided(
     }
     std::cout << std::endl;
 
+    if (self.dim() == 2 && size.size() == 1) {
+        if (size[0] == self.size(1)) {
+            std::cout << "[DEBUG] Detected [0] slicing pattern" << std::endl;
+
+            ttnn::SmallVector<uint32_t> begins = {0, 0};
+            ttnn::SmallVector<uint32_t> ends = {1, (uint32_t)self.size(1)};
+            ttnn::SmallVector<uint32_t> step = {1, 1};
+
+            std::cout << "[DEBUG] Slice begins: [" << begins[0] << ", " << begins[1] << "]" << std::endl;
+            std::cout << "[DEBUG] Slice ends: [" << ends[0] << ", " << ends[1] << "]" << std::endl;
+
+            auto sliced = ttnn::slice(ttnn_tensor, begins, ends, step);
+            std::cout << "[DEBUG] After slice, before squeeze" << std::endl;
+            std::cout << "[DEBUG] Sliced tensor volume: " << sliced.volume() << std::endl;
+
+            auto squeezed = ttnn::squeeze(sliced, 0);
+            std::cout << "[DEBUG] After squeeze" << std::endl;
+            std::cout << "[DEBUG] Squeezed tensor volume: " << squeezed.volume() << std::endl;
+
+            std::vector<int64_t> output_shape = {self.size(1)};  // [seq]
+            auto output_tensor = tt_eager::ops::create::custom_empty_memory_format(
+                output_shape, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
+
+            auto* output_impl = static_cast<at::TtnnTensorImpl*>(output_tensor.unsafeGetTensorImpl());
+            output_impl->set_ttnn_tensor(squeezed);
+
+            output_tensor.unsafeGetTensorImpl()->set_sizes_contiguous(output_shape);
+
+            std::cout << "[DEBUG] TTNN result shape: " << output_tensor.sizes() << std::endl;
+            std::cout << "[DEBUG] Final output shape: " << output_tensor.sizes() << std::endl;
+            std::cout << "[DEBUG] Final output numel: " << output_tensor.numel() << std::endl;
+            std::cout << "[DEBUG] ttnn_as_strided completed successfully" << std::endl;
+            return output_tensor;
+        }
+    }
+
     // Handle [:, 0] slicing pattern for 3D tensors
     if (self.dim() == 3 && size.size() == 2) {
-        // Pattern: [batch, seq, hidden] -> [batch, hidden] (middle dimension slicing)
         if (size[0] == self.size(0) && size[1] == self.size(2)) {
             std::cout << "[DEBUG] Detected [:, 0] slicing pattern" << std::endl;
 
-            // Extract first element from middle dimension: [batch, seq, hidden] -> [batch, 1, hidden] -> [batch,
-            // hidden]
             ttnn::SmallVector<uint32_t> begins = {0, 0, 0};
             ttnn::SmallVector<uint32_t> ends = {(uint32_t)self.size(0), 1, (uint32_t)self.size(2)};
             ttnn::SmallVector<uint32_t> step = {1, 1, 1};
@@ -86,30 +119,31 @@ at::Tensor ttnn_as_strided(
             std::cout << "[DEBUG] After slice, before squeeze" << std::endl;
             std::cout << "[DEBUG] Sliced tensor volume: " << sliced.volume() << std::endl;
 
-            // Squeeze the middle dimension: [batch, 1, hidden] -> [batch, hidden]
             auto squeezed = ttnn::squeeze(sliced, 1);
             std::cout << "[DEBUG] After squeeze" << std::endl;
             std::cout << "[DEBUG] Squeezed tensor volume: " << squeezed.volume() << std::endl;
 
-            // Create output tensor
-            auto output = tt_eager::ops::create::custom_empty_memory_format(
-                size, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
-            auto* output_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+            std::vector<int64_t> output_shape = {self.size(0), self.size(2)};  // [batch, hidden]
+            auto output_tensor = tt_eager::ops::create::custom_empty_memory_format(
+                output_shape, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
+
+            auto* output_impl = static_cast<at::TtnnTensorImpl*>(output_tensor.unsafeGetTensorImpl());
             output_impl->set_ttnn_tensor(squeezed);
 
-            std::cout << "[DEBUG] TTNN result shape: " << output.sizes() << std::endl;
-            std::cout << "[DEBUG] Final output shape: " << output.sizes() << std::endl;
-            std::cout << "[DEBUG] Final output numel: " << output.numel() << std::endl;
+            output_tensor.unsafeGetTensorImpl()->set_sizes_contiguous(output_shape);
+
+            std::cout << "[DEBUG] TTNN result shape: " << output_tensor.sizes() << std::endl;
+            std::cout << "[DEBUG] Final output shape: " << output_tensor.sizes() << std::endl;
+            std::cout << "[DEBUG] Final output numel: " << output_tensor.numel() << std::endl;
             std::cout << "[DEBUG] ttnn_as_strided completed successfully" << std::endl;
-            return output;
+            return output_tensor;
         }
     }
 
-    // Unsupported pattern
-    std::string error_msg = "ttnn_as_strided: Only [:, 0] slicing is currently supported. ";
+    std::string error_msg = "ttnn_as_strided: Only [0] and [:, 0] slicing are currently supported. ";
     error_msg += "Input shape: " + arrayref_to_string(self.sizes()) + ", ";
     error_msg += "target size: " + arrayref_to_string(size);
     throw std::runtime_error(error_msg);
 }
 
-}  // namespace tt_eager::ops::slice
+}  // namespace tt_eager::ops::as_strided

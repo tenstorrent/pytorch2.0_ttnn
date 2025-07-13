@@ -17,7 +17,7 @@
 #include "ttnn_cpp_extension/ops/norm.hpp"
 #include "ttnn_cpp_extension/ops/linear_iml.hpp"
 #include "ttnn_cpp_extension/ops/matmul.hpp"
-#include "ttnn_cpp_extension/ops/slice.hpp"
+#include "ttnn_cpp_extension/ops/as_strided.hpp"
 
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &get_ttnn_custom_allocator());
 
@@ -55,7 +55,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("unsqueeze", &tt_eager::ops::view::ttnn_unsqueeze);
     m.impl("squeeze.dim", &tt_eager::ops::view::ttnn_squeeze_dim);
     m.impl("view", &tt_eager::ops::view::ttnn_view);
-    m.impl("as_strided", &tt_eager::ops::slice::ttnn_as_strided);
+    m.impl("as_strided", &tt_eager::ops::as_strided::ttnn_as_strided);
 }
 
 // This macro registers helper functions associated with the ttnn_device_mode module that can be used in Python

@@ -31,7 +31,6 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
     const int64_t dim = orig_sizes[2];
     TORCH_CHECK(dim % TILE_WIDTH == 0, "Last dim must be divisible by TILE_WIDTH");
 
-    // Reshape input: [B, N, 1024] → [B, N * 32, 32]
     const int64_t reshaped_blocks = blocks * (dim / TILE_WIDTH);
     at::Tensor reshaped_input = input.view({batch, reshaped_blocks, TILE_WIDTH});
 
@@ -41,7 +40,6 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
         ttnn_input = ttnn::to_layout(ttnn_input, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_input.device());
     }
 
-    // Lambda to reshape weight/bias from [1024] to [32, 32]
     auto convert_tensor = [](const at::Tensor& tensor) -> ttnn::Tensor {
         TORCH_CHECK(tensor.numel() == 1024, "Expected 1024-element weight or bias tensor");
         at::Tensor reshaped = tensor.view({TILE_WIDTH, TILE_WIDTH});
@@ -54,14 +52,11 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
     std::optional<ttnn::Tensor> ttnn_bias =
         bias.has_value() ? std::make_optional(convert_tensor(bias.value())) : std::nullopt;
 
-    // Execute TTNN layer norm
     auto result = ttnn::layer_norm(ttnn_input, static_cast<float>(eps), ttnn_weight, ttnn_bias);
 
-    // Reshape the result back to original shape
     std::vector<uint32_t> shape_vec(orig_sizes.begin(), orig_sizes.end());
     auto reshaped_result = ttnn::reshape(result, ttnn::Shape{shape_vec});
 
-    // Create output tensor and set the reshaped result
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         orig_sizes, input.scalar_type(), std::nullopt, input.device(), std::nullopt);
 
@@ -69,7 +64,6 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
     out_impl->set_sizes_and_strides_as(input);
     out_impl->set_ttnn_tensor(reshaped_result);
 
-    // Create empty mean and rstd tensors (placeholders for now)
     auto mean_rstd_shape = orig_sizes.vec();
     std::fill(mean_rstd_shape.end() - normalized_shape.size(), mean_rstd_shape.end(), 1);
 
