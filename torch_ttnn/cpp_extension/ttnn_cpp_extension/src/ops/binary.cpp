@@ -188,26 +188,7 @@ at::Tensor ttnn_mul_scalar(const at::Tensor& self, const at::Scalar& other) {
 }
 
 at::Tensor ttnn_div_tensor(const at::Tensor& self, const at::Tensor& other) {
-    std::cout << "[DEBUG] ttnn_div_tensor called" << std::endl;
-    std::cout << "[DEBUG] self.shape = [";
-    for (int i = 0; i < self.dim(); i++) {
-        std::cout << self.size(i);
-        if (i < self.dim() - 1) {
-            std::cout << ", ";
-        }
-    }
-    std::cout << "], other.shape = [";
-    for (int i = 0; i < other.dim(); i++) {
-        std::cout << other.size(i);
-        if (i < other.dim() - 1) {
-            std::cout << ", ";
-        }
-    }
-    std::cout << "]" << std::endl;
-
     if (other.dim() == 0) {
-        std::cout << "[DEBUG] Scalar division detected, other.item() = " << other.item<float>() << std::endl;
-
         TORCH_CHECK(
             self.device().type() == c10::DeviceType::PrivateUse1, "ttnn_div_tensor requires TTNN backend for tensor");
 

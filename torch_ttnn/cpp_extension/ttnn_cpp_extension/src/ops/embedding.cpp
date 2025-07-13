@@ -8,12 +8,7 @@
 namespace tt_eager::ops::embedding {
 
 at::Tensor ttnn_embedding(
-    const at::Tensor& weight,
-    const at::Tensor& indices,
-    int64_t padding_idx,
-    bool scale_grad_by_freq,
-    bool sparse) {
-
+    const at::Tensor& weight, const at::Tensor& indices, int64_t padding_idx, bool scale_grad_by_freq, bool sparse) {
     LOGGING("Running aten::embedding.default");
 
     TORCH_CHECK(weight.device().type() == c10::DeviceType::PrivateUse1);
@@ -36,21 +31,16 @@ at::Tensor ttnn_embedding(
         /*embeddings_type=*/ttnn::operations::embedding::EmbeddingsType::GENERIC,
         /*dtype=*/std::nullopt,
         /*memory_config=*/std::nullopt,
-        /*optional_output_tensor=*/std::nullopt
-    );
+        /*optional_output_tensor=*/std::nullopt);
 
-    std::vector<int64_t> shape(
-        ttnn_result.logical_shape().cbegin(),
-        ttnn_result.logical_shape().cend()
-    );
+    std::vector<int64_t> shape(ttnn_result.logical_shape().cbegin(), ttnn_result.logical_shape().cend());
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         c10::IntArrayRef(shape),
         c10::optional<at::ScalarType>(weight.scalar_type()),
         c10::nullopt,
         c10::optional<at::Device>(weight.device()),
-        c10::nullopt
-    );
+        c10::nullopt);
 
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
     out_impl->set_ttnn_tensor(ttnn_result);

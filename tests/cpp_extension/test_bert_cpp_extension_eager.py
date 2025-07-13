@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
 
 def run_bert_eager_mode(batch_size=1):
-    model_name = "phiyodr/bert-large-finetuned-squad2"
+    model_name = "bert-large-uncased"
     tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left")
 
     model = AutoModelForQuestionAnswering.from_pretrained(model_name)
@@ -90,7 +90,6 @@ def run_bert_eager_mode(batch_size=1):
                     return alt_answer
         return answer
 
-    list_of_ans = []
     for i, inputs in enumerate(inputs_list):
         input_ids_cpu = inputs["input_ids"].clone()
         attention_mask_cpu = inputs["attention_mask"].clone()
@@ -107,18 +106,16 @@ def run_bert_eager_mode(batch_size=1):
 
         answer = decode_output(start_logits_cpu, end_logits_cpu, input_ids_cpu, attention_mask_cpu)
 
-        list_of_ans.append({"question": questions[i], "answer": answer, "expected": expected_answers[i] })
+        print(f"Question: {questions[i]}")
+        print(f"Answer (decoded): {answer}")
+        print(f"Expected Answer: {expected_answers[i]}")
 
         if expected_answers[i].lower() not in answer:
             print(f"Warning: Expected answer '{expected_answers[i]}' not found in decoded answer")
+        
+        print("")
 
     try:
-        for ans in list_of_ans:
-            print(f"Question: {ans['question']}")
-            print(f"Answer (decoded): {ans['answer']}")
-            print(f"Expected Answer: {ans['expected']}\n")
-            print("")
-
         ttnn.close_device(device)
         print("Device closed successfully")
     except Exception as e:
