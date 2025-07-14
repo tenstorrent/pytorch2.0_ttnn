@@ -6,4 +6,4 @@ networkx==3.1
 graphviz
 matplotlib==3.7.1
 paramiko==3.5.1
-ttnn @ https://pypi.eng.aws.tenstorrent.com/ttnn/ttnn-0.60.0rc18.dev6-cp310-cp310-manylinux_2_34_x86_64.whl#sha256=5efe5b66fe9ea64b74ea9973faa23e8ab871417d2dde4e45e3730c403e6ee01a ; python_version=="3.10"
+ttnn @ https://pypi.eng.aws.tenstorrent.com/ttnn/ttnn-0.60.0rc20.dev77-cp310-cp310-manylinux_2_34_x86_64.whl#sha256=47b92eeab2b439fbcd8199ac8eb17aa12dcf3cef7eda11296e382e09ba819fa1 ; python_version=="3.10"
