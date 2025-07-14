@@ -97,6 +97,21 @@ def get_meta_val_attr(node, attr: str):
         return False
 
 
+def get_node_name(node):
+    """
+    Handle various cases of node names
+    """
+    if isinstance(node, str):
+        return node
+    elif isinstance(node, torch.fx.node.Node):
+        return node.name
+    elif node is None:
+        return ""
+    # what if None?
+    else:
+        raise ValueError(f"Unsupported node type: {type(node)}")
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size
