@@ -52,6 +52,11 @@ def pytest_addoption(parser):
         action="store_true",
         help="Use native device integration for ttnn. Note: this is not supported with data parallel.",
     )
+    parser.addoption(
+        "--run_mem_analysis",
+        action="store_true",
+        help="Run memory analysis and generate memory footprint charts.",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -253,11 +258,12 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
+            run_mem_analysis = request.config.getoption("--run_mem_analysis")
 
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
-                run_mem_analysis=False,
+                run_mem_analysis=run_mem_analysis,
                 metrics_path=model_name,
                 verbose=True,
                 export_code=export_code_opt,
