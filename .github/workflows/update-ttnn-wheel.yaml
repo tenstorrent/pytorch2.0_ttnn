@@ -10,6 +10,8 @@ jobs:
     permissions:
       pull-requests: write
       contents: read
+    env:
+      repo_url: "https://pypi.eng.aws.tenstorrent.com/ttnn/"
       
     steps:
       - name: Checkout Repository
@@ -20,22 +22,33 @@ jobs:
       - name: Fetch Latest Pre-release from Another Repo
         id: fetch_release
         run: |
-          # Fetch the latest pre-release tag from the target repository
-          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
-          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
-          latest_version="${latest_pre_release#v}"
-          # Set the output using the new environment file
-          echo "release=$latest_version" >> $GITHUB_OUTPUT
+          # Pull links from internal pypi, sort by version, take the last one (newest)
+          latest_pre_release=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href="\([^"]*\).*/\1/p' | sort -V | tail -n 1)
+          echo "release=$latest_pre_release" >> $GITHUB_OUTPUT
+
+          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | sort -V | tail -n 1)
+          echo "release_short=$latest_release_name_short" >> $GITHUB_OUTPUT
 
       - name: Update requirements.txt
         id: update-requirements
         run: |
+          # Remove any existing ttnn lines (adjust the regex if needed)
+          sed -i '/^ttnn @ /d' requirements.txt
+          # Append the line for the newest version
+          echo "ttnn @ ${{ env.repo_url }}${{steps.fetch_release.outputs.release}} ; python_version==\"3.10\"" >> requirements.txt
+          
+      - name: Update setup.py and pyproject.toml
+        run: |
           latest_version=${{ steps.fetch_release.outputs.release }}
           latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
-          # Remove any existing ttnn lines (adjust the regex if needed)
-          sed -i '/^ttnn @ https:\/\/github\.com\/tenstorrent\/tt-metal\/releases\//d' requirements.txt
-          # Append the line for the newest version
-          echo "ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl ; python_version==\"3.10\"" >> requirements.txt
+          ttnn_url="ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl"
+          platform_constraint=" ; python_version=='3.10' and platform_system=='Linux' and platform_machine=='x86_64'"
+          
+          # Update setup.py - using the get_ttnn_url() function
+          sed -i "s|ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v[0-9.]*-rc[0-9]*/ttnn-[0-9.]*rc[0-9]*-cp310-cp310-linux_x86_64.whl.*|$ttnn_url$platform_constraint|g" setup.py
+          
+          # Update pyproject.toml - using the same format as setup.py
+          sed -i "s|ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v[0-9.]*-rc[0-9]*/ttnn-[0-9.]*rc[0-9]*-cp310-cp310-linux_x86_64.whl.*|$ttnn_url$platform_constraint|g" pyproject.toml
           
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
@@ -47,7 +60,7 @@ jobs:
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           base: main
           commit-message: "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
-          title: "Update TT-NN to ${{ steps.fetch_release.outputs.release }}"
+          title: "Update TT-NN to ${{ steps.fetch_release.outputs.release_short }}"
           body: "This PR updates TT-NN wheel to the latest pre-release version."          
           labels: ttnn-wheel-update
           delete-branch: true
@@ -80,6 +93,7 @@ jobs:
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
       CACHE_DIR: /root/.cache/cpp-extension-cache
+      repo_url: "https://pypi.eng.aws.tenstorrent.com/ttnn/"
     steps:
       # TODO: checkout must be changed to main once branch is merged
       - name: Checkout Repository
@@ -95,10 +109,12 @@ jobs:
           apt install -y curl jq
       - name: Update .gitsubmodules
         run: |
-          # Fetch the latest pre-release tag from the target repository
-          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
-          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
-          latest_version="${latest_pre_release#v}"
+          # The name of the link nearly matches the spec from git describe. Modify and use that
+          latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | sort -V | tail -n 1)
+
+          # prepend v, change dev to -, and change +g to -g
+          latest_version=$(echo $latest_release_name_short | sed -e 's/.dev/-/' -e 's/+g/-g/' -e 's/^/v/')
+
           sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
           echo "Updated .gitmodules with the latest version: $latest_version"
 

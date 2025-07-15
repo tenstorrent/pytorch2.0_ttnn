@@ -1,17 +1,12 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
-import torch.linalg
 import torch
 import torch._dynamo
 from typing import List, Optional, Union, Mapping, Any
 from functorch.compile import make_boxed_func
 import ttnn
-import pickle
-from pathlib import Path
-import os
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
-import tools.export_code as export_code
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
 from torch_ttnn.utils import GraphCleanup, get_add_custom_object_in_graph, get_node_name
@@ -341,16 +336,25 @@ def ttnn_backend(
     print(gm)
 
     if options.export_code:
-        import tools.export_code as export_code
+        try:
+            import tools.export_code as export_code
 
-        # Some models have multiple forward functions with separate inputs for each.
-        # Within these forward functions, there can be graph breakages which are
-        # also represented by separate forward functions, but these do not have their
-        # own separate inputs. Therefore, we organize the list of aten/ttnn graphs
-        # with sublists where the top level list corresponds to the respective list of inputs.
-        options._aten_fx_graphs.append(list())
-        options._ttnn_fx_graphs.append(list())
-        options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
+            # Some models have multiple forward functions with separate inputs for each.
+            # Within these forward functions, there can be graph breakages which are
+            # also represented by separate forward functions, but these do not have their
+            # own separate inputs. Therefore, we organize the list of aten/ttnn graphs
+            # with sublists where the top level list corresponds to the respective list of inputs.
+            options._aten_fx_graphs.append(list())
+            options._ttnn_fx_graphs.append(list())
+            options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
+        except ImportError:
+            logging.warning(
+                "export_code is set to True but pytest dev environment is not detected. Continuing with export_code disabled."
+            )
+            options.export_code = False
+        except BaseException as e:
+            logging.error(f"Exception in ttnn_backend when processing graphs and inputs for export_code: {e}")
+            raise e
 
     # Analysis of params, buffers, and args
     options._n_parameters = len(list(gm.parameters()))
