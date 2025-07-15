@@ -15,8 +15,8 @@ from pathlib import Path
 from tests.conftest import get_dispatch_core_type, get_dispatch_core_axis, get_dispatch_core_config
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
 from torch.fx.node import Node, map_arg
-from torch_ttnn.utils import get_opname, users_have_getitem, is_operation, get_node_name
-from typing import Dict, List
+from torch_ttnn.utils import get_opname, users_have_getitem, is_operation, get_node_name, get_output_nodes
+from typing import NamedTuple
 
 wrapper_funcs = set()
 rename_wrappers = set()
@@ -55,14 +55,6 @@ def _get_output_to_rename(outputs, node):
         return None.
     """
 
-    def get_node_name(node):
-        if isinstance(node, str):
-            return node
-        elif isinstance(node, torch.fx.node.Node):
-            return node.name
-        else:
-            raise ValueError(f"Unsupported node type: {type(node)}")
-
     """
     When graph breaks occur, usually due to control flow, PyTorch keeps the names
     of the nodes consistent between graphs. For example, in the following example,
@@ -96,29 +88,115 @@ def _get_output_to_rename(outputs, node):
         for out_arg in reversed(outputs):
             if get_node_name(out_arg).startswith("primals"):
                 return out_arg
-    """
-    For nodes that start with "tangents", these are same nodes before the first primal
-    from the previous outputs in the respective order.
-    Example:
-    def forward_1(...):
-        ...
-        return [out1, out2, out3, primals_1, primals_2, primals_3, out4, out5]
-
-    def forward_2(..., tangents_1, tangents_2, tangents_3):
-        %tangents_1 = placeholder(tangents_1)  <==>  same as out1, replace uses of tangents_1 with out1
-        %tangents_2 = placeholder(tangents_2)  <==>  same as out2, replace uses of tangents_2 with out2
-        %tangents_3 = placeholder(tangents_3)  <==>  same as out3, replace uses of tangents_3 with out3
-    """
-    # if get_node_name(node).startswith("tangents"):
-    #     first_primal_idx = 0
-    #     for i, out_arg in enumerate(outputs):
-    #         if get_node_name(out_arg).startswith("primals"):
-    #             first_primal_idx = i
-    #             break
-    #     tangent_node = outputs[first_primal_idx - 1]
-    #     return tangent_node
 
     return None
+
+
+def _rename_arguments_and_tangents(arg_node_names, tangents):
+    """
+    Returns a tuple of modified argument node names and assignment of tangents to the correct output
+    See comment below for more details.
+
+    Args:
+        arg_node_names (List[str]): List of argument names for the current forward function
+        tangents (List[TangentsInfo]): List of TangentsInfo objects
+
+    Returns:
+        (List[str], List[str]):
+            List of strings for renamed arguments in the format of {arg_name}_{chunk_idx}_{graph_idx}
+            List of strings for assignment of tangents to the corresponding output, i.e. tangents = output
+    """
+
+    """
+    Potential tangents are a consecutive list of nodes before the first primal.
+
+    Given the following forward call:
+    mul_1, ge, sigmoid, exp, div, cat, mm_2, primals_4, primals_7, primals_8, ... = forward_0_0(...)
+
+    Potential tangents = [mul_1, ge, sigmoid, exp, div, cat, mm_2] (len = 7)
+                  mask = [True, False, True, True, True, True, True] (len = 7)
+       output tangents = [mul_1, sigmoid, exp, div, cat, mm_2] (len = 6)
+
+    Upcoming function with tangents passed as arguments:
+    ... = forward_1_1(primals_4, primals_7, primals_8, ..., tangents_1, tangents_2, tangents_3, tangents_4, tangents_5, tangents_6)
+
+    Match the most recent set of output tangents with input tangents.
+
+    tangents_1 = mul_1
+    tangents_2 = sigmoid
+    tangents_3 = exp
+    tangents_4 = div
+    tangents_5 = cat
+    tangents_6 = mm_2
+
+    For output lists that have tangents, rename the other outputs from the same list, i.e. primals_4, primals_7, primals_8, ... since
+    they will be passed together to the same forward function. Use the chunk_idx and graph_idx from TangentsInfo to append the correct suffix.
+
+    The correct tangents originated from 0_0 forward graph. Append to other outputs:
+    ... = forward_1_1(primals_4_0_0, primals_7_0_0, primals_8_0_0, ..., tangents_1, tangents_2, tangents_3, tangents_4, tangents_5, tangents_6)
+
+    Note: These outputs are renamed separately in _rename_outputs. This function only renames the argument list.
+
+    """
+
+    input_tangents = []
+    renamed_tangents = []
+    for i, arg in enumerate(arg_node_names):
+        if get_node_name(arg).startswith("tangents"):
+            input_tangents.append(arg)
+    # map backwards, from the most recent tangents list
+    new_args = []
+    for tan_info in reversed(tangents):
+        if len(tan_info.tangents) == len(input_tangents):
+            suffix = f"{tan_info.chunk_idx}_{tan_info.graph_idx}"
+            for arg in arg_node_names:
+                if not arg.startswith("tangents") and not arg.startswith("clone"):
+                    new_args.append(f"{arg}_{suffix}")
+                else:
+                    new_args.append(arg)
+            for a, b in zip(input_tangents, tan_info.tangents):
+                renamed_tangents.append(f"{a} = {b}_{suffix}")
+            break
+    if not new_args:
+        new_args = arg_node_names
+
+    return new_args, renamed_tangents
+
+
+def _rename_outputs(output_nodes, chunk_idx, graph_idx):
+    """
+    Rename outputs that have tangents
+
+    Outputs that are labeled as tangents will be reused later, but not necessarily the graph directly
+    after. In addition, the remaining outputs from the same list will be passed together. Outputs
+    also tend to have the same names, so to prevent overwrite, we rename them according to the
+    chunk_idx and graph_idx of the graph from which they originate.
+
+    Args:
+        output_nodes (List[torch.fx.Node]): List of output nodes for one forward graph
+        chunk_idx (int): chunk index of the corresponding forward graph
+        graph_idx (int): for each chunk, the graph index of the forward graph
+
+    Returns:
+        List[str]: Renamed outputs, in the form of {output_name}_{chunk_idx}_{graph_idx}
+    """
+    rename_all_outputs = False
+    out_node_names = []
+    # Find if a tangent exists first
+    for outp in output_nodes:
+        if outp is not None and (tan := outp.meta.get("tangents", None)) is not None and tan:
+            rename_all_outputs = True
+            break
+
+    # Then rename outputs accordingly
+    for outp in output_nodes:
+        outp_name = get_node_name(outp)
+        if rename_all_outputs:
+            out_node_names.append(f"{outp_name}_{chunk_idx}_{graph_idx}")
+        else:
+            out_node_names.append(outp_name if outp_name else "_")
+
+    return out_node_names
 
 
 def _compute_key(node):
@@ -618,7 +696,7 @@ if __name__ == "__main__":
         logging.info(f"{option} data object saved to {data_full_path}.")
 
 
-def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx, tangents):
+def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx, tangents_info):
     """
     Take all the graphs and assemble into a list of
 
@@ -648,17 +726,14 @@ def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_tt
         arg_node_names = [node.name for node in arg_nodes]
         return arg_node_names
 
-    def get_output_nodes(graph):
-        for node in graph.nodes:
-            if node.op == "output":
-                return list(node.args[0])
-
     def get_names_of_outputs(graph):
         out_nodes = get_output_nodes(graph)
         out_node_names = [node.name if node is not None else "_" for node in out_nodes]
         return out_node_names
 
     for graph_idx, aten_graph in enumerate(aten_fx_graphs):
+        call_forwards_in_main.append(f"# start: chunk_idx: {chunk_idx} graph_idx: {graph_idx}")
+
         # Process arguments
         arg_node_names = get_names_of_args(aten_graph)
 
@@ -677,43 +752,17 @@ def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_tt
                 if out_node is not None:
                     call_forwards_in_main.append(f"{arg} = {out_node}")
 
-        # process tangents all together
-        input_tangents = []
-        for i, arg in enumerate(arg_node_names):
-            if get_node_name(arg).startswith("tangents"):
-                input_tangents.append(arg)
-        print("input_tangents:", input_tangents)
-        # map backwards
-        for tan_info in reversed(tangents):
-            if len(tan_info.tangents) == len(input_tangents):
-                new_args = []
-                for arg in arg_node_names:
-                    if not arg.startswith("tangents") and not arg.startswith("clone"):
-                        new_args.append(f"{arg}_{tan_info.chunk_idx}_{tan_info.graph_idx}")
-                    else:
-                        new_args.append(arg)
-                arg_node_names = new_args
-                for a, b in zip(input_tangents, tan_info.tangents):
-                    call_forwards_in_main.append(f"{a} = {b}_{tan_info.chunk_idx}_{tan_info.graph_idx}")
-                break
+        # process tangents separately
+        arg_node_names, renamed_tangents = _rename_arguments_and_tangents(arg_node_names, tangents_info)
+        for i in renamed_tangents:
+            call_forwards_in_main.append(i)
 
         # append device to the end of arg list
         arg_node_names.append("device")
         # Call the forward function
-        out_node_names = get_names_of_outputs(aten_graph)
+        out_node_names = _rename_outputs(get_output_nodes(aten_graph), chunk_idx, graph_idx)
         out_nodes_string = f"{', '.join(out_node_names)} = " if out_node_names else ""
         call_forwards_in_main.append(f"{out_nodes_string}forward_{chunk_idx}_{graph_idx}({', '.join(arg_node_names)})")
-        # Lastly, rename output nodes if necessary
-        rename_all_outputs = False
-        for outp in get_output_nodes(aten_graph):
-            # outputs that are labeled as tangents will be reused later, but not
-            # necessarily the graph directly after. Therefore, prevent this output
-            # from being overwritten due to the same names
-            if outp is not None and (tan := outp.meta.get("tangents", None) is not None):
-                rename_all_outputs = True
-            if rename_all_outputs:
-                outp_name = get_node_name(outp)
-                call_forwards_in_main.append(f"{outp_name}_{chunk_idx}_{graph_idx} = {outp_name}")
 
     assert len(aten_fx_graphs) == len(ttnn_fx_graphs)
 
@@ -733,17 +782,16 @@ def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_tt
     return forward_code, call_forwards_in_main
 
 
-class TangentsInfo:
-    def __init__(self, chunk_idx, graph_idx, tangents):
-        self.chunk_idx = chunk_idx
-        self.graph_idx = graph_idx
-        self.tangents = tangents
+class TangentsInfo(NamedTuple):
+    # Organize the list of tangents and from which graph they originated
+    chunk_idx: int
+    graph_idx: int
+    tangents: list
 
 
 def _collect_tangents(aten_fx_graphs):
     """
-    Collects lists of tangents
-    Tangents are the "direction" of a primal (input).
+    Collects lists of tangents into a TangentsInfo object.
 
     Args:
         aten_fx_graphs: List of aten graphs
@@ -754,29 +802,25 @@ def _collect_tangents(aten_fx_graphs):
 
     for chunk_idx, aten_fx_graphs_chunk in enumerate(aten_fx_graphs):
         for graph_idx, aten_graph in enumerate(aten_fx_graphs_chunk):
-            # for every output in each graph, locate the nodes marked as
-            # tangents. Save them in the respective order.
-            output_node = list(aten_graph.nodes)[-1]
-            assert output_node.op == "output"
-            outputs = output_node.args[0]
+            # For every output in each graph, locate the nodes marked as tangents.
+            # Save them in the respective order along with graph id information.
+            outputs = get_output_nodes(aten_graph)
             tangents_list = []
-            first_primal_idx = 0
-            # Pytorch organizes tangents as nodes before the first primal node
-            # However, within this subset, not all are tangents.
-            for i, out_arg in enumerate(outputs):
-                if get_node_name(out_arg).startswith("primals"):
-                    first_primal_idx = i
+            # If there are no primal nodes, there are also no tangents. We can prepend nodes in advance.
+            # Retrieve the "tangents" metadata value and save the nodes that have True.
+            # The chunk_idx and graph_idx are also saved because we need the origin of this forward function.
+            # These tangents and other outputs from the same list should be used together in future forward functions.
+            have_primals = False
+            tangents_list = []
+            for outp in outputs:
+                if get_node_name(outp).startswith("primals"):
+                    have_primals = True
                     break
-            if first_primal_idx > 0:
-                for i, outp in enumerate(outputs):
-                    if i == first_primal_idx:
-                        break
-                    if outp is not None and (tan := outp.meta.get("tangents", None) is not None):
-                        if tan:
-                            outp_name = get_node_name(outp)
-                            tangents_list.append(outp_name)
+                if outp is not None and (tan := outp.meta.get("tangents", None)) is not None:
+                    if tan:
+                        tangents_list.append(get_node_name(outp))
+            if have_primals:
                 tangents_info.append(TangentsInfo(chunk_idx, graph_idx, tangents_list))
-                print("tangents:", chunk_idx, graph_idx, tangents_list)
 
     return tangents_info
 

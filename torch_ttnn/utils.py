@@ -107,9 +107,17 @@ def get_node_name(node):
         return node.name
     elif node is None:
         return ""
-    # what if None?
     else:
-        raise ValueError(f"Unsupported node type: {type(node)}")
+        raise ValueError(f"Unsupported node type: {node} ({type(node)})")
+
+
+def get_output_nodes(graph):
+    """
+    Get the list of output nodes from a torch.fx.Graph
+    """
+    output_node = list(graph.nodes)[-1]
+    assert output_node.op == "output"
+    return output_node.args[0]
 
 
 # Certain ops don't support certain shapes and will emit a valid_page_size error

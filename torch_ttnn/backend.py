@@ -7,9 +7,10 @@ from typing import List, Optional, Union, Mapping, Any
 from functorch.compile import make_boxed_func
 import ttnn
 from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
+from torch_ttnn.handle_tangents import mark_output_as_tangents
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
-from torch_ttnn.utils import GraphCleanup, get_add_custom_object_in_graph, get_node_name
+from torch_ttnn.utils import GraphCleanup, get_add_custom_object_in_graph
 import copy
 import logging
 
@@ -117,65 +118,13 @@ def aten_backend(
 
     gm = remove_clones_for_input_aliasing(gm)
 
-    print("============================================================================")
-    for idx, node in enumerate(gm.graph.nodes):
-        if node.op == "placeholder":
-            print(f"{idx}: {node.name}: {node.meta['val'].size()}")
-
-    # for number, line in enumerate(gm.code.splitlines()):
-    #     print(f"{number + 1}: {line}")
-    print("----------------------------------------------------------------------------")
-    for node in gm.graph.nodes:
-        if node.op == "output":
-            for idx, out in enumerate(node.args[0]):
-                if out is not None:
-                    print(f"{idx}: {out.name}: {out.meta['val'].size()} {out.meta.get('from_node', '')}")
-
     # Save aten graph if requested
     if options.export_code:
         # Will this hamper memory usage?
         graph_copy = copy.deepcopy(gm.graph)
         graph_copy.owning_module = gm
 
-        tracing_context = torch._guards.TracingContext.try_get()
-        fw_metadata = tracing_context.fw_metadata
-        # print("fw_metadata:", fw_metadata, len(fw_metadata.output_info))
-
-        from torch._functorch._aot_autograd.schemas import (
-            OutputType,
-        )
-
-        output_grad_mask = [
-            fw_metadata.output_info[i].output_type
-            in [
-                OutputType.non_alias,
-                OutputType.unsafe_view_alias,
-                OutputType.custom_function_view,
-            ]
-            # Also, only tensor outputs should participate in the backward
-            # (in particular, Symint outputs in the forward graph shouldn't get tangents)
-            and issubclass(fw_metadata.output_info[i].raw_type, torch.Tensor)
-            and fw_metadata.output_info[i].requires_grad
-            for i in range(len(fw_metadata.output_info))
-        ]
-        print("output_grad_mask ttnn:", output_grad_mask)
-
-        output_node = list(graph_copy.nodes)[-1]
-        assert output_node.op == "output"
-        outputs = output_node.args[0]
-        first_primal_idx = 0
-        # tangents are nodes before primals
-        # also masked
-        for i, out_arg in enumerate(outputs):
-            if get_node_name(out_arg).startswith("primals"):
-                first_primal_idx = i
-                break
-        if first_primal_idx > 0:
-            for i, (primal, mask) in enumerate(zip(outputs[0:first_primal_idx], output_grad_mask)):
-                if mask:
-                    # primal.meta["tangents"] = f"tangents_{i+1}"
-                    primal.meta["tangents"] = True
-
+        graph_copy = mark_output_as_tangents(graph_copy)
         option._aten_fx_graphs[-1].append(graph_copy)
 
     # Save the number of aten ops before compilation
@@ -302,18 +251,12 @@ def aten_backend(
     if options.export_code:
         option._ttnn_fx_graphs[-1].append(gm.graph)
 
-    # for node in gm.graph.nodes:
-    #     if node.op == "placeholder":
-    #         print(f"{node.name}: {node.meta}")
+    for node in gm.graph.nodes:
+        if node.op == "placeholder":
+            print(f"{node.name}: {node.meta}")
 
-    # for number, line in enumerate(gm.code.splitlines()):
-    #     print(f"{number + 1}: {line}")
-
-    # for node in gm.graph.nodes:
-    #     if node.op == "output":
-    #         for out in node.args[0]:
-    #             if out is not None:
-    #                 print(f"{out.name}: {out.meta}")
+    for number, line in enumerate(gm.code.splitlines()):
+        print(f"{number + 1}: {line}")
 
     return make_boxed_func(gm)
 
@@ -332,9 +275,6 @@ def ttnn_backend(
     example_inputs: List[torch.Tensor],
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    print(gm)
-
     if options.export_code:
         try:
             import tools.export_code as export_code
