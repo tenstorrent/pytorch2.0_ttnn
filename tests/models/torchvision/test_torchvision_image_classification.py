@@ -104,7 +104,7 @@ model_info_and_mode_list = [
 
 
 @pytest.mark.parametrize("model_info_and_mode", model_info_and_mode_list)
-def test_torchvision_image_classification(record_property, model_info_and_mode):
+def test_torchvision_image_classification(record_property, model_info_and_mode, cached_results):
     model_info = model_info_and_mode[0]
     mode = model_info_and_mode[1]
     model_name, _ = model_info
@@ -112,7 +112,9 @@ def test_torchvision_image_classification(record_property, model_info_and_mode):
     record_property("mode", mode)
 
     tester = ThisTester(model_info, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         # Print the top 5 predictions
         _, indices = torch.topk(results, 5)
