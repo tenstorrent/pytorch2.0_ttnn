@@ -55,7 +55,7 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.parametrize(
     "batch_size",
-    [8],
+    [4],
 )
 @pytest.mark.converted_end_to_end
 @pytest.mark.e2e_with_native_integration

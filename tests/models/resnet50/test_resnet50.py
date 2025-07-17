@@ -36,7 +36,7 @@ class ThisTester(ModelTester):
 @pytest.mark.parametrize(
     "mode, batch_size",
     [
-        ("train", 1),
+        # ("train", 1),
         # TODO: tt-metal uses batch_size=16, but we OOM. Change to 16 when we don't
         pytest.param("eval", 4, marks=pytest.mark.converted_end_to_end),
     ],

@@ -274,6 +274,7 @@ del globals()["{func_name}"]
         "ttnn_TILE_LAYOUT": "ttnn.TILE_LAYOUT",
         "ttnn_ROW_MAJOR_LAYOUT": "ttnn.ROW_MAJOR_LAYOUT",
         "ttnn_L1_MEMORY_CONFIG": "ttnn.L1_MEMORY_CONFIG",
+        "ttnn_Full_Core_Grid": "ttnn.CoreGrid(y=8, x=8)",
         "ttnn_DRAM_MEMORY_CONFIG": "ttnn.DRAM_MEMORY_CONFIG",
         "ttnn_uint32": "ttnn.uint32",
         "ttnn_bfloat16": "ttnn.bfloat16",

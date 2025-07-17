@@ -96,6 +96,8 @@ def register_ttnn_objects(option: TorchTtnnOption):
     get_add_custom_object_in_graph("ttnn_DRAM_MEMORY_CONFIG", ttnn.DRAM_MEMORY_CONFIG)
     get_add_custom_object_in_graph("ttnn_L1_MEMORY_CONFIG", ttnn.L1_MEMORY_CONFIG)
 
+    get_add_custom_object_in_graph("ttnn_Full_Core_Grid", ttnn.CoreGrid(y=8, x=8))
+
 
 # The backend for torch.compile that converts a graph to use ttnn.
 # The "option" parameter is a TorchTtnnOption object
@@ -161,6 +163,7 @@ def aten_backend(
     from torch_ttnn.passes.graphviz_pass import GraphvizPass
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
     from torch_ttnn.passes.memory_pass import MemoryPass
+    from torch_ttnn.passes.l1_pass import L1Pass
     from torch_ttnn.passes.deallocation_pass import DeallocationPass
 
     passes = [
@@ -176,6 +179,7 @@ def aten_backend(
         EliminateCoreopsPass(),
         CSEPass(),
         PermuteReshapeTuple(),
+        L1Pass(),
         DeallocationPass(),
     ]
 

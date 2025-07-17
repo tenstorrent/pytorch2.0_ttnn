@@ -147,6 +147,11 @@ class TtnnL1MemoryConfig:
         return f"ttnn_L1_MEMORY_CONFIG"
 
 
+class TtnnFullCoreGrid:
+    def __repr__(self):
+        return f"ttnn_Full_Core_Grid"
+
+
 # repr_str -> (object_wrapper, object)
 __custom_objects_registry = {}
 

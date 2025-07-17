@@ -353,7 +353,9 @@ def native_layer_norm(
     device: ttnn.Device,
 ):
     if not use_mean and not use_rstd:
-        output = ttnn.layer_norm(input_tensor, epsilon=epsilon, weight=gamma, bias=beta)
+        output = ttnn.layer_norm(
+            input_tensor, epsilon=epsilon, weight=gamma, bias=beta, memory_config=ttnn.L1_MEMORY_CONFIG
+        )
         return (output, None, None)
 
     output = ttnn.empty(in_tensor_shape, device=device, layout=ttnn.TILE_LAYOUT, dtype=ttnn_dtype)
