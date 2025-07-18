@@ -1,3 +1,4 @@
+#include <cstddef>
 #include "ttnn_cpp_extension/ops/view.hpp"
 #include "ttnn_cpp_extension/ops/creation.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
@@ -10,7 +11,7 @@
 #include <ttnn/operations/data_movement/squeeze/squeeze.hpp>
 #include <ttnn/operations/data_movement/reshape_view/reshape.hpp>
 #include "ttnn/operations/data_movement/split/split.hpp"
-#include <ttnn/operations/experimental/bcast_to/bcast_to.hpp>
+#include <ttnn/operations/data_movement/expand/expand.hpp>
 
 namespace tt_eager::ops::view {
 
@@ -26,21 +27,29 @@ at::Tensor ttnn_expand(const at::Tensor& self, at::IntArrayRef size, bool implic
         ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
     }
 
-    ttnn::SmallVector<uint32_t> target_shape_vec(size.begin(), size.end());
-    ttnn::Shape target_shape(target_shape_vec);
+    // Convert size to vector of int32_t as required by ttnn::expand
+    std::vector<int32_t> target_shape_vec;
+    target_shape_vec.reserve(size.size());
+    for (auto s : size) {
+        target_shape_vec.push_back(static_cast<int32_t>(s));
+    }
 
-    auto broadcasted_tensor = ttnn::experimental::broadcast_to(
+    // Create span from vector for ttnn::expand API
+    tt::stl::Span<const int32_t> shape_span(target_shape_vec);
+
+    // Use ttnn::expand with correct API signature
+    auto expanded_tensor = ttnn::expand(
         ttnn_tensor,
-        target_shape,
-        std::nullopt,  // memory_config
-        std::nullopt   // output
+        shape_span,
+        std::nullopt  // memory_config
+        // queue_id uses default value
     );
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         size, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
 
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-    out_impl->set_ttnn_tensor(broadcasted_tensor);
+    out_impl->set_ttnn_tensor(expanded_tensor);
 
     return output;
 }
@@ -189,7 +198,7 @@ at::Tensor ttnn_slice_tensor(
     return output;
 }
 
-std::vector<at::Tensor> ttnn_split_tensor_fixed(const at::Tensor& self, c10::SymInt split_size, int64_t dim) {
+std::vector<at::Tensor> ttnn_split_tensor(const at::Tensor& self, c10::SymInt split_size, int64_t dim) {
     LOGGING("Running aten::split.Tensor (fixed size)");
 
     TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, "Tensor must be on PrivateUse1 device");
@@ -245,18 +254,7 @@ at::Tensor ttnn_t_default(const at::Tensor& self) {
         ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
     }
 
-    auto ttnn_result = ttnn::transpose(ttnn_tensor, 0, 1);  // transpose the two dims
-
-    const auto& logical_shape = ttnn_result.logical_shape();
-    std::vector<int64_t> shape_vec(logical_shape.cbegin(), logical_shape.cend());
-
-    auto output = tt_eager::ops::create::custom_empty_memory_format(
-        shape_vec, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
-
-    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-    out_impl->set_ttnn_tensor(ttnn_result);
-
-    return output;
+    return ttnn_transpose_int(self, 0, 1);
 }
 
 at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim1) {

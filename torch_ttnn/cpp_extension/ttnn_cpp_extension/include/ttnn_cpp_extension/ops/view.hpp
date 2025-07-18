@@ -12,12 +12,11 @@
 
 namespace tt_eager::ops::view {
 
-using TtnnTensor = ttnn::Tensor;
 using Shape = ttnn::Shape;
 
-TtnnTensor select(const TtnnTensor& input, int dim, int index);
+ttnn::Tensor select(const ttnn::Tensor& input, int dim, int index);
 
-TtnnTensor broadcast(const TtnnTensor& input, const Shape& target_shape);
+ttnn::Tensor broadcast(const ttnn::Tensor& input, const Shape& target_shape);
 
 at::Tensor ttnn_view(const at::Tensor& self, at::IntArrayRef size);
 
@@ -32,7 +31,7 @@ at::Tensor ttnn_slice_tensor(
     c10::optional<c10::SymInt> end,
     c10::SymInt step);
 
-std::vector<at::Tensor> ttnn_split_tensor_fixed(const at::Tensor& self, c10::SymInt split_size, int64_t dim);
+std::vector<at::Tensor> ttnn_split_tensor(const at::Tensor& self, c10::SymInt split_size, int64_t dim);
 
 at::Tensor ttnn_t_default(const at::Tensor& self);
 

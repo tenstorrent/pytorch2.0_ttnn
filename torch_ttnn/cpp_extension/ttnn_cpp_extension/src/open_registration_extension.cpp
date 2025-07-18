@@ -15,9 +15,10 @@
 #include "ttnn_cpp_extension/ops/embedding.hpp"
 #include "ttnn_cpp_extension/ops/view.hpp"
 #include "ttnn_cpp_extension/ops/norm.hpp"
-#include "ttnn_cpp_extension/ops/linear_iml.hpp"
+#include "ttnn_cpp_extension/ops/linear.hpp"
 #include "ttnn_cpp_extension/ops/matmul.hpp"
 #include "ttnn_cpp_extension/ops/as_strided.hpp"
+#include "ttnn_cpp_extension/ops/clone.hpp"
 
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &get_ttnn_custom_allocator());
 
@@ -33,9 +34,9 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("_softmax", &tt_eager::ops::normalization::ttnn_softmax);
     m.impl("_to_copy", &tt_eager::ops::to_copy::ttnn_to_copy);
     m.impl("add.Tensor", &tt_eager::ops::binary::ttnn_add_tensor);
-    m.impl("addmm", &tt_eager::ops::binary::ttnn_addmm);
-    m.impl("bmm", &tt_eager::ops::binary::ttnn_bmm);
-    m.impl("clone", &tt_eager::ops::unary::ttnn_clone);
+    m.impl("addmm", &tt_eager::ops::matmul::ttnn_addmm);
+    m.impl("bmm", &tt_eager::ops::matmul::ttnn_bmm);
+    m.impl("clone", &tt_eager::ops::clone::ttnn_clone);
     m.impl("div.Tensor", &tt_eager::ops::binary::ttnn_div_tensor);
     m.impl("embedding", &tt_eager::ops::embedding::ttnn_embedding);
     m.impl("expand", &tt_eager::ops::view::ttnn_expand);
@@ -45,7 +46,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("permute", &tt_eager::ops::view::ttnn_permute);
     m.impl("rsub.Scalar", &tt_eager::ops::binary::ttnn_rsub_scalar);
     m.impl("slice.Tensor", &tt_eager::ops::view::ttnn_slice_tensor);
-    m.impl("split.Tensor", &tt_eager::ops::view::ttnn_split_tensor_fixed);
+    m.impl("split.Tensor", &tt_eager::ops::view::ttnn_split_tensor);
     m.impl("t", &tt_eager::ops::view::ttnn_t_default);
     m.impl("tanh", &tt_eager::ops::unary::ttnn_tanh);
     m.impl("transpose.int", &tt_eager::ops::view::ttnn_transpose_int);

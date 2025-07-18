@@ -1,4 +1,4 @@
-#include "ttnn_cpp_extension/ops/linear_iml.hpp"
+#include "ttnn_cpp_extension/ops/linear.hpp"
 #include "ttnn_cpp_extension/ops/creation.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
