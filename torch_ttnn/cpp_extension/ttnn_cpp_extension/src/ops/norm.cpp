@@ -37,7 +37,7 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
 
     auto* input_impl = static_cast<at::TtnnTensorImpl*>(reshaped_input.unsafeGetTensorImpl());
     auto ttnn_input = input_impl->get_ttnn_tensor();
-    
+
     ttnn_input = tt_eager::utils::ensure_tile_layout(ttnn_input);
 
     auto convert_tensor = [](const at::Tensor& tensor) -> ttnn::Tensor {

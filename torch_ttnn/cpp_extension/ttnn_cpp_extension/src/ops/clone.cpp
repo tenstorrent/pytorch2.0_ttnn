@@ -15,7 +15,8 @@ at::Tensor ttnn_clone(const at::Tensor& self, c10::optional<at::MemoryFormat> me
     auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto ttnn_tensor = self_impl->get_ttnn_tensor();
 
-    auto cloned = ttnn::clone(ttnn_tensor, /*dtype=*/std::nullopt, /*memory_config=*/std::nullopt, /*compute_kernel_config=*/std::nullopt);
+    auto cloned = ttnn::clone(
+        ttnn_tensor, /*dtype=*/std::nullopt, /*memory_config=*/std::nullopt, /*compute_kernel_config=*/std::nullopt);
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         self.sizes(),

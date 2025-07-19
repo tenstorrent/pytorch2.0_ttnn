@@ -14,7 +14,7 @@ at::Tensor ttnn_softmax(const at::Tensor& input, int64_t dim, bool /*half_to_flo
 
     auto* tensor_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto ttnn_tensor = tensor_impl->get_ttnn_tensor();
-    
+
     ttnn_tensor = tt_eager::utils::ensure_tile_layout(ttnn_tensor);
 
     auto result = ttnn::softmax(ttnn_tensor, dim);

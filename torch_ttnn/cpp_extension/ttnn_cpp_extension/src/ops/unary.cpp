@@ -6,33 +6,34 @@
 
 #include <ttnn/operations/eltwise/unary/unary.hpp>
 
-    namespace tt_eager::ops::unary {
+namespace tt_eager::ops::unary {
 
-    at::Tensor& ttnn_abs_out(const at::Tensor& self, at::Tensor& out) {
-        LOGGING("");
-        TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
-        TORCH_CHECK(out.device().type() == c10::DeviceType::PrivateUse1);
+at::Tensor& ttnn_abs_out(const at::Tensor& self, at::Tensor& out) {
+    LOGGING("");
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
+    TORCH_CHECK(out.device().type() == c10::DeviceType::PrivateUse1);
 
-        at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-        auto ttnn_tensor = tensor_impl->get_ttnn_tensor();
+    at::TtnnTensorImpl* tensor_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    auto ttnn_tensor = tensor_impl->get_ttnn_tensor();
 
-        auto result = ttnn::abs(ttnn_tensor);
+    auto result = ttnn::abs(ttnn_tensor);
 
-        at::TtnnTensorImpl* out_tensor_impl = static_cast<at::TtnnTensorImpl*>(out.unsafeGetTensorImpl());
-        out_tensor_impl->set_sizes_and_strides_as(self);
+    at::TtnnTensorImpl* out_tensor_impl = static_cast<at::TtnnTensorImpl*>(out.unsafeGetTensorImpl());
+    out_tensor_impl->set_sizes_and_strides_as(self);
 
-        auto out_ttnn_tensor = out_tensor_impl->get_ttnn_tensor();
-        out_tensor_impl->set_ttnn_tensor(result);
+    auto out_ttnn_tensor = out_tensor_impl->get_ttnn_tensor();
+    out_tensor_impl->set_ttnn_tensor(result);
 
-        return out;
-    }
-
+    return out;
+}
 
 // Helper for simple unary ops
-template<typename TtnnOp>
+template <typename TtnnOp>
 at::Tensor ttnn_unary_op(const at::Tensor& self, TtnnOp&& ttnn_operation, const char* op_name) {
     LOGGING("Running", op_name);
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, std::string(op_name) + ": only PrivateUse1 device is supported");
+    TORCH_CHECK(
+        self.device().type() == c10::DeviceType::PrivateUse1,
+        std::string(op_name) + ": only PrivateUse1 device is supported");
 
     auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto ttnn_tensor = self_impl->get_ttnn_tensor();
@@ -53,14 +54,13 @@ at::Tensor ttnn_unary_op(const at::Tensor& self, TtnnOp&& ttnn_operation, const 
 }
 
 // Helper for unary ops with validation
-template<typename TtnnOp, typename ValidationFn>
+template <typename TtnnOp, typename ValidationFn>
 at::Tensor ttnn_unary_op_with_validation(
-    const at::Tensor& self,
-    TtnnOp&& ttnn_operation,
-    ValidationFn&& validation,
-    const char* op_name) {
+    const at::Tensor& self, TtnnOp&& ttnn_operation, ValidationFn&& validation, const char* op_name) {
     LOGGING("Running", op_name);
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, std::string(op_name) + ": only PrivateUse1 device is supported");
+    TORCH_CHECK(
+        self.device().type() == c10::DeviceType::PrivateUse1,
+        std::string(op_name) + ": only PrivateUse1 device is supported");
     validation();
     auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto ttnn_tensor = self_impl->get_ttnn_tensor();
@@ -85,12 +85,9 @@ at::Tensor ttnn_gelu(const at::Tensor& self, c10::string_view approximate) {
         self,
         ttnn::gelu,
         [approximate]() { TORCH_CHECK(approximate == "none", "ttnn_gelu: only approximate='none' is supported"); },
-        "aten::gelu.default"
-    );
+        "aten::gelu.default");
 }
 
-at::Tensor ttnn_tanh(const at::Tensor& self) {
-    return ttnn_unary_op(self, ttnn::tanh, "aten::tanh.default");
-}
+at::Tensor ttnn_tanh(const at::Tensor& self) { return ttnn_unary_op(self, ttnn::tanh, "aten::tanh.default"); }
 
 }  // namespace tt_eager::ops::unary

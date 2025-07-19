@@ -27,7 +27,7 @@ at::Tensor ttnn_expand(const at::Tensor& self, at::IntArrayRef size, bool implic
 
     tt::stl::Span<const int32_t> shape_span(target_shape_vec);
 
-    auto expanded_tensor = ttnn::expand(ttnn_tensor, shape_span, std::nullopt, );
+    auto expanded_tensor = ttnn::expand(ttnn_tensor, shape_span, std::nullopt);
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         size, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
