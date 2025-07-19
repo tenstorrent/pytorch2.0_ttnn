@@ -27,57 +27,70 @@
         return out;
     }
 
-    at::Tensor ttnn_gelu(const at::Tensor& self, c10::string_view approximate) {
-        LOGGING("Running aten::gelu.default");
 
-        TORCH_CHECK(
-            self.device().type() == c10::DeviceType::PrivateUse1, "ttnn_gelu: only PrivateUse1 device is supported");
+// Helper for simple unary ops
+template<typename TtnnOp>
+at::Tensor ttnn_unary_op(const at::Tensor& self, TtnnOp&& ttnn_operation, const char* op_name) {
+    LOGGING("Running", op_name);
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, std::string(op_name) + ": only PrivateUse1 device is supported");
 
-        TORCH_CHECK(approximate == "none", "ttnn_gelu: only approximate='none' is supported");
+    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    auto ttnn_tensor = self_impl->get_ttnn_tensor();
+    ttnn_tensor = tt_eager::utils::ensure_tile_layout(ttnn_tensor);
+    auto result = ttnn_operation(ttnn_tensor);
 
-        auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-        auto ttnn_tensor = self_impl->get_ttnn_tensor();
+    auto output = tt_eager::ops::create::custom_empty_memory_format(
+        self.sizes(),
+        self.scalar_type(),
+        /*strides=*/c10::nullopt,
+        self.device(),
+        /*pin_memory=*/c10::nullopt);
 
-        ttnn_tensor = tt_eager::utils::ensure_tile_layout(ttnn_tensor);
+    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+    out_impl->set_sizes_and_strides_as(self);
+    out_impl->set_ttnn_tensor(result);
+    return output;
+}
 
-        auto result = ttnn::gelu(ttnn_tensor);
+// Helper for unary ops with validation
+template<typename TtnnOp, typename ValidationFn>
+at::Tensor ttnn_unary_op_with_validation(
+    const at::Tensor& self,
+    TtnnOp&& ttnn_operation,
+    ValidationFn&& validation,
+    const char* op_name) {
+    LOGGING("Running", op_name);
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, std::string(op_name) + ": only PrivateUse1 device is supported");
+    validation();
+    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    auto ttnn_tensor = self_impl->get_ttnn_tensor();
+    ttnn_tensor = tt_eager::utils::ensure_tile_layout(ttnn_tensor);
+    auto result = ttnn_operation(ttnn_tensor);
 
-        auto output = tt_eager::ops::create::custom_empty_memory_format(
-            self.sizes(),
-            self.scalar_type(),
-            /*strides=*/c10::nullopt,
-            self.device(),
-            /*pin_memory=*/c10::nullopt);
+    auto output = tt_eager::ops::create::custom_empty_memory_format(
+        self.sizes(),
+        self.scalar_type(),
+        /*strides=*/c10::nullopt,
+        self.device(),
+        /*pin_memory=*/c10::nullopt);
 
-        auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-        out_impl->set_sizes_and_strides_as(self);
-        out_impl->set_ttnn_tensor(result);
+    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+    out_impl->set_sizes_and_strides_as(self);
+    out_impl->set_ttnn_tensor(result);
+    return output;
+}
 
-        return output;
-    }
+at::Tensor ttnn_gelu(const at::Tensor& self, c10::string_view approximate) {
+    return ttnn_unary_op_with_validation(
+        self,
+        ttnn::gelu,
+        [approximate]() { TORCH_CHECK(approximate == "none", "ttnn_gelu: only approximate='none' is supported"); },
+        "aten::gelu.default"
+    );
+}
 
-    at::Tensor ttnn_tanh(const at::Tensor& self) {
-        LOGGING("Running aten::tanh.default");
-        TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
-
-        auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-        auto ttnn_tensor = self_impl->get_ttnn_tensor();
-        
-        ttnn_tensor = tt_eager::utils::ensure_tile_layout(ttnn_tensor);
-
-        auto result = ttnn::tanh(ttnn_tensor);
-
-        auto output = tt_eager::ops::create::custom_empty_memory_format(
-            self.sizes(),
-            self.scalar_type(),
-            /*strides=*/c10::nullopt,
-            self.device(),
-            /*pin_memory=*/c10::nullopt);
-
-        auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-        out_impl->set_sizes_and_strides_as(self);
-        out_impl->set_ttnn_tensor(result);
-        return output;
-    }
+at::Tensor ttnn_tanh(const at::Tensor& self) {
+    return ttnn_unary_op(self, ttnn::tanh, "aten::tanh.default");
+}
 
 }  // namespace tt_eager::ops::unary
