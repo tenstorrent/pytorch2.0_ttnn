@@ -84,7 +84,7 @@ def _get_output_to_rename(outputs, node):
         %clone = placeholder(clone)  <==>  same as primals_3, replace uses of clone with primals_3
 
     """
-    if "clone" in get_node_name(node):
+    if get_node_name(node) == "clone":
         for out_arg in reversed(outputs):
             if get_node_name(out_arg).startswith("primals"):
                 return out_arg
@@ -141,7 +141,7 @@ def _rename_arguments_and_tangents(arg_node_names, tangents):
 
     input_tangents = []
     renamed_tangents = []
-    for i, arg in enumerate(arg_node_names):
+    for arg in arg_node_names:
         if get_node_name(arg).startswith("tangents"):
             input_tangents.append(arg)
     # map backwards, from the most recent tangents list
@@ -150,7 +150,7 @@ def _rename_arguments_and_tangents(arg_node_names, tangents):
         if len(tan_info.tangents) == len(input_tangents):
             suffix = f"{tan_info.chunk_idx}_{tan_info.graph_idx}"
             for arg in arg_node_names:
-                if not arg.startswith("tangents") and not arg.startswith("clone"):
+                if not arg.startswith("tangents") and arg != "clone":
                     new_args.append(f"{arg}_{suffix}")
                 else:
                     new_args.append(arg)
@@ -810,16 +810,21 @@ def _collect_tangents(aten_fx_graphs):
             # Retrieve the "tangents" metadata value and save the nodes that have True.
             # The chunk_idx and graph_idx are also saved because we need the origin of this forward function.
             # These tangents and other outputs from the same list should be used together in future forward functions.
-            have_primals = False
-            tangents_list = []
-            for outp in outputs:
+            first_primal_idx = 0
+            for i, outp in enumerate(outputs):
                 if get_node_name(outp).startswith("primals"):
-                    have_primals = True
+                    first_primal_idx = i
                     break
-                if outp is not None and (tan := outp.meta.get("tangents", None)) is not None:
-                    if tan:
-                        tangents_list.append(get_node_name(outp))
-            if have_primals:
+
+            tangents_list = []
+            if first_primal_idx > 0:
+                for outp in reversed(outputs[0:first_primal_idx]):
+                    if outp is not None and (tan := outp.meta.get("tangents", None)) is not None:
+                        if tan:
+                            tangents_list.append(get_node_name(outp))
+                    else:
+                        break
+
                 tangents_info.append(TangentsInfo(chunk_idx, graph_idx, tangents_list))
 
     return tangents_info

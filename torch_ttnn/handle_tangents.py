@@ -23,13 +23,12 @@ def mark_output_as_tangents(graph: torch.fx.Graph) -> torch.fx.Graph:
     # tangents are nodes before the first primal.
     # If primals do not exist, then nothing will change. We can prepend nodes in advance.
     tangents = []
-    have_primals = False
-    for out_arg in outputs:
+    first_primal_idx = 0
+    for i, out_arg in enumerate(outputs):
         if get_node_name(out_arg).startswith("primals"):
-            have_primals = True
+            first_primal_idx = i
             break
-        tangents.append(out_arg)
-    if have_primals:
+    if first_primal_idx > 0:
         """
         Following the same process in Pytorch to create a mask for the tangents
         https://github.com/pytorch/pytorch/blob/30587195d314eb5eb02ce63f39a9be4c943629ef/torch/_functorch/_aot_autograd/traced_function_transforms.py#L159-L174
@@ -50,8 +49,10 @@ def mark_output_as_tangents(graph: torch.fx.Graph) -> torch.fx.Graph:
             and fw_metadata.output_info[i].requires_grad
             for i in range(len(fw_metadata.output_info))
         ]
-
+        mask_len = len(output_grad_mask)
+        tangents = outputs[first_primal_idx - mask_len : first_primal_idx]
         assert len(tangents) == len(output_grad_mask)
+
         for tan, mask in zip(tangents, output_grad_mask):
             tan.meta["tangents"] = mask
 
