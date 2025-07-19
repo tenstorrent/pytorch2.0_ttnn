@@ -34,6 +34,7 @@ void doPrint(
         out << std::endl;
     }
 }
+
 #define LOGGING(...) doPrint(std::cout, __FILE_NAME__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 inline ttnn::DataType dtype_torch_to_ttnn(at::ScalarType dtype) {

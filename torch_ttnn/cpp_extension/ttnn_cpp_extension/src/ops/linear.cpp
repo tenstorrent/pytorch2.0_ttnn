@@ -2,6 +2,7 @@
 #include "ttnn_cpp_extension/ops/creation.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/ensure_tile_layout.hpp"
 
 #include <vector>
 #include <numeric>
@@ -15,13 +16,6 @@
 
 namespace tt_eager::ops::linear {
 
-static ttnn::Tensor ensure_tile(ttnn::Tensor t) {
-    if (t.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        t = ttnn::to_layout(t, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, t.device());
-    }
-    return t;
-}
-
 at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const c10::optional<at::Tensor>& bias) {
     LOGGING("Running aten::linear");
     TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1);
@@ -34,8 +28,8 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     auto* input_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto* weight_impl = static_cast<at::TtnnTensorImpl*>(weight.unsafeGetTensorImpl());
 
-    auto ttnn_input = ensure_tile(input_impl->get_ttnn_tensor());
-    auto ttnn_weight = ensure_tile(weight_impl->get_ttnn_tensor());
+    auto ttnn_input = tt_eager::utils::ensure_tile_layout(input_impl->get_ttnn_tensor());
+    auto ttnn_weight = tt_eager::utils::ensure_tile_layout(weight_impl->get_ttnn_tensor());
 
     auto input_shape = input.sizes();
     auto weight_shape = weight.sizes();
@@ -73,7 +67,7 @@ at::Tensor ttnn_linear(const at::Tensor& input, const at::Tensor& weight, const 
     if (bias.has_value()) {
         TORCH_CHECK(bias.value().device().type() == c10::DeviceType::PrivateUse1);
         auto* bias_impl = static_cast<at::TtnnTensorImpl*>(bias.value().unsafeGetTensorImpl());
-        auto ttnn_bias = ensure_tile(bias_impl->get_ttnn_tensor());
+        auto ttnn_bias = tt_eager::utils::ensure_tile_layout(bias_impl->get_ttnn_tensor());
         ttnn_result = ttnn::add(ttnn_result, ttnn_bias);
     }
 

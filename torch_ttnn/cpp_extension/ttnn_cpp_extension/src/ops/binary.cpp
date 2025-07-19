@@ -2,6 +2,7 @@
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/ops/creation.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/layout_utils.hpp"
 
 #include <torch/torch.h>
 #include <ttnn/operations/eltwise/binary/binary.hpp>
@@ -9,18 +10,6 @@
 #include <ttnn/tensor/types.hpp>
 
 namespace tt_eager::ops::binary {
-
-static ttnn::Tensor ensure_tile(ttnn::Tensor t) {
-    if (t.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        t = ttnn::to_layout(
-            t,
-            ttnn::TILE_LAYOUT,
-            /*queue_id=*/std::nullopt,
-            /*kernel_cfg=*/std::nullopt,
-            t.device());
-    }
-    return t;
-}
 
 at::Tensor& ttnn_add_out(const at::Tensor& input, const at::Tensor& other, const at::Scalar& alpha, at::Tensor& out) {
     LOGGING("Running aten::add.out");
@@ -34,8 +23,8 @@ at::Tensor& ttnn_add_out(const at::Tensor& input, const at::Tensor& other, const
 
     auto* impl0 = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto* impl1 = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
-    ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
+    ttnn::Tensor t0 = tt_eager::utils::ensure_tile_layout(impl0->get_ttnn_tensor());
+    ttnn::Tensor t1 = tt_eager::utils::ensure_tile_layout(impl1->get_ttnn_tensor());
 
     if (alpha.toDouble() != 1.0) {
         t1 = ttnn::multiply(t1, static_cast<float>(alpha.toDouble()));
@@ -75,8 +64,8 @@ at::Tensor ttnn_mul_tensor(const at::Tensor& input, const at::Tensor& other) {
 
     auto* impl0 = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto* impl1 = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
-    ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
+    ttnn::Tensor t0 = tt_eager::utils::ensure_tile_layout(impl0->get_ttnn_tensor());
+    ttnn::Tensor t1 = tt_eager::utils::ensure_tile_layout(impl1->get_ttnn_tensor());
 
     auto result = ttnn::multiply(t0, t1);
 
@@ -98,7 +87,7 @@ at::Tensor ttnn_div_tensor(const at::Tensor& self, const at::Tensor& other) {
             self.device().type() == c10::DeviceType::PrivateUse1, "ttnn_div_tensor requires TTNN backend for tensor");
 
         auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-        auto ttnn_self = ensure_tile(self_impl->get_ttnn_tensor());
+        auto ttnn_self = tt_eager::utils::ensure_tile_layout(self_impl->get_ttnn_tensor());
 
         float scalar_value = other.item<float>();
 
@@ -118,8 +107,8 @@ at::Tensor ttnn_div_tensor(const at::Tensor& self, const at::Tensor& other) {
     auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto* other_impl = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
 
-    auto ttnn_self = ensure_tile(self_impl->get_ttnn_tensor());
-    auto ttnn_other = ensure_tile(other_impl->get_ttnn_tensor());
+    auto ttnn_self = tt_eager::utils::ensure_tile_layout(self_impl->get_ttnn_tensor());
+    auto ttnn_other = tt_eager::utils::ensure_tile_layout(other_impl->get_ttnn_tensor());
 
     auto ttnn_result = ttnn::divide(ttnn_self, ttnn_other);
 
@@ -136,7 +125,7 @@ at::Tensor ttnn_rsub_scalar(const at::Tensor& self, const at::Scalar& other, con
     TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
 
     auto* impl0 = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
+    ttnn::Tensor t0 = tt_eager::utils::ensure_tile_layout(impl0->get_ttnn_tensor());
 
     if (alpha.toDouble() != 1.0) {
         t0 = ttnn::multiply(t0, static_cast<float>(alpha.toDouble()));
@@ -172,8 +161,8 @@ at::Tensor ttnn_rsub_tensor(const at::Tensor& self, const at::Tensor& other, con
 
     auto* impl0 = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto* impl1 = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
-    ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
+    ttnn::Tensor t0 = tt_eager::utils::ensure_tile_layout(impl0->get_ttnn_tensor());
+    ttnn::Tensor t1 = tt_eager::utils::ensure_tile_layout(impl1->get_ttnn_tensor());
 
     if (alpha.toDouble() != 1.0) {
         t0 = ttnn::multiply(t0, static_cast<float>(alpha.toDouble()));
@@ -208,8 +197,8 @@ at::Tensor ttnn_sub_tensor(const at::Tensor& input, const at::Tensor& other, con
 
     auto* impl0 = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
     auto* impl1 = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
-    ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
+    ttnn::Tensor t0 = tt_eager::utils::ensure_tile_layout(impl0->get_ttnn_tensor());
+    ttnn::Tensor t1 = tt_eager::utils::ensure_tile_layout(impl1->get_ttnn_tensor());
 
     float a = static_cast<float>(alpha.toDouble());
     if (a != 1.0f) {
@@ -236,7 +225,7 @@ at::Tensor ttnn_sub_scalar(const at::Tensor& self, const at::Scalar& other, cons
     TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
 
     auto* impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl->get_ttnn_tensor());
+    ttnn::Tensor t0 = tt_eager::utils::ensure_tile_layout(impl->get_ttnn_tensor());
 
     float o = static_cast<float>(other.toDouble());
     float a = static_cast<float>(alpha.toDouble());
