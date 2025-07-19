@@ -55,6 +55,9 @@ set(TTNN_CPP_EXTENSION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/slice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/expand.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/unsqueeze.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/squeeze.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/device.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/vector_utils.cpp
 

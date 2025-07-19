@@ -7,8 +7,8 @@
 #include "ttnn_cpp_extension/ops/permute.hpp"
 #include "ttnn_cpp_extension/ops/slice.hpp"
 #include <ttnn/operations/data_movement/transpose/transpose.hpp>
-#include <ttnn/operations/data_movement/unsqueeze/unsqueeze.hpp>
-#include <ttnn/operations/data_movement/squeeze/squeeze.hpp>
+#include "ttnn_cpp_extension/ops/unsqueeze.hpp"
+#include "ttnn_cpp_extension/ops/squeeze.hpp"
 #include <ttnn/operations/data_movement/reshape_view/reshape.hpp>
 #include "ttnn/operations/data_movement/split/split.hpp"
 
@@ -77,10 +77,6 @@ at::Tensor ttnn_view(const at::Tensor& self, at::IntArrayRef size) {
 
     return output;
 }
-
-
-
-
 
 std::vector<at::Tensor> ttnn_split_tensor(const at::Tensor& self, c10::SymInt split_size, int64_t dim) {
     LOGGING("Running aten::split.Tensor (fixed size)");
@@ -178,74 +174,6 @@ at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim
 
     auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
     out_impl->set_ttnn_tensor(ttnn_output);
-
-    return output;
-}
-
-at::Tensor ttnn_unsqueeze(const at::Tensor& self, int64_t dim) {
-    LOGGING("Running aten::unsqueeze.default");
-
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
-
-    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    auto ttnn_tensor = self_impl->get_ttnn_tensor();
-
-    if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
-    }
-
-    int rank = static_cast<int>(self.dim());
-    TORCH_CHECK(dim >= -rank - 1 && dim <= rank, "Invalid dimension for unsqueeze");
-
-    if (dim < 0) {
-        dim += rank + 1;
-    }
-
-    auto ttnn_result = ttnn::unsqueeze(ttnn_tensor, dim);
-
-    const auto& logical_shape = ttnn_result.logical_shape();
-    std::vector<int64_t> shape_vec(logical_shape.cbegin(), logical_shape.cend());
-
-    auto output = tt_eager::ops::create::custom_empty_memory_format(
-        shape_vec, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
-
-    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-    out_impl->set_ttnn_tensor(ttnn_result);
-
-    return output;
-}
-
-at::Tensor ttnn_squeeze_dim(const at::Tensor& self, int64_t dim) {
-    LOGGING("Running aten::squeeze.dim");
-
-    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
-
-    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
-    auto ttnn_tensor = self_impl->get_ttnn_tensor();
-
-    if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
-    }
-
-    int rank = static_cast<int>(self.dim());
-    TORCH_CHECK(dim >= -rank && dim < rank, "Invalid dimension for squeeze");
-
-    if (dim < 0) {
-        dim += rank;
-    }
-
-    TORCH_CHECK(self.size(dim) == 1, "Cannot squeeze dimension that is not of size 1");
-
-    auto ttnn_result = ttnn::squeeze(ttnn_tensor, static_cast<int>(dim));
-
-    const auto& logical_shape = ttnn_result.logical_shape();
-    std::vector<int64_t> shape_vec(logical_shape.cbegin(), logical_shape.cend());
-
-    auto output = tt_eager::ops::create::custom_empty_memory_format(
-        shape_vec, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
-
-    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
-    out_impl->set_ttnn_tensor(ttnn_result);
 
     return output;
 }

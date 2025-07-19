@@ -11,7 +11,11 @@ namespace tt_eager::utils {
  * @return The tensor with TILE_LAYOUT
  */
 inline ttnn::Tensor ensure_tile_layout(const ttnn::Tensor& tensor) {
+    constexpr int TILE_HW = 1024; // 32*32
     if (tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
+        if (tensor.volume() % TILE_HW != 0) {
+            return tensor;
+        }
         return ttnn::tilize(
             ttnn::QueueId(0),
             tensor,

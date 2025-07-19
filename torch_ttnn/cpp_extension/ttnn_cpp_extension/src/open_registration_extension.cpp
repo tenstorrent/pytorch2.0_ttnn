@@ -22,6 +22,8 @@
 #include "ttnn_cpp_extension/ops/expand.hpp"
 #include "ttnn_cpp_extension/ops/permute.hpp"
 #include "ttnn_cpp_extension/ops/slice.hpp"
+#include "ttnn_cpp_extension/ops/squeeze.hpp"
+#include "ttnn_cpp_extension/ops/unsqueeze.hpp"
 
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &get_ttnn_custom_allocator());
 
@@ -53,8 +55,8 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("t", &tt_eager::ops::view::ttnn_t_default);
     m.impl("tanh", &tt_eager::ops::unary::ttnn_tanh);
     m.impl("transpose.int", &tt_eager::ops::view::ttnn_transpose_int);
-    m.impl("unsqueeze", &tt_eager::ops::view::ttnn_unsqueeze);
-    m.impl("squeeze.dim", &tt_eager::ops::view::ttnn_squeeze_dim);
+    m.impl("unsqueeze", &tt_eager::ops::unsqueeze::ttnn_unsqueeze);
+    m.impl("squeeze.dim", &tt_eager::ops::squeeze::ttnn_squeeze_dim);
     m.impl("view", &tt_eager::ops::view::ttnn_view);
 
     m.impl("linear", &tt_eager::ops::linear::ttnn_linear);

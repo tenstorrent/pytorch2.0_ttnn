@@ -37,8 +37,5 @@ at::Tensor ttnn_t_default(const at::Tensor& self);
 
 at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim1);
 
-at::Tensor ttnn_unsqueeze(const at::Tensor& self, int64_t dim);
-
-at::Tensor ttnn_squeeze_dim(const at::Tensor& self, int64_t dim);
 
 }  // namespace tt_eager::ops::view
