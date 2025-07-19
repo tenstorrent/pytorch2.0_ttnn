@@ -30,22 +30,7 @@ at::Tensor ttnn_matmul(const at::Tensor& self, const at::Tensor& other) {
     auto ttnn_result = ttnn::matmul(ttnn_self, ttnn_other);
 
     auto ttnn_result_shape = ttnn_result.logical_shape();
-
-    std::vector<int64_t> output_shape;
-    auto self_shape = self.sizes();
-    auto other_shape = other.sizes();
-
-    if (self.dim() > 2 && other.dim() > 2) {
-        int64_t batch_dims = std::max(self.dim(), other.dim()) - 2;
-        for (int i = 0; i < batch_dims; i++) {
-            int64_t self_dim = (i < self.dim() - 2) ? self_shape[i] : 1;
-            int64_t other_dim = (i < other.dim() - 2) ? other_shape[i] : 1;
-            output_shape.push_back(std::max(self_dim, other_dim));
-        }
-    }
-
-    output_shape.push_back(self_shape[self.dim() - 2]);
-    output_shape.push_back(other_shape[other.dim() - 1]);
+    std::vector<int64_t> output_shape(ttnn_result_shape.cbegin(), ttnn_result_shape.cend());
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         output_shape, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
