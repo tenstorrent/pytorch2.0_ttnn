@@ -2,6 +2,7 @@
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
 #include "ttnn_cpp_extension/ops/creation.hpp"
+#include "ttnn_cpp_extension/utils/layout_utils.hpp"
 
 #include <ttnn/operations/eltwise/unary/unary.hpp>
 
@@ -37,14 +38,7 @@
         auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
         auto ttnn_tensor = self_impl->get_ttnn_tensor();
 
-        if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-            ttnn_tensor = ttnn::to_layout(
-                ttnn_tensor,
-                ttnn::TILE_LAYOUT,
-                /*queue_id=*/std::nullopt,
-                /*kernel_cfg=*/std::nullopt,
-                ttnn_tensor.device());
-        }
+        ttnn_tensor = tt_eager::utils::ensure_tile_layout(ttnn_tensor);
 
         auto result = ttnn::gelu(ttnn_tensor);
 
@@ -68,14 +62,8 @@
 
         auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
         auto ttnn_tensor = self_impl->get_ttnn_tensor();
-        if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-            ttnn_tensor = ttnn::to_layout(
-                ttnn_tensor,
-                ttnn::TILE_LAYOUT,
-                /*queue_id=*/std::nullopt,
-                /*kernel_cfg=*/std::nullopt,
-                ttnn_tensor.device());
-        }
+        
+        ttnn_tensor = tt_eager::utils::ensure_tile_layout(ttnn_tensor);
 
         auto result = ttnn::tanh(ttnn_tensor);
 

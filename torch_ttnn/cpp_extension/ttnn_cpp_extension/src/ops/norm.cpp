@@ -2,6 +2,7 @@
 #include "ttnn_cpp_extension/ops/creation.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/layout_utils.hpp"
 
 #include <ttnn/operations/normalization/layernorm/layernorm.hpp>
 #include <ttnn/operations/data_movement/reshape_view/reshape.hpp>
@@ -36,9 +37,8 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor> ttnn_native_layer_norm(
 
     auto* input_impl = static_cast<at::TtnnTensorImpl*>(reshaped_input.unsafeGetTensorImpl());
     auto ttnn_input = input_impl->get_ttnn_tensor();
-    if (ttnn_input.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        ttnn_input = ttnn::to_layout(ttnn_input, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_input.device());
-    }
+    
+    ttnn_input = tt_eager::utils::ensure_tile_layout(ttnn_input);
 
     auto convert_tensor = [](const at::Tensor& tensor) -> ttnn::Tensor {
         TORCH_CHECK(tensor.numel() == 1024, "Expected 1024-element weight or bias tensor");

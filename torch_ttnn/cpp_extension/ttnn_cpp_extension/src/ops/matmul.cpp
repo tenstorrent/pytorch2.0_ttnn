@@ -2,6 +2,7 @@
 #include "ttnn_cpp_extension/ops/creation.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
+#include "ttnn_cpp_extension/utils/layout_utils.hpp"
 
 #include <vector>
 #include <iostream>
@@ -10,13 +11,6 @@
 #include <ttnn/operations/eltwise/binary/binary.hpp>
 
 namespace tt_eager::ops::matmul {
-
-static ttnn::Tensor ensure_tile(ttnn::Tensor t) {
-    if (t.layout() == ttnn::ROW_MAJOR_LAYOUT) {
-        t = ttnn::to_layout(t, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, t.device());
-    }
-    return t;
-}
 
 at::Tensor ttnn_matmul(const at::Tensor& self, const at::Tensor& other) {
     TORCH_CHECK(
@@ -27,8 +21,8 @@ at::Tensor ttnn_matmul(const at::Tensor& self, const at::Tensor& other) {
     auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto* other_impl = static_cast<at::TtnnTensorImpl*>(other.unsafeGetTensorImpl());
 
-    auto ttnn_self = ensure_tile(self_impl->get_ttnn_tensor());
-    auto ttnn_other = ensure_tile(other_impl->get_ttnn_tensor());
+    auto ttnn_self = tt_eager::utils::ensure_tile_layout(self_impl->get_ttnn_tensor());
+    auto ttnn_other = tt_eager::utils::ensure_tile_layout(other_impl->get_ttnn_tensor());
 
     auto ttnn_self_shape = ttnn_self.logical_shape();
     auto ttnn_other_shape = ttnn_other.logical_shape();
@@ -75,9 +69,9 @@ at::Tensor ttnn_addmm(
     auto* impl_self = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
     auto* impl1 = static_cast<at::TtnnTensorImpl*>(mat1.unsafeGetTensorImpl());
     auto* impl2 = static_cast<at::TtnnTensorImpl*>(mat2.unsafeGetTensorImpl());
-    ttnn::Tensor t_self = ensure_tile(impl_self->get_ttnn_tensor());
-    ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
-    ttnn::Tensor t2 = ensure_tile(impl2->get_ttnn_tensor());
+    ttnn::Tensor t_self = tt_eager::utils::ensure_tile_layout(impl_self->get_ttnn_tensor());
+    ttnn::Tensor t1 = tt_eager::utils::ensure_tile_layout(impl1->get_ttnn_tensor());
+    ttnn::Tensor t2 = tt_eager::utils::ensure_tile_layout(impl2->get_ttnn_tensor());
 
     auto t_res = ttnn::matmul(t1, t2);
 
@@ -116,12 +110,13 @@ at::Tensor ttnn_bmm(const at::Tensor& batch1, const at::Tensor& batch2) {
         return ttnn_bmm(batch1, batch2_ttnn);
     }
 
-    auto* impl0 = static_cast<at::TtnnTensorImpl*>(batch1.unsafeGetTensorImpl());
-    auto* impl1 = static_cast<at::TtnnTensorImpl*>(batch2.unsafeGetTensorImpl());
-    ttnn::Tensor t0 = ensure_tile(impl0->get_ttnn_tensor());
-    ttnn::Tensor t1 = ensure_tile(impl1->get_ttnn_tensor());
+    auto* batch1_impl = static_cast<at::TtnnTensorImpl*>(batch1.unsafeGetTensorImpl());
+    auto* batch2_impl = static_cast<at::TtnnTensorImpl*>(batch2.unsafeGetTensorImpl());
 
-    auto result = ttnn::matmul(t0, t1);
+    auto ttnn_batch1 = tt_eager::utils::ensure_tile_layout(batch1_impl->get_ttnn_tensor());
+    auto ttnn_batch2 = tt_eager::utils::ensure_tile_layout(batch2_impl->get_ttnn_tensor());
+
+    auto result = ttnn::matmul(ttnn_batch1, ttnn_batch2);
 
     auto output = tt_eager::ops::create::custom_empty_memory_format(
         batch1.sizes(),
