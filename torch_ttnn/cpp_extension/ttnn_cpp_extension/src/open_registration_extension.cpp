@@ -20,6 +20,7 @@
 #include "ttnn_cpp_extension/ops/as_strided.hpp"
 #include "ttnn_cpp_extension/ops/clone.hpp"
 #include "ttnn_cpp_extension/ops/expand.hpp"
+#include "ttnn_cpp_extension/ops/permute.hpp"
 
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &get_ttnn_custom_allocator());
 
@@ -44,7 +45,7 @@ TORCH_LIBRARY_IMPL(aten, PrivateUse1, m) {
     m.impl("gelu", &tt_eager::ops::unary::ttnn_gelu);
     m.impl("mul.Tensor", &tt_eager::ops::binary::ttnn_mul_tensor);
     m.impl("native_layer_norm", &tt_eager::ops::norm::ttnn_native_layer_norm);
-    m.impl("permute", &tt_eager::ops::view::ttnn_permute);
+    m.impl("permute", &tt_eager::ops::permute::ttnn_permute);
     m.impl("rsub.Scalar", &tt_eager::ops::binary::ttnn_rsub_scalar);
     m.impl("slice.Tensor", &tt_eager::ops::view::ttnn_slice_tensor);
     m.impl("split.Tensor", &tt_eager::ops::view::ttnn_split_tensor);

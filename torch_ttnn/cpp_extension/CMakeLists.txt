@@ -51,6 +51,7 @@ set(TTNN_CPP_EXTENSION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/matmul.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/as_strided.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/clone.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/permute.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/expand.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/device.cpp
