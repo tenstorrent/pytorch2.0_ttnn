@@ -1,0 +1,181 @@
+#include <cstddef>
+#include "ttnn_cpp_extension/ops/view.hpp"
+#include "ttnn_cpp_extension/ops/creation.hpp"
+#include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
+
+#include "ttnn_cpp_extension/ops/permute.hpp"
+#include "ttnn_cpp_extension/ops/slice.hpp"
+#include <ttnn/operations/data_movement/transpose/transpose.hpp>
+#include "ttnn_cpp_extension/ops/unsqueeze.hpp"
+#include "ttnn_cpp_extension/ops/squeeze.hpp"
+#include <ttnn/operations/data_movement/reshape_view/reshape.hpp>
+#include "ttnn/operations/data_movement/split/split.hpp"
+
+namespace tt_eager::ops::view {
+
+at::Tensor ttnn_view(const at::Tensor& self, at::IntArrayRef size) {
+    LOGGING("Running aten::view.default");
+
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, "Tensor must be on TTNN device");
+
+    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    auto ttnn_tensor = self_impl->get_ttnn_tensor();
+
+    if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
+        ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
+    }
+
+    auto ttnn_input_shape = ttnn_tensor.logical_shape();
+
+    int64_t original_numel = 1;
+    for (int i = 0; i < self.dim(); ++i) {
+        original_numel *= self.size(i);
+    }
+
+    std::vector<int64_t> new_size(size.begin(), size.end());
+    int unknown_idx = -1;
+    int64_t known_product = 1;
+
+    for (int i = 0; i < new_size.size(); i++) {
+        if (new_size[i] == -1) {
+            TORCH_CHECK(unknown_idx == -1, "only one dimension can be inferred");
+            unknown_idx = i;
+        } else {
+            TORCH_CHECK(new_size[i] >= 0, "Negative size dimensions are not supported");
+            known_product *= new_size[i];
+        }
+    }
+
+    if (unknown_idx >= 0) {
+        TORCH_CHECK(known_product != 0 && original_numel % known_product == 0, "cannot infer dimension size");
+        new_size[unknown_idx] = original_numel / known_product;
+    }
+
+    int64_t new_numel = 1;
+    for (int64_t s : new_size) {
+        new_numel *= s;
+    }
+
+    TORCH_CHECK(
+        original_numel == new_numel,
+        "view size is not compatible with input tensor's size: old=",
+        original_numel,
+        ", new=",
+        new_numel);
+
+    tt::stl::SmallVector<int32_t> new_shape(new_size.begin(), new_size.end());
+    auto reshaped_tensor = ttnn::reshape(ttnn_tensor, new_shape);
+
+    auto reshaped_shape = reshaped_tensor.logical_shape();
+
+    auto output = tt_eager::ops::create::custom_empty_memory_format(
+        new_size, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
+
+    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+    out_impl->set_ttnn_tensor(reshaped_tensor);
+
+    return output;
+}
+
+std::vector<at::Tensor> ttnn_split_tensor(const at::Tensor& self, c10::SymInt split_size, int64_t dim) {
+    LOGGING("Running aten::split.Tensor (fixed size)");
+
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1, "Tensor must be on PrivateUse1 device");
+    int64_t split_sz;
+    if (split_size.is_symbolic()) {
+        split_sz = split_size.guard_int(__FILE__, __LINE__);
+    } else {
+        split_sz = split_size.as_int_unchecked();
+    }
+    TORCH_CHECK(split_sz > 0, "Split size must be positive");
+
+    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    ttnn::Tensor ttnn_tensor = self_impl->get_ttnn_tensor();
+
+    if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
+        ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
+    }
+
+    int64_t normalized_dim = dim;
+    if (normalized_dim < 0) {
+        normalized_dim += ttnn_tensor.get_logical_shape().rank();
+    }
+
+    auto ttnn_outputs = ttnn::split(ttnn_tensor, split_sz, normalized_dim, std::nullopt);
+
+    std::vector<at::Tensor> outputs;
+    outputs.reserve(ttnn_outputs.size());
+    for (const auto& t : ttnn_outputs) {
+        std::vector<int64_t> shape_vec(t.get_logical_shape().cbegin(), t.get_logical_shape().cend());
+
+        auto output = tt_eager::ops::create::custom_empty_memory_format(
+            shape_vec, self.scalar_type(), c10::nullopt, self.device(), c10::nullopt);
+
+        auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+        out_impl->set_ttnn_tensor(t);
+
+        outputs.emplace_back(std::move(output));
+    }
+
+    return outputs;
+}
+
+at::Tensor ttnn_t_default(const at::Tensor& self) {
+    LOGGING("Running aten::t.default");
+
+    TORCH_CHECK(self.device().type() == c10::DeviceType::PrivateUse1);
+    TORCH_CHECK(self.dim() == 2, "aten::t.default only supports 2D tensors");
+
+    auto* self_impl = static_cast<at::TtnnTensorImpl*>(self.unsafeGetTensorImpl());
+    auto ttnn_tensor = self_impl->get_ttnn_tensor();
+
+    if (ttnn_tensor.layout() == ttnn::ROW_MAJOR_LAYOUT) {
+        ttnn_tensor = ttnn::to_layout(ttnn_tensor, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_tensor.device());
+    }
+
+    return ttnn_transpose_int(self, 0, 1);
+}
+
+at::Tensor ttnn_transpose_int(const at::Tensor& input, int64_t dim0, int64_t dim1) {
+    LOGGING("Running aten::transpose.int");
+
+    TORCH_CHECK(input.device().type() == c10::DeviceType::PrivateUse1);
+
+    auto* input_impl = static_cast<at::TtnnTensorImpl*>(input.unsafeGetTensorImpl());
+    auto ttnn_input = input_impl->get_ttnn_tensor();
+
+    if (ttnn_input.layout() == ttnn::ROW_MAJOR_LAYOUT) {
+        ttnn_input = ttnn::to_layout(ttnn_input, ttnn::TILE_LAYOUT, std::nullopt, std::nullopt, ttnn_input.device());
+    }
+
+    auto ttnn_input_shape = ttnn_input.logical_shape();
+
+    int64_t ndim = input.dim();
+    if (dim0 < 0) {
+        dim0 += ndim;
+    }
+    if (dim1 < 0) {
+        dim1 += ndim;
+    }
+
+    TORCH_CHECK(dim0 >= 0 && dim0 < ndim, "dim0 out of range");
+    TORCH_CHECK(dim1 >= 0 && dim1 < ndim, "dim1 out of range");
+
+    auto ttnn_output = ttnn::transpose(ttnn_input, static_cast<int>(dim0), static_cast<int>(dim1));
+
+    auto ttnn_output_shape = ttnn_output.logical_shape();
+
+    std::vector<int64_t> output_shape(input.sizes().begin(), input.sizes().end());
+    std::swap(output_shape[dim0], output_shape[dim1]);
+
+    auto output = tt_eager::ops::create::custom_empty_memory_format(
+        output_shape, input.scalar_type(), c10::nullopt, input.device(), c10::nullopt);
+
+    auto* out_impl = static_cast<at::TtnnTensorImpl*>(output.unsafeGetTensorImpl());
+    out_impl->set_ttnn_tensor(ttnn_output);
+
+    return output;
+}
+
+}  // namespace tt_eager::ops::view
