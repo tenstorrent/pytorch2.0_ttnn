@@ -659,7 +659,7 @@ def comp_pcc_wrapper(expected, actual):
     main_code = f"""
 if __name__ == "__main__":
     filepath = Path(__file__).with_name("{input_pkl_file.name}")
-    file = lzma.open(filepath, "rb")
+    file = open(filepath, "rb")
     inputs = pickle.load(file)
     l1_small_size = 16384
     dispatch_core_config = get_dispatch_core_config()
@@ -691,7 +691,7 @@ if __name__ == "__main__":
 
     all_inputs = _reformat_inputs(all_inputs)
     data_full_path = directory / Path(f"{model_name}_inputs.pickle")
-    with lzma.open(data_full_path, "wb") as f:
+    with open(data_full_path, "wb") as f:
         pickle.dump(all_inputs, f)
         logging.info(f"{option} data object saved to {data_full_path}.")
 
