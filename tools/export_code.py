@@ -284,7 +284,7 @@ def _format_dict(obj):
     to_kwargs = []
     # handle some cases where str(torch.device) has no quotes
     for k, v in obj.items():
-        if k == "device" and isinstance(v, torch.device):
+        if (k == "device" and isinstance(v, torch.device)) or isinstance(v, str):
             v = f'"{v}"'
         to_kwargs.append(f"{k} = {v}")
     return ", ".join(to_kwargs)
