@@ -10,16 +10,23 @@ By leveraging the TT-NN backend, you can achieve significant performance improve
 
 ### Installation
 
-Install from the repo:
+### Requirements
+- Python 3.10
+- Ubuntu operating system
+- PyTorch 2.0 or later
+
+### Basic Installation
 ```bash
-pip install git+https://bitbucket.org/tenstorrent/pytorch2.0_ttnn
+pip install torch-ttnn
 ```
-or as an editable package from source:
+
+### Installation with TTNN Support
+To use the TTNN backend, you need to install the additional `ttnn` package:
 ```bash
-git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
-cd pytorch2.0_ttnn
-pip install -e .
+pip install torch-ttnn[ttnn]
 ```
+
+Note: The `ttnn` package is only supported on Ubuntu with Python 3.10. If you're using a different platform or Python version, you can still install `torch-ttnn` without the TTNN backend.
 
 ### ✨ Basic Usage
 
@@ -208,6 +215,7 @@ We've extensively tested the compiler across a diverse range of model architectu
 - ✅ End-to-end on device: All PyTorch operations have been converted to TT-NN operations.
 - 🚧 Compiled: The converted model runs but some operations still fallback to PyTorch. This may be due to an unsupported operation or configuration.
 - ❌ Traced: The model does not run but its PyTorch operations are traced for future development. This may indicate a temporary incompatibility with a compiler pass.  
+
 **Batch**: Batch size used for inference  
 **Compiled First Run (ms)**: Time until the first compiled run finishes (ms), including compilation time and warming caches.  
 **Original Throughput (Inferences Per Second)**: Execution throughput (in inferences per second) of the model before conversion.  
