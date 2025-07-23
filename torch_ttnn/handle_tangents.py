@@ -22,6 +22,8 @@ def mark_output_as_tangents(graph: torch.fx.Graph) -> torch.fx.Graph:
 
     # tangents are nodes before the first primal.
     # If primals do not exist, then nothing will change. We can prepend nodes in advance.
+    # TODO: Handle the marking of tangents in input_analysis_pass for multi device training
+    # https://github.com/tenstorrent/pytorch2.0_ttnn/issues/1174
     tangents = []
     first_primal_idx = 0
     for i, out_arg in enumerate(outputs):
