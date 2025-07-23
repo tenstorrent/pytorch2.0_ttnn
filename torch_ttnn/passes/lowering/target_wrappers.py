@@ -9,16 +9,35 @@ import pickle
 
 from torch_ttnn.utils import TtnnDevice
 
+"""
+This decorator will apply a prefix to the function's __name__ attribute.
+Pytorch looks at the __name__ attribute of a function when determining the name of the output.
+Combined with the path of the module, the naming scheme will look like this:
+Example:
+    target_wrapper_conv = torch_ttnn_passes_lowering_target_wrappers_target_wrapper_conv(args)
+
+We can avoid conflicts when exporting code, because both the output name and function call are
+different than the declared name, "conv", in the above example.
+"""
+
+
+def target_wrapper(func):
+    func.__name__ = "target_wrapper_" + func.__name__
+    return func
+
+
 run_once_count = 0
 run_once_ans = tuple()
 
 
+@target_wrapper
 @torch.fx.wrap
 @dataclass(frozen=True)
 class RunOnceIdx:
     idx: int
 
 
+@target_wrapper
 @torch.fx.wrap
 def run_once(*args):
     global run_once_count
@@ -146,28 +165,33 @@ def run_once(*args):
     return run_once_ans
 
 
+@target_wrapper
 @torch.fx.wrap
 def clone(t):
     return ttnn.clone(t, memory_config=t.memory_config(), dtype=t.dtype)
 
 
+@target_wrapper
 @torch.fx.wrap
 def repeat(t, sizes):
     return ttnn.repeat(t, ttnn.Shape(sizes))
 
 
 # Helper function to pack multiple values into a tuple on the graph
+@target_wrapper
 @torch.fx.wrap
 def pack_to_tuple(*args):
     return tuple(args)
 
 
+@target_wrapper
 @torch.fx.wrap
 def move_to_host(device_tensor, layout):
     device_tensor = ttnn.to_layout(device_tensor, layout)
     return ttnn.from_device(device_tensor)
 
 
+@target_wrapper
 @torch.fx.wrap
 def conv(
     input_tensor,
@@ -249,6 +273,7 @@ def conv(
     assert False, "unsupported conv shape"
 
 
+@target_wrapper
 @torch.fx.wrap
 def roll(tensor, input_shape, shifts, dims):
     rolled_tensor = tensor
@@ -272,6 +297,7 @@ def roll(tensor, input_shape, shifts, dims):
     return rolled_tensor
 
 
+@target_wrapper
 @torch.fx.wrap
 def stack(tensors, dim, output_shape):
     # Handle negative dims by wrapping around
@@ -295,6 +321,7 @@ def stack(tensors, dim, output_shape):
     return ttnn.concat(unsqueezed_tensors, dim)
 
 
+@target_wrapper
 @torch.fx.wrap
 def all(tensor, num_elements):
     """
@@ -320,16 +347,19 @@ TODO: Find a better way to propagate shapes
 """
 
 
+@target_wrapper
 @torch.fx.wrap
 def replicate_tensor(tensor):
     return tensor
 
 
+@target_wrapper
 @torch.fx.wrap
 def shard_tensor(tensor, dim, num_devices):
     return torch.chunk(tensor, num_devices, dim)[0]
 
 
+@target_wrapper
 @torch.fx.wrap
 def concat_tensor(tensor, dim, num_devices):
     sharded_version = [tensor] * num_devices
@@ -337,6 +367,7 @@ def concat_tensor(tensor, dim, num_devices):
 
 
 # TODO: Support compute kernel config
+@target_wrapper
 @torch.fx.wrap
 def native_layer_norm(
     input_tensor: ttnn.Tensor,

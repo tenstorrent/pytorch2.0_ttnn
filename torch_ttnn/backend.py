@@ -120,7 +120,6 @@ def aten_backend(
 
     # Save aten graph if requested
     if options.export_code:
-        option.load_params_once = False
         # Will this hamper memory usage?
         graph_copy = copy.deepcopy(gm.graph)
         graph_copy.owning_module = gm

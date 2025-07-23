@@ -19,7 +19,6 @@ from torch_ttnn.utils import get_opname, users_have_getitem, is_operation, get_n
 from typing import NamedTuple
 
 wrapper_funcs = set()
-rename_wrappers = set()
 
 export_code_options = [
     "accuracy",  # Test accuracy between Aten and corresponding TTNN ops
@@ -328,15 +327,8 @@ def _node_to_python_code(node):
     ):
         lines = inspect.getsource(node.target)
         wrapper_funcs.add(lines)
-        # rename functions to avoid naming conflict
-        func_name = node.target.__name__
-        rename_func = f"""
-ref = globals()["{func_name}"]
-globals()["{func_name}_wrapper"] = ref
-del globals()["{func_name}"]
-"""
-        rename_wrappers.add(rename_func)
-        opname += "_wrapper"
+        # remove target_wrapper prefix to match function name
+        opname = opname.replace("target_wrapper_", "")
 
     # function to process special args
     def process_arg(arg):
@@ -566,11 +558,27 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
         "aten = torch.ops.aten",
     ]
 
-    # Definitions of wrapper functions
-    wrapper_code = list(wrapper_funcs)
+    # List of globals
+    globals_code = []
+    if torch_ttnn_option.load_params_once:
+        globals_code.append("run_once_count = 0")
+        globals_code.append("run_once_ans = tuple()")
+        from torch_ttnn.passes.lowering.target_wrappers import conv, move_to_host
 
-    # Statements that rename the wrapper functions to avoid conflicting names
-    rename_wrapper_code = list(rename_wrappers)
+        wrapper_funcs.add(inspect.getsource(conv))
+        wrapper_funcs.add(inspect.getsource(move_to_host))
+
+    # Definitions of wrapper functions
+    wrapper_code = []
+    for func in wrapper_funcs:
+        func_lines = func.split("\n")
+        # Remove decorators
+        for i, line in enumerate(func_lines):
+            if line.lstrip().startswith("def "):
+                break
+            if line.lstrip().startswith("@"):
+                func_lines[i] = ""
+        wrapper_code.append("\n".join(func_lines))
 
     # pcc functions
     pcc_funcs = (
@@ -674,8 +682,8 @@ if __name__ == "__main__":
     full_code = (
         import_code
         + alias_code
+        + globals_code
         + wrapper_code
-        + rename_wrapper_code
         + pcc_funcs
         + device_funcs
         + [check_accuracy_code]
