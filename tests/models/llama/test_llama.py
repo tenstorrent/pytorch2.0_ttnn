@@ -41,13 +41,15 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.compilation_xfail(reason="OOM for DRAM")
-def test_llama(record_property, mode):
+def test_llama(record_property, mode, cached_results):
     model_name = "Llama"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         # Helper function to decode output to human-readable text
         def decode_output(outputs):
