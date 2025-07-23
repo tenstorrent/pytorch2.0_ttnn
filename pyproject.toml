@@ -24,7 +24,6 @@ classifiers = [
 keywords = ["pytorch", "ttnn", "tenstorrent", "compiler", "machine-learning", "deep-learning"]
 
 [project.optional-dependencies]
-ttnn = ["ttnn==0.59.0"]
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
