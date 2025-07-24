@@ -38,9 +38,9 @@ setup(
         "graphviz",
         "matplotlib==3.7.1",
         "paramiko==3.5.1",
+        "ttnn==0.60.1",
     ],
     extras_require={
-        "ttnn": ["ttnn==0.59.0"],
         "dev": [
             "pytest>=7.4.0",
             "pytest-cov>=4.1.0",
