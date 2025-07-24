@@ -6,8 +6,8 @@ import torch._dynamo
 from typing import List, Optional, Union, Mapping, Any
 from functorch.compile import make_boxed_func
 import ttnn
-from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
-from torch_ttnn.handle_tangents import mark_output_as_tangents
+from torch_ttnn.preprocessing.handle_input_aliasing import insert_clones_for_input_aliasing
+from torch_ttnn.preprocessing.handle_tangents import mark_output_as_tangents
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
 from torch_ttnn.utils import GraphCleanup, get_add_custom_object_in_graph
@@ -114,7 +114,7 @@ def aten_backend(
     option: TorchTtnnOption = options
 
     # Clone ops used for input aliasing workaround are no longer needed at this point
-    from .handle_input_aliasing import remove_clones_for_input_aliasing
+    from .preprocessing.handle_input_aliasing import remove_clones_for_input_aliasing
 
     gm = remove_clones_for_input_aliasing(gm)
 
