@@ -554,16 +554,15 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
         else []
     )
 
-    # List of aliases
+    # List of aliases and globals
     alias_code = [
         "aten = torch.ops.aten",
     ]
 
-    # List of globals
-    globals_code = []
+    # Handle additional requirements for run_once
     if torch_ttnn_option.load_params_once:
-        globals_code.append("run_once_count = 0")
-        globals_code.append("run_once_ans = tuple()")
+        alias_code.append("run_once_count = 0")
+        alias_code.append("run_once_ans = tuple()")
         from torch_ttnn.passes.lowering.target_wrappers import conv, move_to_host
 
         wrapper_funcs.add(inspect.getsource(conv))
@@ -689,7 +688,6 @@ if __name__ == "__main__":
     full_code = (
         import_code
         + alias_code
-        + globals_code
         + wrapper_code
         + wrapper_alias_code
         + pcc_funcs
