@@ -557,6 +557,7 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
     # List of aliases and globals
     alias_code = [
         "aten = torch.ops.aten",
+        'inf = float("inf")',
     ]
 
     # Handle additional requirements for run_once
