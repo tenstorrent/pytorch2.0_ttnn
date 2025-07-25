@@ -29,7 +29,7 @@ There are currently two verified paths to build extra dependencies. Choose one:
     source venv/bin/activate
     python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
     pip install -r requirements-dev.txt
-    pip install --force-reinstall pip==21.2.4
+    pip install --force-reinstall pip==25.1.1
     python3 -m pip install numpy setuptools wheel
     python3 -m pip install -e .
     ```

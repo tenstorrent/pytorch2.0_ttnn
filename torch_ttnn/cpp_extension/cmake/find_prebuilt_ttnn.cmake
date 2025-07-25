@@ -13,10 +13,13 @@ file(GLOB TTNN_INCLUDE_DIRS
     "${TT_METAL_HOME}/.cpmcache/magic_enum/*/include"
     "${TT_METAL_HOME}/.cpmcache/nlohmann_json/*/include"
     "${TT_METAL_HOME}/.cpmcache/boost/*/*/*/include"
+    "${TT_METAL_HOME}/.cpmcache/tt-logger/*/include"
+    "${TT_METAL_HOME}/.cpmcache/spdlog/*/include"
 )
 
 set(TTNN_INCLUDE_DIRS
     ${TT_METAL_HOME}/ttnn/cpp
+    ${TT_METAL_HOME}/ttnn/api
     ${TT_METAL_HOME}/ttnn
     ${TT_METAL_HOME}/tt_metal/api
     ${TT_METAL_HOME}/tt_metal/third_party/umd/device/api
