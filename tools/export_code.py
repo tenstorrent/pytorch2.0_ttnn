@@ -19,6 +19,7 @@ from torch_ttnn.utils import get_opname, users_have_getitem, is_operation, get_n
 from typing import NamedTuple
 
 wrapper_funcs = set()
+wrapper_alias = set()
 
 export_code_options = [
     "accuracy",  # Test accuracy between Aten and corresponding TTNN ops
@@ -328,7 +329,7 @@ def _node_to_python_code(node):
         lines = inspect.getsource(node.target)
         wrapper_funcs.add(lines)
         # remove target_wrapper prefix to match function name
-        opname = opname.replace("target_wrapper_", "")
+        wrapper_alias.add(opname.replace("target_wrapper_", ""))
 
     # function to process special args
     def process_arg(arg):
@@ -580,6 +581,12 @@ def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, 
                 func_lines[i] = ""
         wrapper_code.append("\n".join(func_lines))
 
+    # Additional alias for wrapper functions to avoid aten naming conflicts
+    wrapper_alias_code = []
+    for fn in wrapper_alias:
+        assign = f"target_wrapper_{fn} = {fn}"
+        wrapper_alias_code.append(assign)
+
     # pcc functions
     pcc_funcs = (
         [
@@ -684,6 +691,7 @@ if __name__ == "__main__":
         + alias_code
         + globals_code
         + wrapper_code
+        + wrapper_alias_code
         + pcc_funcs
         + device_funcs
         + [check_accuracy_code]
