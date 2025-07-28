@@ -839,7 +839,7 @@ def _collect_tangents(aten_fx_graphs):
                             tangents_list.append(get_node_name(outp))
                     else:
                         break
-
+                tangents_list.reverse()
                 tangents_info.append(TangentsInfo(chunk_idx, graph_idx, tangents_list))
 
     return tangents_info
