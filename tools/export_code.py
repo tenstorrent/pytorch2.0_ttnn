@@ -42,53 +42,40 @@ def _get_indent(tabs=1, tabstop=4):
     return spaces * tabs
 
 
-def _get_output_to_rename(outputs, node):
+"""
+The first clone of an argument maps to the last primal of the previous output.
+Use _get_first_clone_node(arg_list) to get the first clone node in the argument list.
+Then match that with the last primal in the outputs using _match_last_primal_with_clone_node
+
+Example:
+def forward_1(...):
+    ...
+    return [out1, out2, out3, primals_1, primals_2, primals_3, out4, out5]
+
+def forward_2(..., clone):
+    %clone = placeholder(clone)  <==>  same as primals_3, replace uses of clone with primals_3
+"""
+
+
+def _get_first_clone_node(node_list):
     """
-    Match an output to a node.
-
-    Args:
-        outputs (List[str|torch.fx.node.Node]): List of strings or nodes of the outputs
-        node (str|torch.fx.node.Node): A string or fx node
-
-    Returns:
-        (str|torch.fx.node.Node|None): If a match is found, return that output. Otherwise
-        return None.
+    Get first node starting with "clone" from the node_list.
+    node_list can be a list of strings or list of fx.Nodes
     """
+    for node in node_list:
+        if get_node_name(node).startswith("clone"):
+            return node
+    return None
 
+
+def _match_last_primal_with_clone_node(outputs, node):
     """
-    When graph breaks occur, usually due to control flow, PyTorch keeps the names
-    of the nodes consistent between graphs. For example, in the following example,
-    add_1 was not an output, but treated still treated as an input to the follow-up
-    graph.
-    def forward_1(arg0, arg1, arg2):
-        %add_1 = aten.add(...)
-        %add_2 = aten.add(...)
-        return [add_2]
-    def forward_2(arg0, arg1, arg2, add_1):
-        ...
-
-    However, some nodes that are outputs are renamed despite being the same. This function
-    attempts to rename them back so that graphs can be fused into one. This is where
-    output_nodes will be used to keep track of these nodes.
+    Match a clone node with the last output primal.
     """
-
-    """
-    For nodes named "clone", this is the same as the last primal in the tuple of outputs
-    from the previous graph.
-    Example:
-    def forward_1(...):
-        ...
-        return [out1, out2, out3, primals_1, primals_2, primals_3, out4, out5]
-
-    def forward_2(..., clone):
-        %clone = placeholder(clone)  <==>  same as primals_3, replace uses of clone with primals_3
-
-    """
-    if get_node_name(node) == "clone":
+    if get_node_name(node).startswith("clone"):
         for out_arg in reversed(outputs):
             if get_node_name(out_arg).startswith("primals"):
                 return out_arg
-
     return None
 
 
@@ -146,11 +133,14 @@ def _rename_arguments_and_tangents(arg_node_names, tangents):
             input_tangents.append(arg)
     # map backwards, from the most recent tangents list
     new_args = []
+    # first clone if it exists
+    first_clone = _get_first_clone_node(arg_node_names)
+
     for tan_info in reversed(tangents):
         if len(tan_info.tangents) == len(input_tangents):
             suffix = f"{tan_info.chunk_idx}_{tan_info.graph_idx}"
             for arg in arg_node_names:
-                if not arg.startswith("tangents") and arg != "clone":
+                if not arg.startswith("tangents") and arg != first_clone:
                     new_args.append(f"{arg}_{suffix}")
                 else:
                     new_args.append(arg)
@@ -225,10 +215,14 @@ def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
     last node of the set of ttnn ops.
     """
     aten_to_ttnn_map = defaultdict(list)
+    # Get first clone node if found
+    first_clone = _get_first_clone_node([node for node in ttnn_graph.nodes if node.op == "placeholder"])
+
     for node in ttnn_graph.nodes:
         if node.op == "placeholder":
-            if len(output_nodes) > 0:
-                out_node = _get_output_to_rename(output_nodes[-1], node)
+            # Handle special case for the first clone node
+            if len(output_nodes) > 0 and node == first_clone:
+                out_node = _match_last_primal_with_clone_node(output_nodes[-1], node)
                 if out_node is not None:
                     node.replace_all_uses_with(out_node, delete_user_cb=lambda node: node != out_node)
             continue
@@ -762,10 +756,14 @@ def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_tt
             # can become inputs for subsequent graphs. Some are given new names based on
             # some pattern. The following renames some of these nodes.
             prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
+            # Find the first clone if available
+            first_clone = _get_first_clone_node(arg_node_names)
             for arg in arg_node_names:
-                out_node = _get_output_to_rename(prev_out_node_names, arg)
-                if out_node is not None:
-                    call_forwards_in_main.append(f"{arg} = {out_node}")
+                if arg == first_clone:
+                    out_node = _match_last_primal_with_clone_node(prev_out_node_names, arg)
+                    if out_node is not None:
+                        call_forwards_in_main.append(f"{arg} = {out_node}")
+                        break
 
         # process tangents separately
         arg_node_names, renamed_tangents = _rename_arguments_and_tangents(arg_node_names, tangents_info)
