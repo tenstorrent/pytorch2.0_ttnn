@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 import pickle
 from torch._subclasses import FakeTensor
+from torch.profiler import profile, record_function, ProfilerActivity
 from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
 import subprocess
@@ -52,7 +53,21 @@ def pytest_addoption(parser):
         action="store_true",
         help="Use native device integration for ttnn. Note: this is not supported with data parallel.",
     )
-
+    parser.addoption(
+        "--disable_load_params_once",
+        action="store_true",
+        help="Disable LoadParamsOnce optimization.",
+    )
+    parser.addoption(
+        "--run_eviction_opt", 
+        action="store_true", 
+        help="Enable the eviction optimization pass.",
+    )
+    parser.addoption(
+        "--profile", 
+        action="store_true", 
+        help="Run profiling for the model.",
+    )
 
 @pytest.fixture(scope="session")
 def input_var_only_native(request):
@@ -254,16 +269,22 @@ def compile_and_run(device, reset_torch_dynamo, request):
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
 
+            load_params_once = not native_integration # load_params_once conflicts with native integration
+            disable_load_params_once = request.config.getoption("--disable_load_params_once")
+            if disable_load_params_once:
+                load_params_once = False
+
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
-                run_mem_analysis=False,
+                run_mem_analysis=request.config.getoption("--run_eviction_opt"),
+                run_eviction_opt=request.config.getoption("--run_eviction_opt"),
                 metrics_path=model_name,
                 verbose=True,
                 export_code=export_code_opt,
                 total_num_iterations=total_num_iterations,
                 data_parallel=request.config.getoption("--data_parallel"),
-                load_params_once=not native_integration,  # load_params_once conflicts with native integration
+                load_params_once=load_params_once,
                 native_integration=native_integration,
             )
 
@@ -300,6 +321,19 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 avg_run_time = sum(warm_run_times) / len(warm_run_times)
             else:
                 avg_run_time = run_time
+
+            if request.config.getoption("--profile"):
+                torch.manual_seed(0)
+                model = model_tester.set_model_eval(model_tester.model)
+                inputs = model_tester.set_inputs_eval(model_tester.inputs)
+                model = model_tester.compile_model(model, option)
+                trace_file = os.path.join(os.path.join(os.getcwd(), "stat"), "profile", model_tester.model_name)
+                os.makedirs(os.path.dirname(trace_file), exist_ok=True)
+                activities = [ProfilerActivity.CPU]
+                with profile(activities=activities, record_shapes=True) as prof:
+                    with torch.no_grad():
+                        outputs = model_tester.run_model(model, inputs)
+                prof.export_chrome_trace(trace_file)
 
             # Move model and inputs back to CPU
             if option.native_integration:
