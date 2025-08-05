@@ -3,14 +3,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # Reference: https://huggingface.co/docs/transformers/v4.44.2/en/model_doc/gpt_neo#overview
 
-import pytest
-from tests.utils import ModelTester
-import torch
 import numpy as np
-import requests
-import zipfile
 import os
+import pytest
+import requests
+import subprocess
 import sys
+import torch
+import zipfile
+
+from tests.utils import ModelTester
 
 # Path to patched gaussian splatting implementation that is compatible with TT
 github_url = "https://github.com/kevinwuTT/torch-splatting/archive/refs/heads/tt-compat.zip"
@@ -42,6 +44,10 @@ def setup_gs_module():
     # Extract dataset
     with zipfile.ZipFile(f"{gs_module_path}/B075X65R3X.zip", "r") as zip_ref:
         zip_ref.extractall(path=gs_module_path)
+
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "--force-reinstall", "imageio", "accelerate", "einops"]
+    )
 
 
 class ThisTester(ModelTester):
