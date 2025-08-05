@@ -46,7 +46,7 @@ def setup_gs_module():
         zip_ref.extractall(path=gs_module_path)
 
     subprocess.check_call(
-        [sys.executable, "-m", "pip", "install", "--force-reinstall", "imageio", "accelerate", "einops"]
+        [sys.executable, "-m", "pip", "install", "imageio", "accelerate", "einops", "numpy>=1.24.4,<2"]
     )
 
 
