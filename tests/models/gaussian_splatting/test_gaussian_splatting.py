@@ -51,9 +51,10 @@ def setup_gs_module():
 
 
 class ThisTester(ModelTester):
-    def __init__(self, model_name, mode, batch_size, steps):
-        super().__init__(model_name, mode, batch_size)
+    def __init__(self, model_name, mode, batch_size, steps, fp16):
         self.steps = steps
+        self.fp16 = fp16
+        super().__init__(model_name, mode, batch_size)
 
     def _load_model(self):
         # set up model
@@ -70,10 +71,12 @@ class ThisTester(ModelTester):
         # input data processing
         from gaussian_splatting.utils.data_utils import read_all
 
+        dtype = torch.float16 if self.fp16 else torch.float
+
         folder = f"{gs_module_path}/B075X65R3X"
         data = read_all(folder, resize_factor=0.5)
-        data = {k: v for k, v in data.items()}
-        data["depth_range"] = torch.Tensor([[1, 3]] * len(data["rgb"]))
+        data = {k: v.to(dtype) for k, v in data.items()}
+        data["depth_range"] = torch.Tensor([[1, 3]] * len(data["rgb"])).to(dtype)
 
         return data
 
@@ -104,7 +107,7 @@ class ThisTester(ModelTester):
             i_image=100,
             train_lr=1e-3,
             amp=False,
-            fp16=False,
+            fp16=self.fp16,
             results_folder="result/test",
             gauss_render_model=gaussRenderer,
             render_kwargs=render_kwargs,
@@ -138,7 +141,11 @@ class ThisTester(ModelTester):
     "steps",
     [1],
 )
-def test_gaussian_splatting(record_property, mode, batch_size, steps):
+@pytest.mark.parametrize(
+    "fp16",
+    [True],
+)
+def test_gaussian_splatting(record_property, mode, batch_size, steps, fp16):
     torch.manual_seed(99)
     np.random.seed(99)
 
@@ -148,7 +155,7 @@ def test_gaussian_splatting(record_property, mode, batch_size, steps):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode, batch_size, steps)
+    tester = ThisTester(model_name, mode, batch_size, steps, fp16)
     results = tester.test_model()
 
     record_property("torch_ttnn", (tester, results))
