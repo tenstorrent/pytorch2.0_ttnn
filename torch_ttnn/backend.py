@@ -6,12 +6,12 @@ import torch._dynamo
 from typing import List, Optional, Union, Mapping, Any
 from functorch.compile import make_boxed_func
 import ttnn
-from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
+from torch_ttnn.preprocessing.handle_input_aliasing import insert_clones_for_input_aliasing
+from torch_ttnn.preprocessing.handle_tangents import mark_output_as_tangents
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
-from torch_ttnn.utils import GraphCleanup
+from torch_ttnn.utils import GraphCleanup, get_add_custom_object_in_graph
 import copy
-from torch_ttnn.utils import get_add_custom_object_in_graph
 import logging
 
 torch._dynamo.config.suppress_errors = False
@@ -117,7 +117,7 @@ def aten_backend(
     option: TorchTtnnOption = options
 
     # Clone ops used for input aliasing workaround are no longer needed at this point
-    from .handle_input_aliasing import remove_clones_for_input_aliasing
+    from .preprocessing.handle_input_aliasing import remove_clones_for_input_aliasing
 
     gm = remove_clones_for_input_aliasing(gm)
 
@@ -126,6 +126,8 @@ def aten_backend(
         # Will this hamper memory usage?
         graph_copy = copy.deepcopy(gm.graph)
         graph_copy.owning_module = gm
+
+        graph_copy = mark_output_as_tangents(graph_copy)
         option._aten_fx_graphs[-1].append(graph_copy)
 
     # Save the number of aten ops before compilation
