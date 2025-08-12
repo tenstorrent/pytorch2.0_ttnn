@@ -850,16 +850,9 @@ def _collect_tangents(aten_fx_graphs):
     return tangents_info
 
 
-class CloneInfo(NamedTuple):
-    # Organize the list of tangents and from which graph they originated
-    chunk_idx: int
-    graph_idx: int
-    primal: torch.fx.Node
-
-
-def _collect_clones(aten_fx_graphs):
+def _collect_matching_primals_from_clones(aten_fx_graphs):
     """
-    Collect all last primals from outputs which are clone nodes
+    Collect all last primals from outputs and match them with clone nodes if applicable.
     """
     flatten_list = list(itertools.chain.from_iterable(aten_fx_graphs))
 
@@ -880,17 +873,17 @@ def _collect_clones(aten_fx_graphs):
                 clones[idx] = inp
                 break
 
-    pair = {}
+    primals_from_clones = {}
     # for each clone, search backwards from the same position
     # i.e. match the clone with the previous primal
     for idx, clone in enumerate(clones):
         if clone is not None:
             for primal in reversed(primals[0:idx]):
                 if primal is not None:
-                    pair[clone] = primal
+                    primals_from_clones[clone] = primal
                     break
 
-    return pair
+    return primals_from_clones
 
 
 def export_code(torch_ttnn_option):
@@ -925,7 +918,7 @@ def export_code(torch_ttnn_option):
 
     assert len(aten_fx_graphs) == len(all_inputs)
     tangents_info = _collect_tangents(aten_fx_graphs)
-    clone_nodes = _collect_clones(aten_fx_graphs)
+    clone_nodes = _collect_matching_primals_from_clones(aten_fx_graphs)
     for chunk_idx, (aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs) in enumerate(
         zip(aten_fx_graphs, ttnn_fx_graphs, all_inputs)
     ):
