@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
-# Reference: https://huggingface.co/docs/transformers/v4.44.2/en/model_doc/gpt_neo#overview
+# Reference: https://github.com/hbb1/torch-splatting
 
 import numpy as np
 import os
@@ -41,7 +41,9 @@ def setup_gs_module():
     # Load module into PYTHONPATH
     sys.path.append(gs_module_path)
 
-    # Extract dataset
+    # Extract dataset from reference repo:
+    # https://github.com/hbb1/torch-splatting/blob/main/B075X65R3X.zip
+    # These are images with depth, rgb, and other point information.
     with zipfile.ZipFile(f"{gs_module_path}/B075X65R3X.zip", "r") as zip_ref:
         zip_ref.extractall(path=gs_module_path)
 
