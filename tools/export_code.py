@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 import inspect
+import itertools
 import logging
 import lzma
 import pickle
@@ -15,7 +16,14 @@ from pathlib import Path
 from tests.conftest import get_dispatch_core_type, get_dispatch_core_axis, get_dispatch_core_config
 from tests.utils import assert_with_pcc, comp_pcc, construct_pcc_assert_message
 from torch.fx.node import Node, map_arg
-from torch_ttnn.utils import get_opname, users_have_getitem, is_operation, get_node_name, get_output_nodes
+from torch_ttnn.utils import (
+    get_opname,
+    users_have_getitem,
+    is_operation,
+    get_node_name,
+    get_output_nodes,
+    get_input_nodes,
+)
 from typing import NamedTuple
 
 wrapper_funcs = set()
@@ -206,7 +214,7 @@ def _compute_key(node):
     return str(node.meta["seq_nr"]) + node.meta["original_aten"]._name + str(tensor_meta)
 
 
-def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
+def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, clone_nodes):
     """
     Map all aten ops to ttnn ops. This is in a 1 aten op to many ttnn ops
     mapping. This is done by comparing the metadata in the aten op to the
@@ -216,15 +224,15 @@ def _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes):
     """
     aten_to_ttnn_map = defaultdict(list)
     # Get first clone node if found
-    first_clone = _get_first_clone_node([node for node in ttnn_graph.nodes if node.op == "placeholder"])
+    first_clone = _get_first_clone_node(get_input_nodes(ttnn_graph))
 
     for node in ttnn_graph.nodes:
         if node.op == "placeholder":
             # Handle special case for the first clone node
-            if len(output_nodes) > 0 and node == first_clone:
-                out_node = _match_last_primal_with_clone_node(output_nodes[-1], node)
-                if out_node is not None:
-                    node.replace_all_uses_with(out_node, delete_user_cb=lambda node: node != out_node)
+            if node == first_clone and first_clone in clone_nodes:
+                node.replace_all_uses_with(
+                    clone_nodes[first_clone], delete_user_cb=lambda node: node != clone_nodes[first_clone]
+                )
             continue
 
         if node.op != "output":
@@ -351,7 +359,9 @@ def _node_to_python_code(node):
     return statement
 
 
-def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx):
+def _build_code_from_aten_ttnn_graphs(
+    aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx, clone_nodes
+):
     """
     Given a pair of aten and ttnn graphs, build a list of lines of code.
 
@@ -403,7 +413,7 @@ def _build_code_from_aten_ttnn_graphs(aten_graph, ttnn_graph, output_nodes, torc
     """
     Now map all aten ops to ttnn ops.
     """
-    aten_to_ttnn_map = _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, output_nodes)
+    aten_to_ttnn_map = _map_aten_to_ttnn_ops(ttnn_graph, aten_name_to_node_map, clone_nodes)
 
     """
     Gather all ttnn ops into one list. Use `aten_to_ttnn_map` to determine where to insert
@@ -705,7 +715,9 @@ if __name__ == "__main__":
         logging.info(f"{option} data object saved to {data_full_path}.")
 
 
-def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx, tangents_info):
+def _assemble_forward_functions(
+    aten_fx_graphs, ttnn_fx_graphs, inputs, torch_ttnn_option, chunk_idx, tangents_info, clone_nodes
+):
     """
     Take all the graphs and assemble into a list of
 
@@ -755,15 +767,10 @@ def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_tt
             # In some cases where there are graph breakages, outputs of the previous graphs
             # can become inputs for subsequent graphs. Some are given new names based on
             # some pattern. The following renames some of these nodes.
-            prev_out_node_names = get_names_of_outputs(aten_fx_graphs[graph_idx - 1])
             # Find the first clone if available
-            first_clone = _get_first_clone_node(arg_node_names)
-            for arg in arg_node_names:
-                if arg == first_clone:
-                    out_node = _match_last_primal_with_clone_node(prev_out_node_names, arg)
-                    if out_node is not None:
-                        call_forwards_in_main.append(f"{arg} = {out_node}")
-                        break
+            first_clone = _get_first_clone_node(get_input_nodes(aten_graph))
+            if first_clone in clone_nodes:
+                call_forwards_in_main.append(f"{first_clone} = {clone_nodes[first_clone]}")
 
         # process tangents separately
         arg_node_names, renamed_tangents = _rename_arguments_and_tangents(arg_node_names, tangents_info)
@@ -785,7 +792,7 @@ def _assemble_forward_functions(aten_fx_graphs, ttnn_fx_graphs, inputs, torch_tt
     output_nodes = []
     for graph_idx, (aten_graph, ttnn_graph) in enumerate(zip(aten_fx_graphs, ttnn_fx_graphs)):
         graph_code = _build_code_from_aten_ttnn_graphs(
-            aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx
+            aten_graph, ttnn_graph, output_nodes, torch_ttnn_option, chunk_idx, graph_idx, clone_nodes
         )
         if option == "profiling":
             # Insert last one before return
@@ -843,6 +850,42 @@ def _collect_tangents(aten_fx_graphs):
     return tangents_info
 
 
+def _collect_matching_primals_from_clones(aten_fx_graphs):
+    """
+    Collect all last primals from outputs and match them with clone nodes if applicable.
+    """
+    flatten_list = list(itertools.chain.from_iterable(aten_fx_graphs))
+
+    primals = [None] * len(flatten_list)
+    clones = [None] * len(flatten_list)
+    for idx, aten_graph in enumerate(flatten_list):
+        # get last primal from outputs
+        outputs = get_output_nodes(aten_graph)
+        for outp in reversed(outputs):
+            if outp is not None and outp.name.startswith("primal"):
+                primals[idx] = outp
+                break
+
+        # get first clone in inputs
+        inputs = get_input_nodes(aten_graph)
+        for inp in inputs:
+            if inp.name.startswith("clone"):
+                clones[idx] = inp
+                break
+
+    primals_from_clones = {}
+    # for each clone, search backwards from the same position
+    # i.e. match the clone with the previous primal
+    for idx, clone in enumerate(clones):
+        if clone is not None:
+            for primal in reversed(primals[0:idx]):
+                if primal is not None:
+                    primals_from_clones[clone] = primal
+                    break
+
+    return primals_from_clones
+
+
 def export_code(torch_ttnn_option):
     """
     Main entry to generate standalone python script with accuracy checks
@@ -875,11 +918,12 @@ def export_code(torch_ttnn_option):
 
     assert len(aten_fx_graphs) == len(all_inputs)
     tangents_info = _collect_tangents(aten_fx_graphs)
+    clone_nodes = _collect_matching_primals_from_clones(aten_fx_graphs)
     for chunk_idx, (aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs) in enumerate(
         zip(aten_fx_graphs, ttnn_fx_graphs, all_inputs)
     ):
         forward_code, call_forwards_in_main = _assemble_forward_functions(
-            aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs, torch_ttnn_option, chunk_idx, tangents_info
+            aten_fx_graphs_chunk, ttnn_fx_graphs_chunk, inputs, torch_ttnn_option, chunk_idx, tangents_info, clone_nodes
         )
         forward_code_list.extend(forward_code)
         call_forwards_in_main_list.extend(call_forwards_in_main)
