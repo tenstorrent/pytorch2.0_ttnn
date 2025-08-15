@@ -35,7 +35,7 @@ runs:
         python3 -m pip install -r requirements-dev.txt
         python3 -m pip install pytest-github-report
 
-        pip install --force-reinstall pip==21.2.4
+        # pip install --force-reinstall pip==21.2.4
         python3 -m pip install numpy setuptools wheel
         python3 -m pip install -e .
 

@@ -103,6 +103,7 @@ jobs:
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
       CACHE_DIR: /root/.cache/cpp-extension-tracycache
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       # TODO: checkout must be changed to main once branch is merged
       - name: Checkout Repository
