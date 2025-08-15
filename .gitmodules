@@ -1,4 +1,4 @@
 [submodule "tools/third-party/tt-metal"]
 	path = tools/third-party/tt-metal
 	url = https://github.com/tenstorrent/tt-metal
-	branch = v0.59.0-rc57
+	branch = v0.62.0-rc26
