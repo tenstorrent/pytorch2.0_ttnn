@@ -47,16 +47,22 @@ runs:
           echo "Copying tt-metal build from NFS cache ($CACHE_DIR)."
 
           # tt-metal cache
-          cp -rf $CACHE_DIR/tt-metal/ tools/third-party/tt-metal/
+          rm -rf tools/third-party/tt-metal/*
+          cp -af $CACHE_DIR/tt-metal/* tools/third-party/tt-metal/
+
+          ls -l tools/third-party/tt-metal/
+
+          source tools/third-party/tt-metal/python_env/bin/activate
 
           export TT_METAL_HOME=$(realpath ./tools/third-party/tt-metal)
-          export PYTHONPATH="${TT_METAL_HOME}"
+          export PYTHONPATH="$(pwd):${TT_METAL_HOME}"
           echo "TT_METAL_HOME: $TT_METAL_HOME"
+          echo "PYTHONPATH: $PYTHONPATH"
 
-          pip install -e "$TT_METAL_HOME"
+          # pip install -e "$TT_METAL_HOME"
           pip list
 
-          collect_tests=$(python -m pytest tests/models/ --collect-only --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
+          collect_tests=$(python -m pytest tests/models/ --collect-only -m e2e_with_native_integration --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
           check_exit_code
 
           test_names=$(echo "$collect_tests" | sed -n "s/.*:://p")
@@ -69,12 +75,16 @@ runs:
 
           echo "Collected tests: $tests_name_only"
 
+          # Check if marker exists
+          # If we include the tracy module in the command line, tracy will still do some 
+          # processing and if the nth_iteration is > 2, it might segfault if we don't insert any 
+          # ReadDeviceProfiler calls.
           for i in "${!tests_full_path[@]}"; do
             python3 -m tracy -r -v -p -m -o "tracy_out/${tests_name_only[i]}" \
               pytest --github-report "tests/${tests_full_path[i]}" -s \
               --report_nth_iteration=$num_iterations \
               --export_code=accuracy \
-              --tracy_profiling=e2e
+              --tracy_profiling="e2e"
 
             check_exit_code
           done

@@ -12,13 +12,16 @@ runs:
       shell: bash
       run: |
         docker system prune -a -f
-        df -h  # Debug space
+        df -h # Debug space
 
     - name: Install dependencies
       shell: bash
       run: |
         apt upgrade -y && apt update -y
         apt install -y cmake python3 python3-venv python3-pip git-lfs ccache gcc-12 g++-12
+        # Ubuntu 22.04 links gcc to gcc-11, so force gcc to point to 12 instead
+        sudo ln -s -f /usr/bin/gcc-12 /usr/bin/gcc
+        sudo ln -s -f /usr/bin/g++-12 /usr/bin/g++
 
         git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
         git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
@@ -26,18 +29,6 @@ runs:
         # Remove hugepages setup from install_dependencies.sh
         sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./tools/third-party/tt-metal/install_dependencies.sh
         ./tools/third-party/tt-metal/install_dependencies.sh
-
-    - name: Install python dependencies
-      shell: bash
-      run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
-        python3 -m pip install -r requirements-dev.txt
-        python3 -m pip install pytest-github-report
-
-        pip install --force-reinstall pip==21.2.4
-        python3 -m pip install numpy setuptools wheel
-        python3 -m pip install -e .
 
     - name: Setup submodules
       shell: bash
@@ -49,19 +40,51 @@ runs:
         git submodule update --init --recursive
         git submodule foreach 'git lfs fetch --all && git lfs pull'
 
-    - name: Build C++ Extensions
+    - name: Build tt-metal
       shell: bash
       run: |
         echo "CURRENT_DIR: $(pwd)"
         echo "build_tt_metal_args: ${{ inputs.build_tt_metal_args }}"
 
-        ./tools/build_tt_metal.sh ${{ inputs.build_tt_metal_args }}
+        # Copy from NFS to avoid rebuilding from scratch
+        # if [ -d $CACHE_DIR/tt-metal ]; then
+        #   echo "Copying from NFS"
+        #   cp -af $CACHE_DIR/tt-metal/* tools/third-party/tt-metal/
+        #   ls -la tools/third-party/tt-metal
+        # fi
+
+        pushd tools/third-party/tt-metal
+        ./build_metal.sh -p
+        popd
+        pushd tools/third-party/tt-metal
+        # why is it creating in /opt/python_env instead of script?
+        PYTHON_ENV_DIR=$(pwd)/python_env
+        ./create_venv.sh
+        popd
+        # ./tools/build_tt_metal.sh ${{ inputs.build_tt_metal_args }}
+
+        pwd
+
+        # Maybe move this to a separate step for better organization?
+        source tools/third-party/tt-metal/python_env/bin/activate
+        pip install -r requirements-dev.txt
+        pip install --upgrade pip
+        pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
+        pip install -r requirements-dev.txt
+        pip install pytest-github-report
+
+        # pip install --force-reinstall pip==21.2.4
+        pip install numpy setuptools wheel
+        # python3 -m pip install -e .
+
+        pip list 
 
         # Copy to NFS cache directory
         rm -rf $CACHE_DIR/tt-metal
+        mkdir $CACHE_DIR/tt-metal
 
         # tt-metal cache
-        cp -r tools/third-party/tt-metal $CACHE_DIR/
+        cp -af tools/third-party/tt-metal/* $CACHE_DIR/tt-metal/
         ls -la $CACHE_DIR/tt-metal
 
         cd ${{ github.workspace }}
