@@ -302,17 +302,16 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 end = time.perf_counter() * 1000
                 logging.info(f"Model and inputs moved to ttnn device in {end - start} ms.")
 
-            if tracy_profiling:
-                import tracy
-
-                profiler = tracy.Profiler()
-
             warm_run_times = []
             for idx in range(total_num_iterations):
-                if tracy_profiling:
+                if tracy_profiling and idx == (total_num_iterations - 1):
+                    import tracy
+
+                    profiler = tracy.Profiler()
                     profiler.enable()
                     tracy.signpost(
-                        header=f"model: {model_name}, iter: {idx}", message=f"model: {model_name}, iter: {idx}"
+                        header=f"begin profiling model: {model_name}, iter: {idx}",
+                        message=f"model: {model_name}, iter: {idx}",
                     )
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
@@ -321,9 +320,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_time = end - start
                 if idx == 0:
                     first_iter_runtime = run_time
-                if tracy_profiling:
+                if tracy_profiling and idx == (total_num_iterations - 1):
                     tracy.signpost(
-                        header=f"model: {model_name}, iter: {idx}", message=f"model: {model_name}, iter: {idx}"
+                        header=f"end profiling model: {model_name}, iter: {idx}",
+                        message=f"model: {model_name}, iter: {idx}",
                     )
                     profiler.disable()
                 if idx > 1:
