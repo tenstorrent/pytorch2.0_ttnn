@@ -22,6 +22,7 @@ class ThisTester(ModelTester):
         return img
 
 
+@pytest.mark.skip(reason="OOM when combined with Llama: https://github.com/tenstorrent/pytorch2.0_ttnn/issues/1184")
 @pytest.mark.parametrize(
     "mode",
     ["train", "eval"],
