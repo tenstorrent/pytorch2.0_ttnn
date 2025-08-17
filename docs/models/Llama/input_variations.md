@@ -72,7 +72,7 @@
 ### aten.bmm.default
 |    | ATen Input Variations                                             | Status   | Isolated   | PCC                | Host   |
 |---:|:------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
-|  0 | Tensor<[1, 64, 1]> self = ?,<br>Tensor<[1, 1, 32]> mat2 = ?       | Unknown  | Done       | 0.9999918679306983 | 0      |
+|  0 | Tensor<[1, 64, 1]> self = ?,<br>Tensor<[1, 1, 32]> mat2 = ?       | Unknown  | Done       | 0.9999932061111507 | 0      |
 |  1 | Tensor<[32, 32, 128]> self = ?,<br>Tensor<[32, 128, 32]> mat2 = ? | Unknown  | Unknown    | N/A                | N/A    |
 |  2 | Tensor<[32, 32, 32]> self = ?,<br>Tensor<[32, 32, 128]> mat2 = ?  | Unknown  | Unknown    | N/A                | N/A    |
 ### aten.cat.default
