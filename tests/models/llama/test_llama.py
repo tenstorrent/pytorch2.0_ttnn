@@ -8,11 +8,22 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from tests.utils import ModelTester, repeat_inputs
 
+LLAMA_MODELS = [
+    # (display_name, huggingface_model_id)
+    ("Llama-2-7B", "huggyllama/llama-7b"),
+    ("Llama-3.2-1B", "meta-llama/Llama-3.2-1B"),
+    ("Llama-3.2-3B", "meta-llama/Llama-3.2-3B"),
+    ("Llama-3.1-8B", "meta-llama/Llama-3.1-8B"),
+]
 
 class ThisTester(ModelTester):
+    def __init__(self, model_name, mode, hf_model_id):
+        super().__init__(model_name, mode)
+        self.hf_model_id = hf_model_id
+
     def _load_model(self):
         # Download model from cloud
-        model_name = "huggyllama/llama-7b"
+        model_name = self.hf_model_id
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
@@ -40,13 +51,16 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
+@pytest.mark.parametrize(
+    "model_name,hf_model_id",
+    [(name, hf_id) for name, hf_id in LLAMA_MODELS],
+)
 @pytest.mark.compilation_xfail(reason="OOM for DRAM")
-def test_llama(record_property, mode):
-    model_name = "Llama"
+def test_llama(record_property, mode, model_name, hf_model_id):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
-    tester = ThisTester(model_name, mode)
+    tester = ThisTester(model_name, mode, hf_model_id)
     results = tester.test_model()
     if mode == "eval":
         # Helper function to decode output to human-readable text
