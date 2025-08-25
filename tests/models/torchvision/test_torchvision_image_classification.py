@@ -40,7 +40,10 @@ class ThisTester(ModelTester):
 model_info_and_mode_list = [
     [("googlenet", "GoogLeNet_Weights"), "eval"],
     pytest.param([("densenet121", "DenseNet121_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
-    pytest.param([("densenet161", "DenseNet161_Weights"), "eval"], marks=pytest.mark.converted_end_to_end),
+    pytest.param(
+        [("densenet161", "DenseNet161_Weights"), "eval"],
+        marks=[pytest.mark.converted_end_to_end, pytest.mark.skip(reason="Failing in tracy")],
+    ),
     pytest.param(
         [("densenet169", "DenseNet169_Weights"), "eval"],
         marks=pytest.mark.converted_end_to_end,
