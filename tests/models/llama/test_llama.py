@@ -16,6 +16,7 @@ LLAMA_MODELS = [
     ("Llama-3.1-8B", "meta-llama/Llama-3.1-8B"),
 ]
 
+
 class ThisTester(ModelTester):
     def __init__(self, model_name, mode, hf_model_id):
         self.hf_model_id = hf_model_id
