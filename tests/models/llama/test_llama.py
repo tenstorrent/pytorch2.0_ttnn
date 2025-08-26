@@ -18,8 +18,8 @@ LLAMA_MODELS = [
 
 class ThisTester(ModelTester):
     def __init__(self, model_name, mode, hf_model_id):
-        super().__init__(model_name, mode)
         self.hf_model_id = hf_model_id
+        super().__init__(model_name, mode)
 
     def _load_model(self):
         # Download model from cloud
