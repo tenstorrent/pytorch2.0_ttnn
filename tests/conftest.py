@@ -54,8 +54,8 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         "--tracy_profiling",
-        action="store",
-        help="Generate tracy profiling data for all iterations. Supported options: e2e, force",
+        action="store_true",
+        help="Generate tracy profiling data for all iterations. This implies the test runs e2e.",
     )
 
 
@@ -127,6 +127,7 @@ def get_dispatch_core_config():
     return dispatch_core_config
 
 
+# TODO: Might not be needed anymore?
 def check_enable_tracy(request):
     # Only enable profiling if flag is present and model is marked end-to-end
     tracy_profiling_opt = request.config.getoption("--tracy_profiling")
@@ -271,7 +272,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
-            tracy_profiling = check_enable_tracy(request)
+            # tracy_profiling = check_enable_tracy(request)
+            tracy_profiling = request.config.getoption("--tracy_profiling") and not request.node.get_closest_marker(
+                "tracy_incompatible"
+            )
 
             option = torch_ttnn.TorchTtnnOption(
                 device=device,

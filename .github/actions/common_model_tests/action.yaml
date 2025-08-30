@@ -42,6 +42,7 @@ runs:
           fi
         }
 
+        # Setup tracy dependencies
         if [ "$run_tracy" = true ];
         then
           echo "Copying tt-metal build from NFS cache ($CACHE_DIR)."
@@ -61,38 +62,51 @@ runs:
 
           # pip install -e "$TT_METAL_HOME"
           pip list
+        fi
 
-          collect_tests=$(python -m pytest tests/models/ --collect-only -m e2e_with_native_integration --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
-          check_exit_code
+        # Collect the tests that should run in the current group and split number
+        tests_in_current_grp=$(python -m pytest tests/models/ --collect-only --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
 
-          test_names=$(echo "$collect_tests" | sed -n "s/.*:://p")
+        # Collect tests that have a "converted_end_to_end" marker. These will be the tests that will be run with tracy if enabled.
+        # TODO: It might be more efficient to run this only once before this action and pass the value here.
+        e2e_tests=$(python -m pytest tests/models/ --collect-only -m converted_end_to_end -q | head -n -2 | tail -n +10)
 
-          # Turn string lists into arrays
-          set -o noglob
-          IFS=$'\n' tests_full_path=($collect_tests)
-          IFS=$'\n' tests_name_only=($test_names)
-          set +o noglob
+        # Collect tests that have a "tracy_incompatible" marker. These are observed to fail when profiling with tracy even when passing normally.
+        tracy_incompat_tests=$(python -m pytest tests/models/ --collect-only -m tracy_incompatible -q | head -n -2 | tail -n +10)
 
-          echo "Collected tests: $tests_name_only"
+        test_names=$(echo "$tests_in_current_grp" | sed -n "s/.*:://p")
 
-          # Check if marker exists
-          # If we include the tracy module in the command line, tracy will still do some 
-          # processing and if the nth_iteration is > 2, it might segfault if we don't insert any 
-          # ReadDeviceProfiler calls.
-          for i in "${!tests_full_path[@]}"; do
+        # Turn string lists into arrays
+        set -o noglob
+        IFS=$'\n' tests_full_path=($tests_in_current_grp)
+        IFS=$'\n' tests_name_only=($test_names)
+        set +o noglob
+
+        # Run tests in a for loop
+        echo "Running tests: ${tests_name_only[@]}"
+        echo "e2e tests: $e2e_tests"
+        echo "tracy fail tests: $tracy_incompat_tests"
+
+        for i in "${!tests_full_path[@]}"; do
+          test_path="${tests_full_path[i]}"
+          if [ "$run_tracy" = true ] && \
+             $(echo "$e2e_tests" | grep -Fxq -- "$test_path") && \
+             ! $(echo "$tracy_incompat_tests" | grep -Fxq -- "$test_path")
+          then
+            echo "Running test with tracy: $test_path"
             python3 -m tracy -r -v -p -m -o "tracy_out/${tests_name_only[i]}" \
               pytest --github-report "tests/${tests_full_path[i]}" -s \
               --report_nth_iteration=$num_iterations \
               --export_code=accuracy \
-              --tracy_profiling="e2e"
-
-            check_exit_code
-          done
-
-        else
-          python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
+              --tracy_profiling
+          else
+            echo "Running test: $test_path"
+            python3 -m pytest --github-report "tests/${tests_full_path[i]}" -s \
+              --report_nth_iteration=$num_iterations \
+              --export_code=accuracy
+          fi
           check_exit_code
-        fi
+        done
 
         echo "Success: Tests passed!";
         exit 0;

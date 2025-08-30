@@ -46,7 +46,7 @@ model_info_and_mode_list = [
     ),
     pytest.param(
         [("densenet169", "DenseNet169_Weights"), "eval"],
-        marks=pytest.mark.converted_end_to_end,
+        marks=[pytest.mark.converted_end_to_end, pytest.mark.tracy_incompatible],
     ),
     pytest.param(
         [("densenet201", "DenseNet201_Weights"), "eval"],

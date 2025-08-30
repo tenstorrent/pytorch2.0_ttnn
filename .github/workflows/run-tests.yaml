@@ -43,6 +43,7 @@ permissions:
   pages: write
   id-token: write
   pull-requests: write
+  packages: read
 
 jobs:
   tools-tests:
