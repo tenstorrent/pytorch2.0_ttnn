@@ -3,7 +3,7 @@ pytest==7.2.2
 pytest-timeout==2.2.0
 pytest-split==0.8.2
 pre-commit==3.0.4
-transformers==4.38.0
+transformers==4.43.2
 huggingface_hub[cli]
 pandas==2.0.3
 Pillow==10.3.0

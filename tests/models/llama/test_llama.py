@@ -80,4 +80,4 @@ def test_llama(record_property, mode, model_name, hf_model_id):
         """
         )
 
-    record_property("torch_ttnn", (tester, results))
+    # record_property("torch_ttnn", (tester, results))
