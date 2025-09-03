@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: https://github.com/hbb1/torch-splatting/blob/6c9792/gaussian_splatting/utils/__init__.py © 2025 Binbin Huang
+# SPDX-FileCopyrightText: Modifications © 2025 Tenstorrent AI ULC
+# SPDX-License-Identifier: MIT AND Apache-2.0
+
 import torch
 import numpy as np
 import torch.nn.functional as F

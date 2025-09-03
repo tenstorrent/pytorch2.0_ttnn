@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
-# Reference: https://github.com/hbb1/torch-splatting
+# Reference: https://github.com/hbb1/torch-splatting/blob/6c9792/train.py
 
 import numpy as np
 import os
