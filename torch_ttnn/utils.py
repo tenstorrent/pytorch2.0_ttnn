@@ -120,6 +120,10 @@ def get_output_nodes(graph):
     return output_node.args[0]
 
 
+def get_input_nodes(graph):
+    return [node for node in graph.nodes if node.op == "placeholder"]
+
+
 # Certain ops don't support certain shapes and will emit a valid_page_size error
 # RuntimeError: TT_FATAL @ ../tt_metal/impl/buffers/buffer.cpp:38: valid_page_size
 # For valid non-interleaved buffers page size 2048 must equal buffer size X. For interleaved-buffers page size should be divisible by buffer size

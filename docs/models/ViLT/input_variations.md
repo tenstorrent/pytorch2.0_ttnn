@@ -46,12 +46,12 @@
 |---:|:-----------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
 |  0 | Tensor<[1, 1, 384, 512]> self = ?,<br>List[Optional[Tensor]] indices = [None, None, _folded_unsqueeze_1, _folded__to_copy_2] | Unknown  | Unknown    | N/A   | N/A    |
 ### aten.add.Tensor
-|    | ATen Input Variations                                                   | Status   | Isolated   | PCC                | Host   |
-|---:|:------------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
-|  0 | Tensor<[1, 12, 201, 201]> self = ?,<br>Tensor<[1, 1, 1, 201]> other = ? | Unknown  | Unknown    | N/A                | N/A    |
-|  1 | Tensor<[1, 193, 768]> self = ?,<br>Tensor<[1, 193, 768]> other = ?      | Unknown  | Unknown    | N/A                | N/A    |
-|  2 | Tensor<[1, 201, 768]> self = ?,<br>Tensor<[1, 201, 768]> other = ?      | Unknown  | Unknown    | N/A                | N/A    |
-|  3 | Tensor<[1, 8, 768]> self = ?,<br>Tensor<[1, 8, 768]> other = ?          | Unknown  | Done       | 0.9999979810103737 | 0      |
+|    | ATen Input Variations                                                   | Status   | Isolated   | PCC              | Host   |
+|---:|:------------------------------------------------------------------------|:---------|:-----------|:-----------------|:-------|
+|  0 | Tensor<[1, 12, 201, 201]> self = ?,<br>Tensor<[1, 1, 1, 201]> other = ? | Unknown  | Unknown    | N/A              | N/A    |
+|  1 | Tensor<[1, 193, 768]> self = ?,<br>Tensor<[1, 193, 768]> other = ?      | Unknown  | Unknown    | N/A              | N/A    |
+|  2 | Tensor<[1, 201, 768]> self = ?,<br>Tensor<[1, 201, 768]> other = ?      | Unknown  | Unknown    | N/A              | N/A    |
+|  3 | Tensor<[1, 8, 768]> self = ?,<br>Tensor<[1, 8, 768]> other = ?          | Unknown  | Done       | 0.99999808686879 | 0      |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   | Host   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
@@ -124,7 +124,7 @@
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
 |  0 | Tensor<[1, 1536]> input = ?,<br>List[int] normalized_shape = [1536],<br>Optional[Tensor]<[1536]> weight = ?,<br>Optional[Tensor]<[1536]> bias = ?,<br>float eps = 1e-05  | Unknown  | Unknown    | N/A                | N/A    |
 |  1 | Tensor<[1, 201, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12 | Unknown  | Unknown    | N/A                | N/A    |
-|  2 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12   | Unknown  | Done       | 0.9984241318223114 | 3      |
+|  2 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12   | Unknown  | Done       | 0.9977580892278631 | 3      |
 ### aten.permute.default
 |    | ATen Input Variations                                               | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|:------|:-------|
