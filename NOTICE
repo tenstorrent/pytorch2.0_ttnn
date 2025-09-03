@@ -1,0 +1,20 @@
+Copyright (c) 2025 Tenstorrent AI ULC, under Apache 2.0.
+
+------------------------------------------------------------------------------
+
+Portions of the code which are included, or dervied from:
+
+In /test/models/gaussian_splatting/gaussian_splatting: 
+gauss_model.pyi, gauss_render.py, gsstrainer.py, trainer.py, utils/__init__.py, utils/camera_utils.py, utils/data_utils.py, utils/loss_utils.py, utils/point_utils.py, utils/sh_utils.py: 
+ - originally from https://github.com/hbb1/torch-splatting/ - Copyright (c) 2025 Binbin Huang, MIT license.
+
+
+
+-------------------------------------------------------------------------------
+
+Third-Party Dependencies:
+
+The following separate and independent dependencies are utilized by this
+project but are not explicitly distributed as part of the software:
+
+- tt-metal - [License available here](https://github.com/tenstorrent/tt-metal/blob/main/LICENSE)
