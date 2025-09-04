@@ -18,6 +18,9 @@ runs:
       shell: bash
       run: |
         set +e
+        pip install -U "huggingface_hub[cli]"
+        hf auth whoami
+
         if [ "${{ inputs.commit_report }}" == "None" ]; then
           num_iterations=1
         else

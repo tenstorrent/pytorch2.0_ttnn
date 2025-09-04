@@ -1352,8 +1352,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     "device": TtnnDevice(),
                 }
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
-            if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
-
+            if node.target == torch.ops.aten._scaled_dot_product_flash_attention_for_cpu.default:
                 def pad_qkv_ttnn(q, k, v, scale=None, align_by=ttnn.TILE_SIZE):
                     """
                     Pads the last dimension of Q, K, V tensors to `tile_size`

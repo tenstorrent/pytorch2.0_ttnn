@@ -30,7 +30,7 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.skip(reason="Bypass compilation failing with new transformers version")
+@pytest.mark.compilation_xfail
 def test_codegen(record_property, mode):
     model_name = "codegen"
     record_property("model_name", model_name)
