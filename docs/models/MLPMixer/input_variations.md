@@ -38,13 +38,13 @@
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                             | Status   | Isolated   |      PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1024, 512]> input = ?,<br>Tensor<[256, 1024, 1]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>List[int] stride = [1],<br>List[int] padding = [0],<br>List[int] dilation = [1],<br>bool transposed = False,<br>List[int] output_padding = [0],<br>int groups = 1 | Done     | Done       | 0.999839 |      1 |
+|  0 | Tensor<[1, 1024, 512]> input = ?,<br>Tensor<[256, 1024, 1]> weight = ?,<br>Optional[Tensor]<[256]> bias = ?,<br>List[int] stride = [1],<br>List[int] padding = [0],<br>List[int] dilation = [1],<br>bool transposed = False,<br>List[int] output_padding = [0],<br>int groups = 1 | Done     | Done       | 0.999837 |      1 |
 |  1 | Tensor<[1, 256, 512]> input = ?,<br>Tensor<[1024, 256, 1]> weight = ?,<br>Optional[Tensor]<[1024]> bias = ?,<br>List[int] stride = [1],<br>List[int] padding = [0],<br>List[int] dilation = [1],<br>bool transposed = False,<br>List[int] output_padding = [0],<br>int groups = 1 | Done     | Done       | 0.999964 |      1 |
 ### aten.gelu.default
 |    | ATen Input Variations           | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 1024, 512]> self = ? | Done     | Done       | 0.999991 |      0 |
-|  1 | Tensor<[1, 256, 256]> self = ?  | Removed  | Done       | 0.999992 |      0 |
+|  1 | Tensor<[1, 256, 256]> self = ?  | Removed  | Done       | 0.999991 |      0 |
 ### aten.mean.dim
 |    | ATen Input Variations                                            | Status   | Isolated   |   PCC |   Host |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|------:|-------:|
@@ -52,7 +52,7 @@
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 256, 512]> input = ?,<br>List[int] normalized_shape = [512],<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>float eps = 1e-05 | Done     | Done       | 0.998582 |      3 |
+|  0 | Tensor<[1, 256, 512]> input = ?,<br>List[int] normalized_shape = [512],<br>Optional[Tensor]<[512]> weight = ?,<br>Optional[Tensor]<[512]> bias = ?,<br>float eps = 1e-05 | Done     | Done       | 0.998491 |      3 |
 ### aten.permute.default
 |    | ATen Input Variations                                                           | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
