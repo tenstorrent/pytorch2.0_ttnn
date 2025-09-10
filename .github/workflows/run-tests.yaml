@@ -50,6 +50,7 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
+      HF_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
     runs-on: ["in-service"]
     container: 
       image: ${{ inputs.docker_tag }}
@@ -122,6 +123,7 @@ jobs:
       pytest_report_title: "⭐️ Model Tests - Group ${{ matrix.group }}"    
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
+      HF_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
     strategy:
       matrix: 
