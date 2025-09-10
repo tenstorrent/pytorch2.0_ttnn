@@ -68,6 +68,7 @@ jobs:
           python3 -m pytest --github-report tests/tools/ -s
 
   lowering-tests:
+    needs: ["tools-tests"]
     runs-on: ["in-service"]
     container: 
       image: ${{ inputs.docker_tag }}
