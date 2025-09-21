@@ -1,0 +1,1 @@
+worker: python test_sd35_koyeb.py
