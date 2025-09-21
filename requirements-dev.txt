@@ -14,6 +14,7 @@ protobuf==5.27.3
 mlp-mixer-pytorch==0.1.1
 datasets
 diffusers==0.32.2
+psutil
 pytorchcv
 librosa
 soundfile
