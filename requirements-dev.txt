@@ -17,3 +17,4 @@ diffusers==0.32.2
 pytorchcv
 librosa
 soundfile
+psutil
