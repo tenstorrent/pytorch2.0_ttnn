@@ -489,6 +489,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 new_args = (cast_bf16(args[0], args[1]), cast_bf16(args[1], args[0]))
 
+                # ttnn binary ops only support scalar in 2nd operand, so swap order if 1st operand is scalar
+                # Remove this if support is added in tt-metal: https://github.com/tenstorrent/tt-metal/issues/31247
+                if len(shapes[0]) == 0 and len(shapes[1]) > 0:
+                    new_args = (new_args[1], new_args[0])
+                    # However, ttnn.sub is non-associatve, so both operands need to be negated after swapping
+                    # NOTE: Alternatively, we can use ttnn.add and only negate the first operand after swap
+                    if fn == ttnn.sub:
+                        new_args = (
+                            g.call_function(ttnn.neg, args=(new_args[0],)),
+                            g.call_function(ttnn.neg, args=(new_args[1],)),
+                        )
+
                 return g.call_function(fn, new_args)
 
             if node.target == torch.ops.aten.add.Tensor:
