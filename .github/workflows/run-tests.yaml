@@ -166,7 +166,7 @@ jobs:
     needs: lowering-tests
     runs-on: >-
       ${{
-        ('tt-beta-ubuntu-2204-n300-large-stable')
+        ('tt-ubuntu-2204-n300-stable')
         || fromJSON('["n300", "in-service", "nfs"]')
       }}
     container: 
