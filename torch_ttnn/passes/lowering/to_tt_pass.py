@@ -1376,7 +1376,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     "device": TtnnDevice(),
                 }
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
-            if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
+            if node.target == torch.ops.aten._scaled_dot_product_flash_attention_for_cpu.default:
 
                 def pad_qkv_ttnn(q, k, v, scale=None, align_by=ttnn.TILE_SIZE):
                     """
@@ -1472,7 +1472,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         slice_end[-1] = d  # Set last dimension back to original size
                         res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
 
-                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a
+                    # torch.ops.aten._scaled_dot_product_flash_attention_for_cpu.default return a tuple of values and inserts a
                     # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
                     if (val := res_node.meta.get("val", None)) is not None:
                         res_node.meta["val"] = val[0]
