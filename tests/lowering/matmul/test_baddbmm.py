@@ -57,9 +57,9 @@ def test_baddbmm(device, input_shapes):
 
     # (2) Test with alpha and default beta value
     result_before = m.forward(*inputs, alpha=2)
-    m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    # Reset cache to force recompiling
+    torch._dynamo.reset()
     result_after = m_ttnn.forward(*inputs, alpha=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
@@ -78,9 +78,9 @@ def test_baddbmm(device, input_shapes):
 
     # (3) Test with beta and default alpha value
     result_before = m.forward(*inputs, beta=2)
-    m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    # Reset cache to force recompiling
+    torch._dynamo.reset()
     result_after = m_ttnn.forward(*inputs, beta=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
@@ -99,9 +99,9 @@ def test_baddbmm(device, input_shapes):
 
     # (4) Test with beta and alpha values
     result_before = m.forward(*inputs, beta=2, alpha=2)
-    m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    # Reset cache to force recompiling
+    torch._dynamo.reset()
     result_after = m_ttnn.forward(*inputs, beta=2, alpha=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
@@ -124,9 +124,9 @@ def test_baddbmm(device, input_shapes):
 
     # (5) Test special case when beta is 0
     result_before = m.forward(*inputs, beta=0, alpha=2)
-    m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    # Reset cache to force recompiling
+    torch._dynamo.reset()
     result_after = m_ttnn.forward(*inputs, beta=0, alpha=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
