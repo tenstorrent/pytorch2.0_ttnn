@@ -143,6 +143,7 @@ TTNN_DATAMOVE_OPS = [
     ttnn.to_layout,
     ttnn.transpose,
     ttnn.unsqueeze,
+    ttnn.format_output_tensor,
 ]
 
 TTNN_TARGET_WRAPPERS = [
