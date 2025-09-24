@@ -52,6 +52,11 @@ def pytest_addoption(parser):
         action="store_true",
         help="Use native device integration for ttnn. Note: this is not supported with data parallel.",
     )
+    parser.addoption(
+        "--tracy_profiling",
+        action="store_true",
+        help="Generate tracy profiling data for all iterations. This implies the test runs e2e.",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -120,6 +125,20 @@ def get_dispatch_core_config():
     dispatch_core_axis = get_dispatch_core_axis()
     dispatch_core_config = ttnn.DispatchCoreConfig(dispatch_core_type, dispatch_core_axis)
     return dispatch_core_config
+
+
+# TODO: Might not be needed anymore?
+def check_enable_tracy(request):
+    # Only enable profiling if flag is present and model is marked end-to-end
+    tracy_profiling_opt = request.config.getoption("--tracy_profiling")
+    if tracy_profiling_opt is not None:
+        if tracy_profiling_opt == "e2e":
+            return request.node.get_closest_marker("e2e_with_native_integration") is not None
+        else:
+            # enable tracy profile anyway if compilation is expected to pass
+            return request.node.get_closest_marker("compilation_xfail") is None
+
+    return False
 
 
 @pytest.fixture(autouse=True)
@@ -253,6 +272,10 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
+            # tracy_profiling = check_enable_tracy(request)
+            tracy_profiling = request.config.getoption("--tracy_profiling") and not request.node.get_closest_marker(
+                "tracy_incompatible"
+            )
 
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
@@ -265,6 +288,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 data_parallel=request.config.getoption("--data_parallel"),
                 load_params_once=not native_integration,  # load_params_once conflicts with native integration
                 native_integration=native_integration,
+                tracy_profiling=tracy_profiling,
             )
 
             if option.native_integration and option.data_parallel:
@@ -284,6 +308,15 @@ def compile_and_run(device, reset_torch_dynamo, request):
 
             warm_run_times = []
             for idx in range(total_num_iterations):
+                if tracy_profiling and idx == (total_num_iterations - 1):
+                    import tracy
+
+                    profiler = tracy.Profiler()
+                    profiler.enable()
+                    tracy.signpost(
+                        header=f"begin profiling model: {model_name}, iter: {idx}",
+                        message=f"model: {model_name}, iter: {idx}",
+                    )
                 start = time.perf_counter() * 1000
                 # Don't need to reset options if inputs don't change because of cache
                 outputs_after = model_tester.test_model(as_ttnn=True, option=option)
@@ -291,6 +324,12 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 run_time = end - start
                 if idx == 0:
                     first_iter_runtime = run_time
+                if tracy_profiling and idx == (total_num_iterations - 1):
+                    tracy.signpost(
+                        header=f"end profiling model: {model_name}, iter: {idx}",
+                        message=f"model: {model_name}, iter: {idx}",
+                    )
+                    profiler.disable()
                 if idx > 1:
                     warm_run_times.append(run_time)
                 logging.info(f"Iteration {idx}: {run_time} ms")

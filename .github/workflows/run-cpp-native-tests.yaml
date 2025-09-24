@@ -66,8 +66,8 @@ jobs:
           git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
 
           # Remove hugepages setup from install_dependencies.sh
-          sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
-          ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
+          sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./tools/third-party/tt-metal/install_dependencies.sh
+          ./tools/third-party/tt-metal/install_dependencies.sh
 
       - name: Install python dependencies
         run: |
@@ -113,7 +113,7 @@ jobs:
           else
             echo "Cache not found or incomplete. Building C++ extensions"
           fi
-          ./build_cpp_extension.sh
+          ./build_tt_metal.sh -t
           
           # Update cache with new build if not was not present before
           if [ $CACHE_FOUND -eq 0 ]; then
