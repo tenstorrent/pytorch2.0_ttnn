@@ -1,7 +1,6 @@
 #include <ttnn/operations/creation.hpp>
 
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
-
 #include "ttnn_cpp_extension/ops/creation.hpp"
 
 #include "ttnn_cpp_extension/core/TtnnCustomAllocator.hpp"
