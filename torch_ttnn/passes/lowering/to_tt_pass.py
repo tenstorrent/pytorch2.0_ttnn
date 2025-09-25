@@ -1554,7 +1554,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                     return res_node
 
-                return select(*args[3:], **kwargs)
+                ret = select(*args[3:], **kwargs)
+                # Between Pytorch 2.2 and 2.7, the _nondeterministic_seeded attribute is sometimes set to True.
+                # This causes the node to become impure or has a side effect which results in the op not being
+                # cleaned up by dead_code_elimination. Since we're replacing the node, we can set this to False.
+                if ret is not None and hasattr(node.target, "_nondeterministic_seeded"):
+                    setattr(node.target, "_nondeterministic_seeded", False)
+                return ret
 
             # Removes getitem after ttnn.transformer.scaled_dot_product_attention
             # Related to https://github.com/tenstorrent/tt-metal/issues/16021
