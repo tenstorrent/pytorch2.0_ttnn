@@ -1574,6 +1574,14 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 )
 
     gm = GraphCleanup(gm)
+    # extended dead code elimination?
+    nodes_to_remove = []
+    for node in list(gm.graph.nodes):
+        if node.op not in ["placeholder", "output"] and len(list(node.users.keys())) == 0:
+            nodes_to_remove.append(node)
+    for node in nodes_to_remove:
+        gm.graph.erase_node(node)
+    gm = GraphCleanup(gm)
     return gm, modified
 
 
