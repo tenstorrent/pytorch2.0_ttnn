@@ -285,6 +285,14 @@ class ReplaceMoreTt(torch.fx.Transformer):
                 if (shape0 != shape1) or shape0 is None or shape1 is None:
                     # not support broadcasting
                     return self.call_function_prop_meta(target, args, kwargs)
+            # Workaround to support negative exponents. Remove this if support is added in tt-metal:
+            # https://github.com/tenstorrent/tt-metal/issues/31418
+            if target == torch.ops.aten.pow.Tensor_Scalar:
+                base, exp = args[0], args[1]
+                if exp < 0:
+                    exp = -exp
+                    pow = self.call_function_prop_meta(ttnn.pow, (base, exp), {})
+                    return self.call_function_prop_meta(ttnn.reciprocal, (pow,), {})
             return self.call_function_prop_meta(ttnn.pow, args, kwargs)
 
         if target == torch.ops.aten.rsub.Scalar:
