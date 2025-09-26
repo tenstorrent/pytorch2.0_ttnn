@@ -22,6 +22,7 @@ class ExpandModule(torch.nn.Module):
         ((1, 2), (32, -1)),
         ((1, 4), (32, -1)),
         ((1, 6), (32, -1)),
+        ((256, 256), (920, 256, 256)),
         pytest.param((1, 3), (32, -1), marks=pytest.mark.xfail()),
         pytest.param((12, 1), (-1, 32), marks=pytest.mark.xfail()),
     ],
