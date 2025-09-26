@@ -671,7 +671,12 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 return g.call_function(ttnn.floor_div, args, {})
 
             if node.target == torch.ops.aten.expand.default:
-                if not (hasattr(args[0], "meta") and "val" in args[0].meta and hasattr(args[0].meta["val"], "size")):
+                input_tensor = args[0]
+                if not (
+                    hasattr(input_tensor, "meta")
+                    and "val" in input_tensor.meta
+                    and hasattr(input_tensor.meta["val"], "size")
+                ):
                     return None
                 if not (hasattr(node, "meta") and "val" in node.meta and hasattr(node.meta["val"], "size")):
                     return None
@@ -679,9 +684,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 output_shape = node.meta["val"].size()
                 if input_tensor_shape.numel() == output_shape.numel():
                     if input_tensor_shape != output_shape:
-                        return g.call_function(ttnn.reshape, args=(args[0], list(output_shape)))
+                        return g.call_function(ttnn.reshape, args=(input_tensor, list(output_shape)))
                     else:
-                        return args[0]
+                        return input_tensor
 
                 input_shape = np.ones(len(output_shape), dtype=int)
                 input_shape[-len(input_tensor_shape) :] = input_tensor_shape
@@ -691,14 +696,18 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 expand_multiplier = np_output_shape[np_output_shape > 1] // input_shape[np_output_shape > 1]
                 expand_index = np.where(expand_multiplier > 1)[0]
 
+                # Remove the following if support is added: https://github.com/tenstorrent/tt-metal/issues/31270
+                if len(input_tensor_shape) != len(input_shape):
+                    input_tensor = g.call_function(ttnn.experimental.view, args=(input_tensor, list(input_shape)))
+
                 if input_tensor_shape[-1] % 2 == 0 and np.all(expand_index == np.arange(len(expand_index))):
-                    return g.call_function(ttnn.expand, args=(args[0], list(output_shape)))
+                    return g.call_function(ttnn.expand, args=(input_tensor, list(output_shape)))
 
                 # aten.expand and ttnn.repeat has different meaning for their `shape` argument
                 # aten.expand: the desired output shape, where respective singleton dims are broadcasted
                 # ttnn.repeat: the number of times to repeat a respective singleton dim
                 if len(input_tensor_shape) == len(output_shape):
-                    return g.call_function(target_wrappers.repeat, args=(args[0], multiplier.tolist()))
+                    return g.call_function(target_wrappers.repeat, args=(input_tensor, multiplier.tolist()))
 
                 return None
 
