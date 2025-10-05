@@ -9,7 +9,7 @@ option(ENABLE_LOCAL_TT_METAL_BUILD "Enable local TT_Metal build" OFF)
 option(ENABLE_SUBMODULE_TT_METAL_BUILD "Enable submodule TT_Metal build" OFF)
 option(BUILD_EXAMPLES "Build examples" OFF)
 
-list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../tools/cmake")
 include(utils)
 
 # Prepare tt-metal build

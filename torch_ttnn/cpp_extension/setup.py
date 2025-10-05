@@ -3,7 +3,7 @@ import sys
 import subprocess
 from setuptools import setup, Extension, find_namespace_packages
 from setuptools.command.build_ext import build_ext
-from utils.get_torch_abi_flags import get_torch_abi_related_compiler_flags
+from tools.get_torch_abi_flags import get_torch_abi_related_compiler_flags
 import sysconfig
 import torch
 

@@ -449,7 +449,7 @@ def _build_code_from_aten_ttnn_graphs(
 
     for i, node in enumerate(ttnn_all_nodes):
         if option == "profiling" and i % 500 == 0:
-            graph_code.append(_get_indent(1) + f"ttnn.DumpDeviceProfiler(device)")
+            graph_code.append(_get_indent(1) + f"ttnn.ReadDeviceProfiler(device)")
 
         if isinstance(node, tuple):
             if option == "accuracy":
@@ -796,7 +796,7 @@ def _assemble_forward_functions(
         )
         if option == "profiling":
             # Insert last one before return
-            graph_code.insert(-1, _get_indent(1) + f"ttnn.DumpDeviceProfiler(device)")
+            graph_code.insert(-1, _get_indent(1) + f"ttnn.ReadDeviceProfiler(device)")
         forward_code.append(graph_code)
 
     return forward_code, call_forwards_in_main

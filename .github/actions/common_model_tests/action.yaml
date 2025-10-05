@@ -20,26 +20,93 @@ runs:
         set +e
         if [ "${{ inputs.commit_report }}" == "None" ]; then
           num_iterations=1
+          run_tracy=false
         else
           num_iterations=5
+          run_tracy=true
         fi
-        python3 -m pytest --github-report tests/models/ --report_nth_iteration=$num_iterations --export_code=accuracy --splits ${{ inputs.splits }} --group ${{ matrix.group }} -s
-        exit_code=$?  # Capture the exit code
-        if [ $exit_code -eq 5 ]; then
-          if [ ${{ matrix.group }} -eq 0 ]; then
-            echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
-            exit 1;  # Fail the workflow
-          else
-            echo "Success: pytest returned exit code 5 (No tests to run). This is acceptable for groups greater than 0.";
-            exit 0;  # Success
+
+        check_exit_code() {
+          exit_code=$?
+          if [ $exit_code -eq 5 ]; then
+            if [ ${{ matrix.group }} -eq 0 ]; then
+              echo "Error: pytest returned exit code 5 (No tests to run) in the first test group.";
+              exit 1;  # Fail the workflow
+            else
+              echo "Success: pytest returned exit code 5 (No tests to run). This is acceptable for groups greater than 0.";
+              exit 0;  # Success
+            fi
+          elif [ $exit_code -ne 0 ]; then
+            echo "Failure: Tests failed with exit code $exit_code.";
+            exit 1;  # Fail the workflow for other errors
           fi
-        elif [ $exit_code -ne 0 ]; then
-          echo "Failure: Tests failed with exit code $exit_code.";
-          exit 1;  # Fail the workflow for other errors
+        }
+
+        # Setup tracy dependencies
+        if [ "$run_tracy" = true ];
+        then
+          echo "Copying tt-metal build from NFS cache ($CACHE_DIR)."
+
+          # tt-metal cache
+          rm -rf tools/third-party/tt-metal/*
+          cp -af $CACHE_DIR/tt-metal/* tools/third-party/tt-metal/
+
+          ls -l tools/third-party/tt-metal/
+
+          source tools/third-party/tt-metal/python_env/bin/activate
+
+          export TT_METAL_HOME=$(realpath ./tools/third-party/tt-metal)
+          export PYTHONPATH="$(pwd):${TT_METAL_HOME}"
+          echo "TT_METAL_HOME: $TT_METAL_HOME"
+          echo "PYTHONPATH: $PYTHONPATH"
+
+          # pip install -e "$TT_METAL_HOME"
+          pip list
         fi
+
+        # Collect the tests that should run in the current group and split number
+        tests_in_current_grp=$(python -m pytest tests/models/ --collect-only --splits ${{ inputs.splits }} --group ${{ matrix.group }} -q | head -n -2 | tail -n +10)
+
+        # Collect tests that have a "converted_end_to_end" marker. These will be the tests that will be run with tracy if enabled.
+        # TODO: It might be more efficient to run this only once before this action and pass the value here.
+        e2e_tests=$(python -m pytest tests/models/ --collect-only -m converted_end_to_end -q | head -n -2 | tail -n +10)
+
+        # Collect tests that have a "tracy_incompatible" marker. These are observed to fail when profiling with tracy even when passing normally.
+        tracy_incompat_tests=$(python -m pytest tests/models/ --collect-only -m tracy_incompatible -q | head -n -2 | tail -n +10)
+
+        test_names=$(echo "$tests_in_current_grp" | sed -n "s/.*:://p")
+
+        # Turn string lists into arrays
+        set -o noglob
+        IFS=$'\n' tests_full_path=($tests_in_current_grp)
+        IFS=$'\n' tests_name_only=($test_names)
+        set +o noglob
+
+        # Run tests in a for loop
+        echo "Running tests: ${tests_name_only[@]}"
+        echo "e2e tests: $e2e_tests"
+        echo "tracy fail tests: $tracy_incompat_tests"
+
+        for i in "${!tests_full_path[@]}"; do
+          test_path="${tests_full_path[i]}"
+          if [ "$run_tracy" = true ] && \
+             $(echo "$e2e_tests" | grep -Fxq -- "$test_path") && \
+             ! $(echo "$tracy_incompat_tests" | grep -Fxq -- "$test_path")
+          then
+            echo "Running test with tracy: $test_path"
+            python3 -m tracy -r -v -p -m -o "tracy_out/${tests_name_only[i]}" \
+              pytest --github-report "tests/${tests_full_path[i]}" -s \
+              --report_nth_iteration=$num_iterations \
+              --export_code=accuracy \
+              --tracy_profiling
+          else
+            echo "Running test: $test_path"
+            python3 -m pytest --github-report "tests/${tests_full_path[i]}" -s \
+              --report_nth_iteration=$num_iterations \
+              --export_code=accuracy
+          fi
+          check_exit_code
+        done
+
         echo "Success: Tests passed!";
-        ls -l
-        cd metrics
-        ls -l
-        cd ..
         exit 0;

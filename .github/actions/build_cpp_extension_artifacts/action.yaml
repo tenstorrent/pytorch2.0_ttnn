@@ -19,8 +19,8 @@ runs:
         git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
 
         # Remove hugepages setup from install_dependencies.sh
-        sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
-        ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
+        sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./tools/third-party/tt-metal/install_dependencies.sh
+        ./tools/third-party/tt-metal/install_dependencies.sh
 
     - name: Install python dependencies
       shell: bash
@@ -44,13 +44,12 @@ runs:
     - name: Build C++ Extensions
       shell: bash
       run: |
-        cd torch_ttnn/cpp_extension
-        ./build_cpp_extension.sh
+        ./tools/built_tt_metal.sh -t
 
     - name: Upload Build Artifacts
       shell: bash
       run: |
-        cd torch_ttnn/cpp_extension
+        pushd torch_ttnn/cpp_extension
         PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
         mkdir -p $CACHE_DIR
         CCACHE_DIR=$(ccache --get-config cache_dir)
@@ -58,11 +57,12 @@ runs:
         # cpp-extension cache
         cp -r build $CACHE_DIR 
         cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
+        popd
 
         # tt-metal cache
         mkdir -p $CACHE_DIR/tt-metal
-        cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal/
-        cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
+        cp -r tools/third-party/tt-metal/build $CACHE_DIR/tt-metal/
+        cp -r tools/third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
 
         # ccache
         cp -r $CCACHE_DIR $CACHE_DIR 

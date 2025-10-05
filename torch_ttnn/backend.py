@@ -36,6 +36,7 @@ class TorchTtnnOption:
         data_parallel=False,
         load_params_once=True,
         native_integration=False,
+        tracy_profiling=False,
     ):
         self.device = device
         self.gen_graphviz = gen_graphviz
@@ -71,6 +72,8 @@ class TorchTtnnOption:
         self.load_params_once = load_params_once
 
         self.native_integration = native_integration
+
+        self.tracy_profiling = tracy_profiling
 
     def reset_containers(self):
         self._out_fx_graphs = list()
@@ -164,6 +167,7 @@ def aten_backend(
     from torch_ttnn.passes.lowering.permute_reshape_tuple import PermuteReshapeTuple
     from torch_ttnn.passes.memory_pass import MemoryPass
     from torch_ttnn.passes.deallocation_pass import DeallocationPass
+    from torch_ttnn.passes.tracy_profiling_pass import TracyProfilingPass
 
     passes = [
         GraphModuleAnalysisPass(),
@@ -179,6 +183,7 @@ def aten_backend(
         CSEPass(),
         PermuteReshapeTuple(),
         DeallocationPass(),
+        TracyProfilingPass(option.tracy_profiling),  # Ideally, keep this pass last
     ]
 
     mem_pass = MemoryPass(option.verbose)
