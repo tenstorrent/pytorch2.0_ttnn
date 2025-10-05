@@ -14,12 +14,11 @@
 | 10 | Tensor<[1, 2048, 7, 7]> self = ?,<br>number other = 49    | None     | Fallback   |     1 |     -1 |
 | 11 | Tensor<[1, 256, 56, 56]> self = ?,<br>number other = 3136 | None     | Fallback   |     1 |     -1 |
 | 12 | Tensor<[1, 480, 14, 14]> self = ?,<br>number other = 196  | None     | Fallback   |     1 |     -1 |
-| 13 | Tensor<[1, 512, 256]> self = ?,<br>number other = 256     | None     | Fallback   |     1 |     -1 |
-| 14 | Tensor<[1, 512, 28, 28]> self = ?,<br>number other = 784  | None     | Fallback   |     1 |     -1 |
-| 15 | Tensor<[1, 512, 7, 7]> self = ?,<br>number other = 49     | None     | Fallback   |     1 |     -1 |
-| 16 | Tensor<[1, 672, 14, 14]> self = ?,<br>number other = 196  | None     | Fallback   |     1 |     -1 |
-| 17 | Tensor<[1, 672, 7, 7]> self = ?,<br>number other = 49     | None     | Fallback   |     1 |     -1 |
-| 18 | Tensor<[1, 72, 28, 28]> self = ?,<br>number other = 784   | None     | Fallback   |     1 |     -1 |
-| 19 | Tensor<[1, 768, 14, 14]> self = ?,<br>number other = 196  | None     | Fallback   |     1 |     -1 |
-| 20 | Tensor<[1, 960, 7, 7]> self = ?,<br>number other = 49     | None     | Fallback   |     1 |     -1 |
+| 13 | Tensor<[1, 512, 28, 28]> self = ?,<br>number other = 784  | None     | Fallback   |     1 |     -1 |
+| 14 | Tensor<[1, 512, 7, 7]> self = ?,<br>number other = 49     | None     | Fallback   |     1 |     -1 |
+| 15 | Tensor<[1, 672, 14, 14]> self = ?,<br>number other = 196  | None     | Fallback   |     1 |     -1 |
+| 16 | Tensor<[1, 672, 7, 7]> self = ?,<br>number other = 49     | None     | Fallback   |     1 |     -1 |
+| 17 | Tensor<[1, 72, 28, 28]> self = ?,<br>number other = 784   | None     | Fallback   |     1 |     -1 |
+| 18 | Tensor<[1, 768, 14, 14]> self = ?,<br>number other = 196  | None     | Fallback   |     1 |     -1 |
+| 19 | Tensor<[1, 960, 7, 7]> self = ?,<br>number other = 49     | None     | Fallback   |     1 |     -1 |
 
