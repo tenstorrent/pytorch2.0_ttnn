@@ -34,10 +34,11 @@
 | 30 | List[int] size = [1, 8, <s0 + 2>, 10],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False  | Unknown  | Unknown    | N/A   | N/A    |
 | 31 | List[int] size = [1, 960, 3, 3],<br>Optional[int] dtype = torch.float32,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu      | Done     | Unknown    | N/A   | N/A    |
 | 32 | List[int] size = [15680],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
-| 33 | List[int] size = [2, 7, 512],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu        | Done     | Unknown    | N/A   | N/A    |
-| 34 | List[int] size = [200704],<br>Optional[int] dtype = torch.bfloat16                                                                                      | Done     | Unknown    | N/A   | N/A    |
-| 35 | List[int] size = [21952],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
-| 36 | List[int] size = [31360],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
-| 37 | List[int] size = [75264],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
-| 38 | List[int] size = [7840],<br>Optional[int] dtype = torch.bfloat16                                                                                        | Done     | Unknown    | N/A   | N/A    |
+| 33 | List[int] size = [16384, 3, 3],<br>Optional[Device] device = cpu,<br>Optional[bool] pin_memory = False                                                  | Done     | Unknown    | N/A   | N/A    |
+| 34 | List[int] size = [2, 7, 512],<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided,<br>Optional[Device] device = cpu        | Done     | Unknown    | N/A   | N/A    |
+| 35 | List[int] size = [200704],<br>Optional[int] dtype = torch.bfloat16                                                                                      | Done     | Unknown    | N/A   | N/A    |
+| 36 | List[int] size = [21952],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
+| 37 | List[int] size = [31360],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
+| 38 | List[int] size = [75264],<br>Optional[int] dtype = torch.bfloat16                                                                                       | Done     | Unknown    | N/A   | N/A    |
+| 39 | List[int] size = [7840],<br>Optional[int] dtype = torch.bfloat16                                                                                        | Done     | Unknown    | N/A   | N/A    |
 

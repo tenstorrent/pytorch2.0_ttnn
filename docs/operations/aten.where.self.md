@@ -13,7 +13,10 @@
 |  9 | Tensor<[1, s0, 256]> condition = ?,<br>Tensor<[1, s0, 256]> self = ?,<br>Tensor<[]> other = ?                       | Unknown  | Unknown    | N/A   | N/A    |
 | 10 | Tensor<[10, 10]> condition = ?,<br>Tensor<[10, 10]> self = ?,<br>Tensor<[10, 10]> other = ?                         | Unknown  | Done       | 1.0   | 0      |
 | 11 | Tensor<[15, 15]> condition = ?,<br>Tensor<[15, 15]> self = ?,<br>Tensor<[15, 15]> other = ?                         | Unknown  | Done       | 1.0   | 0      |
-| 12 | Tensor<[17, 17]> condition = ?,<br>Tensor<[17, 17]> self = ?,<br>Tensor<[17, 17]> other = ?                         | Unknown  | Done       | 1.0   | 0      |
-| 13 | Tensor<[2, 2]> condition = ?,<br>Tensor<[2, 2]> self = ?,<br>Tensor<[2, 2]> other = ?                               | Unknown  | Done       | 1.0   | 0      |
-| 14 | Tensor<[s0 + 1, s0 + 1]> condition = ?,<br>Tensor<[s0 + 1, s0 + 1]> self = ?,<br>Tensor<[s0 + 1, s0 + 1]> other = ? | Unknown  | Unknown    | N/A   | N/A    |
+| 12 | Tensor<[16384, 1]> condition = ?,<br>Tensor<[16384, 1]> self = ?,<br>Tensor<[]> other = ?                           | Done     | Unknown    | N/A   | N/A    |
+| 13 | Tensor<[16384, 3]> condition = ?,<br>Tensor<[16384, 3]> self = ?,<br>Tensor<[]> other = ?                           | Done     | Unknown    | N/A   | N/A    |
+| 14 | Tensor<[16384]> condition = ?,<br>Tensor<[16384]> self = ?,<br>Tensor<[]> other = ?                                 | Done     | Unknown    | N/A   | N/A    |
+| 15 | Tensor<[17, 17]> condition = ?,<br>Tensor<[17, 17]> self = ?,<br>Tensor<[17, 17]> other = ?                         | Unknown  | Done       | 1.0   | 0      |
+| 16 | Tensor<[2, 2]> condition = ?,<br>Tensor<[2, 2]> self = ?,<br>Tensor<[2, 2]> other = ?                               | Unknown  | Done       | 1.0   | 0      |
+| 17 | Tensor<[s0 + 1, s0 + 1]> condition = ?,<br>Tensor<[s0 + 1, s0 + 1]> self = ?,<br>Tensor<[s0 + 1, s0 + 1]> other = ? | Unknown  | Unknown    | N/A   | N/A    |
 
