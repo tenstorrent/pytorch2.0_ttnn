@@ -61,9 +61,7 @@ class TorchTtnnOption:
         self._ttnn_fx_graphs = list()
 
         # Used for multi-device
-        self._n_parameters = None
-        self._n_buffers = None
-        self._n_arguments = None
+        self._placeholder_types = []
 
         # Used for pre-loading model params
         self._is_end_to_end = False
@@ -167,7 +165,7 @@ def aten_backend(
 
     passes = [
         GraphModuleAnalysisPass(),
-        InputAnalysisPass(option._n_parameters, option._n_buffers, option._n_arguments),
+        InputAnalysisPass(option._placeholder_types),
         MultiDeviceShardAnalysisPass(option.device),
         ConstantFoldingPass(),
         MultiDevicePass(option.device, example_inputs),
@@ -297,9 +295,9 @@ def ttnn_backend(
             raise e
 
     # Analysis of params, buffers, and args
-    options._n_parameters = len(list(gm.parameters()))
-    options._n_buffers = len(list(gm.buffers()))
-    options._n_arguments = len(example_inputs)
+    from torch_ttnn.passes.analysis.input_analysis_pass import get_placeholder_types
+
+    options._placeholder_types = get_placeholder_types(gm)
 
     # Currently, we only support preprocessing weights for end-to-end converted models
     options._is_end_to_end = gm.compile_subgraph_reason.graph_break == False
