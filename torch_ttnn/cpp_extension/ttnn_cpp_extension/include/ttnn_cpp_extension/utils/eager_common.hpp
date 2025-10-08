@@ -44,4 +44,30 @@ inline at::Tensor& write_from_ttnn(at::Tensor& out, const at::Tensor& like, cons
     return out;
 }
 
+inline std::optional<std::variant<int, ttnn::SmallVector<int>>> to_ttnn_dim_variant(c10::IntArrayRef dims) {
+    if (dims.size() == 0) {
+        return std::nullopt;
+    }
+    if (dims.size() == 1) {
+        return static_cast<int>(dims[0]);
+    }
+    ttnn::SmallVector<int> dv;
+    dv.reserve(dims.size());
+    for (auto d : dims) {
+        dv.push_back(static_cast<int>(d));
+    }
+    return dv;
+}
+
+inline ttnn::DataType to_ttnn_dtype(const at::ScalarType st) {
+    switch (st) {
+        case at::kFloat: return ttnn::DataType::FLOAT32;
+        case at::kBFloat16: return ttnn::DataType::BFLOAT16;
+        case at::kInt: return ttnn::DataType::INT32;
+        case at::kByte: return ttnn::DataType::UINT8;
+        case at::kBool: return ttnn::DataType::BFLOAT16;
+        default: TORCH_CHECK(false, "Unsupported dtype for TTNN reduction: ", st);
+    }
+}
+
 }  // namespace tt_eager::ext
