@@ -3,8 +3,10 @@
 #include "ttnn_cpp_extension/utils/eager_common.hpp"
 
 #include <ttnn/operations/eltwise/unary/unary.hpp>
-#include <ttnn/operations/eltwise/binary/binary.hpp>
 #include <ttnn/operations/eltwise/complex/complex.hpp>
+#include <ttnn/operations/eltwise/binary/binary.hpp>
+
+#include <type_traits>
 
 namespace tt_eager::ext {
 
@@ -16,6 +18,11 @@ concept TTNNUnaryFn = requires(const ttnn::Tensor& a) {
 
 template <auto Op>
 concept TTNNUnaryOptIntFn = requires(const ttnn::Tensor& a, std::optional<int32_t> p) {
+    { Op(a, p) } -> std::same_as<ttnn::Tensor>;
+};
+
+template <auto Op>
+concept TTNNUnaryIntFn = requires(const ttnn::Tensor& a, int32_t p) {
     { Op(a, p) } -> std::same_as<ttnn::Tensor>;
 };
 
@@ -65,6 +72,25 @@ struct unary_tensor_opt_int {
         ttnn::Tensor a_tile = tt_eager::ext::tileify(in);
         std::optional<int32_t> dec_opt = std::optional<int32_t>(static_cast<int32_t>(decimals));
         ttnn::Tensor result = Op(a_tile, dec_opt);
+        return tt_eager::ext::write_from_ttnn(out, in, result);
+    }
+};
+
+// Required-int variant
+template <auto Op>
+    requires TTNNUnaryIntFn<Op>
+struct unary_tensor_int {
+    [[nodiscard]] static at::Tensor invoke(const at::Tensor& a, const c10::Scalar& value) {
+        at::Tensor out = tt_eager::ext::make_empty_like_tt(a);
+        return invoke_into(a, value, out);
+    }
+    [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self, const c10::Scalar& value) {
+        return invoke_into(self, value, self);
+    }
+    [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, const c10::Scalar& value, at::Tensor& out) {
+        ttnn::Tensor a_tile = tt_eager::ext::tileify(in);
+        int32_t v = static_cast<int32_t>(value.toLong());
+        ttnn::Tensor result = Op(a_tile, v);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
 };

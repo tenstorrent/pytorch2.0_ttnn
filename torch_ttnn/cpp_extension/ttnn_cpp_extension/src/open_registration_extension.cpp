@@ -6,6 +6,7 @@
 
 #include "ttnn_cpp_extension/utils/device.hpp"
 #include "ttnn_cpp_extension/utils/unary_eager_register.hpp"
+#include "ttnn_cpp_extension/utils/binary_eager_register.hpp"
 
 #include <ttnn/operations/eltwise/unary/unary.hpp>
 #include <ttnn/operations/eltwise/unary/unary_composite.hpp>
@@ -36,11 +37,6 @@ static inline void register_core_creation_and_copy(torch::Library& m) {
     // ttnn::to_dtype
     // ttnn::to_layout
     // ttnn::to_memory_config
-}
-
-static inline void register_binary_ops(torch::Library& m) {
-    m.impl("add.out", &tt_eager::ops::binary::ttnn_add_out);
-    m.impl("add.Tensor", &tt_eager::ops::binary::ttnn_add_tensor);
 }
 
 }  // namespace
