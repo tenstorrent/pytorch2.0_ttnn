@@ -28,7 +28,11 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.converted_end_to_end
-def test_squeeze_bert(record_property, mode, cached_results):
+def test_squeeze_bert(record_property, mode, request, cached_results):
+    # FIXME: https://github.com/tenstorrent/pytorch2.0_ttnn/issues/1176
+    if int(request.config.getoption("--report_nth_iteration")) > 1:
+        pytest.skip("Error when enabled with run_once")
+
     model_name = "SqueezeBERT"
     record_property("model_name", model_name)
     record_property("mode", mode)

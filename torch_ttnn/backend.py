@@ -1,22 +1,17 @@
 # SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
 #
 # SPDX-License-Identifier: Apache-2.0
-import torch.linalg
 import torch
 import torch._dynamo
 from typing import List, Optional, Union, Mapping, Any
 from functorch.compile import make_boxed_func
 import ttnn
-import pickle
-from pathlib import Path
-import os
-from torch_ttnn.handle_input_aliasing import insert_clones_for_input_aliasing
-import tools.export_code as export_code
+from torch_ttnn.preprocessing.handle_input_aliasing import insert_clones_for_input_aliasing
+from torch_ttnn.preprocessing.handle_tangents import mark_output_as_tangents
 import torch_ttnn.metrics as metrics
 from torch_ttnn import mem_utils
-from torch_ttnn.utils import GraphCleanup
+from torch_ttnn.utils import GraphCleanup, get_add_custom_object_in_graph
 import copy
-from torch_ttnn.utils import get_add_custom_object_in_graph
 import logging
 
 torch._dynamo.config.suppress_errors = False
@@ -119,7 +114,7 @@ def aten_backend(
     option: TorchTtnnOption = options
 
     # Clone ops used for input aliasing workaround are no longer needed at this point
-    from .handle_input_aliasing import remove_clones_for_input_aliasing
+    from .preprocessing.handle_input_aliasing import remove_clones_for_input_aliasing
 
     gm = remove_clones_for_input_aliasing(gm)
 
@@ -128,6 +123,8 @@ def aten_backend(
         # Will this hamper memory usage?
         graph_copy = copy.deepcopy(gm.graph)
         graph_copy.owning_module = gm
+
+        graph_copy = mark_output_as_tangents(graph_copy)
         option._aten_fx_graphs[-1].append(graph_copy)
 
     # Save the number of aten ops before compilation
@@ -279,16 +276,25 @@ def ttnn_backend(
     options: TorchTtnnOption = None,
 ) -> torch.fx.GraphModule:
     if options.export_code:
-        import tools.export_code as export_code
+        try:
+            import tools.export_code as export_code
 
-        # Some models have multiple forward functions with separate inputs for each.
-        # Within these forward functions, there can be graph breakages which are
-        # also represented by separate forward functions, but these do not have their
-        # own separate inputs. Therefore, we organize the list of aten/ttnn graphs
-        # with sublists where the top level list corresponds to the respective list of inputs.
-        options._aten_fx_graphs.append(list())
-        options._ttnn_fx_graphs.append(list())
-        options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
+            # Some models have multiple forward functions with separate inputs for each.
+            # Within these forward functions, there can be graph breakages which are
+            # also represented by separate forward functions, but these do not have their
+            # own separate inputs. Therefore, we organize the list of aten/ttnn graphs
+            # with sublists where the top level list corresponds to the respective list of inputs.
+            options._aten_fx_graphs.append(list())
+            options._ttnn_fx_graphs.append(list())
+            options._all_inputs.append(export_code.generate_flat_args(gm, example_inputs))
+        except ImportError:
+            logging.warning(
+                "export_code is set to True but pytest dev environment is not detected. Continuing with export_code disabled."
+            )
+            options.export_code = False
+        except BaseException as e:
+            logging.error(f"Exception in ttnn_backend when processing graphs and inputs for export_code: {e}")
+            raise e
 
     # Analysis of params, buffers, and args
     options._n_parameters = len(list(gm.parameters()))
