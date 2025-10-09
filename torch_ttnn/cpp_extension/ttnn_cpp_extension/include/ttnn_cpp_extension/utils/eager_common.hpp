@@ -29,7 +29,8 @@ inline ttnn::Tensor tilize(const at::Tensor& t) {
     return tt;
 }
 
-inline at::Tensor make_empty_like_tt(const at::Tensor& t, c10::optional<at::ScalarType> dtype_override = c10::nullopt) {
+inline at::Tensor make_empty_like_ttnn(
+    const at::Tensor& t, c10::optional<at::ScalarType> dtype_override = c10::nullopt) {
     c10::optional<at::ScalarType> dtype_opt = dtype_override.has_value()
                                                   ? c10::optional<at::ScalarType>(*dtype_override)
                                                   : c10::optional<at::ScalarType>(t.scalar_type());

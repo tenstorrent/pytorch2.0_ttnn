@@ -24,7 +24,7 @@ template <auto Op>
     requires TTNNUnaryFn<Op>
 struct unary_tensor {
     [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
-        at::Tensor out = tt_eager::ext::make_empty_like_tt(a);
+        at::Tensor out = tt_eager::ext::make_empty_like_ttnn(a);
         return invoke_into(a, out);
     }
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
@@ -40,7 +40,7 @@ template <auto Op>
     requires TTNNUnaryOptIntFn<Op>
 struct unary_tensor_opt_int_none {
     [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
-        at::Tensor out = tt_eager::ext::make_empty_like_tt(a);
+        at::Tensor out = tt_eager::ext::make_empty_like_ttnn(a);
         return invoke_into(a, out);
     }
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
@@ -55,7 +55,7 @@ template <auto Op>
     requires TTNNUnaryOptIntFn<Op>
 struct unary_tensor_opt_int {
     [[nodiscard]] static at::Tensor invoke_decimals(const at::Tensor& a, int64_t decimals) {
-        at::Tensor out = tt_eager::ext::make_empty_like_tt(a);
+        at::Tensor out = tt_eager::ext::make_empty_like_ttnn(a);
         return invoke_decimals_into(a, decimals, out);
     }
     [[nodiscard]] static at::Tensor& invoke_decimals_inplace(at::Tensor& self, int64_t decimals) {
@@ -73,7 +73,7 @@ struct unary_tensor_opt_int {
 template <auto Op>
 struct complex_unary_from_real {
     [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
-        at::Tensor out = tt_eager::ext::make_empty_like_tt(a);
+        at::Tensor out = tt_eager::ext::make_empty_like_ttnn(a);
         return invoke_into(a, out);
     }
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
