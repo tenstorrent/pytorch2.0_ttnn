@@ -19,7 +19,7 @@
 
 namespace tt_eager::ext {
 
-inline ttnn::Tensor tileify(const at::Tensor& t) {
+inline ttnn::Tensor tilize(const at::Tensor& t) {
     TORCH_CHECK(t.device().type() == c10::DeviceType::PrivateUse1, "Tensor must be on TTNN device");
     at::TtnnTensorImpl* impl = static_cast<at::TtnnTensorImpl*>(t.unsafeGetTensorImpl());
     auto tt = impl->get_ttnn_tensor();

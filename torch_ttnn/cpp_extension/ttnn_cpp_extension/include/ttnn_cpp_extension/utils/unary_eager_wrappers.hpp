@@ -29,7 +29,7 @@ struct unary_tensor {
     }
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
     [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
-        ttnn::Tensor a_tile = tt_eager::ext::tileify(in);
+        ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
         ttnn::Tensor result = Op(a_tile);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
@@ -45,7 +45,7 @@ struct unary_tensor_opt_int_none {
     }
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
     [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
-        ttnn::Tensor a_tile = tt_eager::ext::tileify(in);
+        ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
         ttnn::Tensor result = Op(a_tile, std::nullopt);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
@@ -62,7 +62,7 @@ struct unary_tensor_opt_int {
         return invoke_decimals_into(self, decimals, self);
     }
     [[nodiscard]] static at::Tensor& invoke_decimals_into(const at::Tensor& in, int64_t decimals, at::Tensor& out) {
-        ttnn::Tensor a_tile = tt_eager::ext::tileify(in);
+        ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
         std::optional<int32_t> dec_opt = std::optional<int32_t>(static_cast<int32_t>(decimals));
         ttnn::Tensor result = Op(a_tile, dec_opt);
         return tt_eager::ext::write_from_ttnn(out, in, result);
@@ -78,7 +78,7 @@ struct complex_unary_from_real {
     }
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
     [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
-        ttnn::Tensor real_tt = tt_eager::ext::tileify(in);
+        ttnn::Tensor real_tt = tt_eager::ext::tilize(in);
         ttnn::Tensor zero_tt = ttnn::multiply(real_tt, 0.0f);
         ttnn::operations::complex::ComplexTensor ct({real_tt, zero_tt});
         auto ret = Op(ct, ttnn::L1_MEMORY_CONFIG);
