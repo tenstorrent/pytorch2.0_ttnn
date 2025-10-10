@@ -72,14 +72,16 @@ model_and_mode_list = [
 
 @pytest.mark.usefixtures("manage_dependencies")
 @pytest.mark.parametrize("model_and_mode", model_and_mode_list)
-def test_timm_image_classification(record_property, model_and_mode):
+def test_timm_image_classification(record_property, model_and_mode, cached_results):
     model_name = model_and_mode[0]
     mode = model_and_mode[1]
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         top5_probabilities, top5_class_indices = torch.topk(results.softmax(dim=1) * 100, k=5)
 
