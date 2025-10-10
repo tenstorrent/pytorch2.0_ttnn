@@ -165,6 +165,7 @@ def reset_program_cache(device):
     device.disable_and_clear_program_cache()
     device.enable_program_cache()
 
+
 def get_cache_for_model_test(request):
     cache_path = get_absolute_cache_path(f"pytorch_eager_results/{request.node.name}.pkl")
 
@@ -172,10 +173,11 @@ def get_cache_for_model_test(request):
         return None
 
     try:
-        full_results = pickle.load(open(cache_path, 'rb'))
+        full_results = pickle.load(open(cache_path, "rb"))
         return full_results
     except:
         return None
+
 
 def cache_model_test(request, results, runtime_metrics):
     parent_cache_path = get_absolute_cache_path("pytorch_eager_results/")
@@ -184,14 +186,10 @@ def cache_model_test(request, results, runtime_metrics):
 
     cache_path = parent_cache_path + f"{request.node.name}.pkl"
 
-    cache_dict = {
-        "results": results,
-        "runtime_metrics": runtime_metrics
-    }
-    pickle.dump(cache_dict, open(cache_path, 'wb'))
+    cache_dict = {"results": results, "runtime_metrics": runtime_metrics}
+    pickle.dump(cache_dict, open(cache_path, "wb"))
 
 
-    
 @pytest.fixture
 def cached_results(request):
     """Get previously cached results and path where results are stored.
@@ -205,6 +203,7 @@ def cached_results(request):
 
     return full_results.get("results")
 
+
 def cached_runtime_metrics(request):
     full_results = get_cache_for_model_test(request)
 
@@ -212,6 +211,7 @@ def cached_runtime_metrics(request):
         return None
 
     return full_results.get("runtime_metrics")
+
 
 @pytest.fixture(autouse=True)
 def compile_and_run(device, reset_torch_dynamo, request):
