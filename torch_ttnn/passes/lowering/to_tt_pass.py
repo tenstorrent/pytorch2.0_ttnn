@@ -492,12 +492,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
             if node.target == torch.ops.aten.sub.Tensor:
                 return lower_binary_eltwise(ttnn.sub, args)
 
-            if node.target == torch.ops.aten.tanh.default:
-                # TODO: Remove once tanh accuracy implementation is realized as a device operation in tt-metal
-                new_kwargs = kwargs.copy()
-                new_kwargs["accuracy"] = True
-                kwargs = new_kwargs
-
             if node.target in TTNN_POINTWISE_UNARY_OPS:
                 return g.call_function(TTNN_POINTWISE_UNARY_OPS[node.target], args, kwargs)
 
