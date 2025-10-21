@@ -8,6 +8,9 @@ GitHub Issue #1041: Add model: Stable Diffusion 1.4 (512x512)
 Target: 0.3 FPS on batch 1
 Baseline: 0.117 FPS on batch 1
 """
+
+# Constants
+BASELINE_FPS = 0.117
 from diffusers import StableDiffusionPipeline
 import torch
 import pytest
@@ -34,18 +37,13 @@ class ThisTester(ModelTester):
 
     def _load_inputs(self, batch_size):
         prompt = "a photo of an astronaut riding a horse on mars"
-        if batch_size == 1:
-            return prompt
-        else:
-            return [prompt] * batch_size
+        return [prompt] * batch_size
 
 
 @pytest.mark.parametrize(
     "mode",
     ["eval"],
 )
-# Remove or comment out the skip marker below to enable the test on supported environments
-# @pytest.mark.skip(reason="Dynamo cannot support pipeline.")
 def test_stable_diffusion(record_property, mode):
     """Test Stable Diffusion 1.4 model performance."""
     model_name = "Stable Diffusion 1.4"
@@ -83,8 +81,8 @@ def test_stable_diffusion(record_property, mode):
     record_property("inference_time_sec", elapsed)
     record_property("fps", fps)
     record_property("target_fps", 0.3)
-    record_property("baseline_fps", 0.117)
-    record_property("performance_improvement", fps / 0.117 if fps > 0 else 0)
+    record_property("baseline_fps", BASELINE_FPS)
+    record_property("performance_improvement", fps / BASELINE_FPS if fps > 0 else 0)
 
     if mem_before is not None and mem_after is not None:
         record_property("memory_usage_mb", mem_after - mem_before)
