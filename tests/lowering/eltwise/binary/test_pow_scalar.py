@@ -6,7 +6,7 @@ import torch_ttnn
 import pytest
 import ttnn
 
-from tests.utils import assert_with_pcc
+from tests.utils import assert_with_ulp, assert_allclose
 
 
 class PowTensorScalarModule(torch.nn.Module):
@@ -38,4 +38,7 @@ def test_pow_tensor_scalar_square(device, input, exponent_shape):
     assert [node.target for node in nodes].count(ttnn.pow) == 1
     assert result_before.shape == result_after.shape
     # Check inference result
-    assert_with_pcc(result_before, result_after, pcc=0.997)
+    if input == 0:
+        assert_allclose(result_before, result_after, rtol=0.02, atol=1e-5)
+    else:
+        assert_with_ulp(result_before, result_after, 5)

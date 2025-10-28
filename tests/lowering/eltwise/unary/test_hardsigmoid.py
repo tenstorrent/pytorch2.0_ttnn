@@ -29,7 +29,9 @@ class HardSigmoidModule(torch.nn.Module):
         (1, 768, 1, 1),
         (1, 1024, 1, 1),
         (1, 960, 1, 1),
-        (1, 16, 1, 1),
+        pytest.param(
+            (1, 16, 1, 1), marks=pytest.mark.skip(reason="https://github.com/tenstorrent/pytorch2.0_ttnn/issues/1246")
+        ),
         (1, 96, 1, 1),
         (1, 240, 1, 1),
         (1, 144, 1, 1),
