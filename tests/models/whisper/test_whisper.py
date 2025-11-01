@@ -11,8 +11,8 @@ import torch
 class ThisTester(ModelTester):
     def _load_model(self):
         # load model and processor
-        self.processor = WhisperProcessor.from_pretrained("openai/whisper-small", torch_dtype=torch.bfloat16)
-        model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small", torch_dtype=torch.bfloat16)
+        self.processor = WhisperProcessor.from_pretrained("distil-whisper/distil-large-v3", torch_dtype=torch.bfloat16)
+        model = WhisperForConditionalGeneration.from_pretrained("distil-whisper/distil-large-v3", torch_dtype=torch.bfloat16)
         model.config.forced_decoder_ids = None
         return model.generate
 
@@ -41,9 +41,8 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
 def test_whisper(record_property, mode):
-    model_name = "Whisper"
+    model_name = "Whisper (distil-large-v3)"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
