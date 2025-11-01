@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: © 2025 Tenstorrent AI ULC
+#
+# SPDX-License-Identifier: Apache-2.0
 from utils import *
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 from datasets import load_dataset
@@ -17,7 +20,7 @@ def transcribe_audio(audio_sample=None, use_ttnn=True, iterations=1):
     
     # Use default test audio if none provided
     if audio_sample is None:
-        # Load dummy dataset for testing
+        # Load LibriSpeech dummy dataset for testing
         ds = load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
         audio_sample = ds[0]["audio"]
     
