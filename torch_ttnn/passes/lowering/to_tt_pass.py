@@ -439,6 +439,7 @@ class GraphWrapper:
 
 def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_types: bool) -> torch.fx.GraphModule:
     nodes = list(gm.graph.nodes)
+    modified = False
     for node in nodes:
         if not can_lowering_to_ttnn(node):
             continue
@@ -517,6 +518,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
             if node.target == torch.ops.aten.mul.Tensor:
                 return lower_binary_eltwise(ttnn.mul, args)
+
+            if node.target == torch.ops.aten.mul.Scalar:
+                return g.call_function(ttnn.mul, args)
 
             if node.target == torch.ops.aten.sub.Tensor:
                 return lower_binary_eltwise(ttnn.sub, args)
@@ -1575,7 +1579,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
             # PEP 8 suggests this explicit statement
             return None
 
-        modified = False
         with g.inserting_before(node):
             new_node = rewrite_node(node)
             if new_node is not None:
@@ -1644,6 +1647,22 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
             if index_shape == torch.Size([38809]):
                 return None
             return g.call_function(torch.ops.aten.embedding.default, args=(args[0], indices[0]))
+        elif (
+            len(input_shape) == 4
+            and len(indices) == 3
+            and indices[0] is None
+            and indices[1] is None
+            and indices[2] is not None
+        ):
+            index_shape = get_shape(gm, indices[2])
+            if index_shape == torch.Size([1]) and indices[2].op == "get_attr":
+                with unset_fake_temporarily():
+                    index_value_attr = getattr(gm, indices[2].target)
+                    index_value = index_value_attr.item()
+                if index_value < 0:
+                    index_value += input_shape[2]
+                return g.call_function(torch.ops.aten.slice.Tensor, args=(args[0], 2, index_value, index_value + 1))
+            return None
         return None
 
     if node.target == torch.ops.aten.index_select.default:
