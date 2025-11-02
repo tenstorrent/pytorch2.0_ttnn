@@ -54,7 +54,7 @@
 |  50 | Tensor<[128, 1024]> self = ?    | Removed  | Done       | 1.0   | 0      |
 |  51 | Tensor<[128, 10]> self = ?      | Done     | Done       | 1.0   | 0      |
 |  52 | Tensor<[128, 128]> self = ?     | Removed  | Done       | 1.0   | 0      |
-|  53 | Tensor<[128, 2048]> self = ?    | Removed  | Unknown    | N/A   | N/A    |
+|  53 | Tensor<[128, 2048]> self = ?    | Removed  | Done       | 1.0   | 0      |
 |  54 | Tensor<[128, 32]> self = ?      | Removed  | Done       | 1.0   | 0      |
 |  55 | Tensor<[128, 4096]> self = ?    | Removed  | Done       | 1.0   | 0      |
 |  56 | Tensor<[128, 512]> self = ?     | Removed  | Done       | 1.0   | 0      |
@@ -98,11 +98,11 @@
 |  94 | Tensor<[2, 512]> self = ?       | Done     | Done       | 1.0   | 0      |
 |  95 | Tensor<[2, 768]> self = ?       | Removed  | Done       | 1.0   | 0      |
 |  96 | Tensor<[2048, 1000]> self = ?   | Done     | Done       | 1.0   | 0      |
-|  97 | Tensor<[2048, 128]> self = ?    | Removed  | Done       | 1.0   | 0      |
-|  98 | Tensor<[2048, 2048]> self = ?   | Removed  | Unknown    | N/A   | N/A    |
+|  97 | Tensor<[2048, 128]> self = ?    | Removed  | Unknown    | N/A   | N/A    |
+|  98 | Tensor<[2048, 2048]> self = ?   | Removed  | Done       | 1.0   | 0      |
 |  99 | Tensor<[2048, 256]> self = ?    | Removed  | Done       | 1.0   | 0      |
 | 100 | Tensor<[2048, 512]> self = ?    | Removed  | Done       | 1.0   | 0      |
-| 101 | Tensor<[2048, 8192]> self = ?   | Removed  | Unknown    | N/A   | N/A    |
+| 101 | Tensor<[2048, 8192]> self = ?   | Removed  | Done       | 1.0   | 0      |
 | 102 | Tensor<[21843, 768]> self = ?   | Removed  | Done       | 1.0   | 0      |
 | 103 | Tensor<[2304, 768]> self = ?    | Removed  | Done       | 1.0   | 0      |
 | 104 | Tensor<[24, 512]> self = ?      | Removed  | Done       | 1.0   | 0      |
@@ -205,7 +205,7 @@
 | 201 | Tensor<[768, 768]> self = ?     | Removed  | Done       | 1.0   | 0      |
 | 202 | Tensor<[784, 128]> self = ?     | Removed  | Done       | 1.0   | 0      |
 | 203 | Tensor<[8, 512]> self = ?       | Removed  | Done       | 1.0   | 0      |
-| 204 | Tensor<[8192, 2048]> self = ?   | Removed  | Unknown    | N/A   | N/A    |
+| 204 | Tensor<[8192, 2048]> self = ?   | Removed  | Done       | 1.0   | 0      |
 | 205 | Tensor<[92, 192]> self = ?      | Removed  | Done       | 1.0   | 0      |
 | 206 | Tensor<[92, 256]> self = ?      | Removed  | Done       | 1.0   | 0      |
 | 207 | Tensor<[9216, 128]> self = ?    | Done     | Done       | 1.0   | 0      |
