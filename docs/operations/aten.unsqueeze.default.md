@@ -172,7 +172,7 @@
 | 168 | Tensor<[8, 49, 49]> self = ?,<br>int dim = 0          | Removed  | Done       | 1.0   | 0      |
 | 169 | Tensor<[8, 64, 64]> self = ?,<br>int dim = 0          | Removed  | Done       | 1.0   | 0      |
 | 170 | Tensor<[8, s0 + 1, s0 + 1]> self = ?,<br>int dim = 0  | Unknown  | Unknown    | N/A   | N/A    |
-| 171 | Tensor<[851]> self = ?,<br>int dim = 1                | Done     | Unknown    | N/A   | N/A    |
+| 171 | Tensor<[813]> self = ?,<br>int dim = 1                | Done     | Unknown    | N/A   | N/A    |
 | 172 | Tensor<[8732]> self = ?,<br>int dim = 1               | Done     | Unknown    | N/A   | N/A    |
 | 173 | Tensor<[96, 80]> self = ?,<br>int dim = 0             | Unknown  | Unknown    | N/A   | N/A    |
 | 174 | Tensor<[s0 + 1]> self = ?,<br>int dim = 0             | Unknown  | Unknown    | N/A   | N/A    |
