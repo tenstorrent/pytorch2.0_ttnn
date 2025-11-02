@@ -10,22 +10,6 @@ from functools import partial
 
 
 aten__log_softmax_default_blocklist = [["Tensor<[19, 256008]> self = ?", "int dim = 1", "bool half_to_float = False"]]
-aten_native_layer_norm_default_blocklist = [
-    [
-        "Tensor<[1, 9, 4096]> input = ?",
-        "List[int] normalized_shape = [4096]",
-        "Optional[Tensor]<[4096]> weight = ?",
-        "Optional[Tensor]<[4096]> bias = ?",
-        "float eps = 1e-12",
-    ],
-    [
-        "Tensor<[1, 7, 4544]> input = ?",
-        "List[int] normalized_shape = [4544]",
-        "Optional[Tensor]<[4544]> weight = ?",
-        "Optional[Tensor]<[4544]> bias = ?",
-        "float eps = 1e-05",
-    ],
-]
 aten_convolution_default_blocklist = [
     # TODO(#385): Guard and fallback (likely) OOM cases
     [
@@ -321,7 +305,6 @@ def guard_aten(blocklist, node):
 
 GUARD = {
     torch.ops.aten._log_softmax.default: partial(guard_aten, aten__log_softmax_default_blocklist),
-    torch.ops.aten.native_layer_norm.default: partial(guard_aten, aten_native_layer_norm_default_blocklist),
     torch.ops.aten.convolution.default: partial(guard_aten, aten_convolution_default_blocklist),
     torch.ops.aten.argmax.default: partial(guard_aten, aten_argmax_default_blocklist),
 }

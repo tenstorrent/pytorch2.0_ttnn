@@ -31,10 +31,8 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.parametrize(
     "batch_size",
-    # TODO: tt-metal uses batch_size=32 for Falcon-7B. Change when it runs successfully
-    [1],
+    [32],
 )
-@pytest.mark.compilation_xfail(reason="OOM for DRAM")
 def test_falcon(record_property, mode, batch_size):
     model_name = "Falcon-7B"
     record_property("model_name", model_name)

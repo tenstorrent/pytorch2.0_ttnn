@@ -52,6 +52,11 @@ def pytest_addoption(parser):
         action="store_true",
         help="Use native device integration for ttnn. Note: this is not supported with data parallel.",
     )
+    parser.addoption(
+        "--disable_load_params_once",
+        action="store_true",
+        help="Disable LoadParamsOnce optimization.",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -254,6 +259,11 @@ def compile_and_run(device, reset_torch_dynamo, request):
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
 
+            load_params_once = not native_integration  # load_params_once conflicts with native integration
+            disable_load_params_once = request.config.getoption("--disable_load_params_once")
+            if disable_load_params_once:
+                load_params_once = False
+
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
@@ -263,7 +273,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 export_code=export_code_opt,
                 total_num_iterations=total_num_iterations,
                 data_parallel=request.config.getoption("--data_parallel"),
-                load_params_once=not native_integration,  # load_params_once conflicts with native integration
+                load_params_once=load_params_once,
                 native_integration=native_integration,
             )
 
