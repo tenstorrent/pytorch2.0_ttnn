@@ -20,7 +20,7 @@ class PowTensorScalarModule(torch.nn.Module):
 
 @pytest.mark.parametrize(
     "input_shape, exponent",
-    [[(4, 4), 2], [(1, 1), 0], [(2, 2), 2.2]],
+    [[(4, 4), 2], [(1, 1), 0], [(2, 2), 2.2], [(1, 1), -0.5]],
 )
 def test_pow_tensor_scalar_square(device, input_shape, exponent):
     m = PowTensorScalarModule()
