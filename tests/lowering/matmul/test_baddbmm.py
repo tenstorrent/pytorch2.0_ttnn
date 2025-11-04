@@ -24,22 +24,22 @@ class BaddbmmModule(torch.nn.Module):
             return torch.baddbmm(input, batch1, batch2, beta=beta, alpha=alpha)
 
 
+test_input_shapes = [[(10, 64, 128), (10, 64, 32), (10, 32, 128)]]
+
+
+# Test with no extra parameters
 @pytest.mark.parametrize(
     "input_shapes",
-    [[(10, 64, 128), (10, 64, 32), (10, 32, 128)]],
+    test_input_shapes,
 )
 def test_baddbmm(device, input_shapes):
     m = BaddbmmModule()
     inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
     option = torch_ttnn.TorchTtnnOption(device=device)
-    option.gen_graphviz = True
 
-    # (1) Test with default alpha and beta values
     result_before = m.forward(*inputs)
-    # The compilation is lazy, so we need to run forward once to trigger the compilation
     m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m_ttnn.forward(*inputs)
-    option._out_fx_graphs[-1].print_tabular()
 
     # Check the graph has be rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[-1].nodes)
@@ -55,11 +55,17 @@ def test_baddbmm(device, input_shapes):
     # Check inference result
     assert_with_pcc(result_before, result_after, 0.999)
 
-    # (2) Test with alpha and default beta value
+
+# Test with alpha
+@pytest.mark.parametrize("input_shapes", test_input_shapes)
+def test_baddbmm_alpha(device, input_shapes):
+    m = BaddbmmModule()
+    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+    option = torch_ttnn.TorchTtnnOption(device=device)
+
     result_before = m.forward(*inputs, alpha=2)
     m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m_ttnn.forward(*inputs, alpha=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
@@ -76,11 +82,17 @@ def test_baddbmm(device, input_shapes):
             assert node.meta["val"].size() == input_shapes[0]
     assert_with_pcc(result_before, result_after, 0.999)
 
-    # (3) Test with beta and default alpha value
+
+# Test with beta
+@pytest.mark.parametrize("input_shapes", test_input_shapes)
+def test_baddbmm_beta(device, input_shapes):
+    m = BaddbmmModule()
+    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+    option = torch_ttnn.TorchTtnnOption(device=device)
+
     result_before = m.forward(*inputs, beta=2)
     m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m_ttnn.forward(*inputs, beta=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
@@ -97,11 +109,17 @@ def test_baddbmm(device, input_shapes):
             assert node.meta["val"].size() == input_shapes[0]
     assert_with_pcc(result_before, result_after, 0.999)
 
-    # (4) Test with beta and alpha values
+
+# Test with beta and alpha values
+@pytest.mark.parametrize("input_shapes", test_input_shapes)
+def test_baddbmm_beta_alpha(device, input_shapes):
+    m = BaddbmmModule()
+    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+    option = torch_ttnn.TorchTtnnOption(device=device)
+
     result_before = m.forward(*inputs, beta=2, alpha=2)
     m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m_ttnn.forward(*inputs, beta=2, alpha=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
@@ -122,11 +140,17 @@ def test_baddbmm(device, input_shapes):
             assert node.meta["val"].size() == input_shapes[0]
     assert_with_pcc(result_before, result_after, 0.999)
 
-    # (5) Test special case when beta is 0
+
+# Test special case when beta is 0
+@pytest.mark.parametrize("input_shapes", test_input_shapes)
+def test_baddbmm_beta_0(device, input_shapes):
+    m = BaddbmmModule()
+    inputs = [torch.rand(shape, dtype=torch.bfloat16) for shape in input_shapes]
+    option = torch_ttnn.TorchTtnnOption(device=device)
+
     result_before = m.forward(*inputs, beta=0, alpha=2)
     m_ttnn = torch.compile(m, backend=torch_ttnn.backend, options=option)
     result_after = m_ttnn.forward(*inputs, beta=0, alpha=2)
-    option._out_fx_graphs[-1].print_tabular()
 
     nodes = list(option._out_fx_graphs[-1].nodes)
     target = [node.target for node in nodes]
