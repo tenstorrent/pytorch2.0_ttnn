@@ -670,14 +670,13 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
 
             if node.target == torch.ops.aten.div.Tensor:
-                if isinstance(args[1], (float, int)):
-                    return g.call_function(ttnn.mul, (args[0], 1.0 / args[1]), {})
+                # ttnn binary ops only support scalar in 2nd operand
+                # Remove this if support is added in tt-metal: https://github.com/tenstorrent/tt-metal/issues/31247
+                if isinstance(args[0], (float, int)):
+                    recip = g.call_function(ttnn.reciprocal, (args[1],), {})
+                    return g.call_function(ttnn.mul, (recip, args[0]), {})
 
-                if get_shape(gm, args[0]) == get_shape(gm, args[1]):
-                    return g.call_function(ttnn.div, args, {})
-
-                recip = g.call_function(ttnn.reciprocal, (args[1],), {})
-                return g.call_function(ttnn.mul, (args[0], recip), {})
+                return g.call_function(ttnn.div, args, {})
 
             if node.target == torch.ops.aten.floor_divide.default:
                 return g.call_function(ttnn.floor_div, args, {})
