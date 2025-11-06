@@ -470,6 +470,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 return g.call_function(target_wrappers.pack_to_tuple, (output,))
 
             def lower_binary_eltwise(fn, args):
+                assert fn in (ttnn.add, ttnn.sub, ttnn.mul, ttnn.div), f"lower_binary_eltwise does not support {fn}"
+
                 shapes = get_shape(gm, args[0]), get_shape(gm, args[1])
 
                 if any(s is None for s in shapes):
@@ -490,7 +492,8 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 new_args = (cast_bf16(args[0], args[1]), cast_bf16(args[1], args[0]))
 
                 # ttnn binary ops only support scalar in 2nd operand, so swap order if 1st operand is scalar
-                # Remove this if support is added in tt-metal: https://github.com/tenstorrent/tt-metal/issues/31247
+                # Remove all the code under this condition if support is added in tt-metal:
+                # https://github.com/tenstorrent/tt-metal/issues/31247
                 if len(shapes[0]) == 0 and len(shapes[1]) > 0:
                     new_args = (new_args[1], new_args[0])
                     # However, ttnn.sub is non-associatve, so both operands need to be negated after swapping
@@ -500,6 +503,11 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                             g.call_function(ttnn.neg, args=(new_args[0],)),
                             g.call_function(ttnn.neg, args=(new_args[1],)),
                         )
+
+                    # For div, take the reciprocal of the tensor and multiply by the scalar instead of using ttnn.div
+                    if fn == ttnn.div:
+                        recip = g.call_function(ttnn.reciprocal, (new_args[0],), {})
+                        return g.call_function(ttnn.mul, (recip, new_args[1]), {})
 
                 return g.call_function(fn, new_args)
 
@@ -511,6 +519,9 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
             if node.target == torch.ops.aten.sub.Tensor:
                 return lower_binary_eltwise(ttnn.sub, args)
+
+            if node.target == torch.ops.aten.div.Tensor:
+                return lower_binary_eltwise(ttnn.div, args)
 
             if node.target in TTNN_POINTWISE_UNARY_OPS:
                 return g.call_function(TTNN_POINTWISE_UNARY_OPS[node.target], args, kwargs)
@@ -668,15 +679,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 layout = TtnnTileLayout() if tiled else TtnnRowMajorLayout()
                 tensor = g.call_function(ttnn.embedding, (args[1], args[0]), {"layout": layout})
                 return tensor if tiled else g.call_function(ttnn.to_layout, (tensor, TtnnTileLayout()))
-
-            if node.target == torch.ops.aten.div.Tensor:
-                # ttnn binary ops only support scalar in 2nd operand
-                # Remove this if support is added in tt-metal: https://github.com/tenstorrent/tt-metal/issues/31247
-                if isinstance(args[0], (float, int)):
-                    recip = g.call_function(ttnn.reciprocal, (args[1],), {})
-                    return g.call_function(ttnn.mul, (recip, args[0]), {})
-
-                return g.call_function(ttnn.div, args, {})
 
             if node.target == torch.ops.aten.floor_divide.default:
                 return g.call_function(ttnn.floor_div, args, {})
