@@ -68,6 +68,29 @@ def test_sub(device, input_shapes):
 
 
 @pytest.mark.parametrize(
+    "a, b",
+    (
+        (3.14, (1, 1, 9, 9)),
+        ((1, 1, 9, 9), 3.14),
+    ),
+)
+def test_torch_scalar_sub(device, a, b):
+    m = SubModule()
+    tensor_a = torch.rand(a, dtype=torch.bfloat16) if isinstance(a, tuple) else torch.tensor(a)
+    tensor_b = torch.rand(b, dtype=torch.bfloat16) if isinstance(b, tuple) else torch.tensor(b)
+    result_before = m.forward(tensor_a, tensor_b)
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(tensor_a, tensor_b)
+
+    # Check the graph has be rewritten and contain ttnn ops
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(ttnn.sub) == 1
+    # Check inference result
+    assert_with_pcc(result_before, result_after, 0.99)
+
+
+@pytest.mark.parametrize(
     "input_shapes",
     (
         ((32, 32), (32, 32)),
