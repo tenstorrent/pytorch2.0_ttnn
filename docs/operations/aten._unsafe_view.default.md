@@ -114,8 +114,8 @@
 | 110 | Tensor<[64, 49, 4, 32]> self = ?,<br>List[int] size = [64, 49, 128]         | Done     | Done       | 1.0   | 0      |
 | 111 | Tensor<[64, 64, 3, 32]> self = ?,<br>List[int] size = [64, 64, 96]          | Done     | Done       | 1.0   | 0      |
 | 112 | Tensor<[64, 64, 4, 32]> self = ?,<br>List[int] size = [64, 64, 128]         | Done     | Done       | 1.0   | 0      |
-| 113 | Tensor<[8, 16, 384, 64]> self = ?,<br>List[int] size = [128, 384, 64]       | Removed  | Unknown    | N/A   | N/A    |
-| 114 | Tensor<[8, 16, 64, 384]> self = ?,<br>List[int] size = [128, 64, 384]       | Removed  | Unknown    | N/A   | N/A    |
+| 113 | Tensor<[8, 16, 384, 64]> self = ?,<br>List[int] size = [128, 384, 64]       | Done     | Unknown    | N/A   | N/A    |
+| 114 | Tensor<[8, 16, 64, 384]> self = ?,<br>List[int] size = [128, 64, 384]       | Done     | Unknown    | N/A   | N/A    |
 | 115 | Tensor<[8, 8, 7, 7]> self = ?,<br>List[int] size = [64, 49]                 | Done     | Done       | 1.0   | 0      |
 | 116 | Tensor<[8, 8, 8, 8]> self = ?,<br>List[int] size = [64, 64]                 | Done     | Done       | 1.0   | 0      |
 

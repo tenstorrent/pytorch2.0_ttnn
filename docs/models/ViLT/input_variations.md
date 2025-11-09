@@ -51,7 +51,7 @@
 |  0 | Tensor<[1, 12, 201, 201]> self = ?,<br>Tensor<[1, 1, 1, 201]> other = ? | Unknown  | Unknown    | N/A                | N/A    |
 |  1 | Tensor<[1, 193, 768]> self = ?,<br>Tensor<[1, 193, 768]> other = ?      | Unknown  | Unknown    | N/A                | N/A    |
 |  2 | Tensor<[1, 201, 768]> self = ?,<br>Tensor<[1, 201, 768]> other = ?      | Unknown  | Unknown    | N/A                | N/A    |
-|  3 | Tensor<[1, 8, 768]> self = ?,<br>Tensor<[1, 8, 768]> other = ?          | Unknown  | Done       | 0.9999980011826556 | 0      |
+|  3 | Tensor<[1, 8, 768]> self = ?,<br>Tensor<[1, 8, 768]> other = ?          | Unknown  | Done       | 0.9999979509465161 | 0      |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   | PCC   | Host   |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|:------|:-------|
@@ -124,7 +124,7 @@
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|:-------------------|:-------|
 |  0 | Tensor<[1, 1536]> input = ?,<br>List[int] normalized_shape = [1536],<br>Optional[Tensor]<[1536]> weight = ?,<br>Optional[Tensor]<[1536]> bias = ?,<br>float eps = 1e-05  | Unknown  | Unknown    | N/A                | N/A    |
 |  1 | Tensor<[1, 201, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12 | Unknown  | Unknown    | N/A                | N/A    |
-|  2 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12   | Unknown  | Done       | 0.9984075451057083 | 3      |
+|  2 | Tensor<[1, 8, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-12   | Unknown  | Done       | 0.9991980524804841 | 3      |
 ### aten.permute.default
 |    | ATen Input Variations                                               | Status   | Isolated   | PCC   | Host   |
 |---:|:--------------------------------------------------------------------|:---------|:-----------|:------|:-------|
