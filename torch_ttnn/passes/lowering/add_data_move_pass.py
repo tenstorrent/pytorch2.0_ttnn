@@ -68,6 +68,7 @@ TTNN_POINTWISE_UNARY_OPS = [
     ttnn.rsqrt,
     ttnn.sigmoid,
     ttnn.softmax,
+    ttnn.softplus,
     ttnn.sign,
     ttnn.sin,
     ttnn.sinh,
