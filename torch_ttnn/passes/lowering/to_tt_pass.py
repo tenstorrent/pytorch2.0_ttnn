@@ -1376,58 +1376,131 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     "device": TtnnDevice(),
                 }
                 return g.call_function(ttnn.empty, args=(args[0],), kwargs=new_kwargs)
-            if node.target == torch.ops.aten._scaled_dot_product_flash_attention.default:
+            if node.target == torch.ops.aten._scaled_dot_product_flash_attention_for_cpu.default:
+                q_chunk_size = 32
+                k_chunk_size = 32
 
-                def pad_qkv_ttnn(q, k, v, scale=None, align_by=ttnn.TILE_SIZE):
-                    """
-                    Pads the last dimension of Q, K, V tensors to `tile_size`
-                    and rescales Q so that the scaled-dot-product attention
-                    is numerically identical to the unpadded case.
-                    """
+                def pad_qkv_ttnn(q, k, v, attn_mask=None, scale=None, align_by=ttnn.TILE_SIZE):
                     # Extract shape from metadata
                     q_shape = list(q.meta["val"].shape)
-                    d = q_shape[-1]
-                    pad = (-d) % align_by  # 0 – 31
+                    k_shape = list(k.meta["val"].shape)
 
-                    padded_shape = q_shape.copy()
-                    padded_shape[-1] = d + pad
+                    padded = False
 
-                    if pad:
-                        ttnn_pad = [(0, pad)]
+                    if attn_mask:
+                        """
+                        When attn_mask is provided, the following must be true:
+                        Taken from: tt-metal/ttnn/cpp/ttnn/operations/transformer/sdpa/device/sdpa_op.cpp
 
-                        # metadata is broken because torch fx expects sdpa to return a tuple
-                        torch_pad = tuple(x for pair in ttnn_pad for x in pair)
-                        meta_val = torch.nn.functional.pad(g._get_val(q), torch_pad, value=0)
+                        mask_shape[0] == q_shape[0]
+                        mask_shape[1] == 1
+                        mask_shape[2] == q_shape[2]
+                        mask_shape[3] == k_shape[2]
+                        q_shape[2] % q_chunk_size == 0
+                        k_shape[2] % k_chunk_size == 0
 
-                        # 1) zero‑pad along head_dim
-                        q = g.call_function(ttnn.pad, args=(q, ttnn_pad, 0))
-                        k = g.call_function(ttnn.pad, args=(k, ttnn_pad, 0))
-                        v = g.call_function(ttnn.pad, args=(v, ttnn_pad, 0))
+                        Pad and unpad the dimensions accordingly.
+                        """
+                        ttnn_pad_mask = 4 * [(0, 0)]
+                        # Pad q align_by 0 – 31
+                        if (q_shape[2] % q_chunk_size) and (pad := (-q_shape[2]) % align_by):
+                            ttnn_pad = [(0, 0), (0, 0), (0, pad), (0, 0)]
 
-                        q.meta["val"] = meta_val
-                        k.meta["val"] = meta_val
-                        v.meta["val"] = meta_val
+                            # Save metadata and fix after
+                            torch_pad = tuple(x for pair in ttnn_pad for x in pair)
+                            meta_val = torch.nn.functional.pad(g._get_val(q), torch_pad, value=0)
 
-                        # 2) rescale Q so that Q*K^T / sqrt(d') == Q_p*K_p^T / sqrt(d)
-                        if scale is None:
-                            calc_scale = math.sqrt((d + pad) / d)
-                            q = g.call_function(ttnn.multiply, args=(q, calc_scale))
+                            q = g.call_function(ttnn.pad, args=(q, ttnn_pad, 0))
+                            ttnn_pad_mask[2] = (0, pad)
 
-                    return q, k, v, d
+                            q.meta["val"] = meta_val
 
-                def select(dropout_p=0.0, is_causal=False):
+                            padded = True
+
+                        # Pad k, v align_by 0 – 31
+                        if (k_shape[2] % k_chunk_size) and (pad := (-k_shape[2]) % align_by):
+                            ttnn_pad = [(0, 0), (0, 0), (0, pad), (0, 0)]
+
+                            # Save metadata and fix after
+                            torch_pad = tuple(x for pair in ttnn_pad for x in pair)
+                            meta_val = torch.nn.functional.pad(g._get_val(k), torch_pad, value=0)
+
+                            k = g.call_function(ttnn.pad, args=(k, ttnn_pad, 0))
+                            v = g.call_function(ttnn.pad, args=(v, ttnn_pad, 0))
+                            ttnn_pad_mask[3] = (0, pad)
+
+                            k.meta["val"] = meta_val
+                            v.meta["val"] = meta_val
+
+                            padded = True
+
+                        # Pad mask if any of the elements is non-zero
+                        if any([any(pair) for pair in ttnn_pad_mask]):
+                            # Save metadata and fix after
+                            torch_pad = tuple(x for pair in ttnn_pad_mask for x in pair)
+                            meta_val = torch.nn.functional.pad(g._get_val(attn_mask), torch_pad, value=0)
+
+                            # Pytorch turns all trues into 0.0f and falses to -inf
+                            attn_mask = g.call_function(ttnn.pad, args=(attn_mask, ttnn_pad_mask, -float("inf")))
+
+                            # Fix metadata
+                            attn_mask.meta["val"] = meta_val
+
+                            padded = True
+
+                        # TODO: Support scale?
+
+                    else:
+                        """
+                        Pads the last dimension of Q, K, V tensors to `tile_size`
+                        and rescales Q so that the scaled-dot-product attention
+                        is numerically identical to the unpadded case.
+                        """
+
+                        # Padding qkv
+                        d = q_shape[-1]
+                        pad = (-d) % align_by  # 0 – 31
+
+                        if pad:
+                            ttnn_pad = [(0, pad)]
+
+                            # metadata is broken because torch fx expects sdpa to return a tuple
+                            torch_pad = tuple(x for pair in ttnn_pad for x in pair)
+                            meta_val = torch.nn.functional.pad(g._get_val(q), torch_pad, value=0)
+
+                            # 1) zero‑pad along head_dim
+                            q = g.call_function(ttnn.pad, args=(q, ttnn_pad, 0))
+                            k = g.call_function(ttnn.pad, args=(k, ttnn_pad, 0))
+                            v = g.call_function(ttnn.pad, args=(v, ttnn_pad, 0))
+
+                            q.meta["val"] = meta_val
+                            k.meta["val"] = meta_val
+                            v.meta["val"] = meta_val
+
+                            # 2) rescale Q so that Q*K^T / sqrt(d') == Q_p*K_p^T / sqrt(d)
+                            if scale is None:
+                                calc_scale = math.sqrt((d + pad) / d)
+                                q = g.call_function(ttnn.multiply, args=(q, calc_scale))
+
+                            padded = True
+
+                    return q, k, v, attn_mask, padded
+
+                def select(dropout_p=0.0, is_causal=False, attn_mask=None, scale=None):
                     # TODO(jdh8): Add support for training mode
                     if dropout_p > 0.0 or not is_getitem_0_only_user(node):
                         return None
 
                     # Pad last dimension of Q, K, V to tile size
                     q, k, v = args[:3]
-                    q_padded, k_padded, v_padded, d = pad_qkv_ttnn(q, k, v, scale=kwargs.get("scale", None))
+                    q_padded, k_padded, v_padded, mask_padded, padded = pad_qkv_ttnn(
+                        q, k, v, attn_mask=attn_mask, scale=scale
+                    )
 
                     # TODO: Those configs can be further optimized based on input shape to get
                     # best performance/accuracy tradeoff
-                    default_q_chunk_size = 32  # <- The bigger the better accuracy but slower
-                    default_k_chunk_size = 32
+                    default_q_chunk_size = q_chunk_size  # <- The bigger the better accuracy but slower
+                    default_k_chunk_size = k_chunk_size
 
                     compute_config_params = {
                         "math_fidelity": ttnn.MathFidelity.HiFi2,
@@ -1457,36 +1530,51 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         args=(q_padded, k_padded, v_padded),
                         kwargs={
                             "is_causal": is_causal,
-                            "scale": kwargs.get("scale", None),
+                            "scale": scale,
                             "compute_kernel_config": compute_kernel_config,
                             "program_config": program_config,
+                            "attn_mask": mask_padded,
                         },
                     )
 
-                    # If padding was applied, slice the result back to original dimension
-                    pad = (-d) % 32
-                    if pad:
-                        output_shape = list(res_node.meta["val"][0].shape)
-                        slice_start = [0] * len(output_shape)
-                        slice_end = output_shape.copy()
-                        slice_end[-1] = d  # Set last dimension back to original size
-                        res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
-
-                    # torch.ops.aten._scaled_dot_product_flash_attention.default return a tuple of values and inserts a
+                    # torch.ops.aten._scaled_dot_product_flash_attention_for_cpu.default return a tuple of values and inserts a
                     # getitem(ret, 0) after it. ttnn.transformer.scaled_dot_product_attention only returns one value.
                     if (val := res_node.meta.get("val", None)) is not None:
                         res_node.meta["val"] = val[0]
 
+                    # If padding was applied, slice the result back to original dimension
+                    if padded:
+                        output_meta_val = res_node.meta["val"]
+                        output_shape = output_meta_val.shape
+                        slice_start = [0] * len(output_shape)
+                        slice_end = output_shape
+                        res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
+                        # Propogate metadata
+                        res_node.meta["val"] = output_meta_val
+
                     return res_node
 
-                return select(*args[3:])
+                ret = select(*args[3:], **kwargs)
+                # Between Pytorch 2.2 and 2.7, the _nondeterministic_seeded attribute is sometimes set to True.
+                # This causes the node to become impure or has a side effect which results in the op not being
+                # cleaned up by dead_code_elimination. Since we're replacing the node, we can set this to False.
+                if ret is not None and hasattr(node.target, "_nondeterministic_seeded"):
+                    setattr(node.target, "_nondeterministic_seeded", False)
+                return ret
 
             # Removes getitem after ttnn.transformer.scaled_dot_product_attention
             # Related to https://github.com/tenstorrent/tt-metal/issues/16021
             if node.target == operator.getitem and isinstance(args[1], int) and args[1] == 0:
-                if args[0].target == ttnn.transformer.scaled_dot_product_attention or (
-                    args[0].target == ttnn.slice
-                    and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
+                if (
+                    args[0].target == ttnn.transformer.scaled_dot_product_attention
+                    or (
+                        args[0].target == ttnn.slice
+                        and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
+                    )
+                    or (
+                        args[0].target == ttnn.format_output_tensor
+                        and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
+                    )
                 ):
                     return args[0]
 
