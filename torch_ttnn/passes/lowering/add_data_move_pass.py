@@ -456,7 +456,9 @@ class NodeInputAligner:
                         )
 
                     mesh_mapper = self.replicate_to_mesh
-                    args = spec.input_node.args
+                    # Do not pass args if scalar, i.e. len is 0
+                    if len(spec.input_node.args) > 0:
+                        args = spec.input_node.args
                 kwargs["mesh_mapper"] = mesh_mapper
 
             return args, kwargs
