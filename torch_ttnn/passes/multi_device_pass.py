@@ -112,6 +112,7 @@ class MultiDevicePass(PassBase):
                     self.rewrite_const_args(node)
 
         fake_mode = detect_fake_mode(self.example_inputs)
+        fake_mode.allow_non_fake_inputs = True
         # propagate meta["val"]
         torch.fx.passes.fake_tensor_prop.FakeTensorProp(graph_module, mode=fake_mode).propagate(*self.example_inputs)
         # propagate meta["tensor_meta"]

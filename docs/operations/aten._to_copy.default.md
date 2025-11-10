@@ -298,8 +298,8 @@
 | 294 | Tensor<[78]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                 | None     | Fallback   | 1.0   | -1     |
 | 295 | Tensor<[8, 1, 1, 384]> self = ?,<br>Optional[int] dtype = torch.bfloat16                                                                                | Done     | Unknown    | N/A   | N/A    |
 | 296 | Tensor<[80]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                 | None     | Fallback   | 1.0   | -1     |
-| 297 | Tensor<[816]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
-| 298 | Tensor<[851]> self = ?,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu                                                        | Done     | Unknown    | N/A   | N/A    |
+| 297 | Tensor<[813]> self = ?,<br>Optional[int] dtype = torch.float32,<br>Optional[Device] device = cpu                                                        | Done     | Unknown    | N/A   | N/A    |
+| 298 | Tensor<[816]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                | None     | Fallback   | 1.0   | -1     |
 | 299 | Tensor<[88]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                 | None     | Fallback   | 1.0   | -1     |
 | 300 | Tensor<[8]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                  | None     | Fallback   | 1.0   | -1     |
 | 301 | Tensor<[92]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided                                                 | None     | Fallback   | 1.0   | -1     |
