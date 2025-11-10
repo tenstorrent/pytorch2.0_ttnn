@@ -8,6 +8,7 @@ from codegen import *
 from gpt2 import *
 from resnet18 import *
 from mnist import *
+from whisper import *
 
 MAX_GENERATION_LENGTH = 512
 
@@ -23,6 +24,7 @@ def main():
             "Image Classification with ResNet18",
             "MNIST Classification",
             "Code Generation with CodeGen",
+            "Audio Transcription with Whisper",
         ],
     )
 
@@ -59,12 +61,20 @@ def main():
             **Note** This model is untrained and is not expected to give an accurate prediction.
         """
         )
-    else:  # Code Generation with CodeGen
+    elif task == "Code Generation with CodeGen":
         st.info(
             """
             **CodeGen**: Salesforce model for Python code generation.
             **How to Use**: Edit prompt, set iterations, then click "Run".
             **Note** Different length prompts will give different performance (token/sec), all else being equal. Be sure to use the same prompt when comparing performance.
+        """
+        )
+    else:  # Audio Transcription with Whisper
+        st.info(
+            """
+            **Whisper (distil-large-v3)**: Distilled version of OpenAI's Whisper model for audio transcription.
+            **How to Use**: Use sample audio or upload your own, set iterations, then click "Transcribe".
+            **Target Performance**: 54.7 tokens/sec/user (n150 hardware) with 244ms TTFT for batch size 1.
         """
         )
 
@@ -143,6 +153,10 @@ def main():
         selected_image = st.session_state.cifar10_samples[image_choice]
         st.image(selected_image, caption=image_choice, width=100)
         prompt = "Classify Image"
+    elif task == "Audio Transcription with Whisper":
+        st.subheader("Audio Input")
+        st.info("Using sample audio from LibriSpeech dataset")
+        prompt = "Transcribe Audio"
     else:  # MNIST Classification
         prompt = "Classify MNIST Digit"
 
@@ -337,7 +351,7 @@ def main():
                         )
                     else:
                         response_with_metrics = f"{full_response}\n\n" f"TTNN Time: {ttnn_time:.4f}s"
-                else:  # MNIST Classification
+                elif task == "MNIST Classification":
                     (ttnn_logits, ttnn_label, ttnn_confidence, ttnn_time), ttnn_output = classify_mnist(
                         use_ttnn=True, iterations=iterations
                     )
@@ -349,6 +363,27 @@ def main():
                     message_placeholder.markdown(full_response)
                     st.write("**Logits (TTNN):**")
                     st.write(ttnn_logits.numpy())
+                    terminal_output_value = f"TTNN:\n{ttnn_output}"
+                    if test_cpu:
+                        terminal_output_value += f"\n\nCPU:\n{cpu_output}"
+                    terminal_output = st.text_area(
+                        "Terminal",
+                        value=terminal_output_value,
+                        height=100,
+                        disabled=True,
+                    )
+                else:  # Audio Transcription with Whisper
+                    (transcription, ttnn_time, ttnn_tokens, ttnn_tokens_per_sec), ttnn_output = transcribe_audio(
+                        use_ttnn=True, iterations=iterations
+                    )
+                    if test_cpu:
+                        (cpu_transcription, cpu_time, cpu_tokens, cpu_tokens_per_sec), cpu_output = transcribe_audio(
+                            use_ttnn=False, iterations=iterations
+                        )
+                    for chunk in stream_response(transcription):
+                        full_response += chunk
+                        message_placeholder.markdown(full_response + "▌")
+                    message_placeholder.markdown(full_response)
                     terminal_output_value = f"TTNN:\n{ttnn_output}"
                     if test_cpu:
                         terminal_output_value += f"\n\nCPU:\n{cpu_output}"
@@ -372,7 +407,7 @@ def main():
                     st.write(f"- TTNN: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}")
                     if test_cpu:
                         st.write(f"- CPU: {cpu_time:.4f}s, Tokens/Sec: {cpu_tokens_per_sec:.3f}")
-                elif task in ["Text Generation with GPT-2", "Code Generation with CodeGen"]:
+                elif task in ["Text Generation with GPT-2", "Code Generation with CodeGen", "Audio Transcription with Whisper"]:
                     st.write(f"- TTNN: {ttnn_time:.4f}s, Tokens/Sec: {ttnn_tokens_per_sec:.3f}")
                     if test_cpu:
                         st.write(f"- CPU: {cpu_time:.4f}s, Tokens/Sec: {cpu_tokens_per_sec:.3f}")
@@ -382,7 +417,7 @@ def main():
                         st.write(f"- CPU: {cpu_time:.4f}s")
                 if test_cpu:
                     st.write(
-                        f"- Speedup: {speedup:.3f}x ({'Tokens/Sec' if task in ['Question Answering with BERT', 'Text Generation with GPT-2', 'Code Generation with CodeGen'] else 'Time'} after {iterations} iterations)"
+                        f"- Speedup: {speedup:.3f}x ({'Tokens/Sec' if task in ['Question Answering with BERT', 'Text Generation with GPT-2', 'Code Generation with CodeGen', 'Audio Transcription with Whisper'] else 'Time'} after {iterations} iterations)"
                     )
 
             st.session_state.messages.append({"role": "assistant", "content": response_with_metrics})
