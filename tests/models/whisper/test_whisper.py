@@ -11,8 +11,10 @@ import torch
 class ThisTester(ModelTester):
     def _load_model(self):
         # load model and processor
-        self.processor = WhisperProcessor.from_pretrained("openai/whisper-small", torch_dtype=torch.bfloat16)
-        model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small", torch_dtype=torch.bfloat16)
+        # Using distil-whisper/distil-large-v3 as per issue #1044 requirements
+        # This matches the version used in tt-metal demo
+        self.processor = WhisperProcessor.from_pretrained("distil-whisper/distil-large-v3", torch_dtype=torch.bfloat16)
+        model = WhisperForConditionalGeneration.from_pretrained("distil-whisper/distil-large-v3", torch_dtype=torch.bfloat16)
         model.config.forced_decoder_ids = None
         return model.generate
 
@@ -41,7 +43,7 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail
+@pytest.mark.compilation_xfail(reason="aten::clone() SymInt type casting issue - see to_tt_guard.py")
 def test_whisper(record_property, mode):
     model_name = "Whisper"
     record_property("model_name", model_name)
