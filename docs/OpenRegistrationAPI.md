@@ -19,31 +19,27 @@ There are currently two verified paths to build extra dependencies. Choose one:
 
 2. Install dependencies
     ```bash
-    apt upgrade -y && apt update -y
-    apt install -y cmake python3 python3-venv python3-pip git-lfs ccache
+    apt update && apt install -y git-lfs cmake ninja-build python3 python3-venv python3-pip \
+        build-essential clang-17 llvm-17-dev ccache
     ```
 
-3. Create a new venv and install python requirements
+3. Build tt-metal and create the Python environment that ships with it
     ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
-    pip install -r requirements-dev.txt
-    pip install --force-reinstall pip==21.2.4
-    python3 -m pip install numpy setuptools wheel
-    python3 -m pip install -e .
-    ```
-4. Fetch submodules, build tt-metal, and build cpp_extension.  
-    Note: The ttnn python package from tt-metal will not be installed.
-    ```bash
-    pushd torch_ttnn/cpp_extension
-    git submodule sync
+    export TT_METAL_HOME="$(pwd)/torch_ttnn/cpp_extension/third-party/tt-metal"
+    pushd "$TT_METAL_HOME"
     git submodule update --init --recursive
-    git submodule foreach 'git lfs fetch --all && git lfs pull'
-    ./third-party/tt-metal/install_dependencies.sh
-    ./build_cpp_extension.sh Release
-    export TT_METAL_HOME="$(pwd)/third-party/tt-metal"
+    ./install_dependencies.sh
+    ./build_metal.sh --release --enable-ccache
+    ./create_venv.sh
+    source ./python_env/bin/activate
     popd
+    ```
+
+4. Install pytorch2.0_ttnn inside the freshly created virtual environment
+    ```bash
+    python -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
+    python -m pip install --upgrade pip
+    python -m pip install -e .[dev]
     ```
 
 ## External tt-metal and Pytorch build
@@ -81,10 +77,9 @@ Please note that ttnn c++ interface is constantly changing, so cpp extension mig
     git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
     pushd pytorch2.0_ttnn
     ```
-1. Edit `requirements.txt` and remove the line starting with `ttnn`. This part is important.
-1. Install requirements
+1. Install project dependencies in editable mode
     ```
-    pip install -r requirements-dev.txt
+    python3 -m pip install -e .[dev]
 
     popd
     ```
@@ -141,11 +136,11 @@ popd
 ### Building cpp extension
 Please make sure that extension is built while being in venv that was prepared before
 
-1. Build with local tt-metal build. Assume `TT_METAL_HOME` is set
+1. Build with local tt-metal build. Assume `TT_METAL_HOME` is set and the
+   virtual environment created by `create_venv.sh` is active
     ```bash
     pushd pytorch2.0_ttnn
-    pushd torch_ttnn/cpp_extension
-    CMAKE_FLAGS="-DCMAKE_CXX_COMPILER=clang++-17;-DCMAKE_C_COMPILER=clang-17" python3 setup.py develop # Make sure TT_METAL_HOME is pointing to cloned tt-metal repo
+    python -m pip install -e .
     ```
 
 

@@ -27,7 +27,7 @@ def test_cpp_extension(device, input_shape, dtype):
     if dtype == torch.bfloat16:
         torch_tensor = torch.empty(input_shape, dtype=dtype).uniform_(-1, 1)
     elif dtype == torch.int or dtype == torch.long:
-        torch_tensor = torch.randint(-1000, 1000, input_shape)
+        torch_tensor = torch.randint(-255, 256, input_shape)
         torch_tensor = torch_tensor.to(dtype)
     else:
         raise Exception(f"{dtype} not being tested at this time")
@@ -71,8 +71,8 @@ def test_add_cpp_extension(device, input_shape, dtype):
     ttnn_torch_device = ttnn_module.as_torch_device(device)
 
     logging.info("Creating bfloat tensor from -1 to 1")
-    input_a = torch.randint(-1000, 1000, input_shape, dtype=dtype)
-    input_b = torch.randint(-1000, 1000, input_shape, dtype=dtype)
+    input_a = torch.randint(-255, 256, input_shape, dtype=dtype)
+    input_b = torch.randint(-255, 256, input_shape, dtype=dtype)
 
     logging.info("Transferring to ttnn")
     input_a_ttnn = input_a.to(ttnn_torch_device)

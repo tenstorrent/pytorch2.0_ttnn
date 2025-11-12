@@ -29,26 +29,21 @@ jobs:
           latest_release_name_short=$(curl -s ${{ env.repo_url }} | sed -n 's/.*href=".*>ttnn-\(.*\)-cp310-c.*/\1/p' | sort -V | tail -n 1)
           echo "release_short=$latest_release_name_short" >> $GITHUB_OUTPUT
 
-      - name: Update requirements.txt
-        id: update-requirements
+      - name: Update pyproject.toml
+        id: update-pyproject
         run: |
-          # Remove any existing ttnn lines (adjust the regex if needed)
-          sed -i '/^ttnn @ /d' requirements.txt
-          # Append the line for the newest version
-          echo "ttnn @ ${{ env.repo_url }}${{steps.fetch_release.outputs.release}} ; python_version==\"3.10\"" >> requirements.txt
+          latest_release=${{ steps.fetch_release.outputs.release }}
+          ttnn_line="ttnn @ ${{ env.repo_url }}${latest_release} ; python_version==\"3.10\""
           
-      - name: Update setup.py and pyproject.toml
-        run: |
-          latest_version=${{ steps.fetch_release.outputs.release }}
-          latest_version_short=$(echo $latest_version | sed 's/-rc/rc/')
-          ttnn_url="ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v${latest_version}/ttnn-$latest_version_short-cp310-cp310-linux_x86_64.whl"
-          platform_constraint=" ; python_version=='3.10' and platform_system=='Linux' and platform_machine=='x86_64'"
+          # Update pyproject.toml in the [pypi] optional dependencies section
+          # The ttnn line is the first line after 'pypi = ['
+          sed -i '/^pypi = \[/,/^\]/ {
+            s|^    "ttnn @ .*|    "'"${ttnn_line}"'",|
+          }' pyproject.toml
           
-          # Update setup.py - using the get_ttnn_url() function
-          sed -i "s|ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v[0-9.]*-rc[0-9]*/ttnn-[0-9.]*rc[0-9]*-cp310-cp310-linux_x86_64.whl.*|$ttnn_url$platform_constraint|g" setup.py
-          
-          # Update pyproject.toml - using the same format as setup.py
-          sed -i "s|ttnn @ https://github.com/tenstorrent/tt-metal/releases/download/v[0-9.]*-rc[0-9]*/ttnn-[0-9.]*rc[0-9]*-cp310-cp310-linux_x86_64.whl.*|$ttnn_url$platform_constraint|g" pyproject.toml
+          # Verify the update was applied
+          echo "Updated ttnn dependency in pyproject.toml [pypi] section:"
+          sed -n '/^pypi = \[/,/^\]/p' pyproject.toml | grep ttnn || echo "ERROR: Failed to update ttnn line"
           
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
@@ -61,10 +56,14 @@ jobs:
           base: main
           commit-message: "Update dependencies to ${{ steps.fetch_release.outputs.release }}"
           title: "Update TT-NN to ${{ steps.fetch_release.outputs.release_short }}"
-          body: "This PR updates TT-NN wheel to the latest pre-release version."          
+          body: |
+            This PR updates TT-NN wheel to the latest pre-release version.
+            
+            **Automated testing**: CI will detect this update and test with the new ttnn version.
+            The PR will auto-merge only if all required checks pass.
           labels: ttnn-wheel-update
           delete-branch: true
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Approve Pull Request
         if: ${{ steps.create-pr.outputs.pull-request-number }}
@@ -72,21 +71,24 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"        
-          gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --approve      
+          echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"
+          echo "Auto-approving to expedite review. Tests must still pass before merge."
+          gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --approve
           
       - name: Enable Pull Request Automerge
         if: ${{ steps.create-pr.outputs.pull-request-number }}
-        run: gh pr merge --merge --auto "${{ steps.create-pr.outputs.pull-request-number }}"
+        run: |
+          echo "Enabling auto-merge. PR will merge automatically once all required checks pass."
+          gh pr merge --merge --auto "${{ steps.create-pr.outputs.pull-request-number }}"
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build_cache_cpp_extension:
     runs-on: ["in-service", "nfs"]
     container:
       image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}

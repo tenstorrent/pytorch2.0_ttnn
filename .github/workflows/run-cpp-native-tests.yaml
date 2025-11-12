@@ -7,138 +7,175 @@ on:
     paths:
       - 'torch_ttnn/cpp_extension/**'
       - 'tests/cpp_extension/**'
+      - 'pyproject.toml'  # Trigger on ttnn dependency updates
   pull_request:
     paths:
-      - "torch_ttnn/cpp_extension/**"
-      - "tests/cpp_extension/**"
+      - 'torch_ttnn/cpp_extension/**'
+      - 'tests/cpp_extension/**'
+      - 'pyproject.toml'  # Trigger on ttnn dependency updates
   workflow_dispatch:
     inputs:
       docker_tag:
         description: "Docker container tag to use"
         required: false
         type: string
-        default: "ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest"
+        default: "ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest"
 
 jobs:
   cpp-extension-tests:
     runs-on: ["in-service", "nfs"]
     container:
-      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest' }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
-      CACHE_DIR: /root/.cache/cpp-extension-cache
+      TT_METAL_REF: main
+      CCACHE_DIR: /root/.cache/ccache
+      CPM_SOURCE_CACHE: /root/.cache/cpm
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_MAXSIZE: 30G
+      PYTHON_ENV_DIR: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal/python_env
+    defaults:
+      run:
+        shell: bash
     steps:
+      - name: Prepare checkout
+        run: |
+          set -euxo pipefail
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+
       - uses: actions/checkout@v4
         with:
           lfs: true
           fetch-depth: 0
-          submodules: "recursive"
+          submodules: recursive
 
-      - name: Docker Cleanup
+      - name: Synchronise tt-metal submodule
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          retry_on: error
+          command: |
+            set -euxo pipefail
+            git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+            git config --global --add safe.directory "${GITHUB_WORKSPACE}/torch_ttnn/cpp_extension/third-party/tt-metal"
+            git submodule sync --recursive
+            git submodule update --init --recursive
+            pushd torch_ttnn/cpp_extension/third-party/tt-metal
+            # Fetch latest changes and reset to remote branch
+            echo "Current TT_METAL_REF: ${TT_METAL_REF}"
+            git rev-parse HEAD || true
+            git fetch --all --tags --force --prune
+            git branch -r | grep -E "(main|${TT_METAL_REF})" || true
+            git checkout -B "${TT_METAL_REF}" "origin/${TT_METAL_REF}"
+            git reset --hard "origin/${TT_METAL_REF}"
+            git rev-parse HEAD || true
+            git submodule update --init --recursive --force
+            git lfs fetch --all || true
+            git lfs pull || true
+            git log --oneline -3
+            popd
+
+      - name: Install system dependencies
         run: |
-          docker system prune -a -f
-          df -h  # Debug space
+          set -euxo pipefail
+          apt-get update
+          apt-get install -y build-essential clang-17 clang-format-17 llvm-17-dev gcc-12 g++-12 cmake ninja-build \
+            python3 python3-venv python3-pip curl jq ccache nlohmann-json3-dev
 
-      - name: Update system
+      - name: Configure ccache
         run: |
-          apt update -y && apt upgrade -y
-          apt install -y curl jq
-      - name: Update .gitsubmodules
+          set -euxo pipefail
+          mkdir -p "${CCACHE_DIR}"
+          ccache --set-config=cache_dir="${CCACHE_DIR}"
+          if [[ -n "${CCACHE_MAXSIZE:-}" ]]; then
+            ccache --set-config=max_size="${CCACHE_MAXSIZE}"
+          fi
+          if [[ -n "${CCACHE_BASEDIR:-}" ]]; then
+            ccache --set-config=base_dir="${CCACHE_BASEDIR}"
+          fi
+          ccache --set-config=compression=true
+          ccache --zero-stats
+
+      - name: Build and test
+        env:
+          TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
         run: |
-          # Fetch the latest pre-release tag from the target repository
-          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
-          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
-          latest_version="${latest_pre_release#v}"
-          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
-          echo "Updated .gitmodules with the latest version: $latest_version"
-
-      - name: Install dependencies
-        run: |
-          apt upgrade -y && apt update -y
-          apt install -y cmake python3 python3-venv python3-pip git-lfs ccache
-          git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
-          git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-
-          # Remove hugepages setup from install_dependencies.sh
-          sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
-          ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
-
-      - name: Install python dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
-          python3 -m pip install -r requirements-dev.txt
-          python3 -m pip install pytest-github-report
-
-          pip install --force-reinstall pip==21.2.4
-          python3 -m pip install numpy setuptools wheel
-          python3 -m pip install -e .
-
-      - name: Setup submodules
-        run: |
-          git submodule sync
-          git submodule update --init --recursive
-          git submodule foreach 'git lfs fetch --all && git lfs pull'
-
-      - name: Build/Fetch C++ Extensions
-        run: |
-          cd torch_ttnn/cpp_extension
-          PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
-
-          CCACHE_DIR=$(ccache --get-config cache_dir)
-          mkdir -p $CCACHE_DIR
-
-          # Check if cache exists with required components
-          CACHE_FOUND=0
-          if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX}" ]; then
-            CACHE_FOUND=1
-            echo "Cache found with all required components. Using cached build."
-
-            # cpp-extension cache
-            cp -r $CACHE_DIR/build .
-            cp -r $CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX} .
-
-            # tt-metal cache
-            cp -r $CACHE_DIR/tt-metal/build third-party/tt-metal/
-            cp -r $CACHE_DIR/tt-metal/.cpmcache third-party/tt-metal/
-
-            # ccache
-            cp -r $CACHE_DIR/ccache/* $CCACHE_DIR
+          set -euxo pipefail
+          export TT_METAL_HOME
+          export PYTHON_ENV_DIR
+          export CPM_SOURCE_CACHE="${CPM_SOURCE_CACHE:-/root/.cache/cpm}"
+          export TT_METAL_TOOLS_DIR="${TT_METAL_HOME}/.local/bin"
+          mkdir -p "${CPM_SOURCE_CACHE}"
+          if ! command -v clang-17 >/dev/null 2>&1 || ! command -v clang++-17 >/dev/null 2>&1; then
+            echo "clang-17/clang++-17 not found in PATH" >&2
+            exit 1
+          fi
+          export CC="${CC:-$(command -v clang-17)}"
+          export CXX="${CXX:-$(command -v clang++-17)}"
+          export CMAKE_C_COMPILER="${CMAKE_C_COMPILER:-${CC}}"
+          export CMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER:-${CXX}}"
+          mkdir -p "${TT_METAL_TOOLS_DIR}"
+          # TODO: Drop this clang-format symlink once our tt-metal submodule includes
+          # https://github.com/tenstorrent/tt-metal/pull/29057, which relaxed the codegen
+          # dependency on clang-format living inside the venv.
+          if command -v clang-format-17 >/dev/null 2>&1; then
+            ln -sf "$(command -v clang-format-17)" "${TT_METAL_TOOLS_DIR}/clang-format"
+          elif command -v clang-format >/dev/null 2>&1; then
+            ln -sf "$(command -v clang-format)" "${TT_METAL_TOOLS_DIR}/clang-format"
           else
-            echo "Cache not found or incomplete. Building C++ extensions"
+            echo "clang-format not found in PATH" >&2
+            exit 1
           fi
-          ./build_cpp_extension.sh
-          
-          # Update cache with new build if not was not present before
-          if [ $CACHE_FOUND -eq 0 ]; then
-            mkdir -p $CACHE_DIR
-            
-            # cpp-extension cache
-            cp -r build $CACHE_DIR 
-            cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
-
-            # tt-metal cache
-            mkdir -p $CACHE_DIR/tt-metal
-            cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal/
-            cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
-
-            # ccache
-            cp -r $CCACHE_DIR $CACHE_DIR 
+          export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
+          cd "${TT_METAL_HOME}"
+          ./install_dependencies.sh
+          rm -rf build build_Release "${PYTHON_ENV_DIR}"
+          NINJA_BIN="$(command -v ninja || true)"
+          if [[ -z "${NINJA_BIN}" ]]; then
+            echo "ninja not found in PATH" >&2
+            exit 1
           fi
-          cd ${{ github.workspace }}
-
-      - name: Run C++ Extension Tests
-        run: |
-          export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)
-          pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
-          pytest tests/cpp_extension/test_bert_cpp_extension.py -v
-          pytest tests/models/ --native_integration -v
+          export CMAKE_MAKE_PROGRAM="${NINJA_BIN}"
+          # Build TT-Metal - generates build_Release/ with libraries and CMake configs
+          ./build_metal.sh --release --enable-ccache
+          ./create_venv.sh
+          if [[ ! -f "${PYTHON_ENV_DIR}/bin/activate" ]]; then
+            echo "Expected virtual environment not found at ${PYTHON_ENV_DIR}" >&2
+            find "${TT_METAL_HOME}" -maxdepth 2 -type d -print >&2 || true
+            exit 1
+          fi
+          source "${PYTHON_ENV_DIR}/bin/activate"
+          export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
+          python -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade "scikit-build-core<0.11" cmake ninja
+          # Check if this is a ttnn-wheel-update PR (triggered by automated dependency update)
+          # If so, use [pypi,dev] to test the new ttnn version
+          # Otherwise use [dev] only (preserves locally built ttnn)
+          if git log --oneline -1 | grep -q "Update dependencies to"; then
+            echo "Detected ttnn wheel update PR - installing with [pypi,dev] to test new ttnn"
+            python -m pip install -e "${GITHUB_WORKSPACE}"[pypi,dev]
+          else
+            echo "Regular build - installing with [dev] only (uses local ttnn)"
+            python -m pip install -e "${GITHUB_WORKSPACE}"[dev]
+          fi
+          # NOTE: LD_LIBRARY_PATH is no longer required!
+          # The extension's RPATH is configured to include PyTorch's library directory automatically.
+          # CMake sets BUILD_RPATH="$ORIGIN:${PYTORCH_LIB_DIR}" during the build process.
+          echo "Running C++ extension functionality tests"
+          python -m pytest "${GITHUB_WORKSPACE}/tests/cpp_extension/test_cpp_extension_functionality.py" -v
+          echo "Running BERT C++ extension tests"
+          python -m pytest "${GITHUB_WORKSPACE}/tests/cpp_extension/test_bert_cpp_extension.py" -v
+          echo "Running models C++ extension tests"
+          python -m pytest "${GITHUB_WORKSPACE}/tests/models" --native_integration -v
+          ccache --show-stats
 
   tests-passed:
     if: ${{ always() }}
@@ -149,7 +186,7 @@ jobs:
     steps:
       - id: check
         run: |
-          cpp_tests_result="${{ needs.cpp-extension-tests.result}}"
+          cpp_tests_result="${{ needs.cpp-extension-tests.result }}"
           if [[ $cpp_tests_result == "success" || $cpp_tests_result == "skipped" ]]; then
             echo "didpass=0" >> $GITHUB_OUTPUT
             exit 0

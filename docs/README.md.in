@@ -84,15 +84,15 @@ To get started with development, you'll need a Wormhole or Blackhole Tenstorrent
 * can be ordered on the [Tenstorrent website](https://tenstorrent.com/) 
 * can be requested on [Koyeb](https://www.koyeb.com/blog/tenstorrent-cloud-instances-unveiling-next-gen-ai-accelerators)
 
-Install the development dependencies:
+Install the development dependencies and build the project (including the C++
+extension) in editable mode:
 ```shell
-pip install -r requirements-dev.txt
-pip install -e .
+pip install -e .[dev]
 ```
 
 You can build the wheel file with
 ```shell
-python -m build
+python -m build --wheel
 ```
 
 ## Project Structure
