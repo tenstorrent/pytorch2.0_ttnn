@@ -1,12 +1,11 @@
 
-#include <tt-metalium/assert.hpp>
-#include <c10/core/Device.h>
+#include "ttnn_cpp_extension/utils/device.hpp"
+#include "ttnn_cpp_extension/utils/extension_utils.hpp"
 
 #include "ttnn_cpp_extension/core/TtnnGuard.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
-#include "ttnn_cpp_extension/utils/device.hpp"
-#include "ttnn_cpp_extension/utils/extension_utils.hpp"
+#include <tt_stl/assert.hpp>
 
 // This function can be used when the TTNN device is initialized separately,
 // for example, `device = ttnn.open_device(device_index = 0)`. Pass that

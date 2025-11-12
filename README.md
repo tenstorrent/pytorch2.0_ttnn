@@ -10,16 +10,22 @@ By leveraging the TT-NN backend, you can achieve significant performance improve
 
 ### Installation
 
-Install from the repo:
+**For PyPI users** (recommended):
 ```bash
-pip install git+https://bitbucket.org/tenstorrent/pytorch2.0_ttnn
+pip install torch-ttnn[pypi]
 ```
-or as an editable package from source:
+
+**For development** (building from source):
 ```bash
-git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
-cd pytorch2.0_ttnn
-pip install -e .
+# Full build process - see docs/BuildFlow.md for details
+cd ${TT_METAL_HOME}
+./build_metal.sh --release --enable-ccache
+./create_venv.sh
+source python_env/bin/activate
+pip install -e path/to/pytorch2.0_ttnn[dev]
 ```
+
+**Note**: The `[pypi]` extra is required to install the `ttnn` runtime dependency. Without it, you'll get an import error.
 
 ### ✨ Basic Usage
 
@@ -244,15 +250,21 @@ To get started with development, you'll need a Wormhole or Blackhole Tenstorrent
 * can be ordered on the [Tenstorrent website](https://tenstorrent.com/) 
 * can be requested on [Koyeb](https://www.koyeb.com/blog/tenstorrent-cloud-instances-unveiling-next-gen-ai-accelerators)
 
-Install the development dependencies:
+Install the development dependencies and build the project (including the C++
+extension) in editable mode from the tt-metal virtual environment created by
+`create_venv.sh`:
 ```shell
-pip install -r requirements-dev.txt
-pip install -e .
+pip install -e .[dev]
 ```
 
-You can build the wheel file with
+To rebuild the native extension after changing C++ sources, re-run the
+installation command. The scikit-build-core backend will reuse the build
+directory and pick up code changes automatically. See [build.md](build.md) for a
+detailed walkthrough of the recommended workflow.
+
+You can build a distributable wheel by running the modern PEP 517 build flow:
 ```shell
-python -m build
+python -m build --wheel
 ```
 
 ## Project Structure
