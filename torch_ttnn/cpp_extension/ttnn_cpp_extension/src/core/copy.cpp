@@ -35,12 +35,12 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
 
             auto self_bfloat16_storage_ptr = static_cast<bfloat16*>(self.storage().data_ptr().get());
 
-            // Create TTNN Tensor on CPU using borrowed HostBuffer with lifetime pin
+            // Create TTNN Tensor on CPU using borrowed data with lifetime pin
             auto self_tensor_shared = std::make_shared<at::Tensor>(self);
-            tt::tt_metal::HostBuffer host_buffer(
+            ttnn::Tensor src_cpu = ttnn::Tensor::from_borrowed_data(
                 ttsl::Span<bfloat16>(self_bfloat16_storage_ptr, logical_volume),
+                logical_shape,
                 tt::tt_metal::MemoryPin(self_tensor_shared));
-            ttnn::Tensor src_cpu = ttnn::Tensor(host_buffer, logical_shape, dtype, ttnn::Layout::ROW_MAJOR);
 
             ttnn::Tensor src_dev = ttnn::operations::core::to_device(src_cpu, ttnn_device, std::nullopt);
 
@@ -53,11 +53,12 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
             auto self_int = self.toType(at::ScalarType::Int);
             auto self_int_storage_ptr = static_cast<uint32_t*>(self_int.storage().data_ptr().get());
 
-            // First create ttnn Tensor on CPU using borrowed HostBuffer with lifetime pin
+            // Create ttnn Tensor on CPU using borrowed data with lifetime pin
             auto self_int_shared = std::make_shared<at::Tensor>(self_int);
-            tt::tt_metal::HostBuffer host_buffer_u32(
-                ttsl::Span<uint32_t>(self_int_storage_ptr, logical_volume), tt::tt_metal::MemoryPin(self_int_shared));
-            ttnn::Tensor src_cpu = ttnn::Tensor(host_buffer_u32, logical_shape, dtype, ttnn::Layout::ROW_MAJOR);
+            ttnn::Tensor src_cpu = ttnn::Tensor::from_borrowed_data(
+                ttsl::Span<uint32_t>(self_int_storage_ptr, logical_volume),
+                logical_shape,
+                tt::tt_metal::MemoryPin(self_int_shared));
 
             // Initialized as ROW_MAJOR for this dtype because of an issue with ttnn.embedding if this tensor was
             // converted later: https://github.com/tenstorrent/tt-metal/issues/22257
