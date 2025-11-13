@@ -41,6 +41,12 @@ cmake_minimum_required(VERSION 3.23)
 # - TT-Metal: Provides TT::Metalium and TTNN::* targets
 #             Discovered via CMake package configs installed in Phase 1
 #             Location: ${TT_METAL_HOME}/install/lib/cmake/
+#             NOTE: Uses find_package(tt-metalium CONFIG) discovery instead of
+#                   add_subdirectory(tt-metal) because:
+#                   1. TT-Metal is pre-built separately (Phase 1), not part of our build
+#                   2. Using add_subdirectory would rebuild TT-Metal - duplication & waste
+#                   3. find_package integrates pre-built binaries cleanly via CMake targets
+#                   4. This pattern is standard for consuming external packages
 #
 # - PyTorch:  Provides Torch, torch_python, Python extension API
 #             Discovered via torch.utils.cmake_prefix_path
