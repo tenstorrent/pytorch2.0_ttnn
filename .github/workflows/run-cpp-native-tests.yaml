@@ -19,16 +19,13 @@ on:
         description: "Docker container tag to use"
         required: false
         type: string
-        default: "ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest"
+        default: "ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest"
 
 jobs:
   cpp-extension-tests:
     runs-on: ["in-service", "nfs"]
     container:
-      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest' }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -44,6 +41,13 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Prepare checkout
+        run: |
+          set -euxo pipefail
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+
       - uses: actions/checkout@v4
         with:
           lfs: true
