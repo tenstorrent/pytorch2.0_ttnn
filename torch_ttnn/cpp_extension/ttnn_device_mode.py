@@ -1,3 +1,36 @@
+"""PyTorch TTNN Device Backend Registration Module
+
+This module is CRITICAL for PyTorch's custom backend integration. It solves two key problems:
+
+1. PYTORCH BACKEND REGISTRATION PROBLEM:
+   - PyTorch requires a module at `torch.ttnn` when device strings like "ttnn:0" are used
+   - When PyTorch code encounters `device="ttnn:0"`, it automatically tries to `import torch.ttnn`
+   - This module registers our C++ extension as `sys.modules["torch.ttnn"]`
+   - Without this registration, ANY code using TTNN devices would fail with:
+     `ModuleNotFoundError: No module named 'torch.ttnn'`
+
+2. EDITABLE INSTALL IMPORT PROBLEM:
+   - The C++ extension (.so file) is installed to: site-packages/torch_ttnn_cpp_extension/
+   - Editable installs (`pip install -e .`) create package directories that override normal imports
+   - Standard `import ttnn_device_extension` fails because Python doesn't search site-packages first
+   - SOLUTION: Complex fallback chain that:
+     a) Tries direct import (works for non-editable installs)
+     b) Searches all site-packages directories for the .so file
+     c) Uses ExtensionFileLoader to manually load the compiled extension
+     d) Handles library loading errors (LD_LIBRARY_PATH issues, undefined symbols)
+
+ARCHITECTURE:
+-------------
+PyTorch Device Registration Flow:
+    User code: torch.zeros(10, device="ttnn:0")
+        ↓
+    PyTorch: import torch.ttnn  # Automatic import triggered by PyTorch internals
+        ↓
+    This module: sys.modules["torch.ttnn"] = ttnn_module
+        ↓
+    ttnn_device_extension.so: C++ extension with PyTorch backend implementation
+"""
+
 import torch
 from torch.overrides import TorchFunctionMode
 import logging
