@@ -122,17 +122,6 @@ jobs:
           export CMAKE_C_COMPILER="${CMAKE_C_COMPILER:-${CC}}"
           export CMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER:-${CXX}}"
           mkdir -p "${TT_METAL_TOOLS_DIR}"
-          # TODO: Drop this clang-format symlink once our tt-metal submodule includes
-          # https://github.com/tenstorrent/tt-metal/pull/29057, which relaxed the codegen
-          # dependency on clang-format living inside the venv.
-          if command -v clang-format-17 >/dev/null 2>&1; then
-            ln -sf "$(command -v clang-format-17)" "${TT_METAL_TOOLS_DIR}/clang-format"
-          elif command -v clang-format >/dev/null 2>&1; then
-            ln -sf "$(command -v clang-format)" "${TT_METAL_TOOLS_DIR}/clang-format"
-          else
-            echo "clang-format not found in PATH" >&2
-            exit 1
-          fi
           export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
           cd "${TT_METAL_HOME}"
           ./install_dependencies.sh
