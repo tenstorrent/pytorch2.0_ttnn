@@ -31,7 +31,6 @@ jobs:
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
-      TT_METAL_REF: main
       CCACHE_DIR: /root/.cache/ccache
       CPM_SOURCE_CACHE: /root/.cache/cpm
       CCACHE_BASEDIR: ${{ github.workspace }}
@@ -59,21 +58,19 @@ jobs:
           set -euxo pipefail
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           git config --global --add safe.directory "${GITHUB_WORKSPACE}/torch_ttnn/cpp_extension/third-party/tt-metal"
+          # Sync and update submodules - respects .gitmodules branch configuration
           git submodule sync --recursive
           git submodule update --init --recursive
           pushd torch_ttnn/cpp_extension/third-party/tt-metal
-          # Fetch latest changes and reset to remote branch
-          echo "Current TT_METAL_REF: ${TT_METAL_REF}"
-          git rev-parse HEAD || true
+          # Fetch all branches and tags to ensure we have the version specified in .gitmodules
           git fetch --all --tags --force --prune
-          git branch -r | grep -E "(main|${TT_METAL_REF})" || true
-          git checkout -B "${TT_METAL_REF}" "origin/${TT_METAL_REF}"
-          git reset --hard "origin/${TT_METAL_REF}"
-          git rev-parse HEAD || true
+          # Update to the branch specified in .gitmodules (no override)
           git submodule update --init --recursive --force
           git lfs fetch --all || true
           git lfs pull || true
-          git log --oneline -3
+          echo "Current tt-metal version:"
+          git log --oneline -1
+          git describe --tags || git rev-parse HEAD
           popd
 
       - name: Install system dependencies
@@ -98,13 +95,14 @@ jobs:
           ccache --zero-stats
 
       - name: Build and test
-        env:
-          TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
         run: |
           set -euxo pipefail
-          export TT_METAL_HOME
-          export PYTHON_ENV_DIR
-          export CPM_SOURCE_CACHE="${CPM_SOURCE_CACHE:-/root/.cache/cpm}"
+          # NOTE: TT_METAL_HOME is deprecated in latest tt-metal versions.
+          # CMake uses automatic discovery via find_package(tt-metal) to locate headers and libraries.
+          # We set it here only for legacy build script support, but it's not required for CMake builds.
+          export TT_METAL_HOME="${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal"
+          export PYTHON_ENV_DIR="${{ env.PYTHON_ENV_DIR }}"
+          export CPM_SOURCE_CACHE="${{ env.CPM_SOURCE_CACHE }}"
           export TT_METAL_TOOLS_DIR="${TT_METAL_HOME}/.local/bin"
           mkdir -p "${CPM_SOURCE_CACHE}"
           if ! command -v clang-17 >/dev/null 2>&1 || ! command -v clang++-17 >/dev/null 2>&1; then
