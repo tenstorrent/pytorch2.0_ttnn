@@ -5,7 +5,7 @@
 #include "ttnn_cpp_extension/core/TtnnGuard.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
-#include <tt_stl/assert.hpp>
+#include <tt-metalium/assert.hpp>
 
 // This function can be used when the TTNN device is initialized separately,
 // for example, `device = ttnn.open_device(device_index = 0)`. Pass that
