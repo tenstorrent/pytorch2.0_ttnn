@@ -1,5 +1,21 @@
 if (NOT DEFINED PYTHON_EXECUTABLE)
-  message(FATAL_ERROR "PYTHON_EXECUTABLE is not defined. Please set it to the path of your Python executable.")
+  # Try to get an interpreter from CMake's Python3 package first
+  find_package(Python3 COMPONENTS Interpreter QUIET)
+  if (DEFINED Python3_EXECUTABLE)
+    set(PYTHON_EXECUTABLE "${Python3_EXECUTABLE}")
+  else()
+    # Fallback to querying the active python3 on PATH
+    execute_process(
+      COMMAND python3 -c "import sys; print(sys.executable)"
+      OUTPUT_VARIABLE PYTHON_EXECUTABLE
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET
+    )
+  endif()
+endif()
+
+if (NOT PYTHON_EXECUTABLE)
+  message(FATAL_ERROR "Unable to determine Python interpreter. Set PYTHON_EXECUTABLE explicitly.")
 endif()
 
 execute_process(
