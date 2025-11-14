@@ -83,7 +83,9 @@ Repository = "https://github.com/tenstorrent/pytorch2.0_ttnn"
 [tool.scikit-build]
 cmake.version = ">=3.23"
 cmake.build-type = "Release"
+cmake.verbose = true
 wheel.packages = ["torch_ttnn"]
+logging.level = "INFO"
 
 [tool.scikit-build.cmake.define]
 CMAKE_EXPORT_COMPILE_COMMANDS = "ON"
