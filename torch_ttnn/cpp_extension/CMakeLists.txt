@@ -1,5 +1,17 @@
 cmake_minimum_required(VERSION 3.23)
 
+# Skip C++ extension build if SKIP_CPP_EXTENSION is set (for pure Python installations)
+if(DEFINED ENV{SKIP_CPP_EXTENSION} AND "$ENV{SKIP_CPP_EXTENSION}" STREQUAL "1")
+    message(STATUS "====================================================================")
+    message(STATUS "SKIP_CPP_EXTENSION=1 detected - skipping C++ extension build")
+    message(STATUS "Pure Python mode: torch-ttnn will be installed without native device support")
+    message(STATUS "To enable C++ extension:")
+    message(STATUS "  1. Unset SKIP_CPP_EXTENSION, or")
+    message(STATUS "  2. Build tt-metal and install normally")
+    message(STATUS "====================================================================")
+    return()
+endif()
+
 # =============================================================================
 # TTNN Device Extension Build System
 # =============================================================================
