@@ -16,16 +16,28 @@ pip install torch-ttnn[pypi]
 ```
 
 **For development** (building from source):
+
+1. Clone and build tt-metal:
 ```bash
-# Full build process - see docs/BuildFlow.md for details
-cd ${TT_METAL_HOME}
+git clone https://github.com/tenstorrent/tt-metal.git
+cd tt-metal
 ./build_metal.sh --release --enable-ccache
 ./create_venv.sh
 source python_env/bin/activate
-pip install -e path/to/pytorch2.0_ttnn[dev]
 ```
 
-**Note**: The `[pypi]` extra is required to install the `ttnn` runtime dependency. Without it, you'll get an import error.
+2. Clone and install pytorch2.0_ttnn:
+```bash
+cd ..
+git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
+cd pytorch2.0_ttnn
+pip install --upgrade pip scikit-build-core cmake ninja
+pip install -e .[dev]
+```
+
+> **📖 Detailed Instructions:** See [docs/BuildFlow.md](docs/BuildFlow.md) for complete build documentation and troubleshooting.
+
+**Note**: The `[pypi]` extra is required for PyPI users to install the `ttnn` runtime dependency. Without it, you'll get an import error.
 
 ### ✨ Basic Usage
 
