@@ -35,6 +35,27 @@ pip install --upgrade pip scikit-build-core cmake ninja
 pip install -e .[dev]
 ```
 
+**For Python-only installation** (without C++ extension):
+
+If you only need Python dependencies without building C++ extension:
+```bash
+git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
+cd pytorch2.0_ttnn
+# Set up tt-metal venv from submodule (no build step needed)
+cd torch_ttnn/cpp_extension/third-party/tt-metal
+./create_venv.sh
+source python_env/bin/activate
+cd ../../../..
+# Install pytorch2.0_ttnn in Python-only mode
+export SKIP_CPP_EXTENSION=1
+pip install -e .[pypi,dev]
+```
+
+This is useful for:
+- Installing Python dependencies only
+- Testing Python code without C++ toolchain
+- Quick setup without full compilation
+
 > **📖 Detailed Instructions:** See [docs/BuildFlow.md](docs/BuildFlow.md) for complete build documentation and troubleshooting.
 
 **Note**: The `[pypi]` extra is required for PyPI users to install the `ttnn` runtime dependency. Without it, you'll get an import error.
