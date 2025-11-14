@@ -68,7 +68,7 @@ cmake_minimum_required(VERSION 3.23)
 #
 # CONFIGURATION ENVIRONMENT VARIABLES
 # ====================================
-# TT_METAL_HOME       - Path to TT-Metal installation (REQUIRED)
+# TT_METAL_HOME       - Path to TT-Metal installation (optional, auto-detected from submodule)
 # TT_METAL_VERSION    - Override TT-Metal version detection (optional)
 # TORCH_ABI_FLAGS     - Force specific ABI flags (optional, auto-detected by default)
 # CMAKE_TOOLCHAIN_FILE - Use specific CMake toolchain (optional, auto-detected)
@@ -174,7 +174,7 @@ include(utils)
 # =============================================================================
 #
 # WHAT THIS SECTION DOES:
-#   1. Locates the TT-Metal installation directory (from TT_METAL_HOME env var)
+#   1. Locates the TT-Metal installation directory (from TT_METAL_HOME env var or submodule auto-detection)
 #   2. Detects TT-Metal version (from git tag, env var, or hardcoded default)
 #   3. This information is used for CMake package discovery below
 #
@@ -183,10 +183,14 @@ include(utils)
 #     - CMake package configs (lib/cmake/)
 #     - Compiled libraries
 #     - Header files
+#   If TT_METAL_HOME is not set, CMake auto-detects from third-party/tt-metal submodule
 #   VERSION_NUMERIC is metadata (for compatibility checks, version reporting)
 #
 # HOW IT WORKS:
-#   CMake checks (in order):
+#   TT_METAL_HOME resolution (in order):
+#     1. Environment variable TT_METAL_HOME (if set)
+#     2. Auto-detect from submodule: third-party/tt-metal (fallback)
+#   Version detection (in order):
 #     1. Environment variable TT_METAL_VERSION (CI override)
 #     2. Git tag in TT_METAL_HOME repo (automatic)
 #     3. Hardcoded fallback (safe default)
@@ -195,6 +199,7 @@ include(utils)
 # NOTE: This is purely informational. The build doesn't actually require
 #       a specific TT-Metal version—it works with whatever's installed.
 
+# Auto-detect TT_METAL_HOME from environment variable or use submodule path
 if(DEFINED ENV{TT_METAL_HOME} AND NOT DEFINED TT_METAL_HOME)
     set(_tt_metal_env "$ENV{TT_METAL_HOME}")
     
@@ -210,6 +215,20 @@ if(DEFINED ENV{TT_METAL_HOME} AND NOT DEFINED TT_METAL_HOME)
     
     set(TT_METAL_HOME "${_tt_metal_env}" CACHE PATH
         "Path to the tt-metal installation directory (contains lib/cmake/TT-Metalium)")
+elseif(NOT DEFINED TT_METAL_HOME)
+    # TT_METAL_HOME not set - auto-detect from submodule location
+    set(_submodule_path "${CMAKE_CURRENT_SOURCE_DIR}/third-party/tt-metal")
+    if(IS_DIRECTORY "${_submodule_path}")
+        set(TT_METAL_HOME "${_submodule_path}" CACHE PATH
+            "Path to the tt-metal installation directory (auto-detected from submodule)")
+        message(STATUS "TT_METAL_HOME auto-detected from submodule: ${TT_METAL_HOME}")
+    else()
+        message(FATAL_ERROR
+            "TT_METAL_HOME not set and submodule not found at ${_submodule_path}\n"
+            "Please either:\n"
+            "  1. Set TT_METAL_HOME environment variable, or\n"
+            "  2. Initialize git submodule: git submodule update --init --recursive")
+    endif()
 endif()
 
 # Determine TT-Metal version for metadata and compatibility checking
