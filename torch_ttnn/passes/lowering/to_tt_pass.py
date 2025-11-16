@@ -156,6 +156,7 @@ TTNN_POINTWISE_UNARY_OPS = {
     torch.ops.aten.tanh.default: ttnn.tanh,
     torch.ops.aten.tril.default: ttnn.tril,
     torch.ops.aten.trunc.default: ttnn.trunc,
+    torch.ops.aten.softplus.default: ttnn.softplus,
 }
 
 
@@ -905,7 +906,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 else:
                     return g.call_function(ttnn.reshape, (args[0], args[1]), {})
 
-            if node.target == torch.ops.aten.split.Tensor:
+            if node.target in [torch.ops.aten.split.Tensor, torch.ops.aten.split_with_sizes.default]:
                 if len(args[0].meta["val"].size()) == 1:
                     # For example, the input shape original is [768]
                     # But due to issue #390 it become [1, 768] and cause failed
@@ -919,14 +920,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 else:
                     split_dim = len(args[0].meta["val"].size()) + dim
 
-                # convert from PyTorch size of chunk to ttnn number of chunks
-                if isinstance(args[1], int):
-                    chunk_size = args[1]
-                else:
-                    # ttnn.split only supports chunks of same size.
-                    return None
-
-                new_args = (args[0], chunk_size, split_dim)
+                new_args = (args[0], args[1], split_dim)
                 return g.call_function(ttnn.split, args=new_args)
 
             if node.target == torch.ops.aten._to_copy.default:
