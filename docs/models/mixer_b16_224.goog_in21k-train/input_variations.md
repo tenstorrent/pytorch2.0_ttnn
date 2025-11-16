@@ -1,25 +1,30 @@
 # High Level Operations Status
 |    | Operations                              |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:----------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
-|  0 | aten.add.Tensor                         |                  2 |           2 |         0 |          0 | ✅          |       1 |
-|  1 | aten.addmm.default                      |                  4 |           4 |         0 |          0 | ✅          |       1 |
-|  2 | aten.clone.default                      |                  5 |           0 |         5 |          0 | ✅          |       1 |
-|  3 | aten.convolution.default                |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  4 | aten.convolution_backward.default       |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  5 | aten.div.Scalar                         |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  6 | aten.expand.default                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  7 | aten.gelu.default                       |                  2 |           2 |         0 |          0 | ✅          |       1 |
-|  8 | aten.gelu_backward.default              |                  2 |           0 |         0 |          0 | ✘           |       0 |
-|  9 | aten.mean.dim                           |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 10 | aten.mm.default                         |                 10 |          10 |         0 |          0 | ✅          |       1 |
-| 11 | aten.native_layer_norm.default          |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 12 | aten.native_layer_norm_backward.default |                  1 |           0 |         0 |          0 | ✘           |       0 |
-| 13 | aten.sum.dim_IntList                    |                  5 |           0 |         0 |          0 | ✘           |       0 |
-| 14 | aten.t.default                          |                 11 |          11 |         0 |          0 | ✅          |       1 |
-| 15 | aten.transpose.int                      |                  2 |           2 |         0 |          0 | ✅          |       1 |
-| 16 | aten.unsqueeze.default                  |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 17 | aten.view.default                       |                 15 |          15 |         0 |          0 | ✅          |       1 |
+|  0 | aten._unsafe_view.default               |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  1 | aten.add.Tensor                         |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  2 | aten.addmm.default                      |                  4 |           4 |         0 |          0 | ✅          |       1 |
+|  3 | aten.clone.default                      |                  5 |           0 |         5 |          0 | ✅          |       1 |
+|  4 | aten.convolution.default                |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.convolution_backward.default       |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.div.Scalar                         |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  7 | aten.expand.default                     |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  8 | aten.gelu.default                       |                  2 |           2 |         0 |          0 | ✅          |       1 |
+|  9 | aten.gelu_backward.default              |                  2 |           0 |         0 |          0 | ✘           |       0 |
+| 10 | aten.mean.dim                           |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 11 | aten.mm.default                         |                 10 |          10 |         0 |          0 | ✅          |       1 |
+| 12 | aten.native_layer_norm.default          |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 13 | aten.native_layer_norm_backward.default |                  1 |           0 |         0 |          0 | ✘           |       0 |
+| 14 | aten.sum.dim_IntList                    |                  5 |           0 |         0 |          0 | ✘           |       0 |
+| 15 | aten.t.default                          |                 11 |          11 |         0 |          0 | ✅          |       1 |
+| 16 | aten.transpose.int                      |                  2 |           2 |         0 |          0 | ✅          |       1 |
+| 17 | aten.unsqueeze.default                  |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 18 | aten.view.default                       |                 15 |          15 |         0 |          0 | ✅          |       1 |
 ***
+### aten._unsafe_view.default
+|    | ATen Input Variations                                          | Status   | Isolated   | PCC   | Host   |
+|---:|:---------------------------------------------------------------|:---------|:-----------|:------|:-------|
+|  0 | Tensor<[768, 384]> self = ?,<br>List[int] size = [1, 768, 384] | Done     | Unknown    | N/A   | N/A    |
 ### aten.add.Tensor
 |    | ATen Input Variations                                              | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
@@ -29,9 +34,9 @@
 |    | ATen Input Variations                                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[196]> self = ?,<br>Tensor<[768, 384]> mat1 = ?,<br>Tensor<[384, 196]> mat2 = ?   | Done     | Done       | 0.999972 |      0 |
-|  1 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ? | Done     | Done       | 0.999966 |      0 |
+|  1 | Tensor<[21843]> self = ?,<br>Tensor<[1, 768]> mat1 = ?,<br>Tensor<[768, 21843]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
 |  2 | Tensor<[3072]> self = ?,<br>Tensor<[196, 768]> mat1 = ?,<br>Tensor<[768, 3072]> mat2 = ? | Done     | Done       | 0.999967 |      0 |
-|  3 | Tensor<[768]> self = ?,<br>Tensor<[196, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | 0.999944 |      0 |
+|  3 | Tensor<[768]> self = ?,<br>Tensor<[196, 3072]> mat1 = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | 0.999943 |      0 |
 ### aten.clone.default
 |    | ATen Input Variations           | Status   | Isolated   |   PCC |   Host |
 |---:|:--------------------------------|:---------|:-----------|------:|-------:|
@@ -69,15 +74,15 @@
 ### aten.mean.dim
 |    | ATen Input Variations                                            | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | 0.999998 |      0 |
+|  0 | Tensor<[1, 196, 768]> self = ?,<br>Optional[List[int]] dim = [1] | Done     | Done       | 0.999997 |      0 |
 ### aten.mm.default
 |    | ATen Input Variations                                         | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 21843]> self = ?,<br>Tensor<[21843, 768]> mat2 = ? | Done     | Done       | 0.999483 |      0 |
+|  0 | Tensor<[1, 21843]> self = ?,<br>Tensor<[21843, 768]> mat2 = ? | Done     | Done       | 0.999493 |      0 |
 |  1 | Tensor<[196, 3072]> self = ?,<br>Tensor<[3072, 768]> mat2 = ? | Done     | Done       | 0.999944 |      0 |
 |  2 | Tensor<[196, 384]> self = ?,<br>Tensor<[384, 768]> mat2 = ?   | Done     | Done       | 0.999973 |      0 |
 |  3 | Tensor<[196, 768]> self = ?,<br>Tensor<[768, 3072]> mat2 = ?  | Done     | Done       | 0.999968 |      0 |
-|  4 | Tensor<[196, 768]> self = ?,<br>Tensor<[768, 384]> mat2 = ?   | Done     | Done       | 0.999964 |      0 |
+|  4 | Tensor<[196, 768]> self = ?,<br>Tensor<[768, 384]> mat2 = ?   | Done     | Done       | 0.999963 |      0 |
 |  5 | Tensor<[21843, 1]> self = ?,<br>Tensor<[1, 768]> mat2 = ?     | Done     | Done       | 0.999992 |      0 |
 |  6 | Tensor<[3072, 196]> self = ?,<br>Tensor<[196, 768]> mat2 = ?  | Done     | Done       | 0.999982 |      0 |
 |  7 | Tensor<[384, 768]> self = ?,<br>Tensor<[768, 196]> mat2 = ?   | Done     | Done       | 0.999964 |      0 |
@@ -86,7 +91,7 @@
 ### aten.native_layer_norm.default
 |    | ATen Input Variations                                                                                                                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 196, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-06 | Done     | Done       | 0.998738 |      3 |
+|  0 | Tensor<[1, 196, 768]> input = ?,<br>List[int] normalized_shape = [768],<br>Optional[Tensor]<[768]> weight = ?,<br>Optional[Tensor]<[768]> bias = ?,<br>float eps = 1e-06 | Done     | Done       | 0.998722 |      3 |
 ### aten.native_layer_norm_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                       | Status   | Isolated   |   PCC |   Host |
 |---:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
