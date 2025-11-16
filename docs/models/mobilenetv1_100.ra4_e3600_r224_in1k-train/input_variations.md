@@ -2,21 +2,20 @@
 |    | Operations                                       |   Input Variations |   Converted |   Removed |   Fallback | Completed   |   Score |
 |---:|:-------------------------------------------------|-------------------:|------------:|----------:|-----------:|:------------|--------:|
 |  0 | aten._native_batch_norm_legit_functional.default |                 10 |           0 |         0 |          0 | ✘           |       0 |
-|  1 | aten._to_copy.default                            |                  6 |           0 |         0 |          0 | ✘           |       0 |
-|  2 | aten.add.Tensor                                  |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  3 | aten.addmm.default                               |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  4 | aten.convolution.default                         |                 19 |          19 |         0 |          0 | ✅          |       1 |
-|  5 | aten.convolution_backward.default                |                 19 |           0 |         0 |          0 | ✘           |       0 |
-|  6 | aten.div.Scalar                                  |                  1 |           0 |         0 |          0 | ✘           |       0 |
-|  7 | aten.expand.default                              |                  1 |           1 |         0 |          0 | ✅          |       1 |
-|  8 | aten.hardtanh.default                            |                 10 |          10 |         0 |          0 | ✅          |       1 |
-|  9 | aten.hardtanh_backward.default                   |                 10 |           0 |         0 |          0 | ✘           |       0 |
-| 10 | aten.mean.dim                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
-| 11 | aten.mm.default                                  |                  2 |           2 |         0 |          0 | ✅          |       1 |
-| 12 | aten.native_batch_norm_backward.default          |                 10 |           0 |         0 |          0 | ✘           |       0 |
-| 13 | aten.sum.dim_IntList                             |                  1 |           0 |         0 |          0 | ✘           |       0 |
-| 14 | aten.t.default                                   |                  3 |           3 |         0 |          0 | ✅          |       1 |
-| 15 | aten.view.default                                |                  3 |           3 |         0 |          0 | ✅          |       1 |
+|  1 | aten._to_copy.default                            |                  6 |           6 |         0 |          0 | ✅          |       1 |
+|  2 | aten.addmm.default                               |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  3 | aten.convolution.default                         |                 19 |          19 |         0 |          0 | ✅          |       1 |
+|  4 | aten.convolution_backward.default                |                 19 |           0 |         0 |          0 | ✘           |       0 |
+|  5 | aten.div.Scalar                                  |                  1 |           0 |         0 |          0 | ✘           |       0 |
+|  6 | aten.expand.default                              |                  1 |           1 |         0 |          0 | ✅          |       1 |
+|  7 | aten.hardtanh.default                            |                 10 |          10 |         0 |          0 | ✅          |       1 |
+|  8 | aten.hardtanh_backward.default                   |                 10 |           0 |         0 |          0 | ✘           |       0 |
+|  9 | aten.mean.dim                                    |                  1 |           1 |         0 |          0 | ✅          |       1 |
+| 10 | aten.mm.default                                  |                  2 |           2 |         0 |          0 | ✅          |       1 |
+| 11 | aten.native_batch_norm_backward.default          |                 10 |           0 |         0 |          0 | ✘           |       0 |
+| 12 | aten.sum.dim_IntList                             |                  1 |           0 |         0 |          0 | ✘           |       0 |
+| 13 | aten.t.default                                   |                  3 |           3 |         0 |          0 | ✅          |       1 |
+| 14 | aten.view.default                                |                  3 |           3 |         0 |          0 | ✅          |       1 |
 ***
 ### aten._native_batch_norm_legit_functional.default
 |    | ATen Input Variations                                                                                                                                                                                                                                          | Status   | Isolated   |   PCC |   Host |
@@ -34,35 +33,31 @@
 ### aten._to_copy.default
 |    | ATen Input Variations                                                                                     | Status   | Isolated   |   PCC |   Host |
 |---:|:----------------------------------------------------------------------------------------------------------|:---------|:-----------|------:|-------:|
-|  0 | Tensor<[1024]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided | None     | Fallback   |     1 |     -1 |
-|  1 | Tensor<[128]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided  | None     | Fallback   |     1 |     -1 |
-|  2 | Tensor<[256]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided  | None     | Fallback   |     1 |     -1 |
-|  3 | Tensor<[32]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided   | None     | Fallback   |     1 |     -1 |
-|  4 | Tensor<[512]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided  | None     | Fallback   |     1 |     -1 |
-|  5 | Tensor<[64]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided   | None     | Fallback   |     1 |     -1 |
-### aten.add.Tensor
-|    | ATen Input Variations                    | Status   | Isolated   | PCC   | Host   |
-|---:|:-----------------------------------------|:---------|:-----------|:------|:-------|
-|  0 | Tensor<[]> self = ?,<br>Tensor other = 1 | Done     | Unknown    | N/A   | N/A    |
+|  0 | Tensor<[1024]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided | Done     | Fallback   |     1 |     -1 |
+|  1 | Tensor<[128]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided  | Done     | Fallback   |     1 |     -1 |
+|  2 | Tensor<[256]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided  | Done     | Fallback   |     1 |     -1 |
+|  3 | Tensor<[32]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided   | Done     | Fallback   |     1 |     -1 |
+|  4 | Tensor<[512]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided  | Done     | Fallback   |     1 |     -1 |
+|  5 | Tensor<[64]> self = ?,<br>Optional[int] dtype = torch.bfloat16,<br>Optional[int] layout = torch.strided   | Done     | Fallback   |     1 |     -1 |
 ### aten.addmm.default
 |    | ATen Input Variations                                                                    | Status   | Isolated   |      PCC |   Host |
 |---:|:-----------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ? | Done     | Done       | 0.999962 |      0 |
+|  0 | Tensor<[1000]> self = ?,<br>Tensor<[1, 1024]> mat1 = ?,<br>Tensor<[1024, 1000]> mat2 = ? | Done     | Done       | 0.999961 |      0 |
 ### aten.convolution.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                       | Status   | Isolated   |      PCC |   Host |
 |---:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|:-----------|---------:|-------:|
 |  0 | Tensor<[1, 1024, 7, 7]> input = ?,<br>Tensor<[1024, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1024 | Done     | Done       | 0.999985 |      0 |
-|  1 | Tensor<[1, 1024, 7, 7]> input = ?,<br>Tensor<[1024, 1024, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | Done     | Done       | 0.999839 |      0 |
+|  1 | Tensor<[1, 1024, 7, 7]> input = ?,<br>Tensor<[1024, 1024, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1 | Done     | Done       | 0.999836 |      0 |
 |  2 | Tensor<[1, 128, 28, 28]> input = ?,<br>Tensor<[256, 128, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.99998  |      0 |
-|  3 | Tensor<[1, 128, 56, 56]> input = ?,<br>Tensor<[128, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 128  | Done     | Done       | 0.999984 |      0 |
+|  3 | Tensor<[1, 128, 56, 56]> input = ?,<br>Tensor<[128, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 128  | Done     | Done       | 0.999983 |      0 |
 |  4 | Tensor<[1, 128, 56, 56]> input = ?,<br>Tensor<[128, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 128  | Done     | Done       | 0.999983 |      0 |
-|  5 | Tensor<[1, 128, 56, 56]> input = ?,<br>Tensor<[128, 128, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.99998  |      0 |
+|  5 | Tensor<[1, 128, 56, 56]> input = ?,<br>Tensor<[128, 128, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.999981 |      0 |
 |  6 | Tensor<[1, 256, 14, 14]> input = ?,<br>Tensor<[512, 256, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.999965 |      0 |
-|  7 | Tensor<[1, 256, 28, 28]> input = ?,<br>Tensor<[256, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 256  | Done     | Done       | 0.999983 |      0 |
+|  7 | Tensor<[1, 256, 28, 28]> input = ?,<br>Tensor<[256, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 256  | Done     | Done       | 0.999984 |      0 |
 |  8 | Tensor<[1, 256, 28, 28]> input = ?,<br>Tensor<[256, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 256  | Done     | Done       | 0.999984 |      0 |
-|  9 | Tensor<[1, 256, 28, 28]> input = ?,<br>Tensor<[256, 256, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.999965 |      0 |
-| 10 | Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[32, 3, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | 0.999981 |      0 |
-| 11 | Tensor<[1, 32, 112, 112]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 32   | Done     | Done       | 0.999983 |      0 |
+|  9 | Tensor<[1, 256, 28, 28]> input = ?,<br>Tensor<[256, 256, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1  | Done     | Done       | 0.999966 |      0 |
+| 10 | Tensor<[1, 3, 224, 224]> input = ?,<br>Tensor<[32, 3, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1     | Done     | Done       | 0.999982 |      0 |
+| 11 | Tensor<[1, 32, 112, 112]> input = ?,<br>Tensor<[32, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 32   | Done     | Done       | 0.999984 |      0 |
 | 12 | Tensor<[1, 32, 112, 112]> input = ?,<br>Tensor<[64, 32, 1, 1]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [0, 0],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 1   | Done     | Done       | 0.999991 |      0 |
 | 13 | Tensor<[1, 512, 14, 14]> input = ?,<br>Tensor<[512, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [1, 1],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 512  | Done     | Done       | 0.999984 |      0 |
 | 14 | Tensor<[1, 512, 14, 14]> input = ?,<br>Tensor<[512, 1, 3, 3]> weight = ?,<br>Optional[Tensor] bias = ?,<br>List[int] stride = [2, 2],<br>List[int] padding = [1, 1],<br>List[int] dilation = [1, 1],<br>bool transposed = False,<br>List[int] output_padding = [0, 0],<br>int groups = 512  | Done     | Done       | 0.999984 |      0 |
@@ -133,7 +128,7 @@
 ### aten.mm.default
 |    | ATen Input Variations                                        | Status   | Isolated   |      PCC |   Host |
 |---:|:-------------------------------------------------------------|:---------|:-----------|---------:|-------:|
-|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 1024]> mat2 = ? | Done     | Done       | 0.999965 |      0 |
+|  0 | Tensor<[1, 1000]> self = ?,<br>Tensor<[1000, 1024]> mat2 = ? | Done     | Done       | 0.999969 |      0 |
 |  1 | Tensor<[1000, 1]> self = ?,<br>Tensor<[1, 1024]> mat2 = ?    | Done     | Done       | 0.999992 |      0 |
 ### aten.native_batch_norm_backward.default
 |    | ATen Input Variations                                                                                                                                                                                                                                                                                                                                                                             | Status   | Isolated   |   PCC |   Host |
