@@ -27,15 +27,12 @@ classifiers = [
 ]
 keywords = ["pytorch", "ttnn", "tenstorrent", "compiler", "machine-learning", "deep-learning"]
 dependencies = [
+    # Core runtime dependencies (required for all installations)
     "torch==2.7.1+cpu ; platform_machine == 'x86_64'",
     "torch==2.7.1 ; platform_machine == 'aarch64'",
     "torchvision==0.22.1+cpu ; platform_machine == 'x86_64'",
     "torchvision==0.22.1 ; platform_machine == 'aarch64'",
-    "tabulate==0.9.0",
-    "networkx==3.1",
-    "graphviz",
-    "matplotlib>=3.7.1",
-    "paramiko==3.5.1",
+    "graphviz",  # Used by torch_ttnn/fx_graphviz.py for GraphvizPass
     # NOTE: ttnn is NOT listed here because it comes from different sources:
     #   - Development builds: Built from source via torch_ttnn/cpp_extension/third-party/tt-metal/create_venv.sh
     #   - PyPI installations: Use the 'pypi' extra below
@@ -51,15 +48,23 @@ pypi = [
 ]
 
 dev = [
+    # Testing framework
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-timeout==2.2.0",
     "pytest-split==0.8.2",
+    # Code quality tools
     "black>=23.7.0",
     "isort>=5.12.0",
     "flake8>=6.1.0",
     "mypy>=1.5.0",
     "pre-commit>=3.3.3",
+    # Data analysis and visualization (used by tools/ only)
+    "tabulate==0.9.0",
+    "networkx==3.1",
+    "matplotlib>=3.7.1",
+    "paramiko==3.5.1",
+    # Model testing dependencies
     "transformers==4.38.0",
     "huggingface_hub[cli]>=0.25.2",
     "pandas==2.0.3",
