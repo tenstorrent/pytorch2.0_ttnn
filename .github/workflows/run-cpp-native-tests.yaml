@@ -58,80 +58,32 @@ jobs:
 
       - name: Synchronise tt-metal submodule
         run: |
-          set -euxo pipefail
+          set -eux
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
-          git config --global --add safe.directory "${GITHUB_WORKSPACE}/torch_ttnn/cpp_extension/third-party/tt-metal"
-          git config --global --add safe.directory '*'  # Allow all submodules
+          git config --global --add safe.directory '*'
           
-          # Clean any dirty state in submodules
-          git submodule foreach --recursive 'git clean -ffdx || true'
-          git submodule foreach --recursive 'git reset --hard || true'
+          # SUPER-CLEAN CHECKOUT: Remove and re-clone submodule
+          # Prevents stale ref errors when tt-metal force-pushes branches
+          TT_METAL_PATH="torch_ttnn/cpp_extension/third-party/tt-metal"
           
-          # Sync and update submodules - respects .gitmodules branch configuration
+          rm -rf "${TT_METAL_PATH}"
+          git submodule deinit -f "${TT_METAL_PATH}" 2>/dev/null || true
+          git submodule sync --recursive
+          git submodule update --init --force "${TT_METAL_PATH}"
+          
+          cd "${TT_METAL_PATH}"
+          git fetch --all --tags --force --prune
+          
+          # Nested submodules: tolerate stale refs (common when upstream force-pushes)
+          set +e
           git submodule sync --recursive
           git submodule update --init --recursive --force
-          
-          pushd torch_ttnn/cpp_extension/third-party/tt-metal
-          
-          # Clean any local modifications first
-          git clean -ffdx || true
-          git reset --hard HEAD || true
-          
-          # Fetch all branches and tags
-          echo "Fetching tt-metal refs..."
-          git fetch --all --tags --force --prune || {
-            echo "WARNING: git fetch had errors (possibly stale remote branches)"
-          }
-          
-          # Handle nested submodules with stale ref tolerance
-          echo "Synchronizing nested submodules (tolerating stale refs)..."
-          
-          # Clean nested submodule state
-          git submodule foreach --recursive 'git clean -ffdx || true' || true
-          git submodule foreach --recursive 'git reset --hard HEAD || true' || true
-          
-          # Deinitialize to clear any cached stale refs
-          git submodule deinit -f --all || true
-          
-          # Sync .gitmodules config
-          git submodule sync --recursive || true
-          
-          # Update with error tolerance (stale refs in nested submodules are common and non-fatal)
-          echo "Updating nested submodules (errors for stale refs are non-fatal)..."
-          set +e  # Don't fail CI on nested submodule fetch errors
-          git submodule update --init --recursive --force 2>&1 | tee /tmp/submodule_fetch.log
-          submodule_status=$?
           set -e
           
-          if [ $submodule_status -ne 0 ]; then
-            echo "===================================================================="
-            echo "WARNING: Some nested submodules failed to fetch (likely stale refs)"
-            echo "This is EXPECTED when upstream force-pushes branches."
-            echo "TT-Metal will still build successfully with available submodules."
-            echo "===================================================================="
-            # Show which submodules failed (for debugging)
-            if grep -q "Errors during submodule fetch" /tmp/submodule_fetch.log; then
-              echo "Failed submodules:"
-              grep "Errors during submodule fetch" /tmp/submodule_fetch.log || true
-            fi
-          else
-            echo "All nested submodules fetched successfully"
-          fi
+          git lfs fetch --all || true
+          git lfs pull || true
           
-          # LFS operations (optional - may not be needed)
-          git lfs fetch --all 2>&1 || echo "Git LFS fetch skipped or failed (non-fatal)"
-          git lfs pull 2>&1 || echo "Git LFS pull skipped or failed (non-fatal)"
-          
-          echo "===================================================================="
-          echo "TT-Metal submodule synchronized successfully"
-          echo "Current tt-metal version:"
-          git log --oneline -1
-          git describe --tags 2>/dev/null || git rev-parse HEAD
-          echo "===================================================================="
-          
-          popd
-          
-          echo "Submodule synchronization complete. Proceeding with build..."
+          echo "✓ TT-Metal: $(git log --oneline -1)"
 
       - name: Install system dependencies
         run: |
@@ -157,74 +109,39 @@ jobs:
       - name: Build and test
         run: |
           set -euxo pipefail
-          # NOTE: TT_METAL_HOME environment variable is no longer used.
-          # CMake auto-detects TT-Metal from the submodule at third-party/tt-metal.
-          # Using local variable for shell scripting convenience only (not exported to avoid conflicts).
+          # NOTE: TT_METAL_HOME is not exported (CMake auto-detects from submodule)
           TT_METAL_DIR="${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal"
           export PYTHON_ENV_DIR="${{ env.PYTHON_ENV_DIR }}"
           export CPM_SOURCE_CACHE="${{ env.CPM_SOURCE_CACHE }}"
           export TT_METAL_TOOLS_DIR="${TT_METAL_DIR}/.local/bin"
-          mkdir -p "${CPM_SOURCE_CACHE}"
-          if ! command -v clang-17 >/dev/null 2>&1 || ! command -v clang++-17 >/dev/null 2>&1; then
-            echo "clang-17/clang++-17 not found in PATH" >&2
-            exit 1
-          fi
-          export CC="${CC:-$(command -v clang-17)}"
-          export CXX="${CXX:-$(command -v clang++-17)}"
-          export CMAKE_C_COMPILER="${CMAKE_C_COMPILER:-${CC}}"
-          export CMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER:-${CXX}}"
-          mkdir -p "${TT_METAL_TOOLS_DIR}"
+          export CC="$(command -v clang-17)"
+          export CXX="$(command -v clang++-17)"
+          export CMAKE_C_COMPILER="${CC}"
+          export CMAKE_CXX_COMPILER="${CXX}"
+          export CMAKE_MAKE_PROGRAM="$(command -v ninja)"
+          mkdir -p "${CPM_SOURCE_CACHE}" "${TT_METAL_TOOLS_DIR}"
           export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
+          
           cd "${TT_METAL_DIR}"
-          
-          # Run install_dependencies.sh (requires root, should be root in container)
-          echo "Installing tt-metal dependencies..."
-          if [ "$EUID" -eq 0 ]; then
-            ./install_dependencies.sh
-          else
-            echo "ERROR: install_dependencies.sh requires root (running as UID: $EUID)" >&2
-            exit 1
-          fi
-          
-          # Clean build directories for fresh build
+          ./install_dependencies.sh
           rm -rf build build_Release "${PYTHON_ENV_DIR}"
-          NINJA_BIN="$(command -v ninja || true)"
-          if [[ -z "${NINJA_BIN}" ]]; then
-            echo "ninja not found in PATH" >&2
-            exit 1
-          fi
-          export CMAKE_MAKE_PROGRAM="${NINJA_BIN}"
-          # Build TT-Metal - generates build_Release/ with libraries and CMake configs
           ./build_metal.sh --release --enable-ccache
           ./create_venv.sh
-          if [[ ! -f "${PYTHON_ENV_DIR}/bin/activate" ]]; then
-            echo "Expected virtual environment not found at ${PYTHON_ENV_DIR}" >&2
-            find "${TT_METAL_DIR}" -maxdepth 2 -type d -print >&2 || true
-            exit 1
-          fi
           source "${PYTHON_ENV_DIR}/bin/activate"
           export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
           python -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
           python -m pip install --upgrade pip
           python -m pip install --upgrade "scikit-build-core<0.11" cmake ninja
-          # Check if this is a ttnn-wheel-update PR (triggered by automated dependency update)
-          # If so, use [pypi,dev] to test the new ttnn version
-          # Otherwise use [dev] only (preserves locally built ttnn)
+          # Install torch-ttnn: [pypi,dev] for ttnn updates, [dev] for regular builds
           if git log --oneline -1 | grep -q "Update dependencies to"; then
-            echo "Detected ttnn wheel update PR - installing with [pypi,dev] to test new ttnn"
             python -m pip install -e "${GITHUB_WORKSPACE}"[pypi,dev]
           else
-            echo "Regular build - installing with [dev] only (uses local ttnn)"
             python -m pip install -e "${GITHUB_WORKSPACE}"[dev]
           fi
-          # NOTE: LD_LIBRARY_PATH is no longer required!
-          # The extension's RPATH is configured to include PyTorch's library directory automatically.
-          # CMake sets BUILD_RPATH="$ORIGIN:${PYTORCH_LIB_DIR}" during the build process.
-          echo "Running C++ extension functionality tests"
+          
+          # Run tests (no LD_LIBRARY_PATH needed - RPATH configured automatically)
           python -m pytest "${GITHUB_WORKSPACE}/tests/cpp_extension/test_cpp_extension_functionality.py" -v
-          echo "Running BERT C++ extension tests"
           python -m pytest "${GITHUB_WORKSPACE}/tests/cpp_extension/test_bert_cpp_extension.py" -v
-          echo "Running models C++ extension tests"
           python -m pytest "${GITHUB_WORKSPACE}/tests/models" --native_integration -v
           ccache --show-stats
 
