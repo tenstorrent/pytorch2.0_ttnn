@@ -5,7 +5,15 @@
 #include "ttnn_cpp_extension/core/TtnnGuard.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
 
+// TEMPORARY: Conditional include for tt-metal main branch compatibility testing
+// TODO: Remove conditional after tt-metal version is stabilized and pinned
+// Future versions (main branch, post-Oct 2025): <tt_stl/assert.hpp>
+// Current pinned versions (v0.64.x and earlier): <tt-metalium/assert.hpp>
+#if __has_include(<tt_stl/assert.hpp>)
+#include <tt_stl/assert.hpp>
+#else
 #include <tt-metalium/assert.hpp>
+#endif
 
 // This function can be used when the TTNN device is initialized separately,
 // for example, `device = ttnn.open_device(device_index = 0)`. Pass that
