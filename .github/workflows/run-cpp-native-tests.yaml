@@ -61,19 +61,44 @@ jobs:
           set -euxo pipefail
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           git config --global --add safe.directory "${GITHUB_WORKSPACE}/torch_ttnn/cpp_extension/third-party/tt-metal"
+          git config --global --add safe.directory '*'  # Allow all submodules
+          
+          # Clean any dirty state in submodules
+          git submodule foreach --recursive 'git clean -ffdx || true'
+          git submodule foreach --recursive 'git reset --hard || true'
+          
           # Sync and update submodules - respects .gitmodules branch configuration
           git submodule sync --recursive
-          git submodule update --init --recursive
-          pushd torch_ttnn/cpp_extension/third-party/tt-metal
-          # Fetch all branches and tags to ensure we have the version specified in .gitmodules
-          git fetch --all --tags --force --prune
-          # Update to the branch specified in .gitmodules (no override)
           git submodule update --init --recursive --force
+          
+          pushd torch_ttnn/cpp_extension/third-party/tt-metal
+          
+          # Fetch all branches and tags to ensure we have the version specified in .gitmodules
+          git fetch --all --tags --force --prune || {
+            echo "WARNING: git fetch failed, attempting cleanup and retry..."
+            git clean -ffdx
+            git reset --hard HEAD
+            git fetch --all --tags --force --prune
+          }
+          
+          # Update nested submodules with error handling
+          git submodule sync --recursive
+          git submodule foreach --recursive 'git clean -ffdx || true'
+          git submodule foreach --recursive 'git reset --hard || true'
+          git submodule update --init --recursive --force || {
+            echo "WARNING: Some nested submodules failed to fetch. Continuing with available refs..."
+            # Attempt to update what we can
+            git submodule update --init --recursive --force --remote || true
+          }
+          
+          # LFS operations (optional - may not be needed)
           git lfs fetch --all || true
           git lfs pull || true
+          
           echo "Current tt-metal version:"
           git log --oneline -1
           git describe --tags || git rev-parse HEAD
+          
           popd
 
       - name: Install system dependencies
