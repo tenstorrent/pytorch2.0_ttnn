@@ -295,19 +295,21 @@ pip install torch-ttnn[pypi,dev]
 ```
 
 **What's included in the wheel**:
-- Pre-compiled `ttnn_device_extension.so`
-- Bundled tt-metal runtime libraries (`libtt_metal.so`, `libtt_stl.so`)
-- Self-contained via `$ORIGIN` RPATH (no environment setup needed)
+- Pre-compiled `ttnn_device_extension.so` (768 KB, 96% smaller than bundling approach)
+- **NO bundled libraries** - uses RPATH to find dependencies from packages
+- Self-contained via `$ORIGIN` RPATH pointing to `ttnn` package
 
 **Runtime requirements**:
 - PyTorch installed (automatic dependency via pip)
 - `ttnn` Python package installed (automatic dependency via pip, version pinned in `pyproject.toml`)
+  - The `ttnn` package provides tt-metal libraries (`libtt_metal.so`, `libtt_stl.so`, etc.)
+  - Extension finds them via RPATH: `$ORIGIN/../../ttnn/build/lib`
 - No build tools required
 - No `LD_LIBRARY_PATH` or other environment variables needed
 
 **Key differences from dev builds**:
 - `ttnn` package comes from PyPI (not built locally)
-- tt-metal libraries are bundled in the wheel (not from `${TT_METAL_HOME}`)
+- **NO library duplication** - extension uses libraries from `ttnn` package (768 KB wheel vs 21 MB if bundled)
 - No compilation happens on user's machine
 - Smaller, focused dependency set (no build tools)
 

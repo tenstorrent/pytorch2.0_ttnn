@@ -1,30 +1,36 @@
 # Develop with TT-Metal build from source
-It is often best to develop the compiler with metal build from sources instead of relying on a pre-built ttnn wheel.
-This document provides hints on how to do that.
 
-## Set up TT-Metal
-Fetch repo and install dependencies
+This document shows how to develop pytorch2.0_ttnn with tt-metal built from source (using the git submodule).
+
+> **📖 For complete build instructions:** See [docs/BuildFlow.md](BuildFlow.md)
+
+---
+
+## Quick Start
+
+TT-Metal lives as a **git submodule** at `torch_ttnn/cpp_extension/third-party/tt-metal`. The build system automatically detects it.
+
+### 1. Clone and initialize submodule
 ```console
-git clone https://github.com/tenstorrent/tt-metal.git
-cd tt-metal
-sudo ./install_dependencies.sh
+git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
+cd pytorch2.0_ttnn
+```
+
+### 2. Build tt-metal from the submodule
+```console
+cd torch_ttnn/cpp_extension/third-party/tt-metal
 git submodule update --init --recursive
-```
-setup env
-```console
-export ARCH_NAME=wormhole_b0
-export TT_METAL_HOME=$(pwd) 
-export PYTHONPATH=$(pwd) 
-```
-build the repo
-```console
+sudo ./install_dependencies.sh
+export ARCH_NAME=wormhole_b0  # Optional, for development
 ./build_metal.sh --debug --build-tests
-```
-setup and activate the env
-```console
 ./create_venv.sh
 source python_env/bin/activate
 ```
+
+**✅ No TT_METAL_HOME needed!** 
+- tt-metal scripts work fine without it (they operate within their directory)
+- pytorch2.0_ttnn CMake auto-detects the submodule
+- If you set TT_METAL_HOME anyway, pytorch2.0_ttnn will ignore it
 
 Things are going well if you can now call `ipython` and see something like this
 ```console
@@ -40,13 +46,29 @@ In [2]: print(ttnn.__file__)
 /home/ubuntu/tt-metal/ttnn/ttnn/__init__.py
 ```
 
+### 3. Install pytorch2.0_ttnn
+Return to pytorch2.0_ttnn root and install:
+```console
+cd ../../../../  # Return to pytorch2.0_ttnn root
+python -m pip install -e .[dev]
+```
+
+CMake will automatically detect tt-metal from the submodule. No `TT_METAL_HOME` needed.
+
+---
+
 ## Run tests
-At this stage Python can see `ttnn` package, but not `torch_ttnn`. So we need to update `PYTHONPATH` to include both tt-metal and pytorch2.0_ttnn folders.
-```consle
+At this stage Python can see both `ttnn` and `torch_ttnn` packages. You can verify:
+```console
+python -c "import ttnn; import torch_ttnn; print('✓ Both packages available')"
+```
+
+For PYTHONPATH-based development (without installing torch_ttnn), add both paths:
+```console
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 echo $PYTHONPATH
 ```
-You will see something like `/home/ubuntu/tt-metal/:/home/ubuntu/pytorch2.0_ttnn`
+You will see something like `/home/ubuntu/pytorch2.0_ttnn/torch_ttnn/cpp_extension/third-party/tt-metal:/home/ubuntu/pytorch2.0_ttnn`
 
 You can check if python sees `torch_ttnn` package by importing it in `ipython`
 ```console
@@ -117,5 +139,28 @@ If you use VSCode, setup `launch.json` in a similar manner
 Now you can set a breakpoint in c++ file and it will be hit when you run a python script.
 You can also use bt to see more information from python execution.
 
-## Native cpp integration
-- **Externa tt-metal and Pytorch build** is a way to develop with meatal sources with native cpp extension
+---
+
+## Notes
+
+### TT_METAL_HOME Environment Variable
+
+**Short answer: Never set it. It's not needed.**
+
+**Details:**
+- ✅ **tt-metal scripts** (`build_metal.sh`, `create_venv.sh`, `install_dependencies.sh`) - **DO NOT need** `TT_METAL_HOME`
+- ✅ **pytorch2.0_ttnn build** (`pip install -e .`) - **DO NOT need** `TT_METAL_HOME` (CMake auto-detects from submodule)
+- ⚠️ **Some tt-metal test scripts** MAY reference it - but they're not used in normal pytorch2.0_ttnn development
+
+**If you set it anyway:**
+- pytorch2.0_ttnn build will **detect, warn, and unset** it to prevent conflicts between TT projects
+
+**Recommendation:**
+```console
+# Just don't set it - everything works without it!
+cd torch_ttnn/cpp_extension/third-party/tt-metal
+./build_metal.sh  # ✓ Works
+./create_venv.sh  # ✓ Works
+cd ../../../../
+pip install -e .[dev]  # ✓ Works (CMake auto-detects submodule)
+```
