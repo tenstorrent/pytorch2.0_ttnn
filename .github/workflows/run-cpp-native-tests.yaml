@@ -100,13 +100,13 @@ jobs:
       - name: Build and test
         run: |
           set -euxo pipefail
-          # NOTE: TT_METAL_HOME is deprecated in latest tt-metal versions.
-          # CMake uses automatic discovery via find_package(tt-metal) to locate headers and libraries.
-          # We set it here only for legacy build script support, but it's not required for CMake builds.
-          export TT_METAL_HOME="${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal"
+          # NOTE: TT_METAL_HOME environment variable is no longer used.
+          # CMake auto-detects TT-Metal from the submodule at third-party/tt-metal.
+          # Using local variable for shell scripting convenience only (not exported to avoid conflicts).
+          TT_METAL_DIR="${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal"
           export PYTHON_ENV_DIR="${{ env.PYTHON_ENV_DIR }}"
           export CPM_SOURCE_CACHE="${{ env.CPM_SOURCE_CACHE }}"
-          export TT_METAL_TOOLS_DIR="${TT_METAL_HOME}/.local/bin"
+          export TT_METAL_TOOLS_DIR="${TT_METAL_DIR}/.local/bin"
           mkdir -p "${CPM_SOURCE_CACHE}"
           if ! command -v clang-17 >/dev/null 2>&1 || ! command -v clang++-17 >/dev/null 2>&1; then
             echo "clang-17/clang++-17 not found in PATH" >&2
@@ -118,7 +118,7 @@ jobs:
           export CMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER:-${CXX}}"
           mkdir -p "${TT_METAL_TOOLS_DIR}"
           export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
-          cd "${TT_METAL_HOME}"
+          cd "${TT_METAL_DIR}"
           ./install_dependencies.sh
           rm -rf build build_Release "${PYTHON_ENV_DIR}"
           NINJA_BIN="$(command -v ninja || true)"
@@ -132,7 +132,7 @@ jobs:
           ./create_venv.sh
           if [[ ! -f "${PYTHON_ENV_DIR}/bin/activate" ]]; then
             echo "Expected virtual environment not found at ${PYTHON_ENV_DIR}" >&2
-            find "${TT_METAL_HOME}" -maxdepth 2 -type d -print >&2 || true
+            find "${TT_METAL_DIR}" -maxdepth 2 -type d -print >&2 || true
             exit 1
           fi
           source "${PYTHON_ENV_DIR}/bin/activate"

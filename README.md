@@ -17,20 +17,20 @@ pip install torch-ttnn[pypi]
 
 **For development** (building from source):
 
-1. Clone and build tt-metal:
+**Important**: TT-Metal is included as a git submodule. The build system **automatically detects** TT-Metal from the submodule and **actively ignores** the `TT_METAL_HOME` environment variable to prevent build conflicts when switching between TT projects.
+
+1. Clone with submodules and build tt-metal:
 ```bash
-git clone https://github.com/tenstorrent/tt-metal.git
-cd tt-metal
+git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
+cd pytorch2.0_ttnn/torch_ttnn/cpp_extension/third-party/tt-metal
 ./build_metal.sh --release --enable-ccache
 ./create_venv.sh
 source python_env/bin/activate
 ```
 
-2. Clone and install pytorch2.0_ttnn:
+2. Install pytorch2.0_ttnn:
 ```bash
-cd ..
-git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
-cd pytorch2.0_ttnn
+cd ../../../../  # Return to pytorch2.0_ttnn root
 pip install --upgrade pip scikit-build-core cmake ninja
 pip install -e .[dev]
 ```
@@ -292,13 +292,15 @@ pip install -e .[dev]
 
 To rebuild the native extension after changing C++ sources, re-run the
 installation command. The scikit-build-core backend will reuse the build
-directory and pick up code changes automatically. See [build.md](build.md) for a
+directory and pick up code changes automatically. See [docs/BuildFlow.md](docs/BuildFlow.md) for a
 detailed walkthrough of the recommended workflow.
 
 You can build a distributable wheel by running the modern PEP 517 build flow:
 ```shell
 python -m build --wheel
 ```
+
+**Note on TT_METAL_HOME**: If you have `TT_METAL_HOME` set in your environment (e.g., from working on tt-metal directly), the build system will detect it, display a warning, and **actively ignore** it. TT-Metal is always auto-detected from the git submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. This prevents build conflicts when switching between different TT projects (tt-metal, tt-train, pytorch2.0_ttnn).
 
 ## Project Structure
 

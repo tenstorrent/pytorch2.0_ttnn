@@ -30,18 +30,18 @@ endif()
 # This build follows a three-phase model:
 #
 # Phase 1: Build TT-Metal (run separately by user)
-#   Command: cd ${TT_METAL_HOME} && ./build_metal.sh --install-prefix=...
-#   Output:  CMake package configs, libraries, headers in ${TT_METAL_HOME}/install/
+#   Command: cd torch_ttnn/cpp_extension/third-party/tt-metal && ./build_metal.sh
+#   Output:  CMake package configs, libraries, headers in build_Release/
 #   Status:  COMPLETE before this script runs
 #
 # Phase 2: Create Python virtual environment (run separately by user)
-#   Command: cd ${TT_METAL_HOME} && ./create_venv.sh
-#   Output:  ${PYTHON_ENV_DIR} with Python interpreter and ttnn package
+#   Command: cd torch_ttnn/cpp_extension/third-party/tt-metal && ./create_venv.sh
+#   Output:  python_env/ with Python interpreter and ttnn package
 #   Status:  COMPLETE before this script runs
 #
 # Phase 3: Build this extension (this script)
 #   Command: python -m pip install -e .
-#   Input:   Pre-built TT-Metal, active venv with Python
+#   Input:   Pre-built TT-Metal (auto-detected from submodule), active venv with Python
 #   Output:  ttnn_device_extension module installed in site-packages
 #   Status:  THIS IS WHAT WE'RE DOING HERE
 #
@@ -52,13 +52,15 @@ endif()
 # ============
 # - TT-Metal: Provides TT::Metalium and TTNN::* targets
 #             Discovered via CMake package configs installed in Phase 1
-#             Location: ${TT_METAL_HOME}/install/lib/cmake/
+#             Location: third-party/tt-metal/build_Release/lib/cmake/
 #             NOTE: Uses find_package(tt-metalium CONFIG) discovery instead of
 #                   add_subdirectory(tt-metal) because:
 #                   1. TT-Metal is pre-built separately (Phase 1), not part of our build
 #                   2. Using add_subdirectory would rebuild TT-Metal - duplication & waste
 #                   3. find_package integrates pre-built binaries cleanly via CMake targets
 #                   4. This pattern is standard for consuming external packages
+#             IMPORTANT: TT_METAL_HOME environment variable is DEPRECATED and IGNORED.
+#                        TT-Metal is always auto-detected from submodule location.
 #
 # - PyTorch:  Provides Torch, torch_python, Python extension API
 #             Discovered via torch.utils.cmake_prefix_path
@@ -80,11 +82,14 @@ endif()
 #
 # CONFIGURATION ENVIRONMENT VARIABLES
 # ====================================
-# TT_METAL_HOME       - Path to TT-Metal installation (optional, auto-detected from submodule)
 # TT_METAL_VERSION    - Override TT-Metal version detection (optional)
 # TORCH_ABI_FLAGS     - Force specific ABI flags (optional, auto-detected by default)
 # CMAKE_TOOLCHAIN_FILE - Use specific CMake toolchain (optional, auto-detected)
 # OUTPUT_NAME         - Rename output extension module (optional)
+#
+# NOTE: TT_METAL_HOME is DEPRECATED and IGNORED. CMake auto-detects TT-Metal
+# from the submodule at third-party/tt-metal. This prevents build conflicts
+# when switching between different TT projects.
 #
 # TROUBLESHOOTING QUICK LINKS
 # ============================
@@ -100,18 +105,19 @@ endif()
 #
 # Priority order:
 # 1. Explicit CMAKE_TOOLCHAIN_FILE (user-specified)
-# 2. TT-Metal clang toolchains (if TT_METAL_HOME is set)
+# 2. TT-Metal clang toolchains (from auto-detected submodule)
 # 3. Fallback torch toolchain (bundled with this project)
 
 if(NOT CMAKE_TOOLCHAIN_FILE OR CMAKE_TOOLCHAIN_FILE STREQUAL "")
     set(_toolchain_candidates "")
 
-    # Check for TT-Metal provided toolchains (clang-17 based)
-    if(DEFINED ENV{TT_METAL_HOME} AND NOT "$ENV{TT_METAL_HOME}" STREQUAL "")
+    # Check for TT-Metal provided toolchains (clang-17 based) in submodule
+    set(_tt_metal_submodule_path "${CMAKE_CURRENT_SOURCE_DIR}/third-party/tt-metal")
+    if(IS_DIRECTORY "${_tt_metal_submodule_path}/cmake")
         foreach(_toolchain_name IN ITEMS
                 "x86_64-linux-clang-17-libstdcpp-toolchain.cmake"
                 "x86_64-linux-clang-17-libcpp-toolchain.cmake")
-            set(_candidate "$ENV{TT_METAL_HOME}/cmake/${_toolchain_name}")
+            set(_candidate "${_tt_metal_submodule_path}/cmake/${_toolchain_name}")
             if(EXISTS "${_candidate}")
                 list(APPEND _toolchain_candidates "${_candidate}")
             endif()
@@ -185,62 +191,54 @@ include(utils)
 # Section 4: TT-Metal Location and Version Detection
 # =============================================================================
 #
-# WHAT THIS SECTION DOES:
-#   1. Locates the TT-Metal installation directory (from TT_METAL_HOME env var or submodule auto-detection)
-#   2. Detects TT-Metal version (from git tag, env var, or hardcoded default)
-#   3. This information is used for CMake package discovery below
-#
-# WHY:
-#   TT_METAL_HOME tells CMake where to find:
-#     - CMake package configs (lib/cmake/)
-#     - Compiled libraries
-#     - Header files
-#   If TT_METAL_HOME is not set, CMake auto-detects from third-party/tt-metal submodule
-#   VERSION_NUMERIC is metadata (for compatibility checks, version reporting)
-#
-# HOW IT WORKS:
-#   TT_METAL_HOME resolution (in order):
-#     1. Environment variable TT_METAL_HOME (if set)
-#     2. Auto-detect from submodule: third-party/tt-metal (fallback)
-#   Version detection (in order):
-#     1. Environment variable TT_METAL_VERSION (CI override)
-#     2. Git tag in TT_METAL_HOME repo (automatic)
-#     3. Hardcoded fallback (safe default)
-#   We store this in VERSION_NUMERIC for downstream use
-#
-# NOTE: This is purely informational. The build doesn't actually require
-#       a specific TT-Metal version—it works with whatever's installed.
+# TT-Metal is auto-detected from submodule at third-party/tt-metal
+# $ENV{TT_METAL_HOME} is DEPRECATED and actively IGNORED (prevents build conflicts)
+# Version detected from git tag, TT_METAL_VERSION env var, or hardcoded default
 
-# Auto-detect TT_METAL_HOME from environment variable or use submodule path
-if(DEFINED ENV{TT_METAL_HOME} AND NOT DEFINED TT_METAL_HOME)
-    set(_tt_metal_env "$ENV{TT_METAL_HOME}")
-    
-    # AUTO-APPEND /install IF POINTING TO SOURCE DIR
-    # If user sets TT_METAL_HOME to the source directory (not /install), automatically append /install
-    # This handles both: export TT_METAL_HOME=/path/to/tt-metal  AND  export TT_METAL_HOME=/path/to/tt-metal/install
-    if(NOT _tt_metal_env MATCHES "/install$")
-        if(IS_DIRECTORY "${_tt_metal_env}/install")
-            set(_tt_metal_env "${_tt_metal_env}/install")
-            message(STATUS "TT_METAL_HOME auto-adjusted to: ${_tt_metal_env}")
-        endif()
-    endif()
-    
-    set(TT_METAL_HOME "${_tt_metal_env}" CACHE PATH
-        "Path to the tt-metal installation directory (contains lib/cmake/TT-Metalium)")
-elseif(NOT DEFINED TT_METAL_HOME)
-    # TT_METAL_HOME not set - auto-detect from submodule location
-    set(_submodule_path "${CMAKE_CURRENT_SOURCE_DIR}/third-party/tt-metal")
-    if(IS_DIRECTORY "${_submodule_path}")
-        set(TT_METAL_HOME "${_submodule_path}" CACHE PATH
-            "Path to the tt-metal installation directory (auto-detected from submodule)")
-        message(STATUS "TT_METAL_HOME auto-detected from submodule: ${TT_METAL_HOME}")
-    else()
-        message(FATAL_ERROR
-            "TT_METAL_HOME not set and submodule not found at ${_submodule_path}\n"
-            "Please either:\n"
-            "  1. Set TT_METAL_HOME environment variable, or\n"
-            "  2. Initialize git submodule: git submodule update --init --recursive")
-    endif()
+# Detect and ignore TT_METAL_HOME environment variable if set
+if(DEFINED ENV{TT_METAL_HOME} AND NOT "$ENV{TT_METAL_HOME}" STREQUAL "")
+    message(WARNING
+        "\n"
+        "========================================================================\n"
+        "WARNING: TT_METAL_HOME environment variable detected and IGNORED\n"
+        "========================================================================\n"
+        "\n"
+        "Detected: TT_METAL_HOME=$ENV{TT_METAL_HOME}\n"
+        "\n"
+        "This environment variable is DEPRECATED and will be IGNORED to prevent\n"
+        "build conflicts when switching between TT projects (tt-metal, tt-train, etc.).\n"
+        "\n"
+        "TT-Metal will be auto-detected from the submodule at:\n"
+        "  ${CMAKE_CURRENT_SOURCE_DIR}/third-party/tt-metal\n"
+        "\n"
+        "To suppress this warning: unset TT_METAL_HOME\n"
+        "========================================================================\n")
+    # Explicitly unset to prevent any accidental usage
+    unset(ENV{TT_METAL_HOME})
+endif()
+
+# TT-Metal is always at: third-party/tt-metal (git submodule)
+set(_submodule_path "${CMAKE_CURRENT_SOURCE_DIR}/third-party/tt-metal")
+if(IS_DIRECTORY "${_submodule_path}")
+    set(TT_METAL_SUBMODULE_DIR "${_submodule_path}" CACHE PATH
+        "Path to the tt-metal submodule directory (auto-detected)")
+    message(STATUS "✓ TT-Metal auto-detected from submodule: ${TT_METAL_SUBMODULE_DIR}")
+else()
+    message(FATAL_ERROR
+        "\n"
+        "========================================================================\n"
+        "FATAL: TT-Metal submodule not found\n"
+        "========================================================================\n"
+        "\n"
+        "Expected location: ${_submodule_path}\n"
+        "\n"
+        "SOLUTION: Initialize git submodules:\n"
+        "  cd ${CMAKE_SOURCE_DIR}\n"
+        "  git submodule update --init --recursive\n"
+        "\n"
+        "NOTE: TT_METAL_HOME environment variable is deprecated and ignored.\n"
+        "      TT-Metal is always auto-detected from the submodule location.\n"
+        "========================================================================\n")
 endif()
 
 # Determine TT-Metal version for metadata and compatibility checking
@@ -250,10 +248,10 @@ if(VERSION_NUMERIC STREQUAL "")
     if(DEFINED ENV{TT_METAL_VERSION} AND NOT "$ENV{TT_METAL_VERSION}" STREQUAL "")
         set(VERSION_NUMERIC "$ENV{TT_METAL_VERSION}" CACHE STRING "tt-metal version used to build the extension" FORCE)
     # Fall back to git tag detection
-    elseif(DEFINED TT_METAL_HOME AND EXISTS "${TT_METAL_HOME}/.git")
+    elseif(DEFINED TT_METAL_SUBMODULE_DIR AND EXISTS "${TT_METAL_SUBMODULE_DIR}/.git")
         execute_process(
             COMMAND git describe --abbrev=0 --tags
-            WORKING_DIRECTORY "${TT_METAL_HOME}"
+            WORKING_DIRECTORY "${TT_METAL_SUBMODULE_DIR}"
             OUTPUT_VARIABLE _tt_metal_tag
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
@@ -286,38 +284,35 @@ message(STATUS "Building extension for tt-metal version: ${VERSION_NUMERIC}")
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 
 # Build the list of directories to search for TT-Metal package configs
-# We search in order of likelihood: build_Release, install, user's TT_METAL_HOME, then system paths
+# We search in order of likelihood: build_Release, build_RelWithDebInfo, build, then root
 set(_tt_metal_search_paths "")
 
-# Primary search paths: Standard build output locations
-if(DEFINED TT_METAL_HOME AND NOT TT_METAL_HOME STREQUAL "")
-    # Add build_Release first (standard build_metal.sh output without --install-prefix)
-    if(IS_DIRECTORY "${TT_METAL_HOME}/build_Release")
-        list(APPEND _tt_metal_search_paths "${TT_METAL_HOME}/build_Release")
-        message(STATUS "Added TT-Metal search path (build_Release): ${TT_METAL_HOME}/build_Release")
+# Primary search paths: Standard build output locations from submodule
+if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
+    # Add build_Release first (standard build_metal.sh output)
+    if(IS_DIRECTORY "${TT_METAL_SUBMODULE_DIR}/build_Release")
+        list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}/build_Release")
+        message(STATUS "Added TT-Metal search path (build_Release): ${TT_METAL_SUBMODULE_DIR}/build_Release")
     endif()
     
     # Add build_RelWithDebInfo and build (alternative build types)
     foreach(_build_type IN ITEMS build_RelWithDebInfo build)
-        if(IS_DIRECTORY "${TT_METAL_HOME}/${_build_type}")
-            list(APPEND _tt_metal_search_paths "${TT_METAL_HOME}/${_build_type}")
-            message(STATUS "Added TT-Metal search path (${_build_type}): ${TT_METAL_HOME}/${_build_type}")
+        if(IS_DIRECTORY "${TT_METAL_SUBMODULE_DIR}/${_build_type}")
+            list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}/${_build_type}")
+            message(STATUS "Added TT-Metal search path (${_build_type}): ${TT_METAL_SUBMODULE_DIR}/${_build_type}")
         endif()
     endforeach()
     
-    # Add TT_METAL_HOME itself (legacy/alternative installations)
-    list(APPEND _tt_metal_search_paths "${TT_METAL_HOME}")
-    message(STATUS "Added TT-Metal search path (root): ${TT_METAL_HOME}")
+    # Add submodule root (legacy/alternative installations)
+    list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}")
+    message(STATUS "Added TT-Metal search path (root): ${TT_METAL_SUBMODULE_DIR}")
 endif()
 
 # CRITICAL FIX: Add TT-Metal's dependency paths to CMAKE_PREFIX_PATH
 # This allows CMake to find transitive dependencies (fmt, protobuf, umd, etc.)
 # that tt-metalium-config.cmake and tt-nn-config.cmake require
-if(DEFINED TT_METAL_HOME AND NOT TT_METAL_HOME STREQUAL "")
-    set(_tt_metal_install "${TT_METAL_HOME}")  # Already points to /install dir (auto-adjusted above)
-    set(_tt_metal_base "${_tt_metal_install}")
-    # Remove /install suffix if present to get source directory
-    string(REPLACE "/install" "" _tt_metal_base "${_tt_metal_base}")
+if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
+    set(_tt_metal_base "${TT_METAL_SUBMODULE_DIR}")
     
     # Priority 1: Add transitive deps from the actual TT-Metal build directory
     # (these are packages that tt-metalium depends on)
@@ -351,9 +346,8 @@ endif()
 # During CPM builds in TT-Metal, tt-logger-targets.cmake is generated in 
 # CMakeFiles/Export/*/tt-logger-targets.cmake instead of cmake/
 # This workaround MUST run BEFORE find_package calls that depend on tt-logger
-if(DEFINED TT_METAL_HOME AND NOT TT_METAL_HOME STREQUAL "")
-    set(_tt_metal_base "${TT_METAL_HOME}")  # Already points to /install dir
-    string(REPLACE "/install" "" _tt_metal_base "${_tt_metal_base}")
+if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
+    set(_tt_metal_base "${TT_METAL_SUBMODULE_DIR}")
     
     foreach(_build_type IN ITEMS build_Release build_RelWithDebInfo build)
         if(EXISTS "${_tt_metal_base}/${_build_type}/_deps/tt-logger-build/CMakeFiles")
@@ -421,7 +415,7 @@ if(NOT TARGET TT::Metalium)
         "FATAL: TT-Metalium CMake target not found!\n"
         "========================================================================\n"
         "\n"
-        "TT-Metal was found at: ${TT_METAL_HOME}\n"
+        "TT-Metal submodule location: ${TT_METAL_SUBMODULE_DIR}\n"
         "But it doesn't provide the expected TT::Metalium imported target.\n"
         "\n"
         "This usually means:\n"
@@ -430,11 +424,11 @@ if(NOT TARGET TT::Metalium)
         "\n"
         "To fix this, rebuild TT-Metal:\n"
         "\n"
-        "  cd ${TT_METAL_HOME}\n"
+        "  cd torch_ttnn/cpp_extension/third-party/tt-metal\n"
         "  ./build_metal.sh --release --enable-ccache\n"
         "\n"
         "This generates CMake package configs at:\n"
-        "  ${TT_METAL_HOME}/build_Release/lib/cmake/TT-MetaliumConfig.cmake\n"
+        "  torch_ttnn/cpp_extension/third-party/tt-metal/build_Release/lib/cmake/TT-MetaliumConfig.cmake\n"
         "\n"
         "After rebuilding, retry this project:\n"
         "  python -m pip install -e . --no-build-isolation --force-reinstall\n"
@@ -460,14 +454,14 @@ if(NOT _ttnn_targets_found)
         "FATAL: TTNN CMake targets not found!\n"
         "========================================================================\n"
         "\n"
-        "TT-Metal was found at: ${TT_METAL_HOME}\n"
+        "TT-Metal submodule location: ${TT_METAL_SUBMODULE_DIR}\n"
         "And it provides TT::Metalium, but no TTNN targets are available.\n"
         "\n"
         "This usually means TT-Metal was built without TTNN support.\n"
         "\n"
         "To fix this, rebuild TT-Metal:\n"
         "\n"
-        "  cd ${TT_METAL_HOME}\n"
+        "  cd torch_ttnn/cpp_extension/third-party/tt-metal\n"
         "  ./build_metal.sh --release --enable-ccache\n"
         "\n"
         "By default, TT-Metal builds WITH_PYTHON_BINDINGS=ON, which includes\n"
@@ -483,7 +477,7 @@ endif()
 
 # Debug Information: Provide diagnostic information for troubleshooting
 message(STATUS "TT-Metal Discovery Results:")
-message(STATUS "  TT_METAL_HOME: ${TT_METAL_HOME}")
+message(STATUS "  TT-Metal location (auto-detected): ${TT_METAL_SUBMODULE_DIR}")
 if(TT-Metalium_FOUND)
     message(STATUS "  TT-MetaliumConfig.cmake: ${TT-Metalium_CONFIG}")
 else()
@@ -884,14 +878,14 @@ endif()
 # Detect TT-Metal library directory for RPATH
 # This ensures the extension can find TT-Metal's libraries (libtracy, libtt_metal, etc.) at runtime
 set(_tt_metal_lib_dir "")
-if(DEFINED TT_METAL_HOME AND NOT TT_METAL_HOME STREQUAL "")
+if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
     # Check for build_Release first (standard build output)
-    if(EXISTS "${TT_METAL_HOME}/build_Release/lib")
-        set(_tt_metal_lib_dir "${TT_METAL_HOME}/build_Release/lib")
-    elseif(EXISTS "${TT_METAL_HOME}/build/lib")
-        set(_tt_metal_lib_dir "${TT_METAL_HOME}/build/lib")
-    elseif(EXISTS "${TT_METAL_HOME}/lib")
-        set(_tt_metal_lib_dir "${TT_METAL_HOME}/lib")
+    if(EXISTS "${TT_METAL_SUBMODULE_DIR}/build_Release/lib")
+        set(_tt_metal_lib_dir "${TT_METAL_SUBMODULE_DIR}/build_Release/lib")
+    elseif(EXISTS "${TT_METAL_SUBMODULE_DIR}/build/lib")
+        set(_tt_metal_lib_dir "${TT_METAL_SUBMODULE_DIR}/build/lib")
+    elseif(EXISTS "${TT_METAL_SUBMODULE_DIR}/lib")
+        set(_tt_metal_lib_dir "${TT_METAL_SUBMODULE_DIR}/lib")
     endif()
     
     if(_tt_metal_lib_dir)
@@ -988,9 +982,8 @@ if(NOT _ttnn_link_target)
         "Required: Either TTNN::CPP or TTNN::TTNN imported target\n"
         "\n"
         "Build TT-Metal with:\n"
-        "  ./build_metal.sh --release --enable-ccache --install-prefix=/path/to/install\n"
-        "\n"
-        "Ensure TT_METAL_HOME points to the installation directory.")
+        "  cd torch_ttnn/cpp_extension/third-party/tt-metal\n"
+        "  ./build_metal.sh --release --enable-ccache")
 endif()
 
 # Core linking dependencies for the extension

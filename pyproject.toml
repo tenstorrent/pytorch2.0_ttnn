@@ -37,7 +37,7 @@ dependencies = [
     "matplotlib>=3.7.1",
     "paramiko==3.5.1",
     # NOTE: ttnn is NOT listed here because it comes from different sources:
-    #   - Development builds: Built from source via ${TT_METAL_HOME}/create_venv.sh
+    #   - Development builds: Built from source via torch_ttnn/cpp_extension/third-party/tt-metal/create_venv.sh
     #   - PyPI installations: Use the 'pypi' extra below
     # This prevents pip from replacing locally built ttnn during development
 ]
