@@ -13,100 +13,29 @@ if(DEFINED ENV{SKIP_CPP_EXTENSION} AND "$ENV{SKIP_CPP_EXTENSION}" STREQUAL "1")
 endif()
 
 # =============================================================================
-# TTNN Device Extension Build System
+# torch_ttnn C++ Extension Build System
 # =============================================================================
 #
-# PROJECT OVERVIEW
-# ================
-# This CMakeLists.txt builds the ttnn_device_extension Python C++ extension,
-# which provides PyTorch integration with Tenstorrent's TTNN hardware acceleration.
+# Builds ttnn_device_extension module for PyTorch-TTNN integration
 #
-# The extension is a shared library (.so) that Python loads at runtime to add
-# TTNN device support to PyTorch. It bridges PyTorch's C++ API with TT-Metal's
-# hardware acceleration capabilities.
+# Prerequisites: ./build_cpp_extension.sh [BUILD_TYPE]
+# Documentation: docs/BuildFlow.md
 #
-# ARCHITECTURAL DESIGN
-# ====================
-# This build follows a three-phase model:
+# Key Features:
+# - Strict build type matching (CMAKE_BUILD_TYPE must match TT-Metal)
+# - Auto-detects TT-Metal from submodule (third-party/tt-metal/build_${CMAKE_BUILD_TYPE})
+# - Self-contained via RPATH (no LD_LIBRARY_PATH needed)
+# - TT_METAL_HOME deprecated and ignored
 #
-# Phase 1: Build TT-Metal (run separately by user)
-#   Command: cd torch_ttnn/cpp_extension/third-party/tt-metal && ./build_metal.sh
-#   Output:  CMake package configs, libraries, headers in build_Release/
-#   Status:  COMPLETE before this script runs
-#
-# Phase 2: Create Python virtual environment (run separately by user)
-#   Command: cd torch_ttnn/cpp_extension/third-party/tt-metal && ./create_venv.sh
-#   Output:  python_env/ with Python interpreter and ttnn package
-#   Status:  COMPLETE before this script runs
-#
-# Phase 3: Build this extension (this script)
-#   Command: python -m pip install -e .
-#   Input:   Pre-built TT-Metal (auto-detected from submodule), active venv with Python
-#   Output:  ttnn_device_extension module installed in site-packages
-#   Status:  THIS IS WHAT WE'RE DOING HERE
-#
-# KEY PRINCIPLE: This script ASSUMES Phases 1 and 2 are complete and valid.
-# If they're not, we provide clear error messages pointing to those phases.
-#
-# DEPENDENCIES
-# ============
-# - TT-Metal: Provides TT::Metalium and TTNN::* targets
-#             Discovered via CMake package configs installed in Phase 1
-#             Location: third-party/tt-metal/build_Release/lib/cmake/
-#             NOTE: Uses find_package(tt-metalium CONFIG) discovery instead of
-#                   add_subdirectory(tt-metal) because:
-#                   1. TT-Metal is pre-built separately (Phase 1), not part of our build
-#                   2. Using add_subdirectory would rebuild TT-Metal - duplication & waste
-#                   3. find_package integrates pre-built binaries cleanly via CMake targets
-#                   4. This pattern is standard for consuming external packages
-#             IMPORTANT: TT_METAL_HOME environment variable is DEPRECATED and IGNORED.
-#                        TT-Metal is always auto-detected from submodule location.
-#
-# - PyTorch:  Provides Torch, torch_python, Python extension API
-#             Discovered via torch.utils.cmake_prefix_path
-#             Verified: Must match Python interpreter's ABI
-#
-# - Python:   Development headers and libraries (Development.Module)
-#             Discovered via find_package(Python COMPONENTS Development.Module)
-#             Fallback: sysconfig-based discovery for edge cases
-#
-# CMAKE BEST PRACTICES
-# ====================
-# ✓ Use imported targets (TT::Metalium, TTNN::CPP, Torch::Torch, Python::Module)
-# ✓ Prefer find_package(CONFIG) over MODULE mode
-# ✓ Avoid global CMAKE_PREFIX_PATH modifications (except from PyTorch)
-# ✓ Use generator expressions for conditional compilation
-# ✓ Provide actionable error messages pointing to fixes
-# ✓ Generate compile_commands.json for IDE integration
-# ✓ Separate concerns: toolchain → Python → PyTorch → TT-Metal → build → install
-#
-# CONFIGURATION ENVIRONMENT VARIABLES
-# ====================================
-# TT_METAL_VERSION    - Override TT-Metal version detection (optional)
-# TORCH_ABI_FLAGS     - Force specific ABI flags (optional, auto-detected by default)
-# CMAKE_TOOLCHAIN_FILE - Use specific CMake toolchain (optional, auto-detected)
-# OUTPUT_NAME         - Rename output extension module (optional)
-#
-# NOTE: TT_METAL_HOME is DEPRECATED and IGNORED. CMake auto-detects TT-Metal
-# from the submodule at third-party/tt-metal. This prevents build conflicts
-# when switching between different TT projects.
-#
-# TROUBLESHOOTING QUICK LINKS
-# ============================
-# See end of this file for detailed comments on common issues.
+# Dependencies:
+# - TT-Metal: Pre-built, discovered via find_package(CONFIG)
+# - PyTorch: Discovered from Python environment
+# - Python: Development headers via find_package(Python)
+# =============================================================================
 
 # =============================================================================
-# Section 1: Toolchain and Compiler Setup
+# Toolchain Setup
 # =============================================================================
-#
-# CMake best practice: Use toolchain files for cross-compilation and complex
-# compiler setups. This project supports both TT-Metal's clang toolchains and
-# standard GCC/Clang installations.
-#
-# Priority order:
-# 1. Explicit CMAKE_TOOLCHAIN_FILE (user-specified)
-# 2. TT-Metal clang toolchains (from auto-detected submodule)
-# 3. Fallback torch toolchain (bundled with this project)
 
 if(NOT CMAKE_TOOLCHAIN_FILE OR CMAKE_TOOLCHAIN_FILE STREQUAL "")
     set(_toolchain_candidates "")
@@ -276,7 +205,8 @@ message(STATUS "Building extension for tt-metal version: ${VERSION_NUMERIC}")
 # =============================================================================
 #
 # Discovers TT-Metal CMake package configs from the build tree.
-# Phase 1 (build_metal.sh) creates configs in build_Release/lib/cmake/.
+# Phase 1 (build_metal.sh) creates configs in build_${CMAKE_BUILD_TYPE}/lib/cmake/.
+# STRICT: Uses ONLY the directory matching CMAKE_BUILD_TYPE (e.g., Debug → build_Debug)
 # Imports TT::Metalium and TTNN::* targets for linking.
 
 # Prefer config-mode packages (TT-MetaliumConfig.cmake) over MODULE mode
@@ -284,83 +214,88 @@ message(STATUS "Building extension for tt-metal version: ${VERSION_NUMERIC}")
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 
 # Build the list of directories to search for TT-Metal package configs
-# We search in order of likelihood: build_Release, build_RelWithDebInfo, build, then root
+# STRICT: We ONLY use the directory matching CMAKE_BUILD_TYPE
+# No fallbacks - Debug build must use Debug tt-metal, Release must use Release, etc.
 set(_tt_metal_search_paths "")
 
-# Primary search paths: Standard build output locations from submodule
-if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
-    # Add build_Release first (standard build_metal.sh output)
-    if(IS_DIRECTORY "${TT_METAL_SUBMODULE_DIR}/build_Release")
-        list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}/build_Release")
-        message(STATUS "Added TT-Metal search path (build_Release): ${TT_METAL_SUBMODULE_DIR}/build_Release")
-    endif()
+# Determine expected build directory based on CMAKE_BUILD_TYPE
+# Note: TT_METAL_SUBMODULE_DIR is already validated above, always defined at this point
+set(_expected_build_dir "build_${CMAKE_BUILD_TYPE}")
     
-    # Add build_RelWithDebInfo and build (alternative build types)
-    foreach(_build_type IN ITEMS build_RelWithDebInfo build)
-        if(IS_DIRECTORY "${TT_METAL_SUBMODULE_DIR}/${_build_type}")
-            list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}/${_build_type}")
-            message(STATUS "Added TT-Metal search path (${_build_type}): ${TT_METAL_SUBMODULE_DIR}/${_build_type}")
-        endif()
-    endforeach()
-    
-    # Add submodule root (legacy/alternative installations)
-    list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}")
-    message(STATUS "Added TT-Metal search path (root): ${TT_METAL_SUBMODULE_DIR}")
+# Check that the matching build directory exists
+if(NOT IS_DIRECTORY "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}")
+    message(FATAL_ERROR 
+        "========================================================================\n"
+        "TT-Metal build directory not found for CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n"
+        "\n"
+        "Expected: ${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}\n"
+        "\n"
+        "You must build TT-Metal in ${CMAKE_BUILD_TYPE} mode first:\n"
+        "  cd torch_ttnn/cpp_extension\n"
+        "  ./build_cpp_extension.sh ${CMAKE_BUILD_TYPE}\n"
+        "\n"
+        "Or manually:\n"
+        "  cd torch_ttnn/cpp_extension/third-party/tt-metal\n"
+        "  ./build_metal.sh -b ${CMAKE_BUILD_TYPE} --enable-ccache\n"
+        "========================================================================\n"
+    )
 endif()
+
+# Add ONLY the matching build directory (strict)
+list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}")
+message(STATUS "Using TT-Metal build directory: ${_expected_build_dir} (matches CMAKE_BUILD_TYPE)")
+
+# Add submodule root for toolchain files and other configs
+list(APPEND _tt_metal_search_paths "${TT_METAL_SUBMODULE_DIR}")
 
 # CRITICAL FIX: Add TT-Metal's dependency paths to CMAKE_PREFIX_PATH
 # This allows CMake to find transitive dependencies (fmt, protobuf, umd, etc.)
 # that tt-metalium-config.cmake and tt-nn-config.cmake require
-if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
-    set(_tt_metal_base "${TT_METAL_SUBMODULE_DIR}")
-    
-    # Priority 1: Add transitive deps from the actual TT-Metal build directory
-    # (these are packages that tt-metalium depends on)
-    foreach(_build_type IN ITEMS build_Release build_RelWithDebInfo build)
-        set(_build_dir "${_tt_metal_base}/${_build_type}")
-        if(IS_DIRECTORY "${_build_dir}/_deps")
-            # Add cmake configs from _deps/*-build directories
-            # EXCEPTION: Skip tt-logger-build because its config file has incorrect hardcoded paths
-            # to tt-logger-targets.cmake. The workaround above adds the correct Export directory instead.
-            file(GLOB _tt_metal_deps_dirs "${_build_dir}/_deps/*-build")
-            foreach(_dep_dir ${_tt_metal_deps_dirs})
-                if(EXISTS "${_dep_dir}" AND NOT _dep_dir MATCHES ".*tt-logger-build$")
-                    list(APPEND CMAKE_PREFIX_PATH "${_dep_dir}")
-                    message(STATUS "Added TT-Metal dep: ${_dep_dir}")
-                endif()
-            endforeach()
-            
-            # Also add the main lib/cmake directory for packages like umd that are installed there
-            if(EXISTS "${_build_dir}/lib/cmake")
-                list(APPEND CMAKE_PREFIX_PATH "${_build_dir}/lib/cmake")
-                message(STATUS "Added TT-Metal build cmake: ${_build_dir}/lib/cmake")
-            endif()
-            break()  # Found build dir, use it
+
+# Priority 1: Add transitive deps from the actual TT-Metal build directory
+# (these are packages that tt-metalium depends on)
+# Use ONLY the directory matching CMAKE_BUILD_TYPE
+set(_expected_build_dir "build_${CMAKE_BUILD_TYPE}")
+set(_build_dir "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}")
+if(IS_DIRECTORY "${_build_dir}/_deps")
+    # Add cmake configs from _deps/*-build directories
+    # EXCEPTION: Skip tt-logger-build because its config file has incorrect hardcoded paths
+    # to tt-logger-targets.cmake. The workaround below adds the correct Export directory instead.
+    file(GLOB _tt_metal_deps_dirs "${_build_dir}/_deps/*-build")
+    foreach(_dep_dir ${_tt_metal_deps_dirs})
+        if(EXISTS "${_dep_dir}" AND NOT _dep_dir MATCHES ".*tt-logger-build$")
+            list(APPEND CMAKE_PREFIX_PATH "${_dep_dir}")
+            message(STATUS "Added TT-Metal dep: ${_dep_dir}")
         endif()
     endforeach()
     
-    list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+    # Also add the main lib/cmake directory for packages like umd that are installed there
+    if(EXISTS "${_build_dir}/lib/cmake")
+        list(APPEND CMAKE_PREFIX_PATH "${_build_dir}/lib/cmake")
+        message(STATUS "Added TT-Metal build cmake: ${_build_dir}/lib/cmake")
+    endif()
+    message(STATUS "Added TT-Metal transitive dependency paths from: ${_build_dir}/_deps")
+else()
+    message(STATUS "No TT-Metal transitive dependencies directory found (may not be needed)")
 endif()
+
+list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
 
 # WORKAROUND: tt-logger CMake targets file location inconsistency (APPLY FIRST)
 # During CPM builds in TT-Metal, tt-logger-targets.cmake is generated in 
 # CMakeFiles/Export/*/tt-logger-targets.cmake instead of cmake/
 # This workaround MUST run BEFORE find_package calls that depend on tt-logger
-if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
-    set(_tt_metal_base "${TT_METAL_SUBMODULE_DIR}")
-    
-    foreach(_build_type IN ITEMS build_Release build_RelWithDebInfo build)
-        if(EXISTS "${_tt_metal_base}/${_build_type}/_deps/tt-logger-build/CMakeFiles")
-            # Find the actual export directory
-            file(GLOB _tt_logger_export_dirs 
-                "${_tt_metal_base}/${_build_type}/_deps/tt-logger-build/CMakeFiles/Export/*")
-            foreach(_export_dir ${_tt_logger_export_dirs})
-                if(EXISTS "${_export_dir}/tt-logger-targets.cmake")
-                    list(INSERT CMAKE_PREFIX_PATH 0 "${_export_dir}")
-                    message(STATUS "Added tt-logger workaround path (early): ${_export_dir}")
-                    break()
-                endif()
-            endforeach()
+
+# Use ONLY the directory matching CMAKE_BUILD_TYPE
+set(_expected_build_dir "build_${CMAKE_BUILD_TYPE}")
+if(EXISTS "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/_deps/tt-logger-build/CMakeFiles")
+    # Find the actual export directory
+    file(GLOB _tt_logger_export_dirs 
+        "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/_deps/tt-logger-build/CMakeFiles/Export/*")
+    foreach(_export_dir ${_tt_logger_export_dirs})
+        if(EXISTS "${_export_dir}/tt-logger-targets.cmake")
+            list(PREPEND CMAKE_PREFIX_PATH "${_export_dir}")
+            message(STATUS "WORKAROUND: Added tt-logger export path: ${_export_dir}")
             break()
         endif()
     endforeach()
@@ -428,7 +363,8 @@ if(NOT TARGET TT::Metalium)
         "  ./build_metal.sh --release --enable-ccache\n"
         "\n"
         "This generates CMake package configs at:\n"
-        "  torch_ttnn/cpp_extension/third-party/tt-metal/build_Release/lib/cmake/TT-MetaliumConfig.cmake\n"
+        "  torch_ttnn/cpp_extension/third-party/tt-metal/build_<TYPE>/lib/cmake/TT-MetaliumConfig.cmake\n"
+        "  (where <TYPE> is Release, Debug, RelWithDebInfo, etc.)\n"
         "\n"
         "After rebuilding, retry this project:\n"
         "  python -m pip install -e . --no-build-isolation --force-reinstall\n"
@@ -877,22 +813,17 @@ endif()
 
 # Detect TT-Metal library directory for RPATH
 # This ensures the extension can find TT-Metal's libraries (libtracy, libtt_metal, etc.) at runtime
+# STRICT: We ONLY use the directory matching CMAKE_BUILD_TYPE (no fallbacks)
+set(_expected_build_dir "build_${CMAKE_BUILD_TYPE}")
 set(_tt_metal_lib_dir "")
-if(DEFINED TT_METAL_SUBMODULE_DIR AND NOT TT_METAL_SUBMODULE_DIR STREQUAL "")
-    # Check for build_Release first (standard build output)
-    if(EXISTS "${TT_METAL_SUBMODULE_DIR}/build_Release/lib")
-        set(_tt_metal_lib_dir "${TT_METAL_SUBMODULE_DIR}/build_Release/lib")
-    elseif(EXISTS "${TT_METAL_SUBMODULE_DIR}/build/lib")
-        set(_tt_metal_lib_dir "${TT_METAL_SUBMODULE_DIR}/build/lib")
-    elseif(EXISTS "${TT_METAL_SUBMODULE_DIR}/lib")
-        set(_tt_metal_lib_dir "${TT_METAL_SUBMODULE_DIR}/lib")
-    endif()
-    
-    if(_tt_metal_lib_dir)
-        message(STATUS "Detected TT-Metal library directory for RPATH: ${_tt_metal_lib_dir}")
-    else()
-        message(WARNING "Could not detect TT-Metal library directory. Extension may fail to load TT-Metal libraries at runtime.")
-    endif()
+
+# Use ONLY the matching build directory (strict)
+if(EXISTS "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/lib")
+    set(_tt_metal_lib_dir "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/lib")
+    message(STATUS "Detected TT-Metal library directory for RPATH: ${_tt_metal_lib_dir}")
+else()
+    message(WARNING "TT-Metal library directory not found: ${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/lib")
+    message(WARNING "Extension may fail to load TT-Metal libraries at runtime.")
 endif()
 
 # Build comprehensive RPATH that includes PyTorch and TT-Metal library directories

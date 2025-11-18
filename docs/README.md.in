@@ -17,23 +17,27 @@ pip install torch-ttnn[pypi]
 
 **Important**: TT-Metal is included as a git submodule. The build system **automatically detects** TT-Metal from the submodule and **actively ignores** the `TT_METAL_HOME` environment variable to prevent build conflicts when switching between TT projects.
 
-1. Clone with submodules and build tt-metal:
 ```bash
+# 1. Clone and initialize submodules
 git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
-cd pytorch2.0_ttnn/torch_ttnn/cpp_extension/third-party/tt-metal
-./build_metal.sh --release --enable-ccache
-./create_venv.sh
-source python_env/bin/activate
+cd pytorch2.0_ttnn
+
+# 2. One-time setup: Install system dependencies
+cd torch_ttnn/cpp_extension/third-party/tt-metal
+sudo ./install_dependencies.sh
+cd -
+
+# 3. Build everything using the build script
+cd torch_ttnn/cpp_extension
+./build_cpp_extension.sh              # Builds everything (Release by default)
 ```
 
-2. Install pytorch2.0_ttnn:
-```bash
-cd ../../../../  # Return to pytorch2.0_ttnn root
-pip install --upgrade pip scikit-build-core cmake ninja
-pip install -e .[dev]
-```
+The build script handles:
+- Building TT-Metal from the submodule
+- Creating Python virtual environment
+- Installing torch-ttnn with C++ extension
 
-> **📖 Detailed Instructions:** See [docs/BuildFlow.md](docs/BuildFlow.md) for complete build documentation and troubleshooting.
+> **📖 Detailed Instructions:** See [docs/BuildFlow.md](docs/BuildFlow.md) for complete build documentation, all build types (Debug, RelWithDebInfo, etc.), and troubleshooting.
 
 **Note**: The `[pypi]` extra is required for PyPI users to install the `ttnn` runtime dependency. Development builds use the locally built ttnn from the submodule.
 

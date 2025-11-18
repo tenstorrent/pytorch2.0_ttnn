@@ -106,47 +106,33 @@ jobs:
           ccache --set-config=compression=true
           ccache --zero-stats
 
-      - name: Build and test
+      - name: Install TT-Metal system dependencies
         run: |
           set -euxo pipefail
-          TT_METAL_DIR="${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal"
-          export PYTHON_ENV_DIR="${{ env.PYTHON_ENV_DIR }}"
-          export CPM_SOURCE_CACHE="${{ env.CPM_SOURCE_CACHE }}"
-          export TT_METAL_TOOLS_DIR="${TT_METAL_DIR}/.local/bin"
-          export CC="$(command -v clang-17)"
-          export CXX="$(command -v clang++-17)"
-          export CMAKE_C_COMPILER="${CC}"
-          export CMAKE_CXX_COMPILER="${CXX}"
-          export CMAKE_MAKE_PROGRAM="$(command -v ninja)"
-          mkdir -p "${CPM_SOURCE_CACHE}" "${TT_METAL_TOOLS_DIR}"
-          export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
-          
-          cd "${TT_METAL_DIR}"
+          cd torch_ttnn/cpp_extension/third-party/tt-metal
           ./install_dependencies.sh
-          rm -rf build build_Release "${PYTHON_ENV_DIR}"
-          ./build_metal.sh --release --enable-ccache
-          ./create_venv.sh
-          source "${PYTHON_ENV_DIR}/bin/activate"
-          export PATH="${TT_METAL_TOOLS_DIR}:${PATH}"
-          python -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade "scikit-build-core<0.11" cmake ninja
-          # Install torch-ttnn: [pypi,dev] for ttnn updates, [dev] for regular builds
+      
+      - name: Build C++ extension
+        run: |
+          set -euxo pipefail
+          
+          # Check if this is a ttnn update PR (for testing new ttnn version from PyPI)
           if git log --oneline -1 | grep -q "Update dependencies to"; then
-            python -m pip install -e "${GITHUB_WORKSPACE}"[pypi,dev]
+            # Test new ttnn version from PyPI
+            bash torch_ttnn/cpp_extension/build_cpp_extension.sh Release --test-pypi-ttnn
           else
-            python -m pip install -e "${GITHUB_WORKSPACE}"[dev]
+            # Regular build with local ttnn
+            bash torch_ttnn/cpp_extension/build_cpp_extension.sh Release
           fi
+      
+      - name: Run tests
+        run: |
+          set -euxo pipefail
           
-          # WORKAROUND: tt-metal currently has broken auto-detection for source builds
-          # library_tweaks.py incorrectly looks for runtime at ttnn/ttnn/runtime/hw
-          # but in source builds it's at tt-metal/runtime/hw (parent directory)
-          export TT_METAL_HOME="${TT_METAL_DIR}"
+          # Run tests using the test runner script
+          bash torch_ttnn/cpp_extension/run_cpp_extension_tests.sh
           
-          # Run tests (no LD_LIBRARY_PATH needed - RPATH configured automatically)
-          python -m pytest "${GITHUB_WORKSPACE}/tests/cpp_extension/test_cpp_extension_functionality.py" -v
-          python -m pytest "${GITHUB_WORKSPACE}/tests/cpp_extension/test_bert_cpp_extension.py" -v
-          python -m pytest "${GITHUB_WORKSPACE}/tests/models" --native_integration -v
+          # Show ccache statistics
           ccache --show-stats
 
   tests-passed:
