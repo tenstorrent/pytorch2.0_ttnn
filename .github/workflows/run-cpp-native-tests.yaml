@@ -54,37 +54,20 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
-          submodules: recursive
+          submodules: recursive  # Let GitHub Actions handle all submodules
+          clean: true            # Clean working tree before checkout
 
-      - name: Synchronise tt-metal submodule
+      - name: Configure git safe directories
         run: |
-          set -eux
+          set -euxo pipefail
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           git config --global --add safe.directory '*'
-          
-          # SUPER-CLEAN CHECKOUT: Remove and re-clone submodule
-          # Prevents stale ref errors when tt-metal force-pushes branches
-          TT_METAL_PATH="torch_ttnn/cpp_extension/third-party/tt-metal"
-          
-          rm -rf "${TT_METAL_PATH}"
-          git submodule deinit -f "${TT_METAL_PATH}" 2>/dev/null || true
-          git submodule sync --recursive
-          git submodule update --init --force "${TT_METAL_PATH}"
-          
-          cd "${TT_METAL_PATH}"
-          git fetch --all --tags --force --prune
-          
-          # Nested submodules: tolerate stale refs (common when upstream force-pushes)
-          set +e
-          git submodule sync --recursive
-          git submodule update --init --recursive --force
-          set -e
-          
-          git lfs fetch --all || true
-          git lfs pull || true
-          
-          echo "✓ TT-Metal: $(git log --oneline -1)"
-
+      
+      - name: Initialize git submodules
+        run: |
+          set -euxo pipefail
+          git submodule update --init --recursive
+      
       - name: Install system dependencies
         run: |
           set -euxo pipefail
@@ -115,6 +98,9 @@ jobs:
       - name: Build C++ extension
         run: |
           set -euxo pipefail
+          
+          # Ensure git safe.directory is set for git commands
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}" || true
           
           # Check if this is a ttnn update PR (for testing new ttnn version from PyPI)
           if git log --oneline -1 | grep -q "Update dependencies to"; then

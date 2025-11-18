@@ -75,7 +75,8 @@ TT_METAL_DIR="${SCRIPT_DIR}/third-party/tt-metal"
 echo "> TT-Metal directory: ${TT_METAL_DIR}"
 
 # Check if tt-metal submodule exists
-if [[ ! -d "${TT_METAL_DIR}/.git" ]]; then
+# Note: In CI, .git might be a file (gitdir pointer), not a directory
+if [[ ! -e "${TT_METAL_DIR}/.git" && ! -f "${TT_METAL_DIR}/CMakeLists.txt" ]]; then
     echo ""
     echo "ERROR: tt-metal submodule not initialized"
     echo "Please run: git submodule update --init --recursive"
