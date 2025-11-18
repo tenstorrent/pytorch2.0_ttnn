@@ -85,7 +85,9 @@ jobs:
   build_cache_cpp_extension:
     runs-on: ["in-service", "nfs"]
     container:
-      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      # TODO: Using pinned tt-metal Docker image for project freeze (Nov 18, 2025)
+      # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce' }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}

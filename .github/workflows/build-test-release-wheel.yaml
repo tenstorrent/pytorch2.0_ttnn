@@ -13,7 +13,11 @@ jobs:
   build-wheel:
     runs-on: ["in-service"]
     container:
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      # TODO: Switched from pytorch2.0_ttnn images to tt-metal (as of Nov 18, 2025)
+      # pytorch2.0_ttnn images are no longer being built. Using pinned tt-metal digest for project freeze.
+      # Rationale: tt-metal images are public and provide all needed dependencies. No :latest tags.
+      # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
+      image: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -41,7 +45,8 @@ jobs:
     needs: [build-wheel]
     runs-on: ["in-service"]
     container:
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      # Using pinned tt-metal digest (see build-wheel job for details)
+      image: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -57,7 +62,8 @@ jobs:
     needs: [build-wheel]
     runs-on: ["in-service"]
     container:
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      # Using pinned tt-metal digest (see build-wheel job for details)
+      image: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -77,7 +83,8 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.wheel_type == 'release'}}
     runs-on: ["in-service"]
     container:
-      image: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest
+      # Using pinned tt-metal digest (see build-wheel job for details)
+      image: ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}

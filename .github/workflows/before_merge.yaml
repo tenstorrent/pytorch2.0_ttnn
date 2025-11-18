@@ -14,7 +14,10 @@ jobs:
     uses: ./.github/workflows/run-tests.yaml
     secrets: inherit
     with:
-      docker_tag: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
+      # TODO: Using pinned tt-metal Docker image for project freeze (Nov 18, 2025)
+      # Switched from pytorch2.0_ttnn:latest to tt-metal pinned digest for reproducibility
+      # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
+      docker_tag: 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce'
       commit_report: 'None'
 
   validate-pr:
