@@ -846,12 +846,8 @@ endif()
 if(_tt_metal_lib_dir)
     # BUILD_RPATH: Use absolute path to TT-Metal libraries for development builds
     set(_build_rpath "${_build_rpath}:${_tt_metal_lib_dir}")
-    # INSTALL_RPATH: Use ttnn package's libraries instead of bundling duplicates
-    # The extension is at: site-packages/torch_ttnn_cpp_extension/ttnn_device_extension
-    # ttnn package is at:  site-packages/ttnn/build/lib/ (wheel structure)
-    # We rely on ttnn package (hard dependency) to provide TT-Metal libraries
-    # Try both locations for compatibility with different ttnn wheel structures
-    set(_install_rpath "${_install_rpath}:\$ORIGIN/../../ttnn/build/lib:\$ORIGIN/../../ttnn")
+    # INSTALL_RPATH: No need to point to ttnn package - we bundle all libraries
+    # All TT-Metal libraries are in same directory as extension ($ORIGIN handles it)
 endif()
 
 # Module properties for Python extension
@@ -896,31 +892,17 @@ endif()
 # - Let CMake handle transitive dependencies automatically
 # - Use helper functions for complex linking logic
 
-# Determine which TTNN target to link against (TTNN::CPP is preferred)
-set(_ttnn_link_target "")
-if(TARGET TTNN::CPP)
-    set(_ttnn_link_target TTNN::CPP)
-    message(STATUS "Linking against TTNN::CPP (preferred TTNN target)")
-elseif(TARGET TTNN::TTNN)
-    set(_ttnn_link_target TTNN::TTNN)
-    message(STATUS "Linking against TTNN::TTNN (fallback TTNN target)")
-endif()
-
-if(NOT _ttnn_link_target)
+# Link against TTNN C++ API
+# tt-metal exports TTNN::TTNN target from tt-nn package
+if(NOT TARGET TTNN::TTNN)
     message(FATAL_ERROR
-        "No TTNN library targets found. TT-Metal must be built with TTNN support.\n"
-        "\n"
-        "Required: Either TTNN::CPP or TTNN::TTNN imported target\n"
-        "\n"
-        "Build TT-Metal with:\n"
-        "  cd torch_ttnn/cpp_extension/third-party/tt-metal\n"
-        "  ./build_metal.sh --release --enable-ccache")
+        "TTNN::TTNN target not found.\n"
+        "Rebuild TT-Metal: cd torch_ttnn/cpp_extension/third-party/tt-metal && ./build_metal.sh --release")
 endif()
 
-# Core linking dependencies for the extension
 set(_ttnn_link_libraries
     TT::Metalium        # Core TT-Metal functionality
-    ${_ttnn_link_target} # TTNN C++ API
+    TTNN::TTNN          # TTNN C++ API
     Python::Module      # Python extension API
 )
 
@@ -987,24 +969,32 @@ set(_ttnn_install_destination "${SKBUILD_PLATLIB_DIR}/torch_ttnn_cpp_extension")
 install(TARGETS ttnn_device_extension
         LIBRARY DESTINATION "${_ttnn_install_destination}")
 
-# NOTE: We do NOT bundle most TT-Metal libraries.
-# The ttnn package (hard dependency) provides: libtt_metal.so, libtt_stl.so, libdevice.so, _ttnncpp.so
-# INSTALL_RPATH is configured to find them via ../../ttnn/build/lib.
+# Bundle all TT-Metal libraries needed by the extension
+# Rationale: While PyPI ttnn wheel includes some libraries, RUNPATH doesn't work reliably
+# for transitive dependencies. Bundle all directly-needed libraries for guaranteed runtime loading.
 #
-# EXCEPTION: libtracy.so is NOT included in PyPI ttnn wheels (as of v0.62.0-dev20250916)
-# This is a ttnn PyPI wheel packaging bug - libtt_metal.so depends on libtracy but it's not included.
-# Workaround: Bundle all libtracy*.so variants from our build to ensure runtime availability.
-file(GLOB _tracy_libs "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/lib/libtracy*.so*")
-if(_tracy_libs)
-    install(FILES ${_tracy_libs}
-            DESTINATION "${_ttnn_install_destination}"
-            OPTIONAL)
-    message(STATUS "Will bundle libtracy.so* (workaround for ttnn PyPI wheel bug)")
-    foreach(_lib ${_tracy_libs})
-        get_filename_component(_lib_name "${_lib}" NAME)
-        message(STATUS "  - ${_lib_name}")
-    endforeach()
-else()
-    message(WARNING "libtracy.so not found - wheel may fail at runtime with PyPI ttnn")
-endif()
+# Libraries to bundle (all that extension directly links to):
+set(_required_tt_libs
+    libtt_metal.so
+    libtt_stl.so  
+    libdevice.so
+    libtracy.so
+    libtracy.so.0.10.0
+    _ttnncpp.so
+)
+
+message(STATUS "Bundling TT-Metal libraries for wheel distribution:")
+foreach(_lib_name ${_required_tt_libs})
+    set(_lib_path "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/lib/${_lib_name}")
+    if(EXISTS "${_lib_path}")
+        install(FILES "${_lib_path}"
+                DESTINATION "${_ttnn_install_destination}"
+                OPTIONAL)
+        message(STATUS "  ✓ ${_lib_name}")
+    else()
+        message(STATUS "  ⚠ ${_lib_name} (not found, may not be required)")
+    endif()
+endforeach()
+
+message(STATUS "Note: Bundling ensures runtime loading works even if PyPI ttnn wheel structure changes")
 

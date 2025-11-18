@@ -59,9 +59,9 @@ pip install torch-ttnn[pypi,dev]
 graph TD
     checkout[Checkout repo + submodules] --> deps[Install system deps]
     deps --> build_metal["Phase 1: ./build_metal.sh"]
-    build_metal -->|produces| lib_metal["libtt_metal.so / .a"]
-    build_metal -->|produces| lib_stl["libtt_stl.so / .a"]
-    build_metal -->|produces| python_bindings["_ttnn.so / _ttnncpp.so"]
+    build_metal -->|produces| lib_metal["libtt_metal.so"]
+    build_metal -->|produces| lib_stl["libtt_stl.so"]
+    build_metal -->|produces| python_bindings["_ttnn.so, _ttnncpp.so"]
     build_metal -->|produces| headers["build_<TYPE>/include/*"]
     classDef artifact fill:#fde68a,stroke:#fbbf24,stroke-width:1px,color:#1f2937;
     class lib_metal,lib_stl,python_bindings,headers artifact;
@@ -79,7 +79,7 @@ graph TD
 
     pip_install -->|builds| extension["ttnn_device_extension (build/…/torch_ttnn_cpp_extension)"]
     class extension artifact;
-    pip_install -->|installs| runtime_libs["site-packages/torch_ttnn_cpp_extension/{ttnn_device_extension,libtt_metal.so,libtt_stl.so}"]
+    pip_install -->|installs| runtime_libs["site-packages/torch_ttnn_cpp_extension/ttnn_device_extension"]
     class runtime_libs artifact;
 
     runtime_libs --> tests[Pytest suites & runtime import]
@@ -106,7 +106,7 @@ sequenceDiagram
     Dev Shell->>build_metal.sh: ./build_metal.sh --release --enable-ccache
     build_metal.sh->>CMake Configure: Configure tt-metal (toolchain, WITH_PYTHON_BINDINGS, BUILD_SHARED_LIBS)
     CMake Configure->>CMake Build: Generate build tree
-    CMake Build->>Artifacts_Phase1: libtt_metal.so/.a, libtt_stl.so/.a, _ttnn.so, _ttnncpp.so, headers
+    CMake Build->>Artifacts_Phase1: libtt_metal.so, libtt_stl.so, _ttnn.so, _ttnncpp.so, headers
 
     Dev Shell->>create_venv.sh: ./create_venv.sh
     create_venv.sh->>pip_ttnn: pip install -e tt-metal
@@ -117,7 +117,7 @@ sequenceDiagram
     pip_torch->>sbcore: build torch_ttnn_cpp_extension
     sbcore->>Artifacts_Phase1: consume headers, libtt_metal.so, libtt_stl.so
     sbcore->>Artifacts_Phase3: produce build/lib*/ttnn_device_extension
-    sbcore->>Artifacts_Phase3: install site-packages/torch_ttnn_cpp_extension/{ttnn_device_extension,libtt_metal.so,libtt_stl.so}
+    sbcore->>Artifacts_Phase3: install site-packages/torch_ttnn_cpp_extension/ttnn_device_extension
 
     Dev Shell->>Artifacts_Phase3: python -m pytest … (uses installed artifacts)
 ```
@@ -135,7 +135,7 @@ sequenceDiagram
 
     Script->>Configure: apply toolchain (clang-17) & cache settings
     Configure->>Build: generate ninja files (WITH_PYTHON_BINDINGS=ON)
-    Build->>Install: emit libtt_metal.so, libtt_stl.so, _ttnn.so, headers
+    Build->>Install: emit libtt_metal.so, libtt_stl.so, libtracy.so, _ttnn.so, headers
     Note over Install: Artifacts staged under build_<TYPE>/{lib,include}<br/>(build_Release, build_Debug, or build_RelWithDebInfo)
 ```
 
@@ -169,7 +169,7 @@ sequenceDiagram
     Dev Shell->>pipInstall: python -m pip install -e .[dev]
     pipInstall->>Skbuild: prepare build metadata (pyproject.toml)
     Skbuild->>CMake: configure torch_ttnn/cpp_extension
-    CMake->>RuntimePkg: install ttnn_device_extension + libtt_metal.so + libtt_stl.so
+    CMake->>RuntimePkg: install ttnn_device_extension + libtracy.so
     Note over RuntimePkg: RPATH=$ORIGIN enables self-contained runtime
 ```
 
@@ -223,9 +223,10 @@ The build artifacts are placed in a build directory named based on the build typ
 - **RelWithDebInfo build** (`--development`): `build_RelWithDebInfo/`
 
 Artifacts in `build_<TYPE>/`:
-- `lib/libtt_metal.so` / `libtt_metal.a`
-- `lib/libtt_stl.so` / `libtt_stl.a`
-- `lib/_ttnn.so`, `_ttnncpp.so`
+- `lib/libtt_metal.so`
+- `lib/libtt_stl.so`
+- `lib/libtracy.so`
+- `lib/_ttnn.so`, `lib/_ttnncpp.so`
 - `include/` - public headers
 - `lib/cmake/` - CMake package configs
 
@@ -307,7 +308,7 @@ The script automatically handles venv activation and TT_METAL_HOME setup.
 | --- | --- | --- | --- |
 | tt-metal build | `./build_metal.sh --release --enable-ccache` | `build_Release/lib/` → `libtt_metal.*`, `libtt_stl.*`, `_ttnn*.so`; `build_Release/include/`; `build_Release/lib/cmake/` → package configs | `create_venv.sh`, C++ extension via `find_package()` |
 | Python env provisioning | `./create_venv.sh` | `python_env/` with Python interpreter, `site-packages/ttnn/`, MPI libs | `python -m pip install -e .[dev]`, runtime imports |
-| torch-ttnn install | `python -m pip install -e .[dev]` | `site-packages/torch_ttnn/`; `site-packages/torch_ttnn_cpp_extension/ttnn_device_extension` + bundled `libtt_metal.so`, `libtt_stl.so`; editable `.pth` | Users, tests, downstream tooling |
+| torch-ttnn install | `python -m pip install -e .[dev]` | `site-packages/torch_ttnn/`; `site-packages/torch_ttnn_cpp_extension/ttnn_device_extension`; editable `.pth` | Users, tests, downstream tooling |
 | CMake build tree | (internal to scikit-build-core) | `torch_ttnn/cpp_extension/build/lib.*/torch_ttnn_cpp_extension/` | Debugging, incremental rebuilds |
 
 ## Development vs PyPI Distribution
@@ -377,43 +378,73 @@ python3 -m build --wheel --no-isolation
 **What's included in the wheel**:
 - `torch_ttnn/` Python package (all .py files, ~200KB)
 - `torch_ttnn_cpp_extension/ttnn_device_extension` (compiled extension, ~300KB)
-- `torch_ttnn_cpp_extension/libtracy.so*` (bundled, ~250KB - not in PyPI ttnn)
-- **Total size: ~750KB** (99% smaller than bundling all tt-metal libraries)
+- `torch_ttnn_cpp_extension/` bundled TT-Metal libraries (~43MB):
+  - `libtt_metal.so` (~13MB)
+  - `libdevice.so` (~5MB)
+  - `_ttnncpp.so` (~26MB)
+  - `libtt_stl.so` (~small)
+  - `libtracy.so*` (~8KB)
 
-**What's NOT included (kept out via `wheel.exclude`):**
-- ❌ `torch_ttnn/cpp_extension/third-party/` (entire tt-metal submodule - prevents 237MB bloat)
-- ❌ `torch_ttnn/cpp_extension/build/` (build artifacts)
-- ❌ `torch_ttnn/cpp_extension/*.sh` (build scripts)
-- ❌ Most TT-Metal libraries (provided by PyPI ttnn dependency)
 
-**Bundled libraries:**
-- ✅ `libtracy.so.0.10.0` - **Must bundle** (not included in PyPI ttnn wheels as of v0.62.0)
-- ❌ `libtt_metal.so` - From PyPI ttnn package (via RPATH)
-- ❌ `libtt_stl.so` - From PyPI ttnn package (via RPATH)
-- ❌ `libdevice.so` - From PyPI ttnn package (via RPATH)
+**Bundled libraries (all directly needed by extension):**
+- ✅ `libtt_metal.so` (~13MB)
+- ✅ `libtt_stl.so` (~small)
+- ✅ `libdevice.so` (~5MB)
+- ✅ `libtracy.so*` (~8KB)
+- ✅ `_ttnncpp.so` (~26MB)
 
-**RPATH configuration:**
+**About Library Duplication:**
+
+Yes, these libraries also exist in the PyPI ttnn package (`ttnn/build/lib/`), creating ~43MB duplication. This is intentional.
+
+**Why we bundle despite duplication:**
+
+1. **ttnn PyPI wheel bug:** libtracy.so is missing (libtt_metal.so depends on it but it's not included)
+2. **Hash suffix problem:** ttnn uses hash-suffixed names (`libdevice-9738860f.so`) but our extension expects standard names (`libdevice.so`)
+3. **RUNPATH limitations:** `$ORIGIN/../../ttnn/build/lib` doesn't work reliably because:
+   - Python module loading is complex (not simple dlopen)
+   - RUNPATH only for direct dependencies, not transitive
+   - Dynamic linker may not honor RUNPATH in all contexts
+4. **Not under our control:** ttnn wheel is packaged by tt-metal project, we can't fix their bugs
+
+**The clean solution (not possible now):**
+- Fix ttnn PyPI wheel packaging (include libtracy, no hash suffixes)
+- Use RUNPATH exclusively (no bundling)
+- torch-ttnn wheel: ~500KB (no duplication)
+- Requires: tt-metal project to fix their wheel
+
+**Current trade-off:**
+- Duplication: Yes (~87MB total installed)
+- Reliability: Guaranteed (extension always loads)
+- Self-contained: No dependency on ttnn package library structure
+
+See `docs/wheel_library_bundling.md` for detailed analysis.
+
+**RPATH configuration (simplified):**
 ```cmake
-INSTALL_RPATH: "$ORIGIN:$ORIGIN/../torch/lib:$ORIGIN/../../ttnn/build/lib:$ORIGIN/../../ttnn"
+INSTALL_RPATH: "$ORIGIN:$ORIGIN/../torch/lib"
 ```
-- `$ORIGIN`: Finds bundled libraries (libtracy.so) in same directory
+- `$ORIGIN`: Finds all bundled TT-Metal libraries in same directory
 - `$ORIGIN/../torch/lib`: Finds PyTorch libraries (libtorch.so, libc10.so)
-- `$ORIGIN/../../ttnn/build/lib`: Finds ttnn libraries (libtt_metal.so, libtt_stl.so)
+
+Note: We don't need `$ORIGIN/../../ttnn/build/lib` since all TT-Metal libraries are bundled.
 
 **Runtime requirements**:
 - PyTorch installed (automatic dependency via pip)
-- `ttnn` Python package installed (automatic dependency via pip, version pinned in `pyproject.toml`)
-  - The `ttnn` package provides most tt-metal libraries
-  - Extension finds them via RPATH (no LD_LIBRARY_PATH needed)
-- No build tools required
-- No environment variables needed
+- `ttnn` Python package required for:
+  - Python API (ttnn operations, device management)
+  - Note: Libraries in ttnn package are duplicates (our extension uses bundled copies)
+- No build tools required  
+- No environment variables needed (LD_LIBRARY_PATH not required)
+- All dependencies self-contained via `$ORIGIN` RPATH
 
 **Key differences from dev builds**:
-- `ttnn` package comes from PyPI (not built locally)
-- Only tracy is bundled (~250KB), other libraries from dependencies
-- No tt-metal submodule source code in wheel
-- No compilation happens on user's machine
-- Smaller, focused dependency set (no build tools)
+- `ttnn` package: From PyPI (not built locally from submodule)
+- Python source: Installed from wheel (not editable via .pth file)
+- Compilation: None (dev builds compile on user's machine)
+- Dependencies: Runtime only (dev builds need build toolchain)
+
+**Note:** Library bundling is the same for both dev and wheel installs (CMake INSTALL commands run in both cases).
 
 ### Dependency Strategy: `ttnn` Package
 
@@ -511,7 +542,7 @@ fi
 ### Build-Time Issues
 
 - **CMake can't find TT-Metal packages**: Ensure TT-Metal was built with `./build_metal.sh` (or use `build_cpp_extension.sh`). Check that `torch_ttnn/cpp_extension/third-party/tt-metal/build_<TYPE>/lib/cmake/tt-metalium-config.cmake` exists (where `<TYPE>` is `Release`, `Debug`, or `RelWithDebInfo`).
-- **Shared libraries missing at runtime**: Confirm `libtt_metal.so` and `libtt_stl.so` exist in `torch_ttnn/cpp_extension/third-party/tt-metal/build_<TYPE>/lib/` (where `<TYPE>` matches your build type). Re-run `python -m pip install -e .[dev] --no-build-isolation --force-reinstall` to rebuild the extension.
+- **Shared libraries missing at runtime**: Confirm libraries exist in `torch_ttnn/cpp_extension/third-party/tt-metal/build_<TYPE>/lib/` (libtt_metal.so, libtt_stl.so, libtracy.so). Re-run `python -m pip install -e .[dev] --no-build-isolation --force-reinstall` to rebuild the extension.
 - **`MPIX_Comm_revoke` unresolved**: Ensure the MPI installation used by the tt-metal build is accessible. For custom MPI installations (e.g., `/opt/openmpi-v5.0.7-ulfm/lib`), you may need to add it to `LD_LIBRARY_PATH`.
 - **`ModuleNotFoundError: ttnn_device_extension`**: Activate the tt-metal virtual environment before installing or testing, and import via `from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module`.
 - **Undefined symbol errors at runtime** (e.g., `_ZTIN3c109AllocatorE undefined symbol`): This indicates the extension can't find PyTorch's C++ libraries. Solutions:
