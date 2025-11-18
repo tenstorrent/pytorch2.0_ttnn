@@ -350,6 +350,30 @@ pip install torch-ttnn[pypi]
 pip install torch-ttnn[pypi,dev]
 ```
 
+**Building a wheel** (for maintainers):
+```bash
+# Prerequisites: Build tt-metal from submodule first
+cd torch_ttnn/cpp_extension
+./build_cpp_extension.sh Release
+cd ../..
+
+# Build wheel (skip sdist, use current directory with pre-built tt-metal)
+python3 -m build --wheel --no-isolation
+
+# Wheel created in: dist/torch_ttnn-*.whl
+```
+
+**Why --wheel --no-isolation:**
+- `--wheel`: Skips sdist creation (sdist would copy source to `/tmp/` without built libraries)
+- `--no-isolation`: Builds in current directory (not isolated venv)
+- Combined: CMake can access pre-built tt-metal in `torch_ttnn/cpp_extension/third-party/tt-metal/build_Release/`
+- Default behavior would fail: builds sdist → copies to `/tmp/` → can't find `build_Release/`
+
+**CI verification:**
+- Every commit automatically builds and tests the wheel
+- Wheel is tested with `[pypi]` extra (ttnn from PyPI) to simulate end-user experience
+- Tests run with wheel installation to verify functionality
+
 **What's included in the wheel**:
 - Pre-compiled `ttnn_device_extension.so` (768 KB, 96% smaller than bundling approach)
 - **NO bundled libraries** - uses RPATH to find dependencies from packages
@@ -441,6 +465,13 @@ fi
 - Runs the C++ extension, BERT, and model suites directly
 - No `LD_LIBRARY_PATH` needed (RPATH handles dependencies)
 - Prints final ccache statistics
+
+**Wheel verification**:
+- After tests pass, builds wheel with `python3 -m build --wheel --no-isolation`
+- Uninstalls both torch-ttnn AND ttnn (clean environment)
+- Installs wheel with `[pypi]` extra (gets ttnn from PyPI)
+- Re-runs tests with wheel installation to verify PyPI user experience
+- This ensures every commit produces a working wheel for end users
 
 ### update-ttnn-wheel.yaml
 

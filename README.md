@@ -297,8 +297,19 @@ detailed walkthrough of the recommended workflow.
 
 You can build a distributable wheel by running the modern PEP 517 build flow:
 ```shell
-python -m build --wheel
+# First ensure tt-metal is built from submodule
+cd torch_ttnn/cpp_extension
+./build_cpp_extension.sh Release
+cd ../..
+
+# Build wheel (skip sdist, use current directory with pre-built tt-metal)
+python3 -m build --wheel --no-isolation
 ```
+
+Note: 
+- Use `--wheel` to skip sdist creation (sdist copies to /tmp/ without built libraries)
+- Use `--no-isolation` to build in current directory with access to pre-built tt-metal
+- This allows CMake to find `build_Release/` directory from the submodule
 
 **Note on TT_METAL_HOME**: If you have `TT_METAL_HOME` set in your environment (e.g., from working on tt-metal directly), the build system will detect it, display a warning, and **actively ignore** it. TT-Metal is always auto-detected from the git submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. This prevents build conflicts when switching between different TT projects (tt-metal, tt-train, pytorch2.0_ttnn).
 

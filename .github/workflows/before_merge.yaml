@@ -20,10 +20,32 @@ jobs:
       docker_tag: 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce'
       commit_report: 'None'
 
+  build-wheel-check:
+    # Verify wheel can be built after tests pass (using submodule tt-metal)
+    # This ensures we can always build a distributable wheel
+    needs: [run-tests]
+    if: ${{ needs.run-tests.outputs.tests_passed == '0' }}
+    uses: ./.github/workflows/build-test-release-wheel.yaml
+    secrets: inherit
+    # Note: This only builds and tests the wheel, doesn't publish (no wheel_type input)
+
   validate-pr:
     if: ${{ always() }}
     runs-on: ubuntu-latest    
-    needs: [run-tests]
+    needs: [run-tests, build-wheel-check]
     steps:
       - run: |
-          exit ${{ needs.run-tests.outputs.tests_passed }}
+          tests_result=${{ needs.run-tests.outputs.tests_passed }}
+          wheel_result=${{ needs.build-wheel-check.result }}
+          
+          echo "Tests result: $tests_result"
+          echo "Wheel build result: $wheel_result"
+          
+          # Pass if tests passed AND wheel build succeeded (or was skipped)
+          if [[ "$tests_result" == "0" ]] && [[ "$wheel_result" == "success" || "$wheel_result" == "skipped" ]]; then
+            echo "✅ All checks passed"
+            exit 0
+          else
+            echo "❌ Checks failed"
+            exit 1
+          fi

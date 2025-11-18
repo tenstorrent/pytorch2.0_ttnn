@@ -130,6 +130,55 @@ jobs:
           
           # Show ccache statistics
           ccache --show-stats
+      
+      - name: Verify wheel can be built
+        run: |
+          set -euxo pipefail
+          
+          # After tests pass, verify wheel builds successfully (using submodule tt-metal)
+          # This ensures every commit can produce a distributable wheel
+          source torch_ttnn/cpp_extension/third-party/tt-metal/python_env/bin/activate
+          
+          # Ensure build dependencies are available
+          python3 -m pip install --upgrade build "scikit-build-core>=0.10,<0.11" wheel
+          
+          # Clean and build wheel
+          rm -rf dist/
+          # Use --wheel to skip sdist creation and --no-isolation to access pre-built tt-metal
+          # (building sdist first copies to /tmp/ without build_Release/)
+          python3 -m build --wheel --no-isolation
+          
+          # Show what was built
+          echo "✅ Wheel built successfully:"
+          ls -lh dist/
+      
+      - name: Test wheel installation and functionality
+        run: |
+          set -euxo pipefail
+          
+          # Activate venv
+          source torch_ttnn/cpp_extension/third-party/tt-metal/python_env/bin/activate
+          
+          echo "=== Uninstalling development installation ==="
+          # Remove BOTH torch-ttnn AND ttnn to simulate clean PyPI user environment
+          python3 -m pip uninstall -y torch-ttnn ttnn || true
+          
+          echo "=== Installing wheel with [pypi] extra ==="
+          # Install wheel WITH [pypi] extra to get ttnn from PyPI (replicates user experience)
+          WHEEL_FILE=$(ls -1 dist/*.whl | head -n 1)
+          echo "Installing: ${WHEEL_FILE}[pypi]"
+          python3 -m pip install "${WHEEL_FILE}[pypi]"
+          
+          echo "=== Verifying installation ==="
+          # Verify torch-ttnn is from wheel and ttnn is from PyPI
+          python3 -c "import torch_ttnn; print(f'✅ torch-ttnn from wheel: {torch_ttnn.__file__}')"
+          python3 -c "import ttnn; print(f'✅ ttnn from PyPI: {ttnn.__file__}')"
+          
+          echo "=== Running tests with wheel installation ==="
+          # Run tests again to verify wheel works exactly as PyPI users would experience
+          bash torch_ttnn/cpp_extension/run_cpp_extension_tests.sh
+          
+          echo "✅ Wheel verified - replicates PyPI user experience perfectly"
 
   tests-passed:
     if: ${{ always() }}
