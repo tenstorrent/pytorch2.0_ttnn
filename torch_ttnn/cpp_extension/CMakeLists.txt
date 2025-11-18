@@ -987,8 +987,24 @@ set(_ttnn_install_destination "${SKBUILD_PLATLIB_DIR}/torch_ttnn_cpp_extension")
 install(TARGETS ttnn_device_extension
         LIBRARY DESTINATION "${_ttnn_install_destination}")
 
-# NOTE: We do NOT bundle TT-Metal libraries here.
-# The ttnn package (hard dependency) already provides them in ttnn/build/lib/:
-#   - libtt_metal.so, libtt_stl.so, libdevice.so, libtracy.so, _ttnncpp.so
+# NOTE: We do NOT bundle most TT-Metal libraries.
+# The ttnn package (hard dependency) provides: libtt_metal.so, libtt_stl.so, libdevice.so, _ttnncpp.so
 # INSTALL_RPATH is configured to find them via ../../ttnn/build/lib.
+#
+# EXCEPTION: libtracy.so is NOT included in PyPI ttnn wheels (as of v0.62.0-dev20250916)
+# This is a ttnn PyPI wheel packaging bug - libtt_metal.so depends on libtracy but it's not included.
+# Workaround: Bundle all libtracy*.so variants from our build to ensure runtime availability.
+file(GLOB _tracy_libs "${TT_METAL_SUBMODULE_DIR}/${_expected_build_dir}/lib/libtracy*.so*")
+if(_tracy_libs)
+    install(FILES ${_tracy_libs}
+            DESTINATION "${_ttnn_install_destination}"
+            OPTIONAL)
+    message(STATUS "Will bundle libtracy.so* (workaround for ttnn PyPI wheel bug)")
+    foreach(_lib ${_tracy_libs})
+        get_filename_component(_lib_name "${_lib}" NAME)
+        message(STATUS "  - ${_lib_name}")
+    endforeach()
+else()
+    message(WARNING "libtracy.so not found - wheel may fail at runtime with PyPI ttnn")
+endif()
 

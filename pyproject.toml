@@ -90,6 +90,11 @@ cmake.version = ">=3.23"
 cmake.build-type = "Release"
 cmake.verbose = true
 wheel.packages = ["torch_ttnn"]
+wheel.exclude = [
+    "torch_ttnn/cpp_extension/third-party/**",  # Exclude entire submodule (source code, not needed in wheel)
+    "torch_ttnn/cpp_extension/build/**",        # Exclude build artifacts
+    "torch_ttnn/cpp_extension/*.sh",            # Exclude build scripts
+]
 logging.level = "INFO"
 
 [tool.scikit-build.cmake.define]

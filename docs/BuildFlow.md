@@ -375,21 +375,43 @@ python3 -m build --wheel --no-isolation
 - Tests run with wheel installation to verify functionality
 
 **What's included in the wheel**:
-- Pre-compiled `ttnn_device_extension.so` (768 KB, 96% smaller than bundling approach)
-- **NO bundled libraries** - uses RPATH to find dependencies from packages
-- Self-contained via `$ORIGIN` RPATH pointing to `ttnn` package
+- `torch_ttnn/` Python package (all .py files, ~200KB)
+- `torch_ttnn_cpp_extension/ttnn_device_extension` (compiled extension, ~300KB)
+- `torch_ttnn_cpp_extension/libtracy.so*` (bundled, ~250KB - not in PyPI ttnn)
+- **Total size: ~750KB** (99% smaller than bundling all tt-metal libraries)
+
+**What's NOT included (kept out via `wheel.exclude`):**
+- ❌ `torch_ttnn/cpp_extension/third-party/` (entire tt-metal submodule - prevents 237MB bloat)
+- ❌ `torch_ttnn/cpp_extension/build/` (build artifacts)
+- ❌ `torch_ttnn/cpp_extension/*.sh` (build scripts)
+- ❌ Most TT-Metal libraries (provided by PyPI ttnn dependency)
+
+**Bundled libraries:**
+- ✅ `libtracy.so.0.10.0` - **Must bundle** (not included in PyPI ttnn wheels as of v0.62.0)
+- ❌ `libtt_metal.so` - From PyPI ttnn package (via RPATH)
+- ❌ `libtt_stl.so` - From PyPI ttnn package (via RPATH)
+- ❌ `libdevice.so` - From PyPI ttnn package (via RPATH)
+
+**RPATH configuration:**
+```cmake
+INSTALL_RPATH: "$ORIGIN:$ORIGIN/../torch/lib:$ORIGIN/../../ttnn/build/lib:$ORIGIN/../../ttnn"
+```
+- `$ORIGIN`: Finds bundled libraries (libtracy.so) in same directory
+- `$ORIGIN/../torch/lib`: Finds PyTorch libraries (libtorch.so, libc10.so)
+- `$ORIGIN/../../ttnn/build/lib`: Finds ttnn libraries (libtt_metal.so, libtt_stl.so)
 
 **Runtime requirements**:
 - PyTorch installed (automatic dependency via pip)
 - `ttnn` Python package installed (automatic dependency via pip, version pinned in `pyproject.toml`)
-  - The `ttnn` package provides tt-metal libraries (`libtt_metal.so`, `libtt_stl.so`, etc.)
-  - Extension finds them via RPATH: `$ORIGIN/../../ttnn/build/lib`
+  - The `ttnn` package provides most tt-metal libraries
+  - Extension finds them via RPATH (no LD_LIBRARY_PATH needed)
 - No build tools required
-- No `LD_LIBRARY_PATH` or other environment variables needed
+- No environment variables needed
 
 **Key differences from dev builds**:
 - `ttnn` package comes from PyPI (not built locally)
-- **NO library duplication** - extension uses libraries from `ttnn` package (768 KB wheel vs 21 MB if bundled)
+- Only tracy is bundled (~250KB), other libraries from dependencies
+- No tt-metal submodule source code in wheel
 - No compilation happens on user's machine
 - Smaller, focused dependency set (no build tools)
 

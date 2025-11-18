@@ -306,10 +306,13 @@ cd ../..
 python3 -m build --wheel --no-isolation
 ```
 
-Note: 
+**Notes:** 
 - Use `--wheel` to skip sdist creation (sdist copies to /tmp/ without built libraries)
 - Use `--no-isolation` to build in current directory with access to pre-built tt-metal
 - This allows CMake to find `build_Release/` directory from the submodule
+- The wheel excludes the tt-metal submodule source (via `wheel.exclude` in pyproject.toml)
+- The wheel bundles `libtracy.so` (not in PyPI ttnn) but uses other libraries from ttnn package via RPATH
+- Expected wheel size: ~750KB
 
 **Note on TT_METAL_HOME**: If you have `TT_METAL_HOME` set in your environment (e.g., from working on tt-metal directly), the build system will detect it, display a warning, and **actively ignore** it. TT-Metal is always auto-detected from the git submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. This prevents build conflicts when switching between different TT projects (tt-metal, tt-train, pytorch2.0_ttnn).
 
