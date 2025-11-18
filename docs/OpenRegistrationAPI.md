@@ -89,14 +89,29 @@ The only supported build path uses tt-metal as a git submodule.
 
 
 ## Running tests
+
+### ⚠️ IMPORTANT: Set TT_METAL_HOME Before Running Tests
+
+**Current tt-metal limitation:** The runtime library requires `TT_METAL_HOME` to be set when running tests from source builds. This is due to a bug in tt-metal's path detection.
+
+```bash
+# Set TT_METAL_HOME to the tt-metal submodule path
+export TT_METAL_HOME="$(pwd)/torch_ttnn/cpp_extension/third-party/tt-metal"
+```
+
 Check to make sure `PYTHONPATH` is unset.
 
 Run in the root of `pytorch2.0_ttnn` repo:
-```
+```bash
+# TT_METAL_HOME must be set!
+export TT_METAL_HOME="$(pwd)/torch_ttnn/cpp_extension/third-party/tt-metal"
 python -m pytest tests/cpp_extension/test_cpp_extension_functionality.py -s
 ```
 
-You can also run with `DEBUG_CPP_EXT=1` ENV to enable logging messages.
+You can also run with `DEBUG_CPP_EXT=1` ENV to enable logging messages:
+```bash
+DEBUG_CPP_EXT=1 python -m pytest tests/cpp_extension/test_cpp_extension_functionality.py -s
+```
 
 ## Troubleshooting
 * Ensure `numpy < 2.0`

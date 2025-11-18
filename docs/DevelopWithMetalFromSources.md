@@ -58,6 +58,18 @@ CMake will automatically detect tt-metal from the submodule. No `TT_METAL_HOME` 
 ---
 
 ## Run tests
+
+### ⚠️ IMPORTANT: Set TT_METAL_HOME Before Running Tests
+
+**Current tt-metal limitation:** The runtime library requires `TT_METAL_HOME` to be set when running tests from source builds. This is due to a bug in tt-metal's path detection.
+
+```console
+# Set TT_METAL_HOME to the tt-metal submodule path
+export TT_METAL_HOME="$(pwd)/torch_ttnn/cpp_extension/third-party/tt-metal"
+```
+
+### Verify Setup
+
 At this stage Python can see both `ttnn` and `torch_ttnn` packages. You can verify:
 ```console
 python -c "import ttnn; import torch_ttnn; print('✓ Both packages available')"
@@ -84,8 +96,12 @@ In [2]: print(torch_ttnn.__file__)
 /home/ubuntu/pytorch2.0_ttnn/torch_ttnn/__init__.py
 ```
 
-Now you are ready to run tests / tools
+### Run Tests
+
+Now you are ready to run tests / tools:
 ```console
+# TT_METAL_HOME must be set!
+export TT_METAL_HOME="$(pwd)/torch_ttnn/cpp_extension/third-party/tt-metal"
 pytest tests/lowering/conv/test_conv2d.py -s
 ```
 
@@ -113,7 +129,7 @@ If you use VSCode, setup `launch.json` in a similar manner
             "program": "/bin/bash",
             "args": [
                 "-c",
-                "source python_env/bin/activate && PYTHONPATH=/home/ubuntu/tt-metal/:/home/ubuntu/pytorch2.0_ttnn pytest tests/lowering/conv/test_conv2d.py -s"
+                "source python_env/bin/activate && export TT_METAL_HOME=/home/ubuntu/pytorch2.0_ttnn/torch_ttnn/cpp_extension/third-party/tt-metal && PYTHONPATH=/home/ubuntu/tt-metal/:/home/ubuntu/pytorch2.0_ttnn pytest tests/lowering/conv/test_conv2d.py -s"
 
             ],                   
             "stopAtEntry": false,
@@ -145,22 +161,37 @@ You can also use bt to see more information from python execution.
 
 ### TT_METAL_HOME Environment Variable
 
-**Short answer: Never set it. It's not needed.**
+**Build vs Runtime Requirements:**
 
-**Details:**
-- ✅ **tt-metal scripts** (`build_metal.sh`, `create_venv.sh`, `install_dependencies.sh`) - **DO NOT need** `TT_METAL_HOME`
+| Stage | TT_METAL_HOME Needed? | Why |
+|-------|----------------------|-----|
+| **Building tt-metal** | ❌ No | Scripts work within their directory |
+| **Building pytorch2.0_ttnn** | ❌ No | CMake auto-detects from submodule |
+| **Running tests** | ⚠️ **YES** | tt-metal runtime bug (temporary) |
+
+**Current Situation:**
+- ✅ **tt-metal build scripts** (`build_metal.sh`, `create_venv.sh`, `install_dependencies.sh`) - **DO NOT need** `TT_METAL_HOME`
 - ✅ **pytorch2.0_ttnn build** (`pip install -e .`) - **DO NOT need** `TT_METAL_HOME` (CMake auto-detects from submodule)
-- ⚠️ **Some tt-metal test scripts** MAY reference it - but they're not used in normal pytorch2.0_ttnn development
+- ⚠️ **Running tests/importing ttnn** - **REQUIRES** `TT_METAL_HOME` due to tt-metal runtime path detection bug
 
-**If you set it anyway:**
-- pytorch2.0_ttnn build will **detect, warn, and unset** it to prevent conflicts between TT projects
+**Why is it needed for tests?**  
+tt-metal's `library_tweaks.py` has a bug that fails to find runtime assets in source builds.
 
-**Recommendation:**
+**Build without TT_METAL_HOME:**
 ```console
-# Just don't set it - everything works without it!
 cd torch_ttnn/cpp_extension/third-party/tt-metal
 ./build_metal.sh  # ✓ Works
 ./create_venv.sh  # ✓ Works
 cd ../../../../
 pip install -e .[dev]  # ✓ Works (CMake auto-detects submodule)
 ```
+
+**Run tests (TT_METAL_HOME required):**
+```console
+export TT_METAL_HOME="$(pwd)/torch_ttnn/cpp_extension/third-party/tt-metal"
+pytest tests/  # ✓ Works with TT_METAL_HOME set
+```
+
+**If you set it during build:**
+- pytorch2.0_ttnn build will **detect, warn, and unset** it to prevent conflicts between TT projects
+- You'll need to re-export it before running tests

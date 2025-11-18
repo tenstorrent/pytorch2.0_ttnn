@@ -229,11 +229,21 @@ sequenceDiagram
 # Activate venv
 source torch_ttnn/cpp_extension/third-party/tt-metal/python_env/bin/activate
 
+# ⚠️ IMPORTANT: Set TT_METAL_HOME (required for tt-metal runtime)
+export TT_METAL_HOME="$(pwd)/torch_ttnn/cpp_extension/third-party/tt-metal"
+
 # Run tests directly - no LD_LIBRARY_PATH needed!
 python -m pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
 python -m pytest tests/cpp_extension/test_bert_cpp_extension.py -v
 python -m pytest tests/models --native_integration -v
 ```
+
+**Environment Variable Requirements:**
+
+| Variable | Build Stage | Runtime/Tests | Why |
+|----------|-------------|---------------|-----|
+| `LD_LIBRARY_PATH` | ❌ Not needed | ❌ Not needed | RPATH configured automatically |
+| `TT_METAL_HOME` | ❌ Not needed | ⚠️ **REQUIRED** | tt-metal runtime path detection bug |
 
 **Why LD_LIBRARY_PATH is no longer needed**: 
 - The C++ extension's RPATH is now configured to include PyTorch's library directory automatically

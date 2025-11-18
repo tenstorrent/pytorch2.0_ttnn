@@ -109,7 +109,6 @@ jobs:
       - name: Build and test
         run: |
           set -euxo pipefail
-          # NOTE: TT_METAL_HOME is not exported (CMake auto-detects from submodule)
           TT_METAL_DIR="${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal"
           export PYTHON_ENV_DIR="${{ env.PYTHON_ENV_DIR }}"
           export CPM_SOURCE_CACHE="${{ env.CPM_SOURCE_CACHE }}"
@@ -138,6 +137,11 @@ jobs:
           else
             python -m pip install -e "${GITHUB_WORKSPACE}"[dev]
           fi
+          
+          # WORKAROUND: tt-metal currently has broken auto-detection for source builds
+          # library_tweaks.py incorrectly looks for runtime at ttnn/ttnn/runtime/hw
+          # but in source builds it's at tt-metal/runtime/hw (parent directory)
+          export TT_METAL_HOME="${TT_METAL_DIR}"
           
           # Run tests (no LD_LIBRARY_PATH needed - RPATH configured automatically)
           python -m pytest "${GITHUB_WORKSPACE}/tests/cpp_extension/test_cpp_extension_functionality.py" -v
