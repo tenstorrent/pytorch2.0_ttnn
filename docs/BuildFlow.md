@@ -250,14 +250,15 @@ Artifacts in `build_<TYPE>/`:
    - For **PyPI testing**, use `[pypi,dev]` to pull ttnn from PyPI
    - `pyproject.toml` declares `scikit_build_core.build` as the backend; the wheel exposes the `torch_ttnn` package.
    - scikit-build-core drives CMake in `torch_ttnn/cpp_extension` following CMake best practices:
-     - **Clean dependency resolution**: Uses standard `find_package(TT-Metalium)` and `find_package(TT-NN)` to locate pre-built TT-Metal artifacts from Phase 1.
+     - **Clean dependency resolution**: Adds TT-Metal dependency paths to `CMAKE_PREFIX_PATH`, then uses standard `find_package(TT-Metalium REQUIRED)` and `find_package(TT-NN)` to locate pre-built TT-Metal artifacts from Phase 1.
      - **Auto-detection**: TT-Metal is automatically discovered from the submodule at `third-party/tt-metal` - no environment variables needed.
-     - **Proper imported targets**: Links against `TT::Metalium`, `TTNN::CPP`, and `Python::Module` imported targets.
-     - **Automatic ABI detection**: Detects PyTorch's C++ ABI compatibility flags automatically.
+     - **tt-logger workaround**: Handles tt-logger CMake targets location inconsistency by adding its export directory to `CMAKE_PREFIX_PATH`.
+     - **Proper imported targets**: Links against `TT::Metalium`, `TTNN::TTNN`, `Python::Module`, PyTorch libraries (`TORCH_LIBRARIES`, `Torch::Torch`), and `torch_python` (via `ttnn_link_torch_python` helper function).
+     - **Automatic ABI detection**: Detects PyTorch's C++ ABI compatibility flags automatically from `torch.__config__.show()`.
      - Toolchain discovery prefers `third-party/tt-metal/cmake/x86_64-linux-clang-17-*.cmake`, falling back to `cmake/x86_64-linux-torch-toolchain.cmake`.
    - The `ttnn_device_extension` module is compiled with `CXX_STANDARD 20` and no filename suffix.
-   - **Self-contained installation**: Uses `install(IMPORTED_RUNTIME_ARTIFACTS)` to bundle TT-Metal shared libraries alongside the extension.
-   - **Runtime resolution**: Both build and install RPATHs are set to `$ORIGIN` for self-contained operation.
+   - **Self-contained installation**: Uses `install(FILES ...)` to bundle TT-Metal shared libraries alongside the extension.
+   - **Runtime resolution**: `BUILD_RPATH` includes `$ORIGIN` plus absolute paths to PyTorch and TT-Metal lib directories. `INSTALL_RPATH` uses `$ORIGIN:$ORIGIN/../torch/lib` for self-contained operation.
    - **IDE integration**: `CMAKE_EXPORT_COMPILE_COMMANDS=ON` generates `compile_commands.json` for clangd and other IDEs.
 4. Editable installs keep a live `.pth` file and expose the CMake build tree under `torch_ttnn/cpp_extension/build/`.
 
@@ -292,8 +293,9 @@ The script automatically handles venv activation and TT_METAL_HOME setup.
 | `TT_METAL_HOME` | ❌ Not needed | ⚠️ **REQUIRED** | tt-metal runtime path detection bug |
 
 **Why LD_LIBRARY_PATH is no longer needed**: 
-- The C++ extension's RPATH is now configured to include PyTorch's library directory automatically
-- `BUILD_RPATH` and `INSTALL_RPATH` are set to `$ORIGIN:${PYTORCH_LIB_DIR}` during CMake configuration
+- The C++ extension's RPATH is configured to include PyTorch's library directory automatically
+- `BUILD_RPATH` is set to `$ORIGIN:${PYTORCH_LIB_DIR}:${TT_METAL_LIB_DIR}` (absolute paths for development builds)
+- `INSTALL_RPATH` is set to `$ORIGIN:$ORIGIN/../torch/lib` (relative paths for installed wheels)
 - This allows the dynamic linker to find both bundled tt-metal libraries and PyTorch's C++ libraries at runtime
 - The RPATH configuration is detected automatically from your Python environment during build
 
@@ -541,14 +543,13 @@ fi
 
 ### Build-Time Issues
 
-- **CMake can't find TT-Metal packages**: Ensure TT-Metal was built with `./build_metal.sh` (or use `build_cpp_extension.sh`). Check that `torch_ttnn/cpp_extension/third-party/tt-metal/build_<TYPE>/lib/cmake/tt-metalium-config.cmake` exists (where `<TYPE>` is `Release`, `Debug`, or `RelWithDebInfo`).
+- **CMake can't find TT-Metal packages**: Ensure TT-Metal was built with `./build_metal.sh` (or use `build_cpp_extension.sh`). Check that `torch_ttnn/cpp_extension/third-party/tt-metal/build_<TYPE>/lib/cmake/tt-metalium/tt-metalium-config.cmake` exists (where `<TYPE>` is `Release`, `Debug`, or `RelWithDebInfo`).
 - **Shared libraries missing at runtime**: Confirm libraries exist in `torch_ttnn/cpp_extension/third-party/tt-metal/build_<TYPE>/lib/` (libtt_metal.so, libtt_stl.so, libtracy.so). Re-run `python -m pip install -e .[dev] --no-build-isolation --force-reinstall` to rebuild the extension.
 - **`MPIX_Comm_revoke` unresolved**: Ensure the MPI installation used by the tt-metal build is accessible. For custom MPI installations (e.g., `/opt/openmpi-v5.0.7-ulfm/lib`), you may need to add it to `LD_LIBRARY_PATH`.
 - **`ModuleNotFoundError: ttnn_device_extension`**: Activate the tt-metal virtual environment before installing or testing, and import via `from torch_ttnn.cpp_extension.ttnn_device_mode import ttnn_module`.
 - **Undefined symbol errors at runtime** (e.g., `_ZTIN3c109AllocatorE undefined symbol`): This indicates the extension can't find PyTorch's C++ libraries. Solutions:
   1. **Rebuild the extension** (recommended): `python -m pip install -e . --no-build-isolation --force-reinstall`
-     - The RPATH should be configured automatically to include PyTorch's lib directory
-     - Check CMake output for: `Detected PyTorch library directory for RPATH: ...`
+     - The RPATH is configured automatically to include PyTorch's lib directory
   2. **Verify RPATH**: `readelf -d $(python -c 'from torch_ttnn.cpp_extension import ttnn_device_extension as m; print(m.__file__)') | grep RPATH`
      - Should include both `$ORIGIN` and the PyTorch lib directory
   3. **Temporary workaround**: If rebuilding doesn't work, manually set `LD_LIBRARY_PATH`:
@@ -571,9 +572,9 @@ fi
 
 ```bash
 # 1. Check TT-Metal CMake packages are properly built (use your build type)
-ls -la torch_ttnn/cpp_extension/third-party/tt-metal/build_Release/lib/cmake/tt-metalium-config.cmake  # Release
-# ls -la torch_ttnn/cpp_extension/third-party/tt-metal/build_Debug/lib/cmake/tt-metalium-config.cmake  # Debug
-# ls -la torch_ttnn/cpp_extension/third-party/tt-metal/build_RelWithDebInfo/lib/cmake/tt-metalium-config.cmake  # RelWithDebInfo
+ls -la torch_ttnn/cpp_extension/third-party/tt-metal/build_Release/lib/cmake/tt-metalium/tt-metalium-config.cmake  # Release
+# ls -la torch_ttnn/cpp_extension/third-party/tt-metal/build_Debug/lib/cmake/tt-metalium/tt-metalium-config.cmake  # Debug
+# ls -la torch_ttnn/cpp_extension/third-party/tt-metal/build_RelWithDebInfo/lib/cmake/tt-metalium/tt-metalium-config.cmake  # RelWithDebInfo
 
 # 2. Verify Python packages
 source torch_ttnn/cpp_extension/third-party/tt-metal/python_env/bin/activate
