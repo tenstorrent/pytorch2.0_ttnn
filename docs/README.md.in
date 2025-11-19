@@ -125,6 +125,28 @@ python -m build --wheel
 
 **Note on TT_METAL_HOME**: If you have `TT_METAL_HOME` set in your environment (e.g., from working on tt-metal directly), the build system will detect it, display a warning, and **actively ignore** it. TT-Metal is always auto-detected from the git submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. This prevents build conflicts when switching between different TT projects (tt-metal, tt-train, pytorch2.0_ttnn).
 
+### Python-only Dependencies (without building C++ extension)
+
+If you only need Python dependencies without building the C++ extension (useful for CI/CD, testing Python code, or quick setup without compilation), you can use `pip-tools` to extract and install dependencies directly from `pyproject.toml`:
+
+```shell
+# Install pip-tools
+pip install pip-tools
+
+# Compile dependencies from pyproject.toml without building the package
+# This extracts all dependencies (base + ttnn[pypi] + dev extras) to a requirements file
+python3 -m piptools compile pyproject.toml --extra pypi --extra dev -o requirements-dev.txt
+
+# Install dependencies from the compiled requirements file
+pip install -r requirements-dev.txt
+```
+
+This approach:
+- Installs Python dependencies only (no C++ build via scikit-build-core)
+- Useful for CI/CD pipelines that don't need the C++ extension
+- Faster setup when you only need Python tooling and dependencies
+- Avoids build toolchain requirements (CMake, C++ compiler, etc.)
+
 ## Project Structure
 
 - `torch_ttnn/`: Main package directory containing the core implementation

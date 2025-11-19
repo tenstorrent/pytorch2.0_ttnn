@@ -19,6 +19,7 @@ jobs:
       # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
       docker_tag: 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce'
       commit_report: 'None'
+      enable_telemetry: 'true'  # Enable telemetry for production merge workflows
 
   build-wheel-check:
     # Verify wheel can be built after tests pass (using submodule tt-metal)

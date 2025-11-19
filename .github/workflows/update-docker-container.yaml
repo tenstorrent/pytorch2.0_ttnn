@@ -112,6 +112,7 @@ jobs:
     with:
       docker_tag: ${{ needs.check-docker-images.outputs.dev-tag }}
       commit_report: 'None'
+      enable_telemetry: 'true'  # Enable telemetry for production container update workflows
 
   tag-latest:
     name: "Update latest tag"

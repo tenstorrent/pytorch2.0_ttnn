@@ -19,6 +19,11 @@ on:
         required: false
         type: string
         default: ""
+      enable_telemetry:
+        description: 'Whether to enable telemetry (will fail if enabled but permissions are missing)'
+        required: false
+        type: string
+        default: 'false'
     outputs:
       tests_passed:
         description: "Whether tests passed (0 means pass, 1 means fail)"
@@ -40,6 +45,11 @@ on:
         # TODO: Using pinned tt-metal Docker image for project freeze (Nov 18, 2025)
         # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
         default: 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce'
+      enable_telemetry:
+        description: 'Whether to enable telemetry (will fail if enabled but permissions are missing)'
+        required: false
+        type: string
+        default: 'false'
 
 permissions:
   actions: read
@@ -47,6 +57,10 @@ permissions:
   pages: write
   id-token: write
   pull-requests: write
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -u -x {0}
 
 jobs:
   tools-tests:
@@ -64,9 +78,24 @@ jobs:
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    steps:      
+    steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          clean: 'true'
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
@@ -90,8 +119,22 @@ jobs:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2]
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
       - uses: ./.github/actions/common_lowering_tests
 
   count-test-files:
@@ -134,15 +177,25 @@ jobs:
       matrix: 
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
         with:
           lfs: true
-          fetch-depth: 0    
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
-      - name: docker-cleanup
-        run: |
-          docker system prune -a -f
-          df -h  # Debug space
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+      - uses: ./.github/actions/common_cleanup
+        with:
+          docker-cleanup: 'true'
       - uses: ./.github/actions/common_model_tests
         with:
           splits: ${{ needs.count-test-files.outputs.num_files }}
@@ -195,8 +248,22 @@ jobs:
       HF_HOME: /root/.cache/huggingface
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
       - uses: ./.github/actions/common_multi_device_tests
         with:
           commit_report: ${{ inputs.commit_report }}
@@ -226,8 +293,22 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -287,8 +368,22 @@ jobs:
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
 
       - name: Run Model Input Variations Tests
         run: |
@@ -315,8 +410,22 @@ jobs:
     env:
       pytest_verbosity: 0
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -337,8 +446,22 @@ jobs:
     env:
       pytest_verbosity: 0
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -371,8 +494,22 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:

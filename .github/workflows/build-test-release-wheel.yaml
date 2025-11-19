@@ -155,6 +155,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_wheel_install
+        with:
+          enable-telemetry: 'true'  # Enable telemetry for production release workflows
       - uses: ./.github/actions/common_smoke_tests
 
   test-wheel-lowering:
@@ -175,6 +177,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/common_wheel_install
+        with:
+          enable-telemetry: 'true'  # Enable telemetry for production release workflows
       - uses: ./.github/actions/common_lowering_tests
 
   test-wheel-model:
@@ -201,6 +205,8 @@ jobs:
         with:
           lfs: true
       - uses: ./.github/actions/common_wheel_install
+        with:
+          enable-telemetry: 'true'  # Enable telemetry for production release workflows
       - uses: ./.github/actions/common_model_tests
         with:
           splits: 40

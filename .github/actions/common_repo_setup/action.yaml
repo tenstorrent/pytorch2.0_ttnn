@@ -1,12 +1,96 @@
 name: 'Setup Python Environment'
-description: 'Sets up Python and installs dependencies'
+description: 'Installs git-lfs, checks out repository, and sets up Python environment. Note: GitHub Actions automatically checks out the repository at the start of each job, so this action can be used as the first step. It does an explicit checkout to ensure git-lfs support and proper fetch-depth.'
+inputs:
+  fetch-depth:
+    description: 'Number of commits to fetch (0 = all history)'
+    required: false
+    default: '1'
+  clean:
+    description: 'Whether to clean the working tree before checkout'
+    required: false
+    default: 'false'
+  enable-telemetry:
+    description: 'Whether to enable telemetry (will fail if enabled but permissions are missing)'
+    required: false
+    default: 'false'
 runs:
   using: "composite"
   steps:
-    - name: Setup Telemetry
-      uses: catchpoint/workflow-telemetry-action@v2
+    # Shell flags explanation:
+    #   -e: Exit immediately if a command exits with a non-zero status (default in GitHub Actions)
+    #   -o pipefail: Return value of a pipeline is the status of the last command to exit with a non-zero status (default in GitHub Actions)
+    #   -u: Treat unset variables as errors (fail fast on typos/missing variables)
+    #   -x: Print commands and their arguments as they are executed (useful for debugging CI)
+    #   Note: --noprofile and --norc are defaults in GitHub Actions, so we don't need to specify them
+    #   {0}: GitHub Actions placeholder that gets replaced with the script file path
+    - name: Cleanup workspace to prevent action scanning
+      shell: bash -e -o pipefail -u -x {0}
+      run: |
+        # Remove any existing submodule .github directories BEFORE checkout
+        # to prevent GitHub Actions from scanning them (which causes telemetry permission errors).
+        # These GitHub actions are from tt-metal submodule or its nested submodules (like LLK).
+        # We remove the entire .github folder (not just .github/actions) to simplify the logic.
+        if [ -n "${GITHUB_WORKSPACE:-}" ] && [ -d "${GITHUB_WORKSPACE}/torch_ttnn/cpp_extension/third-party" ]; then
+          find "${GITHUB_WORKSPACE}/torch_ttnn/cpp_extension/third-party" -type d -name ".github" \
+            -exec rm -rf {} + 2>/dev/null || true
+        fi
+        
+        # Clean up corrupted actions cache directory (workaround for polluted runners)
+        if [ -d "/home/ubuntu/actions-runner/_work/_actions" ]; then
+          find /home/ubuntu/actions-runner/_work/_actions -mindepth 1 -maxdepth 1 -type d \
+            -exec rm -rf {} + 2>/dev/null || true
+        fi
+        
+        # Clean up temporary directories
+        if [ -d "/home/ubuntu/actions-runner/_work/_temp" ]; then
+          rm -rf /home/ubuntu/actions-runner/_work/_temp/* 2>/dev/null || true
+        fi
+
+    - name: Install git-lfs
+      shell: bash -e -o pipefail -u -x {0}
+      run: |
+        # Install git-lfs if not already installed (idempotent)
+        if ! command -v git-lfs &> /dev/null; then
+          apt-get update
+          apt-get install -y git-lfs
+        fi
+        git lfs install || true
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        lfs: true
+        submodules: false # Don't checkout submodules automatically - we'll do it manually to remove .github folders immediately
+        fetch-depth: ${{ inputs.fetch-depth }}
+        clean: true
+
+    # Manually checkout submodules and immediately remove .github directories.
+    # This prevents GitHub Actions from scanning telemetry actions that cause permission errors.
+    # These GitHub actions are from tt-metal submodule (we don't need nested submodules).
+    # We must do checkout and removal atomically before GitHub Actions can scan the actions.
+    - name: Checkout submodules and remove GitHub directories
+      shell: bash -e -o pipefail -u -x {0}
+      run: |
+        # Configure git safe directories
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+        git config --global --add safe.directory '*'
+        
+        # Checkout tt-metal submodule (non-recursive, we only need install_dependencies.sh from root)
+        git submodule update --init "torch_ttnn/cpp_extension/third-party/tt-metal"
+        
+        # Remove .github directory from tt-metal to prevent GitHub Actions from scanning it
+        rm -rf "torch_ttnn/cpp_extension/third-party/tt-metal/.github" 2>/dev/null || true
+
+    # TODO: Identify which workflows/jobs should have telemetry explicitly enabled (enable-telemetry: 'true')
+    # DISABLED: Telemetry is currently disabled due to permissions issues on self-hosted runners
+    # (Error: Access to the path '/home/ubuntu/actions-runner/_work/_actions/catchpoint' is denied).
+    # Once we identify which jobs need telemetry, we can enable it explicitly and fix permissions.
+    # - name: Setup Telemetry
+    #   if: ${{ inputs.enable-telemetry == 'true' }}
+    #   uses: catchpoint/workflow-telemetry-action@v2
+
     - name: Create pip cache
-      shell: bash
+      shell: bash -e -o pipefail -u -x {0}
       run: |
         if [ -n "${{ env.PIP_CACHE_DIR }}" ]; then
           mkdir -p ${{ env.PIP_CACHE_DIR }}
@@ -19,14 +103,28 @@ runs:
         cache: 'pip'
         cache-dependency-path: pyproject.toml
 
-    - name: Install Dependencies
-      shell: bash
+    - name: Install Dependencies [ttnn from PyPI]
+      shell: bash -e -o pipefail -u -x {0}
       run: |
         df -h
         python3 -m pip install --upgrade pip                    
+        python3 -m pip install pip-tools
         python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
-        python3 -m pip install -e .[dev]
+        
+        # Compile dependencies from pyproject.toml without building the package
+        # This extracts all dependencies (base + pypi + dev extras) to a requirements file
+        python3 -m piptools compile pyproject.toml --extra pypi --extra dev -o /tmp/requirements-dev.txt
+        
+        # Install dependencies from the compiled requirements file
+        python3 -m pip install -r /tmp/requirements-dev.txt
+        
         python3 -m pip install pytest-github-report
         df -h
+
+    - name: Install SFPI for TT-Metal
+      shell: bash -e -o pipefail -u -x {0}
+      run: |
+        cd torch_ttnn/cpp_extension/third-party/tt-metal
+        ./install_dependencies.sh --sfpi
 
     - uses: ./.github/actions/common_cleanup
