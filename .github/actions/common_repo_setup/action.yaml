@@ -50,6 +50,15 @@ runs:
           rm -rf /home/ubuntu/actions-runner/_work/_temp/* 2>/dev/null || true
         fi
 
+    # Configure git safe directories FIRST to prevent "dubious ownership" errors
+    # when git operations run (including git lfs install and checkout).
+    # This must happen before any git commands are executed.
+    - name: Configure git safe directories
+      shell: bash -e -o pipefail -u -x {0}
+      run: |
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+        git config --global --add safe.directory '*'
+
     - name: Install git-lfs
       shell: bash -e -o pipefail -u -x {0}
       run: |
@@ -75,10 +84,6 @@ runs:
     - name: Checkout submodules and remove GitHub directories
       shell: bash -e -o pipefail -u -x {0}
       run: |
-        # Configure git safe directories
-        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
-        git config --global --add safe.directory '*'
-        
         # Checkout tt-metal submodule (non-recursive, we only need install_dependencies.sh from root)
         git submodule update --init "torch_ttnn/cpp_extension/third-party/tt-metal"
         
