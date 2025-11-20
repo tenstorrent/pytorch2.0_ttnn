@@ -24,6 +24,11 @@ on:
         required: false
         type: string
         default: 'false'
+      install_full_dependencies:
+        description: 'Install full tt-metal dependencies (unchecked = use --sfpi flag only)'
+        required: false
+        type: boolean
+        default: true
     outputs:
       tests_passed:
         description: "Whether tests passed (0 means pass, 1 means fail)"
@@ -50,6 +55,11 @@ on:
         required: false
         type: string
         default: 'false'
+      install_full_dependencies:
+        description: 'Install full tt-metal dependencies (unchecked = use --sfpi flag only)'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   actions: read
@@ -63,7 +73,27 @@ defaults:
     shell: bash --noprofile --norc -u -x {0}
 
 jobs:
+  log-parameters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Workflow Parameters
+        run: |
+          echo "=========================================="
+          echo "🔧 Workflow Parameters"
+          echo "=========================================="
+          echo "commit_report: ${{ inputs.commit_report }}"
+          echo "docker_tag: ${{ inputs.docker_tag }}"
+          echo "enable_telemetry: ${{ inputs.enable_telemetry }}"
+          echo "install_full_dependencies: ${{ inputs.install_full_dependencies }}"
+          if [ "${{ inputs.install_full_dependencies }}" == "true" ]; then
+            echo "  → Will run: ./install_dependencies.sh (full install)"
+          else
+            echo "  → Will run: ./install_dependencies.sh --sfpi (sfpi only)"
+          fi
+          echo "=========================================="
+
   tools-tests:
+    needs: log-parameters
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
@@ -96,6 +126,7 @@ jobs:
         with:
           clean: 'true'
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
@@ -135,9 +166,11 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - uses: ./.github/actions/common_lowering_tests
 
   count-test-files:
+    needs: log-parameters
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.count-files.outputs.matrix }}
@@ -193,6 +226,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - uses: ./.github/actions/common_cleanup
         with:
           docker-cleanup: 'true'
@@ -264,6 +298,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - uses: ./.github/actions/common_multi_device_tests
         with:
           commit_report: ${{ inputs.commit_report }}
@@ -309,6 +344,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -384,6 +420,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
 
       - name: Run Model Input Variations Tests
         run: |
@@ -426,6 +463,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -462,6 +500,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -510,6 +549,7 @@ jobs:
       - uses: ./.github/actions/common_repo_setup
         with:
           enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:

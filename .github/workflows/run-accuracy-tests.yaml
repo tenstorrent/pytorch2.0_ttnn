@@ -15,6 +15,11 @@ on:
         # TODO: Using pinned tt-metal Docker image for project freeze (Nov 18, 2025)
         # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
         default: 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce'
+      install_full_dependencies:
+        description: 'Install full tt-metal dependencies (unchecked = use --sfpi flag only)'
+        required: false
+        type: boolean
+        default: true
   schedule:
     - cron: "0 21 * * 6" # Run every Saturday at 9:00 PM UTC
 permissions:
@@ -25,7 +30,26 @@ permissions:
   pull-requests: read
 
 jobs:
+  log-parameters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Workflow Parameters
+        run: |
+          echo "=========================================="
+          echo "🔧 Workflow Parameters"
+          echo "=========================================="
+          echo "mock_run: ${{ inputs.mock_run }}"
+          echo "docker_tag: ${{ inputs.docker_tag }}"
+          echo "install_full_dependencies: ${{ inputs.install_full_dependencies }}"
+          if [ "${{ inputs.install_full_dependencies }}" == "true" ]; then
+            echo "  → Will run: ./install_dependencies.sh (full install)"
+          else
+            echo "  → Will run: ./install_dependencies.sh --sfpi (sfpi only)"
+          fi
+          echo "=========================================="
+
   count-test-files:
+    needs: log-parameters
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.count-files.outputs.matrix }}
@@ -77,6 +101,8 @@ jobs:
           submodules: false
           fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: docker-cleanup
         run: |
           docker system prune -a -f
@@ -122,6 +148,8 @@ jobs:
           submodules: false
           fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       
       - name: Download All Accuracy Tests and Inputs Artifacts
         uses: actions/download-artifact@v4
@@ -178,6 +206,8 @@ jobs:
           submodules: false
           fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: docker-cleanup
         run: |
           docker system prune -a -f

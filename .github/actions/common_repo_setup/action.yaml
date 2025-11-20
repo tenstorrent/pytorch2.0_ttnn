@@ -13,6 +13,10 @@ inputs:
     description: 'Whether to enable telemetry (will fail if enabled but permissions are missing)'
     required: false
     default: 'false'
+  install-full-dependencies:
+    description: 'Install full tt-metal dependencies (false = use --sfpi flag only)'
+    required: false
+    default: 'true'
 runs:
   using: "composite"
   steps:
@@ -125,12 +129,12 @@ runs:
       shell: bash -e -o pipefail -u -x {0}
       run: |
         cd torch_ttnn/cpp_extension/third-party/tt-metal
-        ./install_dependencies.sh
-
-    # - name: Install SFPI for TT-Metal
-    #   shell: bash -e -o pipefail -u -x {0}
-    #   run: |
-    #     cd torch_ttnn/cpp_extension/third-party/tt-metal
-    #     ./install_dependencies.sh --sfpi
+        if [ "${{ inputs.install-full-dependencies }}" == "true" ]; then
+          echo "Installing full TT-Metal dependencies..."
+          ./install_dependencies.sh
+        else
+          echo "Installing TT-Metal dependencies with --sfpi flag only..."
+          ./install_dependencies.sh --sfpi
+        fi
 
     - uses: ./.github/actions/common_cleanup
