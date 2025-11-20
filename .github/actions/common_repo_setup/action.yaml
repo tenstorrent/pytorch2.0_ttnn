@@ -121,10 +121,16 @@ runs:
         python3 -m pip install pytest-github-report
         df -h
 
-    - name: Install SFPI for TT-Metal
+    - name: Install TT-Metal dependencies
       shell: bash -e -o pipefail -u -x {0}
       run: |
         cd torch_ttnn/cpp_extension/third-party/tt-metal
-        ./install_dependencies.sh --sfpi
+        ./install_dependencies.sh
+
+    # - name: Install SFPI for TT-Metal
+    #   shell: bash -e -o pipefail -u -x {0}
+    #   run: |
+    #     cd torch_ttnn/cpp_extension/third-party/tt-metal
+    #     ./install_dependencies.sh --sfpi
 
     - uses: ./.github/actions/common_cleanup
