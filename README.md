@@ -313,7 +313,9 @@ python3 -m build --wheel --no-isolation
 - The wheel excludes the tt-metal submodule source (via `wheel.exclude` in pyproject.toml)
 - The wheel bundles all required TT-Metal libraries for reliable runtime loading
 
-**Note on TT_METAL_HOME**: If you have `TT_METAL_HOME` set in your environment (e.g., from working on tt-metal directly), the build system will detect it, display a warning, and **actively ignore** it. TT-Metal is always auto-detected from the git submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. This prevents build conflicts when switching between different TT projects (tt-metal, tt-train, pytorch2.0_ttnn).
+**Note on TT_METAL_HOME**: 
+- **During build:** If you have `TT_METAL_HOME` set in your environment (e.g., from working on tt-metal directly), the build system will detect it, display a warning, and **actively ignore** it. TT-Metal is always auto-detected from the git submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. This prevents build conflicts when switching between different TT projects (tt-metal, tt-train, pytorch2.0_ttnn).
+- **During tests:** `TT_METAL_HOME` **must be set** before running tests because the tt-metal runtime needs it to locate firmware binaries and kernel artifacts. The test runner script (`run_cpp_extension_tests.sh`) sets this automatically.
 
 ## Project Structure
 

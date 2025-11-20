@@ -204,7 +204,7 @@ sequenceDiagram
 - `PYTHON_ENV_DIR` or `PYTHON_CMD` to customize virtual environment location and interpreter
 - `CPM_SOURCE_CACHE` to set CMake Package Manager cache location (default: `~/.cache/cpm`)
 
-**Note**: `TT_METAL_HOME` environment variable is **deprecated and actively IGNORED**. If set, CMake will display a warning and unset it to prevent build conflicts. TT-Metal is always auto-detected from the submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`.
+**Note**: `TT_METAL_HOME` environment variable is **ignored during build** - CMake will display a warning and unset it to prevent build conflicts. TT-Metal is always auto-detected from the submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. However, `TT_METAL_HOME` **must be set before running tests** (the test runner script handles this automatically).
 
 ### 1. Build tt-metal sources
 
@@ -290,7 +290,7 @@ The script automatically handles venv activation and TT_METAL_HOME setup.
 | Variable | Build Stage | Runtime/Tests | Why |
 |----------|-------------|---------------|-----|
 | `LD_LIBRARY_PATH` | ❌ Not needed | ❌ Not needed | RPATH configured automatically |
-| `TT_METAL_HOME` | ❌ Not needed | ⚠️ **REQUIRED** | tt-metal runtime path detection bug |
+| `TT_METAL_HOME` | ❌ **Not needed** (ignored if set) | ⚠️ **REQUIRED** | Build: auto-detects from submodule. Runtime: needed to locate firmware/kernels |
 
 **Why LD_LIBRARY_PATH is no longer needed**: 
 - The C++ extension's RPATH is configured to include PyTorch's library directory automatically
@@ -481,8 +481,10 @@ This dual-mode approach uses **Python packaging standards** (optional dependency
 - `TORCH_ABI_FLAGS`: export to force a specific ABI flag instead of autodetection.
 - `LD_LIBRARY_PATH`: **No longer required** for development or PyPI builds. The extension's RPATH is configured to find PyTorch and tt-metal libraries automatically. Only needed for specialized cases like custom MPI installations (e.g. `/opt/openmpi-v5.0.7-ulfm/lib`).
 
-**Deprecated Variables** (actively ignored):
-- `TT_METAL_HOME`: **DEPRECATED and ACTIVELY IGNORED**. If set in your environment, CMake will detect it, display a warning, and unset it to prevent build conflicts when switching between TT projects (tt-metal, tt-train, etc.). TT-Metal is always auto-detected from the submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. To suppress the warning, run `unset TT_METAL_HOME` before building.
+**Build-Time Variables** (actively ignored during build):
+- `TT_METAL_HOME`: **IGNORED during build** - CMake will detect it, display a warning, and unset it to prevent build conflicts when switching between TT projects (tt-metal, tt-train, etc.). TT-Metal is always auto-detected from the submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. 
+  
+  **⚠️ Important:** While `TT_METAL_HOME` is ignored during the build process, it **MUST be set before running tests** because the tt-metal runtime needs it to locate firmware binaries and kernel artifacts. The test runner script (`run_cpp_extension_tests.sh`) sets this automatically.
 
 ## CI Reference
 

@@ -66,6 +66,10 @@ In [3]: print('✓ Both packages available')
 
 ## Run tests
 
+**⚠️ Important: TT_METAL_HOME is REQUIRED for running tests** (but NOT for building)
+
+The `TT_METAL_HOME` environment variable must be set before running tests. This is required because the tt-metal runtime needs to locate firmware binaries and kernel artifacts. The build process does not require this variable - it automatically detects tt-metal from the submodule.
+
 Use the test runner script which handles all environment setup automatically:
 
 ```console
@@ -77,12 +81,20 @@ cd torch_ttnn/cpp_extension
 
 The test runner automatically:
 - Activates the virtual environment
-- Sets TT_METAL_HOME (workaround for tt-metal runtime bug)
+- Sets TT_METAL_HOME to the tt-metal submodule path (required for runtime)
 - Runs all C++ extension and model tests
 
 **Manual testing (alternative):**
 
-If you need to run pytest directly with custom arguments, the test runner script handles TT_METAL_HOME automatically. Just pass your pytest args:
+If you need to run pytest directly with custom arguments, you must set TT_METAL_HOME first:
+
+```console
+cd torch_ttnn/cpp_extension
+export TT_METAL_HOME="$(pwd)/third-party/tt-metal"
+./run_cpp_extension_tests.sh tests/cpp_extension/ -v -k specific_test
+```
+
+Or use the test runner script which handles TT_METAL_HOME automatically:
 
 ```console
 cd torch_ttnn/cpp_extension
@@ -125,7 +137,7 @@ cd torch_ttnn/cpp_extension
 ./run_cpp_extension_tests.sh ../tests/lowering/conv/test_conv2d.py -s
 ```
 
-The test runner script handles TT_METAL_HOME and all environment setup automatically.
+**⚠️ Remember:** If running pytest manually, you must set `TT_METAL_HOME` first. The test runner script handles this automatically.
 
 ## Debug
 To debug mixed C++/Python I recommend to install `gdb 15.1` built from sources with python modules enabled.
@@ -192,6 +204,8 @@ cd torch_ttnn/cpp_extension
 ./run_cpp_extension_tests.sh -k specific_test  # Specific test
 ```
 
-The script automatically handles the TT_METAL_HOME workaround (temporary fix for tt-metal runtime bug in `library_tweaks.py`) and all other environment configuration.
+The script automatically sets `TT_METAL_HOME` (required for tt-metal runtime to locate firmware/kernels) and all other environment configuration.
 
-> **Note:** TT_METAL_HOME is **not needed for building** - the build scripts handle everything automatically.
+> **Important:** 
+> - **Building:** `TT_METAL_HOME` is **NOT required** - the build scripts automatically detect tt-metal from the submodule
+> - **Running tests:** `TT_METAL_HOME` **IS REQUIRED** - the tt-metal runtime needs it to locate firmware binaries and kernel artifacts

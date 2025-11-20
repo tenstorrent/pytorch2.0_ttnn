@@ -2,7 +2,7 @@
 
 > **⚠️ UPDATE:**  
 > TT-Metal is now **ONLY** supported as a git submodule.  
-> **TT_METAL_HOME environment variable is IGNORED** by the build system.  
+> **TT_METAL_HOME is IGNORED during build** (auto-detects from submodule), but **REQUIRED for running tests**.  
 > See [docs/BuildFlow.md](BuildFlow.md) for the current workflow.
 
 Pytorch Open Registration API allows integrating TTNN implementation into Torch. We can access TTNN ops from higher-level Torch calls.
@@ -99,8 +99,10 @@ cd torch_ttnn/cpp_extension
 
 The script automatically:
 - Activates the virtual environment
-- Sets TT_METAL_HOME (workaround for tt-metal runtime bug)
+- Sets TT_METAL_HOME (required for tt-metal runtime to locate firmware/kernels)
 - Ensures proper environment configuration
+
+**Note:** `TT_METAL_HOME` is **not required for building** but **is required for running tests**.
 
 Check to make sure `PYTHONPATH` is unset if you encounter import issues.
 
