@@ -1,5 +1,4 @@
-#include <ATen/native/DispatchStub.h>
-#include <torch/csrc/utils/pybind.h>
+#include <torch/library.h>
 #include <torch/extension.h>
 
 #include "ttnn_cpp_extension/utils/device.hpp"

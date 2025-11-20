@@ -1,10 +1,21 @@
 name: 'Cleanup Model Cache'
 description: 'Removes Huggingface and TorchVision model cache and reports free disk space'
+inputs:
+  docker-cleanup:
+    description: 'Whether to run docker system prune'
+    required: false
+    default: 'false'
 runs:
   using: "composite"
   steps:
+    - name: Docker cleanup
+      if: ${{ inputs.docker-cleanup == 'true' }}
+      shell: bash --noprofile --norc -u -x {0}
+      run: |
+        docker system prune -a -f
+        df -h  # Debug space
     - name: Cleanup model cache
-      shell: bash
+      shell: bash --noprofile --norc -u -x {0}
       run: |
         df -h
         python3 -m pip cache purge

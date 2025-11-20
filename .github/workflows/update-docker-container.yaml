@@ -1,15 +1,32 @@
 name: Update Docker Container
 
+# ⚠️ DEPRECATED: This workflow is DISABLED as of Nov 18, 2025
+# Decision: Use PINNED tt-metal Docker images instead of building pytorch2.0_ttnn images
+# Rationale:
+#   - tt-metal images are public (no authentication required)
+#   - pytorch2.0_ttnn adds minimal packages on top of tt-metal (sudo, libgl1, git-lfs, libsndfile1, docker.io)
+#   - Reduces maintenance burden
+#   - Project freeze: Using pinned digest for reproducibility
+#
+# ⚠️ WILL NOT RUN AUTOMATICALLY - No automatic triggers configured
+# ⚠️ workflow_call is DISABLED to prevent accidental calls from other workflows
+# ⚠️ Manual trigger is available but should NOT be used
+#
+# Current pinned tt-metal image used by CI:
+#   ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce
+#
+# If you need to build pytorch2.0_ttnn images, review the decision first.
+
 on:
-  workflow_dispatch:  # Manual trigger
-  workflow_call:
-    outputs:
-      did_update:
-        description: "Whether or not the latest tag was set"
-        value: ${{ jobs.tag-latest.outputs.did_update }}
+  workflow_dispatch:  # Manual trigger - ⚠️ DO NOT USE unless reversing decision
+  # workflow_call: DISABLED - prevents accidental automation
+  #   outputs:
+  #     did_update:
+  #       description: "Whether or not the latest tag was set"
+  #       value: ${{ jobs.tag-latest.outputs.did_update }}
 
 env:
-  IMAGE_NAME: ubuntu-22.04-dev-amd64
+  IMAGE_REPO: ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64
 
 jobs:
   check-docker-images:
@@ -26,19 +43,20 @@ jobs:
       - name: Compute tags
         id: tags
         run: |
+          # Hash the dependencies and Dockerfile to create a unique tag
+          # NOTE: Project uses pyproject.toml, not requirements.txt
           DEV_TAG=$(cat \
-            requirements.txt \
+            pyproject.toml \
             dockerfile/Dockerfile \
-            requirements-dev.txt \
             | sha1sum | cut -d' ' -f1)
-          echo "dev-tag=ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu22.04:${DEV_TAG}" >> $GITHUB_OUTPUT
+          echo "dev-tag=${{ env.IMAGE_REPO }}:${DEV_TAG}" >> $GITHUB_OUTPUT
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Query images exist
         id: images
@@ -64,7 +82,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -94,6 +112,7 @@ jobs:
     with:
       docker_tag: ${{ needs.check-docker-images.outputs.dev-tag }}
       commit_report: 'None'
+      enable_telemetry: 'true'  # Enable telemetry for production container update workflows
 
   tag-latest:
     name: "Update latest tag"
@@ -108,7 +127,7 @@ jobs:
         with:
           registry: https://ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Tag and push latest
         id: tag
@@ -116,8 +135,7 @@ jobs:
           checkout_passed="${{ needs.check-docker-images.result == 'success' }}"
           tests_passed="${{needs.run-tests.outputs.tests_passed == 0 }}"
           if [[ $checkout_passed == "true" && $tests_passed == "true" ]] ; then
-            IMAGE_REPO="ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64"
-            LATEST_TAG="${IMAGE_REPO}:latest"
+            LATEST_TAG="${{ env.IMAGE_REPO }}:latest"
             DEV_TAG="${{ needs.check-docker-images.outputs.dev-tag }}"
             echo "Tagging ${DEV_TAG} as ${LATEST_TAG}"
             docker pull ${DEV_TAG}
