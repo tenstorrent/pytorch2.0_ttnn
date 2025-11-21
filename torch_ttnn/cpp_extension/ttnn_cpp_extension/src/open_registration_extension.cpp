@@ -12,10 +12,6 @@
 #include "ttnn_cpp_extension/utils/device.hpp"
 #include "ttnn_cpp_extension/utils/unary_eager_register.hpp"
 
-#include <ttnn/operations/eltwise/unary/unary.hpp>
-#include <ttnn/operations/eltwise/unary/unary_composite.hpp>
-#include <ttnn/operations/eltwise/complex_unary/complex_unary.hpp>
-
 // Register custom allocator. Only used to create dummy Torch tensor object.
 REGISTER_ALLOCATOR(c10::DeviceType::PrivateUse1, &get_ttnn_custom_allocator());
 

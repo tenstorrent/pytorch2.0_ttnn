@@ -261,7 +261,6 @@ set(TTNN_CPP_EXTENSION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/core/TtnnTensorImpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/binary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/creation.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/ops/unary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/device.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/src/utils/vector_utils.cpp
 )
@@ -270,6 +269,7 @@ add_library(ttnn_device_extension MODULE ${TTNN_CPP_EXTENSION_SOURCES})
 
 target_include_directories(ttnn_device_extension PRIVATE
     ${Python_INCLUDE_DIRS}
+    ${TT_METAL_SUBMODULE_DIR}/ttnn/cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ttnn_cpp_extension/include
 )
 if(TORCH_INCLUDE_DIRS)
