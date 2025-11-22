@@ -22,7 +22,7 @@ concept TTNNUnaryOptIntFn = requires(const ttnn::Tensor& a, std::optional<int32_
 };
 
 // Unary: expects Op(a) → ttnn::Tensor
-template <auto Op, auto TTNNMemoryConfig = ttnn::DRAM_MEMORY_CONFIG>
+template <auto Op>
     requires TTNNUnaryFn<Op>
 struct unary_tensor {
     [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
@@ -32,13 +32,13 @@ struct unary_tensor {
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
     [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
         ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
-        ttnn::Tensor result = Op(a_tile, TTNNMemoryConfig);
+        ttnn::Tensor result = Op(a_tile, ttnn::DRAM_MEMORY_CONFIG);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
 };
 
 // Unary with boolean output (e.g. signbit, isfinite, etc.)
-template <auto Op, auto TTNNMemoryConfig = ttnn::DRAM_MEMORY_CONFIG>
+template <auto Op>
     requires TTNNUnaryFn<Op>
 struct unary_tensor_bool {
     [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
@@ -48,13 +48,13 @@ struct unary_tensor_bool {
     // No inplace for boolean checks usually
     [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
         ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
-        ttnn::Tensor result = Op(a_tile, TTNNMemoryConfig);
+        ttnn::Tensor result = Op(a_tile, ttnn::DRAM_MEMORY_CONFIG);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
 };
 
 // Optional-int variants
-template <auto Op, auto TTNNMemoryConfig = ttnn::DRAM_MEMORY_CONFIG>
+template <auto Op>
     requires TTNNUnaryOptIntFn<Op>
 struct unary_tensor_opt_int_none {
     [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
@@ -64,12 +64,12 @@ struct unary_tensor_opt_int_none {
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
     [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
         ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
-        ttnn::Tensor result = Op(a_tile, std::nullopt, TTNNMemoryConfig);
+        ttnn::Tensor result = Op(a_tile, std::nullopt, ttnn::DRAM_MEMORY_CONFIG);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
 };
 
-template <auto Op, auto TTNNMemoryConfig = ttnn::DRAM_MEMORY_CONFIG>
+template <auto Op>
     requires TTNNUnaryOptIntFn<Op>
 struct unary_tensor_opt_int {
     [[nodiscard]] static at::Tensor invoke_decimals(const at::Tensor& a, int64_t decimals) {
@@ -82,13 +82,13 @@ struct unary_tensor_opt_int {
     [[nodiscard]] static at::Tensor& invoke_decimals_into(const at::Tensor& in, int64_t decimals, at::Tensor& out) {
         ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
         std::optional<int32_t> dec_opt = std::optional<int32_t>(static_cast<int32_t>(decimals));
-        ttnn::Tensor result = Op(a_tile, dec_opt, TTNNMemoryConfig);
+        ttnn::Tensor result = Op(a_tile, dec_opt, ttnn::DRAM_MEMORY_CONFIG);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
 };
 
 // Complex unary (real->complex and complex->complex support)
-template <auto Op, auto TTNNMemoryConfig = ttnn::DRAM_MEMORY_CONFIG>
+template <auto Op>
 struct complex_unary {
     [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
         c10::optional<at::ScalarType> out_dtype = c10::nullopt;
@@ -96,7 +96,7 @@ struct complex_unary {
         // Handle dtype correction for Complex Input -> Real Output (e.g. angle)
         if (a.is_complex()) {
             // Check the return type of the operation Op when called with a ComplexTensor
-            using ReturnT = decltype(Op(std::declval<ttnn::operations::complex::ComplexTensor>(), TTNNMemoryConfig));
+            using ReturnT = decltype(Op(std::declval<ttnn::operations::complex::ComplexTensor>(), ttnn::DRAM_MEMORY_CONFIG));
 
             // If Op returns a standard Tensor (implying Real) but input was Complex,
             // we must explicitly allocate a Real output tensor.
@@ -115,7 +115,7 @@ struct complex_unary {
             ttnn::Tensor real_tt = tt_eager::ext::tilize(in);
             ttnn::Tensor zero_tt = ttnn::multiply(real_tt, 0.0f);
             ttnn::operations::complex::ComplexTensor ct({real_tt, zero_tt});
-            auto ret = Op(ct, TTNNMemoryConfig);
+            auto ret = Op(ct, ttnn::DRAM_MEMORY_CONFIG);
             using ReturnT = decltype(ret);
             if constexpr (std::is_same_v<ReturnT, ttnn::Tensor>) {
                 return tt_eager::ext::write_from_ttnn(out, in, ret);
@@ -139,7 +139,7 @@ struct complex_unary {
         ttnn::Tensor imag_tt = tt_eager::ext::tilize(imag_part);
 
         ttnn::operations::complex::ComplexTensor ct({real_tt, imag_tt});
-        auto ret = Op(ct, TTNNMemoryConfig);
+        auto ret = Op(ct, ttnn::DRAM_MEMORY_CONFIG);
 
         using ReturnT = decltype(ret);
         if constexpr (std::is_same_v<ReturnT, ttnn::Tensor>) {
