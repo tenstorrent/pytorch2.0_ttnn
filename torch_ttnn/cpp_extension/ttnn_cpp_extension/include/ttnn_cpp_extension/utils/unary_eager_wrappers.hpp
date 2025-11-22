@@ -21,6 +21,16 @@ concept TTNNUnaryOptIntFn = requires(const ttnn::Tensor& a, std::optional<int32_
     { Op(a, p) } -> std::same_as<ttnn::Tensor>;
 };
 
+template <auto Op>
+concept TTNNUnaryBoolFn = requires(const ttnn::Tensor& a, bool b) {
+    { Op(a, b, ttnn::DRAM_MEMORY_CONFIG) } -> std::same_as<ttnn::Tensor>;
+};
+
+template <auto Op>
+concept TTNNUnaryIntBoolFn = requires(const ttnn::Tensor& a, int i, bool b) {
+    { Op(a, i, b, ttnn::DRAM_MEMORY_CONFIG) } -> std::same_as<ttnn::Tensor>;
+};
+
 // Unary: expects Op(a) → ttnn::Tensor
 template <auto Op>
     requires TTNNUnaryFn<Op>
@@ -83,6 +93,41 @@ struct unary_tensor_opt_int {
         ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
         std::optional<int32_t> dec_opt = std::optional<int32_t>(static_cast<int32_t>(decimals));
         ttnn::Tensor result = Op(a_tile, dec_opt, ttnn::DRAM_MEMORY_CONFIG);
+        return tt_eager::ext::write_from_ttnn(out, in, result);
+    }
+};
+
+// Unary with bool parameter (e.g. erf, erfc, exp, log, log10, log2, log1p)
+template <auto Op>
+    requires TTNNUnaryBoolFn<Op>
+struct unary_tensor_bool_param {
+    [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
+        at::Tensor out = tt_eager::ext::make_empty_like_ttnn(a);
+        return invoke_into(a, out);
+    }
+    [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
+    [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
+        ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
+        // Default to false for fast_and_approximate_mode (most operations use false)
+        // For log operations, true is typically used, but we'll use false as default
+        ttnn::Tensor result = Op(a_tile, false, ttnn::DRAM_MEMORY_CONFIG);
+        return tt_eager::ext::write_from_ttnn(out, in, result);
+    }
+};
+
+// Unary with int and bool parameters (e.g. sigmoid)
+template <auto Op>
+    requires TTNNUnaryIntBoolFn<Op>
+struct unary_tensor_int_bool_param {
+    [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
+        at::Tensor out = tt_eager::ext::make_empty_like_ttnn(a);
+        return invoke_into(a, out);
+    }
+    [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
+    [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
+        ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
+        // Default values: vector_mode = VecMode::RC (0), fast_and_approximate_mode = false
+        ttnn::Tensor result = Op(a_tile, 0, false, ttnn::DRAM_MEMORY_CONFIG);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
 };

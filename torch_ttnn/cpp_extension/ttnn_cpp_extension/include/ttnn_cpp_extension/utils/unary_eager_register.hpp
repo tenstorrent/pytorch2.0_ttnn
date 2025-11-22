@@ -73,14 +73,14 @@ static inline void register_unary_ops(torch::Library& m) {
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::logical_not>(m, "logical_not");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::sign>(m, "sign");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::i0>(m, "i0");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::erf>(m, "erf");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::erfc>(m, "erfc");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_bool_param, ttnn::erf>(m, "erf");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_bool_param, ttnn::erfc>(m, "erfc");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::erfinv>(m, "erfinv");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::exp>(m, "exp");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::log>(m, "log");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::log10>(m, "log10");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::log2>(m, "log2");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::log1p>(m, "log1p");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_bool_param, ttnn::exp>(m, "exp");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_bool_param, ttnn::log>(m, "log");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_bool_param, ttnn::log10>(m, "log10");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_bool_param, ttnn::log2>(m, "log2");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_bool_param, ttnn::log1p>(m, "log1p");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::acos>(m, "acos");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::acosh>(m, "acosh");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::acosh>(m, "arccosh");
@@ -99,7 +99,7 @@ static inline void register_unary_ops(torch::Library& m) {
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::expm1>(m, "expm1");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::lgamma>(m, "lgamma");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::rad2deg>(m, "rad2deg");
-    register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::sigmoid>(m, "sigmoid");
+    register_unary_base_out_inplace<tt_eager::ext::unary_tensor_int_bool_param, ttnn::sigmoid>(m, "sigmoid");
 
     // Round family (optional decimals). Example schema:
     //   schema [::invoke]: round(Tensor self) -> Tensor
