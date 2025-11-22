@@ -126,8 +126,8 @@ struct unary_tensor_int_bool_param {
     [[nodiscard]] static at::Tensor& invoke_inplace(at::Tensor& self) { return invoke_into(self, self); }
     [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
         ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
-        // Default values: vector_mode = VecMode::RC (0), fast_and_approximate_mode = false
-        ttnn::Tensor result = Op(a_tile, 0, false, ttnn::DRAM_MEMORY_CONFIG);
+        // Default values: vector_mode = VecMode::RC (4), fast_and_approximate_mode = false
+        ttnn::Tensor result = Op(a_tile, 4, false, ttnn::DRAM_MEMORY_CONFIG);
         return tt_eager::ext::write_from_ttnn(out, in, result);
     }
 };
@@ -158,7 +158,7 @@ struct complex_unary {
         // Handle real inputs
         if (!in.is_complex()) {
             ttnn::Tensor real_tt = tt_eager::ext::tilize(in);
-            ttnn::Tensor zero_tt = ttnn::multiply(real_tt, 0.0f);
+            ttnn::Tensor zero_tt = ttnn::multiply(real_tt, 0.0f, std::nullopt, ttnn::DRAM_MEMORY_CONFIG);
             ttnn::operations::complex::ComplexTensor ct({real_tt, zero_tt});
             auto ret = Op(ct, ttnn::DRAM_MEMORY_CONFIG);
             using ReturnT = decltype(ret);
