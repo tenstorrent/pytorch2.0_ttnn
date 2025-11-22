@@ -7,6 +7,10 @@
 #include <ttnn/operations/eltwise/complex/complex.hpp>
 
 #include <ATen/ops/view_as_real.h>
+#include <ATen/ops/view_as_complex.h>
+#include <ATen/ops/real.h>
+#include <ATen/ops/imag.h>
+#include <ATen/ops/stack.h>
 
 namespace tt_eager::ext {
 
@@ -158,6 +162,7 @@ struct complex_unary {
         // Handle real inputs
         if (!in.is_complex()) {
             ttnn::Tensor real_tt = tt_eager::ext::tilize(in);
+            // Create zero tensor with same shape and layout as real_tt
             ttnn::Tensor zero_tt = ttnn::multiply(real_tt, 0.0f, std::nullopt, ttnn::DRAM_MEMORY_CONFIG);
             ttnn::operations::complex::ComplexTensor ct({real_tt, zero_tt});
             auto ret = Op(ct, ttnn::DRAM_MEMORY_CONFIG);
@@ -171,14 +176,16 @@ struct complex_unary {
         }
 
         // Handle complex inputs
-        // Expected format: contiguous tensor with last dim size 2 (real, imag)
-        // or a standard PyTorch complex tensor (which is viewed as float with last dim 2 in some contexts,
-        // but we need to separate it for TTNN).
-        // PyTorch complex tensors are internally stored as [..., 2] of floats.
-        // at::view_as_real is the standard way to access real/imag parts as a float view.
-        at::Tensor in_view = at::view_as_real(in);  // [..., 2]
-        at::Tensor real_part = in_view.select(-1, 0).contiguous();
-        at::Tensor imag_part = in_view.select(-1, 1).contiguous();
+        // Extract real and imaginary parts from complex tensor.
+        // Since view_as_real is not available for PrivateUse1 backend,
+        // we convert to CPU first, extract parts, then convert back.
+        at::Tensor in_cpu = in.to(c10::DeviceType::CPU);
+        at::Tensor real_part_cpu = at::real(in_cpu).contiguous();
+        at::Tensor imag_part_cpu = at::imag(in_cpu).contiguous();
+        
+        // Convert back to TTNN device
+        at::Tensor real_part = real_part_cpu.to(in.device());
+        at::Tensor imag_part = imag_part_cpu.to(in.device());
 
         ttnn::Tensor real_tt = tt_eager::ext::tilize(real_part);
         ttnn::Tensor imag_tt = tt_eager::ext::tilize(imag_part);
@@ -197,14 +204,28 @@ struct complex_unary {
             ttnn::Tensor out_real = ret.real();
             ttnn::Tensor out_imag = ret.imag();
 
-            // We need to construct the output PyTorch complex tensor from these two components.
-            // Since 'out' is provided, we write into its real and imag views.
-            at::Tensor out_view = at::view_as_real(out);
-            at::Tensor out_real_part = out_view.select(-1, 0);
-            at::Tensor out_imag_part = out_view.select(-1, 1);
-
+            // Write real and imag parts separately, then combine into complex tensor
+            // We need to create separate tensors for real and imag parts
+            at::Tensor out_real_part = tt_eager::ext::make_empty_like_ttnn(real_part);
+            at::Tensor out_imag_part = tt_eager::ext::make_empty_like_ttnn(imag_part);
+            
             tt_eager::ext::write_from_ttnn(out_real_part, real_part, out_real);
             tt_eager::ext::write_from_ttnn(out_imag_part, imag_part, out_imag);
+            
+            // Combine real and imag parts into complex tensor
+            // Stack real and imag along last dimension, then use view_as_complex
+            // Convert to CPU first to use standard PyTorch operations
+            at::Tensor out_real_cpu = out_real_part.to(c10::DeviceType::CPU);
+            at::Tensor out_imag_cpu = out_imag_part.to(c10::DeviceType::CPU);
+            
+            // Stack along last dimension: [..., 2] where [..., 0] is real and [..., 1] is imag
+            at::Tensor out_stacked_cpu = at::stack({out_real_cpu, out_imag_cpu}, -1);
+            // Use view_as_complex to convert [..., 2] to complex tensor
+            at::Tensor out_complex_cpu = at::view_as_complex(out_stacked_cpu);
+            at::Tensor out_complex = out_complex_cpu.to(out.device());
+            
+            // Copy the complex tensor data to the output tensor
+            out.copy_(out_complex);
 
             return out;
         }
