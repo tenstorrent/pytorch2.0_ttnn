@@ -35,6 +35,22 @@ struct unary_tensor {
     }
 };
 
+// Unary with boolean output (e.g. signbit, isfinite, etc.)
+template <auto Op>
+    requires TTNNUnaryFn<Op>
+struct unary_tensor_bool {
+    [[nodiscard]] static at::Tensor invoke(const at::Tensor& a) {
+        at::Tensor out = tt_eager::ext::make_empty_like_ttnn(a, at::kBool);
+        return invoke_into(a, out);
+    }
+    // No inplace for boolean checks usually
+    [[nodiscard]] static at::Tensor& invoke_into(const at::Tensor& in, at::Tensor& out) {
+        ttnn::Tensor a_tile = tt_eager::ext::tilize(in);
+        ttnn::Tensor result = Op(a_tile);
+        return tt_eager::ext::write_from_ttnn(out, in, result);
+    }
+};
+
 // Optional-int variants
 template <auto Op>
     requires TTNNUnaryOptIntFn<Op>

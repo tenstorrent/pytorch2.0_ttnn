@@ -119,10 +119,10 @@ static inline void register_unary_ops(torch::Library& m) {
     // Base + out only (no inplace). Example schema:
     //   schema [::invoke      ]: op(Tensor self) -> Tensor
     //   schema [::invoke_into ]: op.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
-    register_unary_base_out<tt_eager::ext::unary_tensor, ttnn::signbit>(m, "signbit");
-    register_unary_base_out<tt_eager::ext::unary_tensor, ttnn::isfinite>(m, "isfinite");
-    register_unary_base_out<tt_eager::ext::unary_tensor, ttnn::isinf>(m, "isinf");
-    register_unary_base_out<tt_eager::ext::unary_tensor, ttnn::isnan>(m, "isnan");
+    register_unary_base_out<tt_eager::ext::unary_tensor_bool, ttnn::signbit>(m, "signbit");
+    register_unary_base_out<tt_eager::ext::unary_tensor_bool, ttnn::isfinite>(m, "isfinite");
+    register_unary_base_out<tt_eager::ext::unary_tensor_bool, ttnn::isinf>(m, "isinf");
+    register_unary_base_out<tt_eager::ext::unary_tensor_bool, ttnn::isnan>(m, "isnan");
 }
 
 }  // namespace tt_eager::ext
