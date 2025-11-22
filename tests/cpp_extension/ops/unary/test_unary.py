@@ -6,6 +6,8 @@ from tests.cpp_extension.utils import (
     OpTestConfig,
     ExactInt,
     ExactBool,
+    transform_to_complex,
+    transform_to_real,
 )
 
 # Standard floating point types supported by most TTNN operations
@@ -20,7 +22,7 @@ BOOL_DTYPES = [torch.bool]
 UNARY_OPS: list[OpTestConfig] = [
     # Standard Math (float results, default AllCloseFloat comparison)
     OpTestConfig(op_name="abs", dtypes=FLOAT_DTYPES),
-    OpTestConfig(op_name="absolute", dtypes=FLOAT_DTYPES),
+    OpTestConfig(op_name="absolute", ttnn_op_name="abs", dtypes=FLOAT_DTYPES),
     OpTestConfig(op_name="neg", dtypes=FLOAT_DTYPES),
     OpTestConfig(op_name="reciprocal", dtypes=FLOAT_DTYPES, low=0.1),  # Avoid 0
     OpTestConfig(op_name="sqrt", dtypes=FLOAT_DTYPES, low=0.001),  # Positive domain
@@ -66,8 +68,20 @@ UNARY_OPS: list[OpTestConfig] = [
     # Activation / Clamp
     OpTestConfig(op_name="relu", dtypes=FLOAT_DTYPES),
     # Complex / Other
+    # 1. Test 'angle' with Real input (bfloat16).
+    #    PyTorch supports this directly. Our C++ wrapper detects real input,
+    #    converts to Complex(input, 0) internally, and calls ttnn::angle.
     OpTestConfig(op_name="angle", dtypes=FLOAT_DTYPES),
+    # 2. Test 'angle' with explicit Complex input (complex64).
+    #    Validates general complex support.
+    OpTestConfig(op_name="angle", dtypes=[torch.complex64]),
+    # 1. Test 'conj' with Real input (bfloat16).
+    #    PyTorch returns the input (Identity). Our C++ wrapper converts to Complex(x, 0),
+    #    calls ttnn::conj -> Complex(x, -0), and returns the real part (x).
     OpTestConfig(op_name="conj", dtypes=FLOAT_DTYPES),
+    # 2. Test 'conj' with explicit Complex input (complex64).
+    #    Validates general complex support.
+    OpTestConfig(op_name="conj", dtypes=[torch.complex64]),
     # Bitwise/Logical (exact integer match)
     OpTestConfig(op_name="bitwise_not", dtypes=INT_DTYPES, result_comparison=ExactInt()),
     OpTestConfig(op_name="logical_not", dtypes=INT_DTYPES, result_comparison=ExactInt()),

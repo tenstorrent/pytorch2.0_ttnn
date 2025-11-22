@@ -88,12 +88,12 @@ static inline void register_unary_ops(torch::Library& m) {
     //   schema [::invoke        ]: angle(Tensor self) -> Tensor
     //   schema [::invoke_into   ]: angle.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
     //   schema [::invoke_inplace]: angle_(Tensor(a!) self) -> Tensor(a!)
-    register_unary_base_out_inplace<tt_eager::ext::complex_unary_from_real, ttnn::angle>(m, "angle");
+    register_unary_base_out_inplace<tt_eager::ext::complex_unary, ttnn::angle>(m, "angle");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::asin>(m, "asin");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::asinh>(m, "asinh");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::atan>(m, "atan");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::atanh>(m, "atanh");
-    register_unary_base_out_inplace<tt_eager::ext::complex_unary_from_real, ttnn::conj>(m, "conj");
+    register_unary_base_out_inplace<tt_eager::ext::complex_unary, ttnn::conj>(m, "conj");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::deg2rad>(m, "deg2rad");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::digamma>(m, "digamma");
     register_unary_base_out_inplace<tt_eager::ext::unary_tensor, ttnn::expm1>(m, "expm1");
