@@ -111,6 +111,14 @@ if [[ $# -eq 0 ]]; then
     python -m pytest tests/cpp_extension/test_bert_cpp_extension.py -v
     
     echo ""
+    echo "> Running PyTorch Dispatcher registration tests..."
+    python -m pytest tests/cpp_extension/ops/unary/ -m dispatcher_registration -v
+    
+    echo ""
+    echo "> Running TTNN operation correctness tests..."
+    python -m pytest tests/cpp_extension/ops/unary/ -m ttnn_op_correctness -v || true
+    
+    echo ""
     echo "> Running model tests with native integration..."
     python -m pytest tests/models/ --native_integration -v
 else

@@ -49,6 +49,7 @@ inline ttnn::DataType dtype_torch_to_ttnn(at::ScalarType dtype) {
         case at::ScalarType::Int:
         case at::ScalarType::Long: return ttnn::DataType::UINT32;
         case at::ScalarType::BFloat16: return ttnn::DataType::BFLOAT16;
+        case at::ScalarType::Float: return ttnn::DataType::FLOAT32;
         default: return ttnn::DataType::BFLOAT16;
     }
 }
