@@ -183,9 +183,24 @@ struct complex_unary {
         at::Tensor real_part_cpu = at::real(in_cpu).contiguous();
         at::Tensor imag_part_cpu = at::imag(in_cpu).contiguous();
         
-        // Convert back to TTNN device
+        // Ensure we have real (non-complex) tensors with the correct dtype
+        // real() and imag() return float32 for complex64, but we need to ensure
+        // they're not complex tensors and convert to bfloat16 for TTNN
+        c10::ScalarType target_dtype = c10::toRealValueType(in.scalar_type());
+        if (real_part_cpu.scalar_type() != target_dtype) {
+            real_part_cpu = real_part_cpu.to(target_dtype);
+        }
+        if (imag_part_cpu.scalar_type() != target_dtype) {
+            imag_part_cpu = imag_part_cpu.to(target_dtype);
+        }
+        
+        // Convert back to TTNN device - ensure they're real tensors
         at::Tensor real_part = real_part_cpu.to(in.device());
         at::Tensor imag_part = imag_part_cpu.to(in.device());
+        
+        // Verify they're real tensors before tilizing
+        TORCH_CHECK(!real_part.is_complex(), "real_part should not be complex");
+        TORCH_CHECK(!imag_part.is_complex(), "imag_part should not be complex");
 
         ttnn::Tensor real_tt = tt_eager::ext::tilize(real_part);
         ttnn::Tensor imag_tt = tt_eager::ext::tilize(imag_part);
