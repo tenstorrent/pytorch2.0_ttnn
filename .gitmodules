@@ -4,4 +4,4 @@
 [submodule "torch_ttnn/cpp_extension/third-party/tt-metal"]
 	path = torch_ttnn/cpp_extension/third-party/tt-metal
 	url = https://github.com/tenstorrent/tt-metal
-	branch = v0.62.0-dev20250916
+	branch = main
