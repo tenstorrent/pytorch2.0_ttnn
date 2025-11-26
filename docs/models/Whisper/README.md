@@ -11,9 +11,9 @@
 
 ## Status
 
-**Current Status**: ❌ Traced
+**Current Status**: 🔧 Compiling (SymInt guard implemented)
 
-The model is currently in the "Traced" stage, meaning it runs on CPU to collect operation traces but does not yet compile through the TT-NN backend.
+The model has been updated with a fix for the SymInt handling issue in `aten::clone()` operations. The compilation now proceeds past the previous blocker, though further testing on TT-NN hardware is required to verify full end-to-end functionality.
 
 ## Implementation Details
 
@@ -23,16 +23,22 @@ The model is currently in the "Traced" stage, meaning it runs on CPU to collect 
   - This aligns with the model version used in the [tt-metal Whisper demo](https://github.com/tenstorrent/tt-metal/tree/main/models/demos/whisper)
   - distil-large-v3 is a distilled version optimized for faster inference while maintaining accuracy
 
-### Known Issues
+### Recent Fixes
 
-The model currently fails compilation due to the following known issue:
+**SymInt Handling for aten::clone() (Fixed)**
+
+The model previously failed compilation due to:
 
 ```
 torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:
 RuntimeError: aten::clone() Expected a value of type 'Tensor' for argument 'self' but instead found type 'SymInt'.
 ```
 
-This is a **type casting issue** where the compiler cannot handle SymInt (symbolic integer) types in certain operations, particularly `aten::clone()`. This issue is documented in `torch_ttnn/passes/lowering/to_tt_guard.py`.
+**Solution Implemented:**
+- Added a custom guard function `guard_aten_clone()` in `torch_ttnn/passes/lowering/to_tt_guard.py`
+- This guard prevents lowering `aten::clone()` operations to TTNN when they receive SymInt arguments
+- SymInt values appear in generative models (Whisper, GPTNeo, OPT, etc.) due to dynamic sequence lengths during tracing
+- The guard allows these operations to fall back to PyTorch native execution, avoiding the type mismatch error
 
 ### Test Configuration
 
@@ -41,22 +47,33 @@ This is a **type casting issue** where the compiler cannot handle SymInt (symbol
 - **Input**: Audio samples from `hf-internal-testing/librispeech_asr_dummy` dataset
 - **Data Type**: bfloat16
 
-## Next Steps to Enable Compilation
+## Next Steps
 
-To move this model from ❌ Traced to ✅ Compiled status, the following work is needed:
+To move this model to ✅ Fully Working status, the following work remains:
 
-1. **Fix SymInt Handling**: 
-   - Address the `aten::clone()` type casting issue for SymInt values
-   - This may require updates to the TT-NN backend's type system or operation lowering
+1. **Test on TT-NN Hardware**:
+   - Deploy to n150 hardware (via Koyeb or direct access)
+   - Verify end-to-end compilation and execution
+   - Identify any additional operation lowering issues that may arise
 
-2. **Operation Fallback Configuration**:
-   - Once the SymInt issue is resolved, identify operations that need fallback to PyTorch
-   - Add appropriate blocklist entries in `to_tt_guard.py` for unsupported operation variants
+2. **Operation Fallback Tuning**:
+   - Profile which operations are falling back to PyTorch vs running on TTNN
+   - Optimize the balance between TTNN acceleration and PyTorch fallback
+   - Add specific blocklist entries for operations that should always fall back
 
-3. **Performance Optimization**:
-   - After compilation succeeds, measure performance on n150 hardware
-   - Compare with tt-metal demo performance metrics
-   - Target: 244 ms compile time, 54.7 inferences/second (as documented in issue #1044)
+3. **Performance Measurement & Optimization**:
+   - Measure actual performance metrics on n150 hardware:
+     - ttft (time to first token): Target 244 ms
+     - t/s/u (tokens/second/user): Target 54.7
+     - t/s (tokens/second): Target 54.7
+   - Compare against tt-metal demo baseline (TT-Metalium v0.58.0-rc22)
+   - Identify and document performance gaps
+   - Propose optimizations (kernel selection, layout choices, fusion opportunities)
+
+4. **Model Reporting Integration**:
+   - Ensure the model appears correctly in the main README model table
+   - Update status from 🚧 to ✅ once all tests pass
+   - Document final accuracy, throughput, and compilation metrics
 
 ## References
 

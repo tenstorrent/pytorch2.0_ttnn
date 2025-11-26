@@ -43,7 +43,6 @@ class ThisTester(ModelTester):
     "mode",
     ["eval"],
 )
-@pytest.mark.compilation_xfail(reason="aten::clone() SymInt type casting issue - see to_tt_guard.py")
 def test_whisper(record_property, mode):
     model_name = "Whisper"
     record_property("model_name", model_name)
