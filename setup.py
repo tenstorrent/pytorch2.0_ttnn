@@ -31,14 +31,14 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     python_requires=">=3.10",
     install_requires=[
-        "torch==2.2.1+cpu",
-        "torchvision==0.17.1+cpu",
+        "torch==2.7.1+cpu",
+        "torchvision==0.22.1+cpu",
         "tabulate==0.9.0",
         "networkx==3.1",
         "graphviz",
         "matplotlib==3.7.1",
         "paramiko==3.5.1",
-        "ttnn==0.60.1",
+        "ttnn==0.62.0rc36.dev2326",
     ],
     extras_require={
         "dev": [
