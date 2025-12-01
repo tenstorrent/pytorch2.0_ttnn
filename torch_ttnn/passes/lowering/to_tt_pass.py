@@ -1571,10 +1571,6 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         args[0].target == ttnn.slice
                         and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
                     )
-                    or (
-                        args[0].target == ttnn.format_output_tensor
-                        and args[0].args[0].target == ttnn.transformer.scaled_dot_product_attention
-                    )
                 ):
                     return args[0]
 
