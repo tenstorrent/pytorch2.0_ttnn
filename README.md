@@ -3,6 +3,8 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tenstorrent/pytorch2.0_ttnn)
 
 # PyTorch 2.0 TTNN Compiler
+**Deprecated:** This project is no longer maintained, please consider using [TT-Forge](https://github.com/tenstorrent/tt-forge) instead.
+
 The PyTorch 2.0 TT-NN Compiler enables seamless execution of PyTorch models on [Tenstorrent](https://tenstorrent.com/) AI accelerators. 
 By leveraging the TT-NN backend, you can achieve significant performance improvements while maintaining PyTorch's familiar API.
 
