@@ -8,6 +8,7 @@ import pytest
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from tests.utils import ModelTester, repeat_inputs
 
+dependencies = ["transformers==4.42.4"]
 
 class ThisTester(ModelTester):
     def _load_model(self):
@@ -16,7 +17,6 @@ class ThisTester(ModelTester):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side="left", torch_dtype=torch.bfloat16)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
-        # m.gradient_checkpointing_enable()
         return m
 
     def _load_inputs(self, batch_size):
@@ -30,7 +30,6 @@ class ThisTester(ModelTester):
             add_special_tokens=True,
             truncation=True,
         )
-        # inputs = self.tokenizer(self.test_input, return_tensors="pt")
         inputs = repeat_inputs(inputs, batch_size)
         return inputs
 
