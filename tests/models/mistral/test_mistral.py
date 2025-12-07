@@ -34,14 +34,13 @@ class ThisTester(ModelTester):
         return inputs
 
 
-
 @pytest.mark.parametrize(
     "mode",
     ["eval"],
 )
 @pytest.mark.parametrize(
     "batch_size",
-    [1],
+    [32],
 )
 def test_mistral(record_property, mode, batch_size):
     model_name = "Mistral-7B-Instruct-v0.3"
