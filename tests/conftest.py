@@ -57,11 +57,6 @@ def pytest_addoption(parser):
         action="store_true",
         help="Disable LoadParamsOnce optimization.",
     )
-    parser.addoption(
-        "--run_eviction_opt", 
-        action="store_true", 
-        help="Enable the eviction optimization pass.",
-    )
 
 @pytest.fixture(scope="session")
 def input_var_only_native(request):
@@ -271,8 +266,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
-                run_mem_analysis=request.config.getoption("--run_eviction_opt"),
-                run_eviction_opt=request.config.getoption("--run_eviction_opt"),
+                run_mem_analysis=False,
                 metrics_path=model_name,
                 verbose=True,
                 export_code=export_code_opt,
@@ -315,7 +309,6 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 avg_run_time = sum(warm_run_times) / len(warm_run_times)
             else:
                 avg_run_time = run_time
-
 
             # Move model and inputs back to CPU
             if option.native_integration:
