@@ -14,7 +14,6 @@ from pathlib import Path
 import os
 import pickle
 from torch._subclasses import FakeTensor
-from torch.profiler import profile, record_function, ProfilerActivity
 from torch_ttnn import mem_utils
 import torch_ttnn.metrics as metrics
 import subprocess
@@ -62,11 +61,6 @@ def pytest_addoption(parser):
         "--run_eviction_opt", 
         action="store_true", 
         help="Enable the eviction optimization pass.",
-    )
-    parser.addoption(
-        "--profile", 
-        action="store_true", 
-        help="Run profiling for the model.",
     )
 
 @pytest.fixture(scope="session")
@@ -322,18 +316,6 @@ def compile_and_run(device, reset_torch_dynamo, request):
             else:
                 avg_run_time = run_time
 
-            if request.config.getoption("--profile"):
-                torch.manual_seed(0)
-                model = model_tester.set_model_eval(model_tester.model)
-                inputs = model_tester.set_inputs_eval(model_tester.inputs)
-                model = model_tester.compile_model(model, option)
-                trace_file = os.path.join(os.path.join(os.getcwd(), "stat"), "profile", model_tester.model_name)
-                os.makedirs(os.path.dirname(trace_file), exist_ok=True)
-                activities = [ProfilerActivity.CPU]
-                with profile(activities=activities, record_shapes=True) as prof:
-                    with torch.no_grad():
-                        outputs = model_tester.run_model(model, inputs)
-                prof.export_chrome_trace(trace_file)
 
             # Move model and inputs back to CPU
             if option.native_integration:
