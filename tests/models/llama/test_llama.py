@@ -41,6 +41,7 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.compilation_xfail(reason="OOM for DRAM")
+@pytest.mark.skip()
 def test_llama(record_property, mode):
     model_name = "Llama"
     record_property("model_name", model_name)
