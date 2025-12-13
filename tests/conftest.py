@@ -133,6 +133,22 @@ def reset_torch_dynamo():
     yield
 
 
+@pytest.fixture
+def disable_load_params_once():
+    """Fixture to disable load_params_once optimization in TorchTtnnOption.
+
+    When this fixture is requested in a test function, it disables the
+    load_params_once optimization. This can also be controlled via the
+    --disable_load_params_once command line option.
+
+    Example:
+        def test_my_model(device, disable_load_params_once):
+            # load_params_once will be disabled for this test
+            ...
+    """
+    logging.info("load_params_once optimization disabled via disable_load_params_once fixture")
+    return True
+
 @pytest.fixture(autouse=True)
 def skip_by_platform(request, device):
     platforms = {
@@ -258,10 +274,12 @@ def compile_and_run(device, reset_torch_dynamo, request):
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
 
-            load_params_once = not native_integration # load_params_once conflicts with native integration
-            disable_load_params_once = request.config.getoption("--disable_load_params_once")
-            if disable_load_params_once:
-                load_params_once = False
+            # load_params_once conflicts with native integration
+            # It can be disabled via command line option or fixture
+            load_params_once_default = not native_integration
+            disable_via_cli = request.config.getoption("--disable_load_params_once")
+            disable_via_fixture = "disable_load_params_once" in request.fixturenames
+            load_params_once = load_params_once_default and not (disable_via_cli or disable_via_fixture)
 
             option = torch_ttnn.TorchTtnnOption(
                 device=device,

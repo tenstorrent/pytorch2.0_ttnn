@@ -32,7 +32,7 @@ class ThisTester(ModelTester):
     "batch_size",
     [1],
 )
-def test_mamba(record_property, mode, batch_size):
+def test_mamba(record_property, mode, batch_size, disable_load_params_once):
     model_name = "mamba-2.8b-batch_size-{}".format(batch_size)
     record_property("model_name", model_name)
     record_property("mode", mode)
