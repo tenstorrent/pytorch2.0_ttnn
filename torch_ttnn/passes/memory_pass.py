@@ -172,7 +172,9 @@ class MemoryPass(PassBase):
                     # i.e there are no ttnn ops on device which uses the tensor
                     for input_node in node.all_input_nodes:
                         # Exception: Shape node is just like a parameter containing shape of input tensor
-                        if input_node.target == ttnn.Shape or (not self.op_registry.is_input_tensor_on_device(input_node)):
+                        if input_node.target == ttnn.Shape or (
+                            not self.op_registry.is_input_tensor_on_device(input_node)
+                        ):
                             continue
                         keep_on_device = False
                         input_node_users = list(input_node.users.keys())

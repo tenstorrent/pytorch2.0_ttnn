@@ -58,6 +58,7 @@ def pytest_addoption(parser):
         help="Disable LoadParamsOnce optimization.",
     )
 
+
 @pytest.fixture(scope="session")
 def input_var_only_native(request):
     return request.config.getoption("--input_var_only_native")
@@ -148,6 +149,7 @@ def disable_load_params_once():
     """
     logging.info("load_params_once optimization disabled via disable_load_params_once fixture")
     return True
+
 
 @pytest.fixture(autouse=True)
 def skip_by_platform(request, device):

@@ -10,6 +10,7 @@ from tests.models.mamba.mamba_ssm.model import Mamba
 from tests.utils import ModelTester, repeat_inputs
 from loguru import logger
 
+
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
