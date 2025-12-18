@@ -13,8 +13,6 @@ on:
         required: false
         type: string
         default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
-  schedule:
-    - cron: "0 21 * * 6" # Run every Saturday at 9:00 PM UTC
 permissions:
   actions: read
   contents: write
