@@ -1,8 +1,9 @@
 include LICENSE
+include NOTICE
 include README.md
-include requirements.txt
-include requirements-dev.txt
 include VERSION
 
-# Exclude test files from the distribution
-exclude tests/* 
+recursive-include torch_ttnn/cpp_extension/cmake *.cmake
+recursive-include torch_ttnn/cpp_extension/third-party CMakeLists.txt
+
+prune tests

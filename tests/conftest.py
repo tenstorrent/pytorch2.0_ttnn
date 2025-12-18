@@ -80,33 +80,24 @@ def device(request):
     l1_small_size = 65536
     dispatch_core_config = get_dispatch_core_config()
 
+    # Determine mesh shape based on data parallel mode
     if request.config.getoption("--data_parallel"):
         # TODO: allow user to specify how to split model (data parallel vs tensor parallel)
-        device = ttnn.open_mesh_device(
-            ttnn.MeshShape(1, 2), dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
-        )
-
-        device.enable_program_cache()
-
-        yield device
-
-        ttnn.synchronize_device(device)
-        ttnn.close_mesh_device(device)
+        mesh_shape = ttnn.MeshShape(1, 2)
     else:
-        device_id = 0
+        mesh_shape = ttnn.MeshShape(1, 1)
 
-        device = ttnn.open_device(
-            device_id=device_id, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size
-        )
+    device = ttnn.open_mesh_device(mesh_shape, dispatch_core_config=dispatch_core_config, l1_small_size=l1_small_size)
 
-        device.enable_program_cache()
+    device.enable_program_cache()
 
+    if not request.config.getoption("--data_parallel"):
         ttnn.SetDefaultDevice(device)
 
-        yield device
+    yield device
 
-        ttnn.synchronize_device(device)
-        ttnn.close_device(device)
+    ttnn.synchronize_device(device)
+    ttnn.close_mesh_device(device)
 
 
 def get_dispatch_core_type():

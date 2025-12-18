@@ -33,8 +33,8 @@ TtnnTensorImpl::TtnnTensorImpl(
 
     sizes_and_strides_.set_sizes(sizes_);
     sizes_and_strides_.set_strides(strides_);
-    ttnn::SmallVector<uint32_t> small_vector(size.begin(), size.end());
-    logical_shape_ = ttnn::Shape(small_vector);
+    ttsl::SmallVector<uint32_t> logical_dims(size.begin(), size.end());
+    logical_shape_ = ttnn::Shape(logical_dims);
 }
 
 void TtnnTensorImpl::set_sizes_and_strides(const IntArrayRef& int_array_ref) {

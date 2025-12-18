@@ -11,12 +11,24 @@ on:
         description: 'Docker container tag to use'
         required: false
         type: string
-        default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
+        # TODO: Using pinned tt-metal Docker image for project freeze (Nov 18, 2025)
+        # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
+        default: 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce'
       mock_run:
         description: "Array of test groups to run. If empty, all tests will be run."
         required: false
         type: string
         default: ""
+      enable_telemetry:
+        description: 'Whether to enable telemetry (will fail if enabled but permissions are missing)'
+        required: false
+        type: string
+        default: 'false'
+      install_full_dependencies:
+        description: 'Install full tt-metal dependencies (unchecked = use --sfpi flag only)'
+        required: false
+        type: boolean
+        default: true
     outputs:
       tests_passed:
         description: "Whether tests passed (0 means pass, 1 means fail)"
@@ -35,7 +47,19 @@ on:
         description: 'Docker container tag to use'
         required: false
         type: string
-        default: 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest'
+        # TODO: Using pinned tt-metal Docker image for project freeze (Nov 18, 2025)
+        # To update: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
+        default: 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce'
+      enable_telemetry:
+        description: 'Whether to enable telemetry (will fail if enabled but permissions are missing)'
+        required: false
+        type: string
+        default: 'false'
+      install_full_dependencies:
+        description: 'Install full tt-metal dependencies (unchecked = use --sfpi flag only)'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   actions: read
@@ -44,25 +68,66 @@ permissions:
   id-token: write
   pull-requests: write
 
+defaults:
+  run:
+    shell: bash --noprofile --norc -u -x {0}
+
 jobs:
+  log-parameters:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Workflow Parameters
+        run: |
+          echo "=========================================="
+          echo "🔧 Workflow Parameters"
+          echo "=========================================="
+          echo "commit_report: ${{ inputs.commit_report }}"
+          echo "docker_tag: ${{ inputs.docker_tag }}"
+          echo "enable_telemetry: ${{ inputs.enable_telemetry }}"
+          echo "install_full_dependencies: ${{ inputs.install_full_dependencies }}"
+          if [ "${{ inputs.install_full_dependencies }}" == "true" ]; then
+            echo "  → Will run: ./install_dependencies.sh (full install)"
+          else
+            echo "  → Will run: ./install_dependencies.sh --sfpi (sfpi only)"
+          fi
+          echo "=========================================="
+
   tools-tests:
+    needs: log-parameters
     env:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Tools Tests"
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
       HF_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
     runs-on: ["in-service"]
     container: 
       image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
-    steps:      
+    steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          clean: 'true'
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Run Tools Tests 
         run: |
           python3 -m pytest --github-report tests/tools/ -s
@@ -74,7 +139,7 @@ jobs:
       image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -82,15 +147,32 @@ jobs:
       pytest_verbosity: 2    
       pytest_report_title: "⭐️ Aten → TTNN Lowering Tests"
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
+      TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
     strategy:
       matrix: # Need to find a way to replace this with a generator
         group: [1, 2]
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - uses: ./.github/actions/common_lowering_tests
 
   count-test-files:
+    needs: log-parameters
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.count-files.outputs.matrix }}
@@ -114,7 +196,7 @@ jobs:
       image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -126,19 +208,31 @@ jobs:
       HF_HOME: /root/.cache/huggingface
       HF_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
+      TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
     strategy:
       matrix: 
         group: ${{ fromJson(needs.count-test-files.outputs.matrix) }}
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
         with:
           lfs: true
-          fetch-depth: 0    
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
-      - name: docker-cleanup
-        run: |
-          docker system prune -a -f
-          df -h  # Debug space
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
+      - uses: ./.github/actions/common_cleanup
+        with:
+          docker-cleanup: 'true'
       - uses: ./.github/actions/common_model_tests
         with:
           splits: ${{ needs.count-test-files.outputs.num_files }}
@@ -173,7 +267,7 @@ jobs:
       image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       env:
         PYTHONPATH: /work
         GITHUB_ACTIONS: true
@@ -190,9 +284,25 @@ jobs:
       TORCH_HOME: /root/.cache/torch
       HF_HOME: /root/.cache/huggingface
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
+      TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - uses: ./.github/actions/common_multi_device_tests
         with:
           commit_report: ${{ inputs.commit_report }}
@@ -213,7 +323,7 @@ jobs:
       image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -222,8 +332,23 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
 
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
@@ -260,7 +385,7 @@ jobs:
           title: "Update PT2.0 Documentation"
           body: "This PR updates Documentation by rerunning autogenerated tests"          
           delete-branch: true
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: ${{ steps.generate-op-tests.outputs.commit-glob }}
 
   model-autogen-op-tests:
@@ -271,7 +396,7 @@ jobs:
       image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -282,9 +407,25 @@ jobs:
       pytest_verbosity: 0
       pytest_report_title: "⭐️ Model Input Variations Tests - Group ${{ matrix.group }}"
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
+      TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
 
       - name: Run Model Input Variations Tests
         run: |
@@ -311,8 +452,23 @@ jobs:
     env:
       pytest_verbosity: 0
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -333,8 +489,23 @@ jobs:
     env:
       pytest_verbosity: 0
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Download All Input Variations Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -358,7 +529,7 @@ jobs:
       image: ${{ inputs.docker_tag }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
@@ -367,8 +538,23 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}
       PIP_CACHE_DIR: /root/pip_cache/.pip_cache
     steps:
+      # Install git-lfs before checkout (required for lfs: true)
+      - name: Install git-lfs
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+      # Explicit checkout with submodules: false to prevent GitHub Actions from scanning
+      # submodule .github/actions directories during "Prepare all required actions" phase.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: false
+          fetch-depth: 1
       - uses: ./.github/actions/common_repo_setup
+        with:
+          enable-telemetry: ${{ inputs.enable_telemetry || 'false' }}
+          install-full-dependencies: ${{ inputs.install_full_dependencies || 'true' }}
       - name: Download All Metrics Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -384,7 +570,7 @@ jobs:
           path: metrics-autogen-op/
       # - name: Download Metrics Artifacts
       #   env:
-      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #     GH_REPO: ${{ github.repository }}
       #   run: |
       #     mkdir -p metrics
@@ -424,7 +610,7 @@ jobs:
           title: "Update PT2.0 Documentation"
           body: "This PR updates Documentation by rerunning autogenerated tests"          
           delete-branch: true
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: ${{ steps.collect-metrics.outputs.commit-glob }}
 
       - name: Send To Data Team

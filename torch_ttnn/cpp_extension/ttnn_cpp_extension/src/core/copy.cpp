@@ -1,14 +1,15 @@
 #include <ATen/DeviceGuard.h>
 #include <ATen/core/Tensor.h>
 
-#include <ttnn/tensor/tensor.hpp>
 #include <tt-metalium/bfloat16.hpp>
+#include <tt-metalium/memory_pin.hpp>
+#include <ttnn/tensor/tensor.hpp>
 #include <ttnn/tensor/storage.hpp>
-
+#include <ttnn/operations/core/core.hpp>
 #include "ttnn_cpp_extension/core/TtnnGuard.hpp"
 #include "ttnn_cpp_extension/core/TtnnTensorImpl.hpp"
-
 #include "ttnn_cpp_extension/utils/extension_utils.hpp"
+#include <memory>
 
 at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool non_blocking) {
     LOGGING(self.device().type(), " ==> ", dst.device().type());
@@ -34,15 +35,14 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
 
             auto self_bfloat16_storage_ptr = static_cast<bfloat16*>(self.storage().data_ptr().get());
 
-            // Create TTNN Tensor on CPU
-            ttnn::Tensor src_cpu = ttnn::Tensor(
-                tt::tt_metal::HostStorage{tt::tt_metal::host_buffer::create<bfloat16>(
-                    tt::stl::Span(self_bfloat16_storage_ptr, logical_volume))},
+            // Create TTNN Tensor on CPU using borrowed data with lifetime pin
+            auto self_tensor_shared = std::make_shared<at::Tensor>(self);
+            ttnn::Tensor src_cpu = ttnn::Tensor::from_borrowed_data(
+                ttsl::Span<bfloat16>(self_bfloat16_storage_ptr, logical_volume),
                 logical_shape,
-                dtype,
-                ttnn::Layout::ROW_MAJOR);
+                tt::tt_metal::MemoryPin(self_tensor_shared));
 
-            ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
+            ttnn::Tensor src_dev = ttnn::operations::core::to_device(src_cpu, ttnn_device, std::nullopt);
 
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(src_dev);
@@ -53,17 +53,16 @@ at::Tensor ttnn_copy_from(const at::Tensor& self, const at::Tensor& dst, bool no
             auto self_int = self.toType(at::ScalarType::Int);
             auto self_int_storage_ptr = static_cast<uint32_t*>(self_int.storage().data_ptr().get());
 
-            // First create ttnn Tensor on CPU
-            ttnn::Tensor src_cpu = ttnn::Tensor(
-                tt::tt_metal::HostStorage{
-                    tt::tt_metal::host_buffer::create<uint32_t>(tt::stl::Span(self_int_storage_ptr, logical_volume))},
+            // Create ttnn Tensor on CPU using borrowed data with lifetime pin
+            auto self_int_shared = std::make_shared<at::Tensor>(self_int);
+            ttnn::Tensor src_cpu = ttnn::Tensor::from_borrowed_data(
+                ttsl::Span<uint32_t>(self_int_storage_ptr, logical_volume),
                 logical_shape,
-                dtype,
-                ttnn::Layout::ROW_MAJOR);
+                tt::tt_metal::MemoryPin(self_int_shared));
 
             // Initialized as ROW_MAJOR for this dtype because of an issue with ttnn.embedding if this tensor was
             // converted later: https://github.com/tenstorrent/tt-metal/issues/22257
-            ttnn::Tensor src_dev = src_cpu.to_device(ttnn_device);
+            ttnn::Tensor src_dev = ttnn::operations::core::to_device(src_cpu, ttnn_device, std::nullopt);
 
             // Finally save ttnn tensor on device to custom TorchImpl
             tensor_impl->set_ttnn_tensor(src_dev);

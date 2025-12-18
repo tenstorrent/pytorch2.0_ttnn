@@ -13,16 +13,55 @@ By leveraging the TT-NN backend, you can achieve significant performance improve
 
 ### Installation
 
-Install from the repo:
+**For PyPI users** (recommended):
 ```bash
-pip install git+https://bitbucket.org/tenstorrent/pytorch2.0_ttnn
+pip install torch-ttnn[pypi]
 ```
-or as an editable package from source:
+
+**For development** (building from source):
+
+**Important**: TT-Metal is included as a git submodule. The build system **automatically detects** TT-Metal from the submodule and **actively ignores** the `TT_METAL_HOME` environment variable to prevent build conflicts when switching between TT projects.
+
+1. Clone with submodules and build tt-metal:
 ```bash
-git clone https://github.com/tenstorrent/pytorch2.0_ttnn.git
+git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
+cd pytorch2.0_ttnn/torch_ttnn/cpp_extension/third-party/tt-metal
+./build_metal.sh --release --enable-ccache
+./create_venv.sh
+source python_env/bin/activate
+```
+
+2. Install pytorch2.0_ttnn:
+```bash
+cd ../../../../  # Return to pytorch2.0_ttnn root
+pip install --upgrade pip scikit-build-core cmake ninja
+pip install -e .[dev]
+```
+
+**For Python-only installation** (without C++ extension):
+
+If you only need Python dependencies without building C++ extension:
+```bash
+git clone --recursive https://github.com/tenstorrent/pytorch2.0_ttnn.git
 cd pytorch2.0_ttnn
-pip install -e .
+# Set up tt-metal venv from submodule (no build step needed)
+cd torch_ttnn/cpp_extension/third-party/tt-metal
+./create_venv.sh
+source python_env/bin/activate
+cd ../../../..
+# Install pytorch2.0_ttnn in Python-only mode
+export SKIP_CPP_EXTENSION=1
+pip install -e .[pypi,dev]
 ```
+
+This is useful for:
+- Installing Python dependencies only
+- Testing Python code without C++ toolchain
+- Quick setup without full compilation
+
+> **📖 Detailed Instructions:** See [docs/BuildFlow.md](docs/BuildFlow.md) for complete build documentation and troubleshooting.
+
+**Note**: The `[pypi]` extra is required for PyPI users to install the `ttnn` runtime dependency. Without it, you'll get an import error.
 
 ### ✨ Basic Usage
 
@@ -247,16 +286,39 @@ To get started with development, you'll need a Wormhole or Blackhole Tenstorrent
 * can be ordered on the [Tenstorrent website](https://tenstorrent.com/) 
 * can be requested on [Koyeb](https://www.koyeb.com/blog/tenstorrent-cloud-instances-unveiling-next-gen-ai-accelerators)
 
-Install the development dependencies:
+Install the development dependencies and build the project (including the C++
+extension) in editable mode from the tt-metal virtual environment created by
+`create_venv.sh`:
 ```shell
-pip install -r requirements-dev.txt
-pip install -e .
+pip install -e .[dev]
 ```
 
-You can build the wheel file with
+To rebuild the native extension after changing C++ sources, re-run the
+installation command. The scikit-build-core backend will reuse the build
+directory and pick up code changes automatically. See [docs/BuildFlow.md](docs/BuildFlow.md) for a
+detailed walkthrough of the recommended workflow.
+
+You can build a distributable wheel by running the modern PEP 517 build flow:
 ```shell
-python -m build
+# First ensure tt-metal is built from submodule
+cd torch_ttnn/cpp_extension
+./build_cpp_extension.sh Release
+cd ../..
+
+# Build wheel (skip sdist, use current directory with pre-built tt-metal)
+python3 -m build --wheel --no-isolation
 ```
+
+**Notes:** 
+- Use `--wheel` to skip sdist creation (sdist copies to /tmp/ without built libraries)
+- Use `--no-isolation` to build in current directory with access to pre-built tt-metal
+- This allows CMake to find `build_Release/` directory from the submodule
+- The wheel excludes the tt-metal submodule source (via `wheel.exclude` in pyproject.toml)
+- The wheel bundles all required TT-Metal libraries for reliable runtime loading
+
+**Note on TT_METAL_HOME**: 
+- **During build:** If you have `TT_METAL_HOME` set in your environment (e.g., from working on tt-metal directly), the build system will detect it, display a warning, and **actively ignore** it. TT-Metal is always auto-detected from the git submodule at `torch_ttnn/cpp_extension/third-party/tt-metal`. This prevents build conflicts when switching between different TT projects (tt-metal, tt-train, pytorch2.0_ttnn).
+- **During tests:** `TT_METAL_HOME` **must be set** before running tests because the tt-metal runtime needs it to locate firmware binaries and kernel artifacts. The test runner script (`run_cpp_extension_tests.sh`) sets this automatically.
 
 ## Project Structure
 

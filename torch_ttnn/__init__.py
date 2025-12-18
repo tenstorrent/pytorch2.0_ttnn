@@ -41,9 +41,14 @@ except ImportError as e:
     if "ttnn" not in str(e):
         raise
     print(
-        "\nError: ttnn is not installed or not compatible with your system.\n"
-        "To install ttnn, run:\n"
-        "  pip install torch-ttnn[ttnn]\n\n"
+        "\nError: ttnn package is not installed.\n"
+        "\n"
+        "For PyPI users, install with:\n"
+        "  pip install torch-ttnn[pypi]\n"
+        "\n"
+        "For development builds, ttnn is built from source:\n"
+        "  cd ${TT_METAL_HOME} && ./create_venv.sh\n"
+        "\n"
         "Note: ttnn is only supported on Linux with Python 3.10.\n"
         "Current system: {}\n"
         "Current Python: {}.{}\n".format(platform.platform(), sys.version_info.major, sys.version_info.minor)

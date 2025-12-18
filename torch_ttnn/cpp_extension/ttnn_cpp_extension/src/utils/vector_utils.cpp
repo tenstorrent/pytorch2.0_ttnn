@@ -44,7 +44,7 @@ VariantVectorTy tensor_to_vector(const ttnn::Tensor& ttnn_tensor) {
 
     ttnn::Tensor ttnn_tensor_tmp = ttnn_tensor;
     if (is_tensor_on_device) {
-        auto logical_shape = ttnn_tensor.get_logical_shape();
+        auto logical_shape = ttnn_tensor.logical_shape();
         auto logical_rank = logical_shape.rank();
         if (logical_rank == 1) {
             ttnn::Shape new_shape({1, logical_shape[0]});

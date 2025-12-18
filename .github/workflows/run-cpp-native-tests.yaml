@@ -7,138 +7,179 @@ on:
     paths:
       - 'torch_ttnn/cpp_extension/**'
       - 'tests/cpp_extension/**'
+      - 'pyproject.toml'  # Trigger on ttnn dependency updates
   pull_request:
     paths:
-      - "torch_ttnn/cpp_extension/**"
-      - "tests/cpp_extension/**"
+      - 'torch_ttnn/cpp_extension/**'
+      - 'tests/cpp_extension/**'
+      - 'pyproject.toml'  # Trigger on ttnn dependency updates
   workflow_dispatch:
     inputs:
       docker_tag:
         description: "Docker container tag to use"
         required: false
         type: string
-        default: "ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest"
+        # Using tt-metal Docker image instead of building pytorch2.0_ttnn images
+        # Rationale: tt-metal images are public and provide all needed dependencies
+        # pytorch2.0_ttnn images require authentication and are built on top of tt-metal
+        # PINNED to specific digest for reproducibility (Nov 18, 2025)
+        # Digest from: docker manifest inspect --verbose ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64:latest
+        # To update: Get new digest and update the sha256 hash below
+        default: "ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce"
 
 jobs:
   cpp-extension-tests:
     runs-on: ["in-service", "nfs"]
     container:
-      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/pytorch2.0_ttnn/ubuntu-22.04-amd64:latest' }}
+      # Using tt-metal public Docker image (not building pytorch2.0_ttnn images)
+      # Pinned to specific digest for reproducibility and project freeze (Nov 18, 2025)
+      # Rationale: Ensures consistent build environment across all CI runs and prevents
+      # unexpected breakages from upstream image updates. Manual override available via workflow_dispatch.
+      image: ${{ github.event.inputs.docker_tag || 'ghcr.io/tenstorrent/tt-metal/tt-metalium/ubuntu-22.04-ci-test-amd64@sha256:104b062b1942b398902884d6340a9695fbfcd4ffe6fb5a59f3d6363c499e7fce' }}
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GH_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       options: >-
         --rm -v /dev/hugepages-1G:/dev/hugepages-1G --device /dev/tenstorrent
         -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }}
         -v /mnt/tt-metal-pytorch-cache/.cache:/root/.cache
     env:
-      CACHE_DIR: /root/.cache/cpp-extension-cache
+      CCACHE_DIR: /root/.cache/ccache
+      CPM_SOURCE_CACHE: /root/.cache/cpm
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_MAXSIZE: 30G
+      PYTHON_ENV_DIR: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal/python_env
+      TT_METAL_HOME: ${{ github.workspace }}/torch_ttnn/cpp_extension/third-party/tt-metal
+    defaults:
+      run:
+        shell: bash
     steps:
+      - name: Prepare checkout
+        run: |
+          set -euxo pipefail
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+
       - uses: actions/checkout@v4
         with:
           lfs: true
           fetch-depth: 0
-          submodules: "recursive"
+          submodules: recursive  # Let GitHub Actions handle all submodules
+          clean: true            # Clean working tree before checkout
 
-      - name: Docker Cleanup
+      - name: Configure git safe directories
         run: |
-          docker system prune -a -f
-          df -h  # Debug space
-
-      - name: Update system
+          set -euxo pipefail
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          git config --global --add safe.directory '*'
+      
+      - name: Initialize git submodules
         run: |
-          apt update -y && apt upgrade -y
-          apt install -y curl jq
-      - name: Update .gitsubmodules
-        run: |
-          # Fetch the latest pre-release tag from the target repository
-          latest_pre_release=$(curl -s https://api.github.com/repos/tenstorrent/tt-metal/releases | jq -r '[.[] | select(.prerelease == true)][0].tag_name')
-          # Strip leading 'v' from the tag (e.g., v0.51.0 -> 0.51.0)
-          latest_version="${latest_pre_release#v}"
-          sed -i "/\[submodule \"torch_ttnn\/cpp_extension\/third-party\/tt-metal\"\]/,/^\[/{s/^\s*branch\s*=.*/\tbranch = $latest_version/}" .gitmodules
-          echo "Updated .gitmodules with the latest version: $latest_version"
-
-      - name: Install dependencies
-        run: |
-          apt upgrade -y && apt update -y
-          apt install -y cmake python3 python3-venv python3-pip git-lfs ccache
-          git config --global --add safe.directory /home/ubuntu/actions-runner/_work/pytorch2.0_ttnn/pytorch2.0_ttnn
-          git config --global --add safe.directory /__w/pytorch2.0_ttnn/pytorch2.0_ttnn
-
-          # Remove hugepages setup from install_dependencies.sh
-          sed -i '/^configure_hugepages() {/,/^}/c\configure_hugepages() {\n    echo "Skip hugepages installation"\n}' ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
-          ./torch_ttnn/cpp_extension/third-party/tt-metal/install_dependencies.sh
-
-      - name: Install python dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip config set global.extra-index-url https://download.pytorch.org/whl/cpu
-          python3 -m pip install -r requirements-dev.txt
-          python3 -m pip install pytest-github-report
-
-          pip install --force-reinstall pip==21.2.4
-          python3 -m pip install numpy setuptools wheel
-          python3 -m pip install -e .
-
-      - name: Setup submodules
-        run: |
-          git submodule sync
+          set -euxo pipefail
           git submodule update --init --recursive
-          git submodule foreach 'git lfs fetch --all && git lfs pull'
-
-      - name: Build/Fetch C++ Extensions
+      
+      - name: Install system dependencies
         run: |
-          cd torch_ttnn/cpp_extension
-          PYTHON_LIB_SUFFIX=$(python3 -c "import importlib.machinery; print(importlib.machinery.EXTENSION_SUFFIXES[0])")
+          set -euxo pipefail
+          apt-get update
+          apt-get install -y build-essential clang-17 clang-format-17 llvm-17-dev gcc-12 g++-12 cmake ninja-build \
+            python3 python3-venv python3-pip curl jq ccache nlohmann-json3-dev
 
-          CCACHE_DIR=$(ccache --get-config cache_dir)
-          mkdir -p $CCACHE_DIR
-
-          # Check if cache exists with required components
-          CACHE_FOUND=0
-          if [ -d "$CACHE_DIR/build" ] && [ -f "$CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX}" ]; then
-            CACHE_FOUND=1
-            echo "Cache found with all required components. Using cached build."
-
-            # cpp-extension cache
-            cp -r $CACHE_DIR/build .
-            cp -r $CACHE_DIR/ttnn_device_extension${PYTHON_LIB_SUFFIX} .
-
-            # tt-metal cache
-            cp -r $CACHE_DIR/tt-metal/build third-party/tt-metal/
-            cp -r $CACHE_DIR/tt-metal/.cpmcache third-party/tt-metal/
-
-            # ccache
-            cp -r $CACHE_DIR/ccache/* $CCACHE_DIR
-          else
-            echo "Cache not found or incomplete. Building C++ extensions"
+      - name: Configure ccache
+        run: |
+          set -euxo pipefail
+          mkdir -p "${CCACHE_DIR}"
+          ccache --set-config=cache_dir="${CCACHE_DIR}"
+          if [[ -n "${CCACHE_MAXSIZE:-}" ]]; then
+            ccache --set-config=max_size="${CCACHE_MAXSIZE}"
           fi
-          ./build_cpp_extension.sh
+          if [[ -n "${CCACHE_BASEDIR:-}" ]]; then
+            ccache --set-config=base_dir="${CCACHE_BASEDIR}"
+          fi
+          ccache --set-config=compression=true
+          ccache --zero-stats
+
+      - name: Install TT-Metal system dependencies
+        run: |
+          set -euxo pipefail
+          cd torch_ttnn/cpp_extension/third-party/tt-metal
+          ./install_dependencies.sh
+      
+      - name: Build C++ extension
+        run: |
+          set -euxo pipefail
           
-          # Update cache with new build if not was not present before
-          if [ $CACHE_FOUND -eq 0 ]; then
-            mkdir -p $CACHE_DIR
-            
-            # cpp-extension cache
-            cp -r build $CACHE_DIR 
-            cp -r ttnn_device_extension${PYTHON_LIB_SUFFIX} $CACHE_DIR 
-
-            # tt-metal cache
-            mkdir -p $CACHE_DIR/tt-metal
-            cp -r third-party/tt-metal/build $CACHE_DIR/tt-metal/
-            cp -r third-party/tt-metal/.cpmcache $CACHE_DIR/tt-metal/
-
-            # ccache
-            cp -r $CCACHE_DIR $CACHE_DIR 
+          # Ensure git safe.directory is set for git commands
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}" || true
+          
+          # Check if this is a ttnn update PR (for testing new ttnn version from PyPI)
+          if git log --oneline -1 | grep -q "Update dependencies to"; then
+            # Test new ttnn version from PyPI
+            bash torch_ttnn/cpp_extension/build_cpp_extension.sh Release --test-pypi-ttnn
+          else
+            # Regular build with local ttnn
+            bash torch_ttnn/cpp_extension/build_cpp_extension.sh Release
           fi
-          cd ${{ github.workspace }}
-
-      - name: Run C++ Extension Tests
+      
+      - name: Run tests
         run: |
-          export TT_METAL_HOME=$(realpath ./torch_ttnn/cpp_extension/third-party/tt-metal)
-          pytest tests/cpp_extension/test_cpp_extension_functionality.py -v
-          pytest tests/cpp_extension/test_bert_cpp_extension.py -v
-          pytest tests/models/ --native_integration -v
+          set -euxo pipefail
+          
+          # Run tests using the test runner script
+          bash torch_ttnn/cpp_extension/run_cpp_extension_tests.sh
+          
+          # Show ccache statistics
+          ccache --show-stats
+      
+      - name: Verify wheel can be built
+        run: |
+          set -euxo pipefail
+          
+          # After tests pass, verify wheel builds successfully (using submodule tt-metal)
+          # This ensures every commit can produce a distributable wheel
+          source torch_ttnn/cpp_extension/third-party/tt-metal/python_env/bin/activate
+          
+          # Ensure build dependencies are available
+          python3 -m pip install --upgrade build "scikit-build-core>=0.10,<0.11" wheel
+          
+          # Clean and build wheel
+          rm -rf dist/
+          # Use --wheel to skip sdist creation and --no-isolation to access pre-built tt-metal
+          # (building sdist first copies to /tmp/ without build_Release/)
+          python3 -m build --wheel --no-isolation
+          
+          # Show what was built
+          echo "✅ Wheel built successfully:"
+          ls -lh dist/
+      
+      - name: Test wheel installation and functionality
+        run: |
+          set -euxo pipefail
+          
+          # Activate venv
+          source torch_ttnn/cpp_extension/third-party/tt-metal/python_env/bin/activate
+          
+          echo "=== Uninstalling development installation ==="
+          # Remove BOTH torch-ttnn AND ttnn to simulate clean PyPI user environment
+          python3 -m pip uninstall -y torch-ttnn ttnn || true
+          
+          echo "=== Installing wheel with [pypi] extra ==="
+          # Install wheel WITH [pypi] extra to get ttnn from PyPI (replicates user experience)
+          WHEEL_FILE=$(ls -1 dist/*.whl | head -n 1)
+          echo "Installing: ${WHEEL_FILE}[pypi]"
+          python3 -m pip install "${WHEEL_FILE}[pypi]"
+          
+          echo "=== Verifying installation ==="
+          # Verify torch-ttnn is from wheel and ttnn is from PyPI
+          python3 -c "import torch_ttnn; print(f'✅ torch-ttnn from wheel: {torch_ttnn.__file__}')"
+          python3 -c "import ttnn; print(f'✅ ttnn from PyPI: {ttnn.__file__}')"
+          
+          echo "=== Running tests with wheel installation ==="
+          # Run tests again to verify wheel works exactly as PyPI users would experience
+          bash torch_ttnn/cpp_extension/run_cpp_extension_tests.sh
+          
+          echo "✅ Wheel verified - replicates PyPI user experience perfectly"
 
   tests-passed:
     if: ${{ always() }}
@@ -149,7 +190,7 @@ jobs:
     steps:
       - id: check
         run: |
-          cpp_tests_result="${{ needs.cpp-extension-tests.result}}"
+          cpp_tests_result="${{ needs.cpp-extension-tests.result }}"
           if [[ $cpp_tests_result == "success" || $cpp_tests_result == "skipped" ]]; then
             echo "didpass=0" >> $GITHUB_OUTPUT
             exit 0

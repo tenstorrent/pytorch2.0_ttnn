@@ -1,4 +1,7 @@
+# Note: This submodule tracks the tt-metal version matching the latest ttnn wheel.
+# The update-ttnn-wheel.yaml workflow automatically updates this to specific
+# tested versions when new ttnn releases are available.
 [submodule "torch_ttnn/cpp_extension/third-party/tt-metal"]
 	path = torch_ttnn/cpp_extension/third-party/tt-metal
 	url = https://github.com/tenstorrent/tt-metal
-	branch = v0.58.0-rc25
+	branch = v0.62.0-dev20250916

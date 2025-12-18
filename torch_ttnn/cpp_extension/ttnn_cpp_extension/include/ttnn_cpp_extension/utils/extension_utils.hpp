@@ -34,6 +34,14 @@ void doPrint(
         out << std::endl;
     }
 }
+
+// Compiler-portable filename macro
+// __FILE_NAME__ is a Clang extension (Clang 9+) and GCC 12+ feature
+// Fall back to __FILE__ for older compilers (GCC 11 and below)
+#ifndef __FILE_NAME__
+#define __FILE_NAME__ __FILE__
+#endif
+
 #define LOGGING(...) doPrint(std::cout, __FILE_NAME__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 inline ttnn::DataType dtype_torch_to_ttnn(at::ScalarType dtype) {
