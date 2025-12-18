@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from functools import partial
 from .to_tt_guard_autogen import *
+import torch
 
 ############################################################
 # EXTRA BLOCKLIST OF Whisper
@@ -100,10 +101,42 @@ aten_argmax_default_blocklist += [["Tensor<[1, 7]> self = ?", "Optional[int] dim
 # TODO: not pass yet
 
 ############################################################
+# GUARD FUNCTION FOR aten::clone WITH SymInt HANDLING
+############################################################
+# Custom guard for aten::clone to handle SymInt arguments
+# Whisper, GPTNeo, codegen, OPT, and other generative models pass SymInt
+# values (symbolic integers for dynamic shapes) to clone operations.
+# The TTNN backend cannot handle SymInt types, so we need to filter these out.
+def guard_aten_clone(node):
+    """
+    Guard function for aten::clone operations.
+    Returns False (do not lower to TTNN) if the first argument is a SymInt.
+    Returns True (safe to lower) if the argument is a proper Tensor.
+    """
+    if len(node.args) == 0:
+        return True
+    
+    first_arg = node.args[0]
+    
+    # Check if the argument is a SymInt (symbolic integer)
+    # SymInt appears when models have dynamic shapes during tracing
+    if isinstance(first_arg, torch.SymInt):
+        return False
+    
+    # Also check if it's a node that produces a SymInt
+    if hasattr(first_arg, 'meta') and 'val' in first_arg.meta:
+        meta_val = first_arg.meta['val']
+        if isinstance(meta_val, torch.SymInt):
+            return False
+    
+    return True
+
+############################################################
 
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
 GUARD[torch.ops.aten.stack.default] = partial(guard_aten, aten_aten_stack_default)
+GUARD[torch.ops.aten.clone.default] = guard_aten_clone
 
 
 def can_lowering_to_ttnn(node):
