@@ -87,7 +87,7 @@ class OpRegistry:
             return self.get_tensor_shape_and_dtype(node.all_input_nodes[0])
         else:
             # TODO: What if meta of nth output of the node is requested?
-            if isinstance(node.meta["val"], tuple):
+            if isinstance(node.meta["val"], (tuple, list)):
                 return (node.meta["val"][0].size(), node.meta["val"][0].dtype)
             else:
                 return (node.meta["val"].size(), node.meta["val"].dtype)

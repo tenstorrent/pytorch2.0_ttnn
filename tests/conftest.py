@@ -52,6 +52,11 @@ def pytest_addoption(parser):
         action="store_true",
         help="Use native device integration for ttnn. Note: this is not supported with data parallel.",
     )
+    parser.addoption(
+        "--disable_load_params_once",
+        action="store_true",
+        help="Disable LoadParamsOnce optimization.",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -127,6 +132,23 @@ def reset_torch_dynamo():
     # PyTorch caches models. Start a fresh compile for each parameter of the test case.
     torch._dynamo.reset()
     yield
+
+
+@pytest.fixture
+def disable_load_params_once():
+    """Fixture to disable load_params_once optimization in TorchTtnnOption.
+
+    When this fixture is requested in a test function, it disables the
+    load_params_once optimization. This can also be controlled via the
+    --disable_load_params_once command line option.
+
+    Example:
+        def test_my_model(device, disable_load_params_once):
+            # load_params_once will be disabled for this test
+            ...
+    """
+    logging.info("load_params_once optimization disabled via disable_load_params_once fixture")
+    return True
 
 
 @pytest.fixture(autouse=True)
@@ -254,6 +276,13 @@ def compile_and_run(device, reset_torch_dynamo, request):
             total_num_iterations = int(request.config.getoption("--report_nth_iteration"))
             native_integration = request.config.getoption("--native_integration")
 
+            # load_params_once conflicts with native integration
+            # It can be disabled via command line option or fixture
+            load_params_once_default = not native_integration
+            disable_via_cli = request.config.getoption("--disable_load_params_once")
+            disable_via_fixture = "disable_load_params_once" in request.fixturenames
+            load_params_once = load_params_once_default and not (disable_via_cli or disable_via_fixture)
+
             option = torch_ttnn.TorchTtnnOption(
                 device=device,
                 gen_graphviz=False,
@@ -263,7 +292,7 @@ def compile_and_run(device, reset_torch_dynamo, request):
                 export_code=export_code_opt,
                 total_num_iterations=total_num_iterations,
                 data_parallel=request.config.getoption("--data_parallel"),
-                load_params_once=not native_integration,  # load_params_once conflicts with native integration
+                load_params_once=load_params_once,
                 native_integration=native_integration,
             )
 
