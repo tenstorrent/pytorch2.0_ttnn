@@ -288,6 +288,8 @@ def _format_dict(obj):
     for k, v in obj.items():
         if (k == "device" and isinstance(v, torch.device)) or isinstance(v, str):
             v = f'"{v}"'
+        elif isinstance(v, str):  # Handle string values
+            v = f'"{v}"'
         to_kwargs.append(f"{k} = {v}")
     return ", ".join(to_kwargs)
 
