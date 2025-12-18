@@ -1006,6 +1006,23 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 else:
                     return None
 
+            if node.target == torch.ops.aten.sum.dim_IntList:
+                tensor, dims, keepdim = args
+
+                if (shape := get_shape(gm, tensor)) is not None:
+                    dims = (n if n >= 0 else len(shape) + n for n in dims)
+                    dims = [n for n in dims if shape[n] > 1]
+
+                if len(dims) == 0:
+                    return tensor
+
+                tensor = g.call_function(ttnn.sum, (tensor, dims))
+
+                if not keepdim:
+                    tensor = g.call_function(ttnn.squeeze, (tensor, dims))
+
+                return tensor
+
             if node.target == torch.ops.aten.select.int:
                 tensor, dim, start = args
 
