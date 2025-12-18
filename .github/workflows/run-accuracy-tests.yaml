@@ -16,9 +16,9 @@ on:
 permissions:
   actions: read
   contents: write
-  pages: read
+  pages: write
   id-token: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   count-test-files:
