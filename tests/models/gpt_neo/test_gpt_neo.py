@@ -36,13 +36,15 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.compilation_xfail
-def test_gpt_neo(record_property, mode):
+def test_gpt_neo(record_property, mode, cached_results):
     model_name = "GPTNeo"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
     if mode == "eval":
         gen_text = tester.tokenizer.batch_decode(results)[0]
 

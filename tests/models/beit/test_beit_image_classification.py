@@ -38,12 +38,14 @@ class ThisTester(ModelTester):
 @pytest.mark.skip(reason="https://github.com/tenstorrent/pytorch2.0_ttnn/issues/865")
 @pytest.mark.parametrize("mode", ["train", "eval"])
 @pytest.mark.parametrize("model_name", ["microsoft/beit-base-patch16-224", "microsoft/beit-large-patch16-224"])
-def test_beit_image_classification(record_property, model_name, mode):
+def test_beit_image_classification(record_property, model_name, mode, cached_results):
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         logits = results.logits

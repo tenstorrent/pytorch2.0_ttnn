@@ -48,13 +48,15 @@ AutoencoderTiny(
     ["train", "eval"],
 )
 @pytest.mark.skip(reason="PyTorch compilation flow cannot accept pipeline.")
-def test_autoencoder_conv(record_property, mode):
+def test_autoencoder_conv(record_property, mode, cached_results):
     model_name = "Autoencoder (convolutional)"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     if mode == "eval":
         image = results.images[0]

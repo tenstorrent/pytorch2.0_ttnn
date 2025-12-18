@@ -42,12 +42,14 @@ class ThisTester(ModelTester):
     ["eval"],
 )
 @pytest.mark.compilation_xfail
-def test_whisper(record_property, mode):
+def test_whisper(record_property, mode, cached_results):
     model_name = "Whisper"
     record_property("model_name", model_name)
     record_property("mode", mode)
 
     tester = ThisTester(model_name, mode)
-    results = tester.test_model()
+    results = cached_results
+    if results is None:
+        results = tester.test_model()
 
     record_property("torch_ttnn", (tester, results))
