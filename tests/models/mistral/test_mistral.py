@@ -42,7 +42,7 @@ class ThisTester(ModelTester):
     "batch_size",
     [32],
 )
-def test_mistral(record_property, mode, batch_size):
+def test_mistral(record_property, mode, batch_size, disable_load_params_once):
     model_name = "Mistral-7B-Instruct-v0.3"
     record_property("model_name", model_name)
     record_property("mode", mode)
