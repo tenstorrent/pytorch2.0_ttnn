@@ -1,8 +1,6 @@
 name: Create PR with Dependency Update
 
 on:
-  schedule:
-    - cron: '0 8 * * *'  # Runs at 08:00 UTC every day
   workflow_dispatch:  # Manual trigger
 jobs:
   fetch-release-and-create-pr:

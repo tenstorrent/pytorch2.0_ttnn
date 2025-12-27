@@ -1,8 +1,6 @@
 name: Create PR with README and Docs update
 
 on:
-  schedule:
-    - cron: '0 8 * * 0'  # Runs at 08:00 UTC every Sunday
   workflow_dispatch:  # Manual trigger
 
 jobs:
