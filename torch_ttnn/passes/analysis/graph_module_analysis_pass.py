@@ -10,7 +10,7 @@ class ModelType(Enum):
     """Enumeration of model types differentiating between inference and training, forward and backward.
 
     :param INFERENCE: Model with this tag is for the forward pass of inference.
-    :param TRAIN_FORWARD: Model wih this tag is for the forward pass of a training run.
+    :param TRAIN_FORWARD: Model with this tag is for the forward pass of a training run.
     :param TRAIN_BACKWARD: Model with this tag is for the backward pass of a training run.
     """
 

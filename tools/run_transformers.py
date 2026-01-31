@@ -76,7 +76,7 @@ def run_model(
         )
         m = torch.compile(m, backend=torch_stat.backend(option))
     else:
-        assert 0 and "Unsupport backend"
+        assert 0 and "Unsupported backend"
 
     if model.model_task == AutoModelForQuestionAnswering:
         inputs = tokenizer.encode_plus(

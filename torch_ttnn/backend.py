@@ -127,7 +127,7 @@ def aten_backend(
 
     # Save the number of aten ops before compilation
     if option.metrics_path:
-        # do constant folding for consistency of input varation
+        # do constant folding for consistency of input variation
         from torch.fx.passes.infra.pass_manager import PassManager
         from torch_ttnn.passes.constant_folding_pass import ConstantFoldingPass
 

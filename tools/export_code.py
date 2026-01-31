@@ -482,10 +482,10 @@ def _reformat_inputs(all_inputs):
     """
 
     for inputs in all_inputs:
-        for i, inpt in enumerate(inputs):
-            if isinstance(inpt, torch.SymInt):
-                assert inpt.node.has_hint()
-                inputs[i] = torch.tensor(inpt.node.hint)
+        for i, input in enumerate(inputs):
+            if isinstance(input, torch.SymInt):
+                assert input.node.has_hint()
+                inputs[i] = torch.tensor(input.node.hint)
 
     return all_inputs
 
@@ -518,7 +518,7 @@ def generate_flat_args(gm, example_inputs):
 
 def _save_to_disk(model_name, forward_codes, call_forwards_in_main, all_inputs, torch_ttnn_option):
     """
-    Generate standlone a python script along with an input file containing
+    Generate standalone a python script along with an input file containing
     data for weights, biases, and inputs for a model run.
 
     Args:

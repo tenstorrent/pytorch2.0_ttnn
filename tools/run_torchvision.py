@@ -50,7 +50,7 @@ def run_model(
         )
         m = torch.compile(m, backend=torch_stat.backend(option))
     else:
-        assert 0 and "Unsupport backend"
+        assert 0 and "Unsupported backend"
 
     inputs = [torch.randn([1, 3, 224, 224])]
 

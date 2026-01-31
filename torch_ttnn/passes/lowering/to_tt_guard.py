@@ -30,9 +30,9 @@ from .to_tt_guard_autogen import *
 # EXTRA BLOCKLIST OF codegen
 ############################################################
 # ttnn.from_torch(torch.tensor(False)) => ttnn.gt
-# ttnn.from_torch not support sclar of bool dtype
+# ttnn.from_torch not support scalar of bool dtype
 # RuntimeError: TT_FATAL @ tensor/types.cpp:209: normalized_index >= 0 and normalized_index < rank
-# not lowering ttnn.gt to avoid ttnn.from_torch of sclar of bool dtype
+# not lowering ttnn.gt to avoid ttnn.from_torch of scalar of bool dtype
 aten_gt_Scalar_blocklist = [["Tensor<[]> self = ?", "number other = 0"]]
 
 # torch._dynamo.exc.BackendCompilerFailed: backend='ttnn_backend' raised:

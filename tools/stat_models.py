@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     models = ["dinov2_vits14", "alexnet", "googlenet", "resnet18", "vgg11"]
     if args.model_more:
-        # There have some weired bug if squentially run the model seems because of torch.SymInt
+        # There have some weird bug if squentially run the model seems because of torch.SymInt
         # torch._dynamo.exc.TorchRuntimeError:
         # Failed running call_function
         # <built-in method tensor of type object at 0x7f0ff3bff9e0>(*(0.00125*s9,), **{}):
