@@ -643,9 +643,23 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
             if node.target == torch.ops.aten.eq.Tensor:
                 # Combine this with relational_scalar_ops
-                if np.prod(args[1].meta["val"].size()) != 1:
+                # Only convert if second arg is a tensor (not scalar)
+                arg1_shape = get_shape(gm, args[1])
+                if arg1_shape is not None and np.prod(arg1_shape) != 1:
                     return g.call_function(
                         ttnn.eq,
+                        args=args,
+                        kwargs={},
+                    )
+                return None
+ 
+            if node.target == torch.ops.aten.le.Tensor:
+                # Combine this with relational_scalar_ops
+                # Only convert if second arg is a tensor (not scalar)
+                arg1_shape = get_shape(gm, args[1])
+                if arg1_shape is not None and np.prod(arg1_shape) != 1:
+                    return g.call_function(
+                        ttnn.le,
                         args=args,
                         kwargs={},
                     )
@@ -935,9 +949,10 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
                 src_dtype, dst_dtype = node.args[0].meta["val"].dtype, kwargs["dtype"]
 
-                # casting to bool type is equivalent to checking if the value is not 0
+                # casting to bool type is equivalent to logical_not(logical_not(x))
                 if dst_dtype == torch.bool:
-                    return g.call_function(ttnn.ne, args=(args[0], 0))
+                    logical_not_1 = g.call_function(ttnn.logical_not, args=(args[0],))
+                    return g.call_function(ttnn.logical_not, args=(logical_not_1, ))
 
                 try:
                     ttnn_dtype = torch_dtype_to_ttnn_dtype(dst_dtype)
@@ -1351,6 +1366,25 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                 cast_to_int32 = g.call_function(ttnn.typecast, args=(args[0], TtnnInt32()))
                 return g.call_function(ttnn.bitwise_not, args=(cast_to_int32,))
 
+            if node.target == torch.ops.aten.bitwise_and.Tensor:
+                input0_type = get_dtype(args[0])
+                input1_type = get_dtype(args[1])
+                
+                # For boolean tensors, bitwise_and is equivalent to logical_and
+                if input0_type == torch.bool and input1_type == torch.bool:
+                    return g.call_function(ttnn.logical_and, args=(args[0], args[1]))
+                
+                # For integer tensors, use ttnn.bitwise_and
+                # ttnn.bitwise_and requires int32 dtype
+                arg0 = args[0]
+                arg1 = args[1]
+                if input0_type not in [torch.int32]:
+                    arg0 = g.call_function(ttnn.typecast, args=(arg0, TtnnInt32()))
+                if input1_type not in [torch.int32]:
+                    arg1 = g.call_function(ttnn.typecast, args=(arg1, TtnnInt32()))
+                
+                return g.call_function(ttnn.bitwise_and, args=(arg0, arg1))
+
             if node.target == torch.ops.aten.all.default:
                 input_shape = get_shape(gm, args[0])
                 ttnn_all = g.call_function(target_wrappers.all, args=(args[0], input_shape.numel()))
@@ -1613,6 +1647,21 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
         new_kwargs["dtype"] = node.meta["val"].dtype
         return g.call_function(torch.ops.aten.zeros.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
 
+    if node.target == torch.ops.aten.new_ones.default:
+        target_shape = args[1]
+        new_kwargs = dict(kwargs)
+        # Use the inferred output dtype so we don't need to figure out the dtype by ourselves
+        new_kwargs["dtype"] = node.meta["val"].dtype
+        return g.call_function(torch.ops.aten.ones.default, args=(target_shape, *args[2:]), kwargs=new_kwargs)
+
+    if node.target == torch.ops.aten.scalar_tensor.default:
+        # scalar_tensor creates a 0-D tensor from a scalar
+        # Decompose to: full with empty shape []
+        scalar_value = args[0]
+        new_kwargs = dict(kwargs)
+        # Shape is [] for 0-D tensor
+        return g.call_function(torch.ops.aten.full.default, args=([], scalar_value), kwargs=new_kwargs)
+
     if node.target == torch.ops.aten._log_softmax.default:
         dim, half_to_float = get_arg(node, 1, "dim"), get_arg(node, 2, "half_to_float")
         softmax = g.call_function(torch.ops.aten._softmax.default, args=(args[0], dim, half_to_float))
@@ -1639,14 +1688,105 @@ def decompose_aten_to_aten_ops(gm: torch.fx.GraphModule, g: GraphWrapper, node):
     if node.target in [torch.ops.aten.index.Tensor, torch.ops.aten._unsafe_index.Tensor]:
         input_shape = get_shape(gm, args[0])
         indices = get_arg(node, 1, "indices")
-        if len(input_shape) == 2 and len(indices) == 1 and indices[0] is not None:
+        output_shape = get_shape(gm, node)
+
+        # Handle 1D tensor with 1 non-None index
+        if len(input_shape) == 1 and len(indices) == 1 and indices[0] is not None:
+            # For 1D indexing, reshape to 2D, use embedding, then reshape back
+            # This avoids circular dependency with index_select
+            input_dtype = get_dtype(args[0])
+
+            # Reshape 1D to 2D: [N] -> [N, 1]
+            reshaped = g.call_function(torch.ops.aten.view.default, args=(args[0], [input_shape[0], 1]))
+
+            # Apply embedding with dtype handling
+            if input_dtype in [torch.float32, torch.bfloat16, torch.float16]:
+                embedded = g.call_function(torch.ops.aten.embedding.default, args=(reshaped, indices[0]))
+            elif input_dtype in [torch.bool, torch.int32, torch.int64]:
+                to_float = g.call_function(torch.ops.aten._to_copy.default, args=(reshaped,), kwargs={"dtype": torch.bfloat16})
+                embedded = g.call_function(torch.ops.aten.embedding.default, args=(to_float, indices[0]))
+                embedded = g.call_function(torch.ops.aten._to_copy.default, args=(embedded,), kwargs={"dtype": input_dtype})
+            else:
+                return None
+
+            # Squeeze back to correct shape: [K, 1] -> [K]
+            squeezed = g.call_function(torch.ops.aten.squeeze.dim, args=(embedded, -1))
+            return squeezed
+
+        # Handle 2D tensor with 2 non-None indices
+        if len(input_shape) == 2 and len(indices) == 2 and indices[0] is not None and indices[1] is not None:
+            # Get shapes of indices
+            idx0_shape = get_shape(gm, indices[0])
+            idx1_shape = get_shape(gm, indices[1])
+            
+            if idx0_shape is None or idx1_shape is None:
+                return None
+            
+            input_dtype = get_dtype(args[0])
+            if input_dtype not in [torch.float32, torch.bfloat16, torch.float16, torch.bool, torch.int32, torch.int64]:
+                return None
+            
+            B, N = input_shape[0], input_shape[1]
+            
+            # Pattern: tensor[B, N].index([idx0[B, 1], idx1[N]]) -> [B, N]
+            # Semantics: result[i, j] = tensor[idx0[i, 0], idx1[j]]
+            # Common case (e.g. casual mask): idx0 = [[0],[1],...,[B-1]] (diagonal)
+            #   then result[i, j] = tensor[i, idx1[j]] — per-row column selection by idx1.
+            #
+            # Decomposition (transpose trick): embedding only selects rows. We need to
+            # select columns (dim 1). Transpose makes columns into rows, then transpose back.
+            #   1. Transpose [B, N] -> [N, B]  (columns of input become rows)
+            #   2. embedding([N, B], idx1) -> [len(idx1), B]  (select rows = original columns)
+            #   3. Transpose [len(idx1), B] -> [B, len(idx1)]  (restore [batch, selected_cols])
+            # If len(idx1) == N, output is [B, N]. Bool/int: convert to bfloat16 before
+            # embedding, then convert back (see below).
+            
+            # Step 1: Transpose [B, N] -> [N, B]
+            transposed = g.call_function(torch.ops.aten.transpose.int, args=(args[0], 0, 1))
+            
+            # Step 2-4: Apply embedding with dtype conversion if needed
+            if input_dtype in [torch.float32, torch.bfloat16, torch.float16]:
+                # embedding(weights[N, B], indices[N or len(idx1)]) -> [len(idx1), B]
+                embedded = g.call_function(torch.ops.aten.embedding.default, args=(transposed, indices[1]))
+            elif input_dtype in [torch.bool, torch.int32, torch.int64]:
+                # Convert to bfloat16, embed, convert back
+                to_float = g.call_function(torch.ops.aten._to_copy.default, args=(transposed,), kwargs={"dtype": torch.bfloat16})
+                embedded = g.call_function(torch.ops.aten.embedding.default, args=(to_float, indices[1]))
+                embedded = g.call_function(torch.ops.aten._to_copy.default, args=(embedded,), kwargs={"dtype": input_dtype})
+            else:
+                return None
+            
+            # Step 5: Transpose back [len(idx1), B] -> [B, len(idx1)]
+            result = g.call_function(torch.ops.aten.transpose.int, args=(embedded, 0, 1))
+            
+            # Step 6: Reshape to output shape if needed
+            if output_shape is not None and list(get_shape(gm, result)) != list(output_shape):
+                return g.call_function(torch.ops.aten.view.default, args=(result, list(output_shape)))
+            
+            return result
+
+        # Handle 2D tensor with 1 non-None index
+        elif len(input_shape) == 2 and len(indices) == 1 and indices[0] is not None:
             index_shape = get_shape(gm, indices[0])
             # magic number, 38000 can pass, 39000 can pass, but 38809 will hang
             # and if device is just ttnn.open_device(device=0), then it can pass
             # see issue #685
             if index_shape == torch.Size([38809]):
                 return None
-            return g.call_function(torch.ops.aten.embedding.default, args=(args[0], indices[0]))
+
+            # For 2D tensor with 1 index, convert to embedding (works well for all dtypes)
+            input_dtype = get_dtype(args[0])
+            if input_dtype in [torch.float32, torch.bfloat16, torch.float16]:
+                return g.call_function(torch.ops.aten.embedding.default, args=(args[0], indices[0]))
+            elif input_dtype in [torch.bool, torch.int32, torch.int64]:
+                # For bool/int: convert → embedding → convert back
+                to_float = g.call_function(torch.ops.aten._to_copy.default, args=(args[0],), kwargs={"dtype": torch.bfloat16})
+                embedded = g.call_function(torch.ops.aten.embedding.default, args=(to_float, indices[0]))
+                to_original = g.call_function(torch.ops.aten._to_copy.default, args=(embedded,), kwargs={"dtype": input_dtype})
+                return to_original
+            return None
+
+        # Handle 4D tensor with specific None patterns
         elif (
             len(input_shape) == 4
             and len(indices) == 3
