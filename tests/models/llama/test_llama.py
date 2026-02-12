@@ -16,6 +16,7 @@ class LlamaModelModule(torch.nn.Module):
     def forward(self, input_ids, attention_mask):
         return self.model(input_ids=input_ids, attention_mask=attention_mask).logits
 
+
 class ThisTester(ModelTester):
     def _load_model(self):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, torch_dtype=torch.bfloat16)
@@ -40,7 +41,6 @@ class ThisTester(ModelTester):
         return inputs
 
 
-
 @pytest.mark.parametrize(
     "mode",
     ["eval"],
@@ -51,15 +51,9 @@ class ThisTester(ModelTester):
 )
 @pytest.mark.parametrize(
     "model_name",
-    [
-        "huggyllama/llama-7b",
-        "meta-llama/Llama-3.2-1B",
-        "meta-llama/Llama-3.2-3B",
-        "meta-llama/Llama-3.1-8B"
-    ],
+    ["huggyllama/llama-7b", "meta-llama/Llama-3.2-1B", "meta-llama/Llama-3.2-3B", "meta-llama/Llama-3.1-8B"],
 )
 def test_llama(record_property, mode, batch_size, model_name, disable_load_params_once):
-
     record_property("model_name", model_name)
     record_property("mode", mode)
 

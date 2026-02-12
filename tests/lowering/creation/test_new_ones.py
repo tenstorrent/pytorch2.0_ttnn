@@ -32,7 +32,7 @@ class NewOnesModule(torch.nn.Module):
 def test_new_ones(device, input_shape, new_size, dtype):
     m = NewOnesModule(new_size, dtype)
     input_tensor = torch.randn(input_shape)
-    
+
     result_before = m.forward(input_tensor)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
@@ -44,7 +44,7 @@ def test_new_ones(device, input_shape, new_size, dtype):
     # Check the graph has been rewritten and doesn't contain aten.new_ones
     nodes = list(option._out_fx_graphs[0].nodes)
     node_targets = [node.target for node in nodes]
-    
+
     # Should not have aten.new_ones, should have been decomposed
     assert torch.ops.aten.new_ones.default not in node_targets
 

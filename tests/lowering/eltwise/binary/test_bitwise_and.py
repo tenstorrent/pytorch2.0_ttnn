@@ -27,12 +27,12 @@ class BitwiseAndModule(torch.nn.Module):
 )
 def test_bitwise_and(device, input_shapes, dtype):
     m = BitwiseAndModule()
-    
+
     if dtype == torch.bool:
         inputs = [torch.randint(0, 2, shape, dtype=dtype) for shape in input_shapes]
     else:
         inputs = [torch.randint(-100, 100, shape, dtype=dtype) for shape in input_shapes]
-    
+
     result_before = m.forward(*inputs)
     option = torch_ttnn.TorchTtnnOption(device=device)
     option.gen_graphviz = True
@@ -44,7 +44,7 @@ def test_bitwise_and(device, input_shapes, dtype):
     # Check the graph has been rewritten and contain ttnn ops
     nodes = list(option._out_fx_graphs[0].nodes)
     node_targets = [node.target for node in nodes]
-    
+
     # Should have either ttnn.logical_and (for bool) or ttnn.bitwise_and (for int)
     assert node_targets.count(ttnn.logical_and) + node_targets.count(ttnn.bitwise_and) >= 1
 

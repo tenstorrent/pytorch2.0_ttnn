@@ -51,6 +51,7 @@ class CopyViewModule(torch.nn.Module):
         attention_mask_copy = attention_mask.to(dtype=torch.bool)
         return attention_mask_copy.view((1, 1, self.seq_len))
 
+
 def test_copy_view_llama(device):
     seq_len = 10
     m = CopyViewModule(seq_len=seq_len)
