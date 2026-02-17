@@ -16,7 +16,9 @@ class ThisTester(ModelTester):
         # Download model from cloud
         model_name = "mistralai/Mistral-7B-Instruct-v0.3"
         self.tokenizer = AutoTokenizer.from_pretrained(
-            model_name, padding_side="left", torch_dtype=torch.bfloat16
+            model_name,
+            padding_side="left",
+            torch_dtype=torch.bfloat16,
         )
         self.tokenizer.pad_token = self.tokenizer.eos_token
         m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
@@ -62,10 +64,12 @@ def test_mistral(record_property, mode, batch_size, disable_load_params_once):
 
         decoded_output = decode_output(results)
 
-        print(f"""
+        print(
+            f"""
         model_name: {model_name}
         input: {tester.test_input}
         output: {decoded_output}
-        """)
+        """
+        )
 
     record_property("torch_ttnn", (tester, results))
