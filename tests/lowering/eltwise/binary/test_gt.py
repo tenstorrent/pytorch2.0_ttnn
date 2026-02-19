@@ -6,6 +6,7 @@ import torch_ttnn
 import pytest
 import ttnn
 from tests.utils import assert_with_pcc
+from torch_ttnn.passes.lowering.to_tt_pass import ReplaceMoreTtManually
 
 
 class GtModule(torch.nn.Module):
@@ -59,3 +60,22 @@ def test_gt_scalar(device, input_shape):
 
     # Check inference result
     assert torch.allclose(result_before, result_after.to(torch.bool))
+
+
+def test_gt_missing_meta_val_does_not_crash(device):
+    g = torch.fx.Graph()
+    x = g.placeholder("x")
+    y = g.placeholder("y")
+    gt_node = g.call_function(torch.ops.aten.gt.Tensor, (x, y))
+    g.output(gt_node)
+
+    gm = torch.fx.GraphModule({}, g)
+    x.meta["val"] = torch.empty(2, 2)
+    # Intentionally leave y.meta["val"] unset to simulate missing metadata
+
+    gm, modified = ReplaceMoreTtManually(gm, device, use_less_ttnn_op_types=False)
+    nodes = [node.target for node in gm.graph.nodes]
+
+    assert not modified
+    assert torch.ops.aten.gt.Tensor in nodes
+    assert ttnn.gt not in nodes
