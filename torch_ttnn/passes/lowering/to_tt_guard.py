@@ -100,17 +100,10 @@ aten_argmax_default_blocklist += [["Tensor<[1, 7]> self = ?", "Optional[int] dim
 # TODO: not pass yet
 
 ############################################################
-# EXTRA BLOCKLIST OF Mistral-7B-Instruct-v0.3
-############################################################
-# For very large tensors, the operation may exceed memory limits
-aten__to_copy_default_blocklist = [
-    ["Tensor<[32, 32, 32768]> self = ?", "Optional[int] dtype = torch.float32"],
-]
 
 GUARD[torch.ops.aten.gt.Scalar] = partial(guard_aten, aten_gt_Scalar_blocklist)
 GUARD[torch.ops.aten.cumsum.default] = partial(guard_aten, aten_cumsum_default_blocklist)
 GUARD[torch.ops.aten.stack.default] = partial(guard_aten, aten_aten_stack_default)
-GUARD[torch.ops.aten._to_copy.default] = partial(guard_aten, aten__to_copy_default_blocklist)
 
 
 def can_lowering_to_ttnn(node):
