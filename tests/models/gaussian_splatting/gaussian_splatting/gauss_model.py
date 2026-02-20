@@ -78,7 +78,7 @@ class GaussModel(nn.Module):
 
     def create_from_pcd(self, pcd: PointCloud):
         """
-        create the guassian model from a color point cloud
+        create the gaussian model from a color point cloud
         """
         points = pcd.coords
         colors = pcd.select_channels(["R", "G", "B"]) / 255.0

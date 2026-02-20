@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 """
-Definition of the pydantic models used to descibe the run of a model.
+Definition of the pydantic models used to describe the run of a model.
 """
 
 

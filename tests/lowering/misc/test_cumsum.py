@@ -33,12 +33,12 @@ class CumsumModule(torch.nn.Module):
         pytest.param(
             (1, 1, 32, 32),
             3,
-            marks=pytest.mark.xfail(reson="inner-most 2 dims are not supported (#367)"),
+            marks=pytest.mark.xfail(reason="inner-most 2 dims are not supported (#367)"),
         ),
         pytest.param(
             (1, 23, 40),
             2,
-            marks=pytest.mark.xfail(reson="inner-most 2 dims are not supported (#367)"),
+            marks=pytest.mark.xfail(reason="inner-most 2 dims are not supported (#367)"),
         ),
     ],
 )

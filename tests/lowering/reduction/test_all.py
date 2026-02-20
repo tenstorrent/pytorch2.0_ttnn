@@ -17,7 +17,7 @@ class AllModule(torch.nn.Module):
         return torch.all(input)
 
 
-@pytest.mark.xfail(reason="Knwon low PCC issue (tt-metal#15824)")
+@pytest.mark.xfail(reason="Known low PCC issue (tt-metal#15824)")
 @pytest.mark.parametrize(
     "input_shape",
     [

@@ -211,7 +211,7 @@ def plot_img_boxes(
         if (img < 1.01).all() and (img >= 0).all():
             img = img.clip(0, 1)  # avoid "Clipping input data to the valid range" warning after tensor roundings
     else:
-        raise (f"Unkown type for image: {type(img)}")
+        raise (f"Unknown type for image: {type(img)}")
 
     if len(boxes) > 0 and not real_pixels:
         boxes[:, 0] *= width

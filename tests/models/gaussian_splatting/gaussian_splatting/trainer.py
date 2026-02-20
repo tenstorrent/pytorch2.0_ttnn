@@ -134,10 +134,10 @@ class Trainer(object):
             self.accelerator.scaler.load_state_dict(data["scaler"])
 
     def on_train_step(self):
-        raise NotImplementedError("not implemeted")
+        raise NotImplementedError("not implemented")
 
     def on_evaluate_step(self):
-        raise NotImplementedError("not implemeted")
+        raise NotImplementedError("not implemented")
 
     def train(self):
         accelerator = self.accelerator

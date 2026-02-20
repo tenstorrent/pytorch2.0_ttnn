@@ -675,7 +675,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
 
             if node.target == torch.ops.aten.baddbmm.default:
                 # out = beta * input + alpha * (batch1 @ batch2)
-                # if beta is 0, input is ignored, and nan and inf in it will not be propogated
+                # if beta is 0, input is ignored, and nan and inf in it will not be propagated
                 new_node = g.call_function(ttnn.matmul, args=(args[1], args[2]))
                 alpha = kwargs.get("alpha", 1)
                 beta = kwargs.get("beta", 1)
@@ -1581,7 +1581,7 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                         slice_start = [0] * len(output_shape)
                         slice_end = output_shape
                         res_node = g.call_function(ttnn.slice, (res_node, slice_start, slice_end))
-                        # Propogate metadata
+                        # Propagate metadata
                         res_node.meta["val"] = output_meta_val
 
                     return res_node

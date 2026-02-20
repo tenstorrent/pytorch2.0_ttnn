@@ -20,7 +20,7 @@ check_ubuntu_version_at_least(24 IS_UBUNTU_GE_24)
 message(STATUS "Ubuntu version > 24: ${IS_UBUNTU_GE_24}")
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-# NOTE: ttnn reauires to downrade python version to 3.10, which break find_package
+# NOTE: ttnn reauires to downgrade python version to 3.10, which break find_package
 # TODO: Remove this once ttnn is updated to support python 3.12+
 if (IS_UBUNTU_GE_24)
     include(find_python_workaround_ubuntu24)

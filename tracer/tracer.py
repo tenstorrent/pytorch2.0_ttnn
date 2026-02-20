@@ -103,6 +103,6 @@ class Tracer:
                 output = get_tensor_info(outputs_info)
                 node_info["outputs"].append(output)
             else:
-                assert 0 and "unsupport outputs_info"
+                assert 0 and "unsupported outputs_info"
             out.append(node_info)
         return out

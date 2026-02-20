@@ -58,7 +58,7 @@ def parse_fx_stat(gm: torch.fx.GraphModule, example_inputs, out_file):
             output = get_tensor_info(outputs_info)
             node_info["outputs"].append(output)
         else:
-            assert 0 and "unsupport outputs_info"
+            assert 0 and "unsupported outputs_info"
         out.append(node_info)
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
 

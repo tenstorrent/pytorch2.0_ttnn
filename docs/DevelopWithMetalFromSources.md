@@ -42,7 +42,7 @@ In [2]: print(ttnn.__file__)
 
 ## Run tests
 At this stage Python can see `ttnn` package, but not `torch_ttnn`. So we need to update `PYTHONPATH` to include both tt-metal and pytorch2.0_ttnn folders.
-```consle
+```console
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 echo $PYTHONPATH
 ```

@@ -16,7 +16,7 @@ class SumModule(torch.nn.Module):
         return torch.ops.aten.sum.default(tensor)
 
 
-@pytest.mark.xfail(reason="Knwon precision issue (#499)")
+@pytest.mark.xfail(reason="Known precision issue (#499)")
 @pytest.mark.parametrize(
     "input_shapes",
     [
@@ -61,7 +61,7 @@ class EqSumModule(torch.nn.Module):
         (1, 32, 32),
         pytest.param(
             (1, 7),
-            marks=pytest.mark.xfail(reason="Knwon precision issue#499"),
+            marks=pytest.mark.xfail(reason="Known precision issue#499"),
         ),
     ],
 )
