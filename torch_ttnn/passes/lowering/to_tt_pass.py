@@ -665,6 +665,17 @@ def ReplaceMoreTtManually(gm: torch.fx.GraphModule, device, use_less_ttnn_op_typ
                     )
                 return None
 
+            if node.target == torch.ops.aten.gt.Tensor:
+                # Combine this with relational_scalar_ops
+                arg1_shape = get_shape(gm, args[1])
+                if arg1_shape is not None and np.prod(arg1_shape) != 1:
+                    return g.call_function(
+                        ttnn.gt,
+                        args=args,
+                        kwargs={},
+                    )
+                return None
+
             if node.target == torch.ops.aten.full.default:
                 new_kwargs = {
                     "fill_value": args[1],
