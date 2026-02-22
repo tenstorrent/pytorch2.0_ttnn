@@ -40,3 +40,32 @@ def test_clone_from_arg(device, input_shapes):
     assert [node.target for node in nodes].count(torch.ops.aten.copy.default) == 0
     # Check inference result
     assert torch.allclose(result_before, result_after)
+
+
+class CopyViewModule(torch.nn.Module):
+    def __init__(self, seq_len=32):
+        super().__init__()
+        self.seq_len = seq_len
+
+    def forward(self, attention_mask):
+        attention_mask_copy = attention_mask.to(dtype=torch.bool)
+        return attention_mask_copy.view((1, 1, self.seq_len))
+
+
+def test_copy_view_llama(device):
+    seq_len = 10
+    m = CopyViewModule(seq_len=seq_len)
+    attention_mask = torch.ones((1, seq_len), dtype=torch.int64)
+    attention_mask[:, 5:] = 0
+
+    inputs = [attention_mask]
+    result_before = m.forward(*inputs)
+
+    option = torch_ttnn.TorchTtnnOption(device=device)
+    m = torch.compile(m, backend=torch_ttnn.backend, options=option)
+    result_after = m.forward(*inputs)
+
+    nodes = list(option._out_fx_graphs[0].nodes)
+    assert [node.target for node in nodes].count(torch.ops.aten.copy.default) == 0
+
+    assert torch.allclose(result_before, result_after)

@@ -84,6 +84,7 @@ TTNN_POINTWISE_UNARY_OPS = [
 TTNN_POINTWISE_BINARY_OPS = [
     ttnn.add,
     ttnn.atan2,
+    ttnn.bitwise_and,
     ttnn.div,
     ttnn.eqz,
     ttnn.floor_div,
