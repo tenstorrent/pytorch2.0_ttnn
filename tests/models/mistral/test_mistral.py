@@ -21,7 +21,11 @@ class ThisTester(ModelTester):
             torch_dtype=torch.bfloat16,
         )
         self.tokenizer.pad_token = self.tokenizer.eos_token
-        m = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+        m = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.bfloat16,
+            low_cpu_mem_usage=True,
+        )
         return m
 
     def _load_inputs(self, batch_size):
