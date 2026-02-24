@@ -15,6 +15,7 @@ def setup_module(module):
 
 def teardown_module(module):
     subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "transformers==4.42.4"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--force-reinstall", "transformers==4.53.0"])
 
 
 class ThisTester(ModelTester):
