@@ -274,3 +274,6 @@ If you have questions or need help getting started, please:
 3. Ask on [Discord](https://discord.gg/tenstorrent)
 4. Open an issue on GitHub
 
+If your test includes not only Python test functions but also binary files, such as model objects or images, make sure to commit the binary files using Git LFS.
+
+It also means you need to install Git LFS to run such tests successfully.
