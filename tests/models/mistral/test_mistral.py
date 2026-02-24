@@ -8,17 +8,20 @@ import sys
 
 from tests.utils import ModelTester, repeat_inputs
 
+
 def setup_module(module):
     subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers==4.42.4"])
 
+
 def teardown_module(module):
     subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "transformers==4.42.4"])
+
 
 class ThisTester(ModelTester):
     def _load_model(self):
         # Load model directly
         from transformers import AutoTokenizer, AutoModelForCausalLM
-        
+
         # Download model from cloud
         model_name = "mistralai/Mistral-7B-Instruct-v0.3"
         self.tokenizer = AutoTokenizer.from_pretrained(
