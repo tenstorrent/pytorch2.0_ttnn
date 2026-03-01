@@ -191,6 +191,11 @@ def move_to_host(device_tensor, layout):
     return ttnn.from_device(device_tensor)
 
 
+def _should_use_dram_for_conv2d(kernel_shape):
+    # Work around 3x3 conv2d selecting an unusable L1 small config.
+    return len(kernel_shape) == 2 and tuple(kernel_shape) == (3, 3)
+
+
 @target_wrapper
 @torch.fx.wrap
 def conv(
@@ -253,7 +258,7 @@ def conv(
             )
         else:
             assert output_padding is None, "conv2d has no output padding"
-            return ttnn.conv2d(
+            conv2d_kwargs = dict(
                 input_tensor=input_tensor,
                 weight_tensor=weight_tensor,
                 bias_tensor=bias_tensor,
@@ -270,6 +275,9 @@ def conv(
                 device=device,
                 return_weights_and_bias=return_weights_and_bias,
             )
+            if _should_use_dram_for_conv2d(kernel_spatial_shape):
+                conv2d_kwargs["memory_config"] = ttnn.DRAM_MEMORY_CONFIG
+            return ttnn.conv2d(**conv2d_kwargs)
     assert False, "unsupported conv shape"
 
 
